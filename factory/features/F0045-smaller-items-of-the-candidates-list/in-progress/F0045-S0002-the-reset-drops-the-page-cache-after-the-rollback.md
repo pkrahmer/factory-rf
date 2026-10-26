@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-26T20:06:25.122050Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-10-26T20:06:25.122050Z'
   stage: docs
+- number: 32
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T20:07:37.452207Z'
+  stage: docs
+  run: 96c63047c4794767ae41dd81e10ac0f7
 ---
 
 # The reset drops the page cache after the rollback
@@ -538,3 +540,18 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     Notes:
     - tests/adapters/test_zfs_snapshots_drop_caches.py `_shell_zfs`: it writes the same kind of `sh` stand-in, one that appends `"$*"` to a record file, as the `sudo_stand_in` fixture in `tests/conftest.py`. One shared writer of `sh` recorders in `tests/` could serve both, and `write_drop` in `tests/zfs_support.py` as well.
 31. factory: started docs as vm.
+32. documenter: Round 1, docs. Nothing of the docs criterion had been written yet. I read the story, the diff (`src/factory/adapters/zfs_snapshots.py`, `src/factory/entry/wiring.py`, `vm/setup.sh`, the tests) and the three documents. I found no finding for the coder: the code matches the Interface and the criteria. I wrote only documents, so I did not run `make check`. `make documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The script*: new step 8 `caches` in the numbered list (the two files, written on every run with or without `--sudoers`, the `visudo` refusal). The steps after it are renumbered 9 to 14, and the two references that depended on the numbers now read "step 11" (the checkout) and "steps 1 to 10 report `found`". New section "The page cache after a rollback" (the `mmap` cause, the drop after every reset, the drop being machine-wide, what a failed drop does, and that a hand-made `vm` is found unchanged). In *What it is*, the sentence on `factory`'s `sudo` rights now names the cache helper as well as the `--sudoers` `zfs` commands.
+    - `docs/project-guide/stage-environment.md`, *The ZFS adapter*: the constructor with `drop_caches`, `DROP_CACHES_COMMAND` and who wires it; the `reset()` row (the rollback, then the drop); the drop's fault form under *Faults*; the drop stand-in under *The stand-in*; the `snapshots` row of the wiring table.
+    - `docs/decisions.md`: new entry "The reset drops the page cache after the rollback" (F0045-S0002). I wrote it from the work item's Description, because I did not read `feature.md`. So it cites decisions 15 and 16 by number with the rejected options as the Description gives them, not in the decisions' own words. I rejected, in the entry, a check of content against git's stat cache in the sync (decision 16) and keeping the `FACTORY_ZFS` wrapper.
+    - `README.md`: none, as the criterion says.
+
+    Cross-read and found current against the diff: `README.md`, `docs/project-guide/README.md`, the rest of `stage-environment.md` (the preflight items, the settings table, `FACTORY_ZFS`) and the `--sudoers` section of the operator guide.
+
+    Stale text I saw and left alone: none. The `diff -FH` rule text in the `sudoers` fallback section is unchanged and still true.
+
+    `check`: check: green (not run again: passed on tree 1df2351925fe at 2026-10-26T20:01:53Z)
+    `secrets`: secrets: green (2.3 s)
+    `documents`: documents ok

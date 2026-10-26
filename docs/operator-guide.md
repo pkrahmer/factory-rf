@@ -331,7 +331,7 @@ One host, one dataset, one throwaway container for each step of a stage.
 - **The dataset** is the ZFS dataset `<pool>/factory/<instance>`, mounted at `/srv/factory/<instance>/work` on the host and at `/work` in every container. It holds the checkout and the agent's home. Its one snapshot is the base, `@base`, moved forward at every stage's start.
 - **The container** is the stage image (see *The stage image*), started for one step, with `--rm`, `--userns=keep-id` and `--timeout` set to the step's time limit. It mounts the dataset and is thrown away.
 
-There is one user, `factory`, and no second one. `factory` has no `sudo` right but the four `zfs` commands of the optional `--sudoers` fallback (see *The script*). The steps that need root (the script, `systemctl`, the install of the secrets) run from your own account with `sudo`.
+There is one user, `factory`, and no second one. `factory` has no `sudo` right but the page-cache helper and the four `zfs` commands of the optional `--sudoers` fallback (see *The script*). The steps that need root (the script, `systemctl`, the install of the secrets) run from your own account with `sudo`.
 
 In v1.2 one repository URL serves both the factory's own code and the project. `--repository-url` is the clone of `/srv/factory/<instance>/factory` and the value of `FACTORY_REPOSITORY_URL`, so an instance builds the repository it runs from.
 
@@ -422,12 +422,13 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 5. `datasets`: `<pool>/factory` and `<pool>/factory/<instance>`, both with `compression=lz4` and `atime=off`, the second mounted at `/srv/factory/<instance>/work`, with the quota, and the mount point owned by `factory`.
 6. `delegation`: `zfs allow -u factory snapshot,destroy,rollback,diff,mount` on the instance's dataset, unless all five are already delegated.
 7. `sudoers`: only with `--sudoers`, see below. Without it the line says `not asked` and neither file is touched.
-8. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` (mode `0755`), and `/home/factory/.secrets` (mode `0700`). If `state`, `repo` or `/home/factory/.secrets` is a link, the script prints `setup: folders: ...` to standard error and exits 1 before it makes anything in the step: remove the link and run it again. The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
-9. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
-10. `checkout`: the factory at `--ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
-11. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `vm/git-credential-factory` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
-12. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`).
-13. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
+8. `caches`: on every run, with or without `--sudoers`, the helper `/usr/local/bin/factory-drop-caches` (mode `0755`; it runs `sync`, then writes `1` to `/proc/sys/vm/drop_caches`) and `/etc/sudoers.d/factory-drop-caches` (mode `0440`), which holds the one rule `factory ALL=(root) NOPASSWD: /usr/local/bin/factory-drop-caches`. Each is written only when its text differs. The rule is checked with `visudo -cf`; if `visudo` refuses it, the script removes the file, prints `setup: caches: visudo -cf refused /etc/sudoers.d/factory-drop-caches; removed it` to standard error and exits 1. See *The page cache after a rollback*.
+9. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` (mode `0755`), and `/home/factory/.secrets` (mode `0700`). If `state`, `repo` or `/home/factory/.secrets` is a link, the script prints `setup: folders: ...` to standard error and exits 1 before it makes anything in the step: remove the link and run it again. The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
+10. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
+11. `checkout`: the factory at `--ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
+12. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `vm/git-credential-factory` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
+13. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`).
+14. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
 
 The script writes the files under `/srv/factory/<instance>` (`image-id`, the askpass script and `factory.env`) as `factory`, with `cat` from its own standard input, because a process started by `runuser` may not reopen root's `/dev/stdin`.
 
@@ -435,7 +436,7 @@ The script ends with `setup: done: build the stage image and start factory@<inst
 
 #### The two passes
 
-The checkout of the private repository needs the hosting token. When `/home/factory/.secrets/hosting-token` is not there at step 10, the script prints `setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again` and exits 0. Place all three files, `hosting-token`, `claude-token` and `anthropic-api-key`, in `/home/factory/.secrets`, readable by `factory`, and run the same command again: steps 1 to 9 report `found` and the rest completes. All three must exist whatever the runtime; with the `claude` runtime the key file stays empty.
+The checkout of the private repository needs the hosting token. When `/home/factory/.secrets/hosting-token` is not there at step 11, the script prints `setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again` and exits 0. Place all three files, `hosting-token`, `claude-token` and `anthropic-api-key`, in `/home/factory/.secrets`, readable by `factory`, and run the same command again: steps 1 to 10 report `found` and the rest completes. All three must exist whatever the runtime; with the `claude` runtime the key file stays empty.
 
 The token is written into no file. Git asks the askpass script (`/srv/factory/<instance>/askpass`) for it, and only that script reads the token file; the clone sets `core.askPass` on its own command line, not in any git configuration.
 
@@ -448,6 +449,12 @@ Every run rewrites `factory.env` from the arguments and from the pins in the che
 For values the script does not know (a model map for a company's proxy, the path of a provider file, the names of the proxy variables), make a second file, `/srv/factory/<instance>/factory.local.env`, in the same `NAME=value` form. The unit reads it after `factory.env`, so a value in it wins over the same name there. It is optional: without it the unit starts as before. The script never creates, changes or removes it, and says so in its last line (`setup: local: ...`). Restart the instance after a change: the factory reads its environment when it starts.
 
 Every name in `factory.local.env` is in the factory process's own environment, because the unit sets it for the whole service. `FACTORY_CONTAINER_ENV` then chooses which of these names the containers also get.
+
+#### The page cache after a rollback
+
+A page that a stage wrote through `mmap` survives `zfs rollback` in the kernel's page cache. After the rollback the file has the snapshot's size but may still read the newer page: a file the stage made shorter reads as zero bytes past its end, and git's stat cache calls it clean, so the sync does not repair it. The factory therefore drops the clean page cache after every reset, right after a rollback that succeeded, by running `sudo -n /usr/local/bin/factory-drop-caches`. This is not a setting and does not depend on `--sudoers` or `FACTORY_ZFS`: step 8 installs the helper and its `sudoers` rule on every run.
+
+The drop is machine-wide. It also empties the cache of other files, so the next sync reads from the disk and is a little slower. A drop that fails (no helper, no rule so that `sudo` asks for a password, or the time limit of ten minutes) is a `SnapshotError` like a failed `zfs` command and the stage does not start. A machine set up by hand with the same two files, as `vm` was, is found unchanged by step 8.
 
 #### The `sudoers` fallback
 
