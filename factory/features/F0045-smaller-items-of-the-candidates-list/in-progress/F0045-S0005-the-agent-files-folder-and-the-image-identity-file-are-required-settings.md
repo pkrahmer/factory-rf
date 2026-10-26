@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 470
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T21:52:58.342285Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-26T21:52:58.342285Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-26T21:53:29.391611Z'
+  stage: intake
+  run: a81b79acc40b428c83597fb4dff35450
 ---
 
 # The agent files' folder and the image identity file are required settings
@@ -82,3 +84,9 @@ Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: mis
 
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: concrete. It names `factory.domain.settings`, `read_settings(environ, read_file=None)`, the exact `SettingsInvalid(variable, fault)` texts, and the removal of `IMAGE_ID_FILE`. `AGENT_HOME_VARIABLE`, `IMAGE_ID_FILE_VARIABLE` and `_NOT_ABSOLUTE` already exist in `src/factory/domain/settings.py`. The tests to change are named, and decision 25 of `feature.md` gives the leave for them.
+   - Criteria: each is one parametrized test with explicit rows. Every rule has both sides. Missing, empty and blank are covered, as is a relative path against an absolute one. For the image file, the reader is asked nothing on a refusal and asked exactly one path on success. Without a reader the variable is not read. The old defaults are gone (criterion 4). `main` returns 2 with the log line, and returns 0 when both settings are set (criterion 5). `make check` and `docs:` are last.
+   - Smoke test: runnable with `uv run python -`. The three `Expect:` lines are checkable. With no `FACTORY_CLAUDE_HOME`, the first case prints `FACTORY_CLAUDE_HOME: missing`. With the home set, a reader and no image file, the second prints `FACTORY_IMAGE_ID_FILE: missing`. With both set, the third prints `/srv/agents build-7`. It runs no pytest, so the `-q` rule does not apply.
+   - Architecture: the rules live in `domain.settings`, which does no I/O, because the reader is injected. `entry.run` only reports the stop, so the layers hold.
+   - Scope: this is S0005 of F0045 (decision 14). `InstanceSettings.agent_home` is left to S0006, as the story says. Nothing in "Out of scope" is touched. The leave for the earlier tests is decision 25.
