@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T19:07:38.344777Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T19:07:38.338745Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:07:38.344777Z'
+  stage: intake
+---
+
 # The reset drops the page cache after the rollback
 
 ## Description
@@ -77,3 +104,6 @@ grep -c 'factory ALL=(root) NOPASSWD: /usr/local/bin/factory-drop-caches' vm/set
 Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEYWORD_ONLY`; `syntax-ok`; `1`
 
 ## Journal
+
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
