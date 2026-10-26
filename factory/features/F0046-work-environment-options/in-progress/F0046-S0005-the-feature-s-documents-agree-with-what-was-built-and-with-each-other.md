@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 464
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T17:47:59.795382Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-26T17:47:39.497170Z'
   stage: intake
   run: 939a41bc92234ba09ef3fcb35d7d15d9
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:47:59.795382Z'
+  stage: tests
 ---
 
 # The feature's documents agree with what was built and with each other
@@ -78,3 +87,4 @@ Expect: `documents ok`
    Smoke test: the commands are runnable. The target sections exist: `### A company's provider` (operator-guide:289), `## A company's provider for opencode` (decisions:1149), *The environment file* (:442), *Behind a proxy* (:206) and *The probe of the agent run* (:748). Each Expect line is checkable: `0`, two numbers of at least 1, and `documents ok`. The story's smoke test runs no pytest, so the `-q` rule does not apply.
    Architecture: the story touches documents only and leaves the layers alone. The documenter's write paths (README.md and docs/*) cover both files.
    Scope: it fits F0046. feature.md lists S0005 as "from A0001". Its Out of scope items (a base_url, a secret store, any company value) are not touched, and the CA-on-host question is left to the human.
+4. factory: started tests as vm.
