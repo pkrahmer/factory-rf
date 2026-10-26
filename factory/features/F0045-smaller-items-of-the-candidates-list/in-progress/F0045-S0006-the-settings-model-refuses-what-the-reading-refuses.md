@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-26T22:49:55.236216Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-26T22:49:34.490320Z'
   stage: review
   run: 5095da23abbc4426a0222bf3b6c941c8
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:49:55.236216Z'
+  stage: docs
 ---
 
 # The settings model refuses what the reading refuses
@@ -343,3 +352,4 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
       - `tests/domain/test_settings_opencode_provider.py`
       - `tests/domain/test_settings_paths.py` (`REQUIRED`)
       - `tests/domain/test_settings_stage_environment.py`
+18. factory: started docs as vm.
