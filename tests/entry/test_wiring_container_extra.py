@@ -86,6 +86,7 @@ def test_every_container_of_a_stage_carries_both_settings_and_no_hosting_token(
         agent_runtime=runtime,
         container_env=("HTTPS_PROXY",),
         ca_bundle=bundle,
+        opencode_models={"sonnet": "anthropic/claude-sonnet"} if runtime == "opencode" else {},
     )
     boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
     project_commands = boundaries.project_commands

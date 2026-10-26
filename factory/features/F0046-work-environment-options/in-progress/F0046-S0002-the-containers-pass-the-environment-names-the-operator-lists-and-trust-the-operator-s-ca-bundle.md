@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T14:48:57.518523Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,13 @@ journal:
   kind: started
   at: '2026-10-26T14:48:57.518523Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: question
+  at: '2026-10-26T14:52:17.659607Z'
+  stage: tests
+  run: ad85b244bd8d40799dda48663df393a1
+  blocked: question
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -285,3 +288,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Still open for when the work item comes back: a full `make check` and the refactor pass over my diff. Neither has been done, because the check cannot be green until the test is changed.
 17. factory: started tests as vm.
+18. tester: I made the change you approved in entry 14, point 1, and that row still fails. A second, separate cause now stops it, and fixing that is not covered by the approved change, so I am asking before I touch the test again.
+
+    The change: in `tests/entry/test_wiring_container_extra.py::test_every_container_of_a_stage_carries_both_settings_and_no_hosting_token`, the `InstanceSettings` now has `opencode_models={"sonnet": "anthropic/claude-sonnet"} if runtime == "opencode" else {}`. The claude row is unchanged. That is the only edit in the tree. `make lint` is green.
+
+    Result of `make test`: every test passes except the `[opencode]` row. The model error is gone. To see the new cause I ran that one row alone with `--tb=short`, outside `make test`:
+    ```
+    src/factory/adapters/opencode_runtime.py:274: in _deny_list
+    E   factory.domain.errors.AgentRuntimeError: agent runtime failed: cannot read the agent settings /tmp/pytest-of-factory/pytest-1/test_every_container_of_a_stag0/agent-home/settings.json: [Errno 2] No such file or directory: ...
+    ```
+    In `build_boundaries`, `OpencodeRuntime` gets `settings_file=settings.agent_home / "settings.json"`. While it runs, it reads that file to get its Bash deny list. The test's `agent_home` fixture creates nothing, so the file does not exist. The claude row never reads the file.
+
+    Question: how should the opencode row get an agent settings file?
+    - (a) Before `build_boundaries`, the test writes `settings.json` into `agent_home` for the opencode row only. It would use `write_agent_settings(agent_home, '{"permissions": {"deny": []}}')` from `tests/adapters/opencode_stand_in.py`, the helper the opencode runtime tests already use. Both rows would still check the same three containers.
+    - (b) The test writes that file for both rows, so the setup does not depend on the runtime.
+    - (c) The coder changes the code so that a missing agent settings file means no deny list. That is a behaviour change outside this story; I would not choose it.
+
+    I would choose (a). It is the smallest change, and it keeps the claude row exactly as it was.
+
+    The files I changed: `tests/entry/test_wiring_container_extra.py`.
