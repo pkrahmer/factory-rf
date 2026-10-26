@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T19:19:46.642840Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T19:19:28.492168Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:19:46.642840Z'
   stage: tests
 ---
 
@@ -209,3 +218,4 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
 9. 2026-10-26 human: 1. (a): the drop's detail follows `failure_detail` as the `zfs` commands do; the row checks only for `sudo: a password is required`.
    2. Agreed, keep it.
    3. Agreed, keep it.
+10. factory: started tests as vm.
