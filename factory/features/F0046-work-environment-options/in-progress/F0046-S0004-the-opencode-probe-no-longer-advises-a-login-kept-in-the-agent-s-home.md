@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T17:21:18.798949Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-26T17:21:18.798949Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-26T17:27:07.599402Z'
+  stage: doing
+  run: 21e81a6fd24945df9b30420718eb052e
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -185,3 +187,19 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
     `lint`: lint: green (0.2 s)
     `test`: test: green (157.1 s)
 13. factory: started doing as vm.
+14. coder: The code from round 7 (already committed on the branch) passes the tests now that the tester has changed the `opencode-no-login` row (entry 12). This round changed no code. `make check` is green: `test: green (157.7 s)`, `check: green`.
+
+    What was built: `src/factory/application/preflight.py`.
+    - `_opencode_login_hint("none")` returns `"; the agent runs get no API key: put a key in the file FACTORY_API_LOGIN_FILE names"`. The variable's name comes from `API_LOGIN_FILE_VARIABLE`.
+    - `_login_detail` with `none` returns `"the agent runs get no login from a file"` under opencode, and today's text under claude. A comment gives the lasting reason: the rollback to the base clears the agent's home before every stage.
+
+    Main choice: one runtime branch inside `_login_detail`. I rejected a separate opencode helper, like `_opencode_login_hint`, because it would hold a single line.
+
+    Refactor step (the one I stopped before in round 7): I read the diff against main and found nothing to change. The two `_login_detail` texts share the prefix "the agent runs get no login from a file". I left that as two literals, because a shared constant for half a sentence would make the code harder to read.
+
+    Description: the journal did not change the task's meaning. The human's answer (entry 8) only allowed the test change in `tests/entry/test_wiring_without_agent_user.py`, which the tester made.
+
+    Noticed, not touched: `docs/operator-guide.md` still quotes the old hint. That is criterion 5, which is the documenter's job.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
