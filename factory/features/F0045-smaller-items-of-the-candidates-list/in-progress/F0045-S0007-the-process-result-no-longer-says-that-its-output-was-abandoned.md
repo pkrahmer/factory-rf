@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T23:17:38.225983Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-26T23:17:17.409941Z'
   stage: tests
   run: 6efea6d6515c4bddba71915356ae7773
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:17:38.225983Z'
+  stage: doing
 ---
 
 # The process result no longer says that its output was abandoned
@@ -230,3 +239,4 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (153.7 s)
+14. factory: started doing as vm.
