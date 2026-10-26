@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 460
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T14:18:28.755146Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-26T14:18:28.755146Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-26T14:18:48.497325Z'
+  stage: intake
+  run: db594303457849ce9eb2a82c2238888e
+  blocked: question
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -90,3 +93,9 @@ Expect: `SettingsInvalid`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Interface, `extra_environment`: "A name that appears twice in the result keeps the later value" has no criterion. Criterion 4 covers the listed names, the skipped name, the bundle and the empty case, but not a listed name such as `SSL_CERT_FILE` that the bundle's three variables then override. I would add to criterion 4 a row: `container_env=("SSL_CERT_FILE",)`, the source holds a value, `ca_bundle=/etc/ca.pem` gives `SSL_CERT_FILE=/etc/ca.pem`. Do you want that?
+   2. Interface, `ContainerEnvironment` and `ContainerMakeCommands`: `{**SYNC_ENVIRONMENT, **extra}` and `{**CHECK_ENVIRONMENT, **extra}` mean an extra name overrides a constant of the same name, but no criterion tests that. Criterion 6 only says the other words are unchanged. I would add to criterion 6: an extra whose name is also in `SYNC_ENVIRONMENT` or `CHECK_ENVIRONMENT` (taking a name from the constant) wins in the container. Or should the constants win, which would change the Interface? I would choose the extra wins, with the criterion.
+   3. Criterion 5 and the Interface for the agent's container: the extras are added to "`run_environment`'s runtime part", and `without_login` runs afterwards. `container_env` refuses the login names, so only the request's own `ANTHROPIC_API_KEY` is tested. Is that enough? I would accept it. This is not a blocker.
+   4. Criterion 2: the refusal of a name that starts with `FACTORY_` is tested only with `FACTORY_TOKEN_FILE`. Both sides are covered by `FACTORYX`. This is fine and needs no change.
+
+   Format check passed. The smoke tests are runnable. Neither runs pytest. Both `Expect:` lines can be checked against the output. The architecture and scope fit the feature's S0002 entry. Questions 1 and 2 must be answered before this can be accepted.
