@@ -43,4 +43,4 @@ def test_the_opencode_login_hint_names_the_agent_user_or_the_factory_user(
 
     detail = agent_run_probe_item(boundaries, settings, ENVIRONMENT).detail
 
-    assert detail == opencode_died(named) + opencode_sso_hint(named)
+    assert detail == opencode_died(named) + opencode_sso_hint()

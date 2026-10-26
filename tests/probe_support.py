@@ -15,9 +15,6 @@ def opencode_died(user: str) -> str:
     return f"the probe run ended died; run opencode run by hand as {user} to see why"
 
 
-def opencode_sso_hint(user: str) -> str:
-    """Return the hint appended when the opencode agent runs as `user` get no API key."""
-    return (
-        f"; the agent runs get no API key: log in once as {user} with the opencode build's own "
-        "login, or put a key in the file FACTORY_API_LOGIN_FILE names"
-    )
+def opencode_sso_hint() -> str:
+    """Return the hint appended when the opencode agent runs get no API key."""
+    return "; the agent runs get no API key: put a key in the file FACTORY_API_LOGIN_FILE names"

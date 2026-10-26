@@ -10,9 +10,9 @@ from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
 from factory.domain.agent_runs import AgentRunResult, EndReason, Login
-from factory.domain.settings import InstanceSettings
+from factory.domain.settings import AgentRuntimeName, InstanceSettings
 from git_support import install_agents
-from probe_support import ENVIRONMENT
+from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint
 
 API_LOGIN_FILE = Path("/home/agent/.anthropic-api-key")
 API_HINT = (
@@ -97,4 +97,72 @@ def test_the_probe_detail_names_the_login_its_run_was_handed(
 
     assert item.name == "agent-run-probe"
     assert item.passed == passed
+    assert item.detail == detail
+
+
+def _on_runtime(settings: InstanceSettings, runtime: AgentRuntimeName) -> InstanceSettings:
+    if runtime == "claude":
+        return settings
+    return settings.model_copy(
+        update={"agent_runtime": runtime, "pinned_opencode_version": "1.19.3"}
+    )
+
+
+@pytest.mark.usefixtures("coder")
+@pytest.mark.parametrize(
+    ("runtime", "login", "detail"),
+    [
+        pytest.param(
+            "opencode",
+            "none",
+            opencode_died("the factory user") + opencode_sso_hint(),
+            id="opencode-none",
+        ),
+        pytest.param("claude", "api_key", DIED + API_HINT, id="claude-api-key"),
+        pytest.param("claude", "subscription", DIED + HINT, id="claude-subscription"),
+    ],
+)
+def test_a_died_probe_hints_only_at_a_login_its_runtime_can_use(
+    boundaries: Boundaries,
+    settings: InstanceSettings,
+    agent_runtime: FakeAgentRuntime,
+    *,
+    runtime: AgentRuntimeName,
+    login: Login,
+    detail: str,
+) -> None:
+    agent_runtime.queue(ScriptedRun(result=_probe_result("died", login)))
+
+    item = agent_run_probe_item(boundaries, _on_runtime(settings, runtime), ENVIRONMENT)
+
+    assert not item.passed
+    assert item.detail == detail
+    assert "own login" not in item.detail
+
+
+@pytest.mark.usefixtures("coder")
+@pytest.mark.parametrize(
+    ("runtime", "detail"),
+    [
+        pytest.param("opencode", "the agent runs get no login from a file", id="opencode"),
+        pytest.param(
+            "claude",
+            "the agent runs get no login from a file; the runtime uses the login kept in its home",
+            id="claude",
+        ),
+    ],
+)
+def test_a_completed_probe_without_a_login_file_names_the_agents_home_only_under_claude(
+    boundaries: Boundaries,
+    settings: InstanceSettings,
+    agent_runtime: FakeAgentRuntime,
+    *,
+    runtime: AgentRuntimeName,
+    detail: str,
+) -> None:
+    agent_runtime.queue(ScriptedRun(result=_probe_result("completed", "none")))
+
+    item = agent_run_probe_item(boundaries, _on_runtime(settings, runtime), ENVIRONMENT)
+
+    assert item.passed
     assert item.detail == detail

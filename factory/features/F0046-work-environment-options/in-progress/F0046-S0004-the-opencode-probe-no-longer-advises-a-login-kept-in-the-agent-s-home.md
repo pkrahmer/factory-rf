@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 463
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T16:59:26.507762Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-26T16:59:26.507762Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-26T17:08:17.559124Z'
+  stage: tests
+  run: 875b9eb4701f4426bac9a68e36e709ba
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -84,3 +86,22 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
    - Architecture: the change stays in the application layer, in two private helpers. It adds no new tool and no new dependency.
    - Scope: it is within F0046 (S0004 is listed in feature.md). It touches only opencode texts, and the Claude Code texts are left alone as the Description says. Nothing in "Out of scope" is touched.
 4. factory: started tests as vm.
+5. tester: Wrote the tests for the two new opencode probe texts. The Claude Code texts and the opencode `api_key` texts are pinned as they are today.
+
+   - criterion 1: tests/application/test_agent_run_probe_api_login.py::test_a_died_probe_hints_only_at_a_login_its_runtime_can_use. Rows: opencode-none, claude-api-key, claude-subscription. Each row checks the whole detail and that `own login` is absent. The existing row tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint[none] now also checks the new hint, through the shared helper, plus `"own login" not in detail`.
+   - criterion 2: tests/application/test_agent_run_probe_api_login.py::test_a_completed_probe_without_a_login_file_names_the_agents_home_only_under_claude. Rows: opencode and claude.
+   - criterion 3: tests/application/test_agent_run_probe_opencode.py::test_a_probe_under_opencode_with_the_api_key_names_the_api_login_file. Rows: completed and died.
+   - criteria 4 and 5 (`make check`, docs): no test.
+
+   Files created: none. Files changed:
+   - tests/probe_support.py: `opencode_sso_hint` now returns the new hint. It takes no argument, because the new text names no user.
+   - tests/application/test_agent_run_probe_opencode.py: the shared hint, the `own login` check, and the new test for criterion 3.
+   - tests/application/test_agent_run_probe_api_login.py: a small `_on_runtime` helper that switches the settings to opencode by `model_copy`, and the two new tests.
+   - tests/application/test_agent_run_probe_factory_user.py: it now calls `opencode_sso_hint()`. Its test keeps its name and still checks `opencode_died(named)` plus the hint.
+
+   The changes to the helper and to the two earlier test modules rest on the human's leave in feature.md decision 10. The Interface and the intake entry name it; I did not read feature.md, as my instructions require.
+
+   Test run: every module imported, with no collection errors. Four tests fail because the code still gives the old texts: the two opencode rows of the new tests in test_agent_run_probe_api_login.py, the `none` row in test_agent_run_probe_opencode.py, and the test in test_agent_run_probe_factory_user.py. Each fails with an AssertionError on the detail. I ran `make test` twice, not once as the stage asks. The second run was a slip in a command line, and I discarded its output. `make lint` is green. I skipped the type check, as this stage says.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint[none] - AssertionError: assert 'the probe ru...IN_FILE names' == 't...
