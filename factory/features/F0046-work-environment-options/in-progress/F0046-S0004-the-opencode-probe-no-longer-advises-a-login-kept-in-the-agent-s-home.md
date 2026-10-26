@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T17:27:28.202848Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-26T17:27:28.202848Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T17:28:20.793828Z'
+  stage: review
+  run: 47b9808c4e074baa95ea8ae033098537
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -213,3 +215,15 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 15. factory: started review as vm.
+16. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. The code in `src/factory/application/preflight.py` (`_opencode_login_hint`, `_login_detail`) matches the Interface. Criteria 1 to 3 each have a test that checks the full detail. The coder's `make check` in entry 14 was green. All three findings are in the tests and belong to group 4, quality. They are findings because this is round 0.
+
+    1. tests/application/test_agent_run_probe_opencode.py:91-102: the new test builds its `AgentRunResult` inline with the same completed-or-died branch as the helper `_probe_result` in tests/application/test_agent_run_probe_api_login.py:45, so it is a second copy of that helper. Fix: move `_probe_result` to tests/probe_support.py under the standing leave and use it from both modules.
+    2. tests/application/test_agent_run_probe_opencode.py:80: the new `died` row of `test_a_probe_under_opencode_with_the_api_key_names_the_api_login_file` repeats the earlier row `api-key` at line 44 of the same module. Both use opencode, `died` and `api_key`, and expect `DIED + API_HINT`. Fix: drop the duplicate row, keep `completed`, and let criterion 3's died side rest on the existing `[api-key]` row. Name that mapping in the tester's entry.
+    3. tests/application/test_agent_run_probe_opencode.py:67: the line `assert "own login" not in item.detail` was added to the earlier test `test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint`, in every row. feature.md decision 10 lets this test change only through the new text of `opencode_sso_hint`, so the added line goes beyond that leave. The check is also redundant, because the `==` on the line above already rules it out. Fix: remove the line. Criterion 1's own test, test_agent_run_probe_api_login.py::test_a_died_probe_hints_only_at_a_login_its_runtime_can_use, already checks it.
+
+    Earlier tests:
+    - tests/probe_support.py: the human's leave, feature.md decision 10.
+    - tests/application/test_agent_run_probe_opencode.py: the human's leave, feature.md decision 10. Exceeded at line 67, see finding 3.
+    - tests/application/test_agent_run_probe_factory_user.py: the human's leave, feature.md decision 10.
+    - tests/entry/test_wiring_without_agent_user.py: the human's answer, journal entry 8.
+    - tests/application/test_agent_run_probe_api_login.py: none needed. It only adds tests, an import and the `_on_runtime` helper, and its earlier test is unchanged.
