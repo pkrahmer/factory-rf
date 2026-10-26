@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -163,6 +163,11 @@ journal:
   at: '2026-10-26T17:44:33.520171Z'
   stage: smoke-test
   run: cf5a649b04cf48228ad230da7354cd54
+- number: 29
+  speaker: factory
+  kind: done
+  at: '2026-10-26T17:46:57.170812Z'
+  stage: approval
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -428,3 +433,4 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
     Nothing in the smoke test contradicts a criterion.
 
     **Findings:** none.
+29. factory: done (pull request merged); cost: 13 runs, 25.2 min, 78 turns, 251044 tokens in (1274292 more from cache), 27065 out, $2.52
