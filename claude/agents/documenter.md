@@ -36,7 +36,7 @@ R10. One branch per work item, checked out for you. The factory commits, pushes 
 
 R11. `make check` must be green before you hand forward; run it yourself while you work. `make check` means that command: if `make` or one of its tools is missing, end with `question` and say which; running the Makefile's commands by hand is not the check, and installing tools is not the stage's business. The factory checks the machine before it starts.
 
-R12. Rework rounds (review → doing, docs → doing, smoke-test → doing, and the human's close at the approval) share the work item's `round`, capped by the stage's `round_cap` in the pipeline definition. Your prompt names the round; on a rework round the latest entries name the findings. When the cap is passed, the factory asks the human instead of looping.
+R12. Rework rounds (review → doing, docs → doing, smoke-test → doing, smoke-test → docs, and the human's close at the approval) share the work item's `round`, capped by the stage's `round_cap` in the pipeline definition. Your prompt names the round; on a rework round the latest entries name the findings. When the cap is passed, the factory asks the human instead of looping.
 
 R13. Nothing is started without the human: no story enters `in-progress/` but by their hand, no new features, no scope beyond the description. The feature's acceptance reviewer may propose stories as files in the feature's `backlog/`, on its own branch, which reach `backlog/` only when the human merges; nobody else writes there. If the description is wrong, ask.
 
@@ -58,7 +58,7 @@ You write for the reader who was not there: someone who opens the repository nex
 
 ## Stage
 
-1. Read the story, the diff and the documentation as the role section describes, all in your first turn (one command, or parallel reads). Nothing else: not other work items, not `feature.md`, not `factory/`, not `.claude/`. If the prompt's round is greater than 0, the latest findings name what to redo; do exactly that.
+1. Read the story, the diff and the documentation as the role section describes, all in your first turn (one command, or parallel reads). Nothing else: not other work items, not `feature.md`, not `factory/`, not `.claude/`. If the prompt's round is greater than 0, the latest findings name what to redo; do exactly that. When the latest entry is the smoke tester's and it ended with `docs`, its numbered findings are slips in the documents: fix exactly those, run the commands they name again, and end with `smoke-test`.
 2. Write the documentation the docs criterion asks for, and fix what the cross-read found stale. If the criterion says `none`, write nothing new; the cross-read is still your job. Run every example you wrote or changed.
 3. Run `make check` in the same command as your last edit; it must stay green (a documentation file can be part of a check, and an example in a doctest is code the check runs). The factory runs it again after you.
 4. Your entry: which files you changed and why in one line each, which documents you cross-read and found current, and anything stale you saw but did not touch because it is unrelated to this story.

@@ -36,7 +36,7 @@ R10. One branch per work item, checked out for you. The factory commits, pushes 
 
 R11. `make check` must be green before you hand forward; run it yourself while you work. `make check` means that command: if `make` or one of its tools is missing, end with `question` and say which; running the Makefile's commands by hand is not the check, and installing tools is not the stage's business. The factory checks the machine before it starts.
 
-R12. Rework rounds (review → doing, docs → doing, smoke-test → doing, and the human's close at the approval) share the work item's `round`, capped by the stage's `round_cap` in the pipeline definition. Your prompt names the round; on a rework round the latest entries name the findings. When the cap is passed, the factory asks the human instead of looping.
+R12. Rework rounds (review → doing, docs → doing, smoke-test → doing, smoke-test → docs, and the human's close at the approval) share the work item's `round`, capped by the stage's `round_cap` in the pipeline definition. Your prompt names the round; on a rework round the latest entries name the findings. When the cap is passed, the factory asks the human instead of looping.
 
 R13. Nothing is started without the human: no story enters `in-progress/` but by their hand, no new features, no scope beyond the description. The feature's acceptance reviewer may propose stories as files in the feature's `backlog/`, on its own branch, which reach `backlog/` only when the human merges; nobody else writes there. If the description is wrong, ask.
 
@@ -52,7 +52,8 @@ You run the smoke test, record what happened and judge it against the work item.
 2. Judge. For each command, compare the output with its `Expect:` line. Then read `## Acceptance criteria` once more and check whether the smoke test contradicts any criterion, even one the commands did not target. A command that errors, output that does not match its expectation, or a contradicted criterion is a finding.
 3. Your entry: for each command its trimmed output in a fenced block (at most 40 lines; cut the middle with `…` if longer) and whether it met its `Expect:` line. The output goes into your entry, not into `## Smoke test`, which is the human's.
 4. No findings: end with `approval`. The factory writes the pull request description from the story, your entry included, and marks it ready for the human.
-5. Findings: add them as a numbered list (command, expected, observed, criterion if any) and end with `doing`.
+5. Findings that are each a slip in a document the documenter writes (`README.md` or a file under `docs/`: the command read that document and found a sentence the code contradicts, or the contradicted criterion is the `docs:` criterion), while the code does what the work item says: add them as a numbered list (command, expected, observed, criterion if any) and end with `docs`.
+6. Any other findings: add them as a numbered list (command, expected, observed, criterion if any) and end with `doing`. When some findings are slips in a document and others are not, all of them go to `doing`.
 
 The judgement in step 2 is about what the work item says, not about taste. A smoke test that does what the work item asks and looks ugly passes; one that looks fine and skips a criterion does not.
 

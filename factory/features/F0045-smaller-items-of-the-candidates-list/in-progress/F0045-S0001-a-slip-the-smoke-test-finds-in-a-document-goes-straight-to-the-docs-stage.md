@@ -1,3 +1,131 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 466
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T18:32:18.656094Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:32:18.662234Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-26T18:32:42.714680Z'
+  stage: intake
+  run: 8b48783db0ae4f6f8ebe887c8146bbd6
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:33:03.252271Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-26T18:39:23.392862Z'
+  stage: tests
+  run: cee8c926e26041eabab92fd0dad1c867
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:39:44.829088Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-26T18:45:37.879731Z'
+  stage: doing
+  run: 67248bcef93b4a84991f9cd37b9c26cf
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:45:58.746753Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T18:46:41.478816Z'
+  stage: review
+  run: 81e3468c81754dbc838d1b128210d9be
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:47:02.305811Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-26T18:47:17.167378Z'
+  stage: doing
+  run: 148f3ff82d1944609f5625bcd878a36f
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:47:38.410867Z'
+  stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-26T18:53:44.503706Z'
+  stage: tests
+  run: 8e8fcf20697b41beb1ca607aa903ee78
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:54:05.124869Z'
+  stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-26T18:59:47.392508Z'
+  stage: doing
+  run: 0d15a6a304d84b089d3e155f1250beba
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:00:08.285087Z'
+  stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T19:00:42.373057Z'
+  stage: review
+  run: f376d1ffe3654e2baf5ef78e28f6734f
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:01:03.015959Z'
+  stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T19:02:07.165336Z'
+  stage: docs
+  run: f7c5a70074504452971be06abbb37e2b
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:02:27.940419Z'
+  stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T19:02:57.553803Z'
+  stage: smoke-test
+  run: 48f2e899ef7546928517c5c4fbd6a03b
+---
+
 # A slip the smoke test finds in a document goes straight to the docs stage
 
 ## Description
@@ -62,3 +190,202 @@ grep -l 'smoke-test → doing, smoke-test → docs, and' claude/agents/*.md | wc
 Expect: two lines: `7`; `1`
 
 ## Journal
+
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: concrete. It names the exact template line, the R12 line word for word (the current line exists once in each of the seven agents, checked), smoke-tester steps 5 and 6 (the current step 5 is the old sentence), and the documenter's step 1 addition. No `src/` module changes.
+   - Criteria: each is testable by one test function or one parametrized table. 1 covers the template's `next` and `round_cap` and every other stage. 2 to 4 cover the texts, with the old text gone. 5 covers `decide` on both sides: the cap passed, `doing`, `approval`, and `review` refused with `ValueError`. The Interface rules are covered. `make check` and `docs:` are last.
+   - Smoke test: both commands are runnable from the repository root. No pytest command is used, so the `-q` check does not apply. Each `Expect:` is checkable: the printed list, and the two counts `7` and `1`. Today the template shows `['approval', 'doing']` and the count is 0, so both commands fail before the story is built and should pass after it.
+   - Architecture: the change is only in `template/`, `claude/agents/` and tests, inside the coder's and tester's write paths. No layer or interface is touched.
+   - Scope: this is S0001 of F0045, as decision 6 and the human's change 1 describe. `factory/pipeline.yml` already has `docs` in the smoke test's `next`. No earlier test changes, per decision 21.
+4. factory: started tests as vm.
+5. tester: Tests written from the acceptance criteria. They are red on purpose: the template, the R12 line and the agents' steps have not changed yet.
+
+   - criterion 1: tests/test_claude_agent_texts_docs_slip.py::test_the_template_lets_the_smoke_test_hand_a_slip_to_docs_and_keeps_every_other_next
+   - criterion 2: tests/test_claude_agent_texts_docs_slip.py::test_every_shipped_agent_names_the_smoke_test_to_docs_rework (one row per shipped agent from `SHIPPED_NAMES`)
+   - criterion 3: tests/test_claude_agent_texts_docs_slip.py::test_the_smoke_tester_ends_with_docs_only_for_slips_in_a_document (rows: slip-step, other-findings-step, slip-step-first, docs-once, approval-once, old-step-gone; all read from the `## Stage` section)
+   - criterion 4: tests/test_claude_agent_texts_docs_slip.py::test_the_documenter_fixes_the_slips_of_the_smoke_test_and_hands_back_to_it (the one `1. ` line of `## Stage` ends with the sentence and holds `end with `smoke-test``)
+   - criterion 5: tests/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework (rows: docs at round 0 → docs round 1; docs at round 2 → docs round 3; docs at round 3 → stays at smoke-test, blocked round_cap, round 4, question `round_cap_question(4, 3)`; doing at round 0 → doing round 1; approval at round 2 → approval round 2; review → ValueError)
+   - criteria 6 and 7: `make check` and docs, nothing to test.
+
+   Files created: tests/test_claude_agent_texts_docs_slip.py, tests/domain/test_decide_docs_slip.py. No earlier test changed.
+
+   Both files read the template through `RuamelPipelineDefinitionReader`. The text tests read the agents through `tests/shipped_agents.py` and `section_text`. In criterion 1 the expected `next` of the other stages includes `done: []`, which is what `main` holds.
+
+   No module failed to import. `make test` shows these failures:
+   - the template test, the 7 R12 rows and 5 of the 6 smoke-tester rows: the texts and the template are not changed yet. The `approval-once` row already passes.
+   - the documenter test.
+   - the three `docs` rows of the decision test, each with `ValueError: decision 'docs' is not allowed at stage 'smoke-test'`, because the template's smoke test does not list `docs` yet.
+
+   `make lint` is green.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework[docs-past-the-cap] - ValueError: decision 'docs' is not allowed at stage 'smoke-test'
+6. factory: started doing as vm.
+7. coder: Text and configuration changes only. No module under `src/factory/` changed. `make check` is green and the new tests pass.
+
+   What I built:
+   - `template/factory/pipeline.yml`: the smoke test's line now reads `next: [approval, doing, docs]`. The round cap stays at 3.
+   - `claude/agents/*.md` (all seven): in the R12 line, `smoke-test → doing,` became `smoke-test → doing, smoke-test → docs,`. Nothing else in the line changed.
+   - `claude/agents/smoke-tester.md`, `## Stage`: the old step 5 is replaced by the Interface's steps 5 (`docs` for slips in a document) and 6 (`doing` for any other findings), word for word. No steps followed the old step 5, so none needed renumbering.
+   - `claude/agents/documenter.md`, `## Stage`: the Interface's sentence is added at the end of step 1, word for word.
+
+   Main choice: I made exact-text replacements of the Interface's wording, each asserted to match once. The R12 replacement was asserted in each of the seven agents. I rejected rewording the surrounding steps, for example folding the documenter's sentence into the "round greater than 0" sentence. The Interface and the tests pin the text word for word, and the description says nothing else changes.
+
+   Refactor: I read the diff and nothing needed changing.
+
+   Noticed, not touched: the documenter's step 3 still says the factory runs `make check` after it. That remains true on a `docs` round from the smoke test, so I left it.
+
+   `check`: check: green
+   `duplicates`: Bytecode compiled 4164 files in 55ms
+8. factory: started review as vm.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (the seven `claude/agents/*.md`, `template/factory/pipeline.yml`, two new test files) against the work item.
+
+   What passes:
+   - Group 1, acceptance criteria: each of criteria 1 to 5 has a test named after it that checks what it says. Criterion 2 checks the new R12 line once and the old line absent. Criterion 3 has six rows of one parametrized test. Criterion 5 covers both sides of the cap (round 2 → 3 moves, round 3 → blocked `round_cap`), `doing`, `approval` and `review` refused. The coder's `make check` was green (entry 7).
+   - The Interface's texts match the diff word for word. The template line is right and its round cap is unchanged. The second Interface rule (every agent names its stage's decisions) stays pinned by `tests/test_claude_agent_texts.py::test_body_names_every_decision_of_its_stage_in_inline_code`.
+   - Group 2, architecture: no `src/` module changed. Group 3, security: nothing applies.
+   - Group 5, hygiene: the Description, the coder's entry and the docs criterion match what was built.
+
+   Findings (group 4, quality; round 0):
+   1. `tests/domain/test_decide_docs_slip.py:13-19` (`TEMPLATE` and the `template` fixture) and `tests/test_claude_agent_texts_docs_slip.py:12,51-52` (`TEMPLATE` and `_template()`) are two copies of one helper: build the path to `template/factory/pipeline.yml`, then parse it with `RuamelPipelineDefinitionReader`. The same steps are already inline in `tests/test_claude_agent_texts.py:145-146` (`_decisions`). Fix: the tester puts one shared helper or fixture for the template's definition in one shared place (`tests/conftest.py`, or beside `ROOT` in `tests/shipped_agents.py`), and both new files use it. Under the standing leave the tester may also change `_decisions` in `tests/test_claude_agent_texts.py` to use it and name that file in its entry.
+
+   Earlier tests: none. The diff only adds test files (`A tests/domain/test_decide_docs_slip.py`, `A tests/test_claude_agent_texts_docs_slip.py`) and changes no test that `main` holds.
+10. factory: started doing as vm.
+11. coder: Round 1: the reviewer's only finding (entry 9, finding 1) is about a copied test helper. It is a change to tests, so I changed no code and no test, and I hand it to the tester.
+
+    The move: put one shared helper or fixture in one shared place, either `tests/conftest.py` or beside `ROOT` in `tests/shipped_agents.py`. It returns the template's pipeline definition: the path `template/factory/pipeline.yml`, parsed with `RuamelPipelineDefinitionReader`.
+    - `tests/domain/test_decide_docs_slip.py` should use it in place of its `TEMPLATE` and `template` fixture.
+    - `tests/test_claude_agent_texts_docs_slip.py` should use it in place of its `TEMPLATE` and `_template()`.
+    - Optionally, under the standing leave in `CLAUDE.md` (*Tests*), `_decisions` in `tests/test_claude_agent_texts.py` (lines 145-146) can use it too. Every earlier test keeps its name and checks the same thing, and the tester's entry names that file.
+
+    I left the agent texts and the template as they are: they were built in round 0, and the review passed them with no finding.
+
+    Description: no journal entry changed the meaning of the task, so the Description is unchanged.
+
+    Noticed, not touched: nothing new.
+12. factory: started tests as vm.
+13. tester: Round 1: I moved the shared test helper. This fixes the reviewer's finding 1 (entry 9), which the coder handed over in entry 11. I used the standing leave in `CLAUDE.md` (*Tests*) to move a shared test helper. No test was renamed and none checks anything different.
+
+    What I changed:
+    - `tests/shipped_agents.py`: added `TEMPLATE_PIPELINE`, the path `template/factory/pipeline.yml` built from `ROOT`. Also added `template_definition()`, which parses that file with `RuamelPipelineDefinitionReader` and returns the `PipelineDefinition`.
+    - `tests/domain/test_decide_docs_slip.py`: removed `TEMPLATE` and the inline parse. The `template` fixture now returns `template_definition()`.
+    - `tests/test_claude_agent_texts_docs_slip.py`: removed `TEMPLATE` and `_template()`. The template test now calls `template_definition()`.
+    - `tests/test_claude_agent_texts.py`, an earlier test file changed under the standing leave: `_decisions` now calls `template_definition()` instead of reading and parsing the template inline. The imports it no longer needs (`ROOT`, `RuamelPipelineDefinitionReader`) are gone.
+
+    The criterion → test mapping is the same as in entry 5:
+    - criterion 1: tests/test_claude_agent_texts_docs_slip.py::test_the_template_lets_the_smoke_test_hand_a_slip_to_docs_and_keeps_every_other_next
+    - criterion 2: tests/test_claude_agent_texts_docs_slip.py::test_every_shipped_agent_names_the_smoke_test_to_docs_rework
+    - criterion 3: tests/test_claude_agent_texts_docs_slip.py::test_the_smoke_tester_ends_with_docs_only_for_slips_in_a_document
+    - criterion 4: tests/test_claude_agent_texts_docs_slip.py::test_the_documenter_fixes_the_slips_of_the_smoke_test_and_hands_back_to_it
+    - criterion 5: tests/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework
+    - criteria 6 and 7: `make check` and docs, nothing to test.
+
+    I created no new files. No module failed to import. `make lint` is green. `make test` is green, because the coder's round 0 changes already make these tests pass.
+
+    Rejected: a fixture in `tests/conftest.py`. `_decisions` and the text tests call a plain function, so a module-level helper beside `ROOT` fits all three users without turning them into fixtures.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (154.2 s)
+14. factory: started doing as vm.
+15. coder: Round 1, after the tester's move. I changed nothing and ran `make check` again: it is green.
+
+    What I built: nothing new this run. The work from round 0 (entry 7) stands:
+    - `template/factory/pipeline.yml`: the smoke test's `next` is now `[approval, doing, docs]`.
+    - the R12 line in all seven `claude/agents/*.md` files.
+    - steps 5 and 6 in `claude/agents/smoke-tester.md`.
+    - the new sentence at the end of step 1 in `claude/agents/documenter.md`.
+
+    The reviewer's only finding (entry 9, finding 1: the copied test helper) was a change to tests. The tester made it in entry 13 with `template_definition()` in `tests/shipped_agents.py`. No code change was needed on my side.
+
+    Main choice: I left the code and texts as they are and did not refactor anything around the tester's move. Changing anything beyond the finding would go past this round's scope.
+
+    Refactor: nothing needed changing.
+
+    Description: no journal entry changed the meaning of the task, so the Description is unchanged.
+
+    Noticed, not touched: nothing new.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
+16. factory: started review as vm.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. I read the diff myself and did not rely on the entries.
+
+    no findings
+
+    What I checked:
+    - Group 1, acceptance criteria:
+      - Criteria 1 to 5 each have a test that checks what the criterion says:
+        - 1: `tests/test_claude_agent_texts_docs_slip.py::test_the_template_lets_the_smoke_test_hand_a_slip_to_docs_and_keeps_every_other_next`
+        - 2: `::test_every_shipped_agent_names_the_smoke_test_to_docs_rework`, one row per shipped agent. It checks the new line appears exactly once and the old line is gone.
+        - 3: `::test_the_smoke_tester_ends_with_docs_only_for_slips_in_a_document`, six rows of one parametrized test. The `old-step-gone` row works because the old text starts with a capital `Findings:` and the new step 6 reads "other findings:".
+        - 4: `::test_the_documenter_fixes_the_slips_of_the_smoke_test_and_hands_back_to_it`
+        - 5: `tests/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework`. It tests both sides of the cap: round 2 → 3 moves, round 3 → blocked `round_cap`. It also covers `doing`, `approval` as rule 6, and `review` refused with `ValueError`.
+      - The second Interface rule (every agent names its stage's decisions) stays pinned by `tests/test_claude_agent_texts.py`.
+      - The coder's `make check` was green (entry 15) and `duplicates` reported 0 new.
+    - The texts match the Interface word for word in all seven `claude/agents/*.md`, in smoke-tester steps 5 and 6, and in the documenter's step 1. The template line is `next: [approval, doing, docs]` with `round_cap: 3`. No copy of the old R12 line is left outside `factory/`.
+    - Group 2, architecture: no module under `src/` changed.
+    - Group 3, security: no secrets, no markers that silence a check.
+    - Group 4, quality: round 0's finding on the copied helper is fixed. `template_definition()` and `TEMPLATE_PIPELINE` in `tests/shipped_agents.py` are now the one shared place, and both new files and `_decisions` use them.
+    - Group 5, hygiene: the Description, the Interface and the docs criterion match what was built. The journal names the main choice and what was rejected (a fixture in `conftest.py`, entry 13).
+    - Noticed, not under review: `tests/git_support.py:44` still holds `next: [approval, doing]` for the smoke test. It is another story's fixture, and the story leaves earlier tests unchanged (decision 21).
+
+    Earlier tests:
+    - `tests/test_claude_agent_texts.py`: changed under the standing leave to move a shared test helper. `_decisions` now calls the shared `template_definition()` instead of the inline read and parse. No test name changed and every test checks the same thing.
+    - `tests/shipped_agents.py`: changed under the same standing leave. It is the shared place, and the only change is the added `TEMPLATE_PIPELINE` and `template_definition()`.
+18. factory: started docs as vm.
+19. documenter: Documentation for the smoke test's new way out to `docs`. I changed only documents, so I did not run `make check`. `make documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/operator-guide.md`: in `## The pipeline definition`, after the paragraph on stage keys, I added the template's smoke test line and one sentence that a slip only in a document goes from the smoke test to `docs` and counts as a rework round. In *The shipped agents and settings* I added a paragraph on the smoke tester's two ways out (`docs` for slips only, `doing` for anything else or a mix) and the documenter's reply (fix exactly those findings, end with `smoke-test`).
+    - `docs/project-guide/agents.md`: in the `template/factory/pipeline.yml` bullet I added the smoke test's `next` and `round_cap`, R12's new rework, the smoke tester's steps 5 and 6, the documenter's step 1 and the test file that pins the texts.
+    - `docs/decisions.md`: a new entry, "A slip the smoke test finds in a document goes straight to the docs stage", with the reason (four extra runs in F0038-S0007 and S0009), why no code is needed, and the rejected options (the coder and reviewer passing it on; a factory rule that reads paths).
+    - `README.md`: unchanged, as the docs criterion says.
+
+    Cross-read and found current against the diff: `README.md`; `docs/operator-guide.md` outside the two places above (no other text names the smoke test's `next` or R12's wording); `docs/project-guide/agents.md` outside the bullet above. A grep of `docs/` and `README.md` found no other copy of the old R12 line.
+
+    The code matches the Interface. I found nothing for the coder, so there are no findings.
+
+    Stale text I noticed and did not touch:
+    - `tests/git_support.py:44` still holds `next: [approval, doing]` for the smoke test (the reviewer noted the same). It is another story's fixture and decision 21 of `feature.md` says no earlier test changes.
+    - The operator guide's `## The pipeline definition` example is a toy definition that has no smoke test, so I left it as it is.
+    - The feature's `feature.md` still gives the factory's own smoke test `round_cap: 2` while the template has 3. That is the human's file and the Interface keeps the cap unchanged, so I left it.
+
+    `check`: check: green (not run again: passed on tree eae20ecc7ff4 at 2026-10-26T18:57:02Z)
+    `secrets`: secrets: green (2.3 s)
+    `documents`: documents ok
+20. factory: started smoke-test as vm.
+21. smoke-tester: Smoke test, round 1. I ran both commands from the repository root exactly as written and fixed nothing. Both met their `Expect:` line. No findings.
+
+    Command 1 (parse the template, print the smoke test's `next`):
+    ```
+    Bytecode compiled 4164 files in 70ms
+    ['approval', 'doing', 'docs']
+    ```
+    Met: the output is `['approval', 'doing', 'docs']`. The first line is uv's own output while it syncs, and not part of the script's output. Exit status was 0.
+
+    Command 2 (count the agents with the new R12 line; count `end with `docs`` in the smoke tester):
+    ```
+    7
+    1
+    ```
+    Met: two lines, `7` and `1`.
+
+    Criteria re-read against what I saw (read only, nothing run beyond the smoke test):
+    - Criterion 1: in `template/factory/pipeline.yml:19-26` the smoke test reads `next: [approval, doing, docs], round_cap: 3`. Every other stage's `next` is as the criterion lists. Not contradicted.
+    - Criterion 2: the R12 line in `claude/agents/smoke-tester.md:39` reads as the Interface says. Command 2 shows it is in all seven agents.
+    - Criterion 3: step 5 at `claude/agents/smoke-tester.md:55` ends with `docs`. It appears once, as command 2 shows.
+    - Criterion 4: step 1 of `claude/agents/documenter.md:61` ends with the Interface's sentence, including `end with `smoke-test``.
+    - Criterion 5: not exercised by the smoke test. Its test is listed in entries 13 and 17.
+    - Criterion 6: not run by this stage. The factory's gate showed it green (entry 19).
+    - Criterion 7: everything the criterion names is present:
+      - `docs/operator-guide.md:1171`: the smoke test's line and the rework-round sentence.
+      - `docs/operator-guide.md:1274`: the smoke tester's two ways out.
+      - `docs/project-guide/agents.md:287`: the template's `next` and R12's new rework.
+      - `docs/decisions.md:1186`: the new entry under the exact title.
+      - `README.md`: unchanged, as the criterion says.
+
+    Nothing the smoke test showed contradicts any criterion. Open: nothing.

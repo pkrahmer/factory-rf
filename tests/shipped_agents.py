@@ -5,10 +5,13 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
+from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.work_item_markdown import RuamelYamlHandler, split_front_matter
+from factory.domain.pipeline_definition import PipelineDefinition
 
 ROOT = Path(__file__).parent.parent
 AGENT_HOME = ROOT / "claude"
+TEMPLATE_PIPELINE = ROOT / "template" / "factory" / "pipeline.yml"
 
 _ALL_TOOLS = ["Read", "Grep", "Glob", "Edit", "Bash", "Write", "Skill"]
 _TOOLS_WITHOUT_WRITE = ["Read", "Grep", "Glob", "Edit", "Bash", "Skill"]
@@ -151,3 +154,8 @@ def agent_body(name: str) -> str:
     """The stripped body of the shipped agent file `name`."""
     _, text = front_matter_and_body(name)
     return text
+
+
+def template_definition() -> PipelineDefinition:
+    """The pipeline definition the template ships, parsed by the factory's reader."""
+    return RuamelPipelineDefinitionReader().parse(TEMPLATE_PIPELINE.read_text(encoding="utf-8"))
