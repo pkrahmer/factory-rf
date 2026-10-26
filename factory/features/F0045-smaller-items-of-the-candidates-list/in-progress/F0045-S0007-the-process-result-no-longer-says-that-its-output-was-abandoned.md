@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-26T23:25:21.056322Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-26T23:25:00.631771Z'
   stage: docs
   run: 8e533d4f2fe74ceb8abc75660628bd3b
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:25:21.056322Z'
+  stage: smoke-test
 ---
 
 # The process result no longer says that its output was abandoned
@@ -311,3 +320,4 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
     `check`: check: green (not run again: passed on tree 1c4117838158 at 2026-10-26T23:20:42Z)
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
+20. factory: started smoke-test as vm.
