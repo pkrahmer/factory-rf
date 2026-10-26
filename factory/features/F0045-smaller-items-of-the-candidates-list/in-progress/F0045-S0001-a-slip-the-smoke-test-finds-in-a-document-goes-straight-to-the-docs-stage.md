@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-26T19:01:03.015959Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-10-26T19:00:42.373057Z'
   stage: review
   run: f376d1ffe3654e2baf5ef78e28f6734f
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:01:03.015959Z'
+  stage: docs
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -314,3 +323,4 @@ Expect: two lines: `7`; `1`
     Earlier tests:
     - `tests/test_claude_agent_texts.py`: changed under the standing leave to move a shared test helper. `_decisions` now calls the shared `template_definition()` instead of the inline read and parse. No test name changed and every test checks the same thing.
     - `tests/shipped_agents.py`: changed under the same standing leave. It is the shared place, and the only change is the added `TEMPLATE_PIPELINE` and `template_definition()`.
+18. factory: started docs as vm.
