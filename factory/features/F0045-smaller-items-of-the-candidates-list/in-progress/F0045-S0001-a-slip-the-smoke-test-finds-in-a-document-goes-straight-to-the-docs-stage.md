@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-26T19:00:08.285087Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-10-26T18:59:47.392508Z'
   stage: doing
   run: 0d15a6a304d84b089d3e155f1250beba
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:00:08.285087Z'
+  stage: review
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -278,3 +287,4 @@ Expect: two lines: `7`; `1`
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
+16. factory: started review as vm.
