@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 466
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T18:32:18.662234Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-26T18:32:18.662234Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-26T18:32:42.714680Z'
+  stage: intake
+  run: 8b48783db0ae4f6f8ebe887c8146bbd6
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -92,3 +94,9 @@ Expect: two lines: `7`; `1`
 
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: concrete. It names the exact template line, the R12 line word for word (the current line exists once in each of the seven agents, checked), smoke-tester steps 5 and 6 (the current step 5 is the old sentence), and the documenter's step 1 addition. No `src/` module changes.
+   - Criteria: each is testable by one test function or one parametrized table. 1 covers the template's `next` and `round_cap` and every other stage. 2 to 4 cover the texts, with the old text gone. 5 covers `decide` on both sides: the cap passed, `doing`, `approval`, and `review` refused with `ValueError`. The Interface rules are covered. `make check` and `docs:` are last.
+   - Smoke test: both commands are runnable from the repository root. No pytest command is used, so the `-q` check does not apply. Each `Expect:` is checkable: the printed list, and the two counts `7` and `1`. Today the template shows `['approval', 'doing']` and the count is 0, so both commands fail before the story is built and should pass after it.
+   - Architecture: the change is only in `template/`, `claude/agents/` and tests, inside the coder's and tester's write paths. No layer or interface is touched.
+   - Scope: this is S0001 of F0045, as decision 6 and the human's change 1 describe. `factory/pipeline.yml` already has `docs` in the smoke test's `next`. No earlier test changes, per decision 21.
