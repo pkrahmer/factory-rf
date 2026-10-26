@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-26T21:48:05.513463Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   at: '2026-10-26T21:47:45.010490Z'
   stage: docs
   run: bd90e42dc8f8423d80dadbd6f258904d
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:48:05.513463Z'
+  stage: smoke-test
 ---
 
 # The stall reason left_branch is removed
@@ -507,3 +516,4 @@ Expect: two lines: `False 4.0`; `0`
     `check`: check: green (not run again: passed on tree 5ff8c7541fb9 at 2026-10-26T21:42:37Z)
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
+27. factory: started smoke-test as vm.
