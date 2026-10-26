@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 468
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T20:12:40.062195Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-26T20:12:19.282629Z'
   stage: intake
   run: 0bf65c96bfeb4c08a3be8b80931dd8ad
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-26T20:12:40.062195Z'
+  stage: tests
 ---
 
 # The setup script says how to install a changed unit
@@ -75,3 +84,4 @@ Expect: three lines: `syntax-ok`; `2`; `0`
    Smoke test: all three commands run. `sh -n` gives `syntax-ok`. The `grep -c` on the setup script gives 2 once the lines change (currently 0). The `grep -c` on the guide currently gives 2 (lines 443 and 703), and the docs criterion removes both, giving 0. The `Expect:` line is checkable. The command does not run pytest, so the `-q` addopts rule does not apply.
    Architecture: no `src/factory` change. `vm/setup.sh` is the coder's write path, and the guide and decision log are the documenter's.
    Scope: it matches the S0003 line of `feature.md` and decision 17. Decision 23 says no earlier test changes. Nothing in Out of scope is touched.
+4. factory: started tests as vm.
