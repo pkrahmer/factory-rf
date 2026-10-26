@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T15:26:22.770690Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -179,6 +175,12 @@ journal:
   kind: started
   at: '2026-10-26T15:26:22.770690Z'
   stage: doing
+- number: 31
+  speaker: coder
+  kind: result
+  at: '2026-10-26T15:32:40.589369Z'
+  stage: doing
+  run: 482f78618a5d462fa783a7eb381afda0
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -486,3 +488,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (161.3 s)
 30. factory: started doing as vm.
+31. coder: Round 1, after the tester's rows. I made no code change in this run. The round-1 fix from entry 27 was already committed, and the tester's new rows (entry 29) pass against it. `make check` is green: `check: green`, `test: green (161.7 s)`, coverage 99.56 %. The working tree was clean when I started.
+
+    What I built (paths, unchanged since entry 27):
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`: the agent container's environment is `{**extras, **run_environment(request, <runtime part>)}`. The operator's extras sit beneath the request's names and the runtime's names, so a listed `PATH` cannot replace the request's own.
+    - Everything else is as entry 23 lists it: `src/factory/domain/settings.py`, `src/factory/domain/containers.py`, `src/factory/adapters/agent_launch.py`, `src/factory/application/stage_environment.py`, `src/factory/adapters/make_commands.py`, `src/factory/application/boundaries.py` and `src/factory/entry/wiring.py`.
+
+    Reviewer findings (entry 25):
+    - Finding 1 is fixed in code (entry 27). Its failing side is now tested by the row `path-stays-the-request-s` in `tests/adapters/test_agent_launch_extra.py`, for both runtimes.
+    - Finding 2 (criterion 8) is tested by the row `lower-case-and-underscore` in `tests/domain/test_settings_container_env.py`.
+
+    Main choice: the extras go beneath everything in all three containers, the same way the sync and check containers already did it. This follows the human's rule in entry 4, answer 2. I rejected the Interface's literal "runtime part" placement, because with it a listed `PATH` overrides the request's own.
+
+    Refactor pass: nothing in this run's diff needed changing.
+
+    What the journal changed in the Description, which I could not rewrite because the work item is outside my write paths:
+    - The Interface sentence on `agent_launch` should say the extras go "beneath `run_environment`'s result (the request's and the runtime's names win)", not into its runtime part.
+    - Entry 9's constructor keyword names and corrected first smoke test (with `repository_url` and `instance`) are still missing.
+
+    Noticed, not touched: the Interface names `tests/adapters/test_make_commands_extra.py`, but the check-container rows are in `tests/application/test_container_environment_extra.py`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
