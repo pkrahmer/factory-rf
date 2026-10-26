@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 461
-comments_read: [6420707346]
+comments_read: [6420707346, 6420833778]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 2d2ef23351dd49b7b3e8c4d19496b520
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-26T16:06:45.613841Z'
+  stage: tests
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -141,3 +146,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `make test` (one run): red as intended. It failed on the unit test, the closing-line-mention test and both closing-text rows, each on a wrong result (no `setup: local:` line, one `EnvironmentFile=` line). After that run I made one fix that the run did not cover: the closing-text test took the last two output lines by index, so the failure would have been an `IndexError`. It now pads the output so the failure is an assertion. The command-word rows and both criterion-4 rows already pass, because today nothing names or touches the file; they guard against the change rather than drive it.
 
    `make lint`: green. No module failed to import, since nothing under `src/` is involved.
+9. 2026-10-26 human: A: in `tests/test_vm_service.py`, the `service` row leaves `EnvironmentFile` out of its expected keys and skips `EnvironmentFile` in `[Service]`, as it does for `Description` in `[Unit]`; the new test pins both lines and their order. That earlier test may change only that way.
