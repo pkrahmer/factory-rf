@@ -59,7 +59,10 @@ def _outside_caches(script: Script, word: str) -> list[str]:
             id="helper-lines",
         ),
         pytest.param(
-            lambda s: _in_order(s.caches, ["install -m 0755", HELPER]), id="install-helper"
+            lambda s: any(
+                "install -m 0755" in line and HELPER in line for line in s.caches.splitlines()
+            ),
+            id="install-helper",
         ),
         pytest.param(lambda s: SUDOERS in s.caches, id="sudoers-file"),
         pytest.param(lambda s: "chmod 0440" in s.caches, id="chmod"),

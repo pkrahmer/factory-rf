@@ -1,5 +1,7 @@
 """Fixtures shared by the whole test suite."""
 
+import os
+import shlex
 from collections.abc import Iterator
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -193,6 +195,24 @@ def environment(image_file: Path) -> dict[str, str]:
         "FACTORY_INSTANCE": INSTANCE,
         "FACTORY_IMAGE_ID_FILE": str(image_file),
     }
+
+
+@pytest.fixture
+def sudo_stand_in(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Put a `sudo` stand-in first on `PATH` that exits 0; return the file it records its words in.
+
+    Each call appends one line, the words it was given joined with spaces.
+    """
+    record = tmp_path / "sudo-calls.txt"
+    bin_folder = tmp_path / "sudo-bin"
+    bin_folder.mkdir()
+    sudo = bin_folder / "sudo"
+    sudo.write_text(
+        f"#!/bin/sh\nprintf '%s\\n' \"$*\" >> {shlex.quote(str(record))}\n", encoding="utf-8"
+    )
+    sudo.chmod(0o755)
+    monkeypatch.setenv("PATH", f"{bin_folder}{os.pathsep}{os.environ.get('PATH', '')}")
+    return record
 
 
 @pytest.fixture

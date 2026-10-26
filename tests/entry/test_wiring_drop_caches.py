@@ -1,11 +1,7 @@
 """The wiring gives every ZFS adapter the one cache drop command, run through `sudo`."""
 
 import ast
-import os
-import shlex
 from pathlib import Path
-
-import pytest
 
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.zfs_snapshots import DROP_CACHES_COMMAND
@@ -37,20 +33,11 @@ def _drop_caches_keyword(call: ast.Call) -> str | None:
 
 
 def test_every_reset_of_the_wired_instance_drops_the_cache_through_sudo(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
+    sudo_stand_in: Path,
     hosted_environment: dict[str, str],
     hosting: FakeHostingService,
 ) -> None:
-    record = tmp_path / "sudo-calls.txt"
-    bin_folder = tmp_path / "sudo-bin"
-    bin_folder.mkdir()
-    sudo = bin_folder / "sudo"
-    sudo.write_text(
-        f"#!/bin/sh\nprintf '%s\\n' \"$*\" >> {shlex.quote(str(record))}\n", encoding="utf-8"
-    )
-    sudo.chmod(0o755)
-    monkeypatch.setenv("PATH", f"{bin_folder}{os.pathsep}{os.environ.get('PATH', '')}")
+    record = sudo_stand_in
 
     _, boundaries = boundaries_from_environment(hosted_environment, hosting=hosting)
     built_calls = record.exists()

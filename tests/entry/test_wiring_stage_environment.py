@@ -75,6 +75,7 @@ def container_settings(tmp_path: Path, zfs: Path, podman: Path) -> InstanceSetti
     )
 
 
+@pytest.mark.usefixtures("sudo_stand_in")
 def test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool(
     tmp_path: Path, container_settings: InstanceSettings, zfs: Path, podman: Path
 ) -> None:

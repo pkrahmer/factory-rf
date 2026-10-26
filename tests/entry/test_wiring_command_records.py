@@ -3,6 +3,8 @@
 from datetime import timedelta
 from pathlib import Path
 
+import pytest
+
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.project_commands import RecordingProjectCommands
@@ -14,6 +16,7 @@ from podman_support import PodmanPlan
 from wiring_support import CREDENTIAL, dataset_podman
 
 
+@pytest.mark.usefixtures("sudo_stand_in")
 def test_the_built_project_commands_record_a_run_in_the_state_directory(
     tmp_path: Path, remote: Path, local_settings: InstanceSettings
 ) -> None:

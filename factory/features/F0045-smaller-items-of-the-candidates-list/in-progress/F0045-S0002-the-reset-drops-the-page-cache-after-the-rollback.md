@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T19:34:42.171913Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-10-26T19:34:42.171913Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: result
+  at: '2026-10-26T19:41:45.971780Z'
+  stage: tests
+  run: d505ab12ef1e4c2b8831e528a539d2eb
 ---
 
 # The reset drops the page cache after the rollback
@@ -325,3 +327,18 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
 
     The Description is unchanged. Entry 14 settles how the tests are written but does not change what the task means.
 17. factory: started tests as vm.
+18. tester: I made the two test changes the human approved in entry 14, as the coder listed them in entry 16. I changed no other test.
+
+    1. Answer 1(a): in `tests/test_vm_setup_caches.py::test_the_caches_step_writes_the_helper_and_its_rule`, row `install-helper` now passes when one line of the step `caches` holds both `install -m 0755` and `/usr/local/bin/factory-drop-caches`. It no longer checks that the first `install -m 0755` comes before the first mention of the path. The other rows still use `_in_order`.
+    2. Answer 2(a): `tests/conftest.py` has a new fixture, `sudo_stand_in`. It writes a `sudo` stand-in to `tmp_path / "sudo-bin"`, puts that folder first on `PATH` through `monkeypatch`, and returns the file `sudo-calls.txt`. On each call the stand-in appends one line to that file (its words joined with spaces) and exits 0. The file stays absent until the first call. The fixture returns the file so that the drop-caches test can still read the stand-in's words. The following tests use the fixture, each with its name and assertions unchanged:
+       - `tests/entry/test_wiring_container_extra.py::test_every_container_of_a_stage_carries_both_settings_and_no_hosting_token` (both rows): `sudo_stand_in` was added to its existing `usefixtures` mark.
+       - `tests/entry/test_wiring_stage_environment.py::test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool`: gained `@pytest.mark.usefixtures("sudo_stand_in")`.
+       - `tests/entry/test_wiring_command_records.py::test_the_built_project_commands_record_a_run_in_the_state_directory`: gained the same mark, and `import pytest` with it.
+       - `tests/entry/test_wiring_drop_caches.py::test_every_reset_of_the_wired_instance_drops_the_cache_through_sudo`: its own copy of the stand-in is gone. It now takes `sudo_stand_in` as its record file and no longer takes `tmp_path` or `monkeypatch`. The unused imports `os`, `shlex` and `pytest` were removed. Its assertions are unchanged.
+
+    Files changed: `tests/conftest.py`, `tests/test_vm_setup_caches.py`, `tests/entry/test_wiring_drop_caches.py`, `tests/entry/test_wiring_container_extra.py`, `tests/entry/test_wiring_stage_environment.py`, `tests/entry/test_wiring_command_records.py`. Files created: none.
+
+    Modules the test run could not import: none. `make test`: green (166.8 s), total coverage 99.56 %, so with the coder's implementation from entry 13 on the branch, every test now passes. `make lint`: green (0.2 s). I did not run the type check or the full `make check`; they are left to the coder's refactor pass.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (166.4 s)
