@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T22:42:42.000921Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-26T22:42:21.089385Z'
   stage: tests
   run: f1f4c513c2f0434da68eb5ee16e54c0d
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:42:42.000921Z'
+  stage: doing
 ---
 
 # The settings model refuses what the reading refuses
@@ -263,3 +272,4 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (161.5 s)
+14. factory: started doing as vm.
