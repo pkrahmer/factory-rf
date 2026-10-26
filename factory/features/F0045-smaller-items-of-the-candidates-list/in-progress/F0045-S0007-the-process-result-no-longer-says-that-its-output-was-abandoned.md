@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T23:10:56.764003Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-26T23:10:56.764003Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-26T23:11:12.712775Z'
+  stage: doing
+  run: 7683845f5996404781c7c31907ce54bd
 ---
 
 # The process result no longer says that its output was abandoned
@@ -179,3 +181,21 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
    Earlier tests:
    - tests/adapters/test_process_drain.py: changed under the human's leave, decision 27 of feature.md. The seven named tests lost their `output_abandoned` assertion and kept their names. Two lost the `abandoned` parametrize column, which fed only that assertion; their row ids and other values are unchanged. `test_drain_is_five_seconds_and_output_is_not_abandoned_by_default` also lost the `ProcessResult` construction, which existed only for the removed assertion. All of this is within the leave.
 10. factory: started doing as vm.
+11. coder: The reviewer's one finding is a change to the tests, so I changed no code and am handing it to the tester under the standing leave in `CLAUDE.md` to move a shared test helper.
+
+    The move: the `holder_file` fixture appears twice with the same body, once in tests/adapters/test_process_result_fields.py (lines 37-44) and once in tests/adapters/test_process_drain.py (lines 71-78). It writes a pid file under `tmp_path` and, after the test, SIGKILLs a holder that is still running, ignoring `ProcessLookupError`. The tester should:
+    - move it to tests/conftest.py as one fixture;
+    - delete both copies, so both modules use the shared one;
+    - drop any import (`contextlib`, `os`, `signal`, `Iterator`) that no longer has a user in either module.
+
+    Every test in test_process_drain.py keeps its name and checks the same thing.
+
+    Why `tests` and not a fix of my own: the coder never edits tests, and the leave assigns this move to the tester.
+
+    What I built: nothing new this round. The code from entry 7 stays as it was: `ProcessResult` without `output_abandoned`, in src/factory/adapters/process.py.
+
+    Rejected: changing the code to get around the finding. The duplication is in the tests only, so a code change would not resolve it.
+
+    The journal did not change what the task means, so the Description stays as it is.
+
+    Noticed, not touched: docs/project-guide/processes-and-checks.md still names `output_abandoned`; updating it is the documenter's work under criterion 5.
