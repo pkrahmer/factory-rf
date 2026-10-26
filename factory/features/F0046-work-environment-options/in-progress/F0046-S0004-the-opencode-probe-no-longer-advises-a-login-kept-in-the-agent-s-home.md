@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T17:15:18.277818Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-26T17:15:18.277818Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-10-26T17:20:58.106903Z'
+  stage: tests
+  run: ec68df43247e4b06a6e1e167236381ac
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -161,3 +163,15 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
 
     The code from the last round is already committed on the branch, in `src/factory/application/preflight.py` (`_opencode_login_hint`, `_login_detail`). The working tree was clean when this round started. Once the tester makes the change, the next doing round runs `make check` and does the refactor step I stopped before last time. The journal did not change the Description: the human's answer only names this test change.
 11. factory: started tests as vm.
+12. tester: I made the test change the human approved in entry 8, which the coder's entry 10 names. In `tests/entry/test_wiring_without_agent_user.py::test_a_died_probe_names_the_factory_user`, the `opencode-no-login` row's `said` list now has `"put a key in the file FACTORY_API_LOGIN_FILE names"` where `"log in once as the factory user"` used to be. `"by hand as the factory user"` is still in the list. The formatter moved the list onto separate lines; nothing else in the module changed. The test keeps its name and still checks that the advice is in the detail.
+
+    Criterion mapping: no criterion changed in this round. The mapping from entry 5 still holds:
+    - criterion 1: tests/application/test_agent_run_probe_api_login.py::test_a_died_probe_hints_only_at_a_login_its_runtime_can_use
+    - criterion 2: tests/application/test_agent_run_probe_api_login.py::test_a_completed_probe_without_a_login_file_names_the_agents_home_only_under_claude
+    - criterion 3: tests/application/test_agent_run_probe_opencode.py::test_a_probe_under_opencode_with_the_api_key_names_the_api_login_file
+    - criteria 4 and 5 (`make check`, docs): no test.
+
+    Files created: none. Earlier test file changed: tests/entry/test_wiring_without_agent_user.py, on the human's leave in entry 8. Every module imported. I ran `make test` once and it was green: the code committed last round already gives the new texts. `make lint` is green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (157.1 s)
