@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T20:27:20.074710Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-26T20:26:59.337001Z'
   stage: doing
   run: 5c0948ef30a34d4ba5aeea407cd7979b
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-26T20:27:20.074710Z'
+  stage: tests
 ---
 
 # The setup script says how to install a changed unit
@@ -150,3 +159,4 @@ Expect: three lines: `syntax-ok`; `2`; `0`
     Once that change is in, I will make the script change. It is only the two echo lines in `vm/setup.sh` (lines 348 and 392), set to the Interface's exact text and single-quoted, as entry 7 describes.
 
     What the journal changed: criterion 2's test is no longer left entirely unchanged. With the human's leave, its helper is narrowed as above. The rule it checks stays the same, and the Description's meaning stays the same, so I did not rewrite `## Description`.
+11. factory: started tests as vm.
