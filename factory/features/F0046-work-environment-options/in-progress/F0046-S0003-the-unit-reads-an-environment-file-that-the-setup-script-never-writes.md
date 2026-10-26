@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 461
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T15:58:19.810836Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-26T15:58:19.810836Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-26T15:58:38.008996Z'
+  stage: intake
+  run: 089113d3ed59492e90a50c7694787463
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -67,3 +69,9 @@ Expect: `1`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names the two files to change (`vm/factory.service` `[Service]`, `vm/setup.sh`), the exact unit line, the exact closing line and the helpers (`SERVICE`, `setup_code`, `run_setup` exist in `tests/vm_support.py`); no `src/` module changes.
+   Criteria: 1 and 2 are static checks, 2 with one row per command word; 3 covers the default and `--instance other`; 4 covers the present and absent file; every rule has its failing side (a second or misplaced EnvironmentFile line, a command that mentions the file, a changed or created file). Criterion 5 and the docs criterion are the closing ones.
+   Smoke test: both commands are runnable. Neither runs pytest, so the `-q` rule doesn't apply. Each `Expect:` is checkable: the two ordered lines, and a count of 1. The count holds because no line of `vm/setup.sh` names the file today and the story adds one line.
+   Architecture: only `vm/` files change, which the coder's write paths allow. The layers are untouched.
+   Scope: it matches the feature's S0003 and decision 8 (read after `factory.env`, optional with `-`). Nothing falls under "Out of scope".
