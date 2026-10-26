@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 473
-comments_read: []
+comments_read: [6429816658]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: d2ebe634528b4c148a92a9f29f96f45b
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-26T23:31:57.034752Z'
+  stage: intake
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -166,3 +171,10 @@ Expect: `-n /usr/bin/systemctl poweroff`
    6. Interface, `read_settings`: "No upper limit". Add a row such as `"100000"` giving `100000`? I would add it.
 
    Everything else is fine. The Interface names concrete modules and signatures. The smoke test commands are runnable, and their `Expect:` lines can be checked against the output. The placement in the layers is right: `PowerOff` and `IdleShutdown` in application, `SystemctlPowerOff` in adapters, wiring in entry. The story is within the scope of S0008 in `feature.md`. The leave for the changed earlier test is decision 28.
+4. 2026-10-26 human: All six as you propose, with these forms:
+   1. Yes: with a limit of 30 minutes the first line contains `30`.
+   2. Yes, a test of its own: `str(PowerOffError("x")) == "power off failed: x"`.
+   3. Yes, but no new wording: the detail is `failure_detail` of `factory.adapters.printed_output`, as the `zfs` commands use it (the last non-empty printed line; `exit status <n>` when nothing was printed). Rows: a line on standard output only; two lines and a blank line, giving the second; nothing printed with status 1, giving `exit status 1`.
+   4. Yes: the time-limit detail is `no_end_detail` as the `zfs` commands give it; the row asserts the same text the `zfs` time-limit test asserts for its limit.
+   5. Yes: the built `IdleShutdown` logs to `boundaries.log` and reads `boundaries.clock`.
+   6. Yes: `"100000"` gives `100000`.
