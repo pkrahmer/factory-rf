@@ -679,7 +679,8 @@ class OpencodeRuntime(AgentRuntime):
             started = container_launch(
                 self._containers,
                 argv,
-                run_environment(request, {**self._extra_environment, **runtime_environment}),
+                # The factory's own names, PATH among them, never come from the host.
+                {**self._extra_environment, **run_environment(request, runtime_environment)},
                 files=[*login_paths(self._starters.login_files), files.config, *self._bundle_files],
                 time_limit=request.time_limit,
             )

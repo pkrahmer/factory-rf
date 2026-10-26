@@ -462,7 +462,8 @@ class ClaudeCodeRuntime(AgentRuntime):
             started = container_launch(
                 self._containers,
                 argv,
-                run_environment(request, {**self._extra_environment, **SWITCHES}),
+                # The factory's own names, PATH among them, never come from the host.
+                {**self._extra_environment, **run_environment(request, SWITCHES)},
                 files=[
                     *login_paths(self._starters.login_files),
                     files.instructions,

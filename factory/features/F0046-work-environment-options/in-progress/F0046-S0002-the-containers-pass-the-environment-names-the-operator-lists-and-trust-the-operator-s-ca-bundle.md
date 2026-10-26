@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T15:15:51.243495Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -157,6 +153,12 @@ journal:
   kind: started
   at: '2026-10-26T15:15:51.243495Z'
   stage: doing
+- number: 27
+  speaker: coder
+  kind: result
+  at: '2026-10-26T15:19:26.120745Z'
+  stage: doing
+  run: 671880fd00de4950a9fbcb25599744e3
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -426,3 +428,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
 26. factory: started doing as vm.
+27. coder: Round 1. I fixed the reviewer's finding 1 in the code. Both test changes (finding 2, and the agent `PATH` row that finding 1 asks for) go to the tester.
+
+    What I built:
+    - `src/factory/adapters/claude_runtime.py:466` and `src/factory/adapters/opencode_runtime.py:683`: in a container the agent's environment is now `{**extras, **run_environment(request, <runtime part>)}`. The operator's extras sit beneath both the request's environment and the runtime's own names. Before, they sat inside the runtime part, which overrode the request. A one-line comment says why: the factory's own names, `PATH` among them, never come from the host. The extras can never hold a login name (`RESERVED_CONTAINER_NAMES` refuses them), so `without_login` still means no login comes from anywhere but the files.
+
+    Main choice: I put the extras beneath everything, as the reviewer proposed. This matches the human's rule in entry 4, answer 2, which the sync and check containers already follow (`{**extra, **SYNC_ENVIRONMENT}`, `{**extra, **CHECK_ENVIRONMENT}`). I rejected two alternatives:
+    - Keeping the Interface's literal "runtime part" placement: it lets a listed `PATH`, `LANG` or `TZ` replace the request's own value.
+    - A new helper in `agent_launch` for one dict merge used twice: it adds an indirection for one expression.
+
+    Note for the Description: the Interface's sentence "the runtimes add … the result of `extra_environment` to `run_environment`'s runtime part" should now read "beneath `run_environment`'s result (the request's and the runtime's names win)". The work item is outside my write paths, so I could not change it. Entry 9's keyword names and corrected smoke test are also still missing from the Description, as the reviewer noted.
+
+    For the tester, two changes:
+    1. Criterion 8 (added by the reviewer): rows `http_proxy,_X` → `("http_proxy", "_X")` in `tests/domain/test_settings_container_env.py::test_the_container_env_setting_is_read_as_a_list_of_names`.
+    2. Finding 1's failing side, as rows of criterion 5's test `tests/adapters/test_agent_launch_extra.py::test_the_agent_s_container_holds_the_listed_names_and_the_bundle`: with `container_env=("PATH",)` and a host value for `PATH`, the agent container's `PATH` stays the request's own, for both runtimes.
+
+    `make check`: green (`test: green (161.6 s)`, coverage 99.56 %). This was the first full run that included this change; the new rows will fail against the old code and pass against this one.
+
+    Refactor pass: the diff for this round is the two lines and their comment. Nothing needed changing.
+
+    Noticed, not touched: as before, the Interface names `tests/adapters/test_make_commands_extra.py`, but the check rows are in `tests/application/test_container_environment_extra.py`.
