@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T19:34:00.294096Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-10-26T19:34:00.294096Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-10-26T19:34:21.035985Z'
+  stage: doing
+  run: d3fcf2979a3e4bfaaac2d4926e52ced9
 ---
 
 # The reset drops the page cache after the rollback
@@ -300,3 +302,16 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
 14. 2026-10-26 human: 1. (a): the tester changes row `install-helper` to look for one line that holds both `install -m 0755` and the helper's path.
     2. (a): a shared fixture in `tests/conftest.py` writes a `sudo` stand-in that exits 0 and puts it first on `PATH` through `monkeypatch`; the four earlier tests you name and the new wiring test use it. The leave of decision 22 widens to exactly that: those four tests gain the fixture, each keeps its name and its assertions. No setting names the command.
 15. factory: started doing as vm.
+16. coder: Both of the human's answers in entry 14 change tests, so I changed no code. I am sending the work item to the tester. The implementation from entry 13 is already on the branch, unchanged: `src/factory/adapters/zfs_snapshots.py`, `src/factory/entry/wiring.py` and `vm/setup.sh`. The refactor pass and a green `make check` come when the work item returns to doing.
+
+    Test changes for the tester:
+    1. In `tests/test_vm_setup_caches.py::test_the_caches_step_writes_the_helper_and_its_rule`, change row `install-helper` so that it looks for one line of the step that holds both `install -m 0755` and `/usr/local/bin/factory-drop-caches`. It should no longer check that the first `install -m 0755` comes before the first mention of the path. This is answer 1(a).
+    2. In `tests/conftest.py`, add a shared fixture that writes a `sudo` stand-in that exits 0 and puts it first on `PATH` through `monkeypatch`. The following tests use it, and each keeps its name and its assertions (answer 2(a), under the leave of decision 22 as the human widened it):
+       - `tests/entry/test_wiring_container_extra.py::test_every_container_of_a_stage_carries_both_settings_and_no_hosting_token` (both rows, `claude` and `opencode`)
+       - `tests/entry/test_wiring_stage_environment.py::test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool`
+       - `tests/entry/test_wiring_command_records.py::test_the_built_project_commands_record_a_run_in_the_state_directory`
+       - `tests/entry/test_wiring_drop_caches.py::test_every_reset_of_the_wired_instance_drops_the_cache_through_sudo`: its own copy of the stand-in is replaced by the shared fixture. It still needs to record the stand-in's words, so the fixture may need to record them too, or let the test read them.
+
+    The production code stays as the Interface says: no setting names the drop command.
+
+    The Description is unchanged. Entry 14 settles how the tests are written but does not change what the task means.
