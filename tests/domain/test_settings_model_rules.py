@@ -10,12 +10,10 @@ import factory
 from factory.domain import settings
 from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import CONTAINER_ENV_VARIABLE, InstanceSettings, read_settings
-from settings_support import BASE
+from settings_support import BASE, NOT_A_NAME, SET_BY_FACTORY
 
 REQUIRED: dict[str, object] = {"repository_url": "/srv/project.git", "instance": "factory-1"}
 _AGENTS = "/srv/agents"
-_SET_BY_FACTORY = "which the factory sets itself"
-_NOT_A_NAME = "which is not a variable name"
 
 
 @pytest.mark.parametrize(
@@ -49,13 +47,13 @@ def test_the_settings_model_requires_an_absolute_agent_home(
         pytest.param(
             ("HTTPS_PROXY", "NO_PROXY", "_X1"), ("HTTPS_PROXY", "NO_PROXY", "_X1"), id="three"
         ),
-        pytest.param(("HOME",), f"holds HOME, {_SET_BY_FACTORY}", id="home"),
+        pytest.param(("HOME",), f"holds HOME, {SET_BY_FACTORY}", id="home"),
         pytest.param(
-            ("ANTHROPIC_API_KEY",), f"holds ANTHROPIC_API_KEY, {_SET_BY_FACTORY}", id="api-key"
+            ("ANTHROPIC_API_KEY",), f"holds ANTHROPIC_API_KEY, {SET_BY_FACTORY}", id="api-key"
         ),
-        pytest.param(("FACTORY_X",), f"holds FACTORY_X, {_SET_BY_FACTORY}", id="factory-prefix"),
-        pytest.param(("1A",), f"holds 1A, {_NOT_A_NAME}", id="leading-digit"),
-        pytest.param(("A-B",), f"holds A-B, {_NOT_A_NAME}", id="dash"),
+        pytest.param(("FACTORY_X",), f"holds FACTORY_X, {SET_BY_FACTORY}", id="factory-prefix"),
+        pytest.param(("1A",), f"holds 1A, {NOT_A_NAME}", id="leading-digit"),
+        pytest.param(("A-B",), f"holds A-B, {NOT_A_NAME}", id="dash"),
         pytest.param(("A", "A"), "names A twice", id="twice"),
     ],
 )
@@ -77,8 +75,8 @@ def test_the_settings_model_checks_the_container_env_names(
 @pytest.mark.parametrize(
     ("value", "fault"),
     [
-        pytest.param("HOME", f"holds HOME, {_SET_BY_FACTORY}", id="home"),
-        pytest.param("1A", f"holds 1A, {_NOT_A_NAME}", id="not-a-name"),
+        pytest.param("HOME", f"holds HOME, {SET_BY_FACTORY}", id="home"),
+        pytest.param("1A", f"holds 1A, {NOT_A_NAME}", id="not-a-name"),
         pytest.param("A,A", "names A twice", id="twice"),
     ],
 )

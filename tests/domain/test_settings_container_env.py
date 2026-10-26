@@ -12,10 +12,7 @@ from factory.domain.settings import (
     InstanceSettings,
     read_settings,
 )
-from settings_support import AGENT_HOME, BASE
-
-_NOT_A_NAME = "which is not a variable name"
-_SET_BY_FACTORY = "which the factory sets itself"
+from settings_support import AGENT_HOME, BASE, NOT_A_NAME, SET_BY_FACTORY
 
 
 @pytest.mark.parametrize(
@@ -26,24 +23,24 @@ _SET_BY_FACTORY = "which the factory sets itself"
         pytest.param(" , ", (), id="blank-parts"),
         pytest.param("HTTPS_PROXY,NO_PROXY", ("HTTPS_PROXY", "NO_PROXY"), id="two-in-order"),
         pytest.param("A,A", "names A twice", id="twice"),
-        pytest.param("1X", f"holds 1X, {_NOT_A_NAME}", id="leading-digit"),
-        pytest.param("A-B", f"holds A-B, {_NOT_A_NAME}", id="dash"),
-        pytest.param("HOME", f"holds HOME, {_SET_BY_FACTORY}", id="home"),
+        pytest.param("1X", f"holds 1X, {NOT_A_NAME}", id="leading-digit"),
+        pytest.param("A-B", f"holds A-B, {NOT_A_NAME}", id="dash"),
+        pytest.param("HOME", f"holds HOME, {SET_BY_FACTORY}", id="home"),
         pytest.param(
-            "ANTHROPIC_API_KEY", f"holds ANTHROPIC_API_KEY, {_SET_BY_FACTORY}", id="api-key"
+            "ANTHROPIC_API_KEY", f"holds ANTHROPIC_API_KEY, {SET_BY_FACTORY}", id="api-key"
         ),
         pytest.param(
             "CLAUDE_CODE_OAUTH_TOKEN",
-            f"holds CLAUDE_CODE_OAUTH_TOKEN, {_SET_BY_FACTORY}",
+            f"holds CLAUDE_CODE_OAUTH_TOKEN, {SET_BY_FACTORY}",
             id="oauth-token",
         ),
         pytest.param(
-            "OPENCODE_CONFIG", f"holds OPENCODE_CONFIG, {_SET_BY_FACTORY}", id="opencode-config"
+            "OPENCODE_CONFIG", f"holds OPENCODE_CONFIG, {SET_BY_FACTORY}", id="opencode-config"
         ),
-        pytest.param("GIT_ASKPASS", f"holds GIT_ASKPASS, {_SET_BY_FACTORY}", id="askpass"),
+        pytest.param("GIT_ASKPASS", f"holds GIT_ASKPASS, {SET_BY_FACTORY}", id="askpass"),
         pytest.param(
             "FACTORY_TOKEN_FILE",
-            f"holds FACTORY_TOKEN_FILE, {_SET_BY_FACTORY}",
+            f"holds FACTORY_TOKEN_FILE, {SET_BY_FACTORY}",
             id="factory-prefix",
         ),
         pytest.param("FACTORYX", ("FACTORYX",), id="factory-without-underscore"),

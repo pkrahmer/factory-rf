@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T22:36:24.392473Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-26T22:36:24.392473Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-26T22:42:21.089385Z'
+  stage: tests
+  run: f1f4c513c2f0434da68eb5ee16e54c0d
 ---
 
 # The settings model refuses what the reading refuses
@@ -235,3 +237,29 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
 
     `src/factory/domain/settings.py` stays as round 0 left it. Nothing else is open. The journal did not change the task's meaning, so `## Description` is unchanged.
 12. factory: started tests as vm.
+13. tester: Round 1: I made the test change named in coder entry 11, which settles the reviewer's finding 1 (two copies of the same constants). I did this under the standing leave in `CLAUDE.md` to move a shared test helper. No test was added, renamed or had its assertions changed.
+
+    **What moved:** the two fault texts, `"which is not a variable name"` and `"which the factory sets itself"`. They now live once, as `NOT_A_NAME` and `SET_BY_FACTORY`, in `tests/settings_support.py`. They are public names because two modules import them. I updated that module's docstring to mention them.
+
+    **Earlier test files changed under the leave:**
+    - `tests/domain/test_settings_container_env.py` (written by F0046-S0002): its private `_NOT_A_NAME` and `_SET_BY_FACTORY` are gone. It now imports both from `settings_support`, and its parametrize rows use the shared names. Every test keeps its name and its expected texts.
+
+    **This story's test file:**
+    - `tests/domain/test_settings_model_rules.py`: the same change, private copies removed and the shared constants imported.
+
+    The criterion → test mapping is unchanged from entry 5:
+    - criterion 1: tests/domain/test_settings_model_rules.py::test_the_settings_model_requires_an_absolute_agent_home
+    - criterion 2: tests/domain/test_settings_model_rules.py::test_the_settings_model_checks_the_container_env_names
+    - criterion 3: tests/domain/test_settings_model_rules.py::test_the_reading_names_the_container_env_variable_for_a_refused_name
+    - criterion 4: tests/domain/test_settings_model_rules.py::test_the_old_agent_home_default_is_gone
+
+    **For the documenter (criterion 6):** the *Shared test helpers* line for `tests/settings_support.py` should now name `AGENT_HOME`, `NOT_A_NAME` and `SET_BY_FACTORY`.
+
+    **Files created:** none. **Modules the test run could not import:** none.
+
+    **Checks:** `make test` passed once (`test: green (161.6 s)`; the code already exists from round 0). `make lint` is green. I skipped the type check, as this stage allows.
+
+    **Open:** nothing.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (161.5 s)
