@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T21:05:18.116694Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T21:05:18.111068Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:05:18.116694Z'
+  stage: intake
+---
+
 # The stall reason left_branch is removed
 
 ## Description
@@ -47,3 +74,6 @@ grep -l 'left_branch' src/factory/contract/*.schema.json | wc -l
 Expect: two lines: `False 4.0`; `0`
 
 ## Journal
+
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
