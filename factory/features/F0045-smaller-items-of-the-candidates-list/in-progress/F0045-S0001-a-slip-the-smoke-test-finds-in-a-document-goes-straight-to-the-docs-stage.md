@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T18:33:03.252271Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-26T18:32:42.714680Z'
   stage: intake
   run: 8b48783db0ae4f6f8ebe887c8146bbd6
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:33:03.252271Z'
+  stage: tests
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -100,3 +109,4 @@ Expect: two lines: `7`; `1`
    - Smoke test: both commands are runnable from the repository root. No pytest command is used, so the `-q` check does not apply. Each `Expect:` is checkable: the printed list, and the two counts `7` and `1`. Today the template shows `['approval', 'doing']` and the count is 0, so both commands fail before the story is built and should pass after it.
    - Architecture: the change is only in `template/`, `claude/agents/` and tests, inside the coder's and tester's write paths. No layer or interface is touched.
    - Scope: this is S0001 of F0045, as decision 6 and the human's change 1 describe. `factory/pipeline.yml` already has `docs` in the smoke test's `next`. No earlier test changes, per decision 21.
+4. factory: started tests as vm.
