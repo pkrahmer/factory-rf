@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T12:57:23.067909Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-26T12:57:02.605529Z'
   stage: tests
   run: 83bd351a2d2c43639cf4aff8d439d537
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-26T12:57:23.067909Z'
+  stage: doing
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -201,3 +210,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/domain/test_settings_opencode_provider.py - ImportError while importing test module '/work/checkout/tests/domain/test_settings_opencode_provider.py'.
+9. factory: started doing as vm.
