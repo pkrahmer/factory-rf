@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T22:56:26.624023Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-26T22:56:06.563941Z'
   stage: intake
   run: 6d069c2ca73140bd8926ab77c11a4c74
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:56:26.624023Z'
+  stage: tests
 ---
 
 # The process result no longer says that its output was abandoned
@@ -77,3 +86,4 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
    Smoke test: one command with two printed lines. It runs no pytest, so the `-q` rule does not apply. `Expect:` gives exact output that can be compared.
    Architecture: the change stays inside the adapters layer in `factory.adapters.process`, the one module that starts processes, and adds no layer crossing. Docs go to the paths the docs criterion names.
    Scope: this is S0007 of F0045, matching the feature's scope line and decision 5. The baseline line is the human's change 4 and the story leaves it alone. Nothing in the feature's "Out of scope" is touched.
+4. factory: started tests as vm.
