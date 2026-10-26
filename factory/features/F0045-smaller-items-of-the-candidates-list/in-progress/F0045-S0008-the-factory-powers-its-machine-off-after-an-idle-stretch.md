@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T23:51:28.161342Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-26T23:51:28.161342Z'
   stage: review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T23:52:54.344998Z'
+  stage: review
+  run: de295159d1024c3b87938f85b282dcbb
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -186,8 +188,9 @@ Tests (the tester writes them; the leave is decision 28 of `feature.md`): new mo
 7. The activity tick (one test with a stand-in tick that returns an `idle` outcome, then an `other` outcome): `activity_tick(tick, idle)` returns `False`, then `True`, and the `IdleShutdown` stand-in (a subclass of the test that records `observe`) received exactly those two outcomes in order.
 8. The wiring (rows of one parametrized test over `idle_shutdown_of` with the `boundaries` fixture): settings with `idle_shutdown_minutes` `0` give `None`; with `30` an `IdleShutdown` whose `limit` is 30 minutes and whose `power` is a `SystemctlPowerOff`; making it runs nothing (a stand-in `sudo` first on `PATH` records no call).
 9. The wrappers (the structural test of `tests/test_wrapper_search.py`): the modules that import `factory.adapters.process` are the seven of the test's set on `main` before this story and `factory.adapters.power_off`.
-10. `make check` stays green.
-11. docs: `docs/operator-guide.md`, `## Configuration`: the row `FACTORY_IDLE_SHUTDOWN_MINUTES` (unset, blank or `0` off, the default; a whole number of minutes; the refusal); `## The loop and its pauses`: one paragraph that the idle shutdown counts the loop's idle ticks; `## The machine`: a section `### The idle shutdown` that says what counts as idle and what does not (decision 8 of `feature.md`: a story waiting for the human counts, a stop does not), the two log lines that begin `idle shutdown: `, that a refused power-off leaves the instance running and how to read it, that S0009's script option gives the right, and how the machine starts again: by hand with `gcloud compute instances start factory-vm --zone europe-west3-a`, or by a GCP instance schedule that only starts it (made by hand with `gcloud compute resource-policies create instance-schedule` and attached with `gcloud compute instances add-resource-policies`), and that a merge, a close or an answer given while the VM is off is seen at the first tick after the start. `docs/project-guide/watching.md`, `## Stops, the clock and the factory log`: a section *The idle shutdown* (`IdleShutdown`, `PowerOff`, `SystemctlPowerOff`, `idle_shutdown_of`, the rules of the stretch); `docs/project-guide/README.md`, *The files* and *Errors*: the line of `watching.md` follows and `PowerOffError` is listed. `docs/decisions.md`: a new entry "The machine powers itself off after an idle stretch, an option off by default" (F0045-S0008; decisions 8 to 12 of `feature.md` with their rejected options). `README.md`: none.
+10. The run (rows of one parametrized test over `run_instance`, with the settings and fake hosting service of `tests/entry/test_run.py::test_run_instance_builds_one_tick_for_the_whole_run`, whose way of recording `build_tick` it follows for `idle_shutdown_of` and `activity_tick` of `factory.entry.run`): with `idle_shutdown_minutes` `0` and `30`, `run_instance` calls `idle_shutdown_of` once, with settings whose `idle_shutdown_minutes` are the row's, and hands what it returned to `activity_tick` as its `idle` (`None` for `0`, an `IdleShutdown` with `limit` 30 minutes for `30`).
+11. `make check` stays green.
+12. docs: `docs/operator-guide.md`, `## Configuration`: the row `FACTORY_IDLE_SHUTDOWN_MINUTES` (unset, blank or `0` off, the default; a whole number of minutes; the refusal); `## The loop and its pauses`: one paragraph that the idle shutdown counts the loop's idle ticks; `## The machine`: a section `### The idle shutdown` that says what counts as idle and what does not (decision 8 of `feature.md`: a story waiting for the human counts, a stop does not), the two log lines that begin `idle shutdown: `, that a refused power-off leaves the instance running and how to read it, that S0009's script option gives the right, and how the machine starts again: by hand with `gcloud compute instances start factory-vm --zone europe-west3-a`, or by a GCP instance schedule that only starts it (made by hand with `gcloud compute resource-policies create instance-schedule` and attached with `gcloud compute instances add-resource-policies`), and that a merge, a close or an answer given while the VM is off is seen at the first tick after the start. `docs/project-guide/watching.md`, `## Stops, the clock and the factory log`: a section *The idle shutdown* (`IdleShutdown`, `PowerOff`, `SystemctlPowerOff`, `idle_shutdown_of`, the rules of the stretch); `docs/project-guide/README.md`, *The files* and *Errors*: the line of `watching.md` follows and `PowerOffError` is listed. `docs/decisions.md`: a new entry "The machine powers itself off after an idle stretch, an option off by default" (F0045-S0008; decisions 8 to 12 of `feature.md` with their rejected options). `README.md`: none.
 
 ## Smoke test
 
@@ -328,3 +331,14 @@ Expect: `-n /usr/bin/systemctl poweroff`
     `check`: check: green
     `duplicates`: duplicates: 2 new, 42 known, 0 gone
 14. factory: started review as vm.
+15. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I stopped at group 1 (acceptance criteria). I checked every criterion and every Interface rule. Criteria 1 to 9 each have a test that checks what they state, as the human's answers in journal 4 and 9 read them, and the coder's `make check` was green (journal 13). I found two gaps.
+
+    1. Criterion 10 added: it needs its test. The location is `src/factory/entry/run.py:119`. The Interface says `run_instance` builds the scheduler's tick as `activity_tick(tick, idle_shutdown_of(settings, boundaries))`, but no criterion or test pins it. If that argument were dropped, every test would still pass and the setting would do nothing. A test can pin it without any change under `src/`, the way `tests/entry/test_run.py::test_run_instance_builds_one_tick_for_the_whole_run` records `build_tick`. I wrote it into `## Acceptance criteria` as criterion 10 (rows `0` and `30`) and renumbered the two closing criteria to 11 and 12. Fix: the tester writes that test.
+    2. The work item's `## Acceptance criteria` 1, 5 and 8 are stale against the human's answer in journal 9, so they no longer say what the tests check:
+       - Criterion 1 is still garbled (`"-1"`, `"x"`, `"100000"` gives `100000`).
+       - Criterion 5's standard-error row still asks the text to "name the exit status `1`". Answer 9.1(a) dropped that.
+       - Criterion 8 lacks the check from answer 9.3: after 30 minutes on `boundaries.clock`, an `idle` outcome makes the `sudo` stand-in record `-n /usr/bin/systemctl poweroff` once, and `factory.log` holds `idle shutdown: `.
+       Fix: rewrite those three criterion sentences to journal 9's reading. The tests already check that reading, so they need no change.
+
+    Earlier tests:
+    - `tests/test_wrapper_search.py` (M): changed under the human's leave, which the story's Interface names (decision 28 of `feature.md`). One module, `factory.adapters.power_off`, was added to the set, and the test keeps its name.
