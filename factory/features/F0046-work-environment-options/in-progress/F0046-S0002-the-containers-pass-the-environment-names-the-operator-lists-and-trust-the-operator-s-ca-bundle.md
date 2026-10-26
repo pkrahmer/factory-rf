@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T14:48:12.590472Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-10-26T14:48:12.590472Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-10-26T14:48:36.680277Z'
+  stage: doing
+  run: 975890c0fc7f4e0682737ff87825b4d0
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -260,3 +262,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 14. 2026-10-26 human: 1. (a): the tester adds `opencode_models={"sonnet": "anthropic/claude-sonnet"}` to that test's `InstanceSettings`; the claude row stays.
     2. (a): `main` now holds `"src/factory/adapters/make_commands.py" = ["PLR0913"]` in `pyproject.toml` (the human's change); it reaches this branch through the merge of `origin/main` at the next stage. No noqa in the source.
 15. factory: started doing as vm.
+16. coder: The test change from the human's answer in entry 14, point 1: in `tests/entry/test_wiring_container_extra.py::test_every_container_of_a_stage_carries_both_settings_and_no_hosting_token`, give the opencode row's `InstanceSettings` `opencode_models={"sonnet": "anthropic/claude-sonnet"}` and leave the claude row unchanged.
+
+    State of the branch: the code from entry 13 is committed. These are the paths: `src/factory/domain/settings.py`, `src/factory/domain/containers.py`, `src/factory/adapters/agent_launch.py`, `claude_runtime.py`, `opencode_runtime.py`, `make_commands.py`, `src/factory/application/stage_environment.py`, `boundaries.py` and `src/factory/entry/wiring.py`. I changed no code in this run.
+
+    The human's `PLR0913` exemption for `src/factory/adapters/make_commands.py` (entry 14, point 2) is now in `pyproject.toml` on this branch, and `make lint` is green.
+
+    I ran the six test modules of this story together. Only that opencode row fails, the same as before:
+    ```
+    src/factory/adapters/opencode_runtime.py:252: AgentRuntimeError
+    E   factory.domain.errors.AgentRuntimeError: agent runtime failed: the opencode runtime has no model for sonnet: set FACTORY_OPENCODE_MODELS
+    ```
+
+    Still open for when the work item comes back: a full `make check` and the refactor pass over my diff. Neither has been done, because the check cannot be green until the test is changed.
