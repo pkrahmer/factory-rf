@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 467
 comments_read: [6424960438]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T19:10:30.477630Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-10-26T19:10:30.477630Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-26T19:17:06.823371Z'
+  stage: tests
+  run: e7b1b9fe75f54cebbeaf15a822316aee
+  blocked: question
 ---
 
 # The reset drops the page cache after the rollback
@@ -165,3 +168,36 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
    - Architecture: the adapter holds the command, the wiring is the one place that builds `ZfsSnapshots`, and the script is the machine's side. The layers hold.
    - Scope: decisions 15 and 16 of `feature.md` (no content check). The leave for the earlier tests is decision 22.
 7. factory: started tests as vm.
+8. tester: Tests are written for criteria 1 to 9, and `make lint` is green. In the one `make test` run they fail for the right reason: `vm/setup.sh` has no `setup: caches: ` text (`step_texts` raises "no 'setup: caches: ' text"). The adapter tests need `DROP_CACHES_COMMAND` and the keyword `drop_caches`, which do not exist yet. I skipped the type check as this stage says. I stopped on three questions. The first is a contradiction in the work item. The other two are criteria I had to interpret.
+
+   1. Criterion 2's drop-fails row and the Interface disagree about the detail. The row says the detail holds `sudo: a password is required` **and** the exit status `1`. The Interface says the detail is "formed as for the `zfs` commands". But that format, `failure_detail` in `src/factory/adapters/printed_output.py:18`, gives only the last printed line, and gives `exit status <n>` only when nothing was printed. `test_a_failed_reset_names_its_detail` pins that format exactly for `zfs`. My options:
+      - (a) The drop's detail follows `failure_detail`. The row then checks only for `sudo: a password is required`.
+      - (b) The drop's detail holds both, for example `sudo: a password is required (exit status 1)`. The drop then has its own format, unlike the `zfs` commands.
+      I would choose (a), because it is what "formed as for the `zfs` commands" says. The test currently asserts what the criterion says (`REFUSAL in detail and "1" in detail`), so under (a) I would drop the `"1"`.
+
+   2. Criterion 6 checks the helper's three lines in the script's text with its comment lines dropped. But `#!/bin/sh` starts with `#`, so dropping the comment lines removes it. My test reads the three lines as consecutive lines of the raw script. It reads `sync` and `echo 1 > /proc/sys/vm/drop_caches` in order inside the step `caches` of the text without comments. Is that right? I would keep it.
+
+   3. Criterion 9 asks for "a `cmp`, `diff` or `grep -x` test on that file's path". The script's own way to do that is `unchanged <path>`, a function whose body is `cmp -s`. My test accepts a line that holds the path and either a comparison command or a call of a function in the script whose body holds one. A write is any line with the path and `install`, `cp`, `mv` or `tee`, or a `>` into the path. The step must also hold `wrote <path>`, and a line with `found` and the path. Is that right? I would keep it.
+
+   If you agree with (a), 2 and 3, the next tests run changes only the drop-fails row and ends with `doing`.
+
+   Criterion to test (as written now):
+   - criterion 1: tests/adapters/test_zfs_snapshots_drop_caches.py::test_the_reset_drops_the_cache_after_the_rollback
+   - criterion 2: tests/adapters/test_zfs_snapshots_drop_caches.py::test_a_fault_of_the_rollback_or_the_drop_is_a_snapshot_error (rows rollback-fails, drop-fails, drop-missing, drop-time-limit). The `zfs` stand-ins here are `sh` scripts, so the rollback ends within the one-second limit even under load.
+   - criterion 3: tests/adapters/test_zfs_snapshots_drop_caches.py::test_only_the_reset_drops_the_cache
+   - criterion 4: tests/adapters/test_zfs_snapshots_drop_caches.py::test_the_drop_command_must_name_a_program
+   - criterion 5: tests/entry/test_wiring_drop_caches.py::test_every_reset_of_the_wired_instance_drops_the_cache_through_sudo
+   - criterion 6: tests/test_vm_setup_caches.py::test_the_caches_step_writes_the_helper_and_its_rule
+   - criterion 7: tests/test_vm_setup.py::test_the_script_parses_and_starts_with_its_shebang_and_set_eu. This existing test already runs `sh -n vm/setup.sh`, so I wrote no second copy.
+   - criterion 8: tests/test_vm_setup_caches.py::test_a_refused_visudo_check_removes_the_rule_and_ends_the_script
+   - criterion 9: tests/test_vm_setup_caches.py::test_the_caches_step_writes_a_file_only_when_its_text_differs (rows helper, sudoers)
+
+   Files created: tests/adapters/test_zfs_snapshots_drop_caches.py, tests/entry/test_wiring_drop_caches.py, tests/test_vm_setup_caches.py.
+
+   Earlier test files changed under the leave in the Interface (decision 22):
+   - tests/zfs_support.py: new `Drop` and `write_drop`, a `sh` stand-in that adds its path to a record file. `snapshots_on` passes one that succeeds and records into `drop-calls.txt`, which no existing test reads.
+   - tests/adapters/test_zfs_snapshots.py: the three named tests gain `drop_caches=DROP`. The ten-minute test answers both calls with success and reads the rollback's request, not a count of all requests.
+   - tests/vm_support.py: `STEPS` gains `caches` after `sudoers`.
+   - tests/test_vm_setup_text.py: `ORDERED_COMMANDS` gains `/etc/sudoers.d/factory-drop-caches`.
+
+   Modules the test run could not import: none fails at import time. `DROP_CACHES_COMMAND` (from `factory.adapters.zfs_snapshots`) is missing, so the wiring test module will fail at collection, and the tests that use `snapshots_on` fail on the unknown keyword `drop_caches`.

@@ -21,6 +21,7 @@ LIST_BASE = ["list", "-H", "-o", "name", "-t", "snapshot", BASE]
 DESTROY = ["destroy", BASE]
 SNAPSHOT = ["snapshot", BASE]
 ROLLBACK = ["rollback", "-r", BASE]
+DROP = ("/nowhere/factory-drop-caches",)
 
 
 def test_reset_rolls_back_to_the_base_and_keeps_the_mount_point(tmp_path: Path) -> None:
@@ -134,7 +135,9 @@ def test_a_failed_reset_names_its_detail(
     # No answer stands for an executable that does not exist.
     zfs = write_zfs(tmp_path, {} if answer is None else {"rollback": answer})
     executable = "/nowhere/zfs" if answer is None else str(zfs.path)
-    snapshots = ZfsSnapshots(DATASET, MOUNT_POINT, executable=executable, time_limit=time_limit)
+    snapshots = ZfsSnapshots(
+        DATASET, MOUNT_POINT, drop_caches=DROP, executable=executable, time_limit=time_limit
+    )
 
     started = time.monotonic()
     with pytest.raises(SnapshotError) as raised:
@@ -150,15 +153,17 @@ def test_the_default_time_limit_is_ten_minutes_and_reaches_run_process(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     recording = Recorder()
-    recording.results.append(
-        ProcessResult(exit_status=0, stdout="", stderr="", timed_out=False, duration=timedelta(0))
+    success = ProcessResult(
+        exit_status=0, stdout="", stderr="", timed_out=False, duration=timedelta(0)
     )
+    recording.results.extend([success, success])
     monkeypatch.setattr(zfs_snapshots, "run_process", recording)
 
-    ZfsSnapshots(DATASET, MOUNT_POINT, executable="/nowhere/zfs").reset()
+    ZfsSnapshots(DATASET, MOUNT_POINT, drop_caches=DROP, executable="/nowhere/zfs").reset()
 
     assert timedelta(minutes=10) == SNAPSHOT_TIME_LIMIT
-    assert [request.time_limit for request in recording.requests] == [SNAPSHOT_TIME_LIMIT]
+    [rollback] = [request for request in recording.requests if request.argv[1:2] == ["rollback"]]
+    assert rollback.time_limit == SNAPSHOT_TIME_LIMIT
 
 
 @pytest.mark.parametrize(
@@ -178,7 +183,13 @@ def test_the_time_limit_is_named_in_whole_seconds_rounded_up(
     monkeypatch.setattr(zfs_snapshots, "run_process", recording)
 
     with pytest.raises(SnapshotError) as raised:
-        ZfsSnapshots(DATASET, MOUNT_POINT, executable="/nowhere/zfs", time_limit=time_limit).reset()
+        ZfsSnapshots(
+            DATASET,
+            MOUNT_POINT,
+            drop_caches=DROP,
+            executable="/nowhere/zfs",
+            time_limit=time_limit,
+        ).reset()
 
     assert raised.value.detail == "no end within 2 s"
 
