@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 463
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T17:08:38.042232Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-26T17:08:17.559124Z'
   stage: tests
   run: 875b9eb4701f4426bac9a68e36e709ba
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:08:38.042232Z'
+  stage: doing
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -105,3 +114,4 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/application/test_agent_run_probe_opencode.py::test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint[none] - AssertionError: assert 'the probe ru...IN_FILE names' == 't...
+6. factory: started doing as vm.
