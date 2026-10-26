@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T20:47:33.162898Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-26T20:47:33.162898Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-26T20:53:27.527768Z'
+  stage: doing
+  run: d859e7ea28e24188ae834fcff95288e5
 ---
 
 # The setup script says how to install a changed unit
@@ -293,3 +295,22 @@ Expect: three lines: `syntax-ok`; `2`; `0`
     `lint`: lint: green (0.2 s)
     `test`: test: green (155.1 s)
 21. factory: started doing as vm.
+22. coder: Round 1: this round had no code to write. The reviewer's only finding in entry 16 was a duplicate test, and the tester already removed it in entry 20. I changed nothing in the working tree.
+
+    What I built: `vm/setup.sh` stays as entry 14 left it. Lines 348 (`tools`) and 392 (`service`) are now the Interface's exact lines, single-quoted and sent with `>&2`. No install condition, step, other line or exit status changed. `make check` is green on this round (`test: green (157.1 s)`, `check: green`). That includes `tests/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy` (both rows) and the narrowed `tests/test_vm_setup_text.py::test_the_checkout_files_are_installed_only_in_the_run_that_cloned`.
+
+    Main choice (unchanged since entry 14): I used single quotes because the text contains `"The rebuild after a merge"`. I rejected double quotes with `\"` escapes, because then the script's text would no longer match the Interface's line exactly, and that exact text is what criterion 1's test looks for.
+
+    Refactor: I read the diff again (two echo lines in the script). There was nothing to change.
+
+    What the journal changed: entry 8 (the human's leave to narrow `_install_conditions`) and entry 20 (criterion 3 now maps to the existing `tests/test_vm_setup.py::test_the_script_parses_and_starts_with_its_shebang_and_set_eu`) leave three places in `## Description` out of date:
+    - The Interface's "No earlier test changes".
+    - Criterion 2's "unchanged".
+    - Criterion 3's "(one test)".
+
+    The work item is outside my write paths, and the factory dropped my rewrite in round 0 (entry 18). So I left the Description alone, and it needs someone who may write it. The meaning of the task is the same.
+
+    Noticed but not touched: criterion 5's docs are still open for the documenter. They are `docs/operator-guide.md` (*The two passes* and *The rebuild after a merge*, where the advice to remove the installed file must go) and the closing line in `docs/decisions.md`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
