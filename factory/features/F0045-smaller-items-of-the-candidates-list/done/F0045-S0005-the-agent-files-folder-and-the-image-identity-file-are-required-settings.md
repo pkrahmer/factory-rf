@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-26T22:14:40.586448Z'
   stage: smoke-test
   run: 264cef0704944804b34afebb338707c8
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-26T22:17:06.068116Z'
+  stage: approval
 ---
 
 # The agent files' folder and the image identity file are required settings
@@ -279,3 +284,4 @@ Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: mis
     - The output contradicts no criterion. Criteria 3, 5, 6 and 7 are not covered by the smoke test: the tests cover 3 and 5 (journal 5 and 9), the factory's checks cover 6, and the documenter covered 7.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 14.1 min, 58 turns, 211954 tokens in (2008071 more from cache), 25785 out, $2.31
