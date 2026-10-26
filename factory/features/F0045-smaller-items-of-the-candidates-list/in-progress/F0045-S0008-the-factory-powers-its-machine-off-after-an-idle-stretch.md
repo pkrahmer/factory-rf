@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T23:32:15.014690Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T23:31:57.034752Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:32:15.014690Z'
   stage: intake
 ---
 
@@ -178,3 +187,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
    4. Yes: the time-limit detail is `no_end_detail` as the `zfs` commands give it; the row asserts the same text the `zfs` time-limit test asserts for its limit.
    5. Yes: the built `IdleShutdown` logs to `boundaries.log` and reads `boundaries.clock`.
    6. Yes: `"100000"` gives `100000`.
+5. factory: started intake as vm.
