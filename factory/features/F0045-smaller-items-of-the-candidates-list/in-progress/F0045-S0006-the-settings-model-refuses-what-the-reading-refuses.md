@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T22:19:56.571494Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-26T22:19:36.280313Z'
   stage: intake
   run: b4e4d0e251484311822f38277e51780a
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:19:56.571494Z'
+  stage: tests
 ---
 
 # The settings model refuses what the reading refuses
@@ -80,3 +89,4 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
    - Smoke test: runnable with `uv run python -`, no pytest, so the `-q` rule does not apply. I traced it against the code. `InstanceSettings` with only `repository_url` and `instance` gives `missing` first, whose message lacks the text, so `False`. `HOME` gives `value_error True`. The valid case prints `/srv/agents`. The `Expect:` line gives four lines that can be checked exactly.
    - Architecture: both rules live in `factory.domain`, a pure model with no I/O, and `read_settings` stays in the same module. The story writes the rule once and uses it from both.
    - Scope: within S0006 of `feature.md` (decisions 14 and 18, the human's answer 32 (b)). The leave for the earlier tests is decision 26, which the story cites. It changes no test beyond that leave and has nothing from "Out of scope".
+4. factory: started tests as vm.
