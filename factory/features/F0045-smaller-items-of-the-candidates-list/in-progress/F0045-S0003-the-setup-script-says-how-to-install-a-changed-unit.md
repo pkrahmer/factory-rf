@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 468
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T20:18:51.546096Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-10-26T20:18:51.546096Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-26T20:25:08.050783Z'
+  stage: doing
+  run: 9b709544a35740aea01d0b6cfc5ed822
+  blocked: question
 ---
 
 # The setup script says how to install a changed unit
@@ -107,3 +110,18 @@ Expect: three lines: `syntax-ok`; `2`; `0`
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy[service] - assert 0 == 1
 6. factory: started doing as vm.
+7. coder: Stopped before implementing: the new test and an earlier test contradict each other. I left the working tree unchanged. I had edited `vm/setup.sh` and then reverted it.
+
+   What I tried: in `vm/setup.sh` (lines 348 and 392) I changed the two echo lines to the Interface's exact text. Each line was single-quoted, because the text contains `"The rebuild after a merge"`. With that change, `tests/test_vm_setup_install_hint.py` passes. But all four rows of the earlier `tests/test_vm_setup_text.py::test_the_checkout_files_are_installed_only_in_the_run_that_cloned` fail:
+   ```
+   tests/test_vm_setup_text.py:567: in test_the_checkout_files_are_installed_only_in_the_run_that_cloned
+   E   assert None is not None
+   ```
+   Cause: the helper `_install_conditions` (tests/test_vm_setup_text.py:525) treats every line that matches `(?<![\w-])install\s` and contains the target path as an install command. The Interface's line holds both `install it from your own copy of ...` and the path (`/usr/local/bin/git-credential-factory` or `/etc/systemd/system/factory@.service`). So the echo line counts as an install. It sits under `else`, `_enclosing_if` returns None, and the test fails. Any script that prints the exact Interface line on one line (which criterion 1 requires) breaks criterion 2's test. Decision 23 says no earlier test changes.
+
+   Options:
+   A. With the human's leave, the tester narrows `_install_conditions` so that only an `install` command counts, not an echo. For example, the line starts with `install` after its indentation, or the regex is `^\s*install\s`. The test keeps its name and checks the same rule. The script change is then the two echo lines exactly as in the Interface. **This is what I would choose.**
+   B. Change the Interface's wording so that a line naming the path does not hold the word `install` followed by a space (for example "put it in place from your own copy of ..."). Criterion 1's test text and the smoke test's `grep` pattern would change with it.
+   C. Restructure the script so that the echo sits under an `if` of its own whose condition satisfies the earlier test's checks. That bends the script around a test heuristic and changes the structure the Interface says stays. I reject it.
+
+   Not touched: nothing else. `make check` is otherwise green apart from these four rows.
