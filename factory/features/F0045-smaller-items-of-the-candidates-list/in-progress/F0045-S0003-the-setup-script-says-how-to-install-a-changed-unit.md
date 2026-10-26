@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 468
-comments_read: []
+comments_read: [6426528724]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: 9b709544a35740aea01d0b6cfc5ed822
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-26T20:26:26.443367Z'
+  stage: doing
 ---
 
 # The setup script says how to install a changed unit
@@ -125,3 +130,4 @@ Expect: three lines: `syntax-ok`; `2`; `0`
    C. Restructure the script so that the echo sits under an `if` of its own whose condition satisfies the earlier test's checks. That bends the script around a test heuristic and changes the structure the Interface says stays. I reject it.
 
    Not touched: nothing else. `make check` is otherwise green apart from these four rows.
+8. 2026-10-26 human: A: the human's leave for exactly this: the tester narrows `_install_conditions` in `tests/test_vm_setup_text.py` so that only a line whose command is `install` (`^\s*install\s` after the indentation) counts, not an echo; the test keeps its name and checks the same rule. The script change stays the two echo lines exactly as in the Interface.
