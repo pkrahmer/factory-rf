@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T21:23:25.487439Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -74,6 +70,12 @@ journal:
   kind: started
   at: '2026-10-26T21:23:25.487439Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T21:24:31.339694Z'
+  stage: review
+  run: af374d1bd9004145b9ace4470262f81f
 ---
 
 # The stall reason left_branch is removed
@@ -214,3 +216,29 @@ Expect: two lines: `False 4.0`; `0`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. Checklist groups 1 to 3 hold. Group 4 fails on one test-quality finding. This is round 0, so it sends the work item back.
+
+    Groups 1 to 3, checked and holding:
+    - Criterion 1: `tests/domain/test_stall_reason_removed.py`. `stall_cause` indexes `_STALL_SENTENCES[reason]`, so a value without a sentence raises `KeyError` and fails its row.
+    - Criterion 2: `tests/application/test_no_branch_check.py::test_the_early_stall_reads_only_the_runs_own_end`, with the rows `died`, `time_limit` and `completed`/`doing`.
+    - Criterion 3: the `ast` test finds no `.status(` call in `stage.py`. The diff removes the only one, at `src/factory/application/stage.py:238`.
+    - Criterion 4: the row in `test_stall_environment.py` now uses `died`. It keeps its `SwitchingRuntime` and its checks of the branch and head.
+    - Criterion 5: `tests/domain/test_contract_version_4.py`.
+    - Criterion 6: `tests/test_left_branch_removed.py`.
+    - The Interface states no new rule or limit, so no failing side is missing.
+    - Entry 10 of the journal records `check: green`. The earlier red was a segfault (exit 139) in `make types`; the coder's rerun on the same tree passed.
+    - The version rises to `4.0`, which is the major step the rule in `docs/decisions.md` (around line 716) asks for when a value is removed. The schemas match `contract_schema`, which the tests check.
+    - `src` and the schemas no longer hold `left_branch`. The layers are unchanged, and the diff adds no markers or secrets.
+
+    Findings:
+    1. `tests/domain/test_contract_version_4.py:17-30`: this new module copies `SCHEMAS`, `_version` and `_committed_is_generated` from `tests/domain/test_contract_version_3.py:17-30`. Its `_no_left_branch` (lines 33-39) copies `_no_nested_repository` (lines 33-39 there) with only the searched name changed. `test_contract_version_2.py` holds a third copy as `_committed` and `_schema_check`. Fix: under the standing leave in `CLAUDE.md`, the tester moves one shared helper to a module at the `tests/` root, for example `contract_support.py`. It takes `SCHEMAS`, a check that a committed schema is at a given version and equals `contract_schema`, and a check that no committed schema names a given string. The version-2, version-3 and version-4 modules then use it, and each earlier test keeps its name and what it checks.
+
+    Earlier tests (changed test files that `main` already holds), each with the leave it was changed under:
+    - `tests/application/test_after_agent.py`: the human's leave, decision 24 of `feature.md`, named in the story's Interface (the test is deleted with the helpers only it used).
+    - `tests/application/test_stall_edges.py`: the human's leave, decision 24 of `feature.md`, named in the Interface (the `left-branch` row, its helpers and the docstring).
+    - `tests/application/test_stall_environment.py`: the human's leave, decision 24 of `feature.md` (the row `checkout-back-on-the-branch` now uses `died`).
+    - `tests/domain/test_stall_texts.py`: the human's leave, decision 24 of `feature.md` (the `left_branch` row is deleted).
+    - `tests/domain/test_contract.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`).
+    - `tests/domain/test_contract_provider_limit.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`).
+    - `tests/domain/test_contract_version_2.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`).
+    - `tests/domain/test_contract_version_3.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`).
