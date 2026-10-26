@@ -47,6 +47,7 @@ _SET_BY_FACTORY = "which the factory sets itself"
             id="factory-prefix",
         ),
         pytest.param("FACTORYX", ("FACTORYX",), id="factory-without-underscore"),
+        pytest.param("http_proxy,_X", ("http_proxy", "_X"), id="lower-case-and-underscore"),
     ],
 )
 def test_the_container_env_setting_is_read_as_a_list_of_names(

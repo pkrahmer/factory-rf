@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T15:19:47.000080Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -168,6 +164,12 @@ journal:
   kind: started
   at: '2026-10-26T15:19:47.000080Z'
   stage: tests
+- number: 29
+  speaker: tester
+  kind: result
+  at: '2026-10-26T15:26:00.382758Z'
+  stage: tests
+  run: d74cc58bcdd14100af608d322630553f
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -458,3 +460,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: as before, the Interface names `tests/adapters/test_make_commands_extra.py`, but the check rows are in `tests/application/test_container_environment_extra.py`.
 28. factory: started tests as vm.
+29. tester: Round 1, an approved test change. I made the two test changes the coder's entry 27 names: the reviewer's finding 2 (criterion 8), and the agent `PATH` row that finding 1 asks for. Both are new rows in tests this story already wrote. I added no new test functions and created no files.
+
+    - criterion 8: `tests/domain/test_settings_container_env.py::test_the_container_env_setting_is_read_as_a_list_of_names` has a new row `lower-case-and-underscore`: `http_proxy,_X` gives `("http_proxy", "_X")`.
+    - criterion 5, the failing side from finding 1: `tests/adapters/test_agent_launch_extra.py::test_the_agent_s_container_holds_the_listed_names_and_the_bundle` has a new row `path-stays-the-request-s`, run for both runtimes.
+      - In that row, `container_env` also lists `PATH`. The source environment gives every row a host `PATH` of `/host/bin`.
+      - Every row now also asserts that the agent container's `PATH` equals the request's own (`container_environment(tmp_path / "bin")["PATH"]`).
+      - The test's name and what its other rows check are unchanged. The parametrization went from `with_bundle` alone to `(with_bundle, listed_path)`.
+
+    Files changed: `tests/adapters/test_agent_launch_extra.py` and `tests/domain/test_settings_container_env.py`, both written by this story. No other story's test files were touched.
+
+    Modules the test run could not import: none. The coder's round-1 code is already in place, so `make test` is green (`test: green (161.4 s)`, coverage 99.56 %) and the new rows pass. I did not see them fail against the old code. `make lint` is green.
+
+    Still open, as the reviewer (entry 25) and coder (entry 27) noted: the Description's Interface sentence on the runtime part, and the keyword names and corrected smoke test from entry 9, still need to go into the work item.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (161.3 s)
