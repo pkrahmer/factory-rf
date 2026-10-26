@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 470
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T21:53:49.612515Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-26T21:53:49.612515Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-26T22:05:27.700588Z'
+  stage: tests
+  run: 8a102ca455d64488ba5393d29bb3c4ac
 ---
 
 # The agent files' folder and the image identity file are required settings
@@ -100,3 +102,37 @@ Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: mis
    - Architecture: the rules live in `domain.settings`, which does no I/O, because the reader is injected. `entry.run` only reports the stop, so the layers hold.
    - Scope: this is S0005 of F0045 (decision 14). `InstanceSettings.agent_home` is left to S0006, as the story says. Nothing in "Out of scope" is touched. The leave for the earlier tests is decision 25.
 4. factory: started tests as vm.
+5. tester: Wrote the tests for criteria 1 to 5. I also changed the earlier tests the Interface names, under the leave of decision 25 of `feature.md`. Every earlier test kept its name.
+
+   - criterion 1: tests/domain/test_settings_required_paths.py::test_the_agent_files_folder_is_a_required_absolute_path (9 rows: unset, empty and blank, each with and without HOME, raise `missing`; `srv/agents` raises `is not an absolute path`; `/srv/agents` is accepted with and without HOME)
+   - criterion 2: tests/domain/test_settings_required_paths.py::test_with_a_reader_the_image_identity_file_is_a_required_absolute_path (the reader records each path; a refusal leaves it asked nothing, the success asks exactly `[Path("/srv/factory/vm/image-id")]`)
+   - criterion 3: tests/domain/test_settings_required_paths.py::test_without_a_reader_the_image_identity_file_is_not_read
+   - criterion 4: tests/domain/test_settings_required_paths.py::test_the_old_defaults_of_the_two_paths_are_gone (rows: no `IMAGE_ID_FILE` attribute; no string literal under src/factory contains `/opt/factory/image-id`, searched with `tests/source_search.py`; `agent_home` is not `/home/ann/.claude`)
+   - criterion 5: tests/entry/test_run_required_paths.py::test_a_missing_path_setting_is_the_stop_of_invalid_settings (it uses the conftest `environment` fixture, with the state directory under tmp_path)
+   - criteria 6 and 7: not tests (make check; docs).
+
+   Files created: tests/domain/test_settings_required_paths.py, tests/entry/test_run_required_paths.py.
+
+   Earlier test files changed under the leave:
+   - tests/settings_support.py: `BASE` gains `FACTORY_CLAUDE_HOME=/srv/factory/factory-1/factory/claude`; the docstring says three required settings.
+   - tests/domain/test_settings.py: changed as the Interface names.
+     - The two-required-variables test also checks `agent_home`.
+     - The missing/blank test gains `FACTORY_CLAUDE_HOME`.
+     - The image-file test loses its default row.
+     - The refused-image-file and image-label tests set `FACTORY_IMAGE_ID_FILE` to `OTHER_IMAGE_PATH`, and their readers answer for it.
+     - `DEFAULT_IMAGE_PATH` is removed.
+   - tests/domain/test_settings_boundaries.py: the HOME and `/home/agent/.claude` fallback rows are removed.
+   - tests/domain/test_settings_url_edges.py: the rows `image-unreadable` and `image-empty` now use `/srv/factory/factory-1/image-id`.
+   - tests/conftest.py: the fixtures `environment` (which now also takes the `agent_home` fixture) and `hosted_environment` gain `FACTORY_CLAUDE_HOME=<tmp_path>/agent-home`. Neither creates the folder, as before, when the default path did not exist either.
+   - tests/application/test_boundaries_settings.py and tests/domain/test_default_git_identity.py: both use `BASE` from settings_support instead of their own copy of the two-variable dict.
+   - tests/entry/test_watch_settings.py: the fixture `valid_environment` sets `FACTORY_CLAUDE_HOME`.
+   - tests/entry/test_wiring_boundaries.py::test_git_options_carry_the_settings_identity_and_the_git_environment: its environment gains `FACTORY_CLAUDE_HOME`.
+   - Settings modules that build CONTAINER environments: no change needed, because they all build on `BASE`.
+   - Other environments (test_run_state_variable, test_wiring_run, test_run): no change needed, because they come from the conftest fixtures.
+
+   The test run: every module imported, so there was no collection error. The new tests fail for the right reason: DID NOT RAISE SettingsInvalid, `IMAGE_ID_FILE` still present, the old path still in src, and `main` returning 0 without FACTORY_CLAUDE_HOME. The criterion-5 row without FACTORY_IMAGE_ID_FILE already passes: today's default `/opt/factory/image-id` does not exist on this machine, so the read is refused under that variable anyway. Through a pipe mistake I ran `make test` twice instead of once; both runs were the same suite with no changes in between. `make lint` is green.
+
+   Open: none.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/entry/test_run_required_paths.py::test_a_missing_path_setting_is_the_stop_of_invalid_settings[agent-home] - assert 0 == 2

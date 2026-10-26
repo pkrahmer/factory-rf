@@ -25,6 +25,7 @@ def valid_environment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("FACTORY_INSTANCE", INSTANCE)
     monkeypatch.setenv("FACTORY_TOKEN_FILE", str(token))
     monkeypatch.setenv("FACTORY_IMAGE_ID_FILE", str(image))
+    monkeypatch.setenv("FACTORY_CLAUDE_HOME", str(tmp_path / "agent-home"))
     return token
 
 

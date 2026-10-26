@@ -12,7 +12,6 @@ from factory.domain.settings import InstanceSettings, read_settings
 from settings_support import BASE, raising
 
 URL = "/srv/project.git"
-DEFAULT_IMAGE_PATH = Path("/opt/factory/image-id")
 OTHER_IMAGE_PATH = Path("/images/image-id")
 
 
@@ -39,9 +38,12 @@ def test_the_two_required_variables_give_the_settings_and_their_defaults() -> No
     assert settings.git_identity == GitIdentity(name="factory", email="factory@noreply.invalid")
     assert settings.checkout == Path("/work/checkout")
     assert settings.state_directory == Path("/state")
+    assert settings.agent_home == Path("/srv/factory/factory-1/factory/claude")
 
 
-@pytest.mark.parametrize("variable", ["FACTORY_REPOSITORY_URL", "FACTORY_INSTANCE"])
+@pytest.mark.parametrize(
+    "variable", ["FACTORY_REPOSITORY_URL", "FACTORY_INSTANCE", "FACTORY_CLAUDE_HOME"]
+)
 @pytest.mark.parametrize("value", [None, "", "   "])
 def test_a_missing_or_blank_required_variable_is_refused(variable: str, value: str | None) -> None:
     environ = {key: text for key, text in BASE.items() if key != variable}
@@ -138,7 +140,6 @@ def test_each_half_of_the_commit_identity_falls_back_to_its_default(
             {OTHER_IMAGE_PATH: "build-7\n"},
             "build-7",
         ),
-        ({}, {DEFAULT_IMAGE_PATH: "build-7\n"}, "build-7"),
     ],
 )
 def test_the_image_identity_is_read_from_its_file(
@@ -156,21 +157,23 @@ def test_without_a_reader_there_is_no_image_identity() -> None:
     [
         _reader({}),
         raising(PermissionError("denied")),
-        _reader({DEFAULT_IMAGE_PATH: ""}),
-        _reader({DEFAULT_IMAGE_PATH: "   "}),
+        _reader({OTHER_IMAGE_PATH: ""}),
+        _reader({OTHER_IMAGE_PATH: "   "}),
     ],
     ids=["missing", "unreadable", "empty", "spaces"],
 )
 def test_an_image_identity_file_that_gives_no_identity_is_refused(
     read_file: Callable[[Path], str],
 ) -> None:
-    assert _variable_of(BASE, read_file) == "FACTORY_IMAGE_ID_FILE"
+    environ = {**BASE, "FACTORY_IMAGE_ID_FILE": str(OTHER_IMAGE_PATH)}
+
+    assert _variable_of(environ, read_file) == "FACTORY_IMAGE_ID_FILE"
 
 
 def test_the_image_label_variable_is_not_the_image_identity() -> None:
-    environ = {**BASE, "FACTORY_IMAGE": "other"}
+    environ = {**BASE, "FACTORY_IMAGE": "other", "FACTORY_IMAGE_ID_FILE": str(OTHER_IMAGE_PATH)}
 
-    assert read_settings(environ, _reader({DEFAULT_IMAGE_PATH: "build-7\n"})).image == "build-7"
+    assert read_settings(environ, _reader({OTHER_IMAGE_PATH: "build-7\n"})).image == "build-7"
     assert read_settings(environ).image is None
 
 

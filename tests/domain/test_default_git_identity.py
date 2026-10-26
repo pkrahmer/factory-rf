@@ -3,10 +3,10 @@
 from factory.domain import git, settings
 from factory.domain.git import DEFAULT_GIT_IDENTITY, GitIdentity, GitOptions
 from factory.domain.settings import read_settings
+from settings_support import BASE
 from source_search import modules, string_literals
 
 DEFAULT_EMAIL = "factory@noreply.invalid"
-BASE = {"FACTORY_REPOSITORY_URL": "/srv/project.git", "FACTORY_INSTANCE": "factory-1"}
 
 
 def test_the_default_identity_is_factory_at_noreply_invalid() -> None:

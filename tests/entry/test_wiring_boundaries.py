@@ -171,6 +171,7 @@ def test_git_options_carry_the_settings_identity_and_the_git_environment() -> No
         {
             "FACTORY_REPOSITORY_URL": LOCAL_URL,
             "FACTORY_INSTANCE": "factory-1",
+            "FACTORY_CLAUDE_HOME": "/srv/factory/factory-1/factory/claude",
             "GIT_USER_NAME": "Ann",
         }
     )
