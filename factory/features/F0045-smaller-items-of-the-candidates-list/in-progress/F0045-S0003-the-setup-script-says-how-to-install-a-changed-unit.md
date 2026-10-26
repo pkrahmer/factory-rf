@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T20:26:45.968641Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-26T20:26:45.968641Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-26T20:26:59.337001Z'
+  stage: doing
+  run: 5c0948ef30a34d4ba5aeea407cd7979b
 ---
 
 # The setup script says how to install a changed unit
@@ -141,3 +143,10 @@ Expect: three lines: `syntax-ok`; `2`; `0`
    Not touched: nothing else. `make check` is otherwise green apart from these four rows.
 8. 2026-10-26 human: A: the human's leave for exactly this: the tester narrows `_install_conditions` in `tests/test_vm_setup_text.py` so that only a line whose command is `install` (`^\s*install\s` after the indentation) counts, not an echo; the test keeps its name and checks the same rule. The script change stays the two echo lines exactly as in the Interface.
 9. factory: started doing as vm.
+10. coder: Sent back to the tester for the test change the human allowed in entry 8. I changed no code and left the working tree clean.
+
+    Test change, in one sentence: in `tests/test_vm_setup_text.py`, narrow the helper `_install_conditions` (line 525) so that a line counts as an install command only when its command is `install` (`^\s*install\s` after the indentation), not when it is an echo that mentions `install`, while `test_the_checkout_files_are_installed_only_in_the_run_that_cloned` keeps its name and checks the same rule.
+
+    Once that change is in, I will make the script change. It is only the two echo lines in `vm/setup.sh` (lines 348 and 392), set to the Interface's exact text and single-quoted, as entry 7 describes.
+
+    What the journal changed: criterion 2's test is no longer left entirely unchanged. With the human's leave, its helper is narrowed as above. The rule it checks stays the same, and the Description's meaning stays the same, so I did not rewrite `## Description`.
