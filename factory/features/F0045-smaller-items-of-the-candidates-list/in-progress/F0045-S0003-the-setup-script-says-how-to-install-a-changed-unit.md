@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-26T20:54:52.328161Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -141,6 +145,11 @@ journal:
   at: '2026-10-26T20:54:31.807959Z'
   stage: review
   run: 12c10872da74475880e6d46b07d52377
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-26T20:54:52.328161Z'
+  stage: docs
 ---
 
 # The setup script says how to install a changed unit
@@ -343,3 +352,4 @@ Expect: three lines: `syntax-ok`; `2`; `0`
 
     Earlier tests:
     - `tests/test_vm_setup_text.py`: changed under the human's leave in journal entry 8. Only the `_install_conditions` filter changed, from `(?<![\w-])install\s` to `^\s*install\s`, and `ruff format` joined the comprehension onto one line. The test keeps its name and its rule, so the change stays within the leave.
+25. factory: started docs as vm.
