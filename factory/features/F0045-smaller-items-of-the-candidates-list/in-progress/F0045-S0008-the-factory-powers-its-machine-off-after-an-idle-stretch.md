@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 473
-comments_read: [6429816658]
+comments_read: [6429816658, 6429884713]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: ed00973ed4fa42f49507327fa4a35829
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-26T23:35:41.618750Z'
+  stage: tests
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -230,3 +235,6 @@ Expect: `-n /usr/bin/systemctl poweroff`
       Should I add that (my choice), or leave criterion 8 as written?
 
    No files created; nothing has been imported or run yet.
+9. 2026-10-26 human: 1. (a): the row asserts the detail `sudo: a password is required`, as `failure_detail` gives it; no exit status there.
+   2. Yes, exactly that reading.
+   3. Yes, add it through behaviour as you describe; the stand-in `sudo` may come from the shared fixture of F0045-S0002 in `tests/conftest.py` if it fits, with recording added there.
