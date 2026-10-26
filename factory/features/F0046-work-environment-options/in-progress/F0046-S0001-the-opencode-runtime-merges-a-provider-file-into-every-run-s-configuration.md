@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T13:48:00.830661Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-10-26T13:48:00.830661Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-10-26T13:54:12.606941Z'
+  stage: doing
+  run: 5e68c74f7b6e485f83c288ed08c69b9d
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -347,3 +349,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed, not touched: nothing else.
 18. 2026-10-26 human: Neither of the three as you put them: `main` now holds a line filter in `.secrets.baseline` (lines that name `api_key_env` are not scanned; the human's choice). It reaches this branch through the merge of `origin/main` at the next stage. No change to the journal, `src/` or `tests/`; end the next doing round with `review` once `make check` is green.
 19. factory: started doing as vm.
+20. coder: `make check` is green after the merge of `origin/main` that brought the human's line filter in `.secrets.baseline` (entry 18): `test: green (161.6 s)` with 99.56 % coverage, then `check: green`. I made no code change this round. The journal changes nothing in the task's meaning (entries 11 and 18 were about the tests and about the secrets scan), so `## Description` stays as it is.
+
+    Built (from 0bb1b395, unchanged since):
+    - `src/factory/domain/opencode_provider.py` (new): `OpencodeModel` and `OpencodeProvider` (frozen, unknown keys refused, every rule of the Interface as a field or model validator). `read_provider` turns pydantic's first error into `ValueError("<field>: <message>")`, and `provider_configuration` builds the `provider` and `small_model` keys, with `_model_entry` adding only the groups that were given.
+    - `src/factory/domain/settings.py`: `OPENCODE_PROVIDER_FILE_VARIABLE` and `InstanceSettings.opencode_provider_file`. The existing `_absolute` field validator now also covers this field. The new `_optional_absolute_path` is shared with `_absolute_path`, so the absolute-path rule lives in one place.
+    - `src/factory/adapters/opencode_runtime.py`: `provider_file=` (keyword, last). `_provider_keys` reads and validates the file before `_RunFiles` is made, and turns an `OSError` or `ValueError` into `AgentRuntimeError("cannot use the opencode provider file <path>: ...")`. `_configuration` spreads those keys after `agent`, so with no file the JSON is byte-identical to before.
+    - `src/factory/entry/wiring.py`: passes `provider_file=settings.opencode_provider_file`.
+
+    Main choice: the file is read and validated at the start of every run, as the Interface says ("when a run starts"), so an operator can fix the file without restarting the factory. I rejected reading it once in `__init__`, because a bad file would then make `build_boundaries` fail.
+
+    Refactor step: I read the diff again and nothing needs changing. In `_model_entry`, both fields of each pair are checked against `None`, which the model's pair validator already guarantees. I kept it on purpose, because it narrows the types for mypy without a cast.
+
+    Noticed, not touched: nothing.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
