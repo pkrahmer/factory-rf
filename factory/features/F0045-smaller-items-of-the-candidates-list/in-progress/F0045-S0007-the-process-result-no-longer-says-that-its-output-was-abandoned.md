@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T23:11:33.272616Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-26T23:11:33.272616Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-26T23:17:17.409941Z'
+  stage: tests
+  run: 6efea6d6515c4bddba71915356ae7773
 ---
 
 # The process result no longer says that its output was abandoned
@@ -209,3 +211,22 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
 
     Noticed, not touched: docs/project-guide/processes-and-checks.md still names `output_abandoned`; updating it is the documenter's work under criterion 5.
 12. factory: started tests as vm.
+13. tester: Moved the `holder_file` fixture into tests/conftest.py, as the coder asked in entry 11 after the reviewer's finding in entry 9. I did this under the standing leave in `CLAUDE.md` to move a shared test helper.
+
+    - tests/conftest.py now holds one `holder_file` fixture. Its body is the same as both copies had: it yields `tmp_path / "holder.pid"`, then kills any holder still running with SIGKILL and ignores `ProcessLookupError`. conftest.py also gained the `contextlib` and `signal` imports it needs.
+    - tests/adapters/test_process_result_fields.py: removed its copy, plus the `contextlib`, `os`, `signal` and `Iterator` imports that nothing else in the file used.
+    - tests/adapters/test_process_drain.py (an earlier story's test file, changed under the standing leave): removed its copy, plus the `contextlib`, `os`, `signal` and `Iterator` imports that nothing else in the file used. `Callable` is still imported. Every test keeps its name and checks the same thing.
+
+    Nothing else in `tests/` defines `holder_file`, so the shared fixture is the only one.
+
+    The criterion → test mapping has not changed since entry 5:
+    - criterion 1: tests/adapters/test_process_result_fields.py::test_the_result_has_no_output_abandoned_field
+    - criterion 2: tests/adapters/test_process_result_fields.py::test_the_call_reads_for_the_drain_after_the_child_ended
+    - criterion 3: tests/adapters/test_process_result_fields.py::test_no_module_holds_the_name_of_the_removed_field
+
+    No files were created this round. Every module imported.
+
+    `make lint` is green. `make test` is green: test: green (157.6 s).
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (153.7 s)

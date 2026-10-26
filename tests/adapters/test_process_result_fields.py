@@ -1,10 +1,6 @@
 """The process result's fields, and the drain that stays once the child has ended."""
 
-import contextlib
-import os
-import signal
 import time
-from collections.abc import Iterator
 from datetime import timedelta
 from pathlib import Path
 
@@ -32,16 +28,6 @@ HELD_CHILD = (
 )
 
 TWO_LINES = "import sys; print('one'); print('two'); sys.exit(3)"
-
-
-@pytest.fixture
-def holder_file(tmp_path: Path) -> Iterator[Path]:
-    """The grandchild's pid file; a grandchild still running after the test is killed."""
-    path = tmp_path / "holder.pid"
-    yield path
-    if path.exists() and path.read_text(encoding="utf-8"):
-        with contextlib.suppress(ProcessLookupError):
-            os.kill(int(path.read_text(encoding="utf-8")), signal.SIGKILL)
 
 
 def test_the_result_has_no_output_abandoned_field() -> None:

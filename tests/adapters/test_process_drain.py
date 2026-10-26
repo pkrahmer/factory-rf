@@ -1,10 +1,7 @@
 """A call reads on for at most `PIPE_DRAIN` once its child ended or was killed."""
 
-import contextlib
-import os
-import signal
 import time
-from collections.abc import Callable, Iterator
+from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
 
@@ -66,16 +63,6 @@ LATE_CHILD = (
 def short_drain(monkeypatch: pytest.MonkeyPatch) -> None:
     """Set `PIPE_DRAIN` to two seconds for the test."""
     monkeypatch.setattr(process, "PIPE_DRAIN", SHORT_DRAIN)
-
-
-@pytest.fixture
-def holder_file(tmp_path: Path) -> Iterator[Path]:
-    """The holder's pid file; a holder still running after the test is killed."""
-    path = tmp_path / "holder.pid"
-    yield path
-    if path.exists() and path.read_text(encoding="utf-8"):
-        with contextlib.suppress(ProcessLookupError):
-            os.kill(int(path.read_text(encoding="utf-8")), signal.SIGKILL)
 
 
 def _request(
