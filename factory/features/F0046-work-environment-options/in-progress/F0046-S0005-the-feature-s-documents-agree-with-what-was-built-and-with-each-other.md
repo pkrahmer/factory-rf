@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 464
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-26T17:54:40.575070Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-26T17:54:19.965592Z'
   stage: doing
   run: e61cb36c3b0d480ea5d5def1eb31c405
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:54:40.575070Z'
+  stage: review
 ---
 
 # The feature's documents agree with what was built and with each other
@@ -120,3 +129,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 6c9e3830fbbb at 2026-10-26T17:38:40Z)
    `duplicates`: duplicates: 0 new, 43 known, 0 gone
+8. factory: started review as vm.
