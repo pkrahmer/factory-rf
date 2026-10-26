@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 464
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-26T17:55:16.233713Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-26T17:54:54.979242Z'
   stage: review
   run: eabe8578bbe8432e9cba17d016768d25
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:55:16.233713Z'
+  stage: docs
 ---
 
 # The feature's documents agree with what was built and with each other
@@ -142,3 +151,4 @@ Expect: `documents ok`
    Architecture, security, quality: nothing to review, since no code or tests changed.
    Work item hygiene: the coder's entry gives the main decision (hand forward with an empty diff) and what was rejected (writing the documents in the coder stage). The Description still matches the story: nothing was built yet, and the four gaps are still the docs stage's work. The docs criterion still says what the documenter must write.
    Earlier tests: none changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item's two files).
+10. factory: started docs as vm.
