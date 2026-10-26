@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T20:40:32.113581Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-26T20:40:11.606894Z'
   stage: review
   run: 794bb48d2afe4f1d82e83e2e0e300b51
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-26T20:40:32.113581Z'
+  stage: doing
 ---
 
 # The setup script says how to install a changed unit
@@ -225,3 +234,4 @@ Expect: three lines: `syntax-ok`; `2`; `0`
     - `tests/test_vm_setup_text.py`: changed under the human's leave in journal entry 8. Only `_install_conditions` changed: its filter became `^\s*install\s` and `ruff format` joined the comprehension onto one line. The test keeps its name and its rule, so the change stays within the leave.
 
     Seen while reading, not reviewed as a group because group 4 failed first: criterion 2 still calls the earlier test "unchanged", and the Interface still says "No earlier test changes". Since entry 8 both are out of date. They are worth fixing in the same round.
+17. factory: started doing as vm.
