@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T19:42:07.096804Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-10-26T19:41:45.971780Z'
   stage: tests
   run: d505ab12ef1e4c2b8831e528a539d2eb
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:42:07.096804Z'
+  stage: doing
 ---
 
 # The reset drops the page cache after the rollback
@@ -342,3 +351,4 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (166.4 s)
+19. factory: started doing as vm.
