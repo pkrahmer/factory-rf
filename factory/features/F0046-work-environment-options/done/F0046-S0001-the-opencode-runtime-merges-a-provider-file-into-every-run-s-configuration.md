@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -197,6 +197,11 @@ journal:
   at: '2026-10-26T14:13:32.088994Z'
   stage: smoke-test
   run: 03656e3edd7a44d98478e57efb6129f2
+- number: 35
+  speaker: factory
+  kind: done
+  at: '2026-10-26T14:15:56.396504Z'
+  stage: approval
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -594,3 +599,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     This matches criterion 4: a model with no name, limits or prices is `{}`, the `npm` package and `apiKey` `{env:<NAME>}` are right, and no key is null. Command 2 matches criterion 3, which says `corp/missing` is refused. Nothing in the smoke test contradicts any criterion. The smoke test does not reach the runtime merge, the settings or the wiring (criteria 1, 2 and 5 to 8). The tests stage covers those, and the factory's `make check` gate covers criterion 11.
 
     Findings: none.
+35. factory: done (pull request merged); cost: 15 runs, 41.3 min, 126 turns, 469808 tokens in (3343206 more from cache), 57956 out, $5.07
