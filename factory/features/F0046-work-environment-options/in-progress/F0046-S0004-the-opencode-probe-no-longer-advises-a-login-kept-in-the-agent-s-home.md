@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T17:41:49.256162Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-26T17:41:49.256162Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T17:42:41.100415Z'
+  stage: review
+  run: 4a74bf80f2f7424b991892af4ced4f07
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -325,3 +327,26 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 23. factory: started review as vm.
+24. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item.
+
+    **Code.** In `src/factory/application/preflight.py`, `_opencode_login_hint("none")` now returns the new hint, with the variable's name taken from `API_LOGIN_FILE_VARIABLE`. Every other login still gets `""`. `_login_detail` with `none` now returns `the agent runs get no login from a file` under opencode and keeps the old text under claude. The comment beside it gives the reason (the rollback clears the agent's home). This matches the Interface. The Claude Code texts are unchanged, and so is the order of the detail's parts.
+
+    **Criteria.**
+    - Criterion 1: `tests/application/test_agent_run_probe_api_login.py::test_a_died_probe_hints_only_at_a_login_its_runtime_can_use` is one parametrized test with the rows opencode-none, claude-api-key and claude-subscription. Each row checks the whole detail and that `own login` is absent.
+    - Criterion 2: `test_a_completed_probe_without_a_login_file_names_the_agents_home_only_under_claude` has the rows opencode and claude.
+    - Criterion 3: the completed side is `tests/application/test_agent_run_probe_opencode.py::test_a_probe_under_opencode_with_the_api_key_names_the_api_login_file`. The died side is the `[api-key]` row of `test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint`.
+    - The Interface's "any other login returns `""`" is tested by the `[api-key]` and `[no-login]` rows.
+    - The coder's `make check` in entry 22 was green, and `duplicates` reported 0 new.
+
+    **Last round's findings.** All three from entry 16 are fixed. `probe_result` now lives in `tests/probe_support.py` and both modules use it. The duplicate died row is gone. The `own login` line that had been added to the earlier test is removed.
+
+    Architecture, security, quality and the work item's hygiene hold. The Description matches what was built, and the docs criterion still names what the documenter must write.
+
+    no findings
+
+    Earlier tests:
+    - `tests/probe_support.py`: the new text of `opencode_sso_hint` rests on the human's leave in feature.md decision 10. Moving `probe_result` here rests on the standing leave to move a shared test helper.
+    - `tests/application/test_agent_run_probe_api_login.py`: the standing leave to move a shared test helper (`_probe_result` moved out). Otherwise it only adds tests, and its earlier test keeps its name and its checks.
+    - `tests/application/test_agent_run_probe_opencode.py`: the human's leave in feature.md decision 10 (`SSO_HINT`). Otherwise it only adds a test.
+    - `tests/application/test_agent_run_probe_factory_user.py`: the human's leave in feature.md decision 10.
+    - `tests/entry/test_wiring_without_agent_user.py`: the human's answer in journal entry 8. Only the `opencode-no-login` row's `said` entry changed.
