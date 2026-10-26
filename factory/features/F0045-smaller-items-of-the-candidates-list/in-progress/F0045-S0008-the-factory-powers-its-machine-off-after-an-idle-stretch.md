@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T23:54:35.257311Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-10-26T23:54:14.914919Z'
   stage: doing
   run: 0b621df1d45444f08e996433280e5fbd
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:54:35.257311Z'
+  stage: tests
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -369,3 +378,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
     Noticed but not touched: the 2 new `make duplicates` findings from journal 13 are still there. They are the `ProcessRequest` block in `power_off.py`, similar to the zfs and podman wrappers. I did not run `make check` this round, because I changed nothing that it reads.
 
     The factory left out changes outside the write paths: factory/features/F0045-smaller-items-of-the-candidates-list/in-progress/F0045-S0008-the-factory-powers-its-machine-off-after-an-idle-stretch.md.
+18. factory: started tests as vm.
