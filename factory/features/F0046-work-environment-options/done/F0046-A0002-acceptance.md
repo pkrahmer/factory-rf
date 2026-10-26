@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-26T18:12:29.028860Z'
   stage: acceptance
   run: 227e11558e604122b3366061f953dd98
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-26T18:14:54.323904Z'
+  stage: done
 stories: [F0046-S0001, F0046-S0002, F0046-S0003, F0046-S0004, F0046-S0005]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The factory can be configured for a corporate environment
@@ -232,3 +237,4 @@ Human interventions: 10 questions answered, all of the cause `question`, with 1.
    8. Cost: $19.71 over 66 runs. S0002 is still the largest ($8.85). S0004 took 13 runs ($2.52) for two strings: the leave A0001 proposed missed `tests/entry/test_wiring_without_agent_user.py`, and round-0 review found three test findings. The human answered 10 questions and the stories waited 1.7 h; S0002 needed the human most (4 questions).
 
    The proposed story passes `factory-check-story`. `make secrets` is green. I ran `make check` twice: the second run only to read its summary lines. I could not remove the temporary script folder `/tmp/tmp.Rr5DDuuuqp` because the call was denied; it goes with the stage.
+3. factory: done (pull request merged); cost: 1 runs, 12.8 min, 44 turns, 133553 tokens in (3552935 more from cache), 34255 out, $2.46
