@@ -76,7 +76,7 @@ MISSING = "/nowhere/factory-drop-caches"
             DropPlan(printed=f"{REFUSAL}\n", exit_status=1),
             lambda path: ("/bin/sh", str(path)),
             lambda path, raised: raised == f"/bin/sh {path}",
-            lambda detail: REFUSAL in detail and "1" in detail,
+            lambda detail: REFUSAL in detail,
             True,
             id="drop-fails",
         ),

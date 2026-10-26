@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T19:19:46.642840Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-10-26T19:19:46.642840Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-26T19:25:56.732951Z'
+  stage: tests
+  run: 310d1e335ef340959314d313873c18fe
 ---
 
 # The reset drops the page cache after the rollback
@@ -219,3 +221,24 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
    2. Agreed, keep it.
    3. Agreed, keep it.
 10. factory: started tests as vm.
+11. tester: I applied the human's answer in entry 9. The test files from entry 8 are already on the branch, so this run changed one row. In `tests/adapters/test_zfs_snapshots_drop_caches.py::test_a_fault_of_the_rollback_or_the_drop_is_a_snapshot_error`, row `drop-fails` now checks only that `detail` contains `sudo: a password is required`. It no longer checks for the exit status `1` (answer 1(a): the drop's detail follows `failure_detail`, as the `zfs` commands' does). Answers 2 and 3 confirmed the readings in entry 8, so those tests are unchanged.
+
+    I ran `make test` once and it is red, as intended. The `vm/setup.sh` tests fail with "no 'setup: caches: ' text", because the step does not exist yet. The adapter and wiring tests need `DROP_CACHES_COMMAND` and the keyword `drop_caches`, which do not exist yet either. `make lint` is green. I skipped the type check, as this stage says.
+
+    Criterion to test:
+    - criterion 1: tests/adapters/test_zfs_snapshots_drop_caches.py::test_the_reset_drops_the_cache_after_the_rollback
+    - criterion 2: tests/adapters/test_zfs_snapshots_drop_caches.py::test_a_fault_of_the_rollback_or_the_drop_is_a_snapshot_error (rows rollback-fails, drop-fails, drop-missing, drop-time-limit)
+    - criterion 3: tests/adapters/test_zfs_snapshots_drop_caches.py::test_only_the_reset_drops_the_cache
+    - criterion 4: tests/adapters/test_zfs_snapshots_drop_caches.py::test_the_drop_command_must_name_a_program
+    - criterion 5: tests/entry/test_wiring_drop_caches.py::test_every_reset_of_the_wired_instance_drops_the_cache_through_sudo
+    - criterion 6: tests/test_vm_setup_caches.py::test_the_caches_step_writes_the_helper_and_its_rule
+    - criterion 7: tests/test_vm_setup.py::test_the_script_parses_and_starts_with_its_shebang_and_set_eu (an existing test that already runs `sh -n vm/setup.sh`)
+    - criterion 8: tests/test_vm_setup_caches.py::test_a_refused_visudo_check_removes_the_rule_and_ends_the_script
+    - criterion 9: tests/test_vm_setup_caches.py::test_the_caches_step_writes_a_file_only_when_its_text_differs (rows helper, sudoers)
+
+    Files created (in the previous tests run): tests/adapters/test_zfs_snapshots_drop_caches.py, tests/entry/test_wiring_drop_caches.py, tests/test_vm_setup_caches.py. Earlier test files changed under decision 22 (in the previous run, as entry 8 lists): tests/zfs_support.py, tests/adapters/test_zfs_snapshots.py, tests/vm_support.py, tests/test_vm_setup_text.py.
+
+    Modules the test run could not import: no module is missing. The name `DROP_CACHES_COMMAND` is missing from `factory.adapters.zfs_snapshots`, and the keyword `drop_caches` of `ZfsSnapshots` does not exist yet.
+
+    `lint`: lint: green (0.2 s)
+    `test`: ERROR tests/test_vm_setup_text.py::test_the_folders_step_refuses_a_link_at_state_or_repo[exit-1] - AssertionError: no 'setup: caches: ' text
