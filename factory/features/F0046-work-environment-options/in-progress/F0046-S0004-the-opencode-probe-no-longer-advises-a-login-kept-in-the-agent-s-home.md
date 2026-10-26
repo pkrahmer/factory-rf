@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-26T17:44:02.727468Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -152,6 +156,11 @@ journal:
   at: '2026-10-26T17:43:41.771095Z'
   stage: docs
   run: c3fd71bc36874d5bac5e0111ecb0d0f1
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:44:02.727468Z'
+  stage: smoke-test
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -385,3 +394,4 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
     `check`: check: green (not run again: passed on tree 6c9e3830fbbb at 2026-10-26T17:38:40Z)
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
+27. factory: started smoke-test as vm.
