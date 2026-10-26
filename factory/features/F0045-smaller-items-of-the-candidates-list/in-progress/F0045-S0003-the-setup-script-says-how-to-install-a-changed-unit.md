@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T20:40:32.113581Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-26T20:40:32.113581Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-26T20:41:02.634142Z'
+  stage: doing
+  run: ad259a439b974c009d5a46cbc8829ba6
 ---
 
 # The setup script says how to install a changed unit
@@ -235,3 +237,18 @@ Expect: three lines: `syntax-ok`; `2`; `0`
 
     Seen while reading, not reviewed as a group because group 4 failed first: criterion 2 still calls the earlier test "unchanged", and the Interface still says "No earlier test changes". Since entry 8 both are out of date. They are worth fixing in the same round.
 17. factory: started doing as vm.
+18. coder: Sent back to the tester for the reviewer's finding in entry 16, which is a change to tests only. I changed no code.
+
+    The test change: in `tests/test_vm_setup_install_hint.py`, remove `test_the_setup_script_parses` and the imports that only it uses (`Path`, `ProcessRequest`, `run_process`, `SETUP`). I checked that `tests/test_vm_setup.py:23` `test_the_script_parses_and_starts_with_its_shebang_and_set_eu` already runs the same `sh -n vm/setup.sh` and asserts exit status 0, so the new test is a second copy. Criterion 3 now maps to that existing test.
+
+    What the journal changed: the Description was out of date in the places the reviewer named. I rewrote those three spots in the work item and nothing else.
+    - The Interface's test paragraph now says the one earlier test change the human allowed in entry 8: `_install_conditions` in `tests/test_vm_setup_text.py` counts a line only when its command is `install` (`^\s*install\s`). Before, it said "No earlier test changes".
+    - Criterion 2 now says the test's helper was narrowed, instead of "unchanged".
+    - Criterion 3 now names the existing test, instead of "one test".
+    The Description has no "as of" heading, so there was none to update. The meaning of the task is the same.
+
+    Code: `vm/setup.sh` stays as entry 14 left it: the two Interface lines, single-quoted, sent with `>&2`. The reviewer found nothing to change there, so this round has no refactor.
+
+    Noticed but not touched: the docs part of criterion 5 is still open (`docs/operator-guide.md`, *The two passes* and *The rebuild after a merge*, and the closing line in `docs/decisions.md`). That is the documenter's work.
+
+    The factory left out changes outside the write paths: factory/features/F0045-smaller-items-of-the-candidates-list/in-progress/F0045-S0003-the-setup-script-says-how-to-install-a-changed-unit.md.
