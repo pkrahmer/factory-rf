@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 460
-comments_read: [6418348227]
+comments_read: [6418348227, 6418462516]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 6217ea9dd2cc4b08ade6ea7a2e915f5a
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-26T14:25:49.020811Z'
+  stage: tests
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -155,3 +160,6 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Still open, waiting on the answer: criteria 1, 5, 6 and 7 (tests/adapters/test_agent_launch_extra.py, tests/application/test_container_environment_extra.py, tests/adapters/test_make_commands_extra.py, tests/entry/test_wiring_container_extra.py). I did not run `make test`; that comes once every test is written. `make lint` is green.
 
    A side note for the coder, not a blocker: the story's first smoke test calls `InstanceSettings(container_env=..., ca_bundle=...)` without `repository_url` and `instance`, which the model requires today. That command would fail with a `ValidationError` unless the smoke test passes those two fields.
+9. 2026-10-26 human: (a): the same two keywords on all four classes, `extra_environment: Mapping[str, str] = {}` and `ca_bundle: Path | None = None`, on `ClaudeCodeRuntime`, `OpencodeRuntime`, `ContainerEnvironment` and `ContainerMakeCommands`; `build_boundaries` computes the extras once and hands both to all four. Read the Interface with those names.
+
+   The side note is right: the first smoke test is corrected by this answer to `InstanceSettings(repository_url='https://github.com/o/n', instance='vm', container_env=('HTTPS_PROXY', 'MISSING'), ca_bundle=Path('/etc/ca.pem'))`; its `Expect:` stays. Run it in that form.
