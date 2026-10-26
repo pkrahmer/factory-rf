@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-26T23:25:21.056322Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-26T23:25:21.056322Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T23:25:45.851789Z'
+  stage: smoke-test
+  run: cfeb5c5ff011413baf8da23d8cc31da0
 ---
 
 # The process result no longer says that its output was abandoned
@@ -321,3 +323,27 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
 20. factory: started smoke-test as vm.
+21. smoke-tester: I ran the smoke test exactly as written, from the repository root. It printed the two lines its `Expect:` line names. There are no findings.
+
+    Command 1:
+    ```bash
+    uv run python -c 'from factory.adapters.process import ProcessResult; print(list(ProcessResult.model_fields))'; grep -rl 'output_abandoned' src/factory --include='*.py' | wc -l
+    ```
+    Output:
+    ```
+    Bytecode compiled 4164 files in 61ms
+    ['exit_status', 'stdout', 'stderr', 'timed_out', 'duration', 'stopped']
+    0
+    ```
+    Met: yes.
+    - The first line is uv's own notice that it compiled bytecode. It comes from the tool, not from the command, so I did not count it against the two lines.
+    - The field list is exactly the six fields, in the order the `Expect:` line gives.
+    - No `.py` file under `src/factory` holds `output_abandoned`.
+
+    The acceptance criteria, checked against what the smoke test showed:
+    - Criteria 1 and 3: the output above confirms both. The field list and its order match, and the source holds no `output_abandoned`.
+    - Criterion 2 (the drain behaviour): the smoke test does not exercise it, and nothing it showed contradicts it.
+    - Criterion 4: the factory's gate reports `make check` green, in entries 15 and 19.
+    - Criterion 5 (docs): I ran a quick `grep` over `docs`, `README.md`, `src` and `tests`. The closing line of the decision entry is in place at docs/decisions.md:1058, worded as the criterion gives it. Outside the tests, the field's name appears only in that new line and in `docs/runs/`, which belongs to the human.
+
+    Findings: none.
