@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T19:50:57.054904Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-10-26T19:50:57.054904Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-10-26T19:51:25.696310Z'
+  stage: doing
+  run: 2549d01c1b5e4baa931124bc9241b18b
 ---
 
 # The reset drops the page cache after the rollback
@@ -411,3 +413,16 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     - tests/entry/test_wiring_container_extra.py: the human's answer in journal entry 14: gains only `sudo_stand_in` in its `usefixtures`.
     - tests/entry/test_wiring_stage_environment.py: the human's answer in journal entry 14: gains only `usefixtures("sudo_stand_in")`.
 23. factory: started doing as vm.
+24. coder: Round 1. In entry 22 the reviewer added criteria 10 and 11, and said that each needs only its test, with no change under `src/`. So I changed no code and am sending the work item to the tester. The implementation from entry 13 is on the branch, unchanged: `src/factory/adapters/zfs_snapshots.py`, `src/factory/entry/wiring.py` and `vm/setup.sh`.
+
+    Tests the tester still has to write:
+    - Criterion 10 (the staged texts are exact). Write one parametrized test over the step `caches` of the raw text of `vm/setup.sh`, with one row for the helper and one for the `sudoers` file. Each row asserts that the here-document staged before that file is compared and written holds exactly the Interface's text, line for line. For the helper that is `#!/bin/sh`, `sync`, `echo 1 > /proc/sys/vm/drop_caches`. For the `sudoers` file it is the one rule `factory ALL=(root) NOPASSWD: /usr/local/bin/factory-drop-caches`.
+    - Criterion 11 (one line on standard output). Write one test over the step `caches`, with comment lines dropped. It asserts that exactly one line prints `setup: caches: ` without `>&2`, and that this line is the step's last line.
+
+    I read the step as it stands, but did not run either test, since neither is written yet. Both here-documents seem to hold only the Interface's lines. Two lines of the step hold `setup: caches: `. The `visudo` refusal message goes to `>&2`. The final `echo "setup: caches: $(said ...)"` is the step's last line. So I expect both new tests to pass without a code change.
+
+    Main decision: I followed the stage's rule that a criterion needing only its test goes to the tester with no code change. The alternative I rejected was editing the script in advance, because there is nothing to fix.
+
+    The meaning of the task is unchanged. The reviewer added criteria 10 and 11, and `make check` and `docs:` are now 12 and 13. The Description already holds these criteria, so I did not rewrite it.
+
+    Noticed but not touched (as in entry 20): the steps `sudoers` and `caches` write a `sudoers` file in the same way. A shared shell function would restructure the script beyond this work item.
