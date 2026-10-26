@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T14:03:46.406098Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-10-26T14:03:46.406098Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-10-26T14:09:39.351738Z'
+  stage: doing
+  run: f9e084fc5f864dd083c48fa8488c2d8e
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -462,3 +464,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (161.5 s)
 27. factory: started doing as vm.
+28. coder: This round dealt with the review's findings from entry 22, which added criteria 9 and 10. The tester covered both in entry 26 by adding rows to `tests/domain/test_opencode_provider.py`. The code as built already passed those rows, so I changed no code. `make check` is green: `test: green (161.6 s)` with 99.56 % coverage, then `check: green`. The working tree was clean before the run.
+
+    Built (unchanged since 0bb1b395):
+    - `src/factory/domain/opencode_provider.py` (new): `OpencodeModel` and `OpencodeProvider`, plus `read_provider` and `provider_configuration`.
+    - `src/factory/domain/settings.py`: `OPENCODE_PROVIDER_FILE_VARIABLE` and `InstanceSettings.opencode_provider_file`. The absolute-path rule lives in one shared helper, `_optional_absolute_path`.
+    - `src/factory/adapters/opencode_runtime.py`: the `provider_file=` keyword. `_provider_keys` reads and validates the file before any run file is written, and `_configuration` adds its keys after `agent`.
+    - `src/factory/entry/wiring.py`: passes `provider_file=settings.opencode_provider_file` to the runtime.
+
+    Main choice: the runtime reads and validates the provider file at the start of every run. I rejected reading it once in `__init__`, because a bad file would then make `build_boundaries` fail, and an operator could not fix the file without restarting the factory.
+
+    Refactor step: nothing needed changing, because there is no new diff this round. The journal does not change what the task means: criteria 9 and 10 are already in the Description's list.
+
+    Noticed, not touched: nothing.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
