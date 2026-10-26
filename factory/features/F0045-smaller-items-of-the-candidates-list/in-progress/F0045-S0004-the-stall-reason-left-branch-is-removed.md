@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T21:39:20.075745Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-10-26T21:39:20.075745Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-26T21:45:30.655576Z'
+  stage: doing
+  run: 1f3989e82df34a2a91f96ec27c55b646
 ---
 
 # The stall reason left_branch is removed
@@ -405,3 +407,25 @@ Expect: two lines: `False 4.0`; `0`
     Notes:
     - `tests/domain/test_stall_reason_removed.py:28-33`: the rows from `_has_its_sentence` partly overlap `tests/domain/test_stall_texts.py::test_each_stall_cause_is_its_sentence_alone_or_with_the_detail`. Both check that every reason has a sentence. Kept, because criterion 1 asks for those rows.
 21. factory: started doing as vm.
+22. coder: Round 2. I fixed the reviewer's only finding from entry 20: the summary line of the `AfterAgent.process` docstring at `src/factory/application/stage.py:194` still said the method tests the branch. It now reads "Test the work tree and the result, take, build the entry, check the form." Nothing else changed: no other code, no tests. `stage.py` is not a contract model, so the schemas stay as they are and need no regeneration. `make check` is green: `test: green (157.4 s)`, coverage 99.56 %, `check: green`.
+
+    What is built is the same as in entries 7 and 10, all under `src/factory/`:
+    - `domain/journal.py`: `"left_branch"` is gone from `StallReason`.
+    - `domain/post_texts.py`: its stall sentence is gone.
+    - `application/stage.py`: `AfterAgent._early_stall` no longer checks the branch through `git.status()`, and the docstring of `process` now says so.
+    - `domain/contract.py`: `RECORDS_CONTRACT = "4.0"`.
+    - `contract/*.schema.json`: regenerated with `uv run python -m factory.entry.contract`.
+
+    Main choice (unchanged): I removed the check outright. I rejected keeping a softer warning based on `status`, because the check cannot fire on the dataset and criterion 3 forbids the call.
+
+    Refactor pass: the diff this round is one docstring line, so there was nothing more to change.
+
+    Noticed, not touched:
+    - The comment at `src/factory/application/stalls.py:112` belongs to the stall service's restore, which this story keeps.
+    - `tests/domain/test_contract_login.py` still builds its own `SCHEMAS` path.
+    - The docs criterion is the documenter's.
+
+    No journal entry changed the meaning of the task.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone

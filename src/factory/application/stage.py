@@ -191,7 +191,7 @@ class AfterAgent:
         self._costs = CostRecorder(boundaries)
 
     def process(self, launched: LaunchedStage) -> AgentAftermath | StallResult:
-        """Test the work tree, the branch and the result, take, build the entry, check the form.
+        """Test the work tree and the result, take, build the entry, check the form.
 
         Stops at the first step that cannot be kept and stalls it, one attempt counted: first a
         git repository the agent left in the work tree, which the run already removed. The
