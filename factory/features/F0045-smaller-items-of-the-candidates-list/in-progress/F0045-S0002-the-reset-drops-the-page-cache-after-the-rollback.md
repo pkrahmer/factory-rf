@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T19:42:07.096804Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-10-26T19:42:07.096804Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-10-26T19:48:38.946883Z'
+  stage: doing
+  run: e97bd15581a74d638440718034bdb7c0
 ---
 
 # The reset drops the page cache after the rollback
@@ -352,3 +354,20 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     `lint`: lint: green (0.2 s)
     `test`: test: green (166.4 s)
 19. factory: started doing as vm.
+20. coder: The tester's changes from entry 18 are on the branch, and so is the implementation from entry 13, unchanged. `make check` is green (`test: green (167.0 s)`, total coverage 99.56 %, `check: green`).
+
+    What I built (all from entry 13, unchanged in this run):
+    - `src/factory/adapters/zfs_snapshots.py`: `DROP_CACHES_COMMAND = ("sudo", "-n", "/usr/local/bin/factory-drop-caches")`, and a required keyword-only `drop_caches` on `ZfsSnapshots` (an empty tuple raises `ValueError`). `reset()` runs `zfs rollback -r <dataset>@base`, then the drop. A failed rollback raises before the drop runs. `_run(arguments)` now puts the `zfs` program in front and hands over to the new `_execute(argv)`. `_execute` names the command by its words joined with spaces and raises the same three faults for every command: the `OSError` text, `no_end_detail`, and `failure_detail`.
+    - `src/factory/entry/wiring.py`: `_container_adapters` builds `ZfsSnapshots(..., drop_caches=DROP_CACHES_COMMAND, executable=settings.zfs_executable)`. No setting names the command.
+    - `vm/setup.sh`: a new step `caches` after `sudoers` and before `folders`, on every run. It does not read `$sudoers`. It stages each file and writes it only when `unchanged` (which uses `cmp -s`) reports a difference: the helper with `install -m 0755`, and the `sudoers` rule with `cp`, `chmod 0440` and `visudo -cf`. A refused check runs `rm -f`, prints the message with `>&2` and runs `exit 1`. The step prints one `setup: caches: ` line through `said`, in a `wrote` or a `found` form.
+
+    Main decision: the drop goes through the same runner as the `zfs` commands (`_execute`), so its faults are formed exactly as theirs are, which is what the Interface says. I rejected a separate runner for the drop because it would be a second copy of the fault handling.
+
+    Refactor pass: I read the diff against `main` and found nothing to change. `_command` is still used by `version()` and `dataset_exists()`, and the script step copies the pattern of the step `sudoers`.
+
+    The journal did not change the meaning of the task: entries 9 and 14 settle how the tests are written. The Description is unchanged.
+
+    Noticed but not touched: the step `sudoers` and the step `caches` now write a `sudoers` file in the same way (stage, `cmp`, `cp`, `chmod 0440`, `visudo -cf`, remove on refusal). A shared shell function for that would be a restructuring of the script beyond this work item.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
