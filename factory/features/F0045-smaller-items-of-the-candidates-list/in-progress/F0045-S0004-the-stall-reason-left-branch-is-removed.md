@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T21:24:52.002904Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-10-26T21:24:52.002904Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-26T21:25:15.255118Z'
+  stage: doing
+  run: b7b9c189bde44bb293cf2cedda2a5628
 ---
 
 # The stall reason left_branch is removed
@@ -252,3 +254,22 @@ Expect: two lines: `False 4.0`; `0`
     - `tests/domain/test_contract_version_2.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`).
     - `tests/domain/test_contract_version_3.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`).
 13. factory: started doing as vm.
+14. coder: Round 1. I changed no code and ran no `make check`. The source change from entries 7 and 10 stands and is already on the branch.
+
+    The reviewer's only finding (entry 12, finding 1) is a copied test helper. Under the standing leave in `CLAUDE.md` (*Tests*, moving a shared test helper), the tester makes that move, never the coder.
+
+    The move for the tester:
+    - Put the copied schema checks in one shared module at the `tests/` root. `tests/contract_support.py` already exists and holds the contract command's shared test data, so extend it rather than add a second module. It takes:
+      - `SCHEMAS` (`SRC / "contract"`).
+      - A check that a committed schema for a `ContractEntry` holds `"x-records-contract": "<version>"` and equals `contract_schema(entry)`. This is what `_committed_is_generated` does in `tests/domain/test_contract_version_3.py` and `test_contract_version_4.py`, and `_committed` / `_schema_check` in `test_contract_version_2.py`.
+      - A check that no committed `*.schema.json` names a given string. This is what `_no_left_branch` does in `test_contract_version_4.py`, `_no_nested_repository` in `test_contract_version_3.py` and `_no_tool_paths` in `test_contract_version_2.py`.
+    - Change these earlier test files to use it:
+      - `tests/domain/test_contract_version_2.py`
+      - `tests/domain/test_contract_version_3.py`
+      - `tests/domain/test_contract_version_4.py`
+
+      Each test keeps its name, its row ids and what it checks.
+
+    Rejected: changing the tests myself (R9), or asking the human. The leave in `CLAUDE.md` covers this move, so no question is needed.
+
+    Noticed, not touched: the comment at `src/factory/application/stalls.py:112` belongs to the restore, which the story keeps. The docs criterion belongs to the documenter. No journal entry changed the meaning of the task.
