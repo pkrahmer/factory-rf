@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 459
 comments_read: [6416165613]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T12:57:23.067909Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-10-26T12:57:23.067909Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-26T13:01:37.329002Z'
+  stage: doing
+  run: 926db96799044f4890b3cabc59d425b5
+  blocked: question
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -211,3 +214,29 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/domain/test_settings_opencode_provider.py - ImportError while importing test module '/work/checkout/tests/domain/test_settings_opencode_provider.py'.
 9. factory: started doing as vm.
+10. coder: I wrote the code, but `make check` is red. The two causes are in the tests, which I may not change, so I stopped before the refactor step.
+
+    Built (in the working tree):
+    - `src/factory/domain/opencode_provider.py` (new): `OpencodeModel` and `OpencodeProvider` (frozen, unknown keys refused, every rule of the Interface as a validator), plus `read_provider` and `provider_configuration`. `read_provider` turns pydantic's first error into `ValueError("<field>: <message>")`.
+    - `src/factory/domain/settings.py`: `OPENCODE_PROVIDER_FILE_VARIABLE`, `InstanceSettings.opencode_provider_file`, and a new helper `_optional_absolute_path`. The existing `_absolute` field validator now also covers the new field. `_absolute_path` now uses the new helper, so the absolute-path rule lives in one place.
+    - `src/factory/adapters/opencode_runtime.py`: `provider_file=` (keyword, last). `_provider_keys` reads the file before `_RunFiles` is made, and turns an `OSError` or `ValueError` into `AgentRuntimeError("cannot use the opencode provider file <path>: ...")`. `_configuration` adds the keys after `agent`, so with no file the dict and its JSON are unchanged.
+    - `src/factory/entry/wiring.py`: passes `provider_file=settings.opencode_provider_file`.
+
+    Main choice: the runtime reads and validates the file on every run instead of once in `__init__`. The Interface says "when a run starts", and an operator can fix the file without restarting the factory. I rejected reading it in `__init__`, because then `build_boundaries` would fail on a bad file.
+
+    Where it stands: lint, types, layers, sast and licenses are green. The smoke test prints `['provider', 'small_model']`, and the second command is refused. `make test` passes except for one test. `make secrets` is red. Both problems need a change to the tests:
+
+    1. `make secrets`: detect-secrets reports "Secret Keyword" at `tests/domain/test_opencode_provider.py:18`, `:47` and `:48`, and at `tests/opencode_provider_support.py:9`. Those are the `"api_key_env": "PROXY_KEY"` / `api_key_env="lower"` / `"1KEY"` lines: the field name `api_key...` with a quoted value. The Interface fixes the field name. Options:
+       (a) the tester writes those values so the keyword detector does not match. For example, build the dict from a constant such as `KEY_ENV = "PROXY_KEY"` and use `api_key_env=KEY_ENV`, or spread the key name through a variable, then check that `make secrets` passes;
+       (b) you allow `# pragma: allowlist secret` on those four lines (CLAUDE.md: not without asking);
+       (c) add baseline entries (also not without asking).
+       I would choose (a); if it cannot be done cleanly, (b).
+
+    2. `tests/entry/test_wiring_opencode_provider.py::test_the_built_opencode_runtime_merges_the_provider_file` fails at `tests/entry/test_wiring_opencode_provider.py:54`, `src/factory/adapters/opencode_runtime.py:252` in `_model`:
+       `E   factory.domain.errors.AgentRuntimeError: agent runtime failed: the opencode runtime has no model for sonnet: set FACTORY_OPENCODE_MODELS`
+       The settings get no `opencode_models`, and `opencode_request` asks for the alias `sonnet`. Making that work would break the existing rule that an unknown alias is an error. Options:
+       (a) the tester adds `"opencode_models": MODELS` (from `adapters.opencode_stand_in`) to the `model_copy` update;
+       (b) the tester calls `opencode_request(tmp_path / "work", model="corp/m")`.
+       I would choose (b), because it also runs the provider's own model through the wiring. Either one is a one-line change.
+
+    Noticed, not touched: nothing else.
