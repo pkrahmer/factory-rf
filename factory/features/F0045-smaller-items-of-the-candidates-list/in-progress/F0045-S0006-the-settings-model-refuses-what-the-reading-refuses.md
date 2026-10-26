@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T22:35:50.581917Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-26T22:35:50.581917Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-10-26T22:36:04.169511Z'
+  stage: doing
+  run: 2ecbfc75c2074f1099d76fd871ed502a
 ---
 
 # The settings model refuses what the reading refuses
@@ -215,3 +217,11 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
    - `tests/domain/test_settings_paths.py` (`REQUIRED`): the story's leave (decision 26), adds `agent_home`.
    - `tests/domain/test_settings_stage_environment.py` (`_DIRECT_CONTAINER`): the story's leave (decision 26), adds `agent_home`.
 10. factory: started doing as vm.
+11. coder: Round 1: the reviewer's only finding is a test change, so no code changes. Under the standing leave in `CLAUDE.md` to move a shared test helper, the tester makes this move:
+
+    - **What moves:** the constants `_SET_BY_FACTORY` and `_NOT_A_NAME`.
+    - **From:** `tests/domain/test_settings_model_rules.py:17-18` and `tests/domain/test_settings_container_env.py:17-18`, where they are copies of each other.
+    - **To:** one shared place, `tests/settings_support.py`.
+    - **Then:** both modules import them from there. Every earlier test keeps its name and its assertions.
+
+    `src/factory/domain/settings.py` stays as round 0 left it. Nothing else is open. The journal did not change the task's meaning, so `## Description` is unchanged.
