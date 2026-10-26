@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T16:27:21.781440Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-26T16:27:21.781440Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-26T16:33:08.815538Z'
+  stage: doing
+  run: 264716addd984c97b5dc18badbd8e014
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -295,3 +297,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (156.8 s)
 20. factory: started doing as vm.
+21. coder: Round 1. There was no code to change. The reviewer's only finding (entry 15) was the copied `code` fixture. The tester has since moved it to `tests/conftest.py` under the standing leave (entry 19), so the finding is closed and needs nothing from the coder.
+
+    Built (unchanged since entry 13):
+    - `vm/factory.service`: `EnvironmentFile=-/srv/factory/%i/factory.local.env` now follows `EnvironmentFile=/srv/factory/%i/factory.env` in `[Service]`.
+    - `vm/setup.sh`: a closing `printf 'setup: local: %s/factory.local.env is yours: ...' "$base"` now follows the `setup: done:` line.
+
+    Main choice: the closing line prints `$base`, the instance folder the script already sets. I rejected writing out `/srv/factory/$instance` a second time, because it would repeat the path and the criterion 4 test sets `base` to `tmp_path`.
+
+    Refactor: I re-read the two-line diff against main and nothing needed changing.
+
+    `make check` was run again on this round's tree, with the moved fixture, and it is green (`check: green`).
+
+    The journal did not change the meaning of the task, so `## Description` is unchanged.
+
+    Noticed but not touched: nothing.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
