@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T22:27:58.927108Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-26T22:27:58.927108Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-26T22:34:21.909308Z'
+  stage: doing
+  run: 7e8eb281067247f2a7f9945acdd52e9d
 ---
 
 # The settings model refuses what the reading refuses
@@ -146,3 +148,13 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/domain/test_settings_model_rules.py::test_the_old_agent_home_default_is_gone[string] - AssertionError: assert [PosixPath('/...settings.py')] == []
 6. factory: started doing as vm.
+7. coder: Built: `src/factory/domain/settings.py` is the only file changed. `AGENT_HOME_DEFAULT` is removed, so no `/home/agent` string is left under `src/factory`. `InstanceSettings.agent_home: Path` has no default and joins `_absolute`, the same field validator as `checkout` and `state_directory`. A new public pure function, `container_env_fault(names) -> str | None`, holds the names rule in one place. It checks names in order and returns the first fault: `holds <name>, which is not a variable name`, then `holds <name>, which the factory sets itself`, then `names <name> twice`. Both callers use it. The model's `container_env` field validator raises `ValueError(fault)`. `_container_env` in `read_settings` raises `SettingsInvalid(FACTORY_CONTAINER_ENV, fault)` before the model is built, so the reading still names its variable. That replaces the old `_check_container_name` helper and the duplicate check inside the loop.
+
+   Main choice: I followed the module's existing `workspace_overlap_fault` pattern, a pure function that returns the fault text and leaves each caller to wrap it in its own exception. I rejected a helper that raises `SettingsInvalid`, with the model catching it and re-raising a `ValueError`. That would have put exception translation inside a validator for no gain.
+
+   `make check` is green; `make test` took 161.6 s. `make duplicates`: 0 new, 43 known, 0 gone. The story's smoke test prints the expected four lines: `False`, `missing False`, `value_error True`, `/srv/agents`. `InstanceSettings` is not in the records contract, so no schema needed regenerating. Refactor pass: I read the diff and nothing needed changing. The journal did not change the task's meaning, so `## Description` is unchanged.
+
+   Noticed but not touched: nothing outside this story.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 43 known, 0 gone
