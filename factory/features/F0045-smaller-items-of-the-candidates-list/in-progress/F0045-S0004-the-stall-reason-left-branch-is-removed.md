@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T21:13:34.632643Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-26T21:13:13.729595Z'
   stage: tests
   run: bbfe2a14c75942d08fda25bffdffbb95
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:13:34.632643Z'
+  stage: doing
 ---
 
 # The stall reason left_branch is removed
@@ -123,3 +132,4 @@ Expect: two lines: `False 4.0`; `0`
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/domain/test_contract_version_4.py::test_the_records_contract_is_at_version_4_without_left_branch[no-left-branch] - AssertionError: assert ['acceptance-....schema.json'] == []
+6. factory: started doing as vm.
