@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-26T16:35:29.889612Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-26T16:35:29.889612Z'
   stage: smoke-test
+- number: 27
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T16:35:49.051803Z'
+  stage: smoke-test
+  run: 26f4411fc13745a591df99cee517a7b6
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -386,3 +388,33 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
 26. factory: started smoke-test as vm.
+27. smoke-tester: Smoke test, round 1: I ran both commands under `## Smoke test` from the repository root, as written and in order. Both meet their `Expect:` line. No findings.
+
+    Command 1:
+    ```bash
+    grep -n '^EnvironmentFile=' vm/factory.service
+    ```
+    ```
+    12:EnvironmentFile=/srv/factory/%i/factory.env
+    13:EnvironmentFile=-/srv/factory/%i/factory.local.env
+    ```
+    Met: two lines, in the expected order.
+
+    Command 2:
+    ```bash
+    grep -c 'factory.local.env' vm/setup.sh
+    ```
+    ```
+    1
+    ```
+    Met: `1`.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: `git diff origin/main -- vm/` shows that `vm/factory.service` gains only the one line, directly after the `factory.env` line. Every other line is unchanged.
+    - Criterion 2: `vm/setup.sh` names `factory.local.env` only in the new closing printf (line 376). No command mentions it.
+    - Criterion 3: the closing printf follows the `setup: done:` line (line 375) and prints `$base`, which the script sets to `/srv/factory/$instance`.
+    - Criterion 4: the smoke test does not reach it, and nothing I ran contradicts it.
+    - Criterion 5: I did not run `make check`. It is the factory's gate, and entry 21 records it as green.
+    - Docs criterion: entry 25 covers it.
+
+    The smoke test contradicts no criterion. Nothing is open from this stage.
