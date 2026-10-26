@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-26T22:51:30.558371Z'
   stage: smoke-test
   run: ec2d499801674b42a94a3656f1126bb5
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-26T22:53:53.470260Z'
+  stage: approval
 ---
 
 # The settings model refuses what the reading refuses
@@ -406,3 +411,4 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
     Against the acceptance criteria: nothing the smoke test showed contradicts any of them. I also ran one check outside the smoke test, for criterion 4: `grep -rn "/home/agent" src/factory` finds nothing. The smoke test does not exercise criteria 2 (beyond `HOME`), 3, 5 and 6; it contradicts none of them. `make check` is the factory's gate after this stage.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 17.4 min, 76 turns, 268330 tokens in (2007867 more from cache), 31941 out, $2.89
