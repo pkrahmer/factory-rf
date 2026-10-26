@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T16:13:09.419357Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-10-26T16:12:48.673679Z'
   stage: tests
   run: bf16b26f17e2417cad7ad5902260a376
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T16:13:09.419357Z'
+  stage: doing
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -180,3 +189,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/test_vm_local_environment.py::test_the_closing_text_names_the_instance_s_local_file_after_done[other] - AssertionError: setup: done: build the stage image and start factory@other; see ...
+12. factory: started doing as vm.
