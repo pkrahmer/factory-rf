@@ -50,7 +50,6 @@ StallReason = Literal[
     "budget",
     "no_result",
     "decision_not_allowed",
-    "left_branch",
     "form_invalid",
     "check_red",
     "merge_conflict",

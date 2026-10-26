@@ -12,7 +12,6 @@ SENTENCES: list[tuple[StallReason, str]] = [
     ("budget", "the agent run spent its budget, and the resume too"),
     ("no_result", "the agent gave no valid decision and entry"),
     ("decision_not_allowed", "the agent's decision is not an allowed one"),
-    ("left_branch", "the agent left the work item's branch"),
     ("form_invalid", "the work item's form broke during the stage"),
     ("check_red", "a check is red after the stage"),
     ("merge_conflict", "merging the main branch conflicts and the merge was aborted"),

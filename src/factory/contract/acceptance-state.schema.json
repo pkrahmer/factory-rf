@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "x-records-contract": "3.0",
+  "x-records-contract": "4.0",
   "$defs": {
     "Claim": {
       "additionalProperties": false,
@@ -135,7 +135,6 @@
                 "budget",
                 "no_result",
                 "decision_not_allowed",
-                "left_branch",
                 "form_invalid",
                 "check_red",
                 "merge_conflict",
