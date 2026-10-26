@@ -27,6 +27,8 @@ The build order; start one at a time, the next when the one before is archived i
 - S0001: The opencode runtime merges a provider file into every run's configuration
 - S0002: The containers pass the environment names the operator lists and trust the operator's CA bundle
 - S0003: The unit reads an environment file that the setup script never writes
+- S0004: The opencode probe no longer advises a login kept in the agent's home (from A0001)
+- S0005: The feature's documents agree with what was built and with each other (from A0001)
 
 ## The human's changes
 
@@ -43,3 +45,4 @@ None. Checked against `factory/pipeline.yml`: the coder writes `src/*`, `templat
 7. A CA bundle is mounted read-only into the agent, sync and check containers and named by `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE` and `REQUESTS_CA_BUNDLE` (S0002).
 8. The second environment file is read after `factory.env`, so a value in it wins, and it is optional (a leading `-` in the unit) (S0003).
 9. The real opencode is never run by a test. Whether opencode 1.19.3 accepts the provider block is shown by the preflight's `agent-run-probe` on the machine, not by the suite (S0001).
+10. S0004's leave (the human, 2026-10-26): the shared helper `opencode_sso_hint` in `tests/probe_support.py` changes its text to the new hint, and with it what `tests/application/test_agent_run_probe_opencode.py` and `tests/application/test_agent_run_probe_factory_user.py` check; those earlier tests may change only that way.
