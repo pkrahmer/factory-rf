@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T11:46:23.882644Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T11:46:23.877366Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T11:46:23.882644Z'
+  stage: intake
+---
+
 # The opencode runtime merges a provider file into every run's configuration
 
 ## Description
@@ -89,3 +116,5 @@ Expect: `refused`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
