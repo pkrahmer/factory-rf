@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 470
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-26T22:12:15.058196Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-26T22:11:54.377715Z'
   stage: doing
   run: eb6f0bdbf6fa41c0ba5ee2c896c43c2a
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:12:15.058196Z'
+  stage: review
 ---
 
 # The agent files' folder and the image identity file are required settings
@@ -164,3 +173,4 @@ Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: mis
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 43 known, 0 gone
+8. factory: started review as vm.
