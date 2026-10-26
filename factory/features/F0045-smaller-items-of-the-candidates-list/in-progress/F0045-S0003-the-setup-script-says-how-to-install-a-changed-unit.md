@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 468
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T20:18:51.546096Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-26T20:18:28.595943Z'
   stage: tests
   run: 02bd7ed9f1c24bda8cf54ee8074d9437
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-26T20:18:51.546096Z'
+  stage: doing
 ---
 
 # The setup script says how to install a changed unit
@@ -97,3 +106,4 @@ Expect: three lines: `syntax-ok`; `2`; `0`
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy[service] - assert 0 == 1
+6. factory: started doing as vm.
