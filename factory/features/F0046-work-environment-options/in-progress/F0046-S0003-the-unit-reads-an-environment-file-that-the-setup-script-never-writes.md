@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T16:01:24.230072Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -41,6 +45,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T16:01:06.465968Z'
+  stage: tests
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-26T16:01:24.230072Z'
   stage: tests
 ---
 
@@ -106,3 +115,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Criteria 1 and 2 are clear, and I'll write them with the others once this is answered. No files were created in this stage.
 6. 2026-10-26 human: A, as you describe it: run the script's closing text (from the `setup: done:` printf to the end of `setup_code()`) with `sh` in `tmp_path`, for `instance=vm` and `instance=other`; `tmp_path` stands in for `/srv/factory/<instance>` in criterion 4. Criterion 2's static rows stay the check that no step touches the file. Read criteria 3 and 4 that way.
+7. factory: started tests as vm.
