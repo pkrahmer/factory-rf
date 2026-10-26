@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T23:43:46.410772Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-10-26T23:43:26.003479Z'
   stage: tests
   run: c840c26affa940f8b5a2e9cff543094e
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:43:46.410772Z'
+  stage: doing
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -285,3 +294,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
 
     `lint`: lint: green (0.2 s)
     `test`: ERROR tests/entry/test_wiring_idle_shutdown.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_idle_shutdown.py'.
+12. factory: started doing as vm.
