@@ -1,11 +1,8 @@
-"""The setup script's lines for an installed file that differs from the checkout, and its syntax."""
-
-from pathlib import Path
+"""The setup script's lines for an installed file that differs from the checkout."""
 
 import pytest
 
-from factory.adapters.process import ProcessRequest, run_process
-from vm_support import SETUP, step_texts
+from vm_support import step_texts
 
 HINTS = {
     "tools": (
@@ -33,9 +30,3 @@ def test_a_differing_installed_file_names_the_operators_own_copy(code: str, step
     differing = [line for line in code.splitlines() if "differs from the checkout" in line]
     assert len(differing) == 2
     assert all(any(text in line for text in HINTS.values()) for line in differing)
-
-
-def test_the_setup_script_parses(tmp_path: Path) -> None:
-    result = run_process(ProcessRequest(argv=["sh", "-n", str(SETUP)], cwd=tmp_path))
-
-    assert result.exit_status == 0, result.stderr

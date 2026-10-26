@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T20:41:23.231453Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-26T20:41:23.231453Z'
   stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-10-26T20:47:12.294587Z'
+  stage: tests
+  run: 2d798f5d87024f0b9dc72922443d983b
 ---
 
 # The setup script says how to install a changed unit
@@ -262,3 +264,22 @@ Expect: three lines: `syntax-ok`; `2`; `0`
 
     The factory left out changes outside the write paths: factory/features/F0045-smaller-items-of-the-candidates-list/in-progress/F0045-S0003-the-setup-script-says-how-to-install-a-changed-unit.md.
 19. factory: started tests as vm.
+20. tester: I made only the test change the coder named in entry 18, which answers the reviewer's finding in entry 16.
+
+    Changed: in `tests/test_vm_setup_install_hint.py` I removed `test_the_setup_script_parses`. It was a second copy of the `sh -n vm/setup.sh` exit-0 check that `tests/test_vm_setup.py::test_the_script_parses_and_starts_with_its_shebang_and_set_eu` already makes. I also removed the imports only it used (`Path`, `ProcessRequest`, `run_process`, `SETUP`) and dropped "and its syntax" from the module docstring. `ruff format` removed a trailing blank line. No other test changed.
+
+    Criterion mapping:
+    criterion 1: tests/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy (rows `tools`, `service`)
+    criterion 2: tests/test_vm_setup_text.py::test_the_checkout_files_are_installed_only_in_the_run_that_cloned (its helper `_install_conditions` narrowed to `^\s*install\s` in entry 12, with the human's leave in entry 8)
+    criterion 3: tests/test_vm_setup.py::test_the_script_parses_and_starts_with_its_shebang_and_set_eu (an existing test)
+    criteria 4 and 5: `make check` and docs; no test.
+
+    Files created: none. Changed: tests/test_vm_setup_install_hint.py, which this story wrote.
+    Modules not importable: none.
+
+    `make test` is green (`test: green`), because `vm/setup.sh` already holds the two lines from entry 14. `make lint` is green.
+
+    Still open: the factory dropped the coder's entry-18 rewrite of the Description, because the work item is outside the coder's write paths. Criterion 2 therefore still says "unchanged", criterion 3 still says "one test", and the Interface still says "No earlier test changes". This tests stage cannot write the work item either. Someone with write access to the work item should bring those three places up to date.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (155.1 s)
