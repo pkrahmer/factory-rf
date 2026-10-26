@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-26T19:01:03.015959Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-10-26T19:01:03.015959Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T19:02:07.165336Z'
+  stage: docs
+  run: f7c5a70074504452971be06abbb37e2b
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -324,3 +326,23 @@ Expect: two lines: `7`; `1`
     - `tests/test_claude_agent_texts.py`: changed under the standing leave to move a shared test helper. `_decisions` now calls the shared `template_definition()` instead of the inline read and parse. No test name changed and every test checks the same thing.
     - `tests/shipped_agents.py`: changed under the same standing leave. It is the shared place, and the only change is the added `TEMPLATE_PIPELINE` and `template_definition()`.
 18. factory: started docs as vm.
+19. documenter: Documentation for the smoke test's new way out to `docs`. I changed only documents, so I did not run `make check`. `make documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/operator-guide.md`: in `## The pipeline definition`, after the paragraph on stage keys, I added the template's smoke test line and one sentence that a slip only in a document goes from the smoke test to `docs` and counts as a rework round. In *The shipped agents and settings* I added a paragraph on the smoke tester's two ways out (`docs` for slips only, `doing` for anything else or a mix) and the documenter's reply (fix exactly those findings, end with `smoke-test`).
+    - `docs/project-guide/agents.md`: in the `template/factory/pipeline.yml` bullet I added the smoke test's `next` and `round_cap`, R12's new rework, the smoke tester's steps 5 and 6, the documenter's step 1 and the test file that pins the texts.
+    - `docs/decisions.md`: a new entry, "A slip the smoke test finds in a document goes straight to the docs stage", with the reason (four extra runs in F0038-S0007 and S0009), why no code is needed, and the rejected options (the coder and reviewer passing it on; a factory rule that reads paths).
+    - `README.md`: unchanged, as the docs criterion says.
+
+    Cross-read and found current against the diff: `README.md`; `docs/operator-guide.md` outside the two places above (no other text names the smoke test's `next` or R12's wording); `docs/project-guide/agents.md` outside the bullet above. A grep of `docs/` and `README.md` found no other copy of the old R12 line.
+
+    The code matches the Interface. I found nothing for the coder, so there are no findings.
+
+    Stale text I noticed and did not touch:
+    - `tests/git_support.py:44` still holds `next: [approval, doing]` for the smoke test (the reviewer noted the same). It is another story's fixture and decision 21 of `feature.md` says no earlier test changes.
+    - The operator guide's `## The pipeline definition` example is a toy definition that has no smoke test, so I left it as it is.
+    - The feature's `feature.md` still gives the factory's own smoke test `round_cap: 2` while the template has 3. That is the human's file and the Interface keeps the cap unchanged, so I left it.
+
+    `check`: check: green (not run again: passed on tree eae20ecc7ff4 at 2026-10-26T18:57:02Z)
+    `secrets`: secrets: green (2.3 s)
+    `documents`: documents ok

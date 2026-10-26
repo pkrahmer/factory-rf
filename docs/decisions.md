@@ -1182,3 +1182,12 @@ Date: 2026-10-26 (F0046-S0003).
 - Why it is read second: systemd lets a later `EnvironmentFile=` override an earlier one, so the operator's value wins over the script's.
 - Why optional: an instance that never needed the file starts as before.
 - Rejected: a script option that writes the file (it would own the file again); merging the operator's values into `factory.env`.
+
+## A slip the smoke test finds in a document goes straight to the docs stage
+
+Date: 2026-10-26 (F0045-S0001).
+
+- Decision: the smoke test's `next` is `approval`, `doing`, `docs` in the template (and in the factory's own and the demo's definitions, by the human's change). The smoke tester ends with `docs` when every finding is a slip in a document the documenter writes and the code does what the work item says, otherwise with `doing`; on a `docs` round the documenter fixes exactly those findings and ends with `smoke-test`. R12, in every shipped agent, names `smoke-test → docs` as a rework.
+- Why: the coder may not write `docs/`, so a slip went smoke test, `doing`, review, docs, smoke test: four extra runs each in F0038-S0007 and S0009 (F0038-A0001, note 8).
+- Why no code: `factory.domain.decisions.decide` already counts every `next` entry after the first as a rework against `round_cap`.
+- Rejected: the coder passes a docs-only finding on with `review` and the reviewer with `docs` (the long way, shortened by nothing); a factory rule that reads the findings' paths (a new mechanism for a judgement an agent already makes). A reviewer marking the finding is not possible: none runs after the smoke test.
