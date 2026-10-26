@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T16:20:29.907860Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-10-26T16:20:08.888847Z'
   stage: review
   run: fb04b533a7c741af84758e6fc820b551
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-26T16:20:29.907860Z'
+  stage: doing
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -224,3 +233,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests:
     tests/test_vm_service.py: changed under the human's leave in entry 9. The `service` row drops `EnvironmentFile` and `[Service]` skips `EnvironmentFile` keys, exactly as that leave allows.
+16. factory: started doing as vm.
