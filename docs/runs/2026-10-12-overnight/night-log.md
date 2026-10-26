@@ -1234,3 +1234,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 15:55 UTC: F0046-S0002 at approval, PR #460: six checks met (write paths; no earlier test changed, six new; check green, entries 39/40; reviewer round 2 no findings, entry 41; both Expect met, smoke 1 in the corrected form; no markers). 20 runs, $8.85. Merged. Three test duplications and a mypy segfault recorded for F0045.
 - 15:57 UTC: F0046-S0002 archived (be2fd0b5); vm rebuilt from it without setup.sh, FACTORY_ZFS kept. Grep pre-check of S0003 passed. Started F0046-S0003 (the unit reads factory.local.env).
 - 16:00 UTC: F0046-S0003 tester question on #461 (criteria 3 and 4 cannot run the whole script): answered A, run the closing text in tmp_path.
+- 16:06 UTC: F0046-S0003 tester question on #461 (test_vm_service.py reads the unit with configparser and keeps one EnvironmentFile): answered A, that row skips EnvironmentFile; the leave of an earlier test for this one change.
