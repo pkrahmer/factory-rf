@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T15:34:53.311904Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -192,6 +196,11 @@ journal:
   at: '2026-10-26T15:34:31.891012Z'
   stage: review
   run: b8eae74ea3e14c14a0644e22e9b7bcec
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-10-26T15:34:53.311904Z'
+  stage: doing
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -546,3 +555,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/entry/test_wiring_container_extra.py:25` and `:37`: `_recording` and `_calls` are copies of `_recording_stand_in` and `_calls` in `tests/entry/test_wiring_stage_environment.py`. They could move to a shared module under the standing leave.
     - `tests/container_extra_support.py:26`: `CA_NAMES` repeats `factory.domain.containers.CA_BUNDLE_NAMES`, which it could import.
     - `tests/container_extra_support.py:12`: it imports `REPLY` from the test module `adapters.test_claude_runtime_login` instead of from a support module.
+34. factory: started doing as vm.
