@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T23:10:56.764003Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-26T23:10:36.311482Z'
   stage: review
   run: 79f426aa01494da8b617162166852fe9
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:10:56.764003Z'
+  stage: doing
 ---
 
 # The process result no longer says that its output was abandoned
@@ -169,3 +178,4 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
 
    Earlier tests:
    - tests/adapters/test_process_drain.py: changed under the human's leave, decision 27 of feature.md. The seven named tests lost their `output_abandoned` assertion and kept their names. Two lost the `abandoned` parametrize column, which fed only that assertion; their row ids and other values are unchanged. `test_drain_is_five_seconds_and_output_is_not_abandoned_by_default` also lost the `ProcessResult` construction, which existed only for the removed assertion. All of this is within the leave.
+10. factory: started doing as vm.
