@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-26T15:52:51.250089Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -256,6 +252,12 @@ journal:
   kind: started
   at: '2026-10-26T15:52:51.250089Z'
   stage: smoke-test
+- number: 45
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T15:53:45.092460Z'
+  stage: smoke-test
+  run: 415621d978214a159fba7047e05b3faa
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -716,3 +718,38 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
 44. factory: started smoke-test as vm.
+45. smoke-tester: Smoke test, round 2. I ran both commands under `## Smoke test` from the repository root, in order and exactly as written. Command 1 failed as written. I then ran it again in the form the human gave in entry 9 ("the first smoke test is corrected by this answer to `InstanceSettings(repository_url='https://github.com/o/n', instance='vm', ...)`; its `Expect:` stays. Run it in that form."). I fixed nothing and changed no file.
+
+    Command 1, exactly as written: did not meet `Expect:` (exit 1). `InstanceSettings` requires `repository_url` and `instance`, and the command leaves both out. This is a fault in the command, not in the code:
+    ```
+    Traceback (most recent call last):
+      File "<string>", line 5, in <module>
+      File "/work/checkout/.venv/lib/python3.12/site-packages/pydantic/main.py", line 280, in __init__
+        validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    pydantic_core._pydantic_core.ValidationError: 2 validation errors for InstanceSettings
+    repository_url
+      Field required [type=missing, input_value={'container_env': ('HTTPS...osixPath('/etc/ca.pem')}, input_type=dict]
+        For further information visit https://errors.pydantic.dev/2.14/v/missing
+    instance
+      Field required [type=missing, input_value={'container_env': ('HTTPS...osixPath('/etc/ca.pem')}, input_type=dict]
+        For further information visit https://errors.pydantic.dev/2.14/v/missing
+    ```
+
+    Command 1, in the corrected form from entry 9 (`InstanceSettings(repository_url='https://github.com/o/n', instance='vm', container_env=('HTTPS_PROXY', 'MISSING'), ca_bundle=Path('/etc/ca.pem'))`, everything else unchanged): met `Expect:` (exit 0):
+    ```
+    ['HTTPS_PROXY', 'NODE_EXTRA_CA_CERTS', 'REQUESTS_CA_BUNDLE', 'SSL_CERT_FILE']
+    ```
+
+    Command 2 (`FACTORY_CONTAINER_ENV=HOME ... read_settings(os.environ)`): met `Expect:` (exit 0):
+    ```
+    SettingsInvalid
+    ```
+
+    Judgement against the acceptance criteria: the output contradicts none of them. Command 1 matches criterion 4: the listed name the source holds is kept, `MISSING` is skipped, the unlisted `OTHER` is absent, and the bundle adds its three variables. Command 2 matches criterion 2: `HOME` is refused. I counted the failure of the as-written command 1 as no finding, because the human corrected that command in entry 9 and told the stages to run it in that form. There is nothing for the coder to fix: the code passes the corrected command.
+
+    Findings: none.
+
+    Open, for the human (the `## Smoke test` section is theirs, so I did not edit it):
+    1. Command 1 in `## Smoke test` still lacks `repository_url='https://github.com/o/n', instance='vm'`. Anyone who runs it as written gets the `ValidationError` above. Entry 9's correction belongs in the text.
+    2. Stale Description text that earlier stages noted (entries 39, 41, 43) is still there. The Interface sentence on `factory.adapters.agent_launch` still says "runtime part", but the extras go beneath `run_environment`'s result. Entry 9's constructor keywords (`extra_environment`, `ca_bundle` on all four classes) are not in the Interface. The Interface names `tests/adapters/test_make_commands_extra.py`, but the check rows are in `tests/application/test_container_environment_extra.py`.
