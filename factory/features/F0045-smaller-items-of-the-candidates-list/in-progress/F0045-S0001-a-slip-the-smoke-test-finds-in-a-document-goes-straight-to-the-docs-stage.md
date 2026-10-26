@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T18:54:05.124869Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-10-26T18:53:44.503706Z'
   stage: tests
   run: 8e8fcf20697b41beb1ca607aa903ee78
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:54:05.124869Z'
+  stage: doing
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -244,3 +253,4 @@ Expect: two lines: `7`; `1`
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (154.2 s)
+14. factory: started doing as vm.
