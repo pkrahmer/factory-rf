@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T14:22:09.099612Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-26T14:21:47.781262Z'
   stage: intake
   run: bb2b6e5621404ff9aeab9956d8053a4c
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-26T14:22:09.099612Z'
+  stage: tests
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -126,3 +135,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: both commands are runnable and neither runs pytest. Each `Expect:` line can be checked against the output.
    - Architecture: pure rules in domain, mounts and environment in adapters and application, wiring only in entry. This matches the layers in CLAUDE.md.
    - Scope: within the feature's S0002 entry and decisions 6 and 7. S0003 and the provider file are not touched, and no test of another story is changed.
+7. factory: started tests as vm.
