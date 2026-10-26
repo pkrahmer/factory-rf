@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from adapters.opencode_stand_in import write_agent_settings
 from container_extra_support import CA_NAMES, COMMIT, OTHER, PROXY, env_words, volume, write_bundle
 from entry.test_wiring_login import REPLY
 from factory.adapters.fake_hosting import FakeHostingService
@@ -72,6 +73,9 @@ def test_every_container_of_a_stage_carries_both_settings_and_no_hosting_token(
     bundle = write_bundle(tmp_path)
     workspace = tmp_path / "work"
     workspace.mkdir()
+    if runtime == "opencode":
+        write_agent_settings(agent_home, '{"permissions": {"deny": []}}')
+        (tmp_path / "state" / "runs").mkdir(parents=True)
     settings = InstanceSettings(
         repository_url="/srv/project.git",
         instance="factory-1",

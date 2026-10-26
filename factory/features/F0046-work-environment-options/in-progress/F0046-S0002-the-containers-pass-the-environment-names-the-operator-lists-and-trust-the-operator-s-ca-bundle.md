@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T14:54:56.883002Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -124,6 +120,12 @@ journal:
   kind: started
   at: '2026-10-26T14:54:56.883002Z'
   stage: tests
+- number: 21
+  speaker: tester
+  kind: result
+  at: '2026-10-26T15:06:27.120088Z'
+  stage: tests
+  run: dbb29ee36791436985fd1170b335617c
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -323,3 +325,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The files I changed: `tests/entry/test_wiring_container_extra.py`.
 19. 2026-10-26 human: (a), with `write_agent_settings` from `tests/adapters/opencode_stand_in.py`. A wider leave for this one test, so it needs no further round: any other setup the opencode row needs, taken from the helpers the existing opencode tests already use, you may add without asking; the code stays, and the claude row stays as it is.
 20. factory: started tests as vm.
+21. tester: I made the test change the human approved in entry 19, and the full `make test` is now green.
+
+    What changed, only in the `[opencode]` row of `tests/entry/test_wiring_container_extra.py::test_every_container_of_a_stage_carries_both_settings_and_no_hosting_token`:
+    - Answer (a): before `build_boundaries`, the test writes `settings.json` into `agent_home` with `write_agent_settings(agent_home, '{"permissions": {"deny": []}}')` from `tests/adapters/opencode_stand_in.py`.
+    - Under the wider leave in entry 19: once the settings file was there, the row failed on the next missing piece of setup:
+      ```
+      E   factory.domain.errors.AgentRuntimeError: agent runtime failed: cannot write the state directory .../state/runs: [Errno 2] No such file or directory: .../state/runs/opencode-<uuid>.json
+      ```
+      So the row now also creates `state_directory / "runs"`, the way `tests/entry/test_wiring_opencode.py` and `tests/entry/test_wiring_opencode_provider.py` already do (`runs.mkdir(parents=True)`).
+    - The claude row is unchanged. The `opencode_models` change from entry 18 stays. No code changed.
+
+    Criterion mapping: unchanged from earlier entries. This run only changed that one test's setup.
+
+    Files changed: `tests/entry/test_wiring_container_extra.py`.
+
+    Results:
+    - `make test`: `test: green (161.5 s)`, total coverage 99.56 %.
+    - `make lint`: green.
+    - Every module imported.
+
+    One thing to watch: my first `make test` in this run crashed with a segmentation fault (`make: *** [Makefile:84: test] Error 139`). I only kept the tail of that output, which held the faulthandler's list of extension modules and no Python test error. So I cannot say which test or worker crashed. The next two runs did not crash: the first failed only on the missing `runs` folder above, and the second was green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (157.1 s)
