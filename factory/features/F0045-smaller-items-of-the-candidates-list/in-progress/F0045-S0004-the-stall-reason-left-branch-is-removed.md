@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-26T21:45:52.863088Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-10-26T21:45:30.655576Z'
   stage: doing
   run: 1f3989e82df34a2a91f96ec27c55b646
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:45:52.863088Z'
+  stage: review
 ---
 
 # The stall reason left_branch is removed
@@ -429,3 +438,4 @@ Expect: two lines: `False 4.0`; `0`
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
+23. factory: started review as vm.
