@@ -814,6 +814,7 @@ Date: 2026-10-19 (F0020-S0008; F0020 decisions 9, 16 and 17). After S0004 to S00
 - Decision: `FACTORY_OPENCODE_FOLDERS` names extra folders in the agent's home that a run may write, so a build can keep and refresh its login there; the three folders of opencode stay the default.
 - Reasons: the human's work instance runs an operator-built opencode behind single sign-on and this repository's build stays on Claude Code, so the choice cannot be global; one setting keeps an instance on one runtime; a missing model alias would otherwise show only as a failed run.
 - Rejected: a runtime chosen per stage or per agent (two logins and two pins on one instance, and nothing needs it); a required API key for opencode (it would refuse the single sign-on build); allowing the whole home to a run (the agent could rewrite its configuration).
+- Superseded in part by "A company's provider for opencode": on the machine the agent's home lies on the dataset and the rollback to the base clears it before every stage, so a login kept in the agent's home does not survive and only the API login works; `FACTORY_OPENCODE_FOLDERS` is no longer read.
 
 ## factory-watch judges its own instance's claim by the lease
 

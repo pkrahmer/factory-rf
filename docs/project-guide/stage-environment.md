@@ -324,7 +324,9 @@ One function, `workspace_overlap_fault(workspace, checkout, state_directory)` (`
 |---|---|
 | `snapshots`, `containers` | `ZfsSnapshots(dataset, workspace, executable=zfs_executable)` and `PodmanRuns(podman_executable, stage_image, workspace)` |
 | `agent_runtime` | the runtime of `FACTORY_AGENT_RUNTIME` given `containers` |
-| `project_commands` | `RecordingProjectCommands` around `ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout)` |
+| `project_commands` | `RecordingProjectCommands` around `ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout, extra_environment=extra, ca_bundle=settings.ca_bundle)` |
+
+`build_boundaries` computes `extra = extra_environment(settings, os.environ)` once and hands the same mapping to the agent runtime, to `ContainerMakeCommands` and to `Boundaries.container_extra_environment`; `stage_environment_of` builds the sync's `ContainerEnvironment` from that field and from `settings.ca_bundle`.
 
 `build_boundaries` takes no `which`. It runs no tool: `zfs` and `podman` start only when a stage uses them. `RecordingProjectCommands.inner` is the implementation it records, which the wiring's tests read.
 
