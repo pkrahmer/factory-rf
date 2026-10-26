@@ -12,7 +12,7 @@ from factory.domain.settings import (
     InstanceSettings,
     read_settings,
 )
-from settings_support import BASE
+from settings_support import AGENT_HOME, BASE
 
 _NOT_A_NAME = "which is not a variable name"
 _SET_BY_FACTORY = "which the factory sets itself"
@@ -109,8 +109,11 @@ def test_the_settings_model_refuses_a_relative_ca_bundle(path: Path, accepted: b
 
     if accepted:
         assert (
-            InstanceSettings(repository_url=url, instance="f-1", ca_bundle=path).ca_bundle == path
+            InstanceSettings(
+                repository_url=url, instance="f-1", agent_home=AGENT_HOME, ca_bundle=path
+            ).ca_bundle
+            == path
         )
         return
     with pytest.raises(ValidationError):
-        model(repository_url=url, instance="f-1", ca_bundle=path)
+        model(repository_url=url, instance="f-1", agent_home=AGENT_HOME, ca_bundle=path)

@@ -15,6 +15,7 @@ from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRun
 from factory.domain.provider_limits import ProviderLimit
 from factory.domain.settings import InstanceSettings
 from log_support import log_lines
+from settings_support import AGENT_HOME
 
 SESSION = "ses_a"
 SECONDS = timedelta(seconds=5)
@@ -281,7 +282,9 @@ def test_with_the_default_settings_the_default_limit_applies(
     unset = replace(
         boundaries,
         waiter=waiter,
-        settings=InstanceSettings(repository_url="/srv/project.git", instance="factory-1"),
+        settings=InstanceSettings(
+            repository_url="/srv/project.git", instance="factory-1", agent_home=AGENT_HOME
+        ),
     )
     _queue(agent_runtime, _limited(wait=named), _completed())
 

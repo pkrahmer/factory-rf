@@ -18,6 +18,7 @@ from factory.domain.stops import RepositoryStop
 from git_support import CHECKOUT, remote_commit
 from human_clone import HumanClone
 from log_support import log_lines
+from settings_support import AGENT_HOME
 from stage_run_support import INSTANCE
 
 MIN_FREE_GB = 2
@@ -35,6 +36,7 @@ def settings(tmp_path: Path) -> InstanceSettings:
         {
             "repository_url": "/srv/project.git",
             "instance": INSTANCE,
+            "agent_home": AGENT_HOME,
             "checkout": tmp_path / CHECKOUT,
             "state_directory": tmp_path / "state",
             "min_free_gb": MIN_FREE_GB,

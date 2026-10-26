@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T22:19:56.571494Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-26T22:19:56.571494Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-26T22:27:38.545407Z'
+  stage: tests
+  run: dddd9034c9e145e8b33be684574e4b98
 ---
 
 # The settings model refuses what the reading refuses
@@ -90,3 +92,47 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
    - Architecture: both rules live in `factory.domain`, a pure model with no I/O, and `read_settings` stays in the same module. The story writes the rule once and uses it from both.
    - Scope: within S0006 of `feature.md` (decisions 14 and 18, the human's answer 32 (b)). The leave for the earlier tests is decision 26, which the story cites. It changes no test beyond that leave and has nothing from "Out of scope".
 4. factory: started tests as vm.
+5. tester: Tests written for every criterion. They are red on purpose: the model still has a default `agent_home` and does not check `container_env`.
+
+   - criterion 1: tests/domain/test_settings_model_rules.py::test_the_settings_model_requires_an_absolute_agent_home (rows: missing, relative, absolute)
+   - criterion 2: tests/domain/test_settings_model_rules.py::test_the_settings_model_checks_the_container_env_names (rows: none, one, three, home, api-key, factory-prefix, leading-digit, dash, twice)
+   - criterion 3: tests/domain/test_settings_model_rules.py::test_the_reading_names_the_container_env_variable_for_a_refused_name (rows: HOME, 1A, A,A)
+   - criterion 4: tests/domain/test_settings_model_rules.py::test_the_old_agent_home_default_is_gone (rows: constant, string; the string row reads every `*.py` under the installed `factory` package)
+   - criteria 5 and 6: no test (the check and the docs).
+
+   Files created: `tests/domain/test_settings_model_rules.py`.
+
+   Shared constant: `AGENT_HOME = Path("/srv/factory/factory-1/factory/claude")` in `tests/settings_support.py`. `BASE["FACTORY_CLAUDE_HOME"]` is now `str(AGENT_HOME)`, the same value as before. The module docstring was updated to mention it. The documenter should name this constant under *Shared test helpers* (criterion 6).
+
+   Earlier test modules changed under the Interface's leave (decision 26). Every construction of `InstanceSettings` that gave no `agent_home` now gives one. Every test keeps its name and its assertions.
+   - Given `AGENT_HOME` (no test there reads agent files through the settings):
+     - tests/conftest.py (fixture `disk_settings`)
+     - tests/application/test_container_environment_extra.py
+     - tests/application/test_checkout_preparer_seal.py
+     - tests/application/test_repository_waiter.py
+     - tests/application/test_patient_runs.py
+     - tests/application/test_cost_image.py
+     - tests/application/test_scheduler.py
+     - tests/application/test_tick_disk.py
+     - tests/application/test_opencode_item.py
+     - tests/application/test_opencode_item_container.py
+     - tests/adapters/test_agent_launch_extra.py
+     - tests/domain/test_settings_container_env.py
+     - tests/domain/test_container_extra_environment.py
+     - tests/domain/test_settings.py
+     - tests/domain/test_settings_opencode_provider.py
+     - tests/domain/test_settings_one_environment.py
+     - tests/domain/test_settings_min_free.py
+     - tests/domain/test_settings_paths.py (`REQUIRED`)
+     - tests/domain/test_settings_stage_environment.py (`_DIRECT_CONTAINER`)
+   - tests/application/test_tick_stop_records.py: its `settings` fixture now uses the `agent_home` fixture (`tmp_path / "agent-home"`). That is the path the row `agent-definition-invalid` writes its agent file to.
+   - Already gave an `agent_home`, so unchanged: tests/proof_support.py, the `local_settings` fixture in conftest, and the other entry/application modules. My count is therefore below the Interface's 38/33.
+
+   Test run: I ran `make test` once. The last lines show the new rows failing for the right reasons: `DID NOT RAISE ValidationError` for the refused container names, `assert True == False` for the constant, and `settings.py` listed for the `/home/agent` string. That output showed only the last failures, so I did not see whether the earlier rows were also red. Every module imported; nothing failed to import.
+
+   `make lint`: green. The type check was skipped, as this stage allows.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/domain/test_settings_model_rules.py::test_the_old_agent_home_default_is_gone[string] - AssertionError: assert [PosixPath('/...settings.py')] == []

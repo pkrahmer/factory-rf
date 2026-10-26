@@ -11,7 +11,7 @@ from factory.domain.settings import (
     InstanceSettings,
     read_settings,
 )
-from settings_support import BASE
+from settings_support import AGENT_HOME, BASE
 
 
 @pytest.mark.parametrize(
@@ -53,7 +53,10 @@ def test_the_settings_model_takes_only_an_absolute_provider_file(
 ) -> None:
     def build() -> InstanceSettings:
         return InstanceSettings(
-            repository_url="/srv/project.git", instance="factory-1", opencode_provider_file=path
+            repository_url="/srv/project.git",
+            instance="factory-1",
+            agent_home=AGENT_HOME,
+            opencode_provider_file=path,
         )
 
     if accepted:

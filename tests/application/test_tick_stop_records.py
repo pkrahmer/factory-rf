@@ -87,12 +87,13 @@ pytestmark = pytest.mark.usefixtures("installed_agents")
 
 
 @pytest.fixture
-def settings(tmp_path: Path) -> InstanceSettings:
+def settings(tmp_path: Path, agent_home: Path) -> InstanceSettings:
     """Settings whose checkout and state directory lie under `tmp_path`."""
     return InstanceSettings.model_validate(
         {
             "repository_url": "/srv/project.git",
             "instance": INSTANCE,
+            "agent_home": agent_home,
             "checkout": tmp_path / CHECKOUT,
             "state_directory": tmp_path / "state",
             "min_free_gb": MIN_FREE_GB,

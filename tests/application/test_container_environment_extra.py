@@ -22,8 +22,11 @@ from factory.adapters.make_commands import CHECK_ENVIRONMENT
 from factory.application.stage_environment import SYNC_ENVIRONMENT
 from factory.domain.containers import WORK_HOME, extra_environment
 from factory.domain.settings import InstanceSettings
+from settings_support import AGENT_HOME
 
-NEITHER = InstanceSettings(repository_url="/srv/project.git", instance="factory-1")
+NEITHER = InstanceSettings(
+    repository_url="/srv/project.git", instance="factory-1", agent_home=AGENT_HOME
+)
 HOST = {"HTTPS_PROXY": PROXY, "PATH": "/host/bin"}
 
 Words = Callable[[Dataset, Path, dict[str, str]], list[str]]

@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from factory.domain.errors import FactoryError, SettingsInvalid
 from factory.domain.git import GitIdentity
 from factory.domain.settings import InstanceSettings, read_settings
-from settings_support import BASE, raising
+from settings_support import AGENT_HOME, BASE, raising
 
 URL = "/srv/project.git"
 OTHER_IMAGE_PATH = Path("/images/image-id")
@@ -180,10 +180,13 @@ def test_the_image_label_variable_is_not_the_image_identity() -> None:
 @pytest.mark.parametrize(("name", "accepted"), [("factory-1", True), ("Factory-1", False)])
 def test_the_settings_model_checks_the_instance_name(name: str, accepted: bool) -> None:
     if accepted:
-        assert InstanceSettings(repository_url=URL, instance=name).instance == name
+        assert (
+            InstanceSettings(repository_url=URL, instance=name, agent_home=AGENT_HOME).instance
+            == name
+        )
     else:
         with pytest.raises(ValidationError):
-            InstanceSettings(repository_url=URL, instance=name)
+            InstanceSettings(repository_url=URL, instance=name, agent_home=AGENT_HOME)
 
 
 @pytest.mark.parametrize(

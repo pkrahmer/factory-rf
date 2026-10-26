@@ -26,6 +26,7 @@ from git_support import (
     write_files,
 )
 from human_clone import HumanClone
+from settings_support import AGENT_HOME
 
 NO_MAIN = "the repository has no main branch yet"
 NO_PIPELINE = "origin/main has no factory/pipeline.yml yet"
@@ -52,7 +53,9 @@ class Instance:
         self.log = RecordingLog()
         self.git = GitCli(directory, GitOptions(identity=TEST_IDENTITY))
         self.boundaries = replace(boundaries, git=self.git, log=self.log, checkout=directory)
-        settings = InstanceSettings(repository_url=url, instance="factory-1", checkout=directory)
+        settings = InstanceSettings(
+            repository_url=url, instance="factory-1", agent_home=AGENT_HOME, checkout=directory
+        )
         self.waiter = RepositoryWaiter(
             CheckoutPreparer(self.git, settings), self.boundaries, StopService(self.boundaries)
         )

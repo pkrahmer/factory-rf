@@ -5,7 +5,7 @@ from pydantic import BaseModel, ValidationError
 
 from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import InstanceSettings, read_settings
-from settings_support import BASE
+from settings_support import AGENT_HOME, BASE
 
 
 @pytest.mark.parametrize(
@@ -59,8 +59,15 @@ def test_the_settings_keep_a_minimum_free_space_of_at_least_one(
 
     if expected is None:
         with pytest.raises(ValidationError):
-            model(repository_url="/srv/project.git", instance="factory-1", **fields)
+            model(
+                repository_url="/srv/project.git",
+                instance="factory-1",
+                agent_home=AGENT_HOME,
+                **fields,
+            )
         return
-    settings = model(repository_url="/srv/project.git", instance="factory-1", **fields)
+    settings = model(
+        repository_url="/srv/project.git", instance="factory-1", agent_home=AGENT_HOME, **fields
+    )
     assert isinstance(settings, InstanceSettings)
     assert settings.min_free_gb == expected
