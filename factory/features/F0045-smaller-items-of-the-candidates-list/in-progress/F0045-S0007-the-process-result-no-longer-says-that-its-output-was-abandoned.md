@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T22:55:43.647154Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T22:55:43.641634Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:55:43.647154Z'
+  stage: intake
+---
+
 # The process result no longer says that its output was abandoned
 
 ## Description
@@ -39,3 +66,6 @@ uv run python -c 'from factory.adapters.process import ProcessResult; print(list
 Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration', 'stopped']`; `0`
 
 ## Journal
+
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
