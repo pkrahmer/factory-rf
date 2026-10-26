@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 463
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T16:58:40.433993Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-26T16:58:40.433993Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-26T16:59:06.130427Z'
+  stage: intake
+  run: 922e6423ecfd46308d2238b8da5c8254
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -66,3 +68,9 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
 
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: concrete. `_opencode_login_hint(login)` and `_login_detail(settings, login)` in `factory.application.preflight` exist at lines 259 and 270. Both new texts are given in full, and the "none" and "other login" branches are stated for each.
+   - Criteria: each fits one parametrized test. 1 covers the opencode failing side (`died` with `none`, and "does not contain `own login`") and the Claude rows `api_key` and `subscription`. 2 covers the opencode and Claude completed-probe texts. 3 covers opencode `api_key` on both sides. Every Interface clause has a criterion. The test changes to `opencode_sso_hint` and the two earlier test modules have the human's leave in feature.md decision 10 (2026-10-26).
+   - Smoke test: runnable. The grep is expected to print 0 for both files. The pytest command passes no `-q` and `pyproject.toml` `addopts` already sets `-q`, so `tail -n 1` gives the `... passed in <s>s` line the Expect line names.
+   - Architecture: the change stays in the application layer, in two private helpers. It adds no new tool and no new dependency.
+   - Scope: it is within F0046 (S0004 is listed in feature.md). It touches only opencode texts, and the Claude Code texts are left alone as the Description says. Nothing in "Out of scope" is touched.
