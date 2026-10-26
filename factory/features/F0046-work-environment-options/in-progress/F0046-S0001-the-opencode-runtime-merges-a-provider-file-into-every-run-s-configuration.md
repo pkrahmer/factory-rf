@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T14:10:00.665014Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-10-26T14:10:00.665014Z'
   stage: review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T14:10:48.697887Z'
+  stage: review
+  run: 8bd50dd816a74102920a7de10659dfab
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -492,3 +494,35 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 29. factory: started review as vm.
+30. reviewer: no findings
+
+    Round 1. I reviewed `git diff main...HEAD -- . ':!factory'` (4 files under `src/` and 5 new test files) against criteria 1 to 10 and the Interface.
+
+    - The `src/` diff is unchanged since 0bb1b395 and matches the Interface.
+      - `factory.domain.opencode_provider` holds the models, `read_provider` and `provider_configuration`. It does no I/O.
+      - `factory.domain.settings` adds the constant and the field. The absolute-path rule moved into the shared `_optional_absolute_path`, and `_absolute` now also covers the new field.
+      - The adapter's `_provider_keys` reads the file before `_RunFiles` is made. It turns an `OSError` or `ValueError` into `AgentRuntimeError("cannot use the opencode provider file <path>: ...")`.
+      - The wiring only passes the setting on.
+      - The layers hold, there is no silencing marker, no string-built command and no copy of an existing helper.
+    - Criteria 9 and 10, which I added in entry 22, now have their test. In `tests/domain/test_opencode_provider.py::test_the_provider_file_is_accepted_only_when_it_keeps_every_rule`:
+      - the rows `output-zero` and `output-cost-negative` refuse the bounds, and `context-one` and `cost-zero` accept the other side;
+      - every refused row except `not-an-object` matches the field at fault as a whole word (`\b<name>\b`), so `output` does not match inside `output_cost`.
+      - I checked each match against the messages the code builds:
+        - `id`, `models` and `base_url` faults are named by the error's `loc`;
+        - `models.m.context` and `models.m.extra` likewise;
+        - the pair validator's message names both fields of the pair;
+        - the `small_model` message names `small_model`.
+    - Criteria 1 to 8: I read their tests again and each tests what its criterion says. The factory's `make check` after the coder was green (entry 28).
+    - Every limit of the Interface is tested on both sides:
+      - `PositiveInt` `context` and `output`: 0 refused, 1 accepted;
+      - `NonNegativeFloat` costs: -0.01 refused, 0 accepted;
+      - each pair is tested in both directions;
+      - each regex and the URL rule have a refused and an accepted row.
+    - The Description, the Interface and the docs criterion (12) still match what was built.
+
+    Rejected: a finding on the claude-instance wiring row, as in entry 22.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` lists every test file as `A`, so no test file that `main` holds is changed, renamed or deleted.
+
+    Notes:
+    1. `tests/domain/test_settings_opencode_provider.py`: the refused side of reading the setting (`p.json`) is the separate function `test_a_relative_provider_file_setting_is_refused_naming_it`. It is not a row of `test_the_provider_file_setting_is_read_as_an_optional_path`. This is a quality point on a test file the diff adds, so it is a note in round 1.
