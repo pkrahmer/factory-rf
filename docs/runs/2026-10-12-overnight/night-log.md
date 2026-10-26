@@ -1256,3 +1256,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 20:12 UTC: health check made solid: scratchpad health.sh prints one line (vm, service, stops, disk, approval, a factory question, a stage over 75 min, nothing in progress); a heartbeat cron at :13 and :43 runs it and acts on `act:` (session-only, expires in 7 days); the event watcher stays.
 - 20:25 UTC: the human: start stories up to 99 % weekly usage (was 95 %); the heartbeat cron recreated with that limit.
 - 20:26 UTC: F0045-S0003 coder question on #468 (the earlier test counts the new echo line as an install): answered A, leave to narrow _install_conditions to install commands.
+- 20:54 UTC: the human's night quiz: after the weekly reset (03:00 UTC) the night may use up to 25 % of the new week; after F0045 nothing new is drafted or started (the human asked for the repository split explained). Heartbeat recreated with both rules.
