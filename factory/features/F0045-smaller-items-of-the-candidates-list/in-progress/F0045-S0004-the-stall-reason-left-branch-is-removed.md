@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T21:32:01.037273Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-10-26T21:31:39.620830Z'
   stage: tests
   run: 64c2ccefcdff4a67a105962748623624
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:32:01.037273Z'
+  stage: doing
 ---
 
 # The stall reason left_branch is removed
@@ -318,3 +327,4 @@ Expect: two lines: `False 4.0`; `0`
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (156.9 s)
+17. factory: started doing as vm.
