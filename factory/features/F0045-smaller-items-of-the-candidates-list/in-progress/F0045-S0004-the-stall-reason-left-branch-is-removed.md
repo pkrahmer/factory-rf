@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T21:25:35.854574Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-10-26T21:25:35.854574Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-26T21:31:39.620830Z'
+  stage: tests
+  run: 64c2ccefcdff4a67a105962748623624
 ---
 
 # The stall reason left_branch is removed
@@ -283,3 +285,36 @@ Expect: two lines: `False 4.0`; `0`
 
     Noticed, not touched: the comment at `src/factory/application/stalls.py:112` belongs to the restore, which the story keeps. The docs criterion belongs to the documenter. No journal entry changed the meaning of the task.
 15. factory: started tests as vm.
+16. tester: Round 1. Coder's entry 14 asked for one change: move a copied test helper under the standing leave in `CLAUDE.md` (*Tests*). That change answers the reviewer's finding 1 in entry 12. I made only that move. No source file was touched.
+
+    The move:
+    - `tests/contract_support.py` already held the contract command's shared test data, so I extended it with three things:
+      - `SCHEMAS` (`SRC / "contract"`).
+      - `committed_is_generated(entry, version)`: a check that the committed schema holds `"x-records-contract": "<version>"` and equals `contract_schema(entry)`.
+      - `schemas_naming(word)`: the sorted names of the committed `*.schema.json` files whose text holds `word`.
+    - Its module docstring now also names the schema checks.
+
+    Earlier test files changed to use it (standing leave in `CLAUDE.md`). Each test keeps its name, its row ids and what it checks:
+    - `tests/domain/test_contract_version_2.py`
+      - `SCHEMAS`, `_committed` and `_schema_check` are replaced by the shared helpers.
+      - `_no_tool_paths` still checks only `pipeline-definition.schema.json`: `"pipeline-definition.schema.json" not in schemas_naming("tool_paths")`.
+    - `tests/domain/test_contract_version_3.py`
+      - `SCHEMAS` and `_committed_is_generated` are replaced by the shared helpers.
+      - `_no_nested_repository` now reads `schemas_naming("nested_repository") == []`.
+    - `tests/domain/test_contract_version_4.py` (written by this story)
+      - The same replacement as in version 3.
+      - `_no_left_branch` now reads `schemas_naming("left_branch") == []`.
+
+    The criterion → test mapping is unchanged from entry 5. Criterion 5 is still `tests/domain/test_contract_version_4.py::test_the_records_contract_is_at_version_4_without_left_branch`.
+
+    Not changed: `tests/domain/test_contract_login.py` builds its own `SCHEMAS` path. It was not named in the requested move, so I left it.
+
+    Files created: none (one existing module extended). Modules the runner could not import: none.
+
+    Runs:
+    - `make lint`: green.
+    - `make test`: green (`test: green (157.7 s)`, coverage 99.56 %).
+    - `make types`: green, run because these files are type-checked by the coder's `make check`.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (156.9 s)
