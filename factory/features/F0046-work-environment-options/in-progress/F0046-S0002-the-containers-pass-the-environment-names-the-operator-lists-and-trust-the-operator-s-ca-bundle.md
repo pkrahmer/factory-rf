@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T15:33:02.100821Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -190,6 +186,12 @@ journal:
   kind: started
   at: '2026-10-26T15:33:02.100821Z'
   stage: review
+- number: 33
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T15:34:31.891012Z'
+  stage: review
+  run: b8eae74ea3e14c14a0644e22e9b7bcec
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -225,8 +227,9 @@ Tests (the tester writes them): `tests/domain/test_settings_container_env.py`, `
 6. The sync container and the check containers hold the extra names and the bundle mount (`:ro`) exactly as in criterion 5, and every word before and after them is unchanged. A row with `FACTORY_CONTAINER_ENV=PATH` and a host value for `PATH` leaves the `PATH` of the sync and of the check containers as `SYNC_ENVIRONMENT` and `CHECK_ENVIRONMENT` give it.
 7. `build_boundaries` with both settings gives runtimes, a container environment and project commands that carry them (read from the `FakeContainerRuns` calls of one stage); the hosting token is in no container's environment.
 8. `FACTORY_CONTAINER_ENV` accepts the names the pattern allows beyond upper case: `http_proxy,_X` gives `("http_proxy", "_X")` (rows of criterion 2's test; curl and others read the lower-case proxy names).
-9. `make check` stays green.
-10. docs: `docs/operator-guide.md`: the two variables in the configuration table and a subsection *Behind a proxy* (the proxy and mirror names, the CA bundle and its mounts, the reserved names; that the bundle must hold the public certificates beside the company's, because `SSL_CERT_FILE` replaces Python's own list; and that `vm/setup.sh` and the stage image's build need the proxy in their own environment). `docs/project-guide/stage-environment.md`, *The podman adapter* and *The container environment*: the extras. `docs/project-guide/agents.md`, *Calls in a container*: the same sentence. `docs/decisions.md`: an entry *The containers' environment stays closed except for the operator's list*, from the feature's decisions 6 and 7. `README.md`: none.
+9. `FACTORY_CONTAINER_ENV` strips each name, not only the blank parts: `HTTPS_PROXY , NO_PROXY` gives `("HTTPS_PROXY", "NO_PROXY")` (a row of criterion 2's test).
+10. `make check` stays green.
+11. docs: `docs/operator-guide.md`: the two variables in the configuration table and a subsection *Behind a proxy* (the proxy and mirror names, the CA bundle and its mounts, the reserved names; that the bundle must hold the public certificates beside the company's, because `SSL_CERT_FILE` replaces Python's own list; and that `vm/setup.sh` and the stage image's build need the proxy in their own environment). `docs/project-guide/stage-environment.md`, *The podman adapter* and *The container environment*: the extras. `docs/project-guide/agents.md`, *Calls in a container*: the same sentence. `docs/decisions.md`: an entry *The containers' environment stays closed except for the operator's list*, from the feature's decisions 6 and 7. `README.md`: none.
 
 ## Smoke test
 
@@ -520,3 +523,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 32. factory: started review as vm.
+33. reviewer: Round 1 review. I read the diff against `main` (src and tests) and the work item. Group 1 (acceptance criteria) fails, so this report stops there.
+
+    1. criterion 9 added: it needs its test. The Interface says the value of `FACTORY_CONTAINER_ENV` is split at commas and each part is stripped. No row has a name with spaces around it: `" , "` only covers blank parts, and `_optional` strips only the ends of the whole value. If `_container_env` (`src/factory/domain/settings.py:281`) checked `part.strip()` for blankness but kept the unstripped `part`, every test would still pass. Yet `HTTPS_PROXY, NO_PROXY` would then be refused as not a variable name, and that is the most common way an operator writes the list. The new criterion 9 asks for `HTTPS_PROXY , NO_PROXY` to give `("HTTPS_PROXY", "NO_PROXY")`, as a row of `tests/domain/test_settings_container_env.py::test_the_container_env_setting_is_read_as_a_list_of_names`. The code needs no change. I renumbered the closing criteria to 10 and 11.
+
+    Checked and fine for group 1:
+    - Criterion 1: rows for the agent, sync and check containers, compared with `SWITCHES`, `SYNC_ENVIRONMENT` and `CHECK_ENVIRONMENT`.
+    - Criteria 2 and 3: every refusal, the accepted side of each, and the model's `ValidationError` with its accepted row.
+    - Criterion 4: order, a skipped name, the bundle, the empty case, and the bundle winning over a listed name.
+    - Criterion 5: both runtimes, the absent name, the removed `ANTHROPIC_API_KEY`, the `:ro` mount, and the round-1 `PATH` row against the fix at `claude_runtime.py:466` and `opencode_runtime.py:683`.
+    - Criterion 6: sync and check rows, the other words unchanged, and the `PATH` row.
+    - Criterion 7: three `podman run` calls, no hosting token.
+    - Criterion 8: the row `lower-case-and-underscore`.
+
+    The journal's last `make check` is green (entry 31).
+
+    Open for group 5 next round (no group-5 finding yet, because the review stopped at group 1): the `## Interface` sentence on `factory.adapters.agent_launch` still says the extras go into `run_environment`'s runtime part. The code now puts them beneath `run_environment`'s result, as entry 4 answer 2 and round 0's finding 1 settle. The Interface also does not yet name entry 9's constructor keywords, and the first smoke test still lacks `repository_url`/`instance` (entry 9). Those are sections outside `## Description`, so I did not rewrite them.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
+
+    Notes:
+    - `tests/entry/test_wiring_container_extra.py:25` and `:37`: `_recording` and `_calls` are copies of `_recording_stand_in` and `_calls` in `tests/entry/test_wiring_stage_environment.py`. They could move to a shared module under the standing leave.
+    - `tests/container_extra_support.py:26`: `CA_NAMES` repeats `factory.domain.containers.CA_BUNDLE_NAMES`, which it could import.
+    - `tests/container_extra_support.py:12`: it imports `REPLY` from the test module `adapters.test_claude_runtime_login` instead of from a support module.
