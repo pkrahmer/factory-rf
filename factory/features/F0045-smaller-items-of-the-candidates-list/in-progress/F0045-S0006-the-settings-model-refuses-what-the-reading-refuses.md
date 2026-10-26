@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T22:42:42.000921Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-10-26T22:42:42.000921Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-10-26T22:48:38.727766Z'
+  stage: doing
+  run: 0feece83ada341e3b247f53417a177ec
 ---
 
 # The settings model refuses what the reading refuses
@@ -273,3 +275,16 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
     `lint`: lint: green (0.2 s)
     `test`: test: green (161.5 s)
 14. factory: started doing as vm.
+15. coder: Round 1: no code change. The reviewer's only finding was that two test constants had been copied between test files. The tester settled it in entry 13: `NOT_A_NAME` and `SET_BY_FACTORY` moved to `tests/settings_support.py`, and `tests/domain/test_settings_container_env.py` and `tests/domain/test_settings_model_rules.py` now import them from there. The code is as round 0 left it, all in `src/factory/domain/settings.py`:
+    - `AGENT_HOME_DEFAULT` is removed.
+    - `agent_home` is required, and the same check as `checkout` and `state_directory` (`_absolute`) refuses a relative path.
+    - One pure function, `container_env_fault`, holds the rule for container variable names. The model's validator and `read_settings` both use it.
+
+    Main choice, from round 0: the rule is a function that returns the fault text, and each caller raises its own exception. This follows the module's existing `workspace_overlap_fault`. I rejected a helper that raises `SettingsInvalid` and has the model translate it into a `ValueError`.
+
+    `make check` is green on this round's committed state (`test: green (161.3 s)`, `check: green`). Refactor pass: there is no new diff in this round, so nothing to change. The journal did not change the task's meaning, so `## Description` is unchanged.
+
+    Noticed but not touched: nothing.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
