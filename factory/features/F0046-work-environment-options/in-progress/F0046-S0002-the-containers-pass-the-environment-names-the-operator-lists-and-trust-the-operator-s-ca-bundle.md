@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 460
-comments_read: [6418348227, 6418462516, 6418969803]
+comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
 claim: null
 journal:
@@ -110,6 +110,11 @@ journal:
   stage: tests
   run: ad85b244bd8d40799dda48663df393a1
   blocked: question
+- number: 19
+  speaker: human
+  kind: comment
+  at: '2026-10-26T14:54:39.059706Z'
+  stage: tests
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -307,3 +312,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     I would choose (a). It is the smallest change, and it keeps the claude row exactly as it was.
 
     The files I changed: `tests/entry/test_wiring_container_extra.py`.
+19. 2026-10-26 human: (a), with `write_agent_settings` from `tests/adapters/opencode_stand_in.py`. A wider leave for this one test, so it needs no further round: any other setup the opencode row needs, taken from the helpers the existing opencode tests already use, you may add without asking; the code stays, and the claude row stays as it is.
