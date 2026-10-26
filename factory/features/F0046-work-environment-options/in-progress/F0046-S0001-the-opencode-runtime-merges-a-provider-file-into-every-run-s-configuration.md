@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-26T14:11:09.339501Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-10-26T14:10:48.697887Z'
   stage: review
   run: 8bd50dd816a74102920a7de10659dfab
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-10-26T14:11:09.339501Z'
+  stage: docs
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -526,3 +535,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Notes:
     1. `tests/domain/test_settings_opencode_provider.py`: the refused side of reading the setting (`p.json`) is the separate function `test_a_relative_provider_file_setting_is_refused_naming_it`. It is not a row of `test_the_provider_file_setting_is_read_as_an_optional_path`. This is a quality point on a test file the diff adds, so it is a note in round 1.
+31. factory: started docs as vm.
