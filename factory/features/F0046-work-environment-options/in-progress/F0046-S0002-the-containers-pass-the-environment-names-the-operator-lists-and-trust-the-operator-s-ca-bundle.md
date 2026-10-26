@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T15:35:38.085543Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -212,6 +208,12 @@ journal:
   kind: started
   at: '2026-10-26T15:35:38.085543Z'
   stage: tests
+- number: 37
+  speaker: tester
+  kind: result
+  at: '2026-10-26T15:41:29.740086Z'
+  stage: tests
+  run: 3656e2c08139476fb2bd9c4535b740d5
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -585,3 +587,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The Interface sentence on `agent_launch` still says "runtime part". It should say the extras go beneath `run_environment`'s result.
     - Entry 9's keyword names and its corrected smoke test are still missing from the work item, which is outside my write paths.
 36. factory: started tests as vm.
+37. tester: Round 2, the test change the coder's entry 35 names. Criterion 9, which the reviewer added in entry 33, needed only its test. I wrote it as one new row.
+
+    - criterion 9: `tests/domain/test_settings_container_env.py::test_the_container_env_setting_is_read_as_a_list_of_names`, new row `spaces-around-names`. `FACTORY_CONTAINER_ENV="HTTPS_PROXY , NO_PROXY"` gives `("HTTPS_PROXY", "NO_PROXY")`.
+
+    The test's name and its other rows are unchanged.
+
+    Files changed: `tests/domain/test_settings_container_env.py`, which this story wrote. I created no files and touched no other story's test files.
+
+    Modules the test run could not import: none. The code is already in place, so the new row passes and I did not see it fail. `make test` is green (`test: green (161.6 s)`, coverage 99.56 %), and so is `make lint`.
+
+    Not done: the reviewer's notes in entry 33 suggest moving some shared test helpers under the standing leave. Those are `_recording` and `_calls` in `tests/entry/test_wiring_container_extra.py`, `CA_NAMES` in `tests/container_extra_support.py`, and the `REPLY` import in the same file. This run was for the named change only, so I left them as they are. They are notes, not findings.
+
+    Still open, outside the tests (entries 33 and 35):
+    - The Interface sentence on `agent_launch` still says "runtime part".
+    - Entry 9's keyword names and its corrected smoke test are still missing from the work item.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (161.0 s)
