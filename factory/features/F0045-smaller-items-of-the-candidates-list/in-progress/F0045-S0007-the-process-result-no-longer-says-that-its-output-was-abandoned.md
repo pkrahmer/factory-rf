@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-26T23:09:52.193951Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-26T23:09:31.810606Z'
   stage: doing
   run: 92f4d80dab344316912deb17ce06d932
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:09:52.193951Z'
+  stage: review
 ---
 
 # The process result no longer says that its output was abandoned
@@ -144,3 +153,4 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 42 known, 1 gone
+8. factory: started review as vm.
