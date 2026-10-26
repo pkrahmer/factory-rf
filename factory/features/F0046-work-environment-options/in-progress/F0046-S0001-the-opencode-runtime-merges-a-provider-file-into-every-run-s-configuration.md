@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T12:39:05.646518Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-26T12:38:45.437835Z'
   stage: intake
   run: 83123bf447f84c07864276f2a240a875
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-26T12:39:05.646518Z'
+  stage: tests
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -159,3 +168,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: both commands are `uv run python -c` with no pytest, so there is no `-q` problem. Their `Expect:` lines (`['provider', 'small_model']` and `refused`) can be checked against the output.
    - Architecture: the model and rules are in domain, the file read and the merge are in the adapter, and the wiring is in entry. This matches the four layers in CLAUDE.md.
    - Scope: the story is S0001 of F0046. The proxy and CA bundle (S0002) and the environment file (S0003) are left out, and nothing in Out of scope is touched.
+7. factory: started tests as vm.
