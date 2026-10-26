@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T16:19:29.023978Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-26T16:19:29.023978Z'
   stage: review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T16:20:08.888847Z'
+  stage: review
+  run: fb04b533a7c741af84758e6fc820b551
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -216,3 +218,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 14. factory: started review as vm.
+15. reviewer: 1. tests/test_vm_local_environment.py:35-38: the `code` fixture is a third copy, word for word, of the `code` fixture in `tests/test_vm_setup_text.py:44` and `tests/test_vm_setup_writes.py:16` (it returns `setup_code()` under the same docstring). The fix: under the standing leave to move a shared test helper, the tester moves that fixture to `tests/conftest.py` and has all three modules use it from there. Every earlier test keeps its name and what it checks.
+
+    Checked and found sound: criterion 1 (both `EnvironmentFile=` lines in order, and the whole unit text pinned); criterion 2 (exactly one line names the file and it is the closing line, plus the seven command-word rows); criterion 3 (rows `vm` and `other`; `base=/srv/factory/$instance` is already pinned by `tests/test_vm_setup_text.py` row `base-once`); criterion 4 (rows present and absent). I read these through the human's answer in entry 6. In `vm/factory.service` and `vm/setup.sh`, each change is the single line the Interface names. The coder's `make check` was green (entry 13). The Description still matches what was built, and the docs criterion holds.
+
+    Earlier tests:
+    tests/test_vm_service.py: changed under the human's leave in entry 9. The `service` row drops `EnvironmentFile` and `[Service]` skips `EnvironmentFile` keys, exactly as that leave allows.
