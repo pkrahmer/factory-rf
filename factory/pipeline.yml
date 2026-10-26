@@ -33,7 +33,7 @@ stages:
   doing: {role: coder, next: [review, tests], checks: [check], reports: [duplicates]}
   review: {role: reviewer, next: [docs, doing], round_cap: 2}
   docs: {role: documenter, next: [smoke-test, doing], checks: [check, secrets, documents], round_cap: 2}
-  smoke-test: {role: smoke-tester, next: [approval, doing], round_cap: 2}
+  smoke-test: {role: smoke-tester, next: [approval, doing, docs], round_cap: 2}
   acceptance: {role: acceptance-reviewer, next: [approval]}
   approval: {approval: true, next: [done, doing]}   # the human: a merge accepts, a close sends back
   done: {}

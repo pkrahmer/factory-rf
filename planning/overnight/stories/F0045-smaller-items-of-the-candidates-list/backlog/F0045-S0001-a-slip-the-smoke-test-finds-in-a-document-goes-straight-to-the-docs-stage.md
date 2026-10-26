@@ -32,7 +32,7 @@ Rules:
 - The template's definition loads with the shipped roles, and its smoke test's `next` is exactly `approval`, `doing`, `docs`, in that order (`approval` stays the forward decision).
 - Every shipped agent names every decision of its stage's `next` in the template, in inline code (the existing rule of `tests/test_claude_agent_texts.py`).
 
-Tests (the tester writes them): new tests at the tester's choice, for example `tests/test_claude_agent_texts_docs_slip.py`, reading the shipped agents through `tests/shipped_agents.py` and the template through `RuamelPipelineDefinitionReader`, and one test of the decision rules in `tests/domain/`, for example `tests/domain/test_decide_docs_slip.py`. No earlier test changes (decision 16 of `feature.md`).
+Tests (the tester writes them): new tests at the tester's choice, for example `tests/test_claude_agent_texts_docs_slip.py`, reading the shipped agents through `tests/shipped_agents.py` and the template through `RuamelPipelineDefinitionReader`, and one test of the decision rules in `tests/domain/`, for example `tests/domain/test_decide_docs_slip.py`. No earlier test changes (decision 21 of `feature.md`).
 
 ## Acceptance criteria
 
