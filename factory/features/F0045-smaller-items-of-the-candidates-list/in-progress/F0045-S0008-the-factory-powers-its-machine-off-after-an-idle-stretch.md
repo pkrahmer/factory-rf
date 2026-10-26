@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T23:33:24.676113Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-26T23:33:04.329467Z'
   stage: intake
   run: 387cdb5500744dc3b581c850b0670534
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:33:24.676113Z'
+  stage: tests
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -197,3 +206,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
    - Smoke test: both blocks are runnable. Neither runs pytest, so the `-q` rule does not apply. Each `Expect:` line can be checked against the output.
    - Architecture: PowerOff and IdleShutdown sit in application, SystemctlPowerOff in adapters through the process module, and wiring in entry. This follows the layers and R5.
    - Scope: within S0008 of feature.md (decisions 8 to 12). The leave for the changed earlier test is decision 28.
+7. factory: started tests as vm.
