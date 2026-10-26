@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-26T16:35:29.889612Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-10-26T16:35:08.587779Z'
   stage: docs
   run: 1d159c354fec42a4bf50c2a2d7a8ced7
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-26T16:35:29.889612Z'
+  stage: smoke-test
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -376,3 +385,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 400bdf6a144b at 2026-10-26T16:30:20Z)
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
+26. factory: started smoke-test as vm.
