@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-26T22:51:00.832022Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-10-26T22:51:00.832022Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T22:51:30.558371Z'
+  stage: smoke-test
+  run: ec2d499801674b42a94a3656f1126bb5
 ---
 
 # The settings model refuses what the reading refuses
@@ -383,3 +385,24 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
 20. factory: started smoke-test as vm.
+21. smoke-tester: Ran the smoke test once from the repository root, as written. I fixed nothing.
+
+    Command 1 (the `uv run python - <<'EOF' … EOF` script under `## Smoke test`), exit status 0:
+
+    ```
+    Bytecode compiled 4164 files in 57ms
+    False
+    missing False
+    value_error True
+    /srv/agents
+    ```
+
+    Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`. **Met.** The first line is uv's bytecode notice, not output of the script. The script's four lines match the expectation in order:
+    - `AGENT_HOME_DEFAULT` is gone.
+    - Leaving out `agent_home` fails with type `missing`.
+    - `container_env=("HOME",)` fails with a value error holding "which the factory sets itself".
+    - `agent_home="/srv/agents"` is kept.
+
+    Against the acceptance criteria: nothing the smoke test showed contradicts any of them. I also ran one check outside the smoke test, for criterion 4: `grep -rn "/home/agent" src/factory` finds nothing. The smoke test does not exercise criteria 2 (beyond `HOME`), 3, 5 and 6; it contradicts none of them. `make check` is the factory's gate after this stage.
+
+    Findings: none.
