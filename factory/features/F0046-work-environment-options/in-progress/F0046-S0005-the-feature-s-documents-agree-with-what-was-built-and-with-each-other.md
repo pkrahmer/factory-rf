@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 464
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-26T17:56:07.675889Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-26T17:55:46.162821Z'
   stage: docs
   run: 7cedf73f96444e629849628928a36575
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:56:07.675889Z'
+  stage: smoke-test
 ---
 
 # The feature's documents agree with what was built and with each other
@@ -173,3 +182,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 6c9e3830fbbb at 2026-10-26T17:38:40Z)
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
