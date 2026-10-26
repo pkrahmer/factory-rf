@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 461
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T15:58:59.323803Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-26T15:58:38.008996Z'
   stage: intake
   run: 089113d3ed59492e90a50c7694787463
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-26T15:58:59.323803Z'
+  stage: tests
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -75,3 +84,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: both commands are runnable. Neither runs pytest, so the `-q` rule doesn't apply. Each `Expect:` is checkable: the two ordered lines, and a count of 1. The count holds because no line of `vm/setup.sh` names the file today and the story adds one line.
    Architecture: only `vm/` files change, which the coder's write paths allow. The layers are untouched.
    Scope: it matches the feature's S0003 and decision 8 (read after `factory.env`, optional with `-`). Nothing falls under "Out of scope".
+4. factory: started tests as vm.
