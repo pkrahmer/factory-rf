@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 473
 comments_read: [6429816658]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T23:33:24.676113Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-10-26T23:33:24.676113Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-26T23:34:24.170636Z'
+  stage: tests
+  run: ed00973ed4fa42f49507327fa4a35829
+  blocked: question
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -207,3 +210,23 @@ Expect: `-n /usr/bin/systemctl poweroff`
    - Architecture: PowerOff and IdleShutdown sit in application, SystemctlPowerOff in adapters through the process module, and wiring in entry. This follows the layers and R5.
    - Scope: within S0008 of feature.md (decisions 8 to 12). The leave for the changed earlier test is decision 28.
 7. factory: started tests as vm.
+8. tester: Stopped before writing any tests. I read the work item, `factory.domain.settings`, `factory.adapters.printed_output`, `TickOutcome`, `activity_tick`, the `boundaries` and `clock` fixtures, `tests/test_wrapper_search.py` and the zfs time-limit test. Criteria 2, 3, 4, 6, 7 and 9 are clear. Three places need your answer before I can write the tests without guessing:
+
+   1. Criterion 5, the standard-error row, contradicts the Interface. The row says the `PowerOffError` "text names the exit status `1` and holds `sudo: a password is required`". The Interface, after your answer 3 in journal 4, says the detail is `failure_detail` (the last non-empty printed line), and the text is `power off failed: <detail>`. With something printed, the text is `power off failed: sudo: a password is required` and holds no exit status. The options:
+      (a) Drop "names the exit status `1`" from that row. The row then asserts that the detail is `sudo: a password is required`, as `failure_detail` gives it.
+      (b) Keep it, and change the Interface so the detail also carries the status (for example `exit status 1: <line>`). That moves away from `failure_detail` as the zfs commands use it.
+      I would choose (a).
+
+   2. Criterion 1's text is garbled: "`"30"` gives `30`; `"-1"`, `"x"`, `"100000"` gives `100000`; `"-1"`, `"x"`, `"1.5"` and `"٣"` raise …". My reading, which I would test as rows of one parametrized test:
+      - unset, `""` and `"  "` give `0`
+      - `"0"` gives `0`, `"1"` gives `1`, `"30"` gives `30`, `"100000"` gives `100000`
+      - `"-1"`, `"x"`, `"1.5"` and `"٣"` raise `SettingsInvalid("FACTORY_IDLE_SHUTDOWN_MINUTES", "is not a whole number of minutes")`
+      Is that right?
+
+   3. Criterion 8 lacks the check you agreed to in answer 5 of journal 4: that the built `IdleShutdown` logs to `boundaries.log` and reads `boundaries.clock`. Intake entry 6 says it was added, but the criterion's text does not hold it. The Interface exposes neither the clock nor the log, so I would test it through behaviour, as one more row or step of the wiring test:
+      - a stand-in `sudo` first on `PATH` that records its words and exits 0
+      - `boundaries.clock` advanced by 30 minutes, then `observe` of an `idle` outcome
+      - assert that the stand-in recorded `-n /usr/bin/systemctl poweroff` once and that `factory.log` holds a line containing `idle shutdown: `
+      Should I add that (my choice), or leave criterion 8 as written?
+
+   No files created; nothing has been imported or run yet.
