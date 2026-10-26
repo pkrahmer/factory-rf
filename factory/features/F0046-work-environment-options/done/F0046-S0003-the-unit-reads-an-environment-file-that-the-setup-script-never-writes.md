@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -158,6 +158,11 @@ journal:
   at: '2026-10-26T16:35:49.051803Z'
   stage: smoke-test
   run: 26f4411fc13745a591df99cee517a7b6
+- number: 28
+  speaker: factory
+  kind: done
+  at: '2026-10-26T16:37:12.640671Z'
+  stage: approval
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -418,3 +423,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Docs criterion: entry 25 covers it.
 
     The smoke test contradicts no criterion. Nothing is open from this stage.
+28. factory: done (pull request merged); cost: 12 runs, 19.5 min, 76 turns, 244591 tokens in (1461850 more from cache), 26710 out, $2.52
