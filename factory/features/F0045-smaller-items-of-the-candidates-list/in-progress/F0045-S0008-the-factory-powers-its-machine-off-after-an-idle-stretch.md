@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 473
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T23:29:15.481152Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-26T23:29:15.481152Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-26T23:29:37.021397Z'
+  stage: intake
+  run: d2ebe634528b4c148a92a9f29f96f45b
+  blocked: question
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -146,3 +149,20 @@ Expect: `-n /usr/bin/systemctl poweroff`
 
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. The Interface states behaviours that no criterion tests, so two coders could read them two ways and both would pass. Questions:
+
+   1. Interface, `IdleShutdown.observe`: the first log line "names the limit in minutes". Criterion 2 only checks that the line begins `idle shutdown: `. Add to criterion 2 that, with a limit of 30 minutes, the line contains `30`? I would add it, as an assertion on the existing `idle` at 30:00 row.
+
+   2. Interface, `PowerOffError`: its text is `power off failed: <detail>`. No criterion tests it. Add a criterion that `str(PowerOffError("x")) == "power off failed: x"`? I would add that, as a row in criterion 5 or as a test of its own.
+
+   3. Interface, `SystemctlPowerOff.power_off`, which says the detail names "the last non-empty line the command printed (standard error or output), or says it printed nothing".
+      - Criterion 5 covers only a line on standard error. It has no row for a line on standard output, for a last non-empty line chosen among several lines (including trailing blank lines), or for the exact wording of the "printed nothing" case. It only says the case "raises `PowerOffError`".
+      - What is the exact wording for "printed nothing"? I would fix it as `printed nothing`, and add rows for: a line on standard output only; two lines followed by a blank line, where the detail holds the second line and not the first; and nothing printed, where the detail holds `printed nothing` and the status `1`.
+
+   4. The same method, for the time limit: the detail must name the limit. Criterion 5 only requires a raise within `ROOMY_BOUND_SECONDS`. Add that the text names the limit, with the form to check. I would use `1 s` or `1 second`; please choose the form that the detail must contain.
+
+   5. Criterion 7 (wiring) does not check that `idle_shutdown_of` passes `boundaries.clock` and `boundaries.log` to `IdleShutdown`, as the Interface says. Add this check? I would add that the `IdleShutdown` that is made logs to `boundaries.log` and reads `boundaries.clock`.
+
+   6. Interface, `read_settings`: "No upper limit". Add a row such as `"100000"` giving `100000`? I would add it.
+
+   Everything else is fine. The Interface names concrete modules and signatures. The smoke test commands are runnable, and their `Expect:` lines can be checked against the output. The placement in the layers is right: `PowerOff` and `IdleShutdown` in application, `SystemctlPowerOff` in adapters, wiring in entry. The story is within the scope of S0008 in `feature.md`. The leave for the changed earlier test is decision 28.
