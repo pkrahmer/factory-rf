@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T20:39:33.914096Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-26T20:39:33.914096Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T20:40:11.606894Z'
+  stage: review
+  run: 794bb48d2afe4f1d82e83e2e0e300b51
 ---
 
 # The setup script says how to install a changed unit
@@ -213,3 +215,13 @@ Expect: three lines: `syntax-ok`; `2`; `0`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 15. factory: started review as vm.
+16. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (`vm/setup.sh`, `tests/test_vm_setup_install_hint.py`, `tests/test_vm_setup_text.py`) against the work item.
+
+    Groups 1 to 3 hold. Criterion 1: the parametrized test has rows `tools` and `service`. Each step holds its Interface line exactly once, on a `>&2` line, and the only two `differs from the checkout` lines are the two new ones. Criterion 2: the earlier test still passes, and its narrowed helper still finds the `install` lines at `vm/setup.sh:345` and `vm/setup.sh:389`. Criterion 3 is covered by `sh -n`. The script change is only the two echo lines, single-quoted and exactly as the Interface gives them, so the install conditions are unchanged. The coder's `make check` was green (entry 14). No `src/` change and no suppression markers. Group 4 fails:
+
+    1. `tests/test_vm_setup_install_hint.py:38` `test_the_setup_script_parses`: duplicates the `sh -n vm/setup.sh` exit-0 check that `tests/test_vm_setup.py:23` `test_the_script_parses_and_starts_with_its_shebang_and_set_eu` already makes. That would be criterion 3's one test, so this is a second copy of an existing test (round 0, so it is a finding). Fix: the tester removes the new test, together with the `Path`, `ProcessRequest`, `run_process` and `SETUP` imports that only it uses. Criterion 3 then maps to the existing test.
+
+    Earlier tests:
+    - `tests/test_vm_setup_text.py`: changed under the human's leave in journal entry 8. Only `_install_conditions` changed: its filter became `^\s*install\s` and `ruff format` joined the comprehension onto one line. The test keeps its name and its rule, so the change stays within the leave.
+
+    Seen while reading, not reviewed as a group because group 4 failed first: criterion 2 still calls the earlier test "unchanged", and the Interface still says "No earlier test changes". Since entry 8 both are out of date. They are worth fixing in the same round.
