@@ -207,7 +207,7 @@ Every container (the sync, the agent and each check) has the same fence. It has 
 
 A container's environment is closed: the factory's own environment reaches none of them. Two settings open it for what a company network needs.
 
-- `FACTORY_CONTAINER_ENV` lists names, for example `HTTPS_PROXY,NO_PROXY,UV_INDEX_URL,NPM_CONFIG_REGISTRY` (the proxy, the hosts that bypass it, a package mirror for `uv` and for `npm`). Each name that the factory's environment holds is passed, with its value, into the agent, sync and check containers. Put the variables in `factory.local.env` (see "The environment file") and list their names in `FACTORY_CONTAINER_ENV`; the factory reads its environment when it starts, so restart the service after a change.
+- `FACTORY_CONTAINER_ENV` lists names, for example `HTTPS_PROXY,NO_PROXY,UV_INDEX_URL,NPM_CONFIG_REGISTRY` (the proxy, the hosts that bypass it, a package mirror for `uv` and for `npm`). Each name that the factory's environment holds is passed, with its value, into the agent, sync and check containers. Put the variables in `factory.local.env` (see "The environment file"), where they are also in the factory process's own environment (see the same section) and list their names in `FACTORY_CONTAINER_ENV`; the factory reads its environment when it starts, so restart the service after a change.
 - `FACTORY_CA_BUNDLE` is the PEM file with the company's CA certificate. It is mounted read-only into the same containers at its own path, and `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE` and `REQUESTS_CA_BUNDLE` name it. If a listed name is one of those three, the bundle's value wins.
 
 The bundle must hold the public certificates beside the company's own: `SSL_CERT_FILE` replaces Python's own list of authorities instead of adding to it, so a file with the company's certificate alone breaks every connection to a public host.
@@ -289,6 +289,8 @@ The preflight does not read the key: the probe of the agent run shows whether a 
 ### A company's provider
 
 An operator behind a company proxy that speaks the OpenAI protocol points opencode at it with a provider file. Set `FACTORY_OPENCODE_PROVIDER_FILE` to the file's absolute path in `factory.local.env` (see "The environment file") and restart the instance. The file holds one provider and the small model; the runtime merges them into the configuration of every run, beside `autoupdate`, `share`, `snapshot` and the agent, and changes none of those keys. With the setting unset the configuration is as it was.
+
+The preflight's `agent-run-probe` is where you see whether the pinned opencode accepts the provider file and reaches the proxy; see "The probe of the agent run" for when it runs.
 
 An example, with made-up names:
 
@@ -444,6 +446,8 @@ The unit and the credential helper come from the checkout, and root installs the
 Every run rewrites `factory.env` from the arguments and from the pins in the checkout's `vm/Dockerfile` (the Claude Code and opencode versions and the opencode model ids), and writes it only when its text differs. A change therefore goes into the script's arguments (or the Dockerfile), never into the file: an edit by hand is lost at the next run.
 
 For values the script does not know (a model map for a company's proxy, the path of a provider file, the names of the proxy variables), make a second file, `/srv/factory/<instance>/factory.local.env`, in the same `NAME=value` form. The unit reads it after `factory.env`, so a value in it wins over the same name there. It is optional: without it the unit starts as before. The script never creates, changes or removes it, and says so in its last line (`setup: local: ...`). Restart the instance after a change: the factory reads its environment when it starts.
+
+Every name in `factory.local.env` is in the factory process's own environment, because the unit sets it for the whole service. `FACTORY_CONTAINER_ENV` then chooses which of these names the containers also get.
 
 #### The `sudoers` fallback
 

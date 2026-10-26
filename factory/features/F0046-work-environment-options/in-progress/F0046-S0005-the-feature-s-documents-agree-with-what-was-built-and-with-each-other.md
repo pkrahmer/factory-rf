@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 464
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T17:47:17.609681Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:47:17.615192Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-26T17:47:39.497170Z'
+  stage: intake
+  run: 939a41bc92234ba09ef3fcb35d7d15d9
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:47:59.795382Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-26T17:50:53.351295Z'
+  stage: tests
+  run: 77802b4c12054a19b8fb9170f8c61046
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:51:14.578109Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-26T17:54:19.965592Z'
+  stage: doing
+  run: e61cb36c3b0d480ea5d5def1eb31c405
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:54:40.575070Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T17:54:54.979242Z'
+  stage: review
+  run: eabe8578bbe8432e9cba17d016768d25
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:55:16.233713Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-26T17:55:46.162821Z'
+  stage: docs
+  run: 7cedf73f96444e629849628928a36575
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:56:07.675889Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T17:56:33.116328Z'
+  stage: smoke-test
+  run: acb7034809ae494881d4671aebaecc44
+---
+
 # The feature's documents agree with what was built and with each other
 
 <!-- proposed by feature acceptance of 2026-10-26; refine before starting -->
@@ -40,3 +124,97 @@ make documents 2>&1 | tail -n 1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   Interface: "None" is stated and fits the story. Nothing changes under src/, tests/, vm/, template/ or claude/, and only docs/decisions.md and docs/operator-guide.md are named. There are no signatures or behaviours to pin.
+   Criteria: all four gaps in the Description have a docs bullet. The "Left to later stories of F0046" lines exist at docs/decisions.md:1161 and :1173. The decision 1 and decision 9 bullets, the agent-run-probe sentence and the factory.local.env sentence each have one. Criterion 1 covers the "nothing else changes" side. The story adds no rule with a failing side, because it states no limit, validation or rejected input, so none is missing. No test reads the documents; the docs criterion is checked by the smoke test and `make documents`.
+   Smoke test: the commands are runnable. The target sections exist: `### A company's provider` (operator-guide:289), `## A company's provider for opencode` (decisions:1149), *The environment file* (:442), *Behind a proxy* (:206) and *The probe of the agent run* (:748). Each Expect line is checkable: `0`, two numbers of at least 1, and `documents ok`. The story's smoke test runs no pytest, so the `-q` rule does not apply.
+   Architecture: the story touches documents only and leaves the layers alone. The documenter's write paths (README.md and docs/*) cover both files.
+   Scope: it fits F0046. feature.md lists S0005 as "from A0001". Its Out of scope items (a base_url, a secret store, any company value) are not touched, and the CA-on-host question is left to the human.
+4. factory: started tests as vm.
+5. tester: No tests written. The story's Interface is "None", and its criteria rule out any test change.
+   criterion 1: no test. Criterion 1 is the reason: this stage changed nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/`, and `git status --short` shows the working tree clean.
+   criterion 2: no new test. `make check` covers it, and the factory runs it after later stages.
+   criterion 3 (docs): no test, as the criterion requires. The smoke test and `make documents` check the two documents.
+   Files created: none. Modules the test run could not import: none, because no test was added. I did not run `make test` this stage: no test changed, so there are no red tests to confirm. `make lint`: green.
+   Open: nothing for the coder in code. The work is the documenter's, in `docs/decisions.md` and `docs/operator-guide.md`.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (157.2 s)
+6. factory: started doing as vm.
+7. coder: No code written, and nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/` changed (criterion 1). The story's Interface is "None": all of the work is the documenter's, in `docs/decisions.md` and `docs/operator-guide.md`, and those two files are outside the coder's write paths.
+   Main choice: I handed forward with an empty diff. The alternative I rejected was writing the four document gaps myself; CLAUDE.md gives those documents to the documenter stage.
+   Refactor: there is no diff, so there was nothing to refactor. `git status --short` shows a clean working tree.
+   Description: no journal entry changed what the task means, so it is unchanged.
+   `make check`: check: green (`test: green (157.2 s)`, coverage 99.56 %).
+   Noticed, not touched: `docs/decisions.md:1161` and `:1173` still hold "Left to later stories of F0046" lines. Those are for the documenter to fix.
+
+   `check`: check: green (not run again: passed on tree 6c9e3830fbbb at 2026-10-26T17:38:40Z)
+   `duplicates`: duplicates: 0 new, 43 known, 0 gone
+8. factory: started review as vm.
+9. reviewer: no findings
+
+   Scope: `git diff main...HEAD -- . ':!factory'` is empty. Only the work item and its `.costs.jsonl` sidecar changed under `factory/`.
+   Criterion 1: holds. Nothing under `src/`, `tests/`, `vm/`, `template/` or `claude/` changed. The tester's entry (5) and the coder's entry (7) both say so.
+   Criterion 2: the journal records `make check` as green after the coder (entry 7: check green, coverage 99.56 %).
+   Criterion 3 (docs): this is the documenter's work, coming next. No test reads the documents, as the criterion requires. The smoke test and `make documents` will check it. The two "Left to later stories of F0046" lines are still in `docs/decisions.md`, as the coder noted. That is expected before the docs stage, not a finding.
+   Interface: "None". There are no rules or limits that need a test for the failing side.
+   Architecture, security, quality: nothing to review, since no code or tests changed.
+   Work item hygiene: the coder's entry gives the main decision (hand forward with an empty diff) and what was rejected (writing the documents in the coder stage). The Description still matches the story: nothing was built yet, and the four gaps are still the docs stage's work. The docs criterion still says what the documenter must write.
+   Earlier tests: none changed, renamed or deleted (`git diff --name-status main...HEAD` lists only the work item's two files).
+10. factory: started docs as vm.
+11. documenter: Changed two files, both documents. `make documents` ends with `documents ok`. Nothing else changed. I did not run `make check`, because only documents changed.
+
+    - `docs/decisions.md`, *A company's provider for opencode*: replaced the "Left to later stories of F0046" line with two bullets. The first is the default: with `FACTORY_OPENCODE_PROVIDER_FILE` unset, the run's configuration file is byte-identical to the one written before the setting existed. The second is how the provider is shown to work: no test runs the real opencode, and the preflight's `agent-run-probe` shows on the machine whether the pinned opencode accepts the provider block.
+    - `docs/decisions.md`, *The containers' environment stays closed except for the operator's list*: deleted the "Left to later stories of F0046" line. S0003 has since built the file for the operator's settings, and its entry follows. No line now contains that phrase.
+    - `docs/operator-guide.md`, *A company's provider*: added one sentence naming `agent-run-probe` as the place where the operator sees whether the pinned opencode accepts the provider file and reaches the proxy. It refers to "The probe of the agent run" for when the probe runs.
+    - `docs/operator-guide.md`, *The environment file*: added one sentence. Every name in `factory.local.env` is in the factory process's own environment, because the unit sets it for the whole service, and `FACTORY_CONTAINER_ENV` then chooses which of these names the containers also get.
+    - `docs/operator-guide.md`, *Behind a proxy*: added a clause to the sentence about `factory.local.env`, pointing to the sentence above.
+
+    Cross-read and found current: *The probe of the agent run* and the preflight table row for `agent-run-probe`, which already cover opencode. The other bullets of both decision entries. I did not run the smoke-test greps myself, but the first (`Left to later stories of F0046`) matches nothing, and both edits sit in the sections the other two greps read.
+
+    Not touched: the CA-on-host question (whether the factory's own hosting client and git need the company's CA) stays with the human. The new sentences state only what reaches the process.
+
+    Stale text unrelated to this story: none noticed. Skills set aside: none.
+
+    No findings.
+
+    `check`: check: green (not run again: passed on tree 6c9e3830fbbb at 2026-10-26T17:38:40Z)
+    `secrets`: secrets: green (1.7 s)
+    `documents`: documents ok
+12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test run from the repository root as written. All three commands met their `Expect:` lines, and nothing contradicts a criterion. No findings.
+
+    Command 1: `grep -c 'Left to later stories of F0046' docs/decisions.md`
+    ```
+    0
+    ```
+    Met `Expect: 0`. grep exited with status 1 because nothing matched, which is the expected outcome.
+
+    Command 2: the two `awk … | grep -c -F 'agent-run-probe'` lines
+    ```
+    1
+    1
+    ```
+    Met `Expect: two lines, each a number of at least 1`.
+
+    Command 3: `make documents 2>&1 | tail -n 1`
+    ```
+    documents ok
+    ```
+    Met `Expect: documents ok`.
+
+    Acceptance criteria, checked against `git diff main...HEAD`:
+    - Criterion 1 holds. The only changed files are `docs/decisions.md`, `docs/operator-guide.md` and the work item with its `.costs.jsonl` sidecar. Nothing changed under `src/`, `tests/`, `vm/`, `template/` or `claude/`, and the tester (entry 5) and the coder (entry 7) each said so.
+    - Criterion 2: the journal records `make check` green on tree 6c9e3830fbbb. After that only documents changed. I did not run it again in this stage.
+    - Criterion 3:
+      - `docs/decisions.md` has no `Left to later stories of F0046` line.
+      - *A company's provider for opencode* has the bullet on the default (byte-identical configuration with `FACTORY_OPENCODE_PROVIDER_FILE` unset). It also has the bullet on how the provider is shown to work (no test runs the real opencode; the preflight's `agent-run-probe` shows it on the machine).
+      - In the operator guide, *A company's provider* has one sentence naming `agent-run-probe` (accepts the provider file and reaches the proxy) that refers to "The probe of the agent run".
+      - *The environment file* has the sentence that every name in `factory.local.env` is in the factory process's own environment because the unit sets it for the service, and that `FACTORY_CONTAINER_ENV` chooses which names the containers also get.
+      - *Behind a proxy* points to that sentence.
+      - No other section of the two documents changed.
+
+    Not a finding, only a matter of style: the new clause in *Behind a proxy* is missing a comma before "and list their names". The CA-on-host question stays with the human, as the Description says.
