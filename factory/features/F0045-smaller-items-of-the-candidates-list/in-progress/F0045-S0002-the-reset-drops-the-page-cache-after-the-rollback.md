@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T20:05:02.348889Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-10-26T20:05:02.348889Z'
   stage: review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T20:06:02.865760Z'
+  stage: review
+  run: c1ca5b684155402ba9af2decc3a945a5
 ---
 
 # The reset drops the page cache after the rollback
@@ -494,3 +496,35 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 29. factory: started review as vm.
+30. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. Changed files: `src/factory/adapters/zfs_snapshots.py`, `src/factory/entry/wiring.py`, `vm/setup.sh` and the tests.
+
+    no findings
+
+    What I checked:
+    - Group 1 (criteria): every criterion from 1 to 11 has a test that checks what it says.
+      - Criteria 1 to 4: `tests/adapters/test_zfs_snapshots_drop_caches.py`.
+        - Criterion 2 has the rows rollback-fails (the drop is not called), drop-fails, drop-missing and drop-time-limit (`detail == no_end_detail(LIMIT)`, bounded by `ROOMY_BOUND_SECONDS`).
+        - Criterion 4 has both sides as rows of one test: `()` and `("x",)`.
+      - Criterion 5: `tests/entry/test_wiring_drop_caches.py`. It covers the constant, the fact that building calls no `sudo`, the one `sudo` call on reset, and the `ast` check that only `wiring.py` constructs the adapter and does so with `drop_caches=DROP_CACHES_COMMAND`.
+      - Criteria 6 and 8 to 11: `tests/test_vm_setup_caches.py`.
+      - Criterion 7: the existing `sh -n` test in `tests/test_vm_setup.py`.
+      - Every failing side the Interface states has a test: the empty command, a failed rollback with no drop after it, the drop's three faults, and the `visudo` refusal. The Interface states no numeric limit.
+      - The coder's `make check` was green (entry 28).
+      - I confirmed that `_execute` keeps `merge_stderr=True`, so `sudo`'s refusal, which it prints to standard error, reaches `failure_detail` as the drop-fails row expects.
+    - Group 2 (architecture): the drop runs through the one process wrapper (`run_process`) inside the ZFS adapter. Only the entry layer wires the command, and no setting names it. The layers hold.
+    - Group 3 (security): there are no silencing markers and no secrets. The command is a fixed argv and is not built from a string. The `sudoers` rule allows only the fixed helper path, and it is checked with `visudo -cf` and removed when the check refuses it.
+    - Group 4 (quality): `_run` now delegates to `_execute`, so the fault handling has no second copy. `_command` is still used by `version()` and `dataset_exists()`. The docstrings say why. `duplicates: 0 new`.
+    - Group 5 (hygiene): the Description matches what was built. The journal names the main decision (one shared runner) and the option it rejected (a separate runner for the drop). Criterion 13 still describes what the documenter must write.
+
+    Earlier tests:
+    - tests/adapters/test_zfs_snapshots.py: the Interface's leave (decision 22). It adds the constant `DROP`, the three named constructions gain `drop_caches`, and the ten-minute test reads the rollback's request.
+    - tests/zfs_support.py: the Interface's leave (decision 22). `snapshots_on` passes a drop stand-in that succeeds, and `Drop` and `write_drop` are added.
+    - tests/vm_support.py: the Interface's leave (decision 22). `STEPS` gains `caches` after `sudoers`.
+    - tests/test_vm_setup_text.py: the Interface's leave (decision 22). `ORDERED_COMMANDS` gains `/etc/sudoers.d/factory-drop-caches`.
+    - tests/conftest.py: the human's answer in journal entry 14. It adds the shared fixture `sudo_stand_in`.
+    - tests/entry/test_wiring_command_records.py: the human's answer in journal entry 14. It gains only `usefixtures("sudo_stand_in")` and `import pytest`.
+    - tests/entry/test_wiring_container_extra.py: the human's answer in journal entry 14. `sudo_stand_in` is added to its `usefixtures`.
+    - tests/entry/test_wiring_stage_environment.py: the human's answer in journal entry 14. It gains only `usefixtures("sudo_stand_in")`.
+
+    Notes:
+    - tests/adapters/test_zfs_snapshots_drop_caches.py `_shell_zfs`: it writes the same kind of `sh` stand-in, one that appends `"$*"` to a record file, as the `sudo_stand_in` fixture in `tests/conftest.py`. One shared writer of `sh` recorders in `tests/` could serve both, and `write_drop` in `tests/zfs_support.py` as well.
