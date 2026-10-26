@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-10-26T19:02:57.553803Z'
   stage: smoke-test
   run: 48f2e899ef7546928517c5c4fbd6a03b
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-10-26T19:05:21.060439Z'
+  stage: approval
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -389,3 +394,4 @@ Expect: two lines: `7`; `1`
       - `README.md`: unchanged, as the criterion says.
 
     Nothing the smoke test showed contradicts any criterion. Open: nothing.
+22. factory: done (pull request merged); cost: 10 runs, 16.2 min, 64 turns, 258089 tokens in (1319245 more from cache), 25389 out, $2.48
