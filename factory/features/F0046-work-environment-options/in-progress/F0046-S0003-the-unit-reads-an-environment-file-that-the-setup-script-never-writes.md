@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 461
 comments_read: [6420707346, 6420833778]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-26T16:34:26.440830Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-10-26T16:34:05.305393Z'
   stage: review
   run: 291687bc507e49bc9587718e2e120f4e
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-26T16:34:26.440830Z'
+  stage: docs
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -346,3 +355,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/test_vm_setup_text.py`: changed under the standing leave to move a shared test helper. Only the `code` fixture moved out; every test keeps its name and what it checks.
     - `tests/test_vm_setup_writes.py`: changed under the standing leave to move a shared test helper. The `code` fixture moved out and the unused `setup_code` import is gone; every test keeps its name and what it checks.
     - `tests/conftest.py`: changed under the standing leave to move a shared test helper. It gains the moved `code` fixture and its `setup_code` import, and nothing else.
+24. factory: started docs as vm.
