@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T21:24:52.002904Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -76,6 +80,11 @@ journal:
   at: '2026-10-26T21:24:31.339694Z'
   stage: review
   run: af374d1bd9004145b9ace4470262f81f
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:24:52.002904Z'
+  stage: doing
 ---
 
 # The stall reason left_branch is removed
@@ -242,3 +251,4 @@ Expect: two lines: `False 4.0`; `0`
     - `tests/domain/test_contract_provider_limit.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`).
     - `tests/domain/test_contract_version_2.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`).
     - `tests/domain/test_contract_version_3.py`: the human's leave, decision 24 of `feature.md` (`3.0` -> `4.0`).
+13. factory: started doing as vm.
