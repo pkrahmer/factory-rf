@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 467
 comments_read: [6424960438, 6425166909, 6425444781]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-26T20:07:58.969066Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-10-26T20:07:58.969066Z'
   stage: smoke-test
+- number: 34
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T20:08:24.116963Z'
+  stage: smoke-test
+  run: 81616d34d63144f380dbdb73c9fc2789
 ---
 
 # The reset drops the page cache after the rollback
@@ -565,3 +567,36 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
 33. factory: started smoke-test as vm.
+34. smoke-tester: Ran the `## Smoke test` block from the repository root as written. I changed nothing.
+
+    Command 1, the `uv run python` heredoc (prints `DROP_CACHES_COMMAND` and the kind of the `drop_caches` parameter):
+    ```
+    Bytecode compiled 4164 files in 53ms
+    ('sudo', '-n', '/usr/local/bin/factory-drop-caches')
+    KEYWORD_ONLY
+    ```
+    Met. The first line is uv's own message on standard error, not output of the script.
+
+    Command 2, `sh -n vm/setup.sh && echo syntax-ok`:
+    ```
+    syntax-ok
+    ```
+    Met.
+
+    Command 3, `grep -c 'factory ALL=(root) NOPASSWD: /usr/local/bin/factory-drop-caches' vm/setup.sh`:
+    ```
+    1
+    ```
+    Met.
+
+    All three commands together printed the four lines the `Expect:` line names, in order: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`, `KEYWORD_ONLY`, `syntax-ok`, `1`.
+
+    Check against the acceptance criteria: nothing the smoke test showed contradicts any of them.
+    - Criterion 5 gets the constant it asks for.
+    - Criterion 1 and the Interface get a keyword-only `drop_caches`.
+    - Criterion 7 is met: `sh -n` exits 0.
+    - Criterion 6 is met: the rule appears exactly once in the script.
+
+    I also looked at the step `caches` in `vm/setup.sh` (lines 255–274) and at the docs the `docs:` criterion names: `docs/operator-guide.md` step 8 and the page-cache paragraphs, the `docs/decisions.md` entry "The reset drops the page cache after the rollback", and the diff touching `docs/project-guide/stage-environment.md`. I saw nothing there that the smoke test contradicts. I did not run `make check`; the factory's checks cover criterion 12.
+
+    Findings: none.
