@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 467
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T19:07:38.344777Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-26T19:07:38.344777Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-26T19:08:05.983084Z'
+  stage: intake
+  run: cfc5a10b4ae348729679b2a2426bb404
+  blocked: question
 ---
 
 # The reset drops the page cache after the rollback
@@ -107,3 +110,19 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
 
 1. 2026-10-26 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed, so there are no format findings):
+
+   1. The Interface states a failure rule for the step `caches` that no criterion tests. After a refused `visudo -cf`, the step prints `setup: caches: visudo -cf refused /etc/sudoers.d/factory-drop-caches; removed it` to standard error and exits 1. Criterion 6 only looks for the words `visudo -cf` and `rm -f /etc/sudoers.d/factory-drop-caches` in the text. Nothing checks the message, that it goes to standard error, or the exit status 1. Two coders could read this two ways and both pass. Should I add a criterion? I would choose one that checks the message text and the `>&2` and `exit 1` in the step. The alternative is a test that runs the step against a stand-in `visudo`; the existing tests in `tests/test_vm_setup.py` may already support that.
+
+   2. The clause "written by root with `install -m 0755` only when its text differs" has no criterion for its second half. The same holds for the `sudoers` file ("written only when its text differs"). Criterion 6 checks that `install -m 0755` is present, but not that the write is conditional. A script that overwrites every time would pass. The report line "found" versus "written" is a second behaviour with no criterion. Should I add one? I would choose a text criterion that the step compares the current file with the wanted text before writing, with a separate `found` and `written` report in the `setup: caches: ` line.
+
+   3. The helper's exact text is a stated rule: three lines, in that order. Criterion 6 checks the lines and their order, so this one is covered. I found no gap here.
+
+   4. Criterion 2's last row says the drop "raises `SnapshotError` within `ROOMY_BOUND_SECONDS`". It does not say what the `detail` holds for the time limit reached. The Interface says "formed as for the `zfs` commands". Should the row also assert the same detail text that the `zfs` time-limit test asserts? I would choose yes, so that the time-limit side of the detail is tested, as the exit-status side is.
+
+   Checked and fine:
+   - Interface: it names the modules and signatures, `DROP_CACHES_COMMAND` and the keyword-only `drop_caches` with a `ValueError` on an empty tuple.
+   - Architecture: the adapter holds the command and the wiring is the one place that builds `ZfsSnapshots`, which fits the layers in `CLAUDE.md`.
+   - Scope: this is decision 15 of `feature.md`, with no content check, as decision 16 says.
+   - Test leaves: decision 22 gives the leave for the earlier tests the Interface names.
+   - Smoke test: the commands run and no pytest is involved. The `Expect:` line lists four checkable lines.
