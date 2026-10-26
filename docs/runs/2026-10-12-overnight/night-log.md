@@ -1244,3 +1244,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 17:58 UTC: F0046-S0005 at approval, PR #464: six checks met (docs only; no test; check green; reviewer no findings, entry 9; three Expect met; no markers). 6 runs, $0.74. Merged. A second acceptance follows.
 - 18:08 UTC: the human: start F0045 afterwards if the quota allows. Brief draft-F0045.md gained today's items; an Opus helper drafts F0045 in planning/overnight/stories/ while F0046's second acceptance runs.
 - 18:16 UTC: F0046-A0002 at approval, PR #465: accepted with S0006 (documents only); merged. S0006 done on main by the human (decision 11, as F0044 decision 43), the story removed unbuilt; documents ok.
+- 18:18 UTC: F0046 accepted (board). vm rebuilt from main for S0004 (no setup.sh: vm/ unchanged); FACTORY_ZFS from factory.local.env in force.
