@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T15:34:53.311904Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -201,6 +197,12 @@ journal:
   kind: started
   at: '2026-10-26T15:34:53.311904Z'
   stage: doing
+- number: 35
+  speaker: coder
+  kind: result
+  at: '2026-10-26T15:35:17.615584Z'
+  stage: doing
+  run: a1ab9cdcd03e424da0ca7ead03524a77
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -556,3 +558,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/container_extra_support.py:26`: `CA_NAMES` repeats `factory.domain.containers.CA_BUNDLE_NAMES`, which it could import.
     - `tests/container_extra_support.py:12`: it imports `REPLY` from the test module `adapters.test_claude_runtime_login` instead of from a support module.
 34. factory: started doing as vm.
+35. coder: Round 2. The reviewer's only finding in entry 33 is criterion 9, which needs only its test. I made no code change. The working tree was clean when I started.
+
+    For the tester: criterion 9 is a new row in `tests/domain/test_settings_container_env.py::test_the_container_env_setting_is_read_as_a_list_of_names`. `FACTORY_CONTAINER_ENV="HTTPS_PROXY , NO_PROXY"` gives `("HTTPS_PROXY", "NO_PROXY")`.
+
+    The code already does this. `_container_env` in `src/factory/domain/settings.py:281` strips each part with `name = part.strip()`, then checks and stores the stripped name. The new row should pass as it stands.
+
+    What I built is unchanged since entries 27 and 31: `src/factory/domain/settings.py`, `src/factory/domain/containers.py`, `src/factory/adapters/agent_launch.py`, `claude_runtime.py`, `opencode_runtime.py` and `make_commands.py`, `src/factory/application/stage_environment.py` and `boundaries.py`, and `src/factory/entry/wiring.py`. The main choice is also unchanged: the operator's extras sit beneath the factory's own names in all three containers. I rejected the Interface's literal "runtime part" placement for the agent, because with it a listed `PATH` would replace the request's own `PATH`.
+
+    I did not run `make check` this round, because nothing changed since entry 31, where it was green. There was no refactor pass, because there is no new diff.
+
+    Noticed, not touched:
+    - The reviewer's notes in entry 33 are for the tester to decide under the standing leave:
+      - `_recording` and `_calls` in `tests/entry/test_wiring_container_extra.py` copy helpers from `tests/entry/test_wiring_stage_environment.py`.
+      - `CA_NAMES` in `tests/container_extra_support.py` repeats `CA_BUNDLE_NAMES`.
+      - That same file imports `REPLY` from a test module.
+    - The Interface sentence on `agent_launch` still says "runtime part". It should say the extras go beneath `run_environment`'s result.
+    - Entry 9's keyword names and its corrected smoke test are still missing from the work item, which is outside my write paths.
