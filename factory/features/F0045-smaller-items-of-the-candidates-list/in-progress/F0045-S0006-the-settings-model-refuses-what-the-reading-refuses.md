@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T22:36:24.392473Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-26T22:36:04.169511Z'
   stage: doing
   run: 2ecbfc75c2074f1099d76fd871ed502a
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:36:24.392473Z'
+  stage: tests
 ---
 
 # The settings model refuses what the reading refuses
@@ -225,3 +234,4 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
     - **Then:** both modules import them from there. Every earlier test keeps its name and its assertions.
 
     `src/factory/domain/settings.py` stays as round 0 left it. Nothing else is open. The journal did not change the task's meaning, so `## Description` is unchanged.
+12. factory: started tests as vm.
