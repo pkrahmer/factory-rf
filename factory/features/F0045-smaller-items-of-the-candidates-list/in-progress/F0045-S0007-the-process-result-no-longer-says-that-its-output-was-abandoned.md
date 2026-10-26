@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T23:11:33.272616Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-26T23:11:12.712775Z'
   stage: doing
   run: 7683845f5996404781c7c31907ce54bd
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T23:11:33.272616Z'
+  stage: tests
 ---
 
 # The process result no longer says that its output was abandoned
@@ -199,3 +208,4 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
     The journal did not change what the task means, so the Description stays as it is.
 
     Noticed, not touched: docs/project-guide/processes-and-checks.md still names `output_abandoned`; updating it is the documenter's work under criterion 5.
+12. factory: started tests as vm.
