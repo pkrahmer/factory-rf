@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T13:15:02.011665Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-10-26T13:14:41.258954Z'
   stage: doing
   run: 050490246e1d44b5b7c3200c9422bbb9
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-26T13:15:02.011665Z'
+  stage: tests
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -269,3 +278,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Built, unchanged since the last round and committed in 0bb1b395: `src/factory/domain/opencode_provider.py`, `src/factory/domain/settings.py`, `src/factory/adapters/opencode_runtime.py`, `src/factory/entry/wiring.py`. Main choice (from entry 10): the runtime reads and validates the provider file at the start of every run, not once in `__init__`. I rejected the `__init__` read because a bad file would then make `build_boundaries` fail.
 
     Still open: the refactor step, and a green `make check` once the tests are changed. Both fall to the next doing round. Noticed, not touched: nothing.
+14. factory: started tests as vm.
