@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-26T17:43:02.035632Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -141,6 +145,11 @@ journal:
   at: '2026-10-26T17:42:41.100415Z'
   stage: review
   run: 4a74bf80f2f7424b991892af4ced4f07
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:43:02.035632Z'
+  stage: docs
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -350,3 +359,4 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
     - `tests/application/test_agent_run_probe_opencode.py`: the human's leave in feature.md decision 10 (`SSO_HINT`). Otherwise it only adds a test.
     - `tests/application/test_agent_run_probe_factory_user.py`: the human's leave in feature.md decision 10.
     - `tests/entry/test_wiring_without_agent_user.py`: the human's answer in journal entry 8. Only the `opencode-no-login` row's `said` entry changed.
+25. factory: started docs as vm.
