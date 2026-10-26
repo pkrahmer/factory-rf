@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T14:21:27.621805Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-26T14:21:27.621805Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-26T14:21:47.781262Z'
+  stage: intake
+  run: bb2b6e5621404ff9aeab9956d8053a4c
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -59,7 +61,7 @@ Every container the factory starts gets a closed environment: the agent's reques
 
 `factory.adapters.agent_launch` (adapters): `container_launch(..., files=...)` already mounts `files` read-only at their own paths; the runtimes add `settings.ca_bundle` to `files` and the result of `extra_environment` to `run_environment`'s runtime part. `without_login` still removes the two login names afterwards.
 
-`factory.application.stage_environment` (application): `ContainerEnvironment` gives the sync container `{**SYNC_ENVIRONMENT, **extra}` and mounts the bundle read-only; `factory.adapters.make_commands.ContainerMakeCommands` does the same for the check containers (`{**CHECK_ENVIRONMENT, **extra}`). Both take the extras and the bundle path as constructor keywords with the defaults `{}` and `None`.
+`factory.application.stage_environment` (application): `ContainerEnvironment` gives the sync container `{**extra, **SYNC_ENVIRONMENT}` (the constants win) and mounts the bundle read-only; `factory.adapters.make_commands.ContainerMakeCommands` does the same for the check containers (`{**extra, **CHECK_ENVIRONMENT}`). Both take the extras and the bundle path as constructor keywords with the defaults `{}` and `None`.
 
 `factory.entry.wiring` (entry): `build_boundaries` computes `extra_environment(settings, os.environ)` once and hands the extras and the bundle to the two runtimes, the container environment and `ContainerMakeCommands`.
 
@@ -70,9 +72,9 @@ Tests (the tester writes them): `tests/domain/test_settings_container_env.py`, `
 1. With neither setting, the words and the environment of the agent, sync and check containers are those of today (rows for the three, comparing with the existing constants).
 2. `FACTORY_CONTAINER_ENV` is read, rows of one parametrized test: unset, blank and `" , "` give `()`; `HTTPS_PROXY,NO_PROXY` gives both in order; `A,A` is refused as `names A twice`; `1X` and `A-B` are refused as not a variable name; `HOME`, `ANTHROPIC_API_KEY`, `CLAUDE_CODE_OAUTH_TOKEN`, `OPENCODE_CONFIG`, `GIT_ASKPASS` and `FACTORY_TOKEN_FILE` are refused as set by the factory; `FACTORYX` is accepted.
 3. `FACTORY_CA_BUNDLE` is read: unset and blank give `None`, `/etc/ca.pem` that path, `ca.pem` is refused as not absolute; `InstanceSettings(ca_bundle=Path("ca.pem"))` is a `ValidationError`.
-4. `extra_environment` returns the listed names that `source` holds, in order, skips a name `source` lacks, and with a bundle adds the three variables with the path; with nothing set it is `{}`.
+4. `extra_environment` returns the listed names that `source` holds, in order, skips a name `source` lacks, and with a bundle adds the three variables with the path; with nothing set it is `{}`; with `container_env=("SSL_CERT_FILE",)`, the source holding a value for it and `ca_bundle=/etc/ca.pem`, `SSL_CERT_FILE` is `/etc/ca.pem` (the bundle's variable wins over a listed name of the same name).
 5. The agent's container: with `container_env=("HTTPS_PROXY",)` in the source environment, the launch's `--env` words hold `HTTPS_PROXY=<value>`; a name outside the list that the source holds is absent; `ANTHROPIC_API_KEY` in the request's environment is still removed. With a bundle, the launch mounts it `:ro` at its own path and holds the three variables. Both runtimes, rows of one test.
-6. The sync container and the check containers hold the extra names and the bundle mount (`:ro`) exactly as in criterion 5, and every word before and after them is unchanged.
+6. The sync container and the check containers hold the extra names and the bundle mount (`:ro`) exactly as in criterion 5, and every word before and after them is unchanged. A row with `FACTORY_CONTAINER_ENV=PATH` and a host value for `PATH` leaves the `PATH` of the sync and of the check containers as `SYNC_ENVIRONMENT` and `CHECK_ENVIRONMENT` give it.
 7. `build_boundaries` with both settings gives runtimes, a container environment and project commands that carry them (read from the `FakeContainerRuns` calls of one stage); the hosting token is in no container's environment.
 8. `make check` stays green.
 9. docs: `docs/operator-guide.md`: the two variables in the configuration table and a subsection *Behind a proxy* (the proxy and mirror names, the CA bundle and its mounts, the reserved names; that the bundle must hold the public certificates beside the company's, because `SSL_CERT_FILE` replaces Python's own list; and that `vm/setup.sh` and the stage image's build need the proxy in their own environment). `docs/project-guide/stage-environment.md`, *The podman adapter* and *The container environment*: the extras. `docs/project-guide/agents.md`, *Calls in a container*: the same sentence. `docs/decisions.md`: an entry *The containers' environment stays closed except for the operator's list*, from the feature's decisions 6 and 7. `README.md`: none.
@@ -118,3 +120,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    3. Accepted as it is.
    4. Fine, no change.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: concrete modules and signatures (`factory.domain.settings` constants and fields, `extra_environment(settings, source)`, agent_launch, `ContainerEnvironment`, `ContainerMakeCommands`, `build_boundaries`). Carried in from journal entry 4, answer 2: the Interface now reads `{**extra, **SYNC_ENVIRONMENT}` and `{**extra, **CHECK_ENVIRONMENT}`, so the constants win.
+   - Criteria: each is testable by one parametrized test. Every rule has both sides: names (duplicate, invalid, reserved, `FACTORYX` accepted), absolute and relative bundle paths, a listed name the source lacks, `ANTHROPIC_API_KEY` still removed. Carried in from entry 4: a row in criterion 4 (the bundle's `SSL_CERT_FILE` wins over a listed `SSL_CERT_FILE`) and a row in criterion 6 (`FACTORY_CONTAINER_ENV=PATH` leaves the sync and check containers' `PATH` as the constants give it). Answers 3 and 4 needed no change.
+   - Smoke test: both commands are runnable and neither runs pytest. Each `Expect:` line can be checked against the output.
+   - Architecture: pure rules in domain, mounts and environment in adapters and application, wiring only in entry. This matches the layers in CLAUDE.md.
+   - Scope: within the feature's S0002 entry and decisions 6 and 7. S0003 and the provider file are not touched, and no test of another story is changed.
