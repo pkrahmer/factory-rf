@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 460
 comments_read: [6418348227]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T14:22:09.099612Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-10-26T14:22:09.099612Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-26T14:23:28.213287Z'
+  stage: tests
+  run: 6217ea9dd2cc4b08ade6ea7a2e915f5a
+  blocked: question
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -136,3 +139,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: pure rules in domain, mounts and environment in adapters and application, wiring only in entry. This matches the layers in CLAUDE.md.
    - Scope: within the feature's S0002 entry and decisions 6 and 7. S0003 and the provider file are not touched, and no test of another story is changed.
 7. factory: started tests as vm.
+8. tester: I stopped partway through. The Interface doesn't give the constructor keywords that criteria 5, 6 and 7 must call, so I can't write those tests without guessing.
+
+   The question: the Interface says `ContainerEnvironment` and `ContainerMakeCommands` "take the extras and the bundle path as constructor keywords with the defaults `{}` and `None`", but it does not name the keywords. It also says the runtimes add `settings.ca_bundle` and `extra_environment`'s result, and that `build_boundaries` "hands the extras and the bundle to the two runtimes", without saying how `ClaudeCodeRuntime` and `OpenCodeRuntime` receive them. Their constructors take neither settings nor such keywords today. My tests for criteria 5 and 6 build these classes directly, so they need the names. The options I see:
+     a) Use the same two keywords on all four classes: `extra_environment: Mapping[str, str] = {}` and `ca_bundle: Path | None = None`. This works on `ClaudeCodeRuntime`, `OpenCodeRuntime`, `ContainerEnvironment` and `ContainerMakeCommands`.
+     b) Hand the runtimes the whole `InstanceSettings` plus the source environment, and give only the two container classes the keywords from (a).
+     c) Other names of your choosing.
+   I would choose (a). It matches the defaults the Interface already gives, keeps the runtimes free of the settings model, and lets `build_boundaries` compute the extras once as the Interface says. With your answer, the Interface should name the keywords for all four classes.
+
+   Done so far. These test files are left in the working tree for the next run:
+   - criterion 2: tests/domain/test_settings_container_env.py::test_the_container_env_setting_is_read_as_a_list_of_names
+   - criterion 3: tests/domain/test_settings_container_env.py::test_the_ca_bundle_setting_is_read_as_an_absolute_path and ::test_the_settings_model_refuses_a_relative_ca_bundle
+   - criterion 4: tests/domain/test_container_extra_environment.py::test_the_extra_environment_holds_the_listed_names_and_the_bundle (with the row where the bundle's `SSL_CERT_FILE` wins over a listed `SSL_CERT_FILE`)
+
+   Still open, waiting on the answer: criteria 1, 5, 6 and 7 (tests/adapters/test_agent_launch_extra.py, tests/application/test_container_environment_extra.py, tests/adapters/test_make_commands_extra.py, tests/entry/test_wiring_container_extra.py). I did not run `make test`; that comes once every test is written. `make lint` is green.
+
+   A side note for the coder, not a blocker: the story's first smoke test calls `InstanceSettings(container_env=..., ca_bundle=...)` without `repository_url` and `instance`, which the model requires today. That command would fail with a `ValidationError` unless the smoke test passes those two fields.
