@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-26T19:02:27.940419Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-26T19:02:07.165336Z'
   stage: docs
   run: f7c5a70074504452971be06abbb37e2b
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-26T19:02:27.940419Z'
+  stage: smoke-test
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -346,3 +355,4 @@ Expect: two lines: `7`; `1`
     `check`: check: green (not run again: passed on tree eae20ecc7ff4 at 2026-10-26T18:57:02Z)
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
+20. factory: started smoke-test as vm.
