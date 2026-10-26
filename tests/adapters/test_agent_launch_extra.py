@@ -17,6 +17,7 @@ from container_extra_support import (
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE
 from factory.domain.containers import extra_environment
 from factory.domain.settings import InstanceSettings
+from settings_support import AGENT_HOME
 
 
 @pytest.mark.parametrize("runtime", ["claude", "opencode"])
@@ -35,6 +36,7 @@ def test_the_agent_s_container_holds_the_listed_names_and_the_bundle(
     settings = InstanceSettings(
         repository_url="/srv/project.git",
         instance="factory-1",
+        agent_home=AGENT_HOME,
         container_env=("HTTPS_PROXY", "PATH") if listed_path else ("HTTPS_PROXY",),
         ca_bundle=bundle,
     )

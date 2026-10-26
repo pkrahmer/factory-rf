@@ -9,6 +9,7 @@ from factory.application.boundaries import Boundaries
 from factory.application.preflight import installed_models, opencode_item
 from factory.domain.settings import InstanceSettings
 from git_support import AGENT_FILE, write_agent
+from settings_support import AGENT_HOME
 
 
 def _no_model(alias: str) -> str:
@@ -20,6 +21,7 @@ def _settings(**fields: object) -> InstanceSettings:
         {
             "repository_url": "/srv/project.git",
             "instance": "factory-1",
+            "agent_home": AGENT_HOME,
             "agent_runtime": "opencode",
             "opencode_models": {"opus": "anthropic/claude-opus-5-5"},
             **fields,

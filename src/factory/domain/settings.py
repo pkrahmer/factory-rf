@@ -46,7 +46,6 @@ STATE_VARIABLE = "FACTORY_STATE"
 GIT_USER_NAME_VARIABLE = "GIT_USER_NAME"
 GIT_USER_EMAIL_VARIABLE = "GIT_USER_EMAIL"
 IMAGE_ID_FILE_VARIABLE = "FACTORY_IMAGE_ID_FILE"
-AGENT_HOME_DEFAULT = Path("/home/agent/.claude")
 AGENT_HOME_VARIABLE = "FACTORY_CLAUDE_HOME"
 CLAUDE_EXECUTABLE_VARIABLE = "FACTORY_CLAUDE"
 CLAUDE_VERSION_VARIABLE = "FACTORY_CLAUDE_VERSION"
@@ -103,7 +102,7 @@ class InstanceSettings(BaseModel):
     image: str | None = None
     checkout: Path = CHECKOUT_PATH
     state_directory: Path = STATE_DIRECTORY
-    agent_home: Path = AGENT_HOME_DEFAULT
+    agent_home: Path
     claude_executable: str = _CLAUDE_EXECUTABLE_DEFAULT
     token_file: Path | None = None
     claude_login_file: Path | None = None
@@ -125,12 +124,22 @@ class InstanceSettings(BaseModel):
     container_env: tuple[str, ...] = ()
     ca_bundle: Path | None = None
 
-    @field_validator("checkout", "state_directory", "opencode_provider_file", "ca_bundle")
+    @field_validator(
+        "checkout", "state_directory", "agent_home", "opencode_provider_file", "ca_bundle"
+    )
     @classmethod
     def _absolute(cls, path: Path | None) -> Path | None:
         if path is not None and not path.is_absolute():
             raise ValueError(_NOT_ABSOLUTE)
         return path
+
+    @field_validator("container_env")
+    @classmethod
+    def _container_names(cls, names: tuple[str, ...]) -> tuple[str, ...]:
+        fault = container_env_fault(names)
+        if fault is not None:
+            raise ValueError(fault)
+        return names
 
     @model_validator(mode="after")
     def _workspace_apart(self) -> Self:
@@ -277,25 +286,27 @@ def _opencode_model(entry: str) -> tuple[str, str]:
 
 
 def _container_env(environ: Mapping[str, str]) -> tuple[str, ...]:
-    names: list[str] = []
-    for part in _optional(environ, CONTAINER_ENV_VARIABLE).split(","):
-        name = part.strip()
-        if not name:
-            continue
-        _check_container_name(name)
-        if name in names:
-            raise SettingsInvalid(CONTAINER_ENV_VARIABLE, f"names {name} twice")
-        names.append(name)
-    return tuple(names)
+    parts = _optional(environ, CONTAINER_ENV_VARIABLE).split(",")
+    names = tuple(name for name in (part.strip() for part in parts) if name)
+    # Checked here too, so that a fault names its variable instead of a validation error.
+    fault = container_env_fault(names)
+    if fault is not None:
+        raise SettingsInvalid(CONTAINER_ENV_VARIABLE, fault)
+    return names
 
 
-def _check_container_name(name: str) -> None:
-    if not _VARIABLE_NAME.fullmatch(name):
-        raise SettingsInvalid(CONTAINER_ENV_VARIABLE, f"holds {name}, which is not a variable name")
-    if name in RESERVED_CONTAINER_NAMES or name.startswith(RESERVED_CONTAINER_PREFIX):
-        raise SettingsInvalid(
-            CONTAINER_ENV_VARIABLE, f"holds {name}, which the factory sets itself"
-        )
+def container_env_fault(names: tuple[str, ...]) -> str | None:
+    """The fault of the first name, in order, that a container may not be given; else `None`."""
+    seen: set[str] = set()
+    for name in names:
+        if not _VARIABLE_NAME.fullmatch(name):
+            return f"holds {name}, which is not a variable name"
+        if name in RESERVED_CONTAINER_NAMES or name.startswith(RESERVED_CONTAINER_PREFIX):
+            return f"holds {name}, which the factory sets itself"
+        if name in seen:
+            return f"names {name} twice"
+        seen.add(name)
+    return None
 
 
 def _min_free_gb(environ: Mapping[str, str]) -> int:

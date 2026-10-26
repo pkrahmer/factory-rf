@@ -15,6 +15,7 @@ from factory.domain.git import GitOptions
 from factory.domain.kill_points import InjectedKill, KillPoint
 from factory.domain.settings import InstanceSettings
 from git_support import CHECKOUT, TEST_IDENTITY
+from settings_support import AGENT_HOME
 
 Outcome = bool | BaseException
 
@@ -190,7 +191,9 @@ def test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle(
 
 
 def _settings(remote: Path, checkout: Path) -> InstanceSettings:
-    return InstanceSettings(repository_url=str(remote), instance="one", checkout=checkout)
+    return InstanceSettings(
+        repository_url=str(remote), instance="one", agent_home=AGENT_HOME, checkout=checkout
+    )
 
 
 def _tree(directory: Path) -> dict[str, str]:

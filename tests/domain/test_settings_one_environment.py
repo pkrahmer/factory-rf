@@ -8,7 +8,7 @@ from pydantic import ValidationError
 
 from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import InstanceSettings, read_settings, workspace_overlap_fault
-from settings_support import BASE
+from settings_support import AGENT_HOME, BASE
 
 CONTAINER = {
     "FACTORY_DATASET": "tank/factory/vm",
@@ -65,6 +65,7 @@ def _built_directly(workspace: Path | None, checkout: Path, state_directory: Pat
         InstanceSettings(
             repository_url="/srv/project.git",
             instance="factory-1",
+            agent_home=AGENT_HOME,
             checkout=checkout,
             state_directory=state_directory,
             workspace=workspace,

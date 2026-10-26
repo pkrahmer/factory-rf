@@ -7,7 +7,7 @@ from pydantic import BaseModel, ValidationError
 
 from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import InstanceSettings, read_settings
-from settings_support import BASE
+from settings_support import AGENT_HOME, BASE
 
 CONTAINER = {
     "FACTORY_DATASET": "tank/factory/vm",
@@ -110,6 +110,7 @@ def test_read_settings_runs_a_container_only_with_its_values_and_inline_with_any
 _DIRECT_CONTAINER: dict[str, object] = {
     "repository_url": "/srv/project.git",
     "instance": "factory-1",
+    "agent_home": AGENT_HOME,
     "dataset": "tank/factory/vm",
     "workspace": WORKSPACE,
     "stage_image": "factory-stage:1",

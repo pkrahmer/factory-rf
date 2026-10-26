@@ -53,6 +53,7 @@ from podman_support import IMAGE, Podman, PodmanPlan, write_podman
 from proof_support import World, build_world, start_story
 from run_layout_support import Layout, build_layout
 from run_process_recorder import Recorder
+from settings_support import AGENT_HOME
 from stage_run_support import INSTANCE
 from tmp_path_support import reopen
 from vm_support import setup_code
@@ -358,6 +359,7 @@ def disk_settings(tmp_path: Path) -> InstanceSettings:
     return InstanceSettings(
         repository_url="/srv/project.git",
         instance="factory-1",
+        agent_home=AGENT_HOME,
         checkout=tmp_path / CHECKOUT,
         state_directory=tmp_path / "state",
     )

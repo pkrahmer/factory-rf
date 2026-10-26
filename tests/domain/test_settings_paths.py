@@ -8,7 +8,7 @@ from pydantic import BaseModel, ValidationError
 
 from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import InstanceSettings, read_settings
-from settings_support import BASE, raising
+from settings_support import AGENT_HOME, BASE, raising
 
 CONTAINER = {
     "FACTORY_DATASET": "tank/factory/vm",
@@ -18,7 +18,11 @@ DIRECT_CONTAINER: dict[str, object] = {
     "dataset": "tank/factory/vm",
     "stage_image": "factory-stage:1",
 }
-REQUIRED: dict[str, object] = {"repository_url": "/srv/project.git", "instance": "factory-1"}
+REQUIRED: dict[str, object] = {
+    "repository_url": "/srv/project.git",
+    "instance": "factory-1",
+    "agent_home": AGENT_HOME,
+}
 NOT_ABSOLUTE = "is not an absolute path"
 
 

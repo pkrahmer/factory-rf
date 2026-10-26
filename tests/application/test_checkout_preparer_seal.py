@@ -11,6 +11,7 @@ from factory.domain.git import GitOptions
 from factory.domain.settings import InstanceSettings
 from git_support import TEST_IDENTITY, clone
 from recording_log import RecordingLog
+from settings_support import AGENT_HOME
 
 KEPT = "added-by-test.txt"
 PREPARE_DOCSTRING = "Clone when the checkout holds no `.git`; keep any checkout that does."
@@ -29,7 +30,9 @@ def git(directory: Path) -> GitCli:
 
 
 def _settings(remote: Path, directory: Path) -> InstanceSettings:
-    return InstanceSettings(repository_url=str(remote), instance="one", checkout=directory)
+    return InstanceSettings(
+        repository_url=str(remote), instance="one", agent_home=AGENT_HOME, checkout=directory
+    )
 
 
 def _existing(remote: Path, directory: Path) -> Path:

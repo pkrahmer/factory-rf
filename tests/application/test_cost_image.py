@@ -18,6 +18,7 @@ from factory.domain.settings import InstanceSettings
 from factory.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
+from settings_support import AGENT_HOME
 from stage_run_support import ENVIRONMENT, INSTANCE
 
 WORK_ITEM = "F0001-S0001"
@@ -63,7 +64,10 @@ CREATED_LINE = "\n1. 2026-10-12 human: created.\n"
 
 def _settings(image: str | None) -> InstanceSettings:
     return InstanceSettings(
-        repository_url="https://example.invalid/project.git", instance=INSTANCE, image=image
+        repository_url="https://example.invalid/project.git",
+        instance=INSTANCE,
+        agent_home=AGENT_HOME,
+        image=image,
     )
 
 
