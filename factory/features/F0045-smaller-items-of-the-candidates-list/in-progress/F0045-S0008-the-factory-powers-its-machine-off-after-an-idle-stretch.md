@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T23:35:59.382194Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-10-26T23:35:59.382194Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-26T23:43:26.003479Z'
+  stage: tests
+  run: c840c26affa940f8b5a2e9cff543094e
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -248,3 +250,38 @@ Expect: `-n /usr/bin/systemctl poweroff`
    2. Yes, exactly that reading.
    3. Yes, add it through behaviour as you describe; the stand-in `sudo` may come from the shared fixture of F0045-S0002 in `tests/conftest.py` if it fits, with recording added there.
 10. factory: started tests as vm.
+11. tester: I wrote the tests from the acceptance criteria and the human's answers in journal 9. On answer 1(a), the standard-error row asserts that the detail is `sudo: a password is required` and checks no exit status. On answer 2, criterion 1's rows are tested in the reading confirmed there. On answer 3, the wiring test checks the clock and the log through behaviour: it uses the existing `sudo_stand_in` fixture of `tests/conftest.py`, which already records its words, so the fixture needed no change.
+
+    Criterion to test:
+    - criterion 1: tests/domain/test_settings_idle_shutdown.py::test_the_idle_shutdown_minutes_are_read_or_refused
+    - criterion 2: tests/application/test_idle_shutdown.py::test_the_machine_powers_off_after_an_idle_stretch_of_the_limit (every power-off call also has one `idle shutdown: ` line containing `30`)
+    - criterion 3: tests/application/test_idle_shutdown.py::test_a_refused_power_off_is_logged_and_starts_a_new_stretch
+    - criterion 4: tests/application/test_idle_shutdown.py::test_the_idle_limit_is_at_least_one_minute
+    - criterion 5: tests/adapters/test_power_off.py::test_the_power_off_runs_its_one_command_or_raises_what_failed (`sh` stand-ins under `tmp_path`; the rows that must start get `ROOMY_LIMIT`, the sleeping row gets 1 s and `no_end_detail(1 s)`; every row is bounded by `ROOMY_BOUND_SECONDS`)
+    - criterion 6: tests/domain/test_power_off_error.py::test_the_power_off_error_says_the_power_off_failed
+    - criterion 7: tests/entry/test_run_idle_shutdown.py::test_the_activity_tick_hands_each_outcome_to_the_idle_shutdown
+    - criterion 8: tests/entry/test_wiring_idle_shutdown.py::test_the_idle_shutdown_is_wired_from_the_settings (settings through `boundaries.settings.model_copy`; with 30 minutes, after the clock is advanced 30 minutes, observing `idle` makes the stand-in `sudo` record `-n /usr/bin/systemctl poweroff` once, and `state/factory.log` holds `idle shutdown: `)
+    - criterion 9: tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module (its set gains `factory.adapters.power_off`; the name is kept, under decision 28 as the Interface states)
+
+    Files created:
+    - tests/power_support.py: shared outcomes `IDLE`, `WAITS`, `OTHER`, `STOPPED`, `IDLE_ERROR` and `CountingPower`, used by the application and entry tests
+    - tests/domain/test_settings_idle_shutdown.py
+    - tests/domain/test_power_off_error.py
+    - tests/application/test_idle_shutdown.py
+    - tests/adapters/test_power_off.py
+    - tests/entry/test_run_idle_shutdown.py
+    - tests/entry/test_wiring_idle_shutdown.py
+
+    Earlier test file changed: tests/test_wrapper_search.py, the one line in its set.
+
+    `make test` fails as intended, with collection errors where the test runner could not import:
+    - `factory.application.idle_shutdown`
+    - `factory.application.machine.PowerOff`
+    - `factory.domain.errors.PowerOffError`
+    - `factory.adapters.power_off`
+    - `factory.entry.wiring.idle_shutdown_of`
+
+    The settings test fails because `idle_shutdown_minutes` does not exist yet. `make lint` is green. I skipped the type check, as the stage allows. Nothing is open.
+
+    `lint`: lint: green (0.2 s)
+    `test`: ERROR tests/entry/test_wiring_idle_shutdown.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_idle_shutdown.py'.
