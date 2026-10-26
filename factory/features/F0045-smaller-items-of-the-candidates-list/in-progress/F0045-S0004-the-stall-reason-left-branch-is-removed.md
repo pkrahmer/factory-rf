@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 469
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T21:32:01.037273Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-10-26T21:32:01.037273Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-26T21:37:49.991103Z'
+  stage: doing
+  run: f965046dddb84762abe2987bd23b4741
 ---
 
 # The stall reason left_branch is removed
@@ -328,3 +330,25 @@ Expect: two lines: `False 4.0`; `0`
     `lint`: lint: green (0.2 s)
     `test`: test: green (156.9 s)
 17. factory: started doing as vm.
+18. coder: Round 1, after the tester's move. The tester's entry 16 handles the reviewer's only finding (entry 12, finding 1): it moved the copied contract-schema checks into `tests/contract_support.py` as `SCHEMAS`, `committed_is_generated` and `schemas_naming`, and changed `tests/domain/test_contract_version_2.py`, `test_contract_version_3.py` and `test_contract_version_4.py` to use them. That leaves nothing for the coder in this round. I changed no code and touched no test. `make check` is green on the current tree: `test: green (157.0 s)`, coverage 99.56 %, `check: green`.
+
+    What is built is unchanged from entries 7 and 10, all under `src/factory/`:
+    - `domain/journal.py`: `"left_branch"` is gone from `StallReason`.
+    - `domain/post_texts.py`: its stall sentence is gone.
+    - `application/stage.py`: `AfterAgent._early_stall` no longer has the branch check through `git.status()`.
+    - `domain/contract.py`: `RECORDS_CONTRACT = "4.0"`.
+    - `contract/*.schema.json`: regenerated with `uv run python -m factory.entry.contract`.
+
+    Main choice (unchanged): I removed the check outright. I rejected keeping a softer warning based on `status`, because the check cannot fire on the dataset and criterion 3 forbids the call.
+
+    Refactor pass: this round has no new code diff, so there was nothing to change.
+
+    Noticed, not touched:
+    - The comment at `src/factory/application/stalls.py:112` belongs to the stall service's restore, which this story keeps.
+    - `tests/domain/test_contract_login.py` still builds its own `SCHEMAS` path (the tester's entry 16). The move did not name it.
+    - The docs criterion is the documenter's.
+
+    No journal entry changed the meaning of the task.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
