@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 463
-comments_read: []
+comments_read: [6422541052]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: 26022dd8414b4f7697a3377437e380f4
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-26T17:14:19.018988Z'
+  stage: doing
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -130,3 +135,4 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
    (b) Replace it with `"put a key in the file FACTORY_API_LOGIN_FILE names"`.
    (c) Something else.
    With leave for (a) or (b), the next round ends `tests` and names that change.
+8. 2026-10-26 human: (b): in `tests/entry/test_wiring_without_agent_user.py`, the `opencode-no-login` row's `said` list replaces `"log in once as the factory user"` with `"put a key in the file FACTORY_API_LOGIN_FILE names"`, so the row still pins the advice; `"by hand as the factory user"` stays. That earlier test may change only that way.
