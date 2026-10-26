@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T13:56:58.546174Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-10-26T13:56:58.546174Z'
   stage: tests
+- number: 26
+  speaker: tester
+  kind: result
+  at: '2026-10-26T14:03:24.019027Z'
+  stage: tests
+  run: f346fd99b1f2496b83afdc0fd184face
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -427,3 +429,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The journal changes nothing in the task's meaning. The new criteria are already in the Description's list. Noticed, not touched: nothing.
 25. factory: started tests as vm.
+26. tester: I made the test change the coder named in entry 24, which covers criteria 9 and 10 that the reviewer added in entry 22. I changed one test: `tests/domain/test_opencode_provider.py::test_the_provider_file_is_accepted_only_when_it_keeps_every_rule`. It keeps its name, and no code under `src/` changed.
+
+    - **Criterion 9:** I added two refused rows to that test, each with its pair given so that only the bound is under test:
+      - `output-zero`: `_model(context=1, output=0)`, refused.
+      - `output-cost-negative`: `_model(input_cost=1.0, output_cost=-0.01)`, refused.
+      The accepted sides were already rows: `output=1` in `context-one` and `output_cost=0` in `cost-zero`.
+    - **Criterion 10:** I replaced the `accepted` column with `fault: str | None`. `None` means the row is accepted. Every other refused row now names the field at fault (`id`, `models`, `base_url`, `api_key_env`, `small_model`, `input_cost`, `output_cost`, `context`, `output`, `extra`). The message must contain that name as a whole word (`\b<name>\b`), so `output` cannot match inside `output_cost`. The `not-an-object` row still matches only `r"."`, as the criterion says.
+
+    Before I wrote the rows, I printed `read_provider`'s messages for each refused case; every one holds its field name. For example, the `small_model` rows give `the file: Value error, small_model corp is not ...`.
+
+    Criterion → test mapping:
+    - criteria 1 to 8: unchanged from entry 8.
+    - criterion 9: tests/domain/test_opencode_provider.py::test_the_provider_file_is_accepted_only_when_it_keeps_every_rule (rows `output-zero` and `output-cost-negative`)
+    - criterion 10: tests/domain/test_opencode_provider.py::test_the_provider_file_is_accepted_only_when_it_keeps_every_rule (the `fault` column on every refused row)
+
+    Files changed: `tests/domain/test_opencode_provider.py`. I created no files, and every module imported in the test run.
+
+    Results:
+    - `make test`: `test: green (161.4 s)`, coverage 99.56 %. The new rows pass against the code as built, which matches what the reviewer found.
+    - `make lint`: green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (161.5 s)

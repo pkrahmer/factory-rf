@@ -33,46 +33,53 @@ def _model(**fields: object) -> str:
 
 
 @pytest.mark.parametrize(
-    ("text", "accepted"),
+    ("text", "fault"),
     [
-        pytest.param(json.dumps(PROVIDER), True, id="complete"),
-        pytest.param(_text(), True, id="minimal"),
-        pytest.param(_text(id="Corp", small_model="Corp/m"), False, id="id-upper"),
-        pytest.param(_text(id="1corp", small_model="1corp/m"), False, id="id-digit-first"),
-        pytest.param(_text(id="corp-1", small_model="corp-1/m"), True, id="id-dash-digit"),
-        pytest.param(_text(models={}), False, id="models-empty"),
-        pytest.param(_text(models={"m": {}, " ": {}}), False, id="model-key-blank"),
-        pytest.param(_text(base_url="ftp://x"), False, id="base-url-ftp"),
-        pytest.param(_text(base_url="https://"), False, id="base-url-no-host"),
-        pytest.param(_text(base_url="example.invalid"), False, id="base-url-no-scheme"),
-        pytest.param(_text(base_url="https://example.invalid/v1/"), True, id="base-url-slash"),
-        pytest.param(_text(base_url="http://example.invalid"), True, id="base-url-http"),
-        pytest.param(_text(api_key_env=LOWER_KEY_ENV), False, id="key-env-lower"),
-        pytest.param(_text(api_key_env=DIGIT_FIRST_KEY_ENV), False, id="key-env-digit-first"),
-        pytest.param(_text(small_model="other/m"), False, id="small-other-provider"),
-        pytest.param(_text(small_model="corp"), False, id="small-no-model"),
-        pytest.param(_text(small_model="corp/missing"), False, id="small-missing-model"),
-        pytest.param(_model(input_cost=1.0), False, id="input-cost-alone"),
-        pytest.param(_model(output_cost=1.0), False, id="output-cost-alone"),
-        pytest.param(_model(context=10), False, id="context-alone"),
-        pytest.param(_model(output=10), False, id="output-alone"),
-        pytest.param(_model(input_cost=-0.01, output_cost=1.0), False, id="cost-negative"),
-        pytest.param(_model(input_cost=0, output_cost=0), True, id="cost-zero"),
-        pytest.param(_model(context=0, output=1), False, id="context-zero"),
-        pytest.param(_model(context=1, output=1), True, id="context-one"),
-        pytest.param(_text(extra=1), False, id="unknown-top-key"),
-        pytest.param(_model(extra=1), False, id="unknown-model-key"),
-        pytest.param("[]", False, id="not-an-object"),
+        pytest.param(json.dumps(PROVIDER), None, id="complete"),
+        pytest.param(_text(), None, id="minimal"),
+        pytest.param(_text(id="Corp", small_model="Corp/m"), "id", id="id-upper"),
+        pytest.param(_text(id="1corp", small_model="1corp/m"), "id", id="id-digit-first"),
+        pytest.param(_text(id="corp-1", small_model="corp-1/m"), None, id="id-dash-digit"),
+        pytest.param(_text(models={}), "models", id="models-empty"),
+        pytest.param(_text(models={"m": {}, " ": {}}), "models", id="model-key-blank"),
+        pytest.param(_text(base_url="ftp://x"), "base_url", id="base-url-ftp"),
+        pytest.param(_text(base_url="https://"), "base_url", id="base-url-no-host"),
+        pytest.param(_text(base_url="example.invalid"), "base_url", id="base-url-no-scheme"),
+        pytest.param(_text(base_url="https://example.invalid/v1/"), None, id="base-url-slash"),
+        pytest.param(_text(base_url="http://example.invalid"), None, id="base-url-http"),
+        pytest.param(_text(api_key_env=LOWER_KEY_ENV), "api_key_env", id="key-env-lower"),
+        pytest.param(
+            _text(api_key_env=DIGIT_FIRST_KEY_ENV), "api_key_env", id="key-env-digit-first"
+        ),
+        pytest.param(_text(small_model="other/m"), "small_model", id="small-other-provider"),
+        pytest.param(_text(small_model="corp"), "small_model", id="small-no-model"),
+        pytest.param(_text(small_model="corp/missing"), "small_model", id="small-missing-model"),
+        pytest.param(_model(input_cost=1.0), "input_cost", id="input-cost-alone"),
+        pytest.param(_model(output_cost=1.0), "output_cost", id="output-cost-alone"),
+        pytest.param(_model(context=10), "context", id="context-alone"),
+        pytest.param(_model(output=10), "output", id="output-alone"),
+        pytest.param(_model(input_cost=-0.01, output_cost=1.0), "input_cost", id="cost-negative"),
+        pytest.param(_model(input_cost=0, output_cost=0), None, id="cost-zero"),
+        pytest.param(
+            _model(input_cost=1.0, output_cost=-0.01), "output_cost", id="output-cost-negative"
+        ),
+        pytest.param(_model(context=0, output=1), "context", id="context-zero"),
+        pytest.param(_model(context=1, output=1), None, id="context-one"),
+        pytest.param(_model(context=1, output=0), "output", id="output-zero"),
+        pytest.param(_text(extra=1), "extra", id="unknown-top-key"),
+        pytest.param(_model(extra=1), "extra", id="unknown-model-key"),
+        pytest.param("[]", "", id="not-an-object"),
     ],
 )
 def test_the_provider_file_is_accepted_only_when_it_keeps_every_rule(
-    text: str, *, accepted: bool
+    text: str, fault: str | None
 ) -> None:
-    if accepted:
+    if fault is None:
         provider = read_provider(text)
         assert isinstance(provider, OpencodeProvider)
     else:
-        with pytest.raises(ValueError, match=r"."):
+        # The word boundaries keep "output" from matching inside "output_cost".
+        with pytest.raises(ValueError, match=rf"\b{fault}\b" if fault else r"."):
             read_provider(text)
 
 
