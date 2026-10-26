@@ -13,7 +13,6 @@ import pytest
 from factory.adapters import process
 from factory.adapters.process import (
     ProcessRequest,
-    ProcessResult,
     Stream,
     run_process,
     run_streaming,
@@ -117,7 +116,6 @@ def test_a_child_that_ended_beside_a_holder_returns_after_the_drain(
     assert is_gone(_holder(holder_file), within=0) is False
     assert result.exit_status == 0
     assert result.timed_out is False
-    assert result.output_abandoned is True
     assert "done" in result.stdout
     if streaming:
         assert ("stdout", "done") in recorder.calls
@@ -150,19 +148,17 @@ def test_pipes_that_close_within_the_drain_give_the_whole_output(
     result = run_streaming(request, Recorder()) if streaming else run_process(request)
 
     took = time.monotonic() - start
-    assert result.output_abandoned is False
     if delay is not None:
         assert "late" in result.stdout
         assert 1 <= took < 15
 
 
 @pytest.mark.parametrize(
-    ("held", "abandoned"),
-    [pytest.param("stdout", True, id="holder"), pytest.param("none", False, id="no-holder")],
+    "held", [pytest.param("stdout", id="holder"), pytest.param("none", id="no-holder")]
 )
 @pytest.mark.usefixtures("short_drain")
 def test_the_read_after_the_kill_is_bounded_by_the_drain(
-    tmp_path: Path, holder_file: Path, held: str, abandoned: bool
+    tmp_path: Path, holder_file: Path, held: str
 ) -> None:
     request = _request(tmp_path, holder_file, held, STARTED, 3)
     start = time.monotonic()
@@ -172,7 +168,6 @@ def test_the_read_after_the_kill_is_bounded_by_the_drain(
     took = time.monotonic() - start
     assert result.exit_status is None
     assert result.timed_out is True
-    assert result.output_abandoned is abandoned
     assert "started" in result.stdout
     assert 3 <= took < 25
 
@@ -209,32 +204,24 @@ def test_streaming_ended_by_a_kill_does_not_abandon_output(
 
     assert result.timed_out is (outcome == "timed_out")
     assert result.stopped is (outcome == "stopped")
-    assert result.output_abandoned is False
 
 
 def test_drain_is_five_seconds_and_output_is_not_abandoned_by_default() -> None:
-    result = ProcessResult(
-        exit_status=0, stdout="", stderr="", timed_out=False, duration=timedelta(0)
-    )
-
     assert timedelta(seconds=5) == process.PIPE_DRAIN
-    assert result.output_abandoned is False
 
 
 @pytest.mark.parametrize(
-    ("streaming", "abandoned"),
-    [pytest.param(False, True, id="run_process"), pytest.param(True, False, id="run_streaming")],
+    "streaming", [pytest.param(False, id="run_process"), pytest.param(True, id="run_streaming")]
 )
 @pytest.mark.usefixtures("short_drain")
 def test_a_limit_during_the_drain_times_the_call_out(
-    tmp_path: Path, holder_file: Path, streaming: bool, abandoned: bool
+    tmp_path: Path, holder_file: Path, streaming: bool
 ) -> None:
     request = _request(tmp_path, holder_file, "stdout", DONE, 1)
 
     result = run_streaming(request, Recorder()) if streaming else run_process(request)
 
     assert result.timed_out is True
-    assert result.output_abandoned is abandoned
     if not streaming:
         assert result.exit_status is None
 
@@ -253,4 +240,3 @@ def test_the_last_line_without_a_line_feed_is_not_passed_after_the_drain(
     assert "a" in lines
     assert "b" not in lines
     assert result.stdout.endswith("b")
-    assert result.output_abandoned is True

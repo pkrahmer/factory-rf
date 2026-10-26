@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 472
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T22:56:26.624023Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-26T22:56:26.624023Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-26T23:03:01.328631Z'
+  stage: tests
+  run: 7019af26f9dd48f997a1c0b7c764978b
 ---
 
 # The process result no longer says that its output was abandoned
@@ -87,3 +89,28 @@ Expect: two lines: `['exit_status', 'stdout', 'stderr', 'timed_out', 'duration',
    Architecture: the change stays inside the adapters layer in `factory.adapters.process`, the one module that starts processes, and adds no layer crossing. Docs go to the paths the docs criterion names.
    Scope: this is S0007 of F0045, matching the feature's scope line and decision 5. The baseline line is the human's change 4 and the story leaves it alone. Nothing in the feature's "Out of scope" is touched.
 4. factory: started tests as vm.
+5. tester: Wrote the tests for the field removal and changed the seven drain tests under decision 27's leave.
+
+   - criterion 1: tests/adapters/test_process_result_fields.py::test_the_result_has_no_output_abandoned_field
+   - criterion 2: tests/adapters/test_process_result_fields.py::test_the_call_reads_for_the_drain_after_the_child_ended. It has three rows: run_process-held, run_streaming-held and run_process-closed. `PIPE_DRAIN` is set to one second with monkeypatch. The held rows wait at least the drain; every row must return within `ROOMY_BOUND_SECONDS`.
+   - criterion 3: tests/adapters/test_process_result_fields.py::test_no_module_holds_the_name_of_the_removed_field. It is a text search of `src/factory` through `search_support.modules_matching` with `root=source_search.SRC`.
+   - criterion 4 (`make check`) and criterion 5 (docs): no test, as these belong to the later stages.
+
+   Files created: tests/adapters/test_process_result_fields.py.
+
+   Earlier test file changed, under the leave in decision 27 that the Interface names: tests/adapters/test_process_drain.py.
+   - These seven tests lost their `output_abandoned` assertion: test_a_child_that_ended_beside_a_holder_returns_after_the_drain, test_pipes_that_close_within_the_drain_give_the_whole_output, test_the_read_after_the_kill_is_bounded_by_the_drain, test_streaming_ended_by_a_kill_does_not_abandon_output, test_drain_is_five_seconds_and_output_is_not_abandoned_by_default, test_a_limit_during_the_drain_times_the_call_out and test_the_last_line_without_a_line_feed_is_not_passed_after_the_drain.
+   - In two of them, test_the_read_after_the_kill_is_bounded_by_the_drain and test_a_limit_during_the_drain_times_the_call_out, the parametrize column `abandoned` fed only that assertion, so it went. Each row keeps its id and its other values.
+   - test_drain_is_five_seconds_and_output_is_not_abandoned_by_default built a `ProcessResult` only to check the field's default. The construction went with that assertion, and the `PIPE_DRAIN == 5 s` assertion stays. The now unused `ProcessResult` import went too.
+   - Every test keeps its name and all its other assertions.
+
+   Run (`make test`): two tests fail, as intended.
+   - The field-list test fails because `model_fields` still holds `output_abandoned`.
+   - The source test fails because it finds `adapters/process.py`.
+   - The criterion-2 test already passes, because the drain behaviour exists today and the criterion only pins that it stays.
+   - Every module imported; nothing was missing.
+
+   `make lint` is green. The new test takes its parameters keyword-only (`*,`), as other tests here do, to satisfy PLR0917.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/adapters/test_process_result_fields.py::test_no_module_holds_the_name_of_the_removed_field - AssertionError: assert ['adapters/process.py'] == []
