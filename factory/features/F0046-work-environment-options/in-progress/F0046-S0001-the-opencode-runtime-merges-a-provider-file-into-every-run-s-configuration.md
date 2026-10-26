@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T13:15:02.011665Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-26T13:15:02.011665Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-26T13:21:16.901694Z'
+  stage: tests
+  run: beb2c07c41624933a3333cb677c39a5d
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -279,3 +281,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Still open: the refactor step, and a green `make check` once the tests are changed. Both fall to the next doing round. Noticed, not touched: nothing.
 14. factory: started tests as vm.
+15. tester: I made the two test changes the human approved in entry 11, as the coder's entry 13 named them. I changed no other test and no code.
+
+    1. Key names go through constants:
+       - `tests/opencode_provider_support.py` now defines `KEY_ENV = "PROXY_KEY"`, and `PROVIDER` uses `"api_key_env": KEY_ENV`.
+       - `tests/domain/test_opencode_provider.py` imports `KEY_ENV`. It uses `KEY_ENV` in `MINIMAL` and in the `OpencodeProvider(...)` of `test_each_model_holds_only_the_groups_it_was_given`. That last line was not one of the four flagged; I changed it so every key name in the file goes the same way.
+       - The refused rows use the new constants `LOWER_KEY_ENV = "lower"` and `DIGIT_FIRST_KEY_ENV = "1KEY"`.
+       - Every test keeps its name and checks the same thing. I added no pragma and no baseline entry.
+    2. In `tests/entry/test_wiring_opencode_provider.py::test_the_built_opencode_runtime_merges_the_provider_file` the call is now `opencode_request(tmp_path / "work", model="corp/m")`.
+
+    Results:
+    - `make lint`: green.
+    - `make test`: `test: green (161.9 s)`, coverage 99.56 %.
+    - `make secrets`: no test file is flagged any more, but it is still red. detect-secrets reports "Secret Keyword" twice at line 254 of this work item. That line is in the coder's journal entry 10, which quotes the old test lines (`"api_key_env": "PROXY_KEY"` / `api_key_env="lower"`). The journal belongs to the factory and no stage may edit it, so I left it alone. Someone has to decide how to clear it before `make check` can go green, for example by rewording or baselining that journal line. The coder cannot fix it under the rules either.
+
+    Files changed: `tests/opencode_provider_support.py`, `tests/domain/test_opencode_provider.py`, `tests/entry/test_wiring_opencode_provider.py`.
+
+    Criterion → test mapping is unchanged from entry 8.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (161.4 s)

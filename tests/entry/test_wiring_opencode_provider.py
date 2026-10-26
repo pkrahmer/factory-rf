@@ -51,7 +51,7 @@ def test_the_built_opencode_runtime_merges_the_provider_file(
     dataset_podman(tmp_path, PodmanPlan(image=IMAGE))
     boundaries = build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
 
-    boundaries.agent_runtime.run(opencode_request(tmp_path / "work"))
+    boundaries.agent_runtime.run(opencode_request(tmp_path / "work", model="corp/m"))
 
     [config] = capture.iterdir()
     held = json.loads(config.read_text(encoding="utf-8"))

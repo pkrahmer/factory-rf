@@ -10,12 +10,15 @@ from factory.domain.opencode_provider import (
     provider_configuration,
     read_provider,
 )
-from opencode_provider_support import CONFIGURATION, PROVIDER
+from opencode_provider_support import CONFIGURATION, KEY_ENV, PROVIDER
+
+LOWER_KEY_ENV = "lower"
+DIGIT_FIRST_KEY_ENV = "1KEY"
 
 MINIMAL: dict[str, object] = {
     "id": "corp",
     "base_url": "https://example.invalid/v1",
-    "api_key_env": "PROXY_KEY",
+    "api_key_env": KEY_ENV,
     "models": {"m": {}},
     "small_model": "corp/m",
 }
@@ -44,8 +47,8 @@ def _model(**fields: object) -> str:
         pytest.param(_text(base_url="example.invalid"), False, id="base-url-no-scheme"),
         pytest.param(_text(base_url="https://example.invalid/v1/"), True, id="base-url-slash"),
         pytest.param(_text(base_url="http://example.invalid"), True, id="base-url-http"),
-        pytest.param(_text(api_key_env="lower"), False, id="key-env-lower"),
-        pytest.param(_text(api_key_env="1KEY"), False, id="key-env-digit-first"),
+        pytest.param(_text(api_key_env=LOWER_KEY_ENV), False, id="key-env-lower"),
+        pytest.param(_text(api_key_env=DIGIT_FIRST_KEY_ENV), False, id="key-env-digit-first"),
         pytest.param(_text(small_model="other/m"), False, id="small-other-provider"),
         pytest.param(_text(small_model="corp"), False, id="small-no-model"),
         pytest.param(_text(small_model="corp/missing"), False, id="small-missing-model"),
@@ -105,7 +108,7 @@ def test_each_model_holds_only_the_groups_it_was_given(
     provider = OpencodeProvider(
         id="corp",
         base_url=base_url,
-        api_key_env="PROXY_KEY",
+        api_key_env=KEY_ENV,
         models={"m": model},
         small_model="corp/m",
     )

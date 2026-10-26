@@ -3,10 +3,11 @@
 import json
 from pathlib import Path
 
+KEY_ENV = "PROXY_KEY"
 PROVIDER: dict[str, object] = {
     "id": "corp",
     "base_url": "https://example.invalid/v1",
-    "api_key_env": "PROXY_KEY",
+    "api_key_env": KEY_ENV,
     "models": {
         "m": {
             "name": "M",
