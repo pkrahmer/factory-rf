@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 467
-comments_read: [6424960438]
+comments_read: [6424960438, 6425166909]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: e7b1b9fe75f54cebbeaf15a822316aee
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-26T19:19:28.492168Z'
+  stage: tests
 ---
 
 # The reset drops the page cache after the rollback
@@ -201,3 +206,6 @@ Expect: four lines: `('sudo', '-n', '/usr/local/bin/factory-drop-caches')`; `KEY
    - tests/test_vm_setup_text.py: `ORDERED_COMMANDS` gains `/etc/sudoers.d/factory-drop-caches`.
 
    Modules the test run could not import: none fails at import time. `DROP_CACHES_COMMAND` (from `factory.adapters.zfs_snapshots`) is missing, so the wiring test module will fail at collection, and the tests that use `snapshots_on` fail on the unknown keyword `drop_caches`.
+9. 2026-10-26 human: 1. (a): the drop's detail follows `failure_detail` as the `zfs` commands do; the row checks only for `sudo: a password is required`.
+   2. Agreed, keep it.
+   3. Agreed, keep it.
