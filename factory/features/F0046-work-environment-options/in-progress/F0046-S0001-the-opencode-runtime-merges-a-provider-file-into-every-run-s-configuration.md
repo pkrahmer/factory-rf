@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 459
 comments_read: [6416165613]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-26T12:38:24.727799Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-26T12:38:24.727799Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-26T12:38:45.437835Z'
+  stage: intake
+  run: 83123bf447f84c07864276f2a240a875
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -99,8 +101,8 @@ Tests (the tester writes them): `tests/domain/test_opencode_provider.py`, `tests
 
 1. With `opencode_provider_file` unset, the configuration file of a run is byte-identical to the one the runtime wrote before this story (a row with the file set to `None`, the expected text built by the test from the same keys as the existing tests).
 2. `FACTORY_OPENCODE_PROVIDER_FILE` is read: unset and blank (`"  "`) give `None`, `/etc/p.json` gives that path, `p.json` is `SettingsInvalid` naming the variable and `is not an absolute path`; building `InstanceSettings(opencode_provider_file=Path("p.json"))` is a `ValidationError`.
-3. `read_provider` accepts a complete file and refuses each fault, rows of one parametrized test: `id` `Corp` and `1corp` refused, `corp-1` accepted; empty `models` refused, one entry accepted; a blank model key refused; `base_url` `ftp://x`, `https://` and `example.invalid` refused, `https://example.invalid/v1` and `http://example.invalid` accepted; `api_key_env` `lower` and `1KEY` refused, `PROXY_KEY` accepted; `small_model` `other/m`, `corp` and `corp/missing` refused, `corp/m` accepted; `input_cost` without `output_cost` and `context` without `output` refused; a cost of `-0.01` refused and `0` accepted; `context` of `0` refused and `1` accepted; an unknown key at the top and in a model refused; JSON that is not an object refused.
-4. `provider_configuration` of a provider with one model that has a name, limits and prices gives exactly `{"provider": {"corp": {"npm": "@ai-sdk/openai-compatible", "options": {"baseURL": "https://example.invalid/v1", "apiKey": "{env:PROXY_KEY}"}, "models": {"m": {"name": "M", "limit": {"context": 1000, "output": 100}, "cost": {"input": 3.0, "output": 15.0}}}}}, "small_model": "corp/m"}`; a model with none of the three optional groups is `{}`.
+3. `read_provider` accepts a complete file and refuses each fault, rows of one parametrized test: `id` `Corp` and `1corp` refused, `corp-1` accepted; empty `models` refused, one entry accepted; a blank model key refused; `base_url` `ftp://x`, `https://` and `example.invalid` refused, `https://example.invalid/v1`, `https://example.invalid/v1/` and `http://example.invalid` accepted; `api_key_env` `lower` and `1KEY` refused, `PROXY_KEY` accepted; `small_model` `other/m`, `corp` and `corp/missing` refused, `corp/m` accepted; `input_cost` without `output_cost`, `output_cost` without `input_cost`, `context` without `output` and `output` without `context` refused; a cost of `-0.01` refused and `0` accepted; `context` of `0` refused and `1` accepted; an unknown key at the top and in a model refused; JSON that is not an object refused.
+4. `provider_configuration` of a provider with one model that has a name, limits and prices gives exactly `{"provider": {"corp": {"npm": "@ai-sdk/openai-compatible", "options": {"baseURL": "https://example.invalid/v1", "apiKey": "{env:PROXY_KEY}"}, "models": {"m": {"name": "M", "limit": {"context": 1000, "output": 100}, "cost": {"input": 3.0, "output": 15.0}}}}}, "small_model": "corp/m"}`; a model with none of the three optional groups is `{}`; rows of one parametrized test give a model with the name only `{"name": ..}`, with limits only `{"limit": ..}` and with prices only `{"cost": ..}`, and no key is ever null; a `base_url` with a trailing slash (`https://example.invalid/v1/`) gives `"baseURL": "https://example.invalid/v1/"`, the slash kept.
 5. With a valid file, the run's configuration file holds the keys of criterion 4 beside `autoupdate`, `share`, `snapshot` and `agent`, and the agent's entry is as without the file.
 6. A missing file, a directory in its place and an invalid file each end the run with `AgentRuntimeError` whose message starts `cannot use the opencode provider file <path>:`; the stand-in is not started and no `opencode-*.json` is in the state directory.
 7. A request whose agent model is `corp/m` is passed as `--model corp/m`; an alias in `models` that maps to `corp/m` gives the same words.
@@ -151,3 +153,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. One parametrized row per group alone: name only gives `{"name": ..}`, limits only give `{"limit": ..}`, prices only give `{"cost": ..}`; no key is ever null.
    3. The reverse rows: `output_cost` without `input_cost` and `output` without `context` are refused.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: `factory.domain.settings`, the new `factory.domain.opencode_provider` (models, `read_provider`, `provider_configuration`), `OpencodeRuntime(provider_file=)` and the wiring name concrete modules and signatures. Every rule is stated with its sides.
+   - Criteria: each is testable by one parametrized or plain test. Every rule has its failing side. I carried the human's answer (journal entry 4) into the story, and added nothing else. Criterion 3 now also accepts `https://example.invalid/v1/` and refuses `output_cost` without `input_cost` and `output` without `context`. Criterion 4 now has the rows for name only, limits only and prices only (no key null), and for the trailing slash kept in `baseURL`.
+   - Smoke test: both commands are `uv run python -c` with no pytest, so there is no `-q` problem. Their `Expect:` lines (`['provider', 'small_model']` and `refused`) can be checked against the output.
+   - Architecture: the model and rules are in domain, the file read and the merge are in the adapter, and the wiring is in entry. This matches the four layers in CLAUDE.md.
+   - Scope: the story is S0001 of F0046. The proxy and CA bundle (S0002) and the environment file (S0003) are left out, and nothing in Out of scope is touched.
