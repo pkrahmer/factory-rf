@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-26T17:44:02.727468Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -161,6 +157,12 @@ journal:
   kind: started
   at: '2026-10-26T17:44:02.727468Z'
   stage: smoke-test
+- number: 28
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-26T17:44:33.520171Z'
+  stage: smoke-test
+  run: cf5a649b04cf48228ad230da7354cd54
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -395,3 +397,34 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok
 27. factory: started smoke-test as vm.
+28. smoke-tester: I ran both smoke test commands as written, from the repository root and in order. Both met their `Expect:` lines. I fixed nothing.
+
+    **Command 1**
+    ```bash
+    grep -c "opencode build's own login" src/factory/application/preflight.py docs/operator-guide.md
+    ```
+    ```
+    src/factory/application/preflight.py:0
+    docs/operator-guide.md:0
+    ```
+    Met. The output is two lines, each with the count 0. grep exited with status 1, which is what `grep -c` does when nothing matches. It is not an error.
+
+    **Command 2**
+    ```bash
+    uv run pytest tests/application/test_agent_run_probe_opencode.py tests/application/test_agent_run_probe_api_login.py tests/application/test_agent_run_probe_factory_user.py 2>&1 | tail -n 1
+    ```
+    ```
+    16 passed in 0.57s
+    ```
+    Met. The line ends with `passed in <seconds>s` and does not mention `failed`.
+
+    **Checked against the acceptance criteria**
+    - Criterion 1: under opencode, `_opencode_login_hint` in `src/factory/application/preflight.py:259` returns `; the agent runs get no API key: put a key in the file {API_LOGIN_FILE_VARIABLE} names` for the login `none`. The text no longer contains `own login`.
+    - Criterion 2: `_login_detail` (`src/factory/application/preflight.py:266`) branches on `settings.agent_runtime == "opencode"` for the login `none`. The texts for `api_key` and `subscription` are unchanged.
+    - Criterion 5: `docs/operator-guide.md:754` quotes the new opencode hint. `docs/operator-guide.md:756` gives the completed probe's detail under opencode as `the agent runs get no login from a file` and keeps the Claude Code text.
+    - Criteria 1 to 3 (the test rows): the three test modules passed in command 2.
+    - Criterion 4 (`make check`): not run in this stage. The factory's checks cover it.
+
+    Nothing in the smoke test contradicts a criterion.
+
+    **Findings:** none.
