@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T18:47:38.410867Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-26T18:47:38.410867Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-10-26T18:53:44.503706Z'
+  stage: tests
+  run: 8e8fcf20697b41beb1ca607aa903ee78
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -220,3 +222,25 @@ Expect: two lines: `7`; `1`
 
     Noticed, not touched: nothing new.
 12. factory: started tests as vm.
+13. tester: Round 1: I moved the shared test helper. This fixes the reviewer's finding 1 (entry 9), which the coder handed over in entry 11. I used the standing leave in `CLAUDE.md` (*Tests*) to move a shared test helper. No test was renamed and none checks anything different.
+
+    What I changed:
+    - `tests/shipped_agents.py`: added `TEMPLATE_PIPELINE`, the path `template/factory/pipeline.yml` built from `ROOT`. Also added `template_definition()`, which parses that file with `RuamelPipelineDefinitionReader` and returns the `PipelineDefinition`.
+    - `tests/domain/test_decide_docs_slip.py`: removed `TEMPLATE` and the inline parse. The `template` fixture now returns `template_definition()`.
+    - `tests/test_claude_agent_texts_docs_slip.py`: removed `TEMPLATE` and `_template()`. The template test now calls `template_definition()`.
+    - `tests/test_claude_agent_texts.py`, an earlier test file changed under the standing leave: `_decisions` now calls `template_definition()` instead of reading and parsing the template inline. The imports it no longer needs (`ROOT`, `RuamelPipelineDefinitionReader`) are gone.
+
+    The criterion → test mapping is the same as in entry 5:
+    - criterion 1: tests/test_claude_agent_texts_docs_slip.py::test_the_template_lets_the_smoke_test_hand_a_slip_to_docs_and_keeps_every_other_next
+    - criterion 2: tests/test_claude_agent_texts_docs_slip.py::test_every_shipped_agent_names_the_smoke_test_to_docs_rework
+    - criterion 3: tests/test_claude_agent_texts_docs_slip.py::test_the_smoke_tester_ends_with_docs_only_for_slips_in_a_document
+    - criterion 4: tests/test_claude_agent_texts_docs_slip.py::test_the_documenter_fixes_the_slips_of_the_smoke_test_and_hands_back_to_it
+    - criterion 5: tests/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework
+    - criteria 6 and 7: `make check` and docs, nothing to test.
+
+    I created no new files. No module failed to import. `make lint` is green. `make test` is green, because the coder's round 0 changes already make these tests pass.
+
+    Rejected: a fixture in `tests/conftest.py`. `_decisions` and the text tests call a plain function, so a module-level helper beside `ROOT` fits all three users without turning them into fixtures.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (154.2 s)

@@ -1,22 +1,18 @@
 """The decision rules on the template's smoke test: a slip in a document goes to `docs`."""
 
-from pathlib import Path
-
 import pytest
 
-from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.domain.decisions import StageMove, decide
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import round_cap_question
 from factory.domain.work_item import WorkItemState
-
-TEMPLATE = Path(__file__).parent.parent.parent / "template" / "factory" / "pipeline.yml"
+from shipped_agents import template_definition
 
 
 @pytest.fixture
 def template() -> PipelineDefinition:
     """Return the pipeline definition the template ships."""
-    return RuamelPipelineDefinitionReader().parse(TEMPLATE.read_text(encoding="utf-8"))
+    return template_definition()
 
 
 @pytest.mark.parametrize(

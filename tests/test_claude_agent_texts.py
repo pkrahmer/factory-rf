@@ -4,9 +4,14 @@ import re
 
 import pytest
 
-from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.domain.sections import section_text
-from shipped_agents import ROOT, SHIPPED_AGENTS, SHIPPED_NAMES, ShippedAgent, agent_body
+from shipped_agents import (
+    SHIPPED_AGENTS,
+    SHIPPED_NAMES,
+    ShippedAgent,
+    agent_body,
+    template_definition,
+)
 
 _WITHOUT_ROLE = {"intake", "smoke-tester"}
 
@@ -142,8 +147,7 @@ def _headings(body: str) -> list[str]:
 
 
 def _decisions(role: str) -> list[str]:
-    text = (ROOT / "template" / "factory" / "pipeline.yml").read_text(encoding="utf-8")
-    definition = RuamelPipelineDefinitionReader().parse(text)
+    definition = template_definition()
     stages = [stage for stage in definition.stages.values() if stage.role == role]
     assert len(stages) == 1
     return [*stages[0].next, "question"]

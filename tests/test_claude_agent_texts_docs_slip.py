@@ -4,12 +4,8 @@ from collections.abc import Callable
 
 import pytest
 
-from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.sections import section_text
-from shipped_agents import ROOT, SHIPPED_NAMES, agent_body
-
-TEMPLATE = ROOT / "template" / "factory" / "pipeline.yml"
+from shipped_agents import SHIPPED_NAMES, agent_body, template_definition
 
 REWORK_RULE = (
     "R12. Rework rounds (review → doing, docs → doing, smoke-test → doing, smoke-test → docs, "
@@ -47,16 +43,12 @@ DOCUMENTER_SENTENCE = (
 )
 
 
-def _template() -> PipelineDefinition:
-    return RuamelPipelineDefinitionReader().parse(TEMPLATE.read_text(encoding="utf-8"))
-
-
 def _stage_section(name: str) -> str:
     return section_text(agent_body(name), "Stage") or ""
 
 
 def test_the_template_lets_the_smoke_test_hand_a_slip_to_docs_and_keeps_every_other_next() -> None:
-    definition = _template()
+    definition = template_definition()
 
     smoke_test = definition.stages["smoke-test"]
     assert smoke_test.next == ["approval", "doing", "docs"]
