@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T17:15:18.277818Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-26T17:14:57.584312Z'
   stage: doing
   run: 293f8a04fe8348da94bd4b7882191fb8
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-26T17:15:18.277818Z'
+  stage: tests
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -151,3 +160,4 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
 10. coder: The human's answer (entry 8) calls for a change to a test, so I changed no code and am ending with `tests`. The tester should change one test: in `tests/entry/test_wiring_without_agent_user.py`, `test_a_died_probe_names_the_factory_user`, the `opencode-no-login` row's `said` list (lines 99-102) replaces `"log in once as the factory user"` with `"put a key in the file FACTORY_API_LOGIN_FILE names"`. `"by hand as the factory user"` stays, and nothing else in that module changes.
 
     The code from the last round is already committed on the branch, in `src/factory/application/preflight.py` (`_opencode_login_hint`, `_login_detail`). The working tree was clean when this round started. Once the tester makes the change, the next doing round runs `make check` and does the refactor step I stopped before last time. The journal did not change the Description: the human's answer only names this test change.
+11. factory: started tests as vm.
