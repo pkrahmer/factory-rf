@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T20:47:33.162898Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-26T20:47:12.294587Z'
   stage: tests
   run: 2d798f5d87024f0b9dc72922443d983b
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-26T20:47:33.162898Z'
+  stage: doing
 ---
 
 # The setup script says how to install a changed unit
@@ -283,3 +292,4 @@ Expect: three lines: `syntax-ok`; `2`; `0`
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (155.1 s)
+21. factory: started doing as vm.
