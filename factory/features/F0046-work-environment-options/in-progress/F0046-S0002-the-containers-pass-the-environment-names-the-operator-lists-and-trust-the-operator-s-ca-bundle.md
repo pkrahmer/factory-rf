@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516, 6418969803, 6419132782]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T15:15:51.243495Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -148,6 +152,11 @@ journal:
   at: '2026-10-26T15:15:30.148998Z'
   stage: review
   run: a1041024a7d3459a9c12e761fbdaec17
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-26T15:15:51.243495Z'
+  stage: doing
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -416,3 +425,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Entry 23 says the coder updated the Interface's keyword sentence and the first smoke test after entry 9. The factory dropped that edit (outside the coder's write paths). The work item still shows the old Interface sentence and a smoke test without `repository_url`/`instance`; entry 9 holds the corrected form.
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
+26. factory: started doing as vm.
