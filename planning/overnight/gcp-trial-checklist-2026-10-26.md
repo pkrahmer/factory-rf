@@ -33,6 +33,44 @@ The steps are the operator guide's `docs/operator-guide.md`, *The machine*, "On 
 - **Node 18 in the stage image.** Claude Code asks for Node 22 or newer and prints `EBADENGINE`; it runs today, but an update may break it.
 - **Not tried on GCP before:** NAT, IAP, the VM without a service account, the metadata server.
 
+## F0046's options and the page-cache fix (added 2026-10-26, after F0046)
+
+Put your own settings in `/srv/factory/<instance>/factory.local.env`; `vm/setup.sh` never writes it, and a value there wins over `factory.env` (if the script reports the unit "differs from the checkout; not installed", install `vm/factory.service` as `/etc/systemd/system/factory@.service` by hand and run `systemctl daemon-reload`). The operator guide's *A company's provider* and *Behind a proxy* give the details and an example provider file.
+
+```
+FACTORY_ZFS=/usr/local/bin/zfs-fresh
+FACTORY_OPENCODE_PROVIDER_FILE=/home/factory/provider.json
+FACTORY_OPENCODE_MODELS=opus=<id>/<model>,sonnet=<id>/<model>,haiku=<id>/<model>
+HTTPS_PROXY=...
+NO_PROXY=...
+FACTORY_CONTAINER_ENV=HTTPS_PROXY,NO_PROXY
+FACTORY_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+```
+
+- The CA bundle must hold the public certificates and the company's: add the company CA to the VM's store (`update-ca-certificates`) and name the store's bundle, which also serves the factory's own git and GitHub calls.
+- Run `setup.sh` with `--runtime opencode`. The key stays in `/home/factory/.secrets/anthropic-api-key`; the provider file names it as `"api_key_env": "ANTHROPIC_API_KEY"`.
+- The page-cache fix (the zero-byte fault's cause: a page written through `mmap` survives `zfs rollback`). As root:
+
+```bash
+cat > /usr/local/bin/factory-drop-caches <<'X'
+#!/bin/sh
+sync
+echo 1 > /proc/sys/vm/drop_caches
+X
+cat > /usr/local/bin/zfs-fresh <<'X'
+#!/bin/sh
+zfs "$@"
+status=$?
+if [ "$1" = rollback ] && [ "$status" -eq 0 ]; then
+  sudo -n /usr/local/bin/factory-drop-caches || echo "zfs-fresh: could not drop the page cache" >&2
+fi
+exit $status
+X
+chmod 0755 /usr/local/bin/factory-drop-caches /usr/local/bin/zfs-fresh
+echo 'factory ALL=(root) NOPASSWD: /usr/local/bin/factory-drop-caches' > /etc/sudoers.d/factory-drop-caches
+chmod 0440 /etc/sudoers.d/factory-drop-caches && visudo -c
+```
+
 ## At the end
 
 - [ ] Wait until `factory-watch` shows no work item held by `vm`, then `sudo systemctl stop factory@vm` on the VM, then `gcloud compute instances stop factory-vm --zone=europe-west3-a` (step 12). A stopped VM costs only its disks and NAT.
