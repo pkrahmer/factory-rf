@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T20:26:45.968641Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-26T20:26:26.443367Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-26T20:26:45.968641Z'
   stage: doing
 ---
 
@@ -131,3 +140,4 @@ Expect: three lines: `syntax-ok`; `2`; `0`
 
    Not touched: nothing else. `make check` is otherwise green apart from these four rows.
 8. 2026-10-26 human: A: the human's leave for exactly this: the tester narrows `_install_conditions` in `tests/test_vm_setup_text.py` so that only a line whose command is `install` (`^\s*install\s` after the indentation) counts, not an echo; the test keeps its name and checks the same rule. The script change stays the two echo lines exactly as in the Interface.
+9. factory: started doing as vm.
