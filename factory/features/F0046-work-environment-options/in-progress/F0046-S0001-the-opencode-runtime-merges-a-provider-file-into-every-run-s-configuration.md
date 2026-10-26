@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 459
 comments_read: [6416165613, 6416662775, 6417568826]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-26T13:54:33.949081Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-10-26T13:54:33.949081Z'
   stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-10-26T13:55:57.242746Z'
+  stage: review
+  run: d08e37e6c00d4316998042f49327a798
 ---
 
 # The opencode runtime merges a provider file into every run's configuration
@@ -194,8 +196,10 @@ Tests (the tester writes them): `tests/domain/test_opencode_provider.py`, `tests
 6. A missing file, a directory in its place and an invalid file each end the run with `AgentRuntimeError` whose message starts `cannot use the opencode provider file <path>:`; the stand-in is not started and no `opencode-*.json` is in the state directory.
 7. A request whose agent model is `corp/m` is passed as `--model corp/m`; an alias in `models` that maps to `corp/m` gives the same words.
 8. `build_boundaries` on an opencode instance with the setting gives a runtime that merges the file (the wiring test reads the configuration of one run); on a Claude Code instance the setting changes nothing.
-9. `make check` stays green.
-10. docs: `docs/operator-guide.md`: a subsection under the opencode runtime, *A company's provider*, with the variable's row in the configuration table, an example file written with `example.invalid` and made-up ids, the rule that the key stays in `FACTORY_API_LOGIN_FILE` and is named as `api_key_env: ANTHROPIC_API_KEY`, the small model, and the note that a model without prices is costed at 0 so the budget stop does not fire. The same chapter's passage on a login that an operator's own build keeps in the agent's home is corrected: on the machine the home lies on the dataset and is rolled back, so only the API login file works; the sentence that all three secret files must exist whatever the runtime is made exact for opencode (the file `claude-token` may be empty). `docs/project-guide/agents.md`, *The opencode runtime*: the setting, the module and the merge rule. `docs/decisions.md`: an entry *A company's provider for opencode*, from the feature's decisions 1 to 5 and 9. `README.md`: none.
+9. `read_provider` refuses an `output` of `0` and accepts `1`, and refuses an `output_cost` of `-0.01` and accepts `0`: rows of the parametrized test of criterion 3, each with its pair given so that only the bound is under test.
+10. The `ValueError` of `read_provider` names the first fault: in every refused row of criterion 3 but the one that is not an object, the message holds the name of the field at fault (`id`, `models`, `base_url`, `api_key_env`, `small_model`, `input_cost`, `output_cost`, `context`, `output`, or the unknown key).
+11. `make check` stays green.
+12. docs: `docs/operator-guide.md`: a subsection under the opencode runtime, *A company's provider*, with the variable's row in the configuration table, an example file written with `example.invalid` and made-up ids, the rule that the key stays in `FACTORY_API_LOGIN_FILE` and is named as `api_key_env: ANTHROPIC_API_KEY`, the small model, and the note that a model without prices is costed at 0 so the budget stop does not fire. The same chapter's passage on a login that an operator's own build keeps in the agent's home is corrected: on the machine the home lies on the dataset and is rolled back, so only the API login file works; the sentence that all three secret files must exist whatever the runtime is made exact for opencode (the file `claude-token` may be empty). `docs/project-guide/agents.md`, *The opencode runtime*: the setting, the module and the merge rule. `docs/decisions.md`: an entry *A company's provider for opencode*, from the feature's decisions 1 to 5 and 9. `README.md`: none.
 
 ## Smoke test
 
@@ -375,3 +379,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 21. factory: started review as vm.
+22. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (4 files under `src/`, 5 new test files) against criteria 1 to 8 and the Interface. The code matches the Interface. The domain module has no I/O, the adapter reads the file before `_RunFiles` is made, and the wiring only passes the setting on. I found no copy of an existing helper (no other env-name regex or `urlsplit` in `src/factory`), no security problem and no silencing marker. The tests for criteria 1 to 8 test what their criteria say. Group 1 still has two gaps, and I added a criterion for each:
+
+    1. criterion 9 added: it needs its test. `tests/domain/test_opencode_provider.py::test_the_provider_file_is_accepted_only_when_it_keeps_every_rule` tests the `PositiveInt` bound of `context` (0 refused, 1 accepted) and the `NonNegativeFloat` bound of `input_cost` (-0.01 refused), but not the same bounds of `output` (no row with `output=0`) and `output_cost` (no row with `output_cost=-0.01`). Both bounds are stated in `OpencodeModel` in the Interface (`src/factory/domain/opencode_provider.py:31,34`), so each limit is tested on one side only. Fix: add the rows `_model(context=1, output=0)` refused and `_model(input_cost=1.0, output_cost=-0.01)` refused to that parametrized test. The accepted sides are already covered by `context-one` and `cost-zero`.
+    2. criterion 10 added: it needs its test. The Interface says the `ValueError` of `read_provider` "names the first fault" (`src/factory/domain/opencode_provider.py:97-104`). The same test checks refused rows only with `pytest.raises(ValueError, match=r".")`, so a message that names nothing would pass. Fix: give each refused row (all but `not-an-object`) the name of the field at fault (`id`, `models`, `base_url`, `api_key_env`, `small_model`, `input_cost`, `output_cost`, `context`, `output`, `extra`) and match on it. As built, the messages already hold those names (for example `models.m.context: ...`, `models.m: Value error, input_cost and output_cost ...`), so no change under `src/` is needed.
+
+    The closing criteria are renumbered to 11 (`make check`) and 12 (docs). I changed nothing else in the work item.
+
+    Rejected: a finding on the claude-instance wiring row, which only checks the runtime's type. Criterion 8 asks only that the setting change nothing there, and the type check pins that.
+
+    Earlier tests: the diff changes, renames or deletes no test file that `main` already holds (every test file has status `A`).
+
+    The Description, the Interface and the docs criterion still match what was built.
