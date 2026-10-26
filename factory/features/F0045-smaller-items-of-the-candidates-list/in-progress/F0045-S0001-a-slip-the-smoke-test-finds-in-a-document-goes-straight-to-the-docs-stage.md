@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 466
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T18:47:02.305811Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-26T18:46:41.478816Z'
   stage: review
   run: 81e3468c81754dbc838d1b128210d9be
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-26T18:47:02.305811Z'
+  stage: doing
 ---
 
 # A slip the smoke test finds in a document goes straight to the docs stage
@@ -186,3 +195,4 @@ Expect: two lines: `7`; `1`
    1. `tests/domain/test_decide_docs_slip.py:13-19` (`TEMPLATE` and the `template` fixture) and `tests/test_claude_agent_texts_docs_slip.py:12,51-52` (`TEMPLATE` and `_template()`) are two copies of one helper: build the path to `template/factory/pipeline.yml`, then parse it with `RuamelPipelineDefinitionReader`. The same steps are already inline in `tests/test_claude_agent_texts.py:145-146` (`_decisions`). Fix: the tester puts one shared helper or fixture for the template's definition in one shared place (`tests/conftest.py`, or beside `ROOT` in `tests/shipped_agents.py`), and both new files use it. Under the standing leave the tester may also change `_decisions` in `tests/test_claude_agent_texts.py` to use it and name that file in its entry.
 
    Earlier tests: none. The diff only adds test files (`A tests/domain/test_decide_docs_slip.py`, `A tests/test_claude_agent_texts_docs_slip.py`) and changes no test that `main` holds.
+10. factory: started doing as vm.
