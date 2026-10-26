@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 460
 comments_read: [6418348227, 6418462516]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-26T14:40:00.613826Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-10-26T14:39:39.626247Z'
   stage: tests
   run: 9b9dc4d01b3b4bbc9cfbde06166bd4e3
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-26T14:40:00.613826Z'
+  stage: doing
 ---
 
 # The containers pass the environment names the operator lists and trust the operator's CA bundle
@@ -207,3 +216,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: ERROR tests/domain/test_settings_container_env.py - ImportError while importing test module '/work/checkout/tests/domain/test_settings_container_env.py'.
+12. factory: started doing as vm.
