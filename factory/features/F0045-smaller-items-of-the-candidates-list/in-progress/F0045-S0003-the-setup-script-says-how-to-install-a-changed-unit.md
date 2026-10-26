@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 468
 comments_read: [6426528724]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T20:33:19.846813Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-26T20:33:19.846813Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-26T20:39:13.050548Z'
+  stage: doing
+  run: e246600b711c4e7dad481ec974836947
 ---
 
 # The setup script says how to install a changed unit
@@ -189,3 +191,15 @@ Expect: three lines: `syntax-ok`; `2`; `0`
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy[service] - assert 0 == 1
 13. factory: started doing as vm.
+14. coder: Changed only `vm/setup.sh`: the two lines that report a differing installed file (line 348 for step `tools`, line 392 for step `service`) now read exactly as the Interface gives them, still sent to standard error with `>&2`. No condition, step, other line or exit status changed. Both rows of `tests/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy` now pass. The narrowed `tests/test_vm_setup_text.py::test_the_checkout_files_are_installed_only_in_the_run_that_cloned` from entry 12 also passes. `make check` is green (`check: green`), and `grep -c` on the smoke test's pattern now gives 2.
+
+    Main choice: I put the Interface's lines in single quotes, because the text contains `"The rebuild after a merge"`. I rejected the alternative of keeping double quotes and escaping the inner quotes as `\"`: the line in the script would then no longer match the Interface's text exactly, and that exact text is what criterion 1's test looks for.
+
+    Refactor: I read the diff (two lines changed) and found nothing to change.
+
+    What the journal changed: with the human's leave in entry 8, criterion 2's test helper was narrowed. The rule it checks and the meaning of the Description stay the same, so I did not rewrite `## Description`.
+
+    Noticed but not touched: `docs/operator-guide.md` still advises removing the installed file, in *The two passes* and *The rebuild after a merge*. `docs/decisions.md` still needs its closing line. Both are for the documenter, under criterion 5.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
