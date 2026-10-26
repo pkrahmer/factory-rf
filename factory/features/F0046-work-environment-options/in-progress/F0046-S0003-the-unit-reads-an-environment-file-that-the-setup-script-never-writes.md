@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 461
-comments_read: []
+comments_read: [6420707346]
 handed_over: null
 claim: null
 journal:
@@ -37,6 +37,11 @@ journal:
   stage: tests
   run: 30d92d476e554ddc807b61fb6ec0b861
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-10-26T16:01:06.465968Z'
+  stage: tests
 ---
 
 # The unit reads an environment file that the setup script never writes
@@ -100,3 +105,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    I'd choose A: it runs the real closing text and stays inside `tmp_path`. In its criterion 4 the instance folder is `tmp_path` standing in for `/srv/factory/<instance>`.
 
    Criteria 1 and 2 are clear, and I'll write them with the others once this is answered. No files were created in this stage.
+6. 2026-10-26 human: A, as you describe it: run the script's closing text (from the `setup: done:` printf to the end of `setup_code()`) with `sh` in `tmp_path`, for `instance=vm` and `instance=other`; `tmp_path` stands in for `/srv/factory/<instance>` in criterion 4. Criterion 2's static rows stay the check that no step touches the file. Read criteria 3 and 4 that way.
