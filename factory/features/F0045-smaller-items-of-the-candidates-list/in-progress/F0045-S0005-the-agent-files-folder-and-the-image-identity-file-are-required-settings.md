@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-26T21:52:58.342285Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-26T21:52:58.336386Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:52:58.342285Z'
+  stage: intake
+---
+
 # The agent files' folder and the image identity file are required settings
 
 ## Description
@@ -52,3 +79,6 @@ EOF
 Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: missing`; `/srv/agents build-7`
 
 ## Journal
+
+1. 2026-10-26 human: created.
+2. factory: started intake as vm.
