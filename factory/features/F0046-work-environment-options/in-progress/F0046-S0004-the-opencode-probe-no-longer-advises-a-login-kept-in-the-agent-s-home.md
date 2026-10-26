@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 463
 comments_read: [6422541052]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-26T17:28:41.347915Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-26T17:28:41.347915Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-26T17:29:00.581192Z'
+  stage: doing
+  run: 6f0d7b10e63c4a0f9a3df48829390e93
 ---
 
 # The opencode probe no longer advises a login kept in the agent's home
@@ -237,3 +239,14 @@ Expect: a line that ends with `passed in <seconds>s` and names no `failed`
     - tests/entry/test_wiring_without_agent_user.py: the human's answer, journal entry 8.
     - tests/application/test_agent_run_probe_api_login.py: none needed. It only adds tests, an import and the `_on_runtime` helper, and its earlier test is unchanged.
 17. factory: started doing as vm.
+18. coder: All three of the reviewer's findings in entry 16 are about tests, so this round changed no code. `src/factory/application/preflight.py` stays as it was committed (`_opencode_login_hint`, `_login_detail`). The working tree was clean when this round started. I am handing back to the tester, who should make these three changes:
+
+    1. The copied helper, under the standing leave in CLAUDE.md to move a shared test helper. Move `_probe_result` from tests/application/test_agent_run_probe_api_login.py:45 to tests/probe_support.py. Then use it in both test_agent_run_probe_api_login.py and test_agent_run_probe_opencode.py. In test_agent_run_probe_opencode.py, `test_a_probe_under_opencode_with_the_api_key_names_the_api_login_file` (lines 91-102) should call it instead of building its `AgentRunResult` inline. The entry names both test files.
+    2. In tests/application/test_agent_run_probe_opencode.py, drop the `died` row of `test_a_probe_under_opencode_with_the_api_key_names_the_api_login_file` (line 80), because it repeats the `[api-key]` row at line 44. Criterion 3's died side then rests on `test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint[api-key]`, and the entry says so. With only one row left, the test may lose its parametrization, or keep the single `completed` row; that is the tester's call.
+    3. In tests/application/test_agent_run_probe_opencode.py:67, remove `assert "own login" not in item.detail` from `test_a_died_probe_under_opencode_names_opencode_run_and_the_login_hint`. This test was written earlier, and feature.md decision 10 lets it change only through the new text of `opencode_sso_hint`. Criterion 1's own test already makes this check.
+
+    Main choice: end with `tests` rather than `question`. Findings 2 and 3 undo lines the tester added in this story. Finding 1 is a helper move, which the CLAUDE.md leave covers.
+
+    The Description is unchanged: the review findings do not change what the task means.
+
+    Noticed but not touched: `docs/operator-guide.md` still quotes the old opencode hint. That is criterion 5, for the documenter.
