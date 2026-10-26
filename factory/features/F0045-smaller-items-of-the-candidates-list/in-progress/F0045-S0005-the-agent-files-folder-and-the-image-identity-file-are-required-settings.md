@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 470
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-26T21:53:49.612515Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-26T21:53:29.391611Z'
   stage: intake
   run: a81b79acc40b428c83597fb4dff35450
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-26T21:53:49.612515Z'
+  stage: tests
 ---
 
 # The agent files' folder and the image identity file are required settings
@@ -90,3 +99,4 @@ Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: mis
    - Smoke test: runnable with `uv run python -`. The three `Expect:` lines are checkable. With no `FACTORY_CLAUDE_HOME`, the first case prints `FACTORY_CLAUDE_HOME: missing`. With the home set, a reader and no image file, the second prints `FACTORY_IMAGE_ID_FILE: missing`. With both set, the third prints `/srv/agents build-7`. It runs no pytest, so the `-q` rule does not apply.
    - Architecture: the rules live in `domain.settings`, which does no I/O, because the reader is injected. `entry.run` only reports the stop, so the layers hold.
    - Scope: this is S0005 of F0045 (decision 14). `InstanceSettings.agent_home` is left to S0006, as the story says. Nothing in "Out of scope" is touched. The leave for the earlier tests is decision 25.
+4. factory: started tests as vm.
