@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 470
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-26T22:13:18.552799Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-26T22:12:57.735272Z'
   stage: review
   run: 83e599e72dde45ae9b256bc257ad7c83
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:13:18.552799Z'
+  stage: docs
 ---
 
 # The agent files' folder and the image identity file are required settings
@@ -204,3 +213,4 @@ Expect: three lines: `FACTORY_CLAUDE_HOME: missing`; `FACTORY_IMAGE_ID_FILE: mis
    - tests/domain/test_default_git_identity.py: the standing leave to move a shared test helper (its local copy of `BASE` is replaced by `settings_support.BASE`), and decision 25.
    - tests/entry/test_watch_settings.py: decision 25 (the fixture `valid_environment` gains the variable).
    - tests/entry/test_wiring_boundaries.py: decision 25 (one environment gains the variable).
+10. factory: started docs as vm.
