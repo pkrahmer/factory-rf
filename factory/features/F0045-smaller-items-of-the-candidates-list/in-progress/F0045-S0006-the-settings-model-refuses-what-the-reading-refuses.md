@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 471
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-26T22:51:00.832022Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-10-26T22:50:40.343595Z'
   stage: docs
   run: 152e0176d2ee4ca8b8ca5d9d292631f1
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-26T22:51:00.832022Z'
+  stage: smoke-test
 ---
 
 # The settings model refuses what the reading refuses
@@ -373,3 +382,4 @@ Expect: four lines: `False`; `missing False`; `value_error True`; `/srv/agents`
     `check`: check: green (not run again: passed on tree efbdc90fd7e6 at 2026-10-26T22:45:46Z)
     `secrets`: secrets: green (1.6 s)
     `documents`: documents ok
+20. factory: started smoke-test as vm.
