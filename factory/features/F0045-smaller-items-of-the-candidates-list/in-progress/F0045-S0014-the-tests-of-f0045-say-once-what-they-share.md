@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T04:29:00.819010Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -93,6 +97,11 @@ journal:
   at: '2026-10-27T04:28:40.412281Z'
   stage: review
   run: f8272daaa3c343f2b86fec4b045b00a7
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-10-27T04:29:00.819010Z'
+  stage: doing
 ---
 
 # The tests of F0045 say once what they share
@@ -261,3 +270,4 @@ Expect: one line that ends `passed in <n>s` and names no failure
     - `tests/test_vm_setup_text.py`: the standing leave (item 1).
     - `tests/vm_support.py`: the standing leave (item 1: the shared place; helpers added, nothing else changed).
     - `tests/wiring_support.py`: the human's leave, entry 4 (item 4).
+16. factory: started doing as vm.
