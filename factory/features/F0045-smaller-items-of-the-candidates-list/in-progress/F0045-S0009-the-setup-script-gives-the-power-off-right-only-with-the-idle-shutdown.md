@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T01:22:39.238098Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-27T01:22:18.537965Z'
   stage: review
   run: 5b6c4edfa96948ca98754284038ae045
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:22:39.238098Z'
+  stage: doing
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -214,3 +223,4 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
     - tests/vm_support.py: the human's leave (the story's Interface, decision 29 of `feature.md`) for `STEPS` gaining `poweroff`. The standing leave to move a shared test helper covers the added `VALUE_END`, `ENVIRONMENT`, `COMPARISONS`, `name_positions`, `indent`, `enclosing_if`, `compares` and `writes_path`. Their bodies are unchanged.
     - tests/test_vm_setup_text.py: the standing leave to move a shared test helper. `VALUE_END`, `ENVIRONMENT`, `_name_positions`, `_indent` and `_enclosing_if` moved to tests/vm_support.py. Every test keeps its name and what it checks.
     - tests/test_vm_setup_caches.py: the standing leave to move a shared test helper. `COMPARISONS`, `_compares` and `_writes` moved to tests/vm_support.py (`_writes` is now `writes_path`, same body). Every test keeps its name and what it checks.
+13. factory: started doing as vm.
