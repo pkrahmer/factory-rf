@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-27T02:19:44.696576Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-27T02:19:44.696576Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-27T02:20:44.641009Z'
+  stage: docs
+  run: b9559810c3074f3c90491e14d9502991
 ---
 
 # No test module imports another test module
@@ -461,3 +463,16 @@ Expect: `1`
     - tests/preflight_support.py: decision 30
     - tests/test_time_limits.py: decision 30
 21. factory: started docs as vm.
+22. documenter: Round 1. I wrote the documentation the docs criterion asks for. I changed documents only, so I did not run `make check`. `make documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/README.md`, *Shared test helpers*: a paragraph with the rule (no module imports a test module; shared code goes in a `*_support.py` module or `tests/conftest.py`) and the guard `tests/test_shared_imports.py`. It lists the new support modules, one line each: agent_definition, agent_login, check_documents, claude_reply, claude_resume, contract_login, cost_image, cost_records, git_interface, hosting_interface, known_results, opencode_events, opencode_resume, probe_login, sections and story_form. The list follows the files as they are now: `agent_definition_support.py` holds only `COMPLETED`, `claude_reply_support.py` holds `LOGIN` and `BUDGET_STOP`, and `wiring_login_support.py` is gone. I also rewrote the `preflight_support.py` line, which still said it held only `fail_once` and `failed_once`. It now lists the rig, the constants and the fixtures `rig` and `red_main`.
+    - `docs/decisions.md`: a new entry, "Shared test code lives outside the test modules". It has the decision, the reason, the rejected `*_support.py`-only rule from the candidates list, and why `rig` and `red_main` stayed out of `conftest.py`.
+
+    Cross-read and found current: `README.md` and `docs/operator-guide.md` (the criterion says none; nothing in the diff touches them), and the project guide index lines outside *Shared test helpers*. The `conftest.py` line is unchanged, since the story added no fixture there. I checked every module name and constant I wrote against the files on the branch.
+
+    Stale text I saw and did not touch: nothing found. The diff changes `tests/` only, and `git diff main...HEAD -- src` shows no change, so no code finding.
+
+    `check`: check: green (not run again: passed on tree 457615391f27 at 2026-10-27T02:15:10Z)
+    `secrets`: secrets: green (1.7 s)
+    `documents`: documents ok
