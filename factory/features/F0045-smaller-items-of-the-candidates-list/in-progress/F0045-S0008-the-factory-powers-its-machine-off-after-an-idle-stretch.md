@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-26T23:54:35.257311Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-26T23:54:35.257311Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-10-27T00:00:57.606836Z'
+  stage: tests
+  run: d52df7d711a145fbb75c14f8331267e5
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -379,3 +381,17 @@ Expect: `-n /usr/bin/systemctl poweroff`
 
     The factory left out changes outside the write paths: factory/features/F0045-smaller-items-of-the-candidates-list/in-progress/F0045-S0008-the-factory-powers-its-machine-off-after-an-idle-stretch.md.
 18. factory: started tests as vm.
+19. tester: Round 1, an approved test change: I wrote the test for criterion 10, which the reviewer added (journal 15) and the coder handed to me (journal 17). Nothing under `src/` changed.
+
+    - criterion 10: tests/entry/test_run.py::test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick. It is one parametrized test with rows `0 → None` and `30 → limit 30 minutes`. It uses the `settings` fixture of that module with `model_copy(update={"idle_shutdown_minutes": …})`, the `hosting` fixture and `Sleeps`, and stops after one pause. It wraps `idle_shutdown_of` and `activity_tick` of `factory.entry.run` the way `test_run_instance_builds_one_tick_for_the_whole_run` wraps `build_tick`. It checks three things: `idle_shutdown_of` is called once with the row's minutes, what it returns is what `activity_tick` gets as `idle`, and that value is `None` for `0` and has `limit` 30 minutes for `30`.
+
+    Files created: none. Earlier test file changed: tests/entry/test_run.py. I added the new test function and one import (`IdleShutdown`). No existing test there changed.
+    - Why there: the criterion asks for that module's settings, hosting service and recording pattern. Adding the test beside them reuses them as they are.
+    - Rejected: putting the test in tests/entry/test_run_idle_shutdown.py. That would have meant either copying the `settings` fixture and `Sleeps`, or moving them to `tests/conftest.py` under the standing leave. Either is a bigger change than the criterion needs.
+
+    `make test` is green, coverage 99.57 %. The test passes straight away because `run_instance` is already wired (journal 17), so there are no import failures and no red test. `make lint` is green.
+
+    Open, not mine to fix: the coder's rewrite of criteria 1, 5 and 8 was left out by the factory, because it was outside the coder's write paths (journal 17's last line). So those three criteria in the work item are still the stale texts the reviewer named in journal 15. The tests already check them as journal 9 reads them. The texts still need rewriting by a stage that may write the work item.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (156.9 s)

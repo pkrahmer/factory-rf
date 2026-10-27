@@ -17,6 +17,7 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import DispatchOutcome
+from factory.application.idle_shutdown import IdleShutdown
 from factory.application.tick import Tick, TickOutcome
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.disk import DiskRecord
@@ -268,6 +269,45 @@ def test_run_instance_builds_one_tick_for_the_whole_run(
 
     assert len(sleeps.seconds) == 3
     assert len(built) == 1
+
+
+@pytest.mark.parametrize(("minutes", "limit"), [(0, None), (30, timedelta(minutes=30))])
+def test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick(
+    settings: InstanceSettings,
+    hosting: FakeHostingService,
+    monkeypatch: pytest.MonkeyPatch,
+    minutes: int,
+    limit: timedelta | None,
+) -> None:
+    original_of = run_module.idle_shutdown_of
+    original_tick = run_module.activity_tick
+    made: list[tuple[int, IdleShutdown | None]] = []
+    handed: list[IdleShutdown | None] = []
+
+    def recording_of(given: InstanceSettings, boundaries: Boundaries) -> IdleShutdown | None:
+        shutdown = original_of(given, boundaries)
+        made.append((given.idle_shutdown_minutes, shutdown))
+        return shutdown
+
+    def recording_tick(tick: Tick, idle: IdleShutdown | None = None) -> Callable[[], bool]:
+        handed.append(idle)
+        return original_tick(tick, idle)
+
+    monkeypatch.setattr(run_module, "idle_shutdown_of", recording_of)
+    monkeypatch.setattr(run_module, "activity_tick", recording_tick)
+    sleeps = Sleeps()
+
+    run_instance(
+        settings.model_copy(update={"idle_shutdown_minutes": minutes}),
+        sleep=sleeps,
+        should_stop=_stop_after(sleeps, 1),
+        hosting=hosting,
+    )
+
+    assert [given for given, _ in made] == [minutes]
+    assert handed == [shutdown for _, shutdown in made]
+    shutdown = handed[0]
+    assert (None if shutdown is None else shutdown.limit) == limit
 
 
 def test_run_instance_writes_one_start_disk_record_before_it_runs(
