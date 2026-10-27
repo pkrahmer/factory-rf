@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-27T00:50:47.028065Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -267,6 +263,12 @@ journal:
   kind: started
   at: '2026-10-27T00:50:47.028065Z'
   stage: review
+- number: 47
+  speaker: reviewer
+  kind: result
+  at: '2026-10-27T00:51:23.170725Z'
+  stage: review
+  run: 000a81d2283d4e4bb365fd7af79c8b1b
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -778,3 +780,33 @@ Expect: `-n /usr/bin/systemctl poweroff`
     `check`: check: green
     `duplicates`: duplicates: 2 new, 42 known, 0 gone
 46. factory: started review as vm.
+47. reviewer: Round 2. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item, checklist groups 1 to 6.
+
+    - **Group 1 (acceptance criteria): passes.** I went through every criterion and every Interface rule.
+      - Criteria 1 to 11 each have a test that checks what they state. The coder's `make check` was green (journal 45).
+      - The refused sides are tested:
+        - the setting: `-1`, `x`, `1.5` and `٣` against `0`, `1` and `100000`;
+        - the model's `NonNegativeInt`: `-1` against `0`;
+        - the limit: `timedelta(0)` and minus one minute against one minute;
+        - the stretch: 29:59 against 30:00, and 59:59 against 60:00;
+        - a stop, another event and an `idle` dispatched `error`, none of which count as idle;
+        - a refused power-off, which raises nothing;
+        - each fault of the wrapper.
+    - **Group 2 (architecture): passes.**
+      - `PowerOff` is an ABC in `factory.application.machine`, and `IdleShutdown` imports only application and domain.
+      - `SystemctlPowerOff` starts its one command through `factory.adapters.process`, and the wiring is only in `factory.entry`.
+    - **Group 3 (security): passes.** The argv is a list with no shell, `sudo -n` cannot prompt, and the diff adds no markers or secrets.
+    - **Group 4 (quality): passes.** Journal 43's finding is fixed.
+      - `src/factory/domain/settings.py` `_whole_number` gained the keyword `minimum: int = 1`, and `_idle_shutdown_minutes` now reuses it with `minimum=0`.
+      - The two existing callers (`_min_free_gb`, `_minutes`) pass no `minimum`. They keep their fault `… of at least 1`, which `tests/domain/test_settings_min_free.py` and `tests/domain/test_settings_provider_limit_wait.py` assert unchanged.
+      - Not judged, as the human decided in journal 33: the run-or-raise block of `src/factory/adapters/power_off.py` against `ZfsSnapshots._execute`, and the third `_ROOT = Path("/")`.
+    - **Group 5 (work item hygiene): passes.** The Description matches what was built. The docs criterion (13) says what the operator and the agents must know.
+
+    no findings
+
+    Notes:
+    - `tests/adapters/test_power_off.py:20` (`_stand_in`) writes a `sudo` stand-in that records its words, much like the `sudo_stand_in` fixture of `tests/conftest.py`. It differs in its body, its exit status and its one-word-per-line record. This is the same note as journal 43.
+
+    Earlier tests:
+    - `tests/test_wrapper_search.py` (M): changed under the human's leave, which the story's Interface names (decision 28 of `feature.md`). It adds `factory.adapters.power_off` to the set, and the test keeps its name.
+    - `tests/entry/test_run.py` (M): no leave needed. The change adds one test and one import (`IdleShutdown`), and every earlier test stays as it was.
