@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-27T00:23:25.779331Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-10-27T00:23:04.904537Z'
   stage: doing
   run: 0080818522864ca3b8e25b611c440dae
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-27T00:23:25.779331Z'
+  stage: review
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -549,3 +558,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
 
     `check`: check: green
     `duplicates`: duplicates: 2 new, 42 known, 0 gone
+30. factory: started review as vm.
