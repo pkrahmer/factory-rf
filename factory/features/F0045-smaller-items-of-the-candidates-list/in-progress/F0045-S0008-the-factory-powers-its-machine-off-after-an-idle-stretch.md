@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-27T00:42:18.781394Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -245,6 +241,12 @@ journal:
   kind: started
   at: '2026-10-27T00:42:18.781394Z'
   stage: review
+- number: 43
+  speaker: reviewer
+  kind: result
+  at: '2026-10-27T00:43:43.288155Z'
+  stage: review
+  run: 0d8530abea0548f8bb49d0ccddc4377e
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -702,3 +704,35 @@ Expect: `-n /usr/bin/systemctl poweroff`
     `check`: check: green
     `duplicates`: duplicates: 2 new, 42 known, 0 gone
 42. factory: started review as vm.
+43. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item and stopped at group 4 (quality).
+
+    - **Group 1 (acceptance criteria): passes.** I checked every criterion and every Interface rule.
+      - Criteria 1 to 11 each have a test that checks what they state.
+      - The `missing` row of `tests/adapters/test_power_off.py` now asserts `detail.startswith(f"cannot start {program}:")`, which settles the finding of journal 35 as the human ordered in journal 33.
+      - Every refused side in the Interface is tested: the setting refused, `IdleShutdown` with zero and negative limits, `PowerOffError` swallowed, every fault of the wrapper. The limit is tested on both sides: 0 against 1 minute, -1 against 0 for the model, 29:59 against 30:00.
+      - The coder's `make check` was green (journal 41).
+    - **Group 2 (architecture): passes.**
+      - `PowerOff` is an ABC in `factory.application.machine`.
+      - `IdleShutdown` sits in application and imports only application and domain.
+      - `SystemctlPowerOff` is the one wrapper that starts `sudo`, through `factory.adapters.process`.
+      - The wiring is only in `factory.entry`.
+    - **Group 3 (security): passes.**
+      - The argv is a list with no shell, and `sudo -n` cannot prompt.
+      - No markers or secrets were added.
+
+    Findings:
+    1. `src/factory/domain/settings.py:333-339` (`_idle_shutdown_minutes`) copies the existing helper `_whole_number` (`src/factory/domain/settings.py:321-328`).
+       - It repeats the same `_optional` read, the same empty check, the same ASCII-digit test with the same comment, and the same `int(value)`.
+       - It differs only in having no lower bound of 1, in its fault text, and in giving 0 instead of `None`.
+       - CLAUDE.md (*Architecture*, last line) counts a second copy of an existing helper as a finding. The coder's reason for rejecting the reuse (journal 13: other settings use `_whole_number`) does not hold, because a keyword with a default changes nothing for them.
+       - Fix: extend `_whole_number` so the bound and the fault are given by the caller, for example `minimum: int = 1` with the fault `is not a whole number of <unit>` when `minimum` is 0. Then `_idle_shutdown_minutes` becomes `_whole_number(environ, IDLE_SHUTDOWN_VARIABLE, "minutes", minimum=0) or 0`, and the existing faults (`… of at least 1`) and their tests stay as they are. Another fix also works: pull the ASCII-digit parse into one private function that both call.
+       - This is not the duplicate the human accepted in journal 33, which was only the run-or-raise block of `power_off.py` and the third `_ROOT`. `make duplicates` does not flag this copy because it is too short.
+
+    Not judged, as the human decided in journal 33: the run-or-raise block of `src/factory/adapters/power_off.py` against `ZfsSnapshots._execute`, and the third `_ROOT = Path("/")`.
+
+    Notes:
+    - `tests/adapters/test_power_off.py:20` (`_stand_in`) writes a `sudo` stand-in that records its words, much like the `sudo_stand_in` fixture of `tests/conftest.py:205`. It differs in its body and exit status, and in recording each word on its own line instead of in one joined line.
+
+    Earlier tests:
+    - `tests/test_wrapper_search.py` (M): changed under the human's leave, which the story's Interface names (decision 28 of `feature.md`). One module, `factory.adapters.power_off`, was added to the set, and the test keeps its name.
+    - `tests/entry/test_run.py` (M): no leave needed. The change adds one test and one import (`IdleShutdown`), and every earlier test stays as it was.
