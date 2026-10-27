@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-27T02:21:05.157448Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-27T02:21:05.157448Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-27T02:21:30.358162Z'
+  stage: smoke-test
+  run: 595c1fe8c21b4c2b9dec6963d0319605
 ---
 
 # No test module imports another test module
@@ -486,3 +488,24 @@ Expect: `1`
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
 23. factory: started smoke-test as vm.
+24. smoke-tester: I ran both smoke-test commands from the repository root, exactly as written and in order. I fixed nothing.
+
+    Command 1: grep for every form of import of a test module under `tests/`, counted:
+    ```
+    0
+    ```
+    Met `Expect: 0`.
+
+    Command 2: `uv run pytest tests/test_shared_imports.py 2>&1 | tail -1 | grep -cE '^[0-9]+ passed in '`:
+    ```
+    1
+    ```
+    Met `Expect: 1`. When I ran the same pytest call again without the grep, its tail was `13 passed in 0.45s`.
+
+    Checked against the acceptance criteria:
+    - Criteria 1 to 3: both commands agree with them. The guard passes over every `*.py` file under `tests/`, and grep finds no import of a test module in any of the three forms.
+    - The description says no module under `src/factory/` changes. `git diff --name-only origin/main...HEAD` shows changes only under `tests/`, in `docs/decisions.md`, in `docs/project-guide/README.md` and in the work item's own files. Nothing under `src/factory/` changed, so the smoke test contradicts nothing there.
+    - Criterion 5 (docs): `docs/project-guide/README.md` has a paragraph on the rule that names the guard `tests/test_shared_imports.py`. `docs/decisions.md` has the entry "Shared test code lives outside the test modules". I did not judge their content in detail; no smoke-test command reads them.
+    - Criterion 4 (`make check`): no smoke-test command runs it. The factory's own checks cover it.
+
+    Findings: none.
