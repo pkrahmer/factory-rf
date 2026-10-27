@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 474
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-27T01:01:51.937422Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-27T01:01:51.937422Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-27T01:02:15.888262Z'
+  stage: intake
+  run: 8ca06c368be54368a089cef29f704fbc
+  blocked: question
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -68,3 +71,8 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
 
 1. 2026-10-27 human: created.
 2. factory: started intake as vm.
+3. intake: 1. The Interface says "a failed check removes the file and exits 1, as the step `sudoers` does". No criterion tests that failing side. Criterion 4 only checks that the text holds `visudo -cf`. Should a criterion be added (for example a run with a stand-in `visudo` that fails, expecting exit 1 and no `/etc/sudoers.d/factory-poweroff`), or should the clause be dropped from the Interface? I would add the criterion if the existing runs in `tests/test_vm_setup.py` can stand in `visudo` and the sudoers directory; otherwise I would reword the clause so that criterion 4 can test it as text (the step's text holds a `rm -f` after the failed `visudo -cf`).
+   2. The Interface says "the file is written only when its content differs" and "owner root, mode `0440`". Neither has a criterion. Criterion 4 only checks that `chmod 0440` appears, and nothing checks the owner or the compare-before-write. I would add one text criterion for each, or a run criterion if the runs can reach them.
+   3. The Interface says that without the option "the line says that the idle shutdown was not asked". No criterion pins that line, so two coders will word it two ways. Which words should the line hold, or should a criterion require only the prefix `setup: poweroff: `?
+   4. The Interface says the environment file's new line is "the last one", after `XDG_RUNTIME_DIR=...`. Criterion 5 only requires it after the first `XDG_RUNTIME_DIR=` and before the first `factory@.service`. That does not test "last". Should it say "the last line the script writes to the file"? Also, the Interface says that without the option the environment file holds no such line. No criterion covers that side. Text can show only that the line is written conditionally. Should one be added, for example that the line is inside the `--idle-shutdown` branch?
+   5. The smoke test's last command is `grep -c ... vm/setup.sh`, and the Expect says `1`. That grep counts comment lines too, while criterion 4 drops them. A comment that quotes the rule would make the count 2. Should the command drop comment lines (`grep -v '^[[:space:]]*#' vm/setup.sh | grep -c ...`), or should the Interface say that no comment may quote the rule?
