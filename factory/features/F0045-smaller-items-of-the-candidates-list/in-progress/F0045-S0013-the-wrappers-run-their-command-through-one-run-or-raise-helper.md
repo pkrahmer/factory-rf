@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366, 6433141030]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T03:40:03.536600Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-27T03:40:03.536600Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-27T03:40:21.380244Z'
+  stage: doing
+  run: 053b077404ac4898bf206d66d743f133
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -202,3 +204,16 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
     Refactor: I read the diff once. Nothing more needed changing beyond the moved comment.
 11. 2026-10-27 human: A: the human's leave for exactly those four tests: they patch `run_process` where it is called (`factory.adapters.process`); the podman `recorder` fixture keeps patching `podman_runs.run_process` for the `run` tests. Each keeps its name and checks the same thing. No extra keyword on `run_or_raise`.
 12. factory: started doing as vm.
+13. coder: No code changed this round. The human chose option A (entry 11), which needs a change to four tests. The tester makes it, as follows:
+    - `tests/adapters/test_zfs_snapshots.py::test_the_default_time_limit_is_ten_minutes_and_reaches_run_process`, `::test_the_time_limit_is_named_in_whole_seconds_rounded_up[fraction]` and `[whole]`: patch `run_process` where it is now called. That means `monkeypatch.setattr(process, "run_process", recording)` on `factory.adapters.process`, not on `zfs_snapshots`.
+    - `tests/adapters/test_podman_runs_results.py::test_version_runs_under_two_minutes_by_default`: patch `factory.adapters.process.run_process`, because `_query` reaches it through `run_or_raise`. The `recorder` fixture keeps patching `podman_runs.run_process` for the `run` tests.
+
+    Each test keeps its name and checks the same thing. `run_or_raise` gets no extra keyword.
+
+    The implementation from round 0 is already on the branch:
+    - `src/factory/adapters/process.py`: `ROOT` and `run_or_raise`.
+    - `src/factory/adapters/zfs_snapshots.py`, `src/factory/adapters/power_off.py`, `src/factory/adapters/podman_runs.py`: these call `run_or_raise`, none defines `_ROOT`, and `PodmanRuns.run` passes `cwd=ROOT`.
+
+    When the tester sends the work item back, I expect `make check` to go green with no further code change.
+
+    The journal changes one thing in the description: its "every existing test, unchanged" now has these four tests as the exception, by the human's leave. I left `## Description` as it is and name the change here.
