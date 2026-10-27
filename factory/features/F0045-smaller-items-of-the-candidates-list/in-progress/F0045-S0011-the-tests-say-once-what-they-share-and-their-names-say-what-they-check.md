@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-27T03:02:39.683271Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-27T03:02:39.683271Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-27T03:03:05.169701Z'
+  stage: smoke-test
+  run: 8c92d5f9e0b248c59b133e432bf206c7
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -432,3 +434,32 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
     `secrets`: secrets: green (0.9 s)
     `documents`: documents ok
 23. factory: started smoke-test as vm.
+24. smoke-tester: Smoke test: I ran the three commands under `## Smoke test` from the repository root, as written and in order. The output of all three is below. Together they meet the `Expect:` line exactly: three lines, `['self', 'git', 'settings']`, `gone` and `0`.
+
+    Command 1: `uv run python -c 'import inspect; from factory.application.scheduler import CheckoutPreparer; print(list(inspect.signature(CheckoutPreparer.__init__).parameters))'`
+    ```
+    Bytecode compiled 4164 files in 53ms
+    ['self', 'git', 'settings']
+    ```
+    Met. uv printed its own "Bytecode compiled" line to stderr; the command's output is `['self', 'git', 'settings']`.
+
+    Command 2: `ls tests/application/test_checkout_preparer_seal.py 2>/dev/null || echo gone`
+    ```
+    gone
+    ```
+    Met.
+
+    Command 3: `grep -rlE 'def (…five old test names…)\(' tests --include='*.py' | wc -l`
+    ```
+    0
+    ```
+    Met.
+
+    Checking the acceptance criteria against what I saw:
+    - Criteria 1 and 2: the constructor takes only `git` and `settings`. The only `_log` left in `src/factory/application/scheduler.py` is at lines 53 and 71, and it belongs to `Scheduler`, not `CheckoutPreparer`. No line of `src/factory/entry/run.py` that mentions `CheckoutPreparer` mentions `log`.
+    - Criterion 4: the old name `test_an_existing_checkout_is_kept_without_a_log_line` appears only in `tests/test_suite_old_names.py`, the guard test that checks the old names are gone. It is a string there, not a test definition.
+    - Criterion 6: `docs/project-guide/watching.md:276` shows the constructor as `CheckoutPreparer(git, settings)`, says "It takes no log" and names the renamed module `tests/application/test_checkout_preparer.py`.
+
+    Nothing I observed contradicts a criterion. I did not run `make check` (criterion 5) because it is not one of the smoke-test commands; the factory runs it as the stage's check.
+
+    Findings: none.
