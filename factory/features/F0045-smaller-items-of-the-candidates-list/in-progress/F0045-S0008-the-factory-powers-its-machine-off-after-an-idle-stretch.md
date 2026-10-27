@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-27T00:29:37.658317Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -214,6 +218,11 @@ journal:
   at: '2026-10-27T00:29:16.851435Z'
   stage: doing
   run: 55e3bb7371ce44d3bca33cade6edaad5
+- number: 38
+  speaker: factory
+  kind: started
+  at: '2026-10-27T00:29:37.658317Z'
+  stage: tests
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -638,3 +647,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
     Description: the journal did not change what the task means. Journal 31 already rewrote that row of criterion 5, and journal 33 limits this round to that row.
 
     Not touched, as the human decided in journal 33: the run-or-raise block of `power_off.py`, which repeats `ZfsSnapshots._execute`, and the third `_ROOT = Path("/")`. Both are accepted for this story.
+38. factory: started tests as vm.
