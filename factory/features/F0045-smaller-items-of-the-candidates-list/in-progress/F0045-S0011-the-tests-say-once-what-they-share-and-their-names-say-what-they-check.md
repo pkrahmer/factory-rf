@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T02:46:23.521350Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-27T02:46:23.521350Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-27T02:46:40.869477Z'
+  stage: doing
+  run: ffc0882c26fd42998216456a168b6327
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -244,3 +246,10 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
     - tests/test_suite_fixtures.py: decision 31, item 6
     - support modules tests/container_extra_support.py, tests/container_support.py, tests/contract_support.py, tests/run_layout_support.py, tests/settings_support.py, tests/wiring_support.py: decision 31, the moves of items 1 to 6 and item 10's optional version
 13. factory: started doing as vm.
+14. coder: Round 1: the reviewer's only finding (entry 12, finding 1) is a change to tests, so I changed no code. The source the reviewer checked and found sound stays as it is: `src/factory/application/scheduler.py` (`CheckoutPreparer(git, settings)`, no `_log`, no log in its docstrings) and `src/factory/entry/run.py:116`.
+
+    Test change for the tester: in `tests/application/test_checkout_preparer.py`, delete `_keeps_without_a_log`. The `existing-is-kept` row of `test_the_preparer_takes_only_the_git_and_the_settings` then runs `_group_writable` instead. The test keeps its three rows (`no-log-parameter`, `missing-is-cloned`, `existing-is-kept`), so criterion 1 is still one parametrized test of this story's own.
+
+    Main choice: the reviewer offered two fixes. I chose the first, swapping `_keeps_without_a_log` for the existing helper. I rejected the second, moving the `no-log-parameter` row into `test_the_preparer_clones_only_a_missing_checkout_and_checks_none` and dropping the new test. That test belongs to an earlier story, and adding a row to it needs the human's leave (the reviewer says so too). The first fix removes the second copy of a helper without that leave.
+
+    Noticed but not touched: the `missing-is-cloned` row still appears both in the new test and in the earlier story's test. It also overlaps `test_a_missing_checkout_is_cloned`. Criterion 1 names that row, so it stays unless the human chooses the second fix. The journal did not change the meaning of the task, so the Description stays as it is. I did not run `make check` this round because I changed nothing.
