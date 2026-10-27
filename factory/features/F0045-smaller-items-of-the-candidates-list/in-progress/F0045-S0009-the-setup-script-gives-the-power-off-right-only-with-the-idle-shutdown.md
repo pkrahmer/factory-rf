@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-27T01:23:24.464107Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-27T01:23:03.721214Z'
   stage: doing
   run: a99c137f3199460c9654b060d2a4e2df
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:23:24.464107Z'
+  stage: tests
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -241,3 +250,4 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
     - The three copies of the sudoers block (in the steps `sudoers`, `caches` and `poweroff`) remain. Merging them is a story of its own (journal entry 10).
 
     I did not run `make check` this round, because nothing changed since the green run in journal entry 10.
+15. factory: started tests as vm.
