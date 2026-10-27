@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-27T03:18:05.534971Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-27T03:18:05.529489Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-27T03:18:05.534971Z'
+  stage: intake
+---
+
 # The wrappers run their command through one run-or-raise helper
 
 <!-- proposed by feature acceptance of 2026-10-27; refine before starting -->
@@ -61,3 +88,6 @@ make duplicates 2>&1 | grep '^duplicates:'
 Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adapters/power_off.py:0`; `src/factory/adapters/podman_runs.py:0`; a line that begins `duplicates: 0 new,`
 
 ## Journal
+
+1. 2026-10-27 human: created.
+2. factory: started intake as vm.
