@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-27T03:20:41.153636Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-27T03:20:20.856498Z'
   stage: intake
   run: 1898b49551fa4516a917ef24a8a1883d
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-27T03:20:41.153636Z'
+  stage: tests
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -125,3 +134,4 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
    - Smoke test: both blocks are runnable and run no pytest. Each `Expect:` line is checkable: two lines `boom` and `/`; the three `:0` counts and a `duplicates: 0 new,` line.
    - Architecture: the helper sits in `adapters` beside `run_process` and imports `printed_output`, also in `adapters`. The wrappers stay the only callers of the process module, so no layer rule is touched.
    - Scope: the story comes from A0001 and is listed in F0045's stories. It touches nothing in "Out of scope", and it changes no earlier test.
+7. factory: started tests as vm.
