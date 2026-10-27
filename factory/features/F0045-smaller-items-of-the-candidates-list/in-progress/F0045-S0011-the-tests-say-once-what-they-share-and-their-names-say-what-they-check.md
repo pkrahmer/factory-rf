@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 476
-comments_read: []
+comments_read: [6432211115]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: f6030e814949414c842f2a16f9c779b2
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-27T02:26:27.870937Z'
+  stage: intake
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -86,3 +91,8 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
    4. Items 8 and 10 leave the new names to the tester ("names that say what their one row checks"). Criterion 4 only shows that the old names are gone. Please confirm that this is intended, with the reviewer judging the new names. If you want fixed names, state them.
 
    5. Item 1 asks for one helper serving `_claude_end` and `_opencode_end`, and item 6 asks for one shared constant. Criterion 3 only checks that the old definitions are gone. It does not check that the shared helper or constant exists. Is "absent plus a green `make check`" enough, or should a row check that the helper or constant is defined once in a support module?
+4. 2026-10-27 human: 1. Add it to criterion 2's `ast` test, as you propose.
+   2. Add it to criterion 2's `ast` test, as you propose.
+   3. Add the row: no function in the three modules has a name matching `version_[0-9]` or `at_version`, and none asserts the contract version string.
+   4. Intended: the tester chooses the new names, the reviewer judges them; no fixed names.
+   5. Add a row: the shared helper and the shared constant are each defined once, in a support module under `tests/`, and the test modules import them from there.
