@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-27T00:51:44.098754Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -269,6 +273,11 @@ journal:
   at: '2026-10-27T00:51:23.170725Z'
   stage: review
   run: 000a81d2283d4e4bb365fd7af79c8b1b
+- number: 48
+  speaker: factory
+  kind: started
+  at: '2026-10-27T00:51:44.098754Z'
+  stage: docs
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -810,3 +819,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
     Earlier tests:
     - `tests/test_wrapper_search.py` (M): changed under the human's leave, which the story's Interface names (decision 28 of `feature.md`). It adds `factory.adapters.power_off` to the set, and the test keeps its name.
     - `tests/entry/test_run.py` (M): no leave needed. The change adds one test and one import (`IdleShutdown`), and every earlier test stays as it was.
+48. factory: started docs as vm.
