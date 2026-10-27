@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-27T04:29:37.376206Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -104,6 +108,11 @@ journal:
   at: '2026-10-27T04:29:16.711119Z'
   stage: doing
   run: b6265194cd314d5bba19bb069b5cc673
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-27T04:29:37.376206Z'
+  stage: tests
 ---
 
 # The tests of F0045 say once what they share
@@ -284,3 +293,4 @@ Expect: one line that ends `passed in <n>s` and names no failure
     No journal entry changed what the task means, so the Description stays as it is. I have no diff, so there was nothing to refactor.
 
     Noticed but not touched: the earlier one-off failure of `tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_group[run_process-group]` (`OSError: [Errno 22]`, entry 11) has no recorded traceback. If it comes back, it needs a story of its own. Criterion 5 is still open for the docs stage.
+18. factory: started tests as vm.
