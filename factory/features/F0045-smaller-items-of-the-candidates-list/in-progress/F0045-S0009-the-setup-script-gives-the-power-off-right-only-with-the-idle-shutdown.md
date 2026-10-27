@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T01:29:33.482299Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-27T01:29:33.482299Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-27T01:35:37.549576Z'
+  stage: doing
+  run: ee6fbd0156304776a870618e84d9f640
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -279,3 +281,24 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.1 s)
 17. factory: started doing as vm.
+18. coder: Round 1, after the tester added the row for criterion 10 (journal entry 16). I changed no code and no test this round. The only finding was the reviewer's finding 1 in journal entry 12, which asked for that test. It is now in place, and `vm/setup.sh` already passes it.
+
+    What I built: nothing new this round. The work in `vm/setup.sh` is still what journal entry 10 describes:
+    - the option `--idle-shutdown <minutes>`, checked by `need_minutes` in its case arm;
+    - the step `poweroff`, between `caches` and `folders`, which writes or removes `/etc/sudoers.d/factory-poweroff`;
+    - the line `FACTORY_IDLE_SHUTDOWN_MINUTES=` added to the environment file only with the option.
+
+    Main choice, still as in entry 10: the minutes are checked in the option's case arm, so an empty value is refused with exit 2. I rejected checking after the argument loop, because that check would read an empty value as "off" and accept it without a word.
+
+    Refactor: there was no new diff this round, so there was nothing to change.
+
+    The journal changed nothing in the task's meaning that the Description does not already say. It already lists criterion 10, so I did not rewrite it.
+
+    Noticed, not touched:
+    - The fault message for an empty value ends with a trailing space (`... not `). No criterion pins that text.
+    - The steps `sudoers`, `caches` and `poweroff` each hold their own copy of the same sudoers block. Merging them would be a story of its own.
+
+    `check`: check: green (`make check` run this round; test: green (165.0 s))
+
+    `check`: check: green
+    `duplicates`: duplicates: 2 new, 42 known, 0 gone
