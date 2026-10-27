@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T04:19:36.254299Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -71,6 +75,11 @@ journal:
   stage: doing
   run: 566e4bc75c624c30bf8e294532500293
   reason: check_red
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-27T04:19:36.254299Z'
+  stage: doing
 ---
 
 # The tests of F0045 say once what they share
@@ -199,3 +208,4 @@ Expect: one line that ends `passed in <n>s` and names no failure
     ======================================================================================= short test summary info ========================================================================================
     FAILED tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_group[run_process-group] - OSError: [Errno 22] Invalid argument
     make: *** [Makefile:84: test] Error 1
+12. factory: started doing as vm.
