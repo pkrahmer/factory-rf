@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366, 6433141030]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-27T03:53:38.307757Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-10-27T03:53:18.033502Z'
   stage: doing
   run: 19881c3adfb542e7b9ad9d1d98087c97
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-27T03:53:38.307757Z'
+  stage: review
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -281,3 +290,4 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 1 gone
+18. factory: started review as vm.
