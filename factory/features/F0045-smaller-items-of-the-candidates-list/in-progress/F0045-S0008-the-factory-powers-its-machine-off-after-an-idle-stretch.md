@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-27T00:53:11.379750Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -280,6 +284,11 @@ journal:
   at: '2026-10-27T00:52:50.981099Z'
   stage: docs
   run: 6eb89ede60934de19b3eea26c45517a8
+- number: 50
+  speaker: factory
+  kind: started
+  at: '2026-10-27T00:53:11.379750Z'
+  stage: smoke-test
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -852,3 +861,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
     `check`: check: green (not run again: passed on tree 520f516d8b66 at 2026-10-27T00:47:40Z)
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
+50. factory: started smoke-test as vm.
