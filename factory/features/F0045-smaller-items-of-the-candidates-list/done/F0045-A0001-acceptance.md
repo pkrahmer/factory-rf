@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-27T03:15:24.797679Z'
   stage: acceptance
   run: d96e52aef6724013a437cd61194bf9bb
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-27T03:16:11.854040Z'
+  stage: done
 stories: [F0045-S0001, F0045-S0002, F0045-S0003, F0045-S0004, F0045-S0005, F0045-S0006, F0045-S0007, F0045-S0008, F0045-S0009, F0045-S0010, F0045-S0011]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of Smaller items of the candidates list
@@ -205,3 +210,4 @@ Human interventions: 11 questions answered: 10 questions (S0002 ×3, S0003 ×1, 
    6 Decisions: `feature.md` decisions 1 to 32 and the human's journal answers in S0002, S0003 and S0008 to S0011 are listed in the report. Every earlier test changed names its leave. Change 3, as written, would leave two decisions numbered 30.
    7 Slow checks: nothing beyond `make check` (green, 166.8 s, 99.57 %). The slowest tests are 10 s time-limit waits, none of them this feature's. The disk has 2.7 GB less free outside the dataset (48.5 to 45.8 GB), which the feature's changes do not explain; old stage images or caches on `vm` are likely.
    8 Cost: $41.69 over 134 runs. S0008 stands out ($9.10, 24 runs: intake questions, three review rounds that added criteria, and the round cap passed). 11 human interventions (10 questions, 1 round cap) and 0.4 h waited; S0008 needed the human most (4).
+3. factory: done (pull request merged); cost: 1 runs, 10.2 min, 45 turns, 160878 tokens in (4511619 more from cache), 41427 out, $3.02
