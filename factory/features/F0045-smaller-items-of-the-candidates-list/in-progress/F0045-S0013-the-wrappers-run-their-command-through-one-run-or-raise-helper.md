@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366, 6433141030]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-27T03:54:46.994682Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-10-27T03:54:26.659472Z'
   stage: review
   run: 2793c32de39f4ebf9bda4fc81de4d62f
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-27T03:54:46.994682Z'
+  stage: docs
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -309,3 +318,4 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
     Earlier tests:
     - `tests/adapters/test_zfs_snapshots.py`: the human's leave, journal entry 11. The patch target moved from `zfs_snapshots` to `process`, and the import changed with it; nothing else in the file used `zfs_snapshots` as a module.
     - `tests/adapters/test_podman_runs_results.py`: the human's leave, journal entry 11. `test_version_runs_under_two_minutes_by_default` now also takes `monkeypatch` and patches `process.run_process` with the same `recorder`; the `recorder` fixture is unchanged.
+20. factory: started docs as vm.
