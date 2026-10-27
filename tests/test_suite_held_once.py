@@ -79,10 +79,6 @@ def _container_once() -> None:
 
 def _get_repo_recorder_once() -> None:
     assert _definers("record_get_repo") == ["wiring_support.py"]
-
-
-def _get_repo_recorder_public() -> None:
-    assert _definers("record_get_repo") == ["wiring_support.py"]
     assert _definers("_record_get_repo") == []
 
 
@@ -92,11 +88,8 @@ def _vm_setup_helpers_once() -> None:
         assert _definers(f"_{name}") == [], name
 
 
-def _schemas_once() -> None:
-    assert _definers("SCHEMAS") == ["contract_support.py"]
-
-
 def _contract_login_helpers_once() -> None:
+    assert _definers("SCHEMAS") == ["contract_support.py"]
     for name in ("committed", "values"):
         assert _definers(name) == ["contract_login_support.py"], name
         assert _definers(f"_{name}") == [], name
@@ -163,9 +156,7 @@ def _shared_from_support() -> None:
         pytest.param(_runtime_end_once, id="runtime-end"),
         pytest.param(_container_once, id="container-settings"),
         pytest.param(_get_repo_recorder_once, id="record-get-repo"),
-        pytest.param(_get_repo_recorder_public, id="record-get-repo-public"),
         pytest.param(_vm_setup_helpers_once, id="vm-setup-helpers"),
-        pytest.param(_schemas_once, id="contract-schemas"),
         pytest.param(_contract_login_helpers_once, id="contract-login-helpers"),
         pytest.param(_recording_once, id="recording-stand-in"),
         pytest.param(_ca_names_once, id="ca-bundle-names"),

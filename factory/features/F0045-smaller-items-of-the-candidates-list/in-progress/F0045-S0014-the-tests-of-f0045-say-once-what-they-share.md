@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-27T04:29:37.376206Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -113,6 +109,12 @@ journal:
   kind: started
   at: '2026-10-27T04:29:37.376206Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-10-27T04:35:47.192318Z'
+  stage: tests
+  run: 78d17cdc405c45e786eb554df047de86
 ---
 
 # The tests of F0045 say once what they share
@@ -294,3 +296,26 @@ Expect: one line that ends `passed in <n>s` and names no failure
 
     Noticed but not touched: the earlier one-off failure of `tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_group[run_process-group]` (`OSError: [Errno 22]`, entry 11) has no recorded traceback. If it comes back, it needs a story of its own. Criterion 5 is still open for the docs stage.
 18. factory: started tests as vm.
+19. tester: Round 1: this is the test change named in the coder's entry 17, which carries the reviewer's three findings from entry 15. I made those three changes and nothing else. All the tests are in this story's own modules, so no earlier test changed.
+
+    1. **`tests/test_suite_leftovers.py`: removed the copied helper.** I deleted `_function`, which was a line-for-line copy of the one in `tests/test_suite_held_once.py`. `test_the_preparer_s_test_of_its_parameters_is_one_plain_check_of_log` now builds a dictionary, by name, of the functions that `tests/function_support.py::functions` returns, and picks its two tests from it. I chose the reviewer's first option, so `tests/function_support.py` is unchanged. I did not choose to add a by-name helper there and change `test_suite_held_once.py` to use it: that is a larger move and the finding does not need it.
+    2. **`tests/test_suite_held_once.py`: item 4 is one row.** `_get_repo_recorder_once`, with the id `record-get-repo`, now also asserts `_definers("_record_get_repo") == []`. I removed `_get_repo_recorder_public` and its row `record-get-repo-public`.
+    3. **`tests/test_suite_held_once.py`: item 2 is one row.** The `SCHEMAS` assertion from `_schemas_once` is now in `_contract_login_helpers_once`, with the id `contract-login-helpers`. I removed `_schemas_once` and its row `contract-schemas`.
+
+    Criteria to tests, as they stand now:
+    - criterion 1: `tests/test_suite_held_once.py::test_each_shared_helper_and_constant_is_held_once`, rows `vm-setup-helpers` (item 1), `contract-login-helpers` (item 2) and `record-get-repo` (item 4)
+    - criterion 2: `tests/test_suite_leftovers.py::test_the_suite_s_smoke_test_moves_back_to_doing_or_docs`
+    - criterion 3: `tests/test_suite_leftovers.py::test_the_preparer_s_test_of_its_parameters_is_one_plain_check_of_log`
+    - criteria 4 and 5: these need no test.
+
+    Files changed: `tests/test_suite_held_once.py` and `tests/test_suite_leftovers.py`. Files created: none in this round.
+
+    Modules the test run could not import: none.
+
+    - `make test`: test: green (166.1 s)
+    - `make lint`: lint: green (0.2 s)
+
+    Still open: criterion 5 is for the docs stage.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (165.9 s)
