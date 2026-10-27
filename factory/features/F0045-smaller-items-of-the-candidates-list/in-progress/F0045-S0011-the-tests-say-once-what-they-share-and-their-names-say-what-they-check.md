@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T02:37:50.924935Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-27T02:37:30.345542Z'
   stage: tests
   run: 2ae614b8d1cc4c779b8f12f3aa2ef7e5
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-27T02:37:50.924935Z'
+  stage: doing
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -167,3 +176,4 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/application/test_checkout_preparer.py::test_the_preparer_takes_only_the_git_and_the_settings[no-log-parameter] - assert 'log' not in mappingproxy(OrderedDict({'self': <Parameter "self"...
+9. factory: started doing as vm.
