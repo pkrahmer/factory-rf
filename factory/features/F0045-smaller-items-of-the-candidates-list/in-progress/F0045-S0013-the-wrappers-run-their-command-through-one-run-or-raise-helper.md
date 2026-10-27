@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-27T03:20:03.697121Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-27T03:19:43.622712Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-27T03:20:03.697121Z'
   stage: intake
 ---
 
@@ -107,3 +116,4 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
 
    If you accept both, I carry them into criterion 1 as written and end with `tests`.
 4. 2026-10-27 human: Both accepted as you propose: the `OSError` row also checks the text equals `str(` the `__cause__` `)`, and a row with `sh -c 'echo boom >&2; exit 3'` raises `RuntimeError("boom")`.
+5. factory: started intake as vm.
