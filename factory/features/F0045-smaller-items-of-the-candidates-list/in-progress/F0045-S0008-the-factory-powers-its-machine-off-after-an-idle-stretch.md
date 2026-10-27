@@ -1,11 +1,11 @@
 ---
 stage: smoke-test
-blocked: question
+blocked: null
 round: 2
 attempts: 0
 crashes: 0
 pull_request: 473
-comments_read: [6429816658, 6429884713, 6430617717]
+comments_read: [6429816658, 6429884713, 6430617717, 6431004693]
 handed_over: null
 claim: null
 journal:
@@ -292,6 +292,11 @@ journal:
   stage: smoke-test
   run: 1c8071bed539447088c30af56a06563c
   blocked: question
+- number: 52
+  speaker: human
+  kind: comment
+  at: '2026-10-27T00:56:12.663243Z'
+  stage: smoke-test
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -894,3 +899,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
     - (c) Send it to `doing`. I would not choose this, because no code is wrong.
 
     I would choose (a).
+52. 2026-10-27 human: (a): the smoke test is corrected by this answer: command 2's stand-in body becomes `printf '%s\n' "$@"` and its Expect three lines, `-n`, `/usr/bin/systemctl`, `poweroff`. Run it in that form; the code stays.
