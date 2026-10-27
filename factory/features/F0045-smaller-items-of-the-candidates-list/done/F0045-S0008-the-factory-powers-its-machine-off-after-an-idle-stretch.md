@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -308,6 +308,11 @@ journal:
   at: '2026-10-27T00:57:15.569940Z'
   stage: smoke-test
   run: 37291a3ec8824e2a91cfe8a46620a94f
+- number: 55
+  speaker: factory
+  kind: done
+  at: '2026-10-27T00:59:38.810902Z'
+  stage: approval
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -938,3 +943,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
     Findings: none.
 
     Housekeeping: the temporary directory of command 2 removed itself through its `trap`. Nothing is left under `/tmp`, and the working tree is clean.
+55. factory: done (pull request merged); cost: 24 runs, 46.1 min, 236 turns, 808019 tokens in (6424331 more from cache), 97281 out, $9.10
