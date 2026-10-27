@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T00:09:45.460449Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-10-27T00:09:45.460449Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-27T00:10:02.263729Z'
+  stage: doing
+  run: 189e0a77d31c47cfaebcf75c03759f36
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -471,3 +473,12 @@ Expect: `-n /usr/bin/systemctl poweroff`
     - `tests/test_wrapper_search.py` (M): the human's leave, which the story's Interface names (decision 28 of `feature.md`). The change adds `factory.adapters.power_off` to the set, and the test keeps its name.
     - `tests/entry/test_run.py` (M): none needed. The change adds one test and one import, and every earlier test stays as it was.
 24. factory: started doing as vm.
+25. coder: Round 2. I changed no code. The reviewer's one finding (journal 23) adds criterion 11, which needs only its test. The tester writes it: one parametrized test over `InstanceSettings`, made through a variable typed `type[BaseModel]` with the required fields, as `tests/domain/test_settings_min_free.py` does for `min_free_gb`. Its rows: `idle_shutdown_minutes` left out gives `0`, `0` gives `0`, and `-1` raises `ValidationError`.
+
+    The code it checks is already in place: `src/factory/domain/settings.py` declares `idle_shutdown_minutes: NonNegativeInt = 0`. So nothing under `src/` changes.
+
+    Main choice: send the work item straight to the tester. I rejected running a refactor or `make check` this round, because I changed nothing that it reads.
+
+    What the journal changed: criterion 11 was added, and the reviewer has already rewritten criteria 1, 5 and 8 to the reading in journal 9. The meaning of `## Description` did not change, so I left it alone.
+
+    Noticed but not touched: the 2 new `make duplicates` findings from journal 13 are still there. They are the `ProcessRequest` block in `src/factory/adapters/power_off.py`, which is similar to `zfs_snapshots._execute` and `podman_runs._query`. The reviewer said the next review round would judge them.
