@@ -1,4 +1,4 @@
-"""The interfaces to the machine: its clock, the factory log, the health status store and disks."""
+"""The interfaces to the machine: its clock, the log, the health status store, disks and power."""
 
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
@@ -59,3 +59,11 @@ class DiskSpace(ABC):
 
         Symbolic links and other non-regular files are skipped.
         """
+
+
+class PowerOff(ABC):
+    """The machine's power, which the factory may switch off."""
+
+    @abstractmethod
+    def power_off(self) -> None:
+        """Ask the machine to power off; `PowerOffError` when it cannot be asked or refuses."""

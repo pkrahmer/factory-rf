@@ -87,6 +87,17 @@ class SnapshotError(BoundaryError):
         self.detail = detail
 
 
+class PowerOffError(BoundaryError):
+    """The machine could not be asked to power off, or refused."""
+
+    detail: str
+
+    def __init__(self, detail: str) -> None:
+        """Say what went wrong; the text is `power off failed: <detail>`."""
+        super().__init__(f"power off failed: {detail}")
+        self.detail = detail
+
+
 class ContainerError(BoundaryError):
     """A container command failed, could not start or reached its time limit."""
 

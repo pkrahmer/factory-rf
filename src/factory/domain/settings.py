@@ -9,6 +9,7 @@ from typing import Literal, Self
 from pydantic import (
     BaseModel,
     ConfigDict,
+    NonNegativeInt,
     PositiveInt,
     TypeAdapter,
     ValidationError,
@@ -71,6 +72,7 @@ PODMAN_EXECUTABLE_VARIABLE = "FACTORY_PODMAN"
 ZFS_EXECUTABLE_VARIABLE = "FACTORY_ZFS"
 CONTAINER_ENV_VARIABLE = "FACTORY_CONTAINER_ENV"
 CA_BUNDLE_VARIABLE = "FACTORY_CA_BUNDLE"
+IDLE_SHUTDOWN_VARIABLE = "FACTORY_IDLE_SHUTDOWN_MINUTES"
 # The names the factory gives a container itself: the home, the logins, opencode's
 # configuration, git's credential prompt, and every name of its own.
 RESERVED_CONTAINER_NAMES = frozenset(
@@ -123,6 +125,7 @@ class InstanceSettings(BaseModel):
     zfs_executable: str = _ZFS_EXECUTABLE_DEFAULT
     container_env: tuple[str, ...] = ()
     ca_bundle: Path | None = None
+    idle_shutdown_minutes: NonNegativeInt = 0
 
     @field_validator(
         "checkout", "state_directory", "agent_home", "opencode_provider_file", "ca_bundle"
@@ -216,6 +219,7 @@ def read_settings(
         zfs_executable=_optional(environ, ZFS_EXECUTABLE_VARIABLE) or _ZFS_EXECUTABLE_DEFAULT,
         container_env=_container_env(environ),
         ca_bundle=_optional_absolute_path(environ, CA_BUNDLE_VARIABLE),
+        idle_shutdown_minutes=_idle_shutdown_minutes(environ),
     )
 
 
@@ -314,14 +318,22 @@ def _min_free_gb(environ: Mapping[str, str]) -> int:
     return DEFAULT_MIN_FREE_GB if value is None else value
 
 
-def _whole_number(environ: Mapping[str, str], variable: str, unit: str) -> int | None:
+def _whole_number(
+    environ: Mapping[str, str], variable: str, unit: str, *, minimum: int = 1
+) -> int | None:
     value = _optional(environ, variable)
     if not value:
         return None
     # `isdigit` alone takes other scripts' digits, which `int` reads but no operator means.
-    if not (value.isascii() and value.isdigit()) or int(value) < 1:
-        raise SettingsInvalid(variable, f"is not a whole number of {unit} of at least 1")
+    if not (value.isascii() and value.isdigit()) or int(value) < minimum:
+        bound = f" of at least {minimum}" if minimum > 0 else ""
+        raise SettingsInvalid(variable, f"is not a whole number of {unit}{bound}")
     return int(value)
+
+
+def _idle_shutdown_minutes(environ: Mapping[str, str]) -> int:
+    value = _whole_number(environ, IDLE_SHUTDOWN_VARIABLE, "minutes", minimum=0)
+    return 0 if value is None else value
 
 
 def _provider_limit(environ: Mapping[str, str]) -> ProviderLimit:
