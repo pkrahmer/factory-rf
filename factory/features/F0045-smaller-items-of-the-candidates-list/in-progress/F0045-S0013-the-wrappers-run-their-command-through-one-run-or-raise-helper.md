@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366, 6433141030]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-27T03:55:31.591846Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-10-27T03:55:11.167987Z'
   stage: docs
   run: 5c3e50f883c445c9abdcf1c507c29311
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-27T03:55:31.591846Z'
+  stage: smoke-test
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -332,3 +341,4 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
     `check`: check: green (not run again: passed on tree ca4a7b67abec at 2026-10-27T03:50:21Z)
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok
+22. factory: started smoke-test as vm.
