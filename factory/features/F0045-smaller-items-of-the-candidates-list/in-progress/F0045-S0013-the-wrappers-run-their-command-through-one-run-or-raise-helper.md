@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366, 6433141030]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-27T03:40:41.852123Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-10-27T03:40:21.380244Z'
   stage: doing
   run: 053b077404ac4898bf206d66d743f133
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-27T03:40:41.852123Z'
+  stage: tests
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -217,3 +226,4 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
     When the tester sends the work item back, I expect `make check` to go green with no further code change.
 
     The journal changes one thing in the description: its "every existing test, unchanged" now has these four tests as the exception, by the human's leave. I left `## Description` as it is and name the change here.
+14. factory: started tests as vm.
