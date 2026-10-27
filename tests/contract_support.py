@@ -24,12 +24,13 @@ class MainRow:
     code: int
 
 
-def committed_is_generated(entry: ContractEntry, version: str) -> Callable[[], None]:
-    """A check that the committed schema of `entry` is at `version` and equals its generation."""
+def committed_is_generated(entry: ContractEntry, version: str | None = None) -> Callable[[], None]:
+    """A check that the committed schema of `entry` equals its generation, at `version` if given."""
 
     def check() -> None:
         text = (SCHEMAS / schema_file_name(entry)).read_text(encoding="utf-8")
-        assert f'"{CONTRACT_KEY}": "{version}"' in text
+        if version is not None:
+            assert f'"{CONTRACT_KEY}": "{version}"' in text
         assert text == contract_schema(entry)
 
     return check

@@ -8,13 +8,8 @@ from pydantic import ValidationError
 
 from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import InstanceSettings, read_settings, workspace_overlap_fault
-from settings_support import AGENT_HOME, BASE
+from settings_support import AGENT_HOME, BASE, CONTAINER
 
-CONTAINER = {
-    "FACTORY_DATASET": "tank/factory/vm",
-    "FACTORY_WORKSPACE": "/srv/factory/vm/work",
-    "FACTORY_STAGE_IMAGE": "factory-stage:1",
-}
 STAGE_ENVIRONMENT = "FACTORY_STAGE_ENVIRONMENT"
 WORKSPACE = Path("/srv/work")
 INNER_CHECKOUT = WORKSPACE / "checkout"

@@ -3,12 +3,10 @@
 import json
 import os
 import shutil
-from collections.abc import Callable
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
-import github
 import pytest
 
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
@@ -38,7 +36,14 @@ from factory.entry.wiring import (
 )
 from git_support import clone, install_agents, write_executable
 from podman_support import PodmanPlan
-from wiring_support import CREDENTIAL, after_image, dataset_podman, run_words, with_dataset
+from wiring_support import (
+    CREDENTIAL,
+    _record_get_repo,
+    after_image,
+    dataset_podman,
+    run_words,
+    with_dataset,
+)
 
 GITHUB_URL = "https://github.com/owner/project.git"
 LOCAL_URL = "/srv/project.git"
@@ -71,18 +76,6 @@ def settings(tmp_path: Path) -> InstanceSettings:
         ),
         tmp_path,
     )
-
-
-def _record_get_repo(monkeypatch: pytest.MonkeyPatch) -> list[tuple[object, ...]]:
-    repositories: list[tuple[object, ...]] = []
-    original: Callable[..., object] = github.Github.get_repo
-
-    def recording(self: github.Github, *args: object, **kwargs: object) -> object:
-        repositories.append((*args, *kwargs.values()))
-        return original(self, *args, **kwargs)
-
-    monkeypatch.setattr(github.Github, "get_repo", recording)
-    return repositories
 
 
 @pytest.mark.parametrize(

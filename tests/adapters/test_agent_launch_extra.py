@@ -6,7 +6,6 @@ import pytest
 
 from adapters.container_runtime_support import container_environment
 from container_extra_support import (
-    CA_NAMES,
     OTHER,
     PROXY,
     agent_words,
@@ -15,7 +14,7 @@ from container_extra_support import (
     write_bundle,
 )
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE
-from factory.domain.containers import extra_environment
+from factory.domain.containers import CA_BUNDLE_NAMES, extra_environment
 from factory.domain.settings import InstanceSettings
 from settings_support import AGENT_HOME
 
@@ -56,8 +55,10 @@ def test_the_agent_s_container_holds_the_listed_names_and_the_bundle(
     assert API_LOGIN_VARIABLE not in environment
     assert environment["PATH"] == container_environment(tmp_path / "bin")["PATH"]
     if bundle is None:
-        assert not any(name in environment for name in CA_NAMES)
+        assert not any(name in environment for name in CA_BUNDLE_NAMES)
         return
     assert volume(bundle) in words
     assert words[words.index(volume(bundle)) - 1] == "--volume"
-    assert {name: environment[name] for name in CA_NAMES} == dict.fromkeys(CA_NAMES, str(bundle))
+    assert {name: environment[name] for name in CA_BUNDLE_NAMES} == dict.fromkeys(
+        CA_BUNDLE_NAMES, str(bundle)
+    )

@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 
 from container_extra_support import (
-    CA_NAMES,
     PROXY,
     agent_words,
     check_words,
@@ -20,7 +19,7 @@ from container_support import Dataset
 from factory.adapters.claude_runtime import SWITCHES
 from factory.adapters.make_commands import CHECK_ENVIRONMENT
 from factory.application.stage_environment import SYNC_ENVIRONMENT
-from factory.domain.containers import WORK_HOME, extra_environment
+from factory.domain.containers import CA_BUNDLE_NAMES, WORK_HOME, extra_environment
 from factory.domain.settings import InstanceSettings
 from settings_support import AGENT_HOME
 
@@ -115,7 +114,7 @@ def test_the_sync_and_check_containers_hold_the_extras_and_the_bundle(
         update={"container_env": container_env, "ca_bundle": bundle if with_bundle else None}
     )
     extra = extra_environment(settings, HOST)
-    expected = dict(added) if added is not None else dict.fromkeys(CA_NAMES, str(bundle))
+    expected = dict(added) if added is not None else dict.fromkeys(CA_BUNDLE_NAMES, str(bundle))
     today = words_of(dataset, extra={}, bundle=None)
 
     words = words_of(dataset, extra=extra, bundle=settings.ca_bundle)

@@ -23,7 +23,6 @@ from podman_support import IMAGE
 
 PROXY = "http://proxy.example.invalid:3128"
 OTHER = "OTHER_HOST_NAME"
-CA_NAMES = ("NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE")
 CHECK_LIMIT = timedelta(minutes=1)
 COMMIT = CommitId("a" * 40)
 

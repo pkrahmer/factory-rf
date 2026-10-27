@@ -1,5 +1,7 @@
 """The checkout preparer clones a missing checkout and keeps any checkout that holds a `.git`."""
 
+import ast
+import inspect
 from collections.abc import Callable
 from pathlib import Path
 
@@ -10,8 +12,8 @@ from factory.application.scheduler import CheckoutPreparer
 from factory.domain.git import GitOptions
 from factory.domain.settings import InstanceSettings
 from git_support import TEST_IDENTITY, clone
-from recording_log import RecordingLog
 from settings_support import AGENT_HOME
+from source_search import SRC, modules
 
 KEPT = "added-by-test.txt"
 PREPARE_DOCSTRING = "Clone when the checkout holds no `.git`; keep any checkout that does."
@@ -49,42 +51,35 @@ def test_a_missing_checkout_is_cloned(remote: Path, directory: Path, git: GitCli
     assert git.resolve("origin/main") is not None
 
 
-def test_an_existing_checkout_is_kept_without_a_log_line(
+def test_an_existing_checkout_is_kept_with_its_files_and_modes(
     remote: Path, directory: Path, git: GitCli
 ) -> None:
     added = _existing(remote, directory)
     (directory / ".git").chmod(0o755)
     config = directory / ".git" / "config"
     config.chmod(0o664)
-    log = RecordingLog()
 
-    CheckoutPreparer(git, _settings(remote, directory), log=log).prepare()
+    CheckoutPreparer(git, _settings(remote, directory)).prepare()
 
     assert added.read_text(encoding="utf-8") == "put there by the test\n"
     assert config.stat().st_mode & 0o777 == 0o664
-    assert log.lines == []
 
 
 def _missing(remote: Path, directory: Path, git: GitCli) -> None:
-    log = RecordingLog()
-
-    CheckoutPreparer(git, _settings(remote, directory), log=log).prepare()
+    CheckoutPreparer(git, _settings(remote, directory)).prepare()
 
     assert git.resolve("origin/main") is not None
-    assert log.lines == []
 
 
 def _group_writable(remote: Path, directory: Path, git: GitCli) -> None:
     added = _existing(remote, directory)
     folder = directory / ".git"
     folder.chmod(0o2775)
-    log = RecordingLog()
 
-    CheckoutPreparer(git, _settings(remote, directory), log=log).prepare()
+    CheckoutPreparer(git, _settings(remote, directory)).prepare()
 
     assert folder.stat().st_mode & 0o7777 == 0o2775
     assert added.read_text(encoding="utf-8") == "put there by the test\n"
-    assert log.lines == []
 
 
 def _nested(remote: Path, directory: Path, git: GitCli) -> None:
@@ -93,12 +88,10 @@ def _nested(remote: Path, directory: Path, git: GitCli) -> None:
     nested.mkdir(parents=True)
     head = nested / "HEAD"
     head.write_text("ref: refs/heads/main\n", encoding="utf-8")
-    log = RecordingLog()
 
-    CheckoutPreparer(git, _settings(remote, directory), log=log).prepare()
+    CheckoutPreparer(git, _settings(remote, directory)).prepare()
 
     assert head.read_text(encoding="utf-8") == "ref: refs/heads/main\n"
-    assert log.lines == []
 
 
 def _docstring(_remote: Path, _directory: Path, _git: GitCli) -> None:
@@ -118,3 +111,85 @@ def test_the_preparer_clones_only_a_missing_checkout_and_checks_none(
     remote: Path, directory: Path, git: GitCli, case: Callable[[Path, Path, GitCli], None]
 ) -> None:
     case(remote, directory, git)
+
+
+def _takes_no_log(_remote: Path, _directory: Path, _git: GitCli) -> None:
+    assert "log" not in inspect.signature(CheckoutPreparer.__init__).parameters
+
+
+def _keeps_without_a_log(remote: Path, directory: Path, git: GitCli) -> None:
+    added = _existing(remote, directory)
+
+    CheckoutPreparer(git, _settings(remote, directory)).prepare()
+
+    assert added.read_text(encoding="utf-8") == "put there by the test\n"
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        pytest.param(_takes_no_log, id="no-log-parameter"),
+        pytest.param(_missing, id="missing-is-cloned"),
+        pytest.param(_keeps_without_a_log, id="existing-is-kept"),
+    ],
+)
+def test_the_preparer_takes_only_the_git_and_the_settings(
+    remote: Path, directory: Path, git: GitCli, case: Callable[[Path, Path, GitCli], None]
+) -> None:
+    case(remote, directory, git)
+
+
+def _preparer_class() -> ast.ClassDef:
+    tree = modules()["factory.application.scheduler"]
+    return next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.ClassDef) and node.name == "CheckoutPreparer"
+    )
+
+
+def _assigns_no_log_attribute() -> None:
+    assigned = {
+        node.attr
+        for node in ast.walk(_preparer_class())
+        if isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Store)
+    }
+
+    assert "_log" not in assigned
+
+
+def _docstrings_name_no_log() -> None:
+    preparer = _preparer_class()
+    docstrings = [ast.get_docstring(preparer) or ""] + [
+        ast.get_docstring(node) or ""
+        for node in preparer.body
+        if isinstance(node, ast.FunctionDef) and node.name == "__init__"
+    ]
+
+    assert all("log" not in docstring.lower() for docstring in docstrings)
+
+
+def _wiring_passes_no_log() -> None:
+    tree = ast.parse((SRC / "entry" / "run.py").read_text(encoding="utf-8"))
+    keywords = [
+        keyword.arg
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "CheckoutPreparer"
+        for keyword in node.keywords
+    ]
+
+    assert "log" not in keywords
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        pytest.param(_assigns_no_log_attribute, id="no-log-attribute"),
+        pytest.param(_docstrings_name_no_log, id="docstrings"),
+        pytest.param(_wiring_passes_no_log, id="run-instance"),
+    ],
+)
+def test_the_preparer_s_source_holds_no_log(case: Callable[[], None]) -> None:
+    case()

@@ -3,7 +3,7 @@
 import subprocess
 from pathlib import Path
 
-from container_support import timing_lines
+from container_support import RESET_PREFIX, timing_lines
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.fake_snapshots import FakeSnapshots
 from factory.application.boundaries import Boundaries
@@ -76,7 +76,7 @@ def test_a_story_walks_to_approval_in_the_world_on_the_container_fakes(world: Wo
         raise AssertionError(f"{work_item} did not reach approval in {LIMIT} ticks")
 
     assert walked == ["intake", "tests", "doing", "review", "docs", "smoke-test"]
-    resets = [line for line in timing_lines(world.boundaries) if "stage environment: reset" in line]
+    resets = [line for line in timing_lines(world.boundaries) if RESET_PREFIX in line]
     assert len(resets) >= len(walked)
     head = f"origin/{branch_name(work_item)}"
     assert git.show_file(head, "src/example.py") == SOURCE

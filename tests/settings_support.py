@@ -1,4 +1,4 @@
-"""The required settings, the agent home the model requires and the container names' fault texts."""
+"""The required and the container settings, the agent home and the container names' fault texts."""
 
 from collections.abc import Callable
 from pathlib import Path
@@ -8,6 +8,11 @@ BASE = {
     "FACTORY_REPOSITORY_URL": "/srv/project.git",
     "FACTORY_INSTANCE": "factory-1",
     "FACTORY_CLAUDE_HOME": str(AGENT_HOME),
+}
+CONTAINER = {
+    "FACTORY_DATASET": "tank/factory/vm",
+    "FACTORY_WORKSPACE": "/srv/factory/vm/work",
+    "FACTORY_STAGE_IMAGE": "factory-stage:1",
 }
 NOT_A_NAME = "which is not a variable name"
 SET_BY_FACTORY = "which the factory sets itself"

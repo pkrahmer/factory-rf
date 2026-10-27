@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-27T02:27:37.778240Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-27T02:27:37.778240Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-27T02:37:30.345542Z'
+  stage: tests
+  run: 2ae614b8d1cc4c779b8f12f3aa2ef7e5
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -124,3 +126,44 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
    - Architecture: the only source change is in the application layer's `CheckoutPreparer` and its wiring in `entry`, which goes the right way. The rest is under `tests/` and keeps the support-module rules of `CLAUDE.md`.
    - Scope: within feature decisions 19 and 31, which give the leave for the ten items. Journal entry 4, point 4: the tester chooses the new names and the reviewer judges them. No fixed names were added.
 7. factory: started tests as vm.
+8. tester: Tests written for criteria 1 to 4, and the ten items of the list carried out in `tests/` under the leave the Interface names (decision 31 of `feature.md`).
+
+   Criterion → test:
+   - criterion 1: tests/application/test_checkout_preparer.py::test_the_preparer_takes_only_the_git_and_the_settings (rows no-log-parameter, missing-is-cloned, existing-is-kept)
+   - criterion 2: tests/application/test_checkout_preparer.py::test_the_preparer_s_source_holds_no_log (rows no-log-attribute, docstrings, run-instance)
+   - criterion 3: tests/test_suite_held_once.py::test_each_shared_helper_and_constant_is_held_once (one row for each of items 1 to 7, plus shared-from-support)
+   - criterion 4: tests/test_suite_old_names.py::test_no_test_keeps_an_old_name_or_a_contract_version (one row for each of the six old names, plus seal-module and contract-version)
+   - criteria 5 and 6: not tests (make check, docs).
+
+   Files created: tests/test_suite_held_once.py, tests/test_suite_old_names.py, tests/recording_stand_in_support.py (`recording_stand_in`, `recorded_calls`).
+
+   Modules changed, by item:
+   1. tests/adapters/test_runtimes_without_wrapper.py: `_claude_end` and `_opencode_end` are replaced by `run_end(runtime, layout)` in tests/run_layout_support.py. Two private builders, `_claude` and `_opencode`, make the runtimes. The `hasattr(ClaudeCodeRuntime, "confine_executable")` check is now the row `claude-runtime-confine` of `test_the_wrapper_s_names_are_gone`.
+   2. `CONTAINER` now lives in tests/settings_support.py. It is imported by tests/domain/test_settings_agent_user_unread.py, test_settings_one_environment.py and test_settings_stage_environment.py.
+   3. `_record_get_repo` now lives in tests/wiring_support.py. It is imported by tests/entry/test_wiring_boundaries.py and test_wiring_one_environment.py.
+   4. tests/entry/test_wiring_container_extra.py and test_wiring_stage_environment.py now use `recording_stand_in` and `recorded_calls` from tests/recording_stand_in_support.py. `recorded_calls` returns [] when the stand-in never ran, as the stage-environment copy did.
+   5. `CA_NAMES` is removed from tests/container_extra_support.py. tests/entry/test_wiring_container_extra.py, tests/application/test_container_environment_extra.py and tests/adapters/test_agent_launch_extra.py now use `factory.domain.containers.CA_BUNDLE_NAMES`.
+   6. `RESET_PREFIX = f"{TIMING_PREFIX} reset"` is now in tests/container_support.py. tests/test_suite_fixtures.py and tests/application/test_stage_on_container_fakes.py import it.
+   7. tests/adapters/test_claude_runtime_no_hook.py::test_no_run_registers_a_hook is now a plain test.
+   8. Renames:
+      - tests/entry/test_wiring_extras.py: test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_user → test_the_extras_are_the_container_items_then_the_agent_run_probe
+      - tests/application/test_agent_run_probe_factory_user.py: test_the_opencode_login_hint_names_the_agent_user_or_the_factory_user → test_the_opencode_login_hint_names_the_factory_user
+      - Both keep their one row.
+   9. Module renamed: tests/application/test_checkout_preparer_seal.py → tests/application/test_checkout_preparer.py. The `log=` arguments, the `RecordingLog`s and the `log.lines == []` assertions are gone. test_an_existing_checkout_is_kept_without_a_log_line → test_an_existing_checkout_is_kept_with_its_files_and_modes. Every other assertion stays. The tests of criteria 1 and 2 are in this module too.
+   10. Contract tests:
+      - tests/domain/test_contract_provider_limit.py: test_the_committed_schemas_list_provider_limit_at_version_1_2 → test_the_committed_schemas_list_provider_limit. It loses the `RECORDS_CONTRACT == "4.0"` and `x-records-contract` assertions.
+      - tests/domain/test_contract_version_2.py → tests/domain/test_contract_without_tool_paths.py, with test_the_records_contract_is_at_version_2_without_tool_paths → test_the_committed_schemas_are_generated_and_the_pipeline_definition_has_no_tool_paths.
+      - tests/domain/test_contract_version_3.py → tests/domain/test_contract_without_nested_repository.py, with test_the_records_contract_is_at_version_3_without_nested_repository → test_the_committed_schemas_are_generated_and_name_no_nested_repository.
+      - Both renamed modules drop the `_version` row. Their generated-schema rows call `committed_is_generated(entry)` without a version. For that, `version` in tests/contract_support.py::committed_is_generated is now optional (`str | None = None`). S0004's test_contract_version_4.py still passes "4.0" and is unchanged.
+
+   Interpretations the reviewer should judge:
+   - Criterion 4's contract row checks the three modules at their current paths, after the renames item 10 allows.
+   - In that row, "asserts the contract version string" is read as: no string literal of the form `<n>.<n>` and no name `RECORDS_CONTRACT` in the module.
+   - The new test and module names are my choice, as journal entry 4, point 4 allows.
+
+   `make test` (one run): 4 failed, the rest passed, coverage 99.57 %. The failures are the four rows that need the coder: no-log-parameter, no-log-attribute, docstrings and run-instance. They fail on assertions against the current `CheckoutPreparer(…, log=…)` and on `run.py` passing `log=`. Every module imported; nothing failed to import. Every moved helper and renamed test passed. `make lint`: green. No type check run in this stage.
+
+   For the coder: `src/factory/application/scheduler.py` (`CheckoutPreparer` without `log`, its `_log` and the log in its docstrings) and `src/factory/entry/run.py:116` (no `log=`).
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/application/test_checkout_preparer.py::test_the_preparer_takes_only_the_git_and_the_settings[no-log-parameter] - assert 'log' not in mappingproxy(OrderedDict({'self': <Parameter "self"...

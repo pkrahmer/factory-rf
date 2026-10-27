@@ -8,7 +8,9 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
+from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
+from factory.domain.errors import AgentRuntimeError
 
 LIMIT = timedelta(seconds=30)
 
@@ -84,3 +86,12 @@ def run_request(
         working_directory=layout.checkout,
         environment={"HOME": str(layout.home)} if with_home else {},
     )
+
+
+def run_end(runtime: AgentRuntime, layout: Layout) -> tuple[str | None, str | None]:
+    """Run the layout's request: the refusal's detail, or the run's end reason."""
+    try:
+        result = runtime.run(run_request(layout))
+    except AgentRuntimeError as error:
+        return error.detail, None
+    return None, result.end_reason
