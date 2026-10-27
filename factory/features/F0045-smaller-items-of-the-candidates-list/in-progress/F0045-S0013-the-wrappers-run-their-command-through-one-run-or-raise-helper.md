@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-27T03:20:03.697121Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-27T03:20:03.697121Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-27T03:20:20.856498Z'
+  stage: intake
+  run: 1898b49551fa4516a917ef24a8a1883d
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -78,7 +80,7 @@ Tests (the tester writes them): a new module at the tester's choice, for example
 
 ## Acceptance criteria
 
-1. The helper (rows of one parametrized test, `fault` a function that returns a `RuntimeError` of its detail): `sh -c 'echo ok'` returns a result with exit status 0 and `stdout == "ok\n"`; `sh -c 'echo boom; exit 3'` raises `RuntimeError("boom")`; the same with `accepted=(0, 3)` and with `accepted=None` returns exit status 3; `sh -c 'exit 1'` (nothing printed) raises `RuntimeError("exit status 1")`; a program path under `tmp_path` that does not exist raises a `RuntimeError` whose `__cause__` is an `OSError`; `sh -c 'sleep 30'` with a time limit of one second raises `RuntimeError(no_end_detail(timedelta(seconds=1)))`.
+1. The helper (rows of one parametrized test, `fault` a function that returns a `RuntimeError` of its detail): `sh -c 'echo ok'` returns a result with exit status 0 and `stdout == "ok\n"`; `sh -c 'echo boom; exit 3'` raises `RuntimeError("boom")`; `sh -c 'echo boom >&2; exit 3'` raises `RuntimeError("boom")`; the same with `accepted=(0, 3)` and with `accepted=None` returns exit status 3; `sh -c 'exit 1'` (nothing printed) raises `RuntimeError("exit status 1")`; a program path under `tmp_path` that does not exist raises a `RuntimeError` whose `__cause__` is an `OSError` and whose text equals `str(` that `__cause__` `)`; `sh -c 'sleep 30'` with a time limit of one second raises `RuntimeError(no_end_detail(timedelta(seconds=1)))`.
 2. The directory (rows of one parametrized test): `pwd` run through `run_or_raise` without `cwd` prints `/`; with `cwd=tmp_path` it prints `tmp_path`.
 3. The block is held once (rows of one parametrized test reading the three modules with `ast`): `zfs_snapshots`, `power_off` and `podman_runs` assign no name `_ROOT`; `zfs_snapshots` and `power_off` construct no `ProcessRequest`; `podman_runs` constructs exactly one, in `run`.
 4. `make check` stays green.
@@ -117,3 +119,9 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
    If you accept both, I carry them into criterion 1 as written and end with `tests`.
 4. 2026-10-27 human: Both accepted as you propose: the `OSError` row also checks the text equals `str(` the `__cause__` `)`, and a row with `sh -c 'echo boom >&2; exit 3'` raises `RuntimeError("boom")`.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: `run_or_raise` and `ROOT` in `factory.adapters.process` are concrete, with a full signature. The three callers are named, with `_query`'s `cwd` and `accepted=None` and `run`'s `cwd=ROOT`. Error texts stay unchanged.
+   - Criteria: I carried the human's answer (journal entry 4) into criterion 1 and changed nothing else. The `OSError` row now also checks that the text equals `str(` the `__cause__` `)`. A new row, `sh -c 'echo boom >&2; exit 3'` raising `RuntimeError("boom")`, covers `merge_stderr=True`. Every Interface clause now has a criterion. Both sides are covered: accepted and refused exit status, `accepted=None`, a start failure, the time limit, and `cwd` default and given. Each criterion is testable by one parametrized test.
+   - Smoke test: both blocks are runnable and run no pytest. Each `Expect:` line is checkable: two lines `boom` and `/`; the three `:0` counts and a `duplicates: 0 new,` line.
+   - Architecture: the helper sits in `adapters` beside `run_process` and imports `printed_output`, also in `adapters`. The wrappers stay the only callers of the process module, so no layer rule is touched.
+   - Scope: the story comes from A0001 and is listed in F0045's stories. It touches nothing in "Out of scope", and it changes no earlier test.
