@@ -410,9 +410,10 @@ sudo sh vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner
 | `--image <tag>` | `factory-stage:<instance>` | The stage image. |
 | `--runtime claude\|opencode` | `claude` | The agent runtime. |
 | `--sudoers` | off | Reach `zfs` through `sudo` (see below). |
+| `--idle-shutdown <minutes>` | off | Let the factory power the machine off after that many idle minutes: a whole number of ASCII digits, at least 1 (`0`, `x`, `-5`, `1.5` and an empty value are refused). Gives `factory` the power-off right (step 9) and adds `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>` to the environment file (step 14). See *The idle shutdown*. |
 | `--help` | | Print the usage to standard output and exit 0. |
 
-A missing required option, an option without its value, an unknown word or a runtime other than the two prints `setup.sh: <what is wrong>` and the usage to standard error and exits 2. When the user is not root it prints `setup.sh: run as root` and exits 2. Nothing is made or changed before either exit.
+A missing required option, an option without its value, an `--idle-shutdown` value that is not a whole number of at least 1, an unknown word or a runtime other than the two prints `setup.sh: <what is wrong>` and the usage to standard error and exits 2. When the user is not root it prints `setup.sh: run as root` and exits 2. Nothing is made or changed before either exit.
 
 #### The steps
 
@@ -426,12 +427,13 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 6. `delegation`: `zfs allow -u factory snapshot,destroy,rollback,diff,mount` on the instance's dataset, unless all five are already delegated.
 7. `sudoers`: only with `--sudoers`, see below. Without it the line says `not asked` and neither file is touched.
 8. `caches`: on every run, with or without `--sudoers`, the helper `/usr/local/bin/factory-drop-caches` (mode `0755`; it runs `sync`, then writes `1` to `/proc/sys/vm/drop_caches`) and `/etc/sudoers.d/factory-drop-caches` (mode `0440`), which holds the one rule `factory ALL=(root) NOPASSWD: /usr/local/bin/factory-drop-caches`. Each is written only when its text differs. The rule is checked with `visudo -cf`; if `visudo` refuses it, the script removes the file, prints `setup: caches: visudo -cf refused /etc/sudoers.d/factory-drop-caches; removed it` to standard error and exits 1. See *The page cache after a rollback*.
-9. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` (mode `0755`), and `/home/factory/.secrets` (mode `0700`). If `state`, `repo` or `/home/factory/.secrets` is a link, the script prints `setup: folders: ...` to standard error and exits 1 before it makes anything in the step: remove the link and run it again. The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
-10. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
-11. `checkout`: the factory at `--ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
-12. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `vm/git-credential-factory` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
-13. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`).
-14. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
+9. `poweroff`: with `--idle-shutdown`, `/etc/sudoers.d/factory-poweroff` (mode `0440`, owner root), which holds the one rule `factory ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff`, written only when its text differs and checked with `visudo -cf`; if `visudo` refuses it, the script removes the file, prints `setup: poweroff: visudo -cf refused /etc/sudoers.d/factory-poweroff; removed it` to standard error and exits 1. Without the option it runs `rm -f` on that file, so a right an earlier run gave is taken back, and the line says `setup: poweroff: not asked; the factory gets no power-off right`. See *The idle shutdown*.
+10. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` (mode `0755`), and `/home/factory/.secrets` (mode `0700`). If `state`, `repo` or `/home/factory/.secrets` is a link, the script prints `setup: folders: ...` to standard error and exits 1 before it makes anything in the step: remove the link and run it again. The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
+11. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
+12. `checkout`: the factory at `--ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
+13. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `vm/git-credential-factory` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
+14. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`). With `--idle-shutdown` its last line is `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>`; without the option the file holds no such line, so a run without it takes the setting back.
+15. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
 
 The script writes the files under `/srv/factory/<instance>` (`image-id`, the askpass script and `factory.env`) as `factory`, with `cat` from its own standard input, because a process started by `runuser` may not reopen root's `/dev/stdin`.
 
@@ -439,7 +441,7 @@ The script ends with `setup: done: build the stage image and start factory@<inst
 
 #### The two passes
 
-The checkout of the private repository needs the hosting token. When `/home/factory/.secrets/hosting-token` is not there at step 11, the script prints `setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again` and exits 0. Place all three files, `hosting-token`, `claude-token` and `anthropic-api-key`, in `/home/factory/.secrets`, readable by `factory`, and run the same command again: steps 1 to 10 report `found` and the rest completes. All three must exist whatever the runtime; with the `claude` runtime the key file stays empty.
+The checkout of the private repository needs the hosting token. When `/home/factory/.secrets/hosting-token` is not there at step 12, the script prints `setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again` and exits 0. Place all three files, `hosting-token`, `claude-token` and `anthropic-api-key`, in `/home/factory/.secrets`, readable by `factory`, and run the same command again: steps 1 to 11 report `found` and the rest completes. All three must exist whatever the runtime; with the `claude` runtime the key file stays empty.
 
 The token is written into no file. Git asks the askpass script (`/srv/factory/<instance>/askpass`) for it, and only that script reads the token file; the clone sets `core.askPass` on its own command line, not in any git configuration.
 
@@ -696,7 +698,16 @@ A VM costs money for every hour it runs, also while the factory has nothing to d
 
 **A refused power-off.** The factory runs `sudo -n /usr/bin/systemctl poweroff`, the one command it needs. When `factory` has no right to it, `sudo` is missing, the call reaches its time limit of one minute, or the instance does not run on the VM, the second line holds the last line `sudo` printed (for example `sudo: a password is required`) or `exit status <n>`. It is not a stop: the instance runs on, starts a new stretch, and asks again only after another full limit. Read the line with `grep 'idle shutdown' /srv/factory/vm/state/factory.log`. No preflight item checks the right.
 
-**The right.** The setup script gives `factory` the right to that one command and sets the variable in the environment file with its option `--idle-shutdown <minutes>` (a separate change; the script does not have the option yet). Without the right, set the variable only if you accept the second log line above.
+**The right.** The setup script gives `factory` the right to that one command, and sets the variable in the environment file, with its option `--idle-shutdown <minutes>`: step `poweroff` writes `/etc/sudoers.d/factory-poweroff`, step `environment` the line `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>`, both from the same run. Without the right, set the variable only if you accept the second log line above.
+
+**Turning it on and off.** To turn it on, or to change the minutes, run the script again with the option, then restart the service so that it reads the new environment file:
+
+```bash
+sudo sh vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner>/<repo>.git --idle-shutdown 30
+sudo systemctl restart factory@vm
+```
+
+To turn it off, run the script again without the option (and restart the same way): it removes `/etc/sudoers.d/factory-poweroff` and the line in the environment file. The script never starts or stops the service and never powers the machine off itself.
 
 **Starting the machine again.** Starting is outside the factory. By hand, from your own computer:
 

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-27T01:37:00.557923Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-27T01:37:00.557923Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-27T01:37:46.138110Z'
+  stage: docs
+  run: 6d25ffd56ce44a41b139d6348848ed78
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -346,3 +348,32 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
     - tests/test_vm_setup_text.py: the standing leave to move a shared test helper. `VALUE_END`, `ENVIRONMENT`, `_name_positions`, `_indent` and `_enclosing_if` moved to tests/vm_support.py. Every test keeps its name and what it checks.
     - tests/test_vm_setup_caches.py: the standing leave to move a shared test helper. `COMPARISONS`, `_compares` and `_writes` moved to tests/vm_support.py (`_writes` is now `writes_path`, with the same body). Every test keeps its name and what it checks.
 21. factory: started docs as vm.
+22. documenter: Wrote the documentation for the option `--idle-shutdown` and the step `poweroff`. I changed only documents, so I did not run `make check`; the factory's check after this stage decides.
+
+    Files changed:
+    - `docs/operator-guide.md`, `### The script`:
+      - The options table gains `--idle-shutdown <minutes>`: the value rule, what it gives (the power-off right and the environment line) and a pointer to *The idle shutdown*.
+      - The paragraph on faults now names an `--idle-shutdown` value that is not a whole number of at least 1.
+      - New step 9 `poweroff` in the numbered list. It covers the file, mode and owner, the single rule, the compare-before-write, the `visudo -cf` refusal (file removed, message on standard error, exit 1), the no-option branch (`rm -f`) and its exact line.
+      - The steps after it are renumbered, so `folders` is 10 and `service` is 15, which makes 15 steps.
+      - Step 14 `environment` now says the last line is `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>` with the option and is absent without it.
+      - In *The two passes*, "step 11" is now "step 12" and "steps 1 to 10" is now "steps 1 to 11".
+    - `docs/operator-guide.md`, `### The idle shutdown`:
+      - The paragraph *The right* no longer says the option is missing. It names the two steps that write the right and the setting from the same run.
+      - New paragraph *Turning it on and off*: run the script again with or without the option, then `systemctl restart factory@vm`. A run without the option removes the sudoers file and the environment line. The script never starts, stops or powers off anything.
+    - `docs/decisions.md`: the entry "The machine powers itself off after an idle stretch, an option off by default" gains one line on the `sudoers` rule, written only with the option and removed without it (F0045-S0009).
+
+    I did not run the new command examples. They need root and a ZFS machine. Their option names and the file names match `vm/setup.sh` in the diff.
+
+    Cross-read and found current:
+    - `docs/operator-guide.md`: the `FACTORY_IDLE_SHUTDOWN_MINUTES` row, the loop section, and the `caches` step (still step 8, so the references to it hold).
+    - The other step-number mentions in the guide: "step 8 of On GCP" and the GCP walkthrough refer to other lists, not to the script's steps.
+    - `docs/project-guide/` and `README.md`: no module under `src/` changed, so there was nothing to update; as the docs criterion says, none.
+
+    Findings for the coder: none. The script matches the Interface.
+
+    Stale text I saw and did not touch: nothing unrelated. I did not fix the trailing space in the empty-value fault message that the coder noted, because that is code.
+
+    `check`: check: green (not run again: passed on tree 5994d7b3be36 at 2026-10-27T01:32:43Z)
+    `secrets`: secrets: green (1.9 s)
+    `documents`: documents ok
