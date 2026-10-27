@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-27T01:45:18.671775Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-27T01:45:00.875448Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:45:18.671775Z'
   stage: intake
 ---
 
@@ -84,3 +93,4 @@ Expect: `1`
    - The failing side of the rule is covered by criterion 1.
 4. 2026-10-27 human: 1. (a) with (b): each found import reports the line of its statement's first line (the `from` or `import` line, also for a parenthesised multi-line import) and the module, and a criterion checks that the failure message renders `<file>:<line>: <module>` for a given source text and file name.
    2. Accepted as is: the guard and `make check` are the checks for those two rules.
+5. factory: started intake as vm.
