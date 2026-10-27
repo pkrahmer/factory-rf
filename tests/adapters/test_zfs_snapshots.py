@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters import zfs_snapshots
+from factory.adapters import process
 from factory.adapters.process import ProcessResult
 from factory.adapters.zfs_snapshots import SNAPSHOT_TIME_LIMIT, ZfsSnapshots
 from factory.application.snapshots import Snapshots
@@ -157,7 +157,7 @@ def test_the_default_time_limit_is_ten_minutes_and_reaches_run_process(
         exit_status=0, stdout="", stderr="", timed_out=False, duration=timedelta(0)
     )
     recording.results.extend([success, success])
-    monkeypatch.setattr(zfs_snapshots, "run_process", recording)
+    monkeypatch.setattr(process, "run_process", recording)
 
     ZfsSnapshots(DATASET, MOUNT_POINT, drop_caches=DROP, executable="/nowhere/zfs").reset()
 
@@ -180,7 +180,7 @@ def test_the_time_limit_is_named_in_whole_seconds_rounded_up(
     recording.results.append(
         ProcessResult(exit_status=None, stdout="", stderr="", timed_out=True, duration=time_limit)
     )
-    monkeypatch.setattr(zfs_snapshots, "run_process", recording)
+    monkeypatch.setattr(process, "run_process", recording)
 
     with pytest.raises(SnapshotError) as raised:
         ZfsSnapshots(

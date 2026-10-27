@@ -1,11 +1,12 @@
 """The snapshots of a ZFS dataset, reached through the `zfs` executable."""
 
+import functools
 import re
 from datetime import timedelta
 from pathlib import Path, PurePosixPath
 
-from factory.adapters.printed_output import failure_detail, first_printed_line, no_end_detail
-from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from factory.adapters.printed_output import first_printed_line
+from factory.adapters.process import ProcessResult, run_or_raise
 from factory.application.snapshots import Snapshots
 from factory.domain.errors import SnapshotError
 from factory.domain.git import ChangedPath, ChangeKind
@@ -14,7 +15,6 @@ BASE_SNAPSHOT = "base"
 SNAPSHOT_TIME_LIMIT = timedelta(minutes=10)
 DROP_CACHES_COMMAND = ("sudo", "-n", "/usr/local/bin/factory-drop-caches")
 
-_ROOT = Path("/")
 _DIRECTORY_KIND = "/"
 _RENAME = "R"
 _CHANGES: dict[str, ChangeKind] = {"M": "modified", "+": "added", "-": "deleted"}
@@ -151,22 +151,12 @@ class ZfsSnapshots(Snapshots):
 
     def _execute(self, argv: list[str], *, accepted: tuple[int, ...] = (0,)) -> ProcessResult:
         command = " ".join(argv)
-        request = ProcessRequest(
-            argv=argv,
-            cwd=_ROOT,
-            env=None,
+        return run_or_raise(
+            argv,
             time_limit=self._time_limit,
-            merge_stderr=True,
+            fault=functools.partial(SnapshotError, command),
+            accepted=accepted,
         )
-        try:
-            result = run_process(request)
-        except OSError as error:
-            raise SnapshotError(command, str(error)) from error
-        if result.timed_out:
-            raise SnapshotError(command, no_end_detail(self._time_limit))
-        if result.exit_status not in accepted:
-            raise SnapshotError(command, failure_detail(result.stdout, result.exit_status))
-        return result
 
 
 def _record(changes: dict[str, ChangeKind], path: str, change: ChangeKind) -> None:

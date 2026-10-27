@@ -1,13 +1,14 @@
 """Throwaway containers of one image on the dataset, started rootless by the `podman` executable."""
 
+import functools
 import math
 from collections.abc import Mapping, Sequence
 from datetime import timedelta
 from pathlib import Path
 
 from factory.adapters.agent_launch import CONTAINER_KILL_STATUSES
-from factory.adapters.printed_output import failure_detail, first_printed_line, no_end_detail
-from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from factory.adapters.printed_output import failure_detail, first_printed_line
+from factory.adapters.process import ROOT, ProcessRequest, ProcessResult, run_or_raise, run_process
 from factory.application.containers import ContainerRuns
 from factory.domain.containers import (
     WORK,
@@ -27,9 +28,6 @@ PODMAN_TIME_LIMIT = timedelta(minutes=2)
 # time on a machine of 8 GB.
 PIDS_LIMIT = 4096
 MEMORY_LIMIT = "4g"
-
-# Podman reads no file from its working directory; the container's is `--workdir`.
-_ROOT = Path("/")
 
 
 def _volume(mount: Mount) -> str:
@@ -121,7 +119,8 @@ class PodmanRuns(ContainerRuns):
         )
         request = ProcessRequest(
             argv=launch.argv,
-            cwd=_ROOT,
+            # Podman reads no file from its working directory; the container's is `--workdir`.
+            cwd=ROOT,
             env=launch.env,
             time_limit=launch.time_limit,
             merge_stderr=True,
@@ -165,17 +164,10 @@ class PodmanRuns(ContainerRuns):
         return " ".join([self._executable, *arguments])
 
     def _query(self, arguments: list[str]) -> ProcessResult:
-        request = ProcessRequest(
-            argv=[self._executable, *arguments],
-            cwd=self._workspace,
-            env=None,
+        return run_or_raise(
+            [self._executable, *arguments],
             time_limit=self._time_limit,
-            merge_stderr=True,
+            fault=functools.partial(ContainerError, self._command(arguments)),
+            cwd=self._workspace,
+            accepted=None,
         )
-        try:
-            result = run_process(request)
-        except OSError as error:
-            raise ContainerError(self._command(arguments), str(error)) from error
-        if result.timed_out:
-            raise ContainerError(self._command(arguments), no_end_detail(self._time_limit))
-        return result

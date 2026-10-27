@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters import podman_runs
+from factory.adapters import podman_runs, process
 from factory.adapters.podman_runs import PODMAN_TIME_LIMIT, PodmanRuns
 from factory.adapters.process import ProcessResult
 from factory.domain.errors import ContainerError
@@ -264,7 +264,10 @@ def test_version_is_the_first_line_podman_prints(
     assert row.at_least_seconds <= elapsed < ROOMY_BOUND_SECONDS
 
 
-def test_version_runs_under_two_minutes_by_default(runs: PodmanRuns, recorder: Recorder) -> None:
+def test_version_runs_under_two_minutes_by_default(
+    runs: PodmanRuns, recorder: Recorder, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(process, "run_process", recorder)
     recorder.results.append(
         ProcessResult(
             exit_status=0,
