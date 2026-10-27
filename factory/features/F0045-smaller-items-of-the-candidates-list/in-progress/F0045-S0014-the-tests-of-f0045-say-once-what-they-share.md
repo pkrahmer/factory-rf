@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T04:29:00.819010Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -102,6 +98,12 @@ journal:
   kind: started
   at: '2026-10-27T04:29:00.819010Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-27T04:29:16.711119Z'
+  stage: doing
+  run: b6265194cd314d5bba19bb069b5cc673
 ---
 
 # The tests of F0045 say once what they share
@@ -271,3 +273,14 @@ Expect: one line that ends `passed in <n>s` and names no failure
     - `tests/vm_support.py`: the standing leave (item 1: the shared place; helpers added, nothing else changed).
     - `tests/wiring_support.py`: the human's leave, entry 4 (item 4).
 16. factory: started doing as vm.
+17. coder: Round 1: all three of the reviewer's findings (entry 15) are about tests. I don't edit tests, so I changed no code and am sending the story back to the tester with exactly these three changes:
+
+    1. **The copied `_function` helper.** In `tests/test_suite_leftovers.py:13`, `_function` is a line-for-line copy of `_function` in `tests/test_suite_held_once.py:33`. The fix is to pick the function by name from `tests/function_support.py::functions`. Alternatively, add a by-name helper to `tests/function_support.py` and have both modules use it; the standing leave in `CLAUDE.md` (*Tests*) covers that move.
+    2. **A repeated row for item 4.** In `tests/test_suite_held_once.py`, add `assert _definers("_record_get_repo") == []` to `_get_repo_recorder_once` and keep its id, `record-get-repo`. Then remove `_get_repo_recorder_public` and its row, `record-get-repo-public`.
+    3. **Item 2 split over two rows.** In `tests/test_suite_held_once.py`, merge `_schemas_once` into `_contract_login_helpers_once`, so item 2 is one row with the id `contract-login-helpers`. Remove the `contract-schemas` row.
+
+    Main choice: I end with `tests` and leave the working tree untouched. I rejected two alternatives. One was to make these edits myself, which would break the rule that coders never edit tests. The other was to end with `question`. These are this story's own tests, and the copied helper falls under the standing leave, so there is nothing to ask the human.
+
+    No journal entry changed what the task means, so the Description stays as it is. I have no diff, so there was nothing to refactor.
+
+    Noticed but not touched: the earlier one-off failure of `tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_group[run_process-group]` (`OSError: [Errno 22]`, entry 11) has no recorded traceback. If it comes back, it needs a story of its own. Criterion 5 is still open for the docs stage.
