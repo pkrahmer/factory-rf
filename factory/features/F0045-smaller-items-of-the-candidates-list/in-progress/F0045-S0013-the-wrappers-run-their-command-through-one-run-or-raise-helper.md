@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-27T03:20:41.153636Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-27T03:20:41.153636Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-27T03:27:29.738088Z'
+  stage: tests
+  run: de65a84aece243808a8013dda984d162
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -135,3 +137,17 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
    - Architecture: the helper sits in `adapters` beside `run_process` and imports `printed_output`, also in `adapters`. The wrappers stay the only callers of the process module, so no layer rule is touched.
    - Scope: the story comes from A0001 and is listed in F0045's stories. It touches nothing in "Out of scope", and it changes no earlier test.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for the three criteria that need tests, all in one new module. Each criterion is one parametrized test:
+   - criterion 1: `tests/adapters/test_run_or_raise.py::test_run_or_raise_returns_the_result_or_raises_the_wrappers_fault`. It has eight rows: success with `stdout == "ok\n"`; a refused status printed on stdout; a refused status printed on stderr; `accepted=(0, 3)`; `accepted=None`; `exit status 1` when nothing is printed; a missing program under `tmp_path`, where `__cause__` is an `OSError` and the text equals `str(__cause__)`; and `sleep 30` at a 1 s limit giving `no_end_detail(timedelta(seconds=1))`. The rows that check the default `accepted` call without that argument. The `fault` passed in returns `RuntimeError(detail)`.
+   - criterion 2: `tests/adapters/test_run_or_raise.py::test_run_or_raise_runs_in_root_unless_given_a_directory`. Rows: `pwd` without `cwd` prints `/`; with `cwd=tmp_path` it prints `str(tmp_path)`.
+   - criterion 3: `tests/adapters/test_run_or_raise.py::test_the_wrappers_hold_no_copy_of_the_run_or_raise_block`. One row for each of `zfs_snapshots`, `power_off` and `podman_runs`. Each row parses the module with `ast` and checks that no `_ROOT` is assigned. It also checks which functions construct `ProcessRequest(...)`: none in the first two, exactly `["run"]` in `podman_runs`. It finds the modules through `SRC` in `tests/source_search.py`.
+   - criteria 4 and 5 (`make check`, docs) get no test.
+
+   Files created: `tests/adapters/test_run_or_raise.py`. No earlier test was changed.
+
+   Red run: `make test` fails at collection with an ImportError in `tests/adapters/test_run_or_raise.py`, because `run_or_raise` does not exist yet in `factory.adapters.process`. The module under test is therefore `factory.adapters.process` (the name `run_or_raise`). `make lint` is green.
+
+   The test of criterion 3 reads the source, as the structural tests listed under `[tool.mutmut]` in `pyproject.toml` do. Leaving it out of mutmut's runs would need a change to `pyproject.toml`, which is outside the tester's write paths. I did not make it; the human may want to add it to that list.
+
+   `lint`: lint: green (0.2 s)
+   `test`: ERROR tests/adapters/test_run_or_raise.py - ImportError while importing test module '/work/checkout/tests/adapters/test_run_or_raise.py'.
