@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-27T01:04:53.582306Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-27T01:04:35.763018Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:04:53.582306Z'
   stage: intake
 ---
 
@@ -87,3 +96,4 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
    3. The line is exactly `setup: poweroff: not asked; the factory gets no power-off right` (as the step `sudoers` says `not asked`); a criterion pins it.
    4. Yes to both: the new line is the last line the script writes to the environment file, and it is written only inside the `--idle-shutdown` branch (text criterion).
    5. The smoke command drops comment lines: `grep -v '^[[:space:]]*#' vm/setup.sh | grep -c ...`; the Expect stays `1`.
+5. factory: started intake as vm.
