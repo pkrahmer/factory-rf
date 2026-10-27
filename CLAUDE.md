@@ -33,6 +33,7 @@ The second implementation of the factory (github.com/pkrahmer/factory), planned 
 ## Tests
 - pytest. Tests live under `tests/` and mirror the package: `tests/domain/`, `tests/application/`, `tests/adapters/`, `tests/entry/`, each folder a package with an `__init__.py`; a module outside the layers is tested at the `tests/` root.
 - Plain test functions, shared fixtures in `tests/conftest.py`, parametrize for tables of cases. Never mock the code under test.
+- A test module (`test_*.py`) is never imported by another module: a helper, constant or class that two test modules share lives in a support module under `tests/` (a new one named `*_support.py`) or, for a fixture, in `tests/conftest.py`; `tests/test_shared_imports.py` checks it.
 - Fake: the hosting service, through its one fake implementation; the agent runtime, through a fake implementation of its interface.
 - Do not fake git. Tests use a real local bare remote and clones in a temporary directory (`tmp_path`).
 - No network, no sleeps, no files outside `tmp_path`.
