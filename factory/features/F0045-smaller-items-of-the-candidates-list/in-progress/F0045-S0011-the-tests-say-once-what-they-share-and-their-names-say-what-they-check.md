@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T02:46:23.521350Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-27T02:46:02.887766Z'
   stage: review
   run: b76a2ddfdc474a15aa3fd0bdbc1421e3
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-27T02:46:23.521350Z'
+  stage: doing
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -234,3 +243,4 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
     - tests/entry/test_wiring_stage_environment.py: decision 31, item 4
     - tests/test_suite_fixtures.py: decision 31, item 6
     - support modules tests/container_extra_support.py, tests/container_support.py, tests/contract_support.py, tests/run_layout_support.py, tests/settings_support.py, tests/wiring_support.py: decision 31, the moves of items 1 to 6 and item 10's optional version
+13. factory: started doing as vm.
