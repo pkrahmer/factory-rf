@@ -32,7 +32,6 @@ dead-code src/factory/domain/write_paths.py: unused function 'is_writable'
 dead-code src/factory/adapters/clock.py: unused class 'ManualWaiter'
 dead-code src/factory/application/take.py: unused variable 'restored_work_item'
 similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: return finished_run(result, started, self._kill_points)
-similar-code factory.adapters.podman_runs, factory.adapters.zfs_snapshots: env=None,
 similar-code factory.adapters.fake_containers, factory.adapters.podman_runs: env=launch.env,
 similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: exit_status=process.exit_status,
 dead-code src/factory/adapters/fake_containers.py: unused class 'FakeContainerRuns'
