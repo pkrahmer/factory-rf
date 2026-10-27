@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-27T00:10:22.703917Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-27T00:10:22.703917Z'
   stage: tests
+- number: 27
+  speaker: tester
+  kind: result
+  at: '2026-10-27T00:16:24.713483Z'
+  stage: tests
+  run: 143966be140a4600a2881160423b27b9
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -492,3 +494,21 @@ Expect: `-n /usr/bin/systemctl poweroff`
 
     Noticed but not touched: the 2 new `make duplicates` findings from journal 13 are still there. They are the `ProcessRequest` block in `src/factory/adapters/power_off.py`, which is similar to `zfs_snapshots._execute` and `podman_runs._query`. The reviewer said the next review round would judge them.
 26. factory: started tests as vm.
+27. tester: Round 2, an approved test change. I wrote the test for criterion 11, which the reviewer added (journal 23) and the coder handed to me (journal 25). Nothing under `src/` changed.
+
+    - criterion 11: tests/domain/test_settings_idle_shutdown.py::test_the_settings_keep_idle_shutdown_minutes_of_at_least_zero. It is one parametrized test over `InstanceSettings`, made through a variable typed `type[BaseModel]` with the required fields (`repository_url`, `instance`, `agent_home=AGENT_HOME`), in the same way as `tests/domain/test_settings_min_free.py`. It has three rows:
+      - `default`: the field left out gives `0`.
+      - `zero`: `0` gives `0`.
+      - `negative`: `-1` raises `ValidationError`.
+
+    Files created: none. I changed tests/domain/test_settings_idle_shutdown.py, this story's own test module (journal 19's commit), by adding:
+    - the new test function;
+    - the imports `BaseModel`, `ValidationError`, `InstanceSettings` and `AGENT_HOME`;
+    - a widened module docstring.
+
+    The existing test in that module did not change. Rejected: a new module of its own, because that file already holds this setting's tests.
+
+    Modules the test run could not import: none. `make test` is green with coverage at 99.57 %. The test passes straight away, because `idle_shutdown_minutes: NonNegativeInt = 0` is already in `src/factory/domain/settings.py`, so there is no red test. `make lint` is green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (163.3 s)
