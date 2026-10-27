@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-27T01:42:18.411472Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-27T01:42:18.405875Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:42:18.411472Z'
+  stage: intake
+---
+
 # No test module imports another test module
 
 ## Description
@@ -35,3 +62,6 @@ uv run pytest tests/test_shared_imports.py 2>&1 | tail -1 | grep -cE '^[0-9]+ pa
 Expect: `1`
 
 ## Journal
+
+1. 2026-10-27 human: created.
+2. factory: started intake as vm.
