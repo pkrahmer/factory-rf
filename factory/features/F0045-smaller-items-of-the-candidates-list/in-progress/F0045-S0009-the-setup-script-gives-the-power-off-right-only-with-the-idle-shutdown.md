@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-27T01:21:08.808867Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-10-27T01:20:47.781000Z'
   stage: doing
   run: c7f4c3400afb4aa6ae3d085a3dbafe45
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:21:08.808867Z'
+  stage: review
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -192,3 +201,4 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
 
     `check`: check: green
     `duplicates`: duplicates: 2 new, 42 known, 0 gone
+11. factory: started review as vm.
