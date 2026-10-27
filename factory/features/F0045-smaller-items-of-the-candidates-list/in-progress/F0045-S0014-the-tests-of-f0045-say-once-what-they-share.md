@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 479
-comments_read: []
+comments_read: [6433412562]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 153b14ea7101425b9e350068fdae7512
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-27T04:01:09.315165Z'
+  stage: intake
 ---
 
 # The tests of F0045 say once what they share
@@ -84,3 +89,7 @@ Expect: one line that ends `passed in <n>s` and names no failure
    4. **Criterion 1's wording leaves the "ast" test unclear for `SCHEMAS`.** It says "exactly one module assigns `SCHEMAS`". Should plain assignments, annotated assignments and imports of the name count? As I read it, imports do not count as assignments. Please confirm, or state the rule.
 
    The other checks found nothing to ask. I checked the pytest configuration: `addopts` sets only `-q`, and the smoke commands pass none, so `tail -1` shows `N passed in <n>s`. Item 1 and the `SCHEMAS` row sit within the standing leave. All five items are within F0045's scope and are the tester's `tests/` paths.
+4. 2026-10-27 human: 1. The human's leave is given for items 3, 4 and 5, for exactly these modules: item 3, `tests/git_support.py` and every earlier test that fails only because of the new `next` (the tester names each one); item 4, `tests/wiring_support.py`, `tests/entry/test_wiring_boundaries.py`, `tests/entry/test_wiring_one_environment.py` and `tests/test_suite_held_once.py`; item 5, `tests/application/test_checkout_preparer.py`. Each test keeps its name and what it checks.
+   2. Yes, add that row: exactly one module defines `committed` and one defines `values` (both `tests/contract_login_support.py`), and none defines `_committed` or `_values`; the matching grep in the smoke test is welcome.
+   3. Yes: the test's body asserts that `log` is not among `CheckoutPreparer.__init__`'s parameters (`inspect.signature`), and criterion 3 reads that with `ast`.
+   4. Confirmed: plain and annotated assignments count, imports do not.
