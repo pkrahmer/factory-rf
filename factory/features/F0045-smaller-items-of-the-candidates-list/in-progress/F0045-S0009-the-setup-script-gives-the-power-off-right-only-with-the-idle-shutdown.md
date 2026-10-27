@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 474
-comments_read: []
+comments_read: [6431120801]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 8ca06c368be54368a089cef29f704fbc
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-27T01:04:35.763018Z'
+  stage: intake
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -76,3 +81,9 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
    3. The Interface says that without the option "the line says that the idle shutdown was not asked". No criterion pins that line, so two coders will word it two ways. Which words should the line hold, or should a criterion require only the prefix `setup: poweroff: `?
    4. The Interface says the environment file's new line is "the last one", after `XDG_RUNTIME_DIR=...`. Criterion 5 only requires it after the first `XDG_RUNTIME_DIR=` and before the first `factory@.service`. That does not test "last". Should it say "the last line the script writes to the file"? Also, the Interface says that without the option the environment file holds no such line. No criterion covers that side. Text can show only that the line is written conditionally. Should one be added, for example that the line is inside the `--idle-shutdown` branch?
    5. The smoke test's last command is `grep -c ... vm/setup.sh`, and the Expect says `1`. That grep counts comment lines too, while criterion 4 drops them. A comment that quotes the rule would make the count 2. Should the command drop comment lines (`grep -v '^[[:space:]]*#' vm/setup.sh | grep -c ...`), or should the Interface say that no comment may quote the rule?
+4. 2026-10-27 human: All as text criteria, the way F0045-S0002's step `caches` was pinned:
+   1. Add a text criterion: the step's refused branch runs `rm -f /etc/sudoers.d/factory-poweroff`, prints its message with `>&2` and ends `exit 1`. No stand-in `visudo` run.
+   2. Add text criteria: the step compares the file with its wanted text before writing and reports `found` or `wrote`; the file is written by root with mode `0440` (the step's `chmod 0440` or `install -m 0440` on that path).
+   3. The line is exactly `setup: poweroff: not asked; the factory gets no power-off right` (as the step `sudoers` says `not asked`); a criterion pins it.
+   4. Yes to both: the new line is the last line the script writes to the environment file, and it is written only inside the `--idle-shutdown` branch (text criterion).
+   5. The smoke command drops comment lines: `grep -v '^[[:space:]]*#' vm/setup.sh | grep -c ...`; the Expect stays `1`.
