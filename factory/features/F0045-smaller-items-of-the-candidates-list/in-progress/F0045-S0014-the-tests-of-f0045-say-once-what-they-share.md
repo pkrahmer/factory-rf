@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-27T04:01:27.258333Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-27T04:01:09.315165Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-27T04:01:27.258333Z'
   stage: intake
 ---
 
@@ -93,3 +102,4 @@ Expect: one line that ends `passed in <n>s` and names no failure
    2. Yes, add that row: exactly one module defines `committed` and one defines `values` (both `tests/contract_login_support.py`), and none defines `_committed` or `_values`; the matching grep in the smoke test is welcome.
    3. Yes: the test's body asserts that `log` is not among `CheckoutPreparer.__init__`'s parameters (`inspect.signature`), and criterion 3 reads that with `ast`.
    4. Confirmed: plain and annotated assignments count, imports do not.
+5. factory: started intake as vm.
