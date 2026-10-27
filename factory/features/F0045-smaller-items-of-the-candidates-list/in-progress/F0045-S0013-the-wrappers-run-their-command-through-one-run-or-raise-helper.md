@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 478
 comments_read: [6432903366]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T03:27:50.340280Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-10-27T03:27:50.340280Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-27T03:37:26.091930Z'
+  stage: doing
+  run: 71cb7248539b47e2805606418319fd58
+  blocked: question
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -161,3 +164,25 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/adapters/test_run_or_raise.py - ImportError while importing test module '/work/checkout/tests/adapters/test_run_or_raise.py'.
 9. factory: started doing as vm.
+10. coder: Stopped before `make check` is green. Four earlier tests contradict "every existing test, unchanged" together with the Interface. I need your word on which one gives way.
+
+    What I built (left in the working tree):
+    - `src/factory/adapters/process.py`: `ROOT` and `run_or_raise`, as the Interface states.
+    - `src/factory/adapters/zfs_snapshots.py`: `_execute` calls `run_or_raise` with `fault=functools.partial(SnapshotError, command)`.
+    - `src/factory/adapters/podman_runs.py`: `_query` calls `run_or_raise` with `cwd=self._workspace, accepted=None`. `run` passes `cwd=ROOT`, and the comment that sat on `_ROOT` moved to that line.
+    - `src/factory/adapters/power_off.py`: `power_off` calls `run_or_raise(fault=PowerOffError)`. To keep the text `cannot start <sudo>: <error>`, it catches a `PowerOffError` whose `__cause__` is an `OSError` and raises it again with that prefix, chained from the `OSError`. I rejected changing the start-failure text, because the Interface keeps the error texts.
+    - None of the three modules defines `_ROOT` any more. `make duplicates` now reports `duplicates: 0 new, 41 known, 1 gone`.
+    - lint, types, layers, sast, secrets and licenses are green. Every new test in `tests/adapters/test_run_or_raise.py` passes, and so do all the other tests except these four:
+
+    The contradiction: these tests monkeypatch `run_process` by name on the wrapper module, so they only see a request when the wrapper calls `run_process` itself. Under the Interface, the wrapper calls `run_or_raise`, which calls `factory.adapters.process.run_process`.
+    - `tests/adapters/test_zfs_snapshots.py::test_the_default_time_limit_is_ten_minutes_and_reaches_run_process` and `::test_the_time_limit_is_named_in_whole_seconds_rounded_up[fraction]` / `[whole]` each do `monkeypatch.setattr(zfs_snapshots, "run_process", recording)`. Each fails with `E   AttributeError: <module 'factory.adapters.zfs_snapshots' ...> has no attribute 'run_process'`.
+    - `tests/adapters/test_podman_runs_results.py::test_version_runs_under_two_minutes_by_default`: its `recorder` fixture patches `podman_runs.run_process`, which `_query` no longer calls. `version()` then runs the real stand-in and fails with `E   factory.domain.errors.ContainerError: container command .../podman-bin/podman --version failed: printed nothing`.
+
+    Options:
+    A. The tester changes those four tests to patch `run_process` where it is called. In zfs, `monkeypatch.setattr(process, "run_process", recording)` in place of `zfs_snapshots`. In podman, the test that goes through `_query` patches `factory.adapters.process.run_process` too, while the `recorder` fixture keeps patching `podman_runs.run_process` for the `run` tests. Each test keeps its name and checks the same thing. I would choose this.
+    B. `run_or_raise` gets a further keyword, `run: Callable[[ProcessRequest], ProcessResult] = run_process`, and each wrapper passes its own module's `run_process`, so the old patch points still work. This changes the Interface and keeps an import in each wrapper only to serve the tests.
+    C. The zfs and podman wrappers keep their own block. That undoes the story.
+
+    With A, I end the next round with `tests` and name these four tests and the change.
+
+    Refactor: I read the diff once. Nothing more needed changing beyond the moved comment.

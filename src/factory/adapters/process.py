@@ -13,12 +13,15 @@ from typing import IO, Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from factory.adapters.printed_output import failure_detail, no_end_detail
+
 Stream = Literal["stdout", "stderr"]
 
 _READ_SIZE = 65536
 _END_POLL_SECONDS = 0.05
 
 PIPE_DRAIN = timedelta(seconds=5)
+ROOT = Path("/")
 
 
 class ProcessRequest(BaseModel):
@@ -257,3 +260,28 @@ def run_streaming(request: ProcessRequest, on_line: Callable[[Stream, str], bool
         stopped=stopped,
         duration=timedelta(seconds=time.monotonic() - start),
     )
+
+
+def run_or_raise(
+    argv: list[str],
+    *,
+    time_limit: timedelta,
+    fault: Callable[[str], Exception],
+    cwd: Path = ROOT,
+    accepted: tuple[int, ...] | None = (0,),
+) -> ProcessResult:
+    """Run `argv` in `cwd` with standard error merged and return its result.
+
+    A program that cannot start, the time limit reached, or an exit status outside
+    `accepted` raises `fault` of the detail; `accepted=None` returns every exit status.
+    """
+    request = ProcessRequest(argv=argv, cwd=cwd, env=None, time_limit=time_limit, merge_stderr=True)
+    try:
+        result = run_process(request)
+    except OSError as error:
+        raise fault(str(error)) from error
+    if result.timed_out:
+        raise fault(no_end_detail(time_limit))
+    if accepted is not None and result.exit_status not in accepted:
+        raise fault(failure_detail(result.stdout, result.exit_status))
+    return result
