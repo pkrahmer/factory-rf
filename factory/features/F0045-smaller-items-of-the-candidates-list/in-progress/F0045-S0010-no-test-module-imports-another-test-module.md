@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-27T01:45:18.671775Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-27T01:45:18.671775Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-27T01:45:45.701353Z'
+  stage: intake
+  run: f4c3eec591bc48bfaab5591b3789b2db
 ---
 
 # No test module imports another test module
@@ -55,16 +57,17 @@ None under `src/factory/`, `vm/`, `template/` or `claude/`. The tester changes `
 - A test module is a module under `tests/` whose file name begins with `test_`.
 - The rule the guard checks: no module under `tests/` (test modules, support modules, `conftest.py` files) imports a test module, in any of the three forms `from <path>.test_<name> import ...` or `from test_<name> import ...`; `import <path>.test_<name>` or `import test_<name>`; and `from <path> import test_<name>` (with or without `as`, on one line or in parentheses over several).
 - A name that moves keeps its meaning; a private name (`_request`) may lose its leading underscore when it moves; a fixture that moves to `tests/conftest.py` keeps its name.
-- The guard `tests/test_shared_imports.py` reads every `*.py` file under `tests/` with `ast` and names each import that breaks the rule as `<file>:<line>: <module>`.
+- The guard `tests/test_shared_imports.py` reads every `*.py` file under `tests/` with `ast` and names each import that breaks the rule as `<file>:<line>: <module>`, the line being the first line of the import statement.
 
 Tests (the leave is decision 30 of `feature.md`): the guard `tests/test_shared_imports.py` (new); every module under `tests/` that holds such an import, and every test module it imports from, changed as the leave says. On 2026-10-26 these modules import from a test module: `tests/adapters/test_claude_runtime_api_login.py`, `test_claude_runtime_container.py`, `test_claude_runtime_denial_paths.py`, `test_claude_runtime_provider_limit.py`, `test_claude_runtime_resume_session.py`, `test_cost_records_jsonl_denials.py`, `test_cost_records_jsonl_instance.py`, `test_cost_records_jsonl_login.py`, `test_opencode_runtime_container.py`, `test_opencode_runtime_launch.py`, `test_runtime_podman_timeout_status.py`; `tests/application/test_agent_run_probe_api_login.py`, `test_cost_instance.py`, `test_interfaces.py`, `test_known_results.py`, `test_known_results_torn.py`, `test_preflight_login_line.py`, `test_preflight_stale_main_stop.py`, `test_preflight_stops_commit.py`, `test_recording_project_commands.py`, `test_tick_project_agent.py`; `tests/domain/test_contract_provider_limit.py`, `test_section_edges.py`, `test_story_form_edges.py`; `tests/entry/test_check_documents_guide_files.py`, `test_wiring_api_login.py`, `test_wiring_container_extra.py`, `test_wiring_opencode.py`, `test_wiring_stage_environment.py`; `tests/container_extra_support.py` (its `REPLY`, F0046-S0002's review), `tests/preflight_support.py` and `tests/test_time_limits.py` (it reads the stand-ins' wait constants of test modules, which then live in support modules beside the tests that use them). The tester works from `main` as S0001 to S0009 of this feature left it and names each changed module in its entry.
 
 ## Acceptance criteria
 
 1. The rule holds (the guard, one test over every `*.py` file under `tests/`): it finds no import of a test module, and its failure message names each one as `<file>:<line>: <module>`.
-2. The guard finds every form (rows of one parametrized test over the guard's own reader, given a source text): `from adapters.test_x import A`, `from test_x import A`, `import application.test_y`, `import test_y as y`, `from adapters import test_z`, `from adapters import test_z as z` and `from adapters.test_x import (\n    A,\n    B,\n)` are each found once, naming the module; `from take_support import x`, `from testing_support import x`, `import factory.application.tick` and `from adapters import support_test` are each found nowhere.
-3. `make check` stays green.
-4. docs: `docs/project-guide/README.md`, *Shared test helpers*: one paragraph with the rule (no module imports a test module; what two test modules share lives in a support module, a new one named `*_support.py`, or in `tests/conftest.py`), the guard `tests/test_shared_imports.py`, and one line for each support module this story added, naming what it offers. `docs/decisions.md`: a new entry "Shared test code lives outside the test modules" (F0045-S0010; F0039-A0002's note 4, decision 7 of `feature.md` with its rejected option). `docs/operator-guide.md`, `README.md`: none.
+2. The guard finds every form (rows of one parametrized test over the guard's own reader, given a source text): `from adapters.test_x import A`, `from test_x import A`, `import application.test_y`, `import test_y as y`, `from adapters import test_z`, `from adapters import test_z as z` and `from adapters.test_x import (\n    A,\n    B,\n)` are each found once, naming the module; `from take_support import x`, `from testing_support import x`, `import factory.application.tick` and `from adapters import support_test` are each found nowhere. Each found import reports the line of its statement's first line (the `from` or `import` line, also for the parenthesised multi-line import, where it is line 1 of that source text) and the module.
+3. The failure message renders each import as `<file>:<line>: <module>` (one test over the guard's own message builder, given a source text and a file name): for the file name `tests/adapters/test_a.py` and the source text `x = 1\nfrom adapters.test_x import A\n`, the line is `tests/adapters/test_a.py:2: adapters.test_x`.
+4. `make check` stays green.
+5. docs: `docs/project-guide/README.md`, *Shared test helpers*: one paragraph with the rule (no module imports a test module; what two test modules share lives in a support module, a new one named `*_support.py`, or in `tests/conftest.py`), the guard `tests/test_shared_imports.py`, and one line for each support module this story added, naming what it offers. `docs/decisions.md`: a new entry "Shared test code lives outside the test modules" (F0045-S0010; F0039-A0002's note 4, decision 7 of `feature.md` with its rejected option). `docs/operator-guide.md`, `README.md`: none.
 
 ## Smoke test
 
@@ -94,3 +97,16 @@ Expect: `1`
 4. 2026-10-27 human: 1. (a) with (b): each found import reports the line of its statement's first line (the `from` or `import` line, also for a parenthesised multi-line import) and the module, and a criterion checks that the failure message renders `<file>:<line>: <module>` for a given source text and file name.
    2. Accepted as is: the guard and `make check` are the checks for those two rules.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: it names the rule, the three import forms, the guard `tests/test_shared_imports.py` (reads every `*.py` under `tests/` with `ast`) and the modules that import a test module. It now also says that the reported line is the first line of the import statement (carried in from journal entry 4).
+   - Criteria: each is testable by one test function. 1 is the rule over all files. 2 is the table of forms, found and not found, and now also the reported line and module, which covers the parenthesised multi-line form. The new 3 checks that the message renders `<file>:<line>: <module>` for a given file name and source text, with a worked example. The failing side of the rule is covered by 1, 2 and 3. The moves keep names and meaning by the leave in decision 30, and `make check` is the check for that, as the human accepted in entry 4, point 2.
+   - Smoke test: both commands are runnable. The grep expects `0`. The pytest command passes no `-q` and `addopts` already sets one, so the `N passed in` line exists, and its Expect says `1`.
+   - Architecture: the story changes `tests/` only, with support modules named `*_support.py` and fixtures in `conftest.py`. That matches CLAUDE.md's Tests section and puts nothing under `src/factory/`.
+   - Scope: S0010 of F0045, decisions 7 and 30 of `feature.md`. The leave for the tests is given and nothing is in "Out of scope".
+
+   Carried in from the human's entry 4, answer 1 ((a) with (b)):
+   - Criterion 2: each found import reports the line of its statement's first line and the module.
+   - New criterion 3, before the two closing ones: the failure message renders `<file>:<line>: <module>`. The closing criteria are now 4 (`make check`) and 5 (`docs:`).
+   - Interface: the line of the guard's message is the statement's first line.
+
+   Answer 2 (the guard and `make check` are the only checks for a moved fixture keeping its name and a private name losing its underscore) needed no edit.
