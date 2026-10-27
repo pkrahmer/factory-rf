@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366, 6433141030]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-27T03:53:38.307757Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-27T03:53:38.307757Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-27T03:54:26.659472Z'
+  stage: review
+  run: 2793c32de39f4ebf9bda4fc81de4d62f
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -120,7 +122,7 @@ journal:
 
 ## Description
 
-S0008 (the factory powers its machine off after an idle stretch) wrote `SystemctlPowerOff.power_off` as a third copy of one block: build a `ProcessRequest` at `/` with no environment, the wrapper's time limit and merged standard error, run it, and turn a program that cannot start, the time limit reached, or an exit status the wrapper does not accept into the wrapper's own error, with the detail `failure_detail` or `no_end_detail` of `factory.adapters.printed_output` gives. `ZfsSnapshots._execute` holds the same block and `PodmanRuns._query` the same without the exit check, and each of the three modules defines its own `_ROOT = Path("/")`. `make duplicates` has reported the two similarities as `2 new` since S0008, and the human recorded them in S0008's journal (entry 33) "for a later tidy-up". This story writes the block once, in `factory.adapters.process`, and the three wrappers call it with their own error. What stays: every wrapper's commands, errors, error texts and time limits; `run_process`, `run_streaming` and the drain; `PodmanRuns.run`, which passes the launch's environment and keeps its own request; every existing test, unchanged.
+S0008 (the factory powers its machine off after an idle stretch) wrote `SystemctlPowerOff.power_off` as a third copy of one block: build a `ProcessRequest` at `/` with no environment, the wrapper's time limit and merged standard error, run it, and turn a program that cannot start, the time limit reached, or an exit status the wrapper does not accept into the wrapper's own error, with the detail `failure_detail` or `no_end_detail` of `factory.adapters.printed_output` gives. `ZfsSnapshots._execute` holds the same block and `PodmanRuns._query` the same without the exit check, and each of the three modules defines its own `_ROOT = Path("/")`. `make duplicates` has reported the two similarities as `2 new` since S0008, and the human recorded them in S0008's journal (entry 33) "for a later tidy-up". This story writes the block once, in `factory.adapters.process`, and the three wrappers call it with their own error. What stays: every wrapper's commands, errors, error texts and time limits; `run_process`, `run_streaming` and the drain; `PodmanRuns.run`, which passes the launch's environment and keeps its own request; every existing test, unchanged, except four that now patch `run_process` on `factory.adapters.process`, where `run_or_raise` calls it, each keeping its name and what it checks (the human's leave, journal entry 11): three in `tests/adapters/test_zfs_snapshots.py` and `test_version_runs_under_two_minutes_by_default` in `tests/adapters/test_podman_runs_results.py`.
 
 ## Interface
 
@@ -291,3 +293,19 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 1 gone
 18. factory: started review as vm.
+19. reviewer: no findings
+
+    What I checked:
+    - Criteria 1 to 3: `tests/adapters/test_run_or_raise.py` holds one parametrized test per criterion, and every row the criteria name is there. Criterion 1 covers success with `stdout == "ok\n"`, a refused status on stdout and on stderr (the `merge_stderr=True` side), `accepted=(0, 3)`, `accepted=None`, `exit status 1` when nothing is printed, a start failure (`__cause__` is an `OSError` and the text equals `str(__cause__)`), and the time limit through `no_end_detail`. Criterion 2 covers `cwd` left out and given. Criterion 3 checks, with `ast`, that no `_ROOT` is assigned and that `ProcessRequest(` is built only in `PodmanRuns.run`.
+    - Interface: every rule of the Interface has its failing side tested (the refused status under the default `accepted` and under a given `accepted`, `OSError`, the time limit). The factory's `make check` after the coder was green (entry 17), with `duplicates: 0 new`.
+    - Implementation: `run_or_raise` in `src/factory/adapters/process.py` follows the Interface. `ZfsSnapshots._execute` and `PodmanRuns._query` keep their error texts by passing `functools.partial(<Error>, command)`; `_query` passes `cwd=self._workspace` and `accepted=None`. `SystemctlPowerOff.power_off` keeps `cannot start <sudo>: <error>` by re-raising the start failure with that prefix, still chained from the `OSError`. That is the one way to keep the text without changing the Interface. `printed_output` imports nothing from `process`, so there is no import cycle.
+    - Architecture: the helper sits in `adapters` beside `run_process`. No new tool call, layer import or silencing marker.
+    - Docs criterion 5 still names what the documenter must write.
+
+    description corrected: "every existing test, unchanged" -> "every existing test, unchanged, except four that now patch `run_process` on `factory.adapters.process`, where `run_or_raise` calls it, each keeping its name and what it checks (the human's leave, journal entry 11): three in `tests/adapters/test_zfs_snapshots.py` and `test_version_runs_under_two_minutes_by_default` in `tests/adapters/test_podman_runs_results.py`"
+
+    Still open, outside this review: the Interface's closing line "No earlier test changes" is stale in the same way. A reviewer may correct only the Description, so I left that line, and entry 11 settles it. Whether the new `ast` test joins mutmut's structural tests in `pyproject.toml` is for the human to decide (entries 8 and 17).
+
+    Earlier tests:
+    - `tests/adapters/test_zfs_snapshots.py`: the human's leave, journal entry 11. The patch target moved from `zfs_snapshots` to `process`, and the import changed with it; nothing else in the file used `zfs_snapshots` as a module.
+    - `tests/adapters/test_podman_runs_results.py`: the human's leave, journal entry 11. `test_version_runs_under_two_minutes_by_default` now also takes `monkeypatch` and patches `process.run_process` with the same `recorder`; the `recorder` fixture is unchanged.
