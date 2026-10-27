@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-27T02:21:30.358162Z'
   stage: smoke-test
   run: 595c1fe8c21b4c2b9dec6963d0319605
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-27T02:23:53.614984Z'
+  stage: approval
 ---
 
 # No test module imports another test module
@@ -509,3 +514,4 @@ Expect: `1`
     - Criterion 4 (`make check`): no smoke-test command runs it. The factory's own checks cover it.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 21.4 min, 94 turns, 323153 tokens in (2549075 more from cache), 44753 out, $3.57
