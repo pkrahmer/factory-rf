@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 475
-comments_read: []
+comments_read: [6431654376]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 5339f737007d4e17a62fa87fd1252819
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-27T01:45:00.875448Z'
+  stage: intake
 ---
 
 # No test module imports another test module
@@ -77,3 +82,5 @@ Expect: `1`
    - The architecture and scope fit `feature.md` (S0010, decisions 7 and 30, and the leave is given).
    - The smoke tests are runnable. `-q` is already set in `addopts`, and the second smoke test passes none, so its `passed in` line exists.
    - The failing side of the rule is covered by criterion 1.
+4. 2026-10-27 human: 1. (a) with (b): each found import reports the line of its statement's first line (the `from` or `import` line, also for a parenthesised multi-line import) and the module, and a criterion checks that the failure message renders `<file>:<line>: <module>` for a given source text and file name.
+   2. Accepted as is: the guard and `make check` are the checks for those two rules.
