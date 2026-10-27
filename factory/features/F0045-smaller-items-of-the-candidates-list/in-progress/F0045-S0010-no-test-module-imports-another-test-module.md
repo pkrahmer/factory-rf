@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-27T02:21:05.157448Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-27T02:20:44.641009Z'
   stage: docs
   run: b9559810c3074f3c90491e14d9502991
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-27T02:21:05.157448Z'
+  stage: smoke-test
 ---
 
 # No test module imports another test module
@@ -476,3 +485,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 457615391f27 at 2026-10-27T02:15:10Z)
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok
+23. factory: started smoke-test as vm.
