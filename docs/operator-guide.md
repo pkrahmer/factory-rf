@@ -334,7 +334,7 @@ One host, one dataset, one throwaway container for each step of a stage.
 - **The dataset** is the ZFS dataset `<pool>/factory/<instance>`, mounted at `/srv/factory/<instance>/work` on the host and at `/work` in every container. It holds the checkout and the agent's home. Its one snapshot is the base, `@base`, moved forward at every stage's start.
 - **The container** is the stage image (see *The stage image*), started for one step, with `--rm`, `--userns=keep-id` and `--timeout` set to the step's time limit. It mounts the dataset and is thrown away.
 
-There is one user, `factory`, and no second one. `factory` has no `sudo` right but the page-cache helper and the four `zfs` commands of the optional `--sudoers` fallback (see *The script*). The steps that need root (the script, `systemctl`, the install of the secrets) run from your own account with `sudo`.
+There is one user, `factory`, and no second one. `factory` has no `sudo` right but the page-cache helper, the four `zfs` commands of the optional `--sudoers` fallback and, with the option `--idle-shutdown`, `/usr/bin/systemctl poweroff` (see *The script*). The steps that need root (the script, `systemctl`, the install of the secrets) run from your own account with `sudo`.
 
 In v1.2 one repository URL serves both the factory's own code and the project. `--repository-url` is the clone of `/srv/factory/<instance>/factory` and the value of `FACTORY_REPOSITORY_URL`, so an instance builds the repository it runs from.
 
@@ -520,6 +520,7 @@ The environment file holds these variables, which *Configuration* explains:
 | `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION`, `FACTORY_OPENCODE_MODELS` | the pins of `vm/Dockerfile` |
 | `PATH` | `/srv/factory/<instance>/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin` (`/usr/sbin` holds `zfs`) |
 | `XDG_RUNTIME_DIR` | `/run/user/<uid of factory>`, where rootless Podman finds its runtime folder |
+| `FACTORY_IDLE_SHUTDOWN_MINUTES` | `--idle-shutdown`, only when it is given |
 
 ### On GCP, step by step
 
