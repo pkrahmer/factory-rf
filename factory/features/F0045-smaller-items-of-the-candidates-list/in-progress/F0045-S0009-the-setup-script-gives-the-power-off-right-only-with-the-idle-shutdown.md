@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T01:29:33.482299Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-27T01:29:13.125796Z'
   stage: tests
   run: ca15ad1578e74049b54073a006cb4620
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:29:33.482299Z'
+  stage: doing
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -269,3 +278,4 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.1 s)
+17. factory: started doing as vm.
