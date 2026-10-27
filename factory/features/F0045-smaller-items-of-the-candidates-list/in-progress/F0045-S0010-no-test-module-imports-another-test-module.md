@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-27T02:18:28.895834Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-27T02:18:08.076395Z'
   stage: doing
   run: 351b65cb3a654627a6247c76f096700a
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-27T02:18:28.895834Z'
+  stage: review
 ---
 
 # No test module imports another test module
@@ -377,3 +386,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 2 new, 42 known, 0 gone
+19. factory: started review as vm.
