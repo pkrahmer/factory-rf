@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-27T02:04:43.501437Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-27T02:04:23.044716Z'
   stage: doing
   run: a307c34b81b1462fac200edc55351100
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-27T02:04:43.501437Z'
+  stage: tests
 ---
 
 # No test module imports another test module
@@ -311,3 +320,4 @@ Expect: `1`
     Main choice: send the work item to the tester and leave the support modules alone. I rejected applying the fixes myself because the coder never edits tests.
 
     Nothing under `src/factory/` changes, so there was nothing to refactor. The journal did not change the Description, which the intake already rewrote.
+15. factory: started tests as vm.
