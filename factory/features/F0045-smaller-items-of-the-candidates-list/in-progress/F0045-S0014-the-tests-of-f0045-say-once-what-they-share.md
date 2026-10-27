@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-27T04:27:11.846504Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -91,6 +87,12 @@ journal:
   kind: started
   at: '2026-10-27T04:27:11.846504Z'
   stage: review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-10-27T04:28:40.412281Z'
+  stage: review
+  run: f8272daaa3c343f2b86fec4b045b00a7
 ---
 
 # The tests of F0045 say once what they share
@@ -237,3 +239,25 @@ Expect: one line that ends `passed in <n>s` and names no failure
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 0 gone
 14. factory: started review as vm.
+15. reviewer: Review of round 0. I read the work item and `git diff main...HEAD -- . ':!factory'` (14 files, all under `tests/`), and also `tests/test_suite_held_once.py`, `tests/function_support.py` and `tests/search_support.py`, to check the helpers the new tests use or copy. Groups 1 to 3 pass. Group 1: the rows of criterion 1 cover all three items (`in_order`/`lines_with` only in `vm_support.py` and no `_` variants; `SCHEMAS` only in `contract_support.py`, because `_defined` counts `Assign`/`AnnAssign` and not imports; `committed`/`values` only in `contract_login_support.py` and no `_` variants; `record_get_repo` only in `wiring_support.py` and no `_record_get_repo`). Criterion 2 parses `PIPELINE_YAML` through `RuamelPipelineDefinitionReader`. Criterion 3 checks that there is no parametrize, that `args` is empty, that the `inspect.signature` assert is there, and that both clone rows are kept. The factory's `make check` after the coder was green (entry 13). Groups 2 and 3: `tests/` only, no markers. Group 4 fails:
+
+    1. `tests/test_suite_leftovers.py:13`: `_function` is a second copy, line for line, of `_function` in `tests/test_suite_held_once.py:33`, and `tests/function_support.py::functions` already reads a module's top-level functions with `ast`. This story exists to say once what the tests share. Fix: select the function by name from `function_support.functions(...)`. Or add a by-name helper to `tests/function_support.py` and have `test_suite_held_once.py` use it as well, under the standing leave.
+    2. `tests/test_suite_held_once.py:80-86`: the new row `record-get-repo-public` (`_get_repo_recorder_public`) repeats the whole assertion of row `record-get-repo` (`_get_repo_recorder_once`). Criterion 1 asks for one row per item. Fix: add `assert _definers("_record_get_repo") == []` to `_get_repo_recorder_once` (its id `record-get-repo` stays) and drop `_get_repo_recorder_public` and its row.
+    3. `tests/test_suite_held_once.py:96-102,167-168`: item 2 is split over two rows (`contract-schemas` and `contract-login-helpers`), but criterion 1 asks for one row per item 1, 2 and 4. Fix: merge `_schemas_once` into `_contract_login_helpers_once` as one row for item 2, and keep the id `contract-login-helpers`.
+
+    Group 5 (not reached as a failing group) looked sound: the Description and the docs criterion match what was built.
+
+    Earlier tests (changed under a leave):
+    - `tests/application/test_checkout_preparer.py`: the human's leave, entry 4 (item 5).
+    - `tests/contract_login_support.py`: the standing leave (item 2: the shared `SCHEMAS` is used and the shared helpers are renamed).
+    - `tests/domain/test_contract_login.py`: the standing leave (item 2: it imports the renamed helpers, and its test and what it checks are unchanged).
+    - `tests/domain/test_contract_provider_limit.py`: the standing leave (a follow-on of item 2's rename, which the Interface does not name; its test and what it checks are unchanged).
+    - `tests/entry/test_wiring_boundaries.py`: the human's leave, entry 4 (item 4).
+    - `tests/entry/test_wiring_one_environment.py`: the human's leave, entry 4 (item 4).
+    - `tests/git_support.py`: the human's leave, entry 4 (item 3).
+    - `tests/test_suite_held_once.py`: the human's leave, entry 4 (item 4: the row `record-get-repo` reads the new name, and its row function is renamed with the same id). The added rows need no leave.
+    - `tests/test_vm_setup_caches.py`: the standing leave (item 1).
+    - `tests/test_vm_setup_idle_shutdown.py`: the standing leave (item 1).
+    - `tests/test_vm_setup_text.py`: the standing leave (item 1).
+    - `tests/vm_support.py`: the standing leave (item 1: the shared place; helpers added, nothing else changed).
+    - `tests/wiring_support.py`: the human's leave, entry 4 (item 4).
