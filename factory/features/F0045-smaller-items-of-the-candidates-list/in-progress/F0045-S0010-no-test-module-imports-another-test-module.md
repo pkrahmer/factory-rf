@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-27T01:46:06.247491Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-27T01:45:45.701353Z'
   stage: intake
   run: f4c3eec591bc48bfaab5591b3789b2db
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:46:06.247491Z'
+  stage: tests
 ---
 
 # No test module imports another test module
@@ -110,3 +119,4 @@ Expect: `1`
    - Interface: the line of the guard's message is the statement's first line.
 
    Answer 2 (the guard and `make check` are the only checks for a moved fixture keeping its name and a private name losing its underscore) needed no edit.
+7. factory: started tests as vm.
