@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from vm_support import SETUP, function_text, step_texts
+from vm_support import SETUP, compares, step_texts, writes_path
 
 HELPER = "/usr/local/bin/factory-drop-caches"
 SUDOERS = "/etc/sudoers.d/factory-drop-caches"
@@ -14,7 +14,6 @@ HELPER_LINES = ("#!/bin/sh", "sync", "echo 1 > /proc/sys/vm/drop_caches")
 RULE = f"factory ALL=(root) NOPASSWD: {HELPER}"
 REFUSED = f"setup: caches: visudo -cf refused {SUDOERS}; removed it"
 STAGED = re.compile(r"(?ms)^\s*stage <<'EOF'\n(.*?)^EOF\n(.*?)(?=^\s*stage <<|\Z)")
-COMPARISONS = re.compile(r"(?<![\w-])(?:cmp|diff|grep\s+(?:-\w*x\w*\s+|.*\s-\w*x))")
 
 
 @dataclass(frozen=True)
@@ -96,29 +95,6 @@ def test_a_refused_visudo_check_removes_the_rule_and_ends_the_script(script: Scr
     assert any(line.strip() == "exit 1" for line in lines[refused[0] + 1 :])
 
 
-def _compares(code: str, line: str, path: str) -> bool:
-    # A comparison is written in the line, or in the script's function the line calls.
-    if path not in line:
-        return False
-    if COMPARISONS.search(line):
-        return True
-    for name in re.findall(r"(?<![\w-])([a-z_]\w*)\s", line):
-        try:
-            body = function_text(code, name)
-        except StopIteration:
-            continue
-        if COMPARISONS.search(body):
-            return True
-    return False
-
-
-def _writes(line: str, path: str) -> bool:
-    return path in line and (
-        re.search(r"(?<![\w-])(?:install|cp|mv|tee)\s", line) is not None
-        or re.search(rf">\s*[\"']?{re.escape(path)}", line) is not None
-    )
-
-
 @pytest.mark.parametrize(
     "path", [pytest.param(HELPER, id="helper"), pytest.param(SUDOERS, id="sudoers")]
 )
@@ -126,8 +102,8 @@ def test_the_caches_step_writes_a_file_only_when_its_text_differs(
     script: Script, path: str
 ) -> None:
     lines = script.caches.splitlines()
-    compared = [index for index, line in enumerate(lines) if _compares(script.code, line, path)]
-    written = [index for index, line in enumerate(lines) if _writes(line, path)]
+    compared = [index for index, line in enumerate(lines) if compares(script.code, line, path)]
+    written = [index for index, line in enumerate(lines) if writes_path(line, path)]
 
     assert compared != []
     assert written != []

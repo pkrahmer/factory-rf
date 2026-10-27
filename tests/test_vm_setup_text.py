@@ -6,7 +6,17 @@ from dataclasses import dataclass
 
 import pytest
 
-from vm_support import FUNCTION, STEPS, setup_code, step_texts, write_helpers
+from vm_support import (
+    ENVIRONMENT,
+    FUNCTION,
+    STEPS,
+    enclosing_if,
+    indent,
+    name_positions,
+    setup_code,
+    step_texts,
+    write_helpers,
+)
 
 ORDERED_COMMANDS = (
     "apt-get install -y --no-install-recommends",
@@ -38,7 +48,6 @@ SUBID_LINE = (
     "setup: user: no subuid and subgid range for factory;"
     " add one with usermod --add-subuids and --add-subgids"
 )
-VALUE_END = r"(?![\w/.:{$-])"
 
 
 @dataclass(frozen=True)
@@ -163,45 +172,11 @@ def _if_before_zfs(text: str) -> bool:
     return any(line.lstrip().startswith("if ") for line in lines[:first])
 
 
-ENVIRONMENT = (
-    ("FACTORY_INSTANCE", re.escape("$instance") + VALUE_END),
-    ("FACTORY_REPOSITORY_URL", re.escape("$repository_url") + VALUE_END),
-    ("FACTORY_AGENT_RUNTIME", re.escape("$runtime") + VALUE_END),
-    ("FACTORY_DATASET", re.escape("$pool/factory/$instance") + VALUE_END),
-    ("FACTORY_WORKSPACE", re.escape("$base/work") + VALUE_END),
-    ("FACTORY_STAGE_IMAGE", re.escape("$image") + VALUE_END),
-    ("FACTORY_ZFS", r"\$"),
-    ("FACTORY_CHECKOUT", re.escape("$base/repo") + VALUE_END),
-    ("FACTORY_STATE", re.escape("$base/state") + VALUE_END),
-    ("FACTORY_IMAGE_ID_FILE", re.escape("$base/image-id") + VALUE_END),
-    ("FACTORY_CLAUDE_HOME", re.escape("$base/factory/claude") + VALUE_END),
-    ("FACTORY_TOKEN_FILE", re.escape("/home/factory/.secrets/hosting-token") + VALUE_END),
-    ("FACTORY_CLAUDE_LOGIN_FILE", re.escape("/home/factory/.secrets/claude-token") + VALUE_END),
-    ("FACTORY_API_LOGIN_FILE", re.escape("/home/factory/.secrets/anthropic-api-key") + VALUE_END),
-    ("FACTORY_CLAUDE_VERSION", r"\$(?P<pin>[A-Za-z_]\w*)" + VALUE_END),
-    ("FACTORY_OPENCODE_VERSION", r"\$(?P<pin>[A-Za-z_]\w*)" + VALUE_END),
-    ("FACTORY_OPENCODE_MODELS", r"\$(?P<pin>[A-Za-z_]\w*)" + VALUE_END),
-    (
-        "PATH",
-        re.escape("/srv/factory/")
-        + r"\S*"
-        + re.escape("/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"),
-    ),
-    ("XDG_RUNTIME_DIR", re.escape("/run/user/$(id -u factory)") + VALUE_END),
-)
 PINS = {
     "FACTORY_CLAUDE_VERSION": "ARG CLAUDE_CODE_VERSION=",
     "FACTORY_OPENCODE_VERSION": "ARG OPENCODE_VERSION=",
     "FACTORY_OPENCODE_MODELS": "ENV FACTORY_OPENCODE_MODELS=",
 }
-
-
-def _name_positions(code: str, name: str) -> list[int]:
-    return [
-        found.start()
-        for found in re.finditer(rf"(?<![A-Za-z_]){name}=", code)
-        if not code[: found.start()].endswith("ENV ")
-    ]
 
 
 @pytest.mark.parametrize(
@@ -210,13 +185,13 @@ def _name_positions(code: str, name: str) -> list[int]:
 def test_the_environment_file_holds_each_name_once_with_its_value(
     code: str, index: int, name: str, value: str
 ) -> None:
-    positions = _name_positions(code, name)
+    positions = name_positions(code, name)
 
     assert len(positions) == 1
     position = positions[0]
     assert code.find("factory.env") < position < code.find("factory@.service")
     if index > 0:
-        assert _name_positions(code, ENVIRONMENT[index - 1][0]) < [position]
+        assert name_positions(code, ENVIRONMENT[index - 1][0]) < [position]
     line_end = code.find("\n", position)
     line = code[position : len(code) if line_end < 0 else line_end]
     matched = re.match(rf"{name}={value}", line)
@@ -496,27 +471,15 @@ def test_the_files_under_the_instance_folder_are_written_as_factory(
     assert check(script)
 
 
-def _indent(line: str) -> int:
-    return len(line) - len(line.lstrip())
-
-
-def _enclosing_if(lines: list[str], index: int) -> int | None:
-    for earlier in range(index - 1, -1, -1):
-        line = lines[earlier]
-        if line.strip() and _indent(line) < _indent(lines[index]):
-            return earlier if line.lstrip().startswith("if ") else None
-    return None
-
-
 def _clone_variables(checkout: str) -> list[str]:
     lines = checkout.splitlines()
     clone = next((i for i, line in enumerate(lines) if "git clone" in line), None)
-    start = None if clone is None else _enclosing_if(lines, clone)
+    start = None if clone is None else enclosing_if(lines, clone)
     if start is None:
         return []
     branch = []
     for line in lines[start + 1 :]:
-        if line.strip() and _indent(line) <= _indent(lines[start]):
+        if line.strip() and indent(line) <= indent(lines[start]):
             break
         branch.append(line)
     return re.findall(r"(?m)^\s*(\w+)=", "\n".join(branch))
@@ -527,7 +490,7 @@ def _install_conditions(script: Script, step: str, path: str) -> list[str] | Non
     installs = [
         i for i, line in enumerate(lines) if re.search(r"^\s*install\s", line) and path in line
     ]
-    conditions = [_enclosing_if(lines, i) for i in installs]
+    conditions = [enclosing_if(lines, i) for i in installs]
     if installs == [] or None in conditions:
         return None
     return [lines[condition] for condition in conditions if condition is not None]

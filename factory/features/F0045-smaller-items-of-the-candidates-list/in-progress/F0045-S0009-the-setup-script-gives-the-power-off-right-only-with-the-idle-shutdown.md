@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-27T01:05:41.426664Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-27T01:05:41.426664Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-27T01:13:34.429846Z'
+  stage: tests
+  run: 1d30e4dbe4a749bca6d4c28f002bae94
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -119,3 +121,42 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
    - Architecture: no module under `src/factory/` changes, and the layers are not touched. The change is in `vm/setup.sh`, the coder's write path, and its tests follow F0043-S0003's text-test pattern.
    - Scope: inside S0009 of the feature (decisions 9 and 12). The test changes have the human's leave in decision 29. It adds no start or stop of the service and no power-off by the script. Nothing from "Out of scope" is touched.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for the option `--idle-shutdown` and the step `poweroff`. They are red on purpose.
+
+   Criterion → test:
+   - criterion 1: tests/test_vm_setup.py::test_the_script_parses_and_starts_with_its_shebang_and_set_eu (existing test, unchanged; it runs `sh -n`)
+   - criterion 2: tests/test_vm_setup_idle_shutdown.py::test_the_idle_shutdown_takes_a_whole_number_of_minutes_of_at_least_one (rows: without-value, zero, letter, negative, fraction, one, thirty)
+   - criterion 3: tests/test_vm_setup.py::test_help_prints_the_usage_to_standard_output_and_exits_0 (`OPTIONS` gained `--idle-shutdown`, so test_an_argument_fault_prints_the_usage_and_exits_2 now also checks that the usage line names the option)
+   - criterion 4: tests/test_vm_setup_idle_shutdown.py::test_the_poweroff_step_follows_caches_and_writes_or_removes_its_rule
+   - criterion 5: tests/test_vm_setup_idle_shutdown.py::test_the_idle_shutdown_setting_is_the_environment_file_s_line_after_the_others
+   - criterion 6: tests/test_vm_setup_idle_shutdown.py::test_a_refused_visudo_check_removes_the_poweroff_rule_and_ends_the_script
+   - criterion 7: tests/test_vm_setup_idle_shutdown.py::test_the_poweroff_step_writes_its_rule_only_when_its_text_differs (rows: compared-before-written, wrote, found, root-0440)
+   - criterion 8: tests/test_vm_setup_idle_shutdown.py::test_without_the_option_the_step_says_the_factory_gets_no_power_off_right
+   - criterion 9: tests/test_vm_setup_idle_shutdown.py::test_the_idle_shutdown_setting_is_written_last_and_only_with_the_option
+   - criteria 10 and 11: no test (`make check`; the docs stage)
+
+   How criteria 7 and 9 are read as text:
+   - **Criterion 7:** a "found" line and a "wrote <path>" text must both be in the step, as for `caches`. "By root" means the step's write lines use neither `runuser` nor `as_factory`.
+   - **Criterion 9:** the variable is the one assigned in the `--idle-shutdown)` case arm. Either the `if` the line is indented under tests that variable, or the line itself tests it before the name. After the line, the step `environment` assigns no other upper-case name.
+
+   Files created: tests/test_vm_setup_idle_shutdown.py.
+
+   Earlier test files changed:
+   - Interface leave (decision 29 of `feature.md`):
+     - tests/vm_support.py: `STEPS` gained `poweroff` after `caches`.
+     - tests/test_vm_setup.py: `OPTIONS` gained `--idle-shutdown`.
+   - Standing leave to move a shared test helper (CLAUDE.md, *Tests*). These helpers moved to tests/vm_support.py:
+     - from tests/test_vm_setup_text.py: `VALUE_END`, `ENVIRONMENT`, `_name_positions` (now `name_positions`), `_indent` (now `indent`), `_enclosing_if` (now `enclosing_if`). That file now imports them.
+     - from tests/test_vm_setup_caches.py: `COMPARISONS`, `_compares` (now `compares`), `_writes` (now `writes_path`).
+
+     Every earlier test keeps its name and checks the same thing.
+
+   Test run (`make test`, once): it fails as intended.
+   - Every test that cuts the script into steps errors with "no 'setup: poweroff: ' text", because the step does not exist yet.
+   - The run rows of criterion 2 fail on their results.
+   - No module failed to import.
+
+   `make lint`: green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.2 s)
+   `test`: ERROR tests/test_vm_setup_text.py::test_the_folders_step_refuses_a_link_at_state_or_repo[exit-1] - AssertionError: no 'setup: poweroff: ' text
