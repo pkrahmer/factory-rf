@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-27T02:19:44.696576Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-27T02:19:24.152495Z'
   stage: review
   run: 51431cc324b7436e955bffb70183a808
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-27T02:19:44.696576Z'
+  stage: docs
 ---
 
 # No test module imports another test module
@@ -451,3 +460,4 @@ Expect: `1`
     - tests/entry/test_wiring_stage_environment.py: decision 30
     - tests/preflight_support.py: decision 30
     - tests/test_time_limits.py: decision 30
+21. factory: started docs as vm.
