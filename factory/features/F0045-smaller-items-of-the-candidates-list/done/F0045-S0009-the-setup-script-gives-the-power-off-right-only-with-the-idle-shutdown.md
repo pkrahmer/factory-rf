@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-27T01:38:46.213865Z'
   stage: smoke-test
   run: b4210de9bbd74e57b752e20049473ea8
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-27T01:40:06.485316Z'
+  stage: approval
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -432,3 +437,4 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
     The smoke test contradicts no criterion. It does not exercise criteria 11 (`make check`) or 12 (docs); the factory's checks cover those.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 19.3 min, 75 turns, 317540 tokens in (1753852 more from cache), 41061 out, $3.24
