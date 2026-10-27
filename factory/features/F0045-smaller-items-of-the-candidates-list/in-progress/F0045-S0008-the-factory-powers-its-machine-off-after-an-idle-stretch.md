@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717, 6431004693]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-27T00:56:30.501023Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -306,6 +302,12 @@ journal:
   kind: started
   at: '2026-10-27T00:56:30.501023Z'
   stage: smoke-test
+- number: 54
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-27T00:57:15.569940Z'
+  stage: smoke-test
+  run: 37291a3ec8824e2a91cfe8a46620a94f
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -910,3 +912,29 @@ Expect: `-n /usr/bin/systemctl poweroff`
     I would choose (a).
 52. 2026-10-27 human: (a): the smoke test is corrected by this answer: command 2's stand-in body becomes `printf '%s\n' "$@"` and its Expect three lines, `-n`, `/usr/bin/systemctl`, `poweroff`. Run it in that form; the code stays.
 53. factory: started smoke-test as vm.
+54. smoke-tester: Smoke test, round 2. I ran both commands from the repository root. Command 1 is as written in `## Smoke test`. Command 2 is in the form the human gave in their answer to my round-1 question (journal entry 52): the stand-in's body is `printf '%s\n' "$@"`, and the Expect is three lines. I did not edit `## Smoke test`, and I fixed nothing.
+
+    Command 1 (`read_settings`, `POWER_OFF_COMMAND`, `SystemctlPowerOff` against `PowerOff`):
+    ```
+    Bytecode compiled 4164 files in 52ms
+    0 30
+    ('-n', '/usr/bin/systemctl', 'poweroff') True
+    ```
+    Met: two lines, `0 30` and `('-n', '/usr/bin/systemctl', 'poweroff') True`. The exit status was 0. The `uv` line about bytecode is not part of the program's output.
+
+    Command 2, as corrected by the human (the stand-in it wrote was `#!/bin/sh` / `printf '%s\n' "$@" > "<tmpdir>/words"`):
+    ```
+    Bytecode compiled 4164 files in 63ms
+    -n
+    /usr/bin/systemctl
+    poweroff
+    ```
+    Met: three lines, `-n`, `/usr/bin/systemctl`, `poweroff`. `power_off()` returned without raising, and the exit status was 0.
+
+    For the record, I also ran command 2 once more exactly as `## Smoke test` still holds it (`echo "$@"`). It still records `/usr/bin/systemctl poweroff` with no newline, because `/bin/sh` is dash here (`/bin/sh -> dash`) and dash's `echo` takes a leading `-n` as its own flag. That is the round-1 finding. The human settled it with their answer, so I do not count it again. `## Smoke test` itself still shows the old `echo` form; whether to change it is up to the human.
+
+    Against the acceptance criteria: neither command contradicts criteria 1 to 13. Command 1 matches criterion 1 for unset and `"30"` and the Interface for `POWER_OFF_COMMAND` and the `PowerOff` base. Command 2 matches criterion 5's exit-0 row: the words are exactly `-n`, `/usr/bin/systemctl`, `poweroff`.
+
+    Findings: none.
+
+    Housekeeping: the temporary directory of command 2 removed itself through its `trap`. Nothing is left under `/tmp`, and the working tree is clean.
