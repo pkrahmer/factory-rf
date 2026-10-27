@@ -41,7 +41,7 @@ stages:
   doing: {role: coder, next: [review, tests], checks: [check]}
   review: {role: reviewer, next: [docs, doing], round_cap: 3}
   docs: {role: documenter, next: [smoke-test, doing], checks: [check], round_cap: 3}
-  smoke-test: {role: smoke-tester, next: [approval, doing], round_cap: 3}
+  smoke-test: {role: smoke-tester, next: [approval, doing, docs], round_cap: 3}
   acceptance: {role: acceptance-reviewer, next: [approval]}
   approval: {approval: true, next: [done, doing]}
   done: {}

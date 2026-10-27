@@ -112,6 +112,17 @@ def name_positions(code: str, name: str) -> list[int]:
     ]
 
 
+def lines_with(text: str, word: str) -> list[str]:
+    """The lines of `text` that hold `word`."""
+    return [line for line in text.splitlines() if word in line]
+
+
+def in_order(text: str, words: list[str]) -> bool:
+    """Whether every word is in `text` and their first places come in the words' order."""
+    positions = [text.find(word) for word in words]
+    return -1 not in positions and positions == sorted(positions)
+
+
 def indent(line: str) -> int:
     """The number of blanks before the line's first word."""
     return len(line) - len(line.lstrip())

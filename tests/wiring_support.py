@@ -20,7 +20,7 @@ PODMAN_VERSION = "podman version 4.9.3"
 CONTAINER_ITEMS = ["token-file", "podman", "zfs", "dataset", "stage-image"]
 
 
-def _record_get_repo(monkeypatch: pytest.MonkeyPatch) -> list[tuple[object, ...]]:
+def record_get_repo(monkeypatch: pytest.MonkeyPatch) -> list[tuple[object, ...]]:
     """Record the arguments of every `Github.get_repo` call; the calls still go through."""
     repositories: list[tuple[object, ...]] = []
     original: Callable[..., object] = github.Github.get_repo

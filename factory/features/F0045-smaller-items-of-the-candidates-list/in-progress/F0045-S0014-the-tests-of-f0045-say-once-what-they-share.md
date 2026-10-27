@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-27T04:02:10.224197Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-27T04:02:10.224197Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-27T04:12:49.949758Z'
+  stage: tests
+  run: 40105e3349de485796cf23e6a68f59ef
 ---
 
 # The tests of F0045 say once what they share
@@ -122,3 +124,34 @@ Expect: one line that ends `passed in <n>s` and names no failure
    - Architecture: `tests/` only. Helpers move to support modules, as `CLAUDE.md` (*Tests*) asks. No layer is touched.
    - Scope: All five items are F0045's own tests' leftovers from A0001 and are not in "Out of scope". The description's meaning is unchanged, so it was not rewritten.
 7. factory: started tests as vm.
+8. tester: This story's work is the tester's alone, so I made the five changes in the Interface myself and added the guard tests for criteria 1 to 3. Because the changes are already in, the tests are green rather than red: `make test` ended `test: green (166.2 s)`, and one full `make check` ended `check: green`. After that run I renamed two private row functions in `tests/test_suite_held_once.py`. That module's pytest run then passed and `make lint` was green, but I did not run `make check` again.
+
+   Criteria to tests:
+   - criterion 1: `tests/test_suite_held_once.py::test_each_shared_helper_and_constant_is_held_once`, with new rows `vm-setup-helpers` (item 1), `contract-schemas` and `contract-login-helpers` (item 2) and `record-get-repo-public` (item 4). They reuse the module's own `_definers`, which counts plain and annotated assignments but not imports.
+   - criterion 2: `tests/test_suite_leftovers.py::test_the_suite_s_smoke_test_moves_back_to_doing_or_docs`
+   - criterion 3: `tests/test_suite_leftovers.py::test_the_preparer_s_test_of_its_parameters_is_one_plain_check_of_log`
+   - criterion 4 (`make check`) and criterion 5 (docs) need no test.
+
+   Renamed helpers, old name → new name:
+   - `_in_order` → `in_order` and `_lines_with` → `lines_with`, from `tests/test_vm_setup_text.py`, `tests/test_vm_setup_caches.py` and `tests/test_vm_setup_idle_shutdown.py`, moved to `tests/vm_support.py` with docstrings. `test_vm_setup_caches.py` had only `_in_order`.
+   - `_committed` → `committed` and `_values` → `values` in `tests/contract_login_support.py`, which now imports `SCHEMAS` from `tests/contract_support.py` (its own `SCHEMAS` is gone).
+   - `_record_get_repo` → `record_get_repo` in `tests/wiring_support.py`.
+   - In `tests/test_suite_held_once.py`: the row function `_record_get_repo_once` → `_get_repo_recorder_once` (its id `record-get-repo` is unchanged, and it now reads the new name). I also named the new row function `_get_repo_recorder_public`. Both renames are needed because the smoke test's `grep 'def _record_get_repo'` would otherwise match these functions.
+
+   Changed modules:
+   - Item 1, under the standing leave: `tests/vm_support.py`, `tests/test_vm_setup_text.py`, `tests/test_vm_setup_caches.py`, `tests/test_vm_setup_idle_shutdown.py`.
+   - Item 2, under the standing leave: `tests/contract_login_support.py`, `tests/domain/test_contract_login.py`, and also `tests/domain/test_contract_provider_limit.py`, which imports the same two helpers but which the Interface does not name.
+   - Item 3, under the human's leave: `tests/git_support.py`, where the smoke test now reads `next: [approval, doing, docs]`. No earlier test failed because of the new entry, so no other test changed.
+   - Item 4, under the human's leave: `tests/wiring_support.py`, `tests/entry/test_wiring_boundaries.py`, `tests/entry/test_wiring_one_environment.py`, `tests/test_suite_held_once.py`. I also added the criterion 1 rows to the existing parametrized test there, so I would not copy its `_definers` helper (the story keeps every other helper where it is).
+   - Item 5, under the human's leave: `tests/application/test_checkout_preparer.py`. `test_the_preparer_takes_only_the_git_and_the_settings` is now a plain test without fixtures that asserts `"log" not in inspect.signature(CheckoutPreparer.__init__).parameters`. `_takes_no_log` and the repeated rows are gone.
+
+   Files created: `tests/test_suite_leftovers.py`.
+
+   Modules the test run could not import: none.
+
+   Both smoke-test blocks give their expected output: three `0` lines, then `153 passed in 4.34s`. My run of the pytest line also included `tests/test_suite_leftovers.py`.
+
+   Open for the docs stage: criterion 5, the *Shared test helpers* lines in `docs/project-guide/README.md`.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (166.2 s)

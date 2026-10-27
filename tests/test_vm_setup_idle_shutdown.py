@@ -13,6 +13,8 @@ from vm_support import (
     SYSTEM_PATH,
     compares,
     enclosing_if,
+    in_order,
+    lines_with,
     name_positions,
     run_setup,
     step_texts,
@@ -40,15 +42,6 @@ def script(code: str) -> Script:
     """Return the setup script's text and its steps `poweroff` and `environment`."""
     steps = step_texts(code)
     return Script(code, steps["poweroff"], steps["environment"])
-
-
-def _in_order(text: str, words: list[str]) -> bool:
-    positions = [text.find(word) for word in words]
-    return -1 not in positions and positions == sorted(positions)
-
-
-def _lines_with(text: str, word: str) -> list[str]:
-    return [line for line in text.splitlines() if word in line]
 
 
 @pytest.mark.parametrize(
@@ -88,7 +81,7 @@ def test_the_idle_shutdown_takes_a_whole_number_of_minutes_of_at_least_one(
     "check",
     [
         pytest.param(
-            lambda s: _in_order(
+            lambda s: in_order(
                 s.code, ["setup: caches: ", "setup: poweroff: ", "setup: folders: "]
             ),
             id="after-caches-before-folders",
@@ -99,7 +92,7 @@ def test_the_idle_shutdown_takes_a_whole_number_of_minutes_of_at_least_one(
         ),
         pytest.param(lambda s: s.code.count(RULE) == 1 and RULE in s.poweroff, id="one-rule"),
         pytest.param(
-            lambda s: _lines_with(s.code, "systemctl poweroff") == _lines_with(s.code, RULE),
+            lambda s: lines_with(s.code, "systemctl poweroff") == lines_with(s.code, RULE),
             id="poweroff-only-in-the-rule",
         ),
     ],
