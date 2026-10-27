@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-27T03:03:05.169701Z'
   stage: smoke-test
   run: 8c92d5f9e0b248c59b133e432bf206c7
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-27T03:04:27.791446Z'
+  stage: approval
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -463,3 +468,4 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
     Nothing I observed contradicts a criterion. I did not run `make check` (criterion 5) because it is not one of the smoke-test commands; the factory runs it as the stage's check.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 21.5 min, 114 turns, 363164 tokens in (4005013 more from cache), 53326 out, $4.35
