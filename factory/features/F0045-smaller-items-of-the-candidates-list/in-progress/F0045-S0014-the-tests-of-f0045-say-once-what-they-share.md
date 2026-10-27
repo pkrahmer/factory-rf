@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-27T04:42:37.623705Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -126,6 +130,11 @@ journal:
   at: '2026-10-27T04:42:17.208813Z'
   stage: doing
   run: fa0ef1e9a18042e6b8263669fd41cc9c
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-27T04:42:37.623705Z'
+  stage: review
 ---
 
 # The tests of F0045 say once what they share
@@ -343,3 +352,4 @@ Expect: one line that ends `passed in <n>s` and names no failure
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 0 gone
+22. factory: started review as vm.
