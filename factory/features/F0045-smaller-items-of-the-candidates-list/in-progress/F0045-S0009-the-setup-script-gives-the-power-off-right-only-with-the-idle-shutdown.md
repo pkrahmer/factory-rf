@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-27T01:05:41.426664Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-27T01:05:19.292937Z'
   stage: intake
   run: 90618514c63f403c978f3c65cddb33d3
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:05:41.426664Z'
+  stage: tests
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -109,3 +118,4 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
    - Smoke test: runnable. Per answer 5 the last command now drops comment lines before `grep -c`. The Expect line still has five checkable lines. There is no pytest command, so there is no `-q` issue.
    - Architecture: no module under `src/factory/` changes, and the layers are not touched. The change is in `vm/setup.sh`, the coder's write path, and its tests follow F0043-S0003's text-test pattern.
    - Scope: inside S0009 of the feature (decisions 9 and 12). The test changes have the human's leave in decision 29. It adds no start or stop of the service and no power-off by the script. Nothing from "Out of scope" is touched.
+7. factory: started tests as vm.
