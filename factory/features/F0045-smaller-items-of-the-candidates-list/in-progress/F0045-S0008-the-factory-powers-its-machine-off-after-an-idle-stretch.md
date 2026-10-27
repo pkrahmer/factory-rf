@@ -1,17 +1,13 @@
 ---
 stage: smoke-test
-blocked: null
+blocked: question
 round: 2
 attempts: 0
 crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-27T00:53:11.379750Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -289,6 +285,13 @@ journal:
   kind: started
   at: '2026-10-27T00:53:11.379750Z'
   stage: smoke-test
+- number: 51
+  speaker: smoke-tester
+  kind: question
+  at: '2026-10-27T00:53:52.803369Z'
+  stage: smoke-test
+  run: 1c8071bed539447088c30af56a06563c
+  blocked: question
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -862,3 +865,32 @@ Expect: `-n /usr/bin/systemctl poweroff`
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
 50. factory: started smoke-test as vm.
+51. smoke-tester: Round 2, smoke test. I ran both commands under `## Smoke test` from the repository root, exactly as written. I fixed nothing. The first command meets its `Expect:` line. The second does not, and the cause is the smoke test's own stand-in, not the code, so I am asking the human instead of sending the story back.
+
+    Command 1 (`read_settings`, `POWER_OFF_COMMAND`, `issubclass`):
+    ```
+    Bytecode compiled 4164 files in 54ms
+    0 30
+    ('-n', '/usr/bin/systemctl', 'poweroff') True
+    ```
+    Met: exit 0, and the two lines are `0 30` and `('-n', '/usr/bin/systemctl', 'poweroff') True`. (The `Bytecode compiled` line comes from uv.)
+
+    Command 2 (the `SystemctlPowerOff` stand-in that runs `echo "$@"`):
+    ```
+    Bytecode compiled 4164 files in 53ms
+    /usr/bin/systemctl poweroff
+    ```
+    Not met: the expected output is `-n /usr/bin/systemctl poweroff`. The recorded words are missing `-n`, and the file has no trailing newline. The exit status was 0, and `power_off()` returned without raising.
+
+    Findings:
+    1. Command 2. Expected `-n /usr/bin/systemctl poweroff`; observed `/usr/bin/systemctl poweroff` with no newline. No criterion is contradicted.
+       - Cause: the stand-in starts with `#!/bin/sh`, and on this machine `/bin/sh` is `dash`. Dash's `echo` reads a leading `-n` as its own "no newline" flag. `/bin/sh -c 'echo -n a b'` prints `a b` with no newline.
+       - Diagnostic, outside the smoke test: I swapped the stand-in's body for `printf "%s\n" "$@"`, with the same call. It recorded exactly `-n`, `/usr/bin/systemctl`, `poweroff` on three lines. So the wrapper hands sudo the right words, as criterion 5 and the Interface say (its test, `tests/adapters/test_power_off.py`, also writes one word per line).
+       - Compared against the acceptance criteria: neither command contradicts criteria 1 to 13.
+
+    Question for the human: the code does what the work item says, but the smoke test as written cannot show `-n` on a machine where `/bin/sh` is dash. `## Smoke test` is yours, so I have not edited it. The options I see:
+    - (a) Change command 2's stand-in to `printf '%s ' "$@"` (or `printf '%s\n' "$@"` with an Expect of three lines). Then the smoke test runs again, and I would expect `approval`.
+    - (b) Accept the result as it stands, given the diagnostic above, and approve the story.
+    - (c) Send it to `doing`. I would not choose this, because no code is wrong.
+
+    I would choose (a).
