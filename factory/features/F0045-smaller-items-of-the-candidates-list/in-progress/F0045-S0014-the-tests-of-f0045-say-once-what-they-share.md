@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-27T04:01:27.258333Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-27T04:01:27.258333Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-27T04:01:49.327757Z'
+  stage: intake
+  run: 0dd47be2432945cd8283fb5d91b242d6
 ---
 
 # The tests of F0045 say once what they share
@@ -64,9 +66,9 @@ The tester's entry names each changed module and, for every renamed helper, its 
 
 ## Acceptance criteria
 
-1. Each item is held once (rows of one parametrized test over the files under `tests/`, read with `ast`, one row per item 1, 2 and 4): exactly one module defines `in_order` and exactly one `lines_with`, and it is `tests/vm_support.py`, and no module defines `_in_order` or `_lines_with`; exactly one module assigns `SCHEMAS`, and it is `tests/contract_support.py`; exactly one module defines `record_get_repo`, and it is `tests/wiring_support.py`, and no module defines `_record_get_repo`.
+1. Each item is held once (rows of one parametrized test over the files under `tests/`, read with `ast`, one row per item 1, 2 and 4; plain and annotated assignments count as assigning, imports do not): exactly one module defines `in_order` and exactly one `lines_with`, and it is `tests/vm_support.py`, and no module defines `_in_order` or `_lines_with`; exactly one module assigns `SCHEMAS`, and it is `tests/contract_support.py`; exactly one module defines `committed` and exactly one `values`, and it is `tests/contract_login_support.py`, and no module defines `_committed` or `_values`; exactly one module defines `record_get_repo`, and it is `tests/wiring_support.py`, and no module defines `_record_get_repo`.
 2. The suite's definition (one test reading `tests/git_support.py`'s definition through `RuamelPipelineDefinitionReader`): its stage `smoke-test` has `next == ["approval", "doing", "docs"]`, as `template/factory/pipeline.yml` has.
-3. The preparer's test (one test reading `tests/application/test_checkout_preparer.py` with `ast`): `test_the_preparer_takes_only_the_git_and_the_settings` carries no `pytest.mark.parametrize` and takes no fixture, and `test_the_preparer_clones_only_a_missing_checkout_and_checks_none` keeps its rows `missing-is-cloned` and `group-writable-git-is-kept`.
+3. The preparer's test (one test reading `tests/application/test_checkout_preparer.py` with `ast`): `test_the_preparer_takes_only_the_git_and_the_settings` carries no `pytest.mark.parametrize` and takes no fixture, its body asserts that `log` is not among the parameters of `CheckoutPreparer.__init__` (through `inspect.signature`), and `test_the_preparer_clones_only_a_missing_checkout_and_checks_none` keeps its rows `missing-is-cloned` and `group-writable-git-is-kept`.
 4. `make check` stays green.
 5. docs: `docs/project-guide/README.md`, *Shared test helpers*: the lines of `vm_support.py`, `contract_support.py`, `contract_login_support.py` and `wiring_support.py` name what they offer after the moves and renames. `docs/operator-guide.md`, `docs/decisions.md`, `README.md`: none.
 
@@ -75,8 +77,9 @@ The tester's entry names each changed module and, for every renamed helper, its 
 ```bash
 grep -rlE 'def _in_order|def _lines_with|def _record_get_repo' tests | wc -l
 grep -c '^SCHEMAS' tests/contract_login_support.py
+grep -cE 'def _committed|def _values' tests/contract_login_support.py
 ```
-Expect: two lines: `0`; `0`
+Expect: three lines: `0`; `0`; `0`
 
 ```bash
 uv run pytest tests/test_suite_held_once.py tests/application/test_checkout_preparer.py tests/test_vm_setup_text.py -p no:cacheprovider 2>&1 | tail -1
@@ -103,3 +106,9 @@ Expect: one line that ends `passed in <n>s` and names no failure
    3. Yes: the test's body asserts that `log` is not among `CheckoutPreparer.__init__`'s parameters (`inspect.signature`), and criterion 3 reads that with `ast`.
    4. Confirmed: plain and annotated assignments count, imports do not.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: Items 1 to 5 name concrete modules, files and old and new names under `tests/`; nothing under `src/`. The leave for items 3 to 5 is in journal entry 4 (the human), naming the modules.
+   - Criteria: Carried in from journal entry 4. Criterion 1 gains a row for `committed` and `values` of `tests/contract_login_support.py` (answer 2) and states that plain and annotated assignments count and imports do not (answer 4). Criterion 3 now also requires that the test's body asserts `log` is not among the `CheckoutPreparer.__init__` parameters, through `inspect.signature` read with `ast` (answer 3). Every rule has its failing side: the old names are absent, and the clone rows and the parametrize ban are checked. Each criterion is one test function.
+   - Smoke test: The commands are runnable. The first block gains a grep for `def _committed|def _values` (answer 2), so its Expect reads three lines, `0`; `0`; `0`. The pytest line passes no `-q` (`addopts` already sets it), so `tail -1` shows `N passed in <n>s`.
+   - Architecture: `tests/` only. Helpers move to support modules, as `CLAUDE.md` (*Tests*) asks. No layer is touched.
+   - Scope: All five items are F0045's own tests' leftovers from A0001 and are not in "Out of scope". The description's meaning is unchanged, so it was not rewritten.
