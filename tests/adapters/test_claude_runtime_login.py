@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, claude_request, read_calls, write_stand_in
-from claude_reply_support import BUDGET_STOP, LOGIN, REPLY
+from adapters.claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
+from claude_reply_support import BUDGET_STOP, LOGIN
 from factory.adapters.claude_runtime import (
     LOGIN_SCRIPT,
     LOGIN_VARIABLE,

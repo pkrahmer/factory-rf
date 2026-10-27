@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
+from adapters.claude_stand_in import REPLY
 from adapters.container_runtime_support import container_request, make_state
 from adapters.opencode_stand_in import MODELS, stdout, step_finish, step_start
-from claude_reply_support import REPLY
 from factory.adapters import opencode_runtime
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.fake_containers import FakeContainerRuns

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-27T02:04:43.501437Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-27T02:04:43.501437Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-27T02:11:13.603056Z'
+  stage: tests
+  run: 48fc0f2d68e24d62b8f5ead4ab125bbe
 ---
 
 # No test module imports another test module
@@ -321,3 +323,25 @@ Expect: `1`
 
     Nothing under `src/factory/` changes, so there was nothing to refactor. The journal did not change the Description, which the intake already rewrote.
 15. factory: started tests as vm.
+16. tester: Round 1, an approved test change. I made the three changes from the coder's entry 14, which carries the reviewer's findings in entry 12, under decision 30 of `feature.md` and the standing leave for shared helpers. Each change only removes a copied helper and imports the shared one. No test was renamed and none checks anything different. The guard tests did not change.
+
+    1. `tests/cost_image_support.py`: removed the copies of `WORK_ITEM`, `BRANCH`, `BACKLOG_PATH`, `PATH`, `STORY`, `CREATED` and `CREATED_LINE`. It now imports them from `tests/stage_run_support.py`. I also dropped the two imports that were no longer used (`branch_name`, `JournalRecord`).
+    2. `tests/agent_definition_support.py`: removed `BACKLOG_PATH` and `STORY`, so only `COMPLETED` is left, and updated its docstring. `tests/application/test_tick_agent_definition.py` and `tests/application/test_tick_project_agent.py` now take `BACKLOG_PATH` and `STORY` from `stage_run_support`.
+    3. Deleted `tests/wiring_login_support.py`, and removed `REPLY` from `tests/claude_reply_support.py`, which keeps `LOGIN` and `BUDGET_STOP` (docstring updated). These modules now import `REPLY` from `adapters.claude_stand_in`:
+       - `tests/entry/test_wiring_login.py`, `test_wiring_api_login.py`, `test_wiring_container_extra.py`, `test_wiring_stage_environment.py`
+       - `tests/container_extra_support.py` (as `CLAUDE_REPLY`)
+       - `tests/adapters/test_runtime_podman_timeout_status.py`, `test_claude_runtime_login.py`, `test_claude_runtime_api_login.py`, `test_claude_runtime_container.py`
+
+    Criteria → tests (unchanged since entry 8):
+    - criterion 1: tests/test_shared_imports.py::test_no_module_under_tests_imports_a_test_module
+    - criterion 2: tests/test_shared_imports.py::test_the_guard_finds_every_form_of_a_test_module_import
+    - criterion 3: tests/test_shared_imports.py::test_the_guard_names_each_import_by_file_line_and_module
+    - criterion 4: `make check`
+    - criterion 5: docs, for the documenter
+
+    No files created this round; one deleted (`tests/wiring_login_support.py`). Every module imported.
+
+    Run: `make lint` is green. One run of `make test` was green: `test: green (167.0 s)`, coverage 99.57 %.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (166.7 s)

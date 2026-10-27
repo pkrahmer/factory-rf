@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from agent_definition_support import BACKLOG_PATH, COMPLETED, STORY
+from agent_definition_support import COMPLETED
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
@@ -14,7 +14,7 @@ from factory.domain.stops import RepositoryStop
 from factory.entry.wiring import handler_factory
 from git_support import COLOURED_AGENT_FILE, PIPELINE_YAML, install_agents, write_agent
 from human_clone import HumanClone
-from stage_run_support import INSTANCE
+from stage_run_support import BACKLOG_PATH, INSTANCE, STORY
 from wiring_support import ENVIRONMENT
 
 ROLE = "coder"

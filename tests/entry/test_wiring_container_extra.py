@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from adapters.claude_stand_in import REPLY
 from adapters.opencode_stand_in import write_agent_settings
 from container_extra_support import CA_NAMES, COMMIT, OTHER, PROXY, env_words, volume, write_bundle
 from factory.adapters.fake_hosting import FakeHostingService
@@ -17,7 +18,6 @@ from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
 from git_support import CHECKOUT, write_executable
 from podman_support import IMAGE
-from wiring_login_support import REPLY
 from wiring_support import CREDENTIAL
 from zfs_support import DATASET
 

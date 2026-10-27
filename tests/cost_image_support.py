@@ -9,26 +9,22 @@ from factory.application.boundaries import Boundaries
 from factory.application.opening import WorkItemOpening
 from factory.application.stage import LaunchedStage, StageLauncher
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.identifiers import branch_name
-from factory.domain.journal import JournalRecord
 from factory.domain.settings import InstanceSettings
 from factory.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 from settings_support import AGENT_HOME
-from stage_run_support import ENVIRONMENT, INSTANCE
-
-WORK_ITEM = "F0001-S0001"
-
-
-BRANCH = branch_name(WORK_ITEM)
-
-
-BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
-
-
-PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
-
+from stage_run_support import (
+    BACKLOG_PATH,
+    BRANCH,
+    CREATED,
+    CREATED_LINE,
+    ENVIRONMENT,
+    INSTANCE,
+    PATH,
+    STORY,
+    WORK_ITEM,
+)
 
 MAKEFILE = (
     ".PHONY: lint check test\n\n"
@@ -37,40 +33,6 @@ MAKEFILE = (
     "test:\n\t@echo 'test done'\n\t@exit 0\n"
     "sync:\n\t@:\n"
 )
-
-
-STORY = """\
-# First story
-
-## Description
-
-Text.
-
-## Interface
-
-None.
-
-## Acceptance criteria
-
-1. It works.
-2. make check stays green.
-3. docs: none, nothing changes.
-
-## Smoke test
-
-```bash
-true
-```
-Expect: nothing.
-
-## Journal
-"""
-
-
-CREATED = JournalRecord(number=1, speaker="human", kind="created")
-
-
-CREATED_LINE = "\n1. 2026-10-12 human: created.\n"
 
 
 def _settings(image: str | None) -> InstanceSettings:

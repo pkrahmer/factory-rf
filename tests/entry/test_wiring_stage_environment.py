@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from adapters.claude_stand_in import REPLY
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.make_commands import ContainerMakeCommands
@@ -20,7 +21,6 @@ from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries, build_tick
 from git_support import write_executable
 from podman_support import IMAGE
-from wiring_login_support import REPLY
 from wiring_support import CREDENTIAL, every_tool
 from zfs_support import DATASET
 
