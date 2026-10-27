@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T02:37:50.924935Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-27T02:37:50.924935Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-27T02:44:11.120877Z'
+  stage: doing
+  run: 8234eccee72c424798e7c1f8dd039f62
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -177,3 +179,19 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/application/test_checkout_preparer.py::test_the_preparer_takes_only_the_git_and_the_settings[no-log-parameter] - assert 'log' not in mappingproxy(OrderedDict({'self': <Parameter "self"...
 9. factory: started doing as vm.
+10. coder: `CheckoutPreparer` no longer takes a log. `make check` is green (coverage 99.57 %), and the four tester rows that were failing now pass.
+
+    What I built:
+    - `src/factory/application/scheduler.py`: `CheckoutPreparer.__init__(self, git, settings)`. The `log` parameter and the `_log` attribute are gone, and the `__init__` docstring no longer mentions a log. The class docstring never did. The `FactoryLog` import stays because `Scheduler` still uses it.
+    - `src/factory/entry/run.py:116`: `run_instance` builds `CheckoutPreparer(boundaries.git, settings)` without `log=`.
+
+    Main choice: I deleted the parameter outright. The alternative was to keep it as an ignored keyword so older callers still work. I rejected that because nothing in the code passed it except `run.py`, and an ignored parameter is exactly the dead parameter this story removes.
+
+    Refactor pass: I read the diff (two files, a few lines). Nothing needed changing.
+
+    The journal did not change the meaning of the task after intake, so the Description stays as it is.
+
+    Noticed but not touched: `docs/project-guide/watching.md` still describes the constructor with a log, and `docs/project-guide/README.md` needs the new support module and the renamed test modules. Both are for the docs stage under criterion 6. The tests are as the tester left them; I did not change any.
+
+    `check`: check: green
+    `duplicates`: duplicates: 2 new, 42 known, 0 gone
