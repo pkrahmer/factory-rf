@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-27T00:51:44.098754Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -278,6 +274,12 @@ journal:
   kind: started
   at: '2026-10-27T00:51:44.098754Z'
   stage: docs
+- number: 49
+  speaker: documenter
+  kind: result
+  at: '2026-10-27T00:52:50.981099Z'
+  stage: docs
+  run: 6eb89ede60934de19b3eea26c45517a8
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -820,3 +822,33 @@ Expect: `-n /usr/bin/systemctl poweroff`
     - `tests/test_wrapper_search.py` (M): changed under the human's leave, which the story's Interface names (decision 28 of `feature.md`). It adds `factory.adapters.power_off` to the set, and the test keeps its name.
     - `tests/entry/test_run.py` (M): no leave needed. The change adds one test and one import (`IdleShutdown`), and every earlier test stays as it was.
 48. factory: started docs as vm.
+49. documenter: Round 2, docs. I wrote the documentation the docs criterion (13) asks for. Nothing was documented before this round. All four files are documents, so I did not run `make check`; the factory's checks run right after this stage. I ran no examples either. The only runnable ones are the two `gcloud` commands, which need a real VM.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - `## Configuration`: the row `FACTORY_IDLE_SHUTDOWN_MINUTES` (off when unset, blank or `0`; the refusal and its fault text).
+      - `## The loop and its pauses`: one paragraph saying the loop counts its idle ticks, the pauses are unchanged, and an iteration with no tick neither counts nor ends the stretch.
+      - `## The machine`: a new `### The idle shutdown`, placed before *The rebuild after a merge*. It covers:
+        - what counts as idle, and why a story waiting for the human counts but a stop does not;
+        - the two `idle shutdown: ` log lines, with the exact texts from `src/factory/application/idle_shutdown.py`;
+        - a refused power-off leaves the instance running and a new stretch starts;
+        - how the right and the setup script's option fit in;
+        - how the machine starts again: `gcloud compute instances start factory-vm --zone europe-west3-a`, or a GCP instance schedule made by hand (`gcloud compute resource-policies create instance-schedule`, then `gcloud compute instances add-resource-policies`), and that a merge, close or answer given while the VM was off is seen at the first tick after the start.
+    - `docs/project-guide/watching.md`: a new section `### The idle shutdown` at the end of *Stops, the clock and the factory log*. It covers `IdleShutdown`, `PowerOff`, `SystemctlPowerOff`, `idle_shutdown_of`, `activity_tick` and the rules of the stretch.
+    - `docs/project-guide/README.md`: the `watching.md` line now names `factory.adapters.power_off` and `factory.application.idle_shutdown` and lists *The idle shutdown*. *Errors* now lists `PowerOffError`.
+    - `docs/decisions.md`: a new entry, "The machine powers itself off after an idle stretch, an option off by default" (F0045-S0008; decisions 8 to 12 of `feature.md`, with the rejected options).
+    - `README.md`: unchanged, as criterion 13 says (none).
+
+    Two choices for the next reader:
+    - The guide names `--idle-shutdown <minutes>` as the setup script's option and says the script does not have it yet. `vm/setup.sh` has no such option today (S0009 adds it). S0009's documenter should drop that parenthesis.
+    - The log text is the code's, not the criterion's wording: `idle shutdown: idle for <n> minutes, powering the machine off` and `idle shutdown: power off failed: <detail>; the factory runs on`.
+
+    Cross-read and found current against the diff: `docs/project-guide/README.md` outside the lines above, and the `Boundaries` paragraph in `watching.md`. The `Boundaries` paragraph is untouched because `IdleShutdown` takes the clock and log from the existing boundaries and adds no field. I read no other `docs/` file in full. I only searched `docs/operator-guide.md` for `idle` and found nothing else stale.
+
+    No findings for the coder. The code matches the Interface and the docs criterion.
+
+    Stale text I saw and did not touch: `docs/operator-guide.md` says at line 334 that `factory` has no `sudo` right but the page-cache helper and the four `zfs` commands. That is correct today and becomes stale when S0009 adds the power-off right, so S0009's documenter owns it.
+
+    `check`: check: green (not run again: passed on tree 520f516d8b66 at 2026-10-27T00:47:40Z)
+    `secrets`: secrets: green (2.4 s)
+    `documents`: documents ok

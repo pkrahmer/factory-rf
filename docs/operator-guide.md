@@ -68,6 +68,7 @@ One factory instance runs one project and is told what it needs through environm
 | `FACTORY_CLAUDE_LOGIN_FILE` | no | The file that holds the agent's login token, made with `claude setup-token`, as plain ASCII text. A blank value counts as unset. No default; the environment file sets it to `/home/factory/.secrets/claude-token`. See "The agent runtime" and "The agent's login token". |
 | `FACTORY_API_LOGIN_FILE` | no | The file that holds the agent's Anthropic API key, as plain ASCII text. A blank value counts as unset. No default; the environment file sets it to `/home/factory/.secrets/anthropic-api-key`. A key in it wins over the token. See "The agent's API key". |
 | `FACTORY_MIN_FREE_GB` | no | The least free space, in whole gigabytes of 10^9 bytes, at least 1. Default 5; unset or blank gives the default. Anything else (`0`, `-1`, `2.5`, `five`) is refused with `FACTORY_MIN_FREE_GB` as the variable. It guards the disk: when the work directory (the checkout's parent) or the state directory has less free space, the tick stops with `disk_low` (see "The stops of the tick"). |
+| `FACTORY_IDLE_SHUTDOWN_MINUTES` | no | The idle stretch, in whole minutes, after which the factory powers the machine off. Unset, blank or `0` is off, the default. A value of ASCII digits gives the limit, with no upper bound. Anything else (`-1`, `x`, `1.5`) is refused with `FACTORY_IDLE_SHUTDOWN_MINUTES` as the variable and the fault `is not a whole number of minutes`. See *The idle shutdown* under "The machine". |
 | `FACTORY_PROVIDER_LIMIT_STATUS` | no | The HTTP status a provider answers with when its spend limit is reached. Default 428; unset or blank gives the default. A value of ASCII digits from 100 to 599 sets it; anything else is refused with `FACTORY_PROVIDER_LIMIT_STATUS` as the variable. See "A provider's spend limit". |
 | `FACTORY_PROVIDER_LIMIT_MESSAGE` | no | A regular expression (Python `re.search`, as written, case-sensitive unless it says otherwise) for the text the gateway returns with the limit. Unset or blank means none. A value that is not a regular expression is refused with `FACTORY_PROVIDER_LIMIT_MESSAGE` as the variable. See "A provider's spend limit". |
 | `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` | no | How long the factory waits after a provider's spend limit when the limit names no wait, in whole minutes of ASCII digits, at least 1. Default 10; unset or blank gives the default. Anything else (`0`, `-1`, `1.5`, `abc`) is refused with `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` as the variable. See "A provider's spend limit". |
@@ -114,6 +115,8 @@ A URL whose user information holds a colon, that is a user name followed by a pa
 An instance repeats one iteration: it prepares the checkout, then makes one tick. The first iteration of a run happens at once, so a restart with the same instance name does not wait out a pause. Only a tick that handled an event other than `idle` counts as activity: a standing stop, a capped event and an error are idle, so the pause keeps growing while nothing changes. The first iteration follows the same rule: the pause after it is 15 seconds when its tick handled an event other than `idle`, and 30 seconds when it was idle. One tick object serves the whole run, which keeps its error counts in memory from one iteration to the next; a restart starts them again.
 
 After an iteration the instance pauses 15 seconds when the tick found activity. Each idle tick in a row doubles the pause (15, 30, 60 seconds) up to 120 seconds, and the next activity brings it back to 15 seconds. An iteration whose preparation or tick fails counts as idle. The failure is one line in the factory log, `iteration failed: <exception type>: <message>`, and the loop goes on.
+
+With `FACTORY_IDLE_SHUTDOWN_MINUTES` set, the loop also counts its idle ticks in a row (a tick that ran, ended at no stop and handled the event `idle`) and may power the machine off after them; the pauses above are unchanged. An iteration whose preparation failed ran no tick: it neither counts nor ends the stretch. See *The idle shutdown* under "The machine".
 
 ### The checkout is cloned when it is missing
 
@@ -679,6 +682,29 @@ Every GCP VM reaches a metadata server at `169.254.169.254`, and so does every c
 - `/srv/factory/vm/state/factory.log`: the factory log (see "The factory log and the health status file"). After every stage it holds a line `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`. The plan's measure "the start of a stage to the agent's first step" (target under 20 s with a warm base, the reset under 2 s) is `reset` plus `sync` plus `advance`; `take` is the copy back.
 - `health.json` in the state directory, through `factory-health --state-directory /srv/factory/vm/state`.
 - `sudo -iu factory podman ps`: a stage container that is running now. Containers run with `--rm`, so a finished one leaves nothing to look at.
+
+### The idle shutdown
+
+A VM costs money for every hour it runs, also while the factory has nothing to do. With `FACTORY_IDLE_SHUTDOWN_MINUTES` set to a whole number above 0, the factory powers the machine off after an idle stretch of that many minutes. Unset, blank or `0` leaves it off, and then none of this runs.
+
+**What is idle.** A tick is idle when it ran, ended at no stop and handled the event `idle`. That holds when nothing can be started, when the first waiting work item waits for the human (an approval, a question the factory posted), and when another instance holds a claim. A story that waits overnight for your merge therefore counts as idle: that is the cost the option saves. A tick that ended at a stop, or that handled any other event (a run, a comment, a merge, a crash, an error), is not idle and starts the stretch again. A stop waits for a fix you may make on the machine, so the machine stays up while one stands. An iteration that ran no tick (the checkout could not be prepared) neither counts nor ends the stretch. The first stretch starts when the instance starts.
+
+**The two log lines.** Both go to the factory log (`factory.log` in the state directory) and both begin `idle shutdown: `:
+
+- `idle shutdown: idle for <n> minutes, powering the machine off` is written right after the idle tick that ends a stretch of at least the limit, just before the factory asks the machine to power off.
+- `idle shutdown: power off failed: <detail>; the factory runs on` follows it when the machine refused or could not be asked.
+
+**A refused power-off.** The factory runs `sudo -n /usr/bin/systemctl poweroff`, the one command it needs. When `factory` has no right to it, `sudo` is missing, the call reaches its time limit of one minute, or the instance does not run on the VM, the second line holds the last line `sudo` printed (for example `sudo: a password is required`) or `exit status <n>`. It is not a stop: the instance runs on, starts a new stretch, and asks again only after another full limit. Read the line with `grep 'idle shutdown' /srv/factory/vm/state/factory.log`. No preflight item checks the right.
+
+**The right.** The setup script gives `factory` the right to that one command and sets the variable in the environment file with its option `--idle-shutdown <minutes>` (a separate change; the script does not have the option yet). Without the right, set the variable only if you accept the second log line above.
+
+**Starting the machine again.** Starting is outside the factory. By hand, from your own computer:
+
+```bash
+gcloud compute instances start factory-vm --zone europe-west3-a
+```
+
+Or let a GCP instance schedule start it at the hours you work. Make the schedule by hand with `gcloud compute resource-policies create instance-schedule` and attach it with `gcloud compute instances add-resource-policies`; give it a start time only, so that the factory's own power-off is the only thing that stops the VM. The service is enabled and comes up with the machine. A merge, a close or an answer you gave while the VM was off is seen at the first tick after the start.
 
 ### The rebuild after a merge
 

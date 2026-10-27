@@ -1207,3 +1207,14 @@ Date: 2026-10-26 (F0045-S0002; the cause was found and reproduced on `vm` on 202
 - Why in the factory and the script: `vm` had the drop in a hand-made wrapper (`FACTORY_ZFS=/usr/local/bin/zfs-fresh`); a setting can be left out, the code cannot.
 - Accepted: the drop is machine-wide, so the next sync reads from the disk.
 - Rejected: the sync checks the content against git's stat cache (decision 16 of F0045; it would read every file on every stage and treat the symptom); keeping the wrapper behind `FACTORY_ZFS` (an operator's setting that can be missing).
+
+## The machine powers itself off after an idle stretch, an option off by default
+
+Date: 2026-10-27 (F0045-S0008; decisions 8 to 12 of the feature).
+
+- Decision: `FACTORY_IDLE_SHUTDOWN_MINUTES` (unset, blank or `0` is off) turns on `IdleShutdown`. After an unbroken stretch of idle ticks of at least that many minutes, right after an idle tick, the factory logs a line that begins `idle shutdown: ` and `SystemctlPowerOff` runs `sudo -n /usr/bin/systemctl poweroff`. An idle tick is one that ran, ended at no stop and handled the event `idle`: nothing to start, the first waiting work item waits for the human, or another instance holds a claim. A stop or any other event ends the stretch; an iteration without a tick neither counts nor ends it.
+- Why a story waiting for the human counts: a story that waits overnight for its merge would otherwise keep the VM running all night, the cost the option exists to save. Why a stop does not: it waits for a fix the operator may make on the machine.
+- A failed power-off (no right, no `sudo`, the time limit) is one log line and a new stretch, not a stop: a stop would keep a machine running that the operator meant to save and stop no work. No preflight item checks the right.
+- The right is one `sudoers` line for `/usr/bin/systemctl poweroff`, as for the `zfs` fallback and the cache drop; the setup script's option gives it.
+- Starting again is outside the factory: `gcloud compute instances start`, or an instance schedule made by hand that only starts the VM (`docs/operator-guide.md`, *The idle shutdown*).
+- Rejected: every iteration without activity counts, stops included (the machine could power off while the operator fixes a low disk); a stage waiting for the human does not count (the VM runs all night); a polkit rule and a plain `systemctl poweroff` (not checked that `polkitd` is on the image, and the rule language is JavaScript); the factory as root; a stop for a failed power-off; a script or runbook commands that start the VM.
