@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-27T01:38:06.986105Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-27T01:38:06.986105Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-27T01:38:46.213865Z'
+  stage: smoke-test
+  run: b4210de9bbd74e57b752e20049473ea8
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -387,3 +389,46 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
 23. factory: started smoke-test as vm.
+24. smoke-tester: Ran the four smoke-test commands from the repository root, exactly as written and in order, in one bash shell. The `trap` was in effect and removed the temporary directory at exit. I ran as uid 1001, not root. The machine had no `id` stand-in on `PATH`, and that does not matter here: the argument check comes before the root check. Everything met the `Expect:` line. Nothing was fixed.
+
+    Command 1: `sh -n vm/setup.sh && echo syntax-ok`
+    ```
+    syntax-ok
+    ```
+    Met: `syntax-ok`.
+
+    Command 2: `d=$(mktemp -d); trap 'rm -rf "$d"' EXIT`
+    ```
+    (no output)
+    ```
+    Met: the expected five lines come only from the other commands.
+
+    Command 3: `(cd "$d" && sh "$OLDPWD/vm/setup.sh" --device /dev/null --repository-url https://example.invalid/r.git --idle-shutdown 0 >out 2>err; echo "status $?"; head -1 err | grep -c '^setup.sh: '; wc -c < out)`
+    ```
+    status 2
+    1
+    0
+    ```
+    Met: `status 2`, `1`, `0`.
+
+    Command 4: `grep -v '^[[:space:]]*#' vm/setup.sh | grep -c 'factory ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff'`
+    ```
+    1
+    ```
+    Met: `1`.
+
+    The whole run printed exactly the five expected lines: `syntax-ok`, `status 2`, `1`, `0`, `1`.
+
+    Against the acceptance criteria: I ran command 3 again with standard error shown. It printed `setup.sh: --idle-shutdown takes at least 1 minute, not 0` and then the usage. The usage names `[--idle-shutdown <minutes>]` and has a help line, "power the machine off after that many idle minutes (default off)". This fits criteria 2 and 3.
+
+    I also looked at the lines of `vm/setup.sh` that mention poweroff or the idle shutdown (a grep, no code run). They fit criteria 4 and 6 to 9:
+    - The rule is at line 293.
+    - The file is written only when unchanged reports a difference: `cp`, then `chmod 0440`, then `visudo -cf`.
+    - A refused check runs `rm -f`, prints with `>&2` and ends `exit 1`.
+    - The step reports `wrote` or `found`.
+    - The branch without the option runs `rm -f /etc/sudoers.d/factory-poweroff` and prints `setup: poweroff: not asked; the factory gets no power-off right`.
+    - `FACTORY_IDLE_SHUTDOWN_MINUTES=$idle_shutdown` is written at line 416.
+
+    The smoke test contradicts no criterion. It does not exercise criteria 11 (`make check`) or 12 (docs); the factory's checks cover those.
+
+    Findings: none.
