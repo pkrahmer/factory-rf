@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 479
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-27T03:59:29.867300Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-27T03:59:29.867300Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-27T03:59:51.158586Z'
+  stage: intake
+  run: 153b14ea7101425b9e350068fdae7512
+  blocked: question
 ---
 
 # The tests of F0045 say once what they share
@@ -70,3 +73,14 @@ Expect: one line that ends `passed in <n>s` and names no failure
 
 1. 2026-10-27 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. I judged the story and have four questions. I changed nothing.
+
+   1. **The leave for items 3, 4 and 5 is missing.** The Interface says items 3 to 5 "need the human's leave, to be given when this story is refined". Item 3 is `tests/git_support.py` plus any test that fails on the new `next`. Item 4 is `tests/wiring_support.py`, `tests/entry/test_wiring_boundaries.py`, `tests/entry/test_wiring_one_environment.py` and `tests/test_suite_held_once.py`. Item 5 is `tests/application/test_checkout_preparer.py`. All of these are tests other stories wrote. The journal holds no such leave, and the feature's decisions 21 to 31 give leave only for S0001 to S0011. Please say in a journal entry whether you give the leave for items 3, 4 and 5 and name the modules it covers. I would choose to give it, with item 3's knock-on tests left open to be named by the tester, as the story says.
+
+   2. **Item 2's rename has no criterion.** The Interface says `_committed` and `_values` of `tests/contract_login_support.py` lose their underscore, and `tests/domain/test_contract_login.py` imports them. Criterion 1 covers only `SCHEMAS` for item 2. Two testers could read the rename two ways. Should criterion 1 gain a row saying exactly one module defines `committed` and one defines `values` (both `tests/contract_login_support.py`), and none defines `_committed` or `_values`? I would choose to add it. The smoke test could also gain a matching grep.
+
+   3. **Criterion 3 does not test item 5's behaviour.** Item 5 says the plain test "checks that `log` is no parameter of `CheckoutPreparer.__init__`". Criterion 3 asks only that the test carries no `parametrize` and takes no fixture. It does not require the test to inspect `__init__`'s parameters. Should the criterion also say that the test's body asserts `log` is not among `CheckoutPreparer.__init__`'s parameters, for example through `inspect.signature`, read with `ast`? I would choose to add it.
+
+   4. **Criterion 1's wording leaves the "ast" test unclear for `SCHEMAS`.** It says "exactly one module assigns `SCHEMAS`". Should plain assignments, annotated assignments and imports of the name count? As I read it, imports do not count as assignments. Please confirm, or state the rule.
+
+   The other checks found nothing to ask. I checked the pytest configuration: `addopts` sets only `-q`, and the smoke commands pass none, so `tail -1` shows `N passed in <n>s`. Item 1 and the `SCHEMAS` row sit within the standing leave. All five items are within F0045's scope and are the tester's `tests/` paths.
