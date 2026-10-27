@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T02:11:33.972729Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-27T02:11:33.972729Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-27T02:18:08.076395Z'
+  stage: doing
+  run: 351b65cb3a654627a6247c76f096700a
 ---
 
 # No test module imports another test module
@@ -355,3 +357,23 @@ Expect: `1`
     `lint`: lint: green (0.2 s)
     `test`: test: green (166.7 s)
 17. factory: started doing as vm.
+18. coder: Round 1: I changed no code. This story changes `tests/` only. The tester made all three fixes from the reviewer's entry 12, which entry 14 carried over, and they are in place:
+    - `tests/cost_image_support.py` takes the shared constants from `tests/stage_run_support.py`.
+    - `tests/agent_definition_support.py` keeps only `COMPLETED`.
+    - `tests/wiring_login_support.py` is deleted, and `tests/claude_reply_support.py` keeps only `LOGIN` and `BUDGET_STOP`, so `REPLY` comes from `adapters.claude_stand_in`.
+
+    `git diff main -- src` is empty.
+
+    Checked:
+    - `make check` is green: every target, then `test: green (166.6 s)` and `check: green`.
+    - The first smoke grep returns `0`.
+    - The working tree is clean. I had nothing to refactor.
+
+    Main choice: hand forward with no change of my own. I rejected touching the support modules any further (for example, dropping the leading underscore from the moved private names, which the Interface allows but does not require), because that is a test change and the tester's alone.
+
+    Noticed but did not touch: my first `make check` run stopped at `make types` with `make: *** [Makefile:38: types] Error 139`. That is a segfault in the mypy process, and it printed no type error. Run on its own right after, `make types` was green ("Success: no issues found in 788 source files"), and the next full `make check` was green. It looks like a one-off crash of the tool, not something this story caused.
+
+    The journal did not change the Description beyond what intake already rewrote.
+
+    `check`: check: green
+    `duplicates`: duplicates: 2 new, 42 known, 0 gone
