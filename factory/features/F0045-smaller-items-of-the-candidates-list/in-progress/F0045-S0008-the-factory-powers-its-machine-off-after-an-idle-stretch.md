@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-27T00:23:25.779331Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,19 @@ journal:
   kind: started
   at: '2026-10-27T00:23:25.779331Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-10-27T00:25:06.394606Z'
+  stage: review
+  run: a798a7783c7c4a89b9e86885b3a5bfdb
+- number: 32
+  speaker: factory
+  kind: question
+  at: '2026-10-27T00:25:06.394606Z'
+  stage: review
+  run: a798a7783c7c4a89b9e86885b3a5bfdb
+  blocked: round_cap
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -269,7 +278,7 @@ Tests (the tester writes them; the leave is decision 28 of `feature.md`): new mo
 2. The stretch (rows of one parametrized test over `IdleShutdown` with `limit` 30 minutes, a `ManualClock`, a `PowerOff` of the test that counts its calls and the `RecordingLog` of `tests/recording_log.py`; times are minutes and seconds after the object was made; `idle` is an outcome of the event `idle` dispatched `handled`, `waits` the same with the detail `F0001-S0001 waits for the human` (the evaluation's form for a story waiting for its approval or an answer), `other` an outcome of the event `acceptance_due` for `F0001` dispatched `handled`, `stopped` an outcome with `stopped="main_branch_failing"`): `idle` at 00:00, 29:00 and 29:59 gives no call; `idle` at 30:00 gives one call and one log line that begins `idle shutdown: ` and contains `30`; `waits` at 30:00 gives one call; `idle` at 30:00, 59:59 and 60:00 gives two calls, the second at 60:00; `idle` at 05:00, `other` at 10:00 and `idle` at 39:59 give no call, then `idle` at 40:00 one; `stopped` at 20:00 and `idle` at 49:59 give no call, then `idle` at 50:00 one; an `idle` event dispatched `error` at 30:00 gives no call; `idle` at 31:00 as the first outcome gives one call (the first stretch starts when the object is made).
 3. A refused power-off (one test): with a `PowerOff` that raises `PowerOffError("sudo: a password is required")`, `idle` at 30:00 raises nothing, the log's last line begins `idle shutdown: ` and holds `sudo: a password is required`, and `idle` at 59:59 makes no second call while `idle` at 60:00 makes one.
 4. The limit (rows of one parametrized test): `IdleShutdown(timedelta(0), ...)` and `IdleShutdown(timedelta(minutes=-1), ...)` raise `ValueError`; `IdleShutdown(timedelta(minutes=1), ...)` is made and its `limit` is one minute.
-5. The wrapper (rows of one parametrized test over `SystemctlPowerOff(<stand-in>)` with stand-in programs under `tmp_path` that write their words to a file): a stand-in that exits 0 makes `power_off()` return, and its words are exactly `-n`, `/usr/bin/systemctl`, `poweroff`; one that prints `sudo: a password is required` to standard error and exits 1 raises `PowerOffError` whose detail is `sudo: a password is required`, as `failure_detail` gives it (no exit status); one that prints `sudo: a password is required` to standard output only and exits 1 raises `PowerOffError` holding it; one that prints two lines and a blank line and exits 1 raises `PowerOffError` whose detail holds the second line and not the first; one that prints nothing and exits 1 raises `PowerOffError` whose detail is `exit status 1`; a path that does not exist raises `PowerOffError` whose detail begins `cannot start `; a stand-in that sleeps 60 seconds, with `time_limit` one second, raises `PowerOffError` within `ROOMY_BOUND_SECONDS` of `tests/time_limits.py` whose detail equals `no_end_detail` of that limit, the text the `zfs` time-limit test (`tests/adapters/test_zfs_snapshots_drop_caches.py`) asserts.
+5. The wrapper (rows of one parametrized test over `SystemctlPowerOff(<stand-in>)` with stand-in programs under `tmp_path` that write their words to a file): a stand-in that exits 0 makes `power_off()` return, and its words are exactly `-n`, `/usr/bin/systemctl`, `poweroff`; one that prints `sudo: a password is required` to standard error and exits 1 raises `PowerOffError` whose detail is `sudo: a password is required`, as `failure_detail` gives it (no exit status); one that prints `sudo: a password is required` to standard output only and exits 1 raises `PowerOffError` holding it; one that prints two lines and a blank line and exits 1 raises `PowerOffError` whose detail holds the second line and not the first; one that prints nothing and exits 1 raises `PowerOffError` whose detail is `exit status 1`; a path that does not exist raises `PowerOffError` whose detail begins `cannot start <that path>:` (the path the test gave as `sudo_executable`, then a colon); a stand-in that sleeps 60 seconds, with `time_limit` one second, raises `PowerOffError` within `ROOMY_BOUND_SECONDS` of `tests/time_limits.py` whose detail equals `no_end_detail` of that limit, the text the `zfs` time-limit test (`tests/adapters/test_zfs_snapshots_drop_caches.py`) asserts.
 6. The error's text (one test): `str(PowerOffError("x")) == "power off failed: x"`.
 7. The activity tick (one test with a stand-in tick that returns an `idle` outcome, then an `other` outcome): `activity_tick(tick, idle)` returns `False`, then `True`, and the `IdleShutdown` stand-in (a subclass of the test that records `observe`) received exactly those two outcomes in order.
 8. The wiring (rows of one parametrized test over `idle_shutdown_of` with the `boundaries` fixture): settings with `idle_shutdown_minutes` `0` give `None`; with `30` an `IdleShutdown` whose `limit` is 30 minutes and whose `power` is a `SystemctlPowerOff`; making it runs nothing (a stand-in `sudo` first on `PATH` records no call); with `30`, after `boundaries.clock` moves on 30 minutes, `observe` of an `idle` outcome makes the stand-in record `-n /usr/bin/systemctl poweroff` once and `factory.log` of `boundaries.log` holds `idle shutdown: ` (it reads `boundaries.clock` and logs to `boundaries.log`).
@@ -559,3 +568,15 @@ Expect: `-n /usr/bin/systemctl poweroff`
     `check`: check: green
     `duplicates`: duplicates: 2 new, 42 known, 0 gone
 30. factory: started review as vm.
+31. reviewer: Round 2. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item and stopped at group 1 (acceptance criteria). I went through every criterion and every Interface rule. Criteria 1 to 11 each have a test that checks what the criterion states. The coder's `make check` was green (journal 29). The code follows the Interface: the idle rule is in `src/factory/application/idle_shutdown.py:114`, the argv without a shell in `src/factory/adapters/power_off.py:30`, and the wiring in `src/factory/entry/wiring.py:494` and `src/factory/entry/run.py:120`.
+
+    1. Criterion 5 sharpened: it needs its test change. `tests/adapters/test_power_off.py:394` (row `missing`) only checks `detail.startswith("cannot start ")`. The Interface says the detail begins `cannot start <sudo_executable>:`, and `src/factory/adapters/power_off.py:46` builds it that way. Code that dropped the executable or the colon would still pass, because criterion 5 asked for less than the Interface states. I rewrote that row of criterion 5 to: "a path that does not exist raises `PowerOffError` whose detail begins `cannot start <that path>:` (the path the test gave as `sudo_executable`, then a colon)". No other part of the work item changed. Fix: the tester changes the `missing` row so that it asserts `detail.startswith(f"cannot start {program}:")`. Nothing under `src/` changes.
+
+    Open for the next review, not judged this round because group 1 failed: `src/factory/adapters/power_off.py:30-50` is the run-or-raise block of `ZfsSnapshots._execute` (`src/factory/adapters/zfs_snapshots.py:152-169`) again, with another error type. `_ROOT = Path("/")` is the third copy, after `zfs_snapshots.py:17` and `podman_runs.py:32`. These are the 2 new `make duplicates` findings. Under CLAUDE.md's rule on second copies of a helper, the next review will most likely count them as a group-4 finding. The coder may want to act on it in this round: a shared adapters function that runs a `ProcessRequest` and gives the result or its fault detail (`cannot start`, `no_end_detail`, `failure_detail`), used by both wrappers, each raising its own error.
+
+    Rejected: reporting the duplicate as a numbered finding this round. The checklist stops at the first failing group.
+
+    Earlier tests:
+    - `tests/test_wrapper_search.py` (M): the human's leave, which the story's Interface names (decision 28 of `feature.md`). The change adds `factory.adapters.power_off` to the set, and the test keeps its name.
+    - `tests/entry/test_run.py` (M): none needed. The change adds one test and one import, and every earlier test stays as it was.
+32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
