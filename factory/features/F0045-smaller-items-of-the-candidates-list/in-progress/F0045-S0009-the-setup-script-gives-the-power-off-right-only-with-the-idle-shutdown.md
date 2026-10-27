@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-27T01:38:06.986105Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-27T01:37:46.138110Z'
   stage: docs
   run: 6d25ffd56ce44a41b139d6348848ed78
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:38:06.986105Z'
+  stage: smoke-test
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -377,3 +386,4 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
     `check`: check: green (not run again: passed on tree 5994d7b3be36 at 2026-10-27T01:32:43Z)
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok
+23. factory: started smoke-test as vm.
