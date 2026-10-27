@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 475
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-27T01:42:18.411472Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-27T01:42:18.411472Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-27T01:42:40.718406Z'
+  stage: intake
+  run: 5339f737007d4e17a62fa87fd1252819
+  blocked: question
 ---
 
 # No test module imports another test module
@@ -65,3 +68,12 @@ Expect: `1`
 
 1. 2026-10-27 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Criterion 2 does not test the `<file>:<line>: <module>` format that the Interface and criterion 1 promise. Criterion 2 only says each form is "found once, naming the module". Nothing fixes what the guard's reader returns (a file, a line and a module?), and nothing checks that the line is right, for example for the parenthesised multi-line `from adapters.test_x import (\n A,\n B,\n)`, where the line could be the `from` line or a name's line. Two testers would read this differently and both would pass. Options: (a) add to criterion 2 that each found import reports its line (the line of the `from` or `import` statement) and the module, and add a criterion that the failure message renders `<file>:<line>: <module>` for a given source text and file name. (b) Say that the line is the statement's first line. I would choose (a) with (b).
+   2. Smaller point: the Interface says a moved fixture "keeps its name", and a moved private name "may lose its underscore". No criterion covers either. If the guard and `make check` are meant to be the only checks, please say so. I would accept that as is, and this is not blocking.
+
+   Everything else is fine, so only question 1 blocks acceptance.
+   - The format check passed.
+   - The Interface names the modules and the rule.
+   - The architecture and scope fit `feature.md` (S0010, decisions 7 and 30, and the leave is given).
+   - The smoke tests are runnable. `-q` is already set in `addopts`, and the second smoke test passes none, so its `passed in` line exists.
+   - The failing side of the rule is covered by criterion 1.
