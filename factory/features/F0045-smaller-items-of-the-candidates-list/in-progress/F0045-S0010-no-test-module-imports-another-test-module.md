@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T02:04:06.286791Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-27T02:03:45.805921Z'
   stage: review
   run: 07af11649747455093ff72945ed9db90
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-27T02:04:06.286791Z'
+  stage: doing
 ---
 
 # No test module imports another test module
@@ -289,3 +298,4 @@ Expect: `1`
     - tests/test_time_limits.py: decision 30
 
     Every fix is a test change, so it is the tester's (R9). It falls under decision 30 and the standing leave for shared helpers.
+13. factory: started doing as vm.
