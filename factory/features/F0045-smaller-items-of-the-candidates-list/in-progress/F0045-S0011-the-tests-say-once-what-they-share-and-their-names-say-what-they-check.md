@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T02:53:24.055181Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-27T02:53:24.055181Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-27T02:59:37.855211Z'
+  stage: doing
+  run: 1d59ad1e1f7a47aca0fd7847d4ecd957
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -298,3 +300,21 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
     `lint`: lint: green (0.2 s)
     `test`: test: green (166.6 s)
 17. factory: started doing as vm.
+18. coder: Round 1, after the tester's change. In entry 16 the tester carried out the test change I named in entry 14, which is the reviewer's first fix for finding 1 in entry 12: `_keeps_without_a_log` is deleted and the `existing-is-kept` row now runs `_group_writable`. That finding needed only a test change, so I changed no code this round. The working tree held no changes of mine.
+
+    What I built stays as in entry 10:
+    - `src/factory/application/scheduler.py`: `CheckoutPreparer(git, settings)`, with no `log` parameter, no `_log` attribute and no log in its docstrings.
+    - `src/factory/entry/run.py:116`: `run_instance` builds it without `log=`.
+
+    Main choice (entry 10): I deleted the parameter outright. I rejected keeping it as an ignored keyword, because that would be the dead parameter this story removes.
+
+    Refactor pass: there is no new diff this round, so nothing needed changing.
+
+    `make check`: check: green (test: green, 166.8 s, coverage 99.57 %).
+
+    The journal did not change the meaning of the task, so the Description stays as it is.
+
+    Noticed but not touched: the `missing-is-cloned` row still appears both in criterion 1's test and in the earlier story's `test_the_preparer_clones_only_a_missing_checkout_and_checks_none`, and it overlaps `test_a_missing_checkout_is_cloned`. Criterion 1 names that row, so it stays unless the human gives leave for the reviewer's second fix. `docs/project-guide/watching.md` and `docs/project-guide/README.md` are for the docs stage under criterion 6.
+
+    `check`: check: green
+    `duplicates`: duplicates: 2 new, 42 known, 0 gone
