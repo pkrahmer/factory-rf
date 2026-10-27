@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366, 6433141030]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-27T03:54:46.994682Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-27T03:54:46.994682Z'
   stage: docs
+- number: 21
+  speaker: documenter
+  kind: result
+  at: '2026-10-27T03:55:11.167987Z'
+  stage: docs
+  run: 5c3e50f883c445c9abdcf1c507c29311
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -319,3 +321,14 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
     - `tests/adapters/test_zfs_snapshots.py`: the human's leave, journal entry 11. The patch target moved from `zfs_snapshots` to `process`, and the import changed with it; nothing else in the file used `zfs_snapshots` as a module.
     - `tests/adapters/test_podman_runs_results.py`: the human's leave, journal entry 11. `test_version_runs_under_two_minutes_by_default` now also takes `monkeypatch` and patches `process.run_process` with the same `recorder`; the `recorder` fixture is unchanged.
 20. factory: started docs as vm.
+21. documenter: Changed `docs/project-guide/processes-and-checks.md`, `## Starting a process`: added a paragraph and list for `run_or_raise` and `ROOT`. It covers the signature, the request it builds, the three rules (OSError, time limit, exit status outside `accepted`), the three wrappers that use it (`ZfsSnapshots._execute`, `SystemctlPowerOff.power_off`, `PodmanRuns._query`), why `PodmanRuns.run` keeps its own request, and the test module. I did not run the new text as code. The paragraph has no runnable example; I checked it against the diff and the Interface. I ran no `make check`, because I changed only a document.
+
+    Cross-read and found current: `docs/project-guide/stage-environment.md` (it mentions `_execute` as the runner for the zfs commands and the drop; still true), `README.md`, `docs/operator-guide.md` and `docs/decisions.md` (the criterion says none). A grep for `_ROOT` in the docs finds nothing stale.
+
+    The code matches the Interface. I found nothing for the coder.
+
+    Stale text I noticed but did not touch: the paragraph in the same section about the `run_process` boundary says that git, make and the `claude -p` runtime "each reach their tool through `run_process`". That is unrelated to this story and still broadly true.
+
+    `check`: check: green (not run again: passed on tree ca4a7b67abec at 2026-10-27T03:50:21Z)
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok
