@@ -8,7 +8,7 @@ set -eu
 
 usage() {
   cat <<'EOF'
-usage: setup.sh --device <path> --repository-url <url> [--instance <name>] [--pool <name>] [--quota <size>] [--ref <git ref>] [--image <tag>] [--runtime claude|opencode] [--sudoers] [--help]
+usage: setup.sh --device <path> --repository-url <url> [--instance <name>] [--pool <name>] [--quota <size>] [--ref <git ref>] [--image <tag>] [--runtime claude|opencode] [--sudoers] [--idle-shutdown <minutes>] [--help]
   --device <path>           the disk or file the pool is made on, when it does not exist yet
   --repository-url <url>    the repository the factory works on and runs from
   --instance <name>         the instance's name (default vm)
@@ -18,6 +18,7 @@ usage: setup.sh --device <path> --repository-url <url> [--instance <name>] [--po
   --image <tag>             the stage image (default factory-stage:<instance>)
   --runtime claude|opencode the agent runtime (default claude)
   --sudoers                 reach zfs through sudo where the delegation does not suffice
+  --idle-shutdown <minutes> power the machine off after that many idle minutes (default off)
   --help                    print this text
 EOF
 }
@@ -37,6 +38,16 @@ need_value() {
   esac
 }
 
+need_minutes() {
+  case "$2" in
+    ''|*[!0-9]*) fault "$1 takes a whole number of minutes, not $2" ;;
+  esac
+  case "$2" in
+    *[1-9]*) ;;
+    *) fault "$1 takes at least 1 minute, not $2" ;;
+  esac
+}
+
 device=
 repository_url=
 instance=vm
@@ -46,6 +57,7 @@ ref=main
 image=
 runtime=claude
 sudoers=no
+idle_shutdown=
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -59,6 +71,7 @@ while [ $# -gt 0 ]; do
     --ref) need_value "$@"; ref=$2; shift 2 ;;
     --image) need_value "$@"; image=$2; shift 2 ;;
     --runtime) need_value "$@"; runtime=$2; shift 2 ;;
+    --idle-shutdown) need_value "$@"; need_minutes "$1" "$2"; idle_shutdown=$2; shift 2 ;;
     *) fault "unknown word: $1" ;;
   esac
 done
@@ -274,6 +287,28 @@ fi
 echo "setup: caches: $(said "found /usr/local/bin/factory-drop-caches and /etc/sudoers.d/factory-drop-caches unchanged")"
 
 changes=
+# The right exists exactly while the idle shutdown is asked, so a run without it takes it back.
+if [ -n "$idle_shutdown" ]; then
+  stage <<'EOF'
+factory ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff
+EOF
+  if ! unchanged /etc/sudoers.d/factory-poweroff; then
+    cp "$staged" /etc/sudoers.d/factory-poweroff
+    chmod 0440 /etc/sudoers.d/factory-poweroff
+    if ! visudo -cf /etc/sudoers.d/factory-poweroff >/dev/null; then
+      rm -f /etc/sudoers.d/factory-poweroff
+      echo "setup: poweroff: visudo -cf refused /etc/sudoers.d/factory-poweroff; removed it" >&2
+      exit 1
+    fi
+    changed "wrote /etc/sudoers.d/factory-poweroff"
+  fi
+  echo "setup: poweroff: $(said "found /etc/sudoers.d/factory-poweroff unchanged")"
+else
+  rm -f /etc/sudoers.d/factory-poweroff
+  echo "setup: poweroff: not asked; the factory gets no power-off right"
+fi
+
+changes=
 # install -d as root on a link factory planted there would reach the link's target.
 if [ -L "$base/state" ] || [ -L "$base/repo" ] || [ -L /home/factory/.secrets ]; then
   echo "setup: folders: $base/state, $base/repo or /home/factory/.secrets is a link; remove it and run this script again" >&2
@@ -377,6 +412,9 @@ FACTORY_OPENCODE_MODELS=$opencode_models
 PATH=/srv/factory/$instance/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 XDG_RUNTIME_DIR=/run/user/$(id -u factory)
 EOF
+if [ -n "$idle_shutdown" ]; then
+  echo "FACTORY_IDLE_SHUTDOWN_MINUTES=$idle_shutdown" >> "$staged"
+fi
 if ! unchanged "$env_file"; then
   cat "$staged" | write_as_factory 0644 "$env_file"
   changed "wrote $env_file"

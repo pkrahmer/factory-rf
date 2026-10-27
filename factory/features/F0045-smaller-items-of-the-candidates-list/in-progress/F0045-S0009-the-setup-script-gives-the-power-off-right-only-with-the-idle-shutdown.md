@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T01:13:54.810572Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-27T01:13:54.810572Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-27T01:20:47.781000Z'
+  stage: doing
+  run: c7f4c3400afb4aa6ae3d085a3dbafe45
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -170,3 +172,23 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/test_vm_setup_text.py::test_the_folders_step_refuses_a_link_at_state_or_repo[exit-1] - AssertionError: no 'setup: poweroff: ' text
 9. factory: started doing as vm.
+10. coder: `vm/setup.sh` now has the option `--idle-shutdown <minutes>` and the step `poweroff`, and `make check` is green. I changed no other file and no test.
+
+    What I built:
+    - **Option:** `--idle-shutdown <minutes>` is in the usage line and the option list. The case arm reads `need_value "$@"; need_minutes "$1" "$2"; idle_shutdown=$2`. The new function `need_minutes` sits beside `need_value` and refuses a value that is not all digits, or is all zeros, through `fault` (exit 2, before the root check). With no option, `idle_shutdown` stays empty and the idle shutdown is off.
+    - **Step `poweroff`:** it runs between `caches` and `folders` and copies the pattern of `caches`.
+      - With the option: it stages the one rule, compares it with `unchanged`, then runs `cp`, `chmod 0440` and `visudo -cf`. If the check fails, it runs `rm -f`, prints a message to stderr with `>&2` and ends `exit 1`. It reports `wrote` or `found ... unchanged`.
+      - Without the option: it runs `rm -f /etc/sudoers.d/factory-poweroff` and prints exactly `setup: poweroff: not asked; the factory gets no power-off right`.
+    - **Environment file:** after the staged heredoc, `if [ -n "$idle_shutdown" ]` appends `FACTORY_IDLE_SHUTDOWN_MINUTES=$idle_shutdown` to the staging file. So it is the last line, written only with the option, and every other line is unchanged.
+    - **Checks:** `sh -n` passes. The smoke test gives `status 2`; the first stderr line starts with `setup.sh: `; stdout is 0 bytes; the rule count is `1`.
+
+    Main choice: I check the minutes in the case arm, through `need_minutes`, so an empty value such as `--idle-shutdown ""` is refused too. I rejected checking after the loop with `[ -n "$idle_shutdown" ]`. That check would read an empty value as "off" and accept it silently.
+
+    Refactor: I read the diff and found nothing to change. The step is a copy of the `caches` pattern on purpose: the criteria read each step's text, so a shared function for "write a sudoers file" would change three steps and is beyond this story.
+
+    Noticed, not touched: the three steps `sudoers`, `caches` and `poweroff` now repeat the same five lines (copy, chmod, visudo, rm, exit). Merging them would make a story of its own.
+
+    Journal: the human's answer (entry 4) was already carried into the Description by intake, so I did not rewrite it.
+
+    `check`: check: green
+    `duplicates`: duplicates: 2 new, 42 known, 0 gone
