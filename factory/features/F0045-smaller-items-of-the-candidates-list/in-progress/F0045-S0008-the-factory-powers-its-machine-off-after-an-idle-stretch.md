@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T00:44:03.689364Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -256,6 +252,12 @@ journal:
   kind: started
   at: '2026-10-27T00:44:03.689364Z'
   stage: doing
+- number: 45
+  speaker: coder
+  kind: result
+  at: '2026-10-27T00:50:26.510180Z'
+  stage: doing
+  run: 74e0e311ec844d9086c09fad5f065e8f
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -746,3 +748,23 @@ Expect: `-n /usr/bin/systemctl poweroff`
     - `tests/test_wrapper_search.py` (M): changed under the human's leave, which the story's Interface names (decision 28 of `feature.md`). One module, `factory.adapters.power_off`, was added to the set, and the test keeps its name.
     - `tests/entry/test_run.py` (M): no leave needed. The change adds one test and one import (`IdleShutdown`), and every earlier test stays as it was.
 44. factory: started doing as vm.
+45. coder: Round 2. I fixed the reviewer's one finding from journal 43. `_idle_shutdown_minutes` in `src/factory/domain/settings.py` was a second copy of `_whole_number`, and now it reuses it.
+    - `_whole_number` takes a new keyword-only `minimum: int = 1`. A value below `minimum` is refused, and so is a value that is not ASCII digits.
+    - The fault text stays `is not a whole number of <unit> of at least <minimum>` when `minimum` is above 0. When `minimum` is 0 it is `is not a whole number of <unit>`.
+    - `_idle_shutdown_minutes` is now `_whole_number(environ, IDLE_SHUTDOWN_VARIABLE, "minutes", minimum=0)`, which gives 0 for `None`. It reads the same way `_min_free_gb` does.
+    - The callers that already existed (`_min_free_gb`, `_minutes`) pass no `minimum`, so their behaviour and their fault texts have not changed.
+
+    No other file changed. `make check` is green after the change: `check: green`, coverage 99.57 %.
+
+    Main choice: extend `_whole_number` with a bound the caller gives. I rejected the reviewer's other option, a separate private ASCII-digit parse that both functions would call. It would have added a third function while the two callers still each did their own empty check and fault.
+
+    Refactor pass: the diff is the edit above. Nothing else needed changing.
+
+    What the journal changed: nothing in what the task means, so I left `## Description` alone.
+
+    Noticed but not touched:
+    - As the human decided in journal 33, the run-or-raise block of `src/factory/adapters/power_off.py` and the third `_ROOT = Path("/")` are left for a later tidy-up.
+    - The reviewer's note that `tests/adapters/test_power_off.py` `_stand_in` looks like the `sudo_stand_in` fixture of `tests/conftest.py` is a test matter, and the reviewer did not raise it as a finding.
+
+    `check`: check: green
+    `duplicates`: duplicates: 2 new, 42 known, 0 gone

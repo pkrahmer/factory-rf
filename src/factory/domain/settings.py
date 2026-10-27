@@ -318,24 +318,22 @@ def _min_free_gb(environ: Mapping[str, str]) -> int:
     return DEFAULT_MIN_FREE_GB if value is None else value
 
 
-def _whole_number(environ: Mapping[str, str], variable: str, unit: str) -> int | None:
+def _whole_number(
+    environ: Mapping[str, str], variable: str, unit: str, *, minimum: int = 1
+) -> int | None:
     value = _optional(environ, variable)
     if not value:
         return None
     # `isdigit` alone takes other scripts' digits, which `int` reads but no operator means.
-    if not (value.isascii() and value.isdigit()) or int(value) < 1:
-        raise SettingsInvalid(variable, f"is not a whole number of {unit} of at least 1")
+    if not (value.isascii() and value.isdigit()) or int(value) < minimum:
+        bound = f" of at least {minimum}" if minimum > 0 else ""
+        raise SettingsInvalid(variable, f"is not a whole number of {unit}{bound}")
     return int(value)
 
 
 def _idle_shutdown_minutes(environ: Mapping[str, str]) -> int:
-    value = _optional(environ, IDLE_SHUTDOWN_VARIABLE)
-    if not value:
-        return 0
-    # `isdigit` alone takes other scripts' digits, which `int` reads but no operator means.
-    if not (value.isascii() and value.isdigit()):
-        raise SettingsInvalid(IDLE_SHUTDOWN_VARIABLE, "is not a whole number of minutes")
-    return int(value)
+    value = _whole_number(environ, IDLE_SHUTDOWN_VARIABLE, "minutes", minimum=0)
+    return 0 if value is None else value
 
 
 def _provider_limit(environ: Mapping[str, str]) -> ProviderLimit:
