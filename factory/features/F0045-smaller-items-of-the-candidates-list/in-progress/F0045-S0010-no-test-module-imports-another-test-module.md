@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-27T02:02:04.615749Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-27T02:02:04.615749Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-27T02:03:45.805921Z'
+  stage: review
+  run: 07af11649747455093ff72945ed9db90
 ---
 
 # No test module imports another test module
@@ -214,3 +216,76 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 2 new, 42 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (tests only, nothing under `src/`) against the work item.
+
+    **Group 1 holds:**
+    - Criterion 1 is `test_no_module_under_tests_imports_a_test_module`.
+    - Criterion 2 is the parametrized `test_the_guard_finds_every_form_of_a_test_module_import`. It has all seven found forms, the parenthesised one reported at line 1 among them, and all four rows that must not be found: `testing_support` and `support_test` cover both sides of the `test_` prefix rule.
+    - Criterion 3 is `test_the_guard_names_each_import_by_file_line_and_module`, with the exact example line.
+    - The journal records `check: green` after the coder (entry 10).
+
+    **Groups 2 and 3 hold:** the change is tests only, with no silencing marker.
+
+    **Group 4 (quality) fails.** At round 0 a copied helper in a test file the diff adds is a finding.
+
+    Findings:
+    1. `tests/cost_image_support.py:21-71`: `WORK_ITEM`, `BRANCH`, `BACKLOG_PATH`, `PATH`, `STORY`, `CREATED` and `CREATED_LINE` are copies of `tests/stage_run_support.py:19-22,33,53-54`. All seven values are equal, and the module already imports `ENVIRONMENT, INSTANCE` from `stage_run_support`. Fix: import them from `stage_run_support` and delete the copies.
+    2. `tests/agent_definition_support.py:7-36`: `BACKLOG_PATH` and `STORY` are copies of `stage_run_support.BACKLOG_PATH` and `stage_run_support.STORY` (equal values). Fix: `test_tick_agent_definition.py` and `test_tick_project_agent.py` take both from `stage_run_support`, and the support module keeps only `COMPLETED`.
+    3. `tests/wiring_login_support.py:5` `REPLY` and `tests/claude_reply_support.py:8` `REPLY` are copies of `tests/adapters/claude_stand_in.py:16` `REPLY` (the same JSON). Fix: delete `wiring_login_support.py` and drop `REPLY` from `claude_reply_support.py`. The modules that import either use `adapters.claude_stand_in.REPLY` instead (the wiring tests, `container_extra_support.py`, `test_runtime_podman_timeout_status.py` and the claude runtime login, api-login and container tests). `claude_reply_support` keeps `LOGIN` and `BUDGET_STOP`.
+
+    Points I looked at and did not count as findings:
+    - The fixtures `rig` and `red_main` went into `preflight_support.py`, not `tests/conftest.py`. The Interface allows a support module as well ("moves into a support module ... or, for a fixture, into `tests/conftest.py`"), and `preflight_support` already held the fixture `failed_once` in the same pattern.
+    - `opencode_events_support.py` and `opencode_resume_support.py` each hold `WAIT_SECONDS = 30`. The Interface asks for them "in support modules beside the tests that use them", and `test_time_limits.py` keeps one row for each. Merging them would change those rows.
+
+    Earlier tests (item 6). Every file below was changed under the human's leave, decision 30 of `feature.md`, which the story names. Each change only moves names into a support module, or switches the import to one. No test was renamed and none changed what it checks.
+    - tests/adapters/test_agent_launch_login.py: decision 30
+    - tests/adapters/test_claude_runtime_api_login.py: decision 30
+    - tests/adapters/test_claude_runtime_container.py: decision 30
+    - tests/adapters/test_claude_runtime_denial_paths.py: decision 30
+    - tests/adapters/test_claude_runtime_login.py: decision 30
+    - tests/adapters/test_claude_runtime_provider_limit.py: decision 30
+    - tests/adapters/test_claude_runtime_resume.py: decision 30
+    - tests/adapters/test_claude_runtime_resume_session.py: decision 30
+    - tests/adapters/test_cost_records_jsonl.py: decision 30
+    - tests/adapters/test_cost_records_jsonl_denials.py: decision 30
+    - tests/adapters/test_cost_records_jsonl_instance.py: decision 30
+    - tests/adapters/test_cost_records_jsonl_login.py: decision 30
+    - tests/adapters/test_opencode_events.py: decision 30
+    - tests/adapters/test_opencode_resume_session.py: decision 30
+    - tests/adapters/test_opencode_runtime_container.py: decision 30
+    - tests/adapters/test_opencode_runtime_launch.py: decision 30
+    - tests/adapters/test_runtime_podman_timeout_status.py: decision 30
+    - tests/application/test_agent_run_probe_api_login.py: decision 30
+    - tests/application/test_agent_run_probe_login.py: decision 30
+    - tests/application/test_cost_image.py: decision 30
+    - tests/application/test_cost_instance.py: decision 30
+    - tests/application/test_git_interface.py: decision 30
+    - tests/application/test_hosting_interface.py: decision 30
+    - tests/application/test_interfaces.py: decision 30
+    - tests/application/test_known_results.py: decision 30
+    - tests/application/test_known_results_torn.py: decision 30
+    - tests/application/test_preflight_login_line.py: decision 30
+    - tests/application/test_preflight_run.py: decision 30
+    - tests/application/test_preflight_stale_main_stop.py: decision 30
+    - tests/application/test_preflight_stops_commit.py: decision 30
+    - tests/application/test_recording_project_commands.py: decision 30
+    - tests/application/test_tick_agent_definition.py: decision 30
+    - tests/application/test_tick_project_agent.py: decision 30
+    - tests/container_extra_support.py: decision 30
+    - tests/domain/test_contract_login.py: decision 30
+    - tests/domain/test_contract_provider_limit.py: decision 30
+    - tests/domain/test_section_edges.py: decision 30
+    - tests/domain/test_sections.py: decision 30
+    - tests/domain/test_story_form.py: decision 30
+    - tests/domain/test_story_form_edges.py: decision 30
+    - tests/entry/test_check_documents.py: decision 30
+    - tests/entry/test_check_documents_guide_files.py: decision 30
+    - tests/entry/test_wiring_api_login.py: decision 30
+    - tests/entry/test_wiring_container_extra.py: decision 30
+    - tests/entry/test_wiring_login.py: decision 30
+    - tests/entry/test_wiring_opencode.py: decision 30
+    - tests/entry/test_wiring_stage_environment.py: decision 30
+    - tests/preflight_support.py: decision 30
+    - tests/test_time_limits.py: decision 30
+
+    Every fix is a test change, so it is the tester's (R9). It falls under decision 30 and the standing leave for shared helpers.
