@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T00:01:18.792903Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-27T00:01:18.792903Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-27T00:07:27.555939Z'
+  stage: doing
+  run: 2f15f35d1f064d2e9576a52b8a08c16b
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -405,3 +407,26 @@ Expect: `-n /usr/bin/systemctl poweroff`
     `lint`: lint: green (0.2 s)
     `test`: test: green (156.9 s)
 20. factory: started doing as vm.
+21. coder: Round 1. I made one code change, `make check` is green and coverage is 99.57 %.
+
+    What I built: in `src/factory/entry/run.py`, `idle_shutdown_of` is now in `__all__`.
+    - Why: the tester's new test for criterion 10 (`tests/entry/test_run.py::test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick`) reads and patches `run_module.idle_shutdown_of`, and `make types` failed on it with `tests/entry/test_run.py:282: error: Module "factory.entry.run" does not explicitly export attribute "idle_shutdown_of"  [attr-defined]`.
+    - Precedent: `build_tick` is imported from `factory.entry.wiring` and re-exported the same way, so the test that records `build_tick` already works like this.
+    - The test itself passed in `make test` (journal 19). Only the type check was red, and that is what this change fixes.
+
+    Main choice: re-export the name through `run.py`'s `__all__`. I rejected the alternatives because each means changing the test, which is not mine to change:
+    - having the test patch `factory.entry.wiring` instead;
+    - adding a `type: ignore` to the test.
+
+    Refactor pass: the diff for this round is one line, so there was nothing to change.
+
+    What the journal changed: criterion 10 now has its test. `## Description` keeps its meaning, so I left it alone.
+
+    Noticed but not touched:
+    - Criteria 1, 5 and 8 in the work item still carry the stale texts named in journal 15. My rewrite in journal 17 was left out because the work item is outside the coder's write paths. A stage that may write the work item has to fix them. The tests already check journal 9's reading.
+    - The 2 `make duplicates` findings from journal 13 are still there: the `ProcessRequest` block in `src/factory/adapters/power_off.py`, which is similar to the zfs and podman wrappers.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 2 new, 42 known, 0 gone

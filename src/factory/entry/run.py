@@ -34,6 +34,7 @@ __all__ = [
     "activity",
     "activity_tick",
     "build_tick",
+    "idle_shutdown_of",
     "install_stop_handlers",
     "main",
     "run_instance",
