@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T02:04:06.286791Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-27T02:04:06.286791Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-27T02:04:23.044716Z'
+  stage: doing
+  run: a307c34b81b1462fac200edc55351100
 ---
 
 # No test module imports another test module
@@ -299,3 +301,13 @@ Expect: `1`
 
     Every fix is a test change, so it is the tester's (R9). It falls under decision 30 and the standing leave for shared helpers.
 13. factory: started doing as vm.
+14. coder: Round 1: changed no code. All three of the reviewer's findings in entry 12 are changes to tests. They fall under decision 30 of `feature.md` and the standing leave for shared helpers, so they are the tester's (R9).
+
+    Changes for the tester, as entry 12 names them:
+    1. `tests/cost_image_support.py`: delete the copies of `WORK_ITEM`, `BRANCH`, `BACKLOG_PATH`, `PATH`, `STORY`, `CREATED` and `CREATED_LINE`, and import them from `tests/stage_run_support.py`.
+    2. `tests/agent_definition_support.py`: drop `BACKLOG_PATH` and `STORY`, so the module keeps only `COMPLETED`. `test_tick_agent_definition.py` and `test_tick_project_agent.py` take `BACKLOG_PATH` and `STORY` from `stage_run_support`.
+    3. Delete `tests/wiring_login_support.py` and drop `REPLY` from `tests/claude_reply_support.py`, which keeps `LOGIN` and `BUDGET_STOP`. Every module that imported either `REPLY` uses `adapters.claude_stand_in.REPLY` instead. These are the wiring tests, `container_extra_support.py`, `test_runtime_podman_timeout_status.py`, and the claude runtime login, api-login and container tests.
+
+    Main choice: send the work item to the tester and leave the support modules alone. I rejected applying the fixes myself because the coder never edits tests.
+
+    Nothing under `src/factory/` changes, so there was nothing to refactor. The journal did not change the Description, which the intake already rewrote.
