@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-27T03:01:21.902081Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-27T03:01:01.306702Z'
   stage: review
   run: f441b951a3cb461f9a91d919e7c38781
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-27T03:01:21.902081Z'
+  stage: docs
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -385,3 +394,4 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
       - tests/run_layout_support.py
       - tests/settings_support.py
       - tests/wiring_support.py
+21. factory: started docs as vm.
