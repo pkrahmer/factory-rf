@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-10-27T04:57:17.772098Z'
   stage: acceptance
   run: 8f5bf0a4250d4775b04d50982d69a2d7
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-10-27T04:58:04.433078Z'
+  stage: done
 stories: [F0045-S0001, F0045-S0002, F0045-S0003, F0045-S0004, F0045-S0005, F0045-S0006, F0045-S0007, F0045-S0008, F0045-S0009, F0045-S0010, F0045-S0011, F0045-S0013, F0045-S0014]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of Smaller items of the candidates list
@@ -204,3 +209,4 @@ Human interventions: 14 questions answered (13 questions, 1 round cap), and 0.4 
    6 Decisions: A0001's list stands. New: S0013 entries 4 and 11 and the coder's power-off prefix default, and S0014 entry 4. Every earlier test that was changed has its leave. Open for the human: the mutmut `--deselect` line, change 3 (F0044 still has two decisions numbered 29), and change 2 on `vm`, which I cannot see from here.
    7 Slow checks: nothing beyond `make check` (green, 167.1 s, 99.57 %, 7609 tests). The slowest tests are 10 s time-limit waits, none of them this feature's. Free disk fell from 43.3 to 40.7 GB outside the dataset, 7.8 GB over the two acceptances' records; the feature's changes do not explain it, and stage images or caches on `vm` are likely. One `mktemp` folder was left in `/tmp` because its removal was refused.
    8 Cost: $46.84 over 156 runs, about $3.60 a story. S0013 and S0014 cost $5.16 together. S0008 stands out ($9.10, 24 runs). 14 human interventions (13 questions, 1 round cap) and 0.4 h waited; S0008 needed the human most (4).
+3. factory: done (pull request merged); cost: 1 runs, 9.0 min, 46 turns, 133095 tokens in (3630899 more from cache), 31251 out, $2.42
