@@ -7,7 +7,6 @@ from typing import override
 
 import pytest
 
-from application.test_preflight_run import RecordingCommands
 from factory.adapters.clock import ManualClock
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.git_cli import GitCli
@@ -19,6 +18,7 @@ from factory.domain.checks import CheckResult, TargetTime, status_of
 from factory.domain.command_records import CommandRecord
 from factory.domain.errors import GitError, ProjectCommandError
 from factory.domain.git import CommitId
+from preflight_support import RecordingCommands
 from project_command_support import raising
 from record_support import UnwritableRecordLog
 

@@ -8,17 +8,15 @@ from pathlib import Path
 import pytest
 
 import preflight_support
-from application import test_preflight_run
-from application.test_preflight_run import IMAGE, OTHER_IMAGE, TOOLS, Rig
 from factory.adapters.git_cli import GitCli
 from factory.domain.git import GitOptions
 from factory.domain.stops import RepositoryStop
 from git_support import CHECKOUT, TEST_IDENTITY, clone, run_git
 from log_support import log_lines
-from preflight_support import CLEARED_LINE
+from preflight_support import CLEARED_LINE, IMAGE, OTHER_IMAGE, TOOLS, Rig
 
-rig = test_preflight_run.rig
-red_main = test_preflight_run.red_main
+rig = preflight_support.rig
+red_main = preflight_support.red_main
 failed_once = preflight_support.failed_once
 
 

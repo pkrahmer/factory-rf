@@ -16,6 +16,7 @@ from adapters.opencode_stand_in import (
     step_start,
     text,
 )
+from opencode_resume_support import WAIT_SECONDS
 from time_limits import ROOMY_LIMIT
 
 OTHER_SESSION = "ses_b"
@@ -26,7 +27,6 @@ EVENTS = stdout(
     step_finish(),
 )
 DEFAULT_LIMIT = timedelta(seconds=30)
-WAIT_SECONDS = 30
 
 
 @pytest.mark.parametrize(

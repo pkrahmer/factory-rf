@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 
-from application.test_preflight_run import IMAGE, MAKEFILE, ROLES, TOOLS, RecordingWhich
 from factory.adapters.git_cli import GitCli
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.application.boundaries import Boundaries
@@ -15,6 +14,7 @@ from factory.domain.settings import InstanceSettings
 from git_support import install_agents
 from human_clone import HumanClone
 from log_support import log_lines
+from preflight_support import IMAGE, MAKEFILE, ROLES, TOOLS, RecordingWhich
 
 DETAIL = "the agent runs log in with the API key from /home/agent/.anthropic-api-key"
 LINE = f"preflight: agent-run-probe: {DETAIL}"

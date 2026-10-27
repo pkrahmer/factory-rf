@@ -1,6 +1,6 @@
 """The records contract at version 1.2: the end reason and the stall reason `provider_limit`."""
 
-from domain.test_contract_login import _committed, _values
+from contract_login_support import _committed, _values
 from factory.domain.contract import CONTRACT, RECORDS_CONTRACT, schema_file_name
 
 

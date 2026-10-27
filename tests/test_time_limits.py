@@ -5,9 +5,9 @@ from collections.abc import Callable
 
 import pytest
 
+import opencode_events_support as opencode_events
+import opencode_resume_support as opencode_resume_session
 from adapters import opencode_stand_in
-from adapters import test_opencode_events as opencode_events
-from adapters import test_opencode_resume_session as opencode_resume_session
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 

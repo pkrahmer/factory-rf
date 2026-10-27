@@ -3,21 +3,16 @@
 import pytest
 from pydantic import ValidationError
 
-from factory.domain.journal import JournalRecord
 from factory.domain.paths import LifecycleFolder
 from factory.domain.story_form import FormFinding, check_story_form
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from story_form_support import FORM, SMOKE, _state
 
-FORM = (
-    "# Story form\n\n## Description\n\n## Interface\n\n## Acceptance criteria\n\n"
-    "## Smoke test\n\n## Journal\n"
-)
 FORM_WITHOUT_JOURNAL = (
     "# Story form\n\n## Description\n\n## Interface\n\n## Acceptance criteria\n\n## Smoke test\n"
 )
 TITLE = "# A story"
 CRITERIA = "1. It works.\n2. make check stays green.\n3. docs: none, nothing changes."
-SMOKE = "```bash\nuv run factory\n```\nExpect: it works."
 
 NO_TITLE = "the story has no title line"
 SECOND_TO_LAST = 'the second-to-last criterion must contain "make check" and "green"'
@@ -54,14 +49,6 @@ def _body(
 
 def _line(body: str, text: str) -> int:
     return body.split("\n").index(text) + 1
-
-
-def _state(records: int, stage: str = "review") -> WorkItemState:
-    journal = [
-        JournalRecord(number=number, speaker="factory", kind="result")
-        for number in range(1, records + 1)
-    ]
-    return WorkItemState(stage=stage, journal=journal)
 
 
 def _check(

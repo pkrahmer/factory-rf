@@ -1,12 +1,12 @@
 """The `claude -p` runtime hands each call the agent's login token, read by the call's own shell."""
 
-import json
 from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, claude_request, read_calls, write_stand_in
+from adapters.claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
+from claude_reply_support import BUDGET_STOP, LOGIN
 from factory.adapters.claude_runtime import (
     LOGIN_SCRIPT,
     LOGIN_VARIABLE,
@@ -21,34 +21,9 @@ from factory.domain.agent_runs import (
 from factory.domain.errors import AgentRuntimeError
 from run_process_recorder import Recorder
 
-LOGIN = "stand-in-login"
 CHANGED_LOGIN = "changed-login"
 REQUEST_LOGIN = "request-login"
 GIVEN = {"HOME": "/home/agent", "LANG": "C.UTF-8"}
-REPLY = json.dumps(
-    {
-        "type": "result",
-        "subtype": "success",
-        "is_error": False,
-        "num_turns": 1,
-        "total_cost_usd": 0.1,
-        "duration_ms": 100,
-        "usage": {"input_tokens": 1, "output_tokens": 1},
-        "permission_denials": [],
-        "structured_output": {"decision": "doing", "entry": "Done."},
-    }
-)
-BUDGET_STOP = json.dumps(
-    {
-        "type": "result",
-        "subtype": "error_max_budget_usd",
-        "is_error": True,
-        "num_turns": 3,
-        "total_cost_usd": 1.0,
-        "usage": {"input_tokens": 1, "output_tokens": 1},
-        "permission_denials": [],
-    }
-)
 
 
 def _login_path(tmp_path: Path) -> Path:

@@ -19,8 +19,8 @@ from factory.domain.sections import (
     split_lines,
     title,
 )
+from sections_support import TICKS
 
-TICKS = "`" * 3
 TILDES = "~" * 3
 
 

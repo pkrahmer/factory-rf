@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from entry.test_wiring_login import REPLY
+from adapters.claude_stand_in import REPLY
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.make_commands import ContainerMakeCommands

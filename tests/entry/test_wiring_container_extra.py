@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 
+from adapters.claude_stand_in import REPLY
 from adapters.opencode_stand_in import write_agent_settings
 from container_extra_support import CA_NAMES, COMMIT, OTHER, PROXY, env_words, volume, write_bundle
-from entry.test_wiring_login import REPLY
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.project_commands import RecordingProjectCommands
 from factory.application.stage_environment import stage_environment_of

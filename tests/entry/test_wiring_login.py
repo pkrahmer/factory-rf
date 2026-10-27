@@ -1,11 +1,10 @@
 """The wiring hands the setting that names the login file to the agent runtime."""
 
-import json
 from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import claude_request
+from adapters.claude_stand_in import REPLY, claude_request
 from factory.adapters.agent_launch import LoginFiles, login_argv
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.settings import InstanceSettings
@@ -14,19 +13,6 @@ from podman_support import PodmanPlan
 from wiring_support import CREDENTIAL, after_image, dataset_podman, run_words, with_dataset
 
 LOGIN = "stand-in-login"
-REPLY = json.dumps(
-    {
-        "type": "result",
-        "subtype": "success",
-        "is_error": False,
-        "num_turns": 1,
-        "total_cost_usd": 0.1,
-        "duration_ms": 100,
-        "usage": {"input_tokens": 1, "output_tokens": 1},
-        "permission_denials": [],
-        "structured_output": {"decision": "doing", "entry": "Done."},
-    }
-)
 
 
 @pytest.mark.parametrize(

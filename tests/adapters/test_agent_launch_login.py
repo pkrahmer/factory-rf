@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from agent_login_support import API_LOGIN, SUBSCRIPTION, _utf_16
 from factory.adapters.agent_launch import (
     API_LOGIN_OPTION,
     API_LOGIN_VARIABLE,
@@ -22,8 +23,6 @@ from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.domain.agent_runs import Login
 from run_layout_support import write_script
 
-API_LOGIN = "stand-in-api-login"
-SUBSCRIPTION = "stand-in-login"
 SHELL_API_LOGIN = "shell-api-login"
 SHELL_SUBSCRIPTION = "shell-login"
 SEEN = "seen.json"
@@ -49,10 +48,6 @@ def _text(text: str) -> Callable[[Path], None]:
         path.write_text(text, encoding="utf-8")
 
     return make
-
-
-def _utf_16(path: Path) -> None:
-    path.write_bytes(API_LOGIN.encode("utf-16"))
 
 
 def _launch(tmp_path: Path, files: LoginFiles) -> tuple[ProcessResult, dict[str, str] | None]:

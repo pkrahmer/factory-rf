@@ -1219,3 +1219,12 @@ Date: 2026-10-27 (F0045-S0008; decisions 8 to 12 of the feature).
 - The right is one `sudoers` rule for `/usr/bin/systemctl poweroff` in `/etc/sudoers.d/factory-poweroff`, written only with the script's option `--idle-shutdown <minutes>` and removed by a run without it, so the right exists exactly while the option is used (F0045-S0009).
 - Starting again is outside the factory: `gcloud compute instances start`, or an instance schedule made by hand that only starts the VM (`docs/operator-guide.md`, *The idle shutdown*).
 - Rejected: every iteration without activity counts, stops included (the machine could power off while the operator fixes a low disk); a stage waiting for the human does not count (the VM runs all night); a polkit rule and a plain `systemctl poweroff` (not checked that `polkitd` is on the image, and the rule language is JavaScript); the factory as root; a stop for a failed power-off; a script or runbook commands that start the VM.
+
+## Shared test code lives outside the test modules
+
+Date: 2026-10-27 (F0045-S0010; F0039-A0002's note 4, decision 7 of `feature.md`).
+
+- Decision: no module under `tests/` imports a test module (file name beginning with `test_`), in any of the three forms. What test modules share moves into a support module, a new one named `*_support.py`, or, for a fixture, into `tests/conftest.py`. `tests/test_shared_imports.py` is the guard and names each breach as `<file>:<line>: <module>`. Thirty-nine such imports in thirty-two modules were moved on 2026-10-26.
+- Why: an import of a test module runs its setup, ties two stories' tests together, and turns a removed or renamed test module into failures elsewhere, as F0044's removals showed.
+- Rejected: the candidates list's rule that shared test code lives only in `*_support.py` modules (it would rename `human_clone.py`, `recording_log.py`, `source_search.py` and others, some hundred imports, for no gain).
+- The fixtures `rig` and `red_main` of the preflight tests went to `preflight_support.py`, not `conftest.py`: a root fixture `rig` would reach every module, and two other rigs carry that name.

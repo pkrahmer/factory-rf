@@ -8,7 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import StandInCall, Step, read_calls, write_stand_in
+from adapters.claude_stand_in import StandInCall, Step, read_calls
+from claude_resume_support import LIMIT, _after, _budget_reply, _reply, _request, _runtime
 from factory.adapters.claude_runtime import (
     FINISH_MESSAGE,
     VERSION_TIME_LIMIT,
@@ -17,8 +18,6 @@ from factory.adapters.claude_runtime import (
 )
 from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import (
-    AgentDefinition,
-    AgentRunRequest,
     PermissionDenial,
     TokenCounts,
 )
@@ -27,48 +26,8 @@ from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from run_process_recorder import Recorder
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
-LIMIT = timedelta(seconds=30)
 RUN_FILES = ("instructions-*.md",)
 VERSION_LINE = "2.1.289 (Claude Code)\n"
-
-
-def _reply(**changes: object) -> str:
-    reply: dict[str, object] = {
-        "type": "result",
-        "subtype": "success",
-        "is_error": False,
-        "num_turns": 3,
-        "total_cost_usd": 0.25,
-        "usage": {
-            "input_tokens": 10,
-            "output_tokens": 5,
-            "cache_read_input_tokens": 7,
-            "cache_creation_input_tokens": 2,
-        },
-        "permission_denials": [],
-        "structured_output": {"decision": "doing", "entry": "Done."},
-    }
-    reply.update(changes)
-    return json.dumps(reply)
-
-
-def _budget_reply(**changes: object) -> str:
-    reply: dict[str, object] = {
-        "type": "result",
-        "subtype": "error_max_budget_usd",
-        "is_error": True,
-        "num_turns": 5,
-        "total_cost_usd": 3.0,
-        "usage": {
-            "input_tokens": 100,
-            "output_tokens": 50,
-            "cache_read_input_tokens": 70,
-            "cache_creation_input_tokens": 20,
-        },
-        "permission_denials": [],
-    }
-    reply.update(changes)
-    return json.dumps(reply)
 
 
 def _without(reply: str, *keys: str) -> str:
@@ -78,49 +37,8 @@ def _without(reply: str, *keys: str) -> str:
     return json.dumps(fields)
 
 
-def _request(tmp_path: Path, *, time_limit: timedelta = LIMIT) -> AgentRunRequest:
-    work = tmp_path / "work"
-    work.mkdir(exist_ok=True)
-    agent = AgentDefinition(
-        name="coder",
-        model="sonnet",
-        tools=["Read", "Edit"],
-        effort="high",
-        budget_usd=Decimal("3"),
-        instructions="Write the code.\nKeep it small.",
-    )
-    return AgentRunRequest(
-        agent=agent,
-        prompt="Stage: doing",
-        allowed_decisions=["review", "doing", "question"],
-        time_limit=time_limit,
-        working_directory=work,
-        environment={},
-    )
-
-
-def _runtime(
-    tmp_path: Path,
-    steps: list[Step],
-    kill_points: KillPoints | None = None,
-    *,
-    version_time_limit: timedelta = VERSION_TIME_LIMIT,
-) -> ClaudeCodeRuntime:
-    executable = write_stand_in(tmp_path / "bin", steps)
-    return ClaudeCodeRuntime(
-        str(executable),
-        tmp_path / "state",
-        kill_points,
-        version_time_limit=version_time_limit,
-    )
-
-
 def _calls(tmp_path: Path) -> list[StandInCall]:
     return read_calls(tmp_path / "bin")
-
-
-def _after(arguments: list[str], flag: str) -> str:
-    return arguments[arguments.index(flag) + 1]
 
 
 def _left_over(state: Path) -> list[Path]:

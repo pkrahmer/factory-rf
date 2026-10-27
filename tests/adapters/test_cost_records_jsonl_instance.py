@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from adapters.test_cost_records_jsonl import (
+from cost_records_support import (
     COMPLETED_LINE,
     REQUIRED,
     STARTED_LINE,

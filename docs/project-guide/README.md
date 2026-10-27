@@ -23,6 +23,25 @@ Each file starts with a title and a sentence on what it covers.
 
 A helper that more than one test module uses lives in a module at the root of `tests/` (a fixture, in `tests/conftest.py`), and a test module imports it from there; `CLAUDE.md`'s standing leave to move a shared test helper intends this. Before writing a helper, look here: the reviewer counts a copy as a finding. The guards `tests/test_shared_*.py` fail on a copy of a shared helper, and `test_shared_bodies.py` finds a copy of `log_lines`, `pushed`, `pushed_state`, `remote_document` and `push_state` by its body under any name. A story that adds such a module names it in this list through its docs criterion. A story that adds a fixture to either conftest names it in that conftest's line through its docs criterion.
 
+No module under `tests/` imports a test module (a module whose file name begins with `test_`), in any form: `from x.test_y import ...`, `import x.test_y`, `from x import test_y`. Such an import runs the other module's setup at import and makes a removed or renamed test module fail tests of something else. What two test modules share lives in a support module, a new one named `*_support.py`, or, for a fixture, in `tests/conftest.py`. The guard `tests/test_shared_imports.py` reads every `*.py` file under `tests/` with `ast` and fails with one line `<file>:<line>: <module>` for each such import. Modules that exist under other names (`human_clone.py`, `recording_log.py` and the rest below) keep them.
+
+Support modules added for this rule, each holding what test modules once imported from each other:
+
+- `agent_definition_support.py`: `COMPLETED`, the completed agent run of the agent-definition tests.
+- `agent_login_support.py`: `API_LOGIN` and `SUBSCRIPTION`, the two stand-in logins, and `_utf_16`, which writes a file in UTF-16.
+- `check_documents_support.py`: `MISSING_LINES`, the document check's output for a missing guide file.
+- `claude_reply_support.py`: `LOGIN` and `BUDGET_STOP`, the stand-in login and the reply of a run stopped by its budget.
+- `claude_resume_support.py`: the resume tests' reply builders (`_reply`, `_budget_reply`), request and runtime (`_request`, `_runtime`), `_after` (the argument after a flag) and `LIMIT`.
+- `contract_login_support.py`: `SCHEMAS` (the committed schema folder), `_committed` and `_values`.
+- `cost_image_support.py`: the cost tests' launch and settings with an image (`_launch`, `_settings`, `MAKEFILE`).
+- `cost_records_support.py`: cost record texts and builders (`COMPLETED_LINE`, `STARTED_LINE`, `REQUIRED`, `STARTED_AT`, `STARTED_AT_TEXT`, `_completed`, `_started`).
+- `git_interface_support.py`, `hosting_interface_support.py`: `OPERATIONS`, the operations the git and hosting interfaces name.
+- `known_results_support.py`: the known-results rig (`Rig`, `_rig`, `_answering`, `_result`, `DEFINITION_YAML`, `TIME_LIMIT`).
+- `opencode_events_support.py`, `opencode_resume_support.py`: `WAIT_SECONDS`, how long the opencode stand-ins wait; `tests/test_time_limits.py` reads them here.
+- `probe_login_support.py`: `LOGIN_FILE` and `HINT` of the login probe tests.
+- `sections_support.py`: `TICKS`, three backticks, for fenced text in section tests.
+- `story_form_support.py`: `FORM`, `SMOKE` and `_state`, a story form's text and a state at a stage.
+
 Every module `tests/*.py` whose name does not start with `test_`:
 
 - `conftest.py`: the fixtures of the whole suite. Every test: `reopened_tmp_path` (autouse; after a test that uses `tmp_path`, gives its owner back every folder and file under it). Doubles and time: `kill_points` (inert kill points), `agent_runtime` and `hosting` (the fakes, on those kill points), `clock` (a manual clock at noon UTC on 2026-10-12). Git: `remote_template` (session-wide; one remote that each test's remote copies), `remote` (a bare repository whose `main` holds a small factory layout and a `Makefile` whose `sync` target succeeds and prints nothing, `@:`, because every stage on the fixture runs `make sync`), `checkout` (a `GitCli` on a fresh clone of `remote`), `human` (the human's own `HumanClone`). Paths and settings: `agent_home` (a path in `tmp_path`; nothing is created), `local_settings` (instance settings whose checkout, state and agent home lie in `tmp_path`), `disk_settings` (settings whose checkout and state directory lie under `tmp_path`), `disk_records` (the disk record log in `tmp_path`), `versioned_podman` and `listing_zfs` (the stand-in `podman` and `zfs` of the container-extras tests), `hosted_environment` (a valid environment with token and image identity files in `tmp_path`). The factory on those: `boundaries` (the interfaces on the test's checkout, fakes and clock, as an instance does: `FakeSnapshots` and `FakeContainerRuns` over `<tmp_path>/workspace` with an empty base, so stages run in `ContainerEnvironment`, while the project commands stay `MakeProjectCommands` on the host checkout), `definition` (the remote's parsed pipeline definition, with the acceptance stage `acceptance`), `installed_agents` (a valid agent file for every role of that definition), `walk` (an `AcceptanceWalk` over the feature `F0002-todo`, due with two archived stories). The recovery proof: `world` (a world built under `tmp_path`), `work_item` (a story started in that world). Runtime tests: `layout` (a checkout with `src` and `other`, a home and a temporary root), `records` (the stop records in the test's state directory), `recorder` (replaces the runtime's `run_process` with a `Recorder`).
@@ -47,7 +66,7 @@ Every module `tests/*.py` whose name does not start with `test_`:
 - `module_names.py`: asks whether a module of the factory still defines a name.
 - `observing_runtime.py`: `ObservingRuntime`, an agent runtime that records what the remote and the hosting fake hold when a run starts.
 - `podman_support.py`: the stand-in `podman` and its plan; `IMAGE`, the stage image name `"factory-stage:1"`, which every test that names it imports from here.
-- `preflight_support.py`: `fail_once` and `failed_once`, the preflight's rig after one probe of a red main.
+- `preflight_support.py`: the preflight's rig: `Rig`, its recording stand-ins (`RecordingWhich`, `RecordingCommands`), the constants the preflight tests share (`IMAGE`, `OTHER_IMAGE`, `MAKEFILE`, `TOOLS`, `ROLES`), the fixtures `rig` and `red_main` (a test module binds them with `rig = preflight_support.rig`; they are not in `conftest.py` because two other rigs carry that name), and `fail_once` and `failed_once`, the rig after one probe of a red main.
 - `probe_support.py`: the agent environment, the completed run and the opencode texts (`opencode_died`, `opencode_sso_hint`) of the probe tests.
 - `process_support.py`: real child processes in tests (`python_argv`, `Recorder`, `is_gone`).
 - `project_command_support.py`: `raising`, the answers for a recording stand-in of the project commands.

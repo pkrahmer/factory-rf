@@ -1,54 +1,23 @@
 """A tick whose definition names a refused agent file ends at the stop and does nothing else."""
 
-from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
+from agent_definition_support import COMPLETED
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.tick import Tick, TickOutcome
-from factory.domain.agent_runs import AgentRunResult
 from factory.domain.stops import RepositoryStop
 from factory.entry.wiring import handler_factory
 from git_support import COLOURED_AGENT_FILE, PIPELINE_YAML, install_agents, write_agent
 from human_clone import HumanClone
-from stage_run_support import INSTANCE
+from stage_run_support import BACKLOG_PATH, INSTANCE, STORY
 from wiring_support import ENVIRONMENT
 
 ROLE = "coder"
-BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
-STORY = """\
-# First story
-
-## Description
-
-Text.
-
-## Interface
-
-None.
-
-## Acceptance criteria
-
-1. It works.
-2. make check stays green.
-3. docs: none, nothing changes.
-
-## Smoke test
-
-```bash
-true
-```
-Expect: nothing.
-
-## Journal
-"""
-COMPLETED = AgentRunResult(
-    end_reason="completed", decision="tests", entry="checked.", duration=timedelta(minutes=1)
-)
 
 
 @pytest.fixture

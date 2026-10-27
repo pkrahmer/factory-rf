@@ -14,7 +14,7 @@ from adapters.opencode_stand_in import (
     opencode_request,
     write_opencode,
 )
-from adapters.test_agent_launch_login import API_LOGIN
+from agent_login_support import API_LOGIN
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.domain.agent_runs import AgentRunRequest

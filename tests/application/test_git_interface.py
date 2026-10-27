@@ -4,30 +4,7 @@ import inspect
 
 from factory.adapters.git_cli import GitCli
 from factory.application.git import Git
-
-OPERATIONS = {
-    "fetch",
-    "remote_branches",
-    "resolve",
-    "show_file",
-    "list_files",
-    "is_ancestor",
-    "log",
-    "changed_paths",
-    "status",
-    "clone",
-    "checkout",
-    "commit",
-    "push",
-    "delete_remote_branch",
-    "delete_branch",
-    "merge",
-    "reset_to",
-    "revert_paths",
-    "move",
-    "work_tree_id",
-    "ignored",
-}
+from git_interface_support import OPERATIONS
 
 
 def test_git_has_exactly_the_twenty_one_operations_and_git_cli_has_each() -> None:
