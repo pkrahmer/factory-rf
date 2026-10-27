@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-27T04:42:37.623705Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -135,6 +131,12 @@ journal:
   kind: started
   at: '2026-10-27T04:42:37.623705Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-10-27T04:43:23.922007Z'
+  stage: review
+  run: ddff4e0b8c9f4fd1a4e11411cc759b93
 ---
 
 # The tests of F0045 say once what they share
@@ -353,3 +355,34 @@ Expect: one line that ends `passed in <n>s` and names no failure
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 0 gone
 22. factory: started review as vm.
+23. reviewer: Review of round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`: 14 files, all under `tests/`. I also read `tests/test_suite_held_once.py` (`_defined`, `_definers`, `_function`), `tests/function_support.py`, `SCHEMAS` in `tests/contract_support.py` and the rows of `test_the_preparer_clones_only_a_missing_checkout_and_checks_none`.
+
+    All three findings from entry 15 are fixed:
+    - `tests/test_suite_leftovers.py` no longer has the copy of `_function`. It now picks its two tests by name from `function_support.functions`.
+    - Item 4 is one row (`record-get-repo`). It asserts both that `record_get_repo` is defined only in `wiring_support.py` and that nothing defines `_record_get_repo`.
+    - Item 2 is one row (`contract-login-helpers`). It asserts that `SCHEMAS` is assigned only in `contract_support.py`, and that `committed`/`values` are defined only in `contract_login_support.py`, with no underscore variants anywhere.
+
+    Group 1 (acceptance criteria):
+    - Criterion 1: the rows are `vm-setup-helpers`, `contract-login-helpers` and `record-get-repo`. `_defined` counts top-level `FunctionDef`, `Assign` and `AnnAssign` and does not count imports, as journal entry 4 settled.
+    - Criterion 2: the test parses `PIPELINE_YAML` through `RuamelPipelineDefinitionReader` and compares `next` to `["approval", "doing", "docs"]`.
+    - Criterion 3: the test checks that there is no `parametrize` decorator and that `args` is empty. It checks that the body holds the `inspect.signature(CheckoutPreparer.__init__)` assertion on `'log'`. It checks that `missing-is-cloned` and `group-writable-git-is-kept` are kept.
+    - The factory's `make check` after the coder was green (entry 21: `check: green`, `duplicates: 0 new`).
+
+    Groups 2 and 3: `tests/` only, no layer is touched, and nothing silences a check. Group 4: the new `_row_ids` copies no existing helper (a search of `tests/` for an id-keyword reader found only this one). The new support helpers carry docstrings. Group 5: the Description and the Interface match what was built. Criterion 5 still names the *Shared test helpers* lines the documenter must update.
+
+    no findings
+
+    Earlier tests (changed under a leave):
+    - `tests/application/test_checkout_preparer.py`: the human's leave, entry 4 (item 5).
+    - `tests/contract_login_support.py`: the standing leave (item 2: uses the shared `SCHEMAS`; the shared helpers are renamed).
+    - `tests/domain/test_contract_login.py`: the standing leave (item 2: imports the renamed helpers; its test and what it checks are unchanged).
+    - `tests/domain/test_contract_provider_limit.py`: the standing leave (follows from item 2's rename; its test and what it checks are unchanged).
+    - `tests/entry/test_wiring_boundaries.py`: the human's leave, entry 4 (item 4).
+    - `tests/entry/test_wiring_one_environment.py`: the human's leave, entry 4 (item 4).
+    - `tests/git_support.py`: the human's leave, entry 4 (item 3).
+    - `tests/test_suite_held_once.py`: the human's leave, entry 4 (item 4: the row `record-get-repo` reads the new name and keeps its id). The added rows `vm-setup-helpers` and `contract-login-helpers` add cases and change no earlier row.
+    - `tests/test_vm_setup_caches.py`: the standing leave (item 1).
+    - `tests/test_vm_setup_idle_shutdown.py`: the standing leave (item 1).
+    - `tests/test_vm_setup_text.py`: the standing leave (item 1).
+    - `tests/vm_support.py`: the standing leave (item 1: the shared place; helpers added, nothing else changed).
+    - `tests/wiring_support.py`: the human's leave, entry 4 (item 4).
