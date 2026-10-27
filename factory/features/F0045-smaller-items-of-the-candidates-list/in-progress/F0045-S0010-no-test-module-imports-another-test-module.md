@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T01:55:29.515593Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-27T01:55:29.515593Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-27T02:01:44.084218Z'
+  stage: doing
+  run: a594a84fa6174914913c429ed924c3a2
 ---
 
 # No test module imports another test module
@@ -187,3 +189,18 @@ Expect: `1`
    `lint`: lint: green (0.2 s)
    `test`: test: green (166.3 s)
 9. factory: started doing as vm.
+10. coder: Built nothing: this story changes `tests/` only, and the tester's entry has already done the whole move. The guard `tests/test_shared_imports.py` exists, the shared names are in the new `*_support.py` modules, and `tests/preflight_support.py` is extended. Nothing is left for the coder to do. Under the Interface no module under `src/factory/` changes, and `git diff main -- src` is empty.
+
+    Checked:
+    - `make check` is green: every target, then `test: green (166.5 s)` and `check: green` at 99.57 % coverage. This confirms the tester's fix to the `SCHEMAS` path in `tests/contract_login_support.py` (`Path(__file__).parent.parent`), which the tester had not re-run.
+    - The first smoke grep returns `0`.
+    - The working tree is clean, with nothing of mine to commit.
+
+    Main choice: change no code and hand forward. The alternative I rejected was touching the tester's support modules (for example, dropping the leading underscore from the moved private names, which the Interface allows but does not require). That would be a test change, which is the tester's alone. No diff, so no refactoring.
+
+    Noticed but did not touch:
+    - The fixtures `rig` and `red_main` went into `tests/preflight_support.py`, and the modules that use them rebind them (`rig = preflight_support.rig`). The Interface says "or, for a fixture, into `tests/conftest.py`". The tester explains why they did not use conftest: a root fixture named `rig` would clash with the two other rigs. The reviewer should judge whether this meets the Interface.
+    - The journal changed the Description only through intake, which already rewrote it. I rewrote nothing.
+
+    `check`: check: green
+    `duplicates`: duplicates: 2 new, 42 known, 0 gone
