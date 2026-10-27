@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-27T02:26:45.670984Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-27T02:26:45.670984Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-27T02:27:17.503978Z'
+  stage: intake
+  run: 24c2a4c4cdef4b8da11e935dac0b948e
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -70,9 +72,9 @@ The tester's entry names each changed module and, for every renamed test or modu
 ## Acceptance criteria
 
 1. The preparer without a log (rows of one parametrized test): `"log"` is not a parameter of `inspect.signature(CheckoutPreparer.__init__)`; a `CheckoutPreparer(git, settings)` on a missing checkout clones it (`origin/main` resolves afterwards); one on a checkout that holds a `.git` keeps a file the test put in its work tree.
-2. The source of the scheduler (one test reading `factory.application.scheduler` with `ast`): the class `CheckoutPreparer` assigns no attribute `_log`.
-3. Each item is held once (rows of one parametrized test over the test files, read with `ast`, one row per item 1 to 7): `tests/adapters/test_runtimes_without_wrapper.py` defines neither `_claude_end` nor `_opencode_end`, and `test_no_constructor_takes_the_wrapper_or_its_folders` calls no `hasattr`; the three settings modules of item 2 assign no `CONTAINER` of their own; exactly one module under `tests/` defines `_record_get_repo`, and it is `tests/wiring_support.py`; `tests/entry/test_wiring_container_extra.py` and `tests/entry/test_wiring_stage_environment.py` define no function `_recording`, `_recording_stand_in` or `_calls`; `tests/container_extra_support.py` assigns no `CA_NAMES`; `tests/test_suite_fixtures.py` holds no string constant `"stage environment: reset"`, and `tests/application/test_stage_on_container_fakes.py` assigns no `RESET_PREFIX`; `test_no_run_registers_a_hook` carries no `pytest.mark.parametrize`.
-4. The old names are gone (rows of one parametrized test over the test files' text, one row per old name): no file under `tests/` defines `test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_user`, `test_the_opencode_login_hint_names_the_agent_user_or_the_factory_user`, `test_an_existing_checkout_is_kept_without_a_log_line`, `test_the_committed_schemas_list_provider_limit_at_version_1_2`, `test_the_records_contract_is_at_version_2_without_tool_paths` or `test_the_records_contract_is_at_version_3_without_nested_repository`; no file under `tests/` is named `test_checkout_preparer_seal.py`.
+2. The source (rows of one parametrized test reading with `ast`): in `factory.application.scheduler` the class `CheckoutPreparer` assigns no attribute `_log`; the docstring of `CheckoutPreparer` and of its `__init__` (if any) does not contain the word `log` (case-insensitive); no call to `CheckoutPreparer` in `src/factory/entry/run.py` passes a `log` keyword.
+3. Each item is held once (rows of one parametrized test over the test files, read with `ast`, one row per item 1 to 7): `tests/adapters/test_runtimes_without_wrapper.py` defines neither `_claude_end` nor `_opencode_end`, and `test_no_constructor_takes_the_wrapper_or_its_folders` calls no `hasattr`; the three settings modules of item 2 assign no `CONTAINER` of their own; exactly one module under `tests/` defines `_record_get_repo`, and it is `tests/wiring_support.py`; `tests/entry/test_wiring_container_extra.py` and `tests/entry/test_wiring_stage_environment.py` define no function `_recording`, `_recording_stand_in` or `_calls`; `tests/container_extra_support.py` assigns no `CA_NAMES`; `tests/test_suite_fixtures.py` holds no string constant `"stage environment: reset"`, and `tests/application/test_stage_on_container_fakes.py` assigns no `RESET_PREFIX`; `test_no_run_registers_a_hook` carries no `pytest.mark.parametrize`; and one more row: the shared helper of item 1, the shared helper of item 4 and the shared constant of item 6 are each defined once, in a support module under `tests/`, and the test modules that used the copies import them from there.
+4. The old names are gone (rows of one parametrized test over the test files' text, one row per old name): no file under `tests/` defines `test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_user`, `test_the_opencode_login_hint_names_the_agent_user_or_the_factory_user`, `test_an_existing_checkout_is_kept_without_a_log_line`, `test_the_committed_schemas_list_provider_limit_at_version_1_2`, `test_the_records_contract_is_at_version_2_without_tool_paths` or `test_the_records_contract_is_at_version_3_without_nested_repository`; no file under `tests/` is named `test_checkout_preparer_seal.py`; and one more row: no function in `tests/domain/test_contract_provider_limit.py`, `tests/domain/test_contract_version_2.py` and `tests/domain/test_contract_version_3.py` has a name matching `version_[0-9]` or `at_version`, and none of them asserts the contract version string.
 5. `make check` stays green.
 6. docs: `docs/project-guide/README.md`, *The files* and *Shared test helpers*: the support modules and constants this story added or moved, one line each, and the renamed test modules; `docs/project-guide/watching.md`, where it describes `CheckoutPreparer`: its constructor without the log. `docs/operator-guide.md`, `docs/decisions.md`, `README.md`: none.
 
@@ -106,3 +108,9 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
    4. Intended: the tester chooses the new names, the reviewer judges them; no fixed names.
    5. Add a row: the shared helper and the shared constant are each defined once, in a support module under `tests/`, and the test modules import them from there.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: `CheckoutPreparer(git: Git, settings: InstanceSettings)` in `factory.application.scheduler` and the `run_instance` call are concrete. The list of ten items names modules, tests and constants. The docstring and `run_instance` clauses now have criteria (see below).
+   - Criteria: each is testable by one parametrized test. Criterion 2 now covers `_log`, the docstring without "log", and no `log` keyword in `src/factory/entry/run.py`. Criterion 3 gains the row that the shared helpers of items 1 and 4 and the constant of item 6 are each defined once in a support module under `tests/` and imported from there. Criterion 4 gains the row for the three contract modules: no function name matching `version_[0-9]` or `at_version`, and no assertion of the version string. Both sides of the preparer rule are covered (clones when missing, keeps an existing checkout). All of this was written in from the human's answers, journal entry 4, points 1, 2, 3 and 5.
+   - Smoke test: the three commands are runnable. Each `Expect:` line is checkable: the parameter list, `gone`, `0`. The block runs no pytest.
+   - Architecture: the only source change is in the application layer's `CheckoutPreparer` and its wiring in `entry`, which goes the right way. The rest is under `tests/` and keeps the support-module rules of `CLAUDE.md`.
+   - Scope: within feature decisions 19 and 31, which give the leave for the ten items. Journal entry 4, point 4: the tester chooses the new names and the reviewer judges them. No fixed names were added.
