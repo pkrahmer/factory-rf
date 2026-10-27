@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 1
@@ -159,6 +159,11 @@ journal:
   at: '2026-10-27T04:45:12.108052Z'
   stage: smoke-test
   run: 3681ab81ad2e47d0a8b701943fd164ac
+- number: 28
+  speaker: factory
+  kind: done
+  at: '2026-10-27T04:47:34.782189Z'
+  stage: approval
 ---
 
 # The tests of F0045 say once what they share
@@ -463,3 +468,4 @@ Expect: one line that ends `passed in <n>s` and names no failure
     Small remark, not a finding: the `vm_support.py` line in the project guide is missing a comma between "(`run_setup`)" and "`entries`". It does not contradict the code.
 
     Findings: none.
+28. factory: done (pull request merged); cost: 12 runs, 25.7 min, 82 turns, 283824 tokens in (1776262 more from cache), 33251 out, $2.93
