@@ -1,0 +1,63 @@
+# The wrappers run their command through one run-or-raise helper
+
+<!-- proposed by feature acceptance of 2026-10-27; refine before starting -->
+
+## Description
+
+S0008 (the factory powers its machine off after an idle stretch) wrote `SystemctlPowerOff.power_off` as a third copy of one block: build a `ProcessRequest` at `/` with no environment, the wrapper's time limit and merged standard error, run it, and turn a program that cannot start, the time limit reached, or an exit status the wrapper does not accept into the wrapper's own error, with the detail `failure_detail` or `no_end_detail` of `factory.adapters.printed_output` gives. `ZfsSnapshots._execute` holds the same block and `PodmanRuns._query` the same without the exit check, and each of the three modules defines its own `_ROOT = Path("/")`. `make duplicates` has reported the two similarities as `2 new` since S0008, and the human recorded them in S0008's journal (entry 33) "for a later tidy-up". This story writes the block once, in `factory.adapters.process`, and the three wrappers call it with their own error. What stays: every wrapper's commands, errors, error texts and time limits; `run_process`, `run_streaming` and the drain; `PodmanRuns.run`, which passes the launch's environment and keeps its own request; every existing test, unchanged.
+
+## Interface
+
+`factory.adapters.process` (`adapters`):
+
+```python
+ROOT = Path("/")
+
+def run_or_raise(
+    argv: list[str],
+    *,
+    time_limit: timedelta,
+    fault: Callable[[str], Exception],
+    cwd: Path = ROOT,
+    accepted: tuple[int, ...] | None = (0,),
+) -> ProcessResult: ...
+```
+
+- Runs `ProcessRequest(argv=argv, cwd=cwd, env=None, time_limit=time_limit, merge_stderr=True)` through `run_process` and returns its result.
+- A program that cannot be started (`OSError`) raises `fault(str(error))`, chained from the error.
+- A call that reached `time_limit` raises `fault(no_end_detail(time_limit))`.
+- With `accepted` given, an exit status not in it raises `fault(failure_detail(result.stdout, result.exit_status))`; with `accepted=None` every exit status is returned.
+
+`factory.adapters.zfs_snapshots`, `factory.adapters.power_off`, `factory.adapters.podman_runs` (`adapters`): `ZfsSnapshots._execute`, `SystemctlPowerOff.power_off` and `PodmanRuns._query` call `run_or_raise` (`_query` with `cwd=self._workspace` and `accepted=None`); `PodmanRuns.run` passes `cwd=ROOT`; none of the three modules defines `_ROOT`. The texts of `SnapshotError`, `PowerOffError` and `ContainerError` do not change.
+
+Tests (the tester writes them): a new module at the tester's choice, for example `tests/adapters/test_run_or_raise.py`, with `sh` stand-ins under `tmp_path`. No earlier test changes: the tests of the three wrappers stay as they are and stay green.
+
+## Acceptance criteria
+
+1. The helper (rows of one parametrized test, `fault` a function that returns a `RuntimeError` of its detail): `sh -c 'echo ok'` returns a result with exit status 0 and `stdout == "ok\n"`; `sh -c 'echo boom; exit 3'` raises `RuntimeError("boom")`; the same with `accepted=(0, 3)` and with `accepted=None` returns exit status 3; `sh -c 'exit 1'` (nothing printed) raises `RuntimeError("exit status 1")`; a program path under `tmp_path` that does not exist raises a `RuntimeError` whose `__cause__` is an `OSError`; `sh -c 'sleep 30'` with a time limit of one second raises `RuntimeError(no_end_detail(timedelta(seconds=1)))`.
+2. The directory (rows of one parametrized test): `pwd` run through `run_or_raise` without `cwd` prints `/`; with `cwd=tmp_path` it prints `tmp_path`.
+3. The block is held once (rows of one parametrized test reading the three modules with `ast`): `zfs_snapshots`, `power_off` and `podman_runs` assign no name `_ROOT`; `zfs_snapshots` and `power_off` construct no `ProcessRequest`; `podman_runs` constructs exactly one, in `run`.
+4. `make check` stays green.
+5. docs: `docs/project-guide/processes-and-checks.md`, `## Starting a process`: `run_or_raise` and `ROOT`, its rules, and the three wrappers that use it. `docs/decisions.md`, `docs/operator-guide.md`, `README.md`: none (no decision and no operator-visible change).
+
+## Smoke test
+
+```bash
+uv run python -c '
+from datetime import timedelta
+from factory.adapters.process import run_or_raise
+try:
+    run_or_raise(["sh", "-c", "echo boom; exit 3"], time_limit=timedelta(seconds=10), fault=RuntimeError)
+except RuntimeError as error:
+    print(error)
+print(run_or_raise(["pwd"], time_limit=timedelta(seconds=10), fault=RuntimeError).stdout.strip())'
+```
+Expect: two lines: `boom`; `/`
+
+```bash
+grep -c '^_ROOT = ' src/factory/adapters/zfs_snapshots.py src/factory/adapters/power_off.py src/factory/adapters/podman_runs.py
+make duplicates 2>&1 | grep '^duplicates:'
+```
+Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adapters/power_off.py:0`; `src/factory/adapters/podman_runs.py:0`; a line that begins `duplicates: 0 new,`
+
+## Journal
