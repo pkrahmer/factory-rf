@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366, 6433141030]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T03:40:03.536600Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-27T03:39:45.709966Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-27T03:40:03.536600Z'
   stage: doing
 ---
 
@@ -192,3 +201,4 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
 
     Refactor: I read the diff once. Nothing more needed changing beyond the moved comment.
 11. 2026-10-27 human: A: the human's leave for exactly those four tests: they patch `run_process` where it is called (`factory.adapters.process`); the podman `recorder` fixture keeps patching `podman_runs.run_process` for the `run` tests. Each keeps its name and checks the same thing. No extra keyword on `run_or_raise`.
+12. factory: started doing as vm.
