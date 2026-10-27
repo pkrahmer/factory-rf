@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T01:55:29.515593Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-27T01:55:08.830973Z'
   stage: tests
   run: 127170a28c334ea1b7dab4024d4afb7e
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:55:29.515593Z'
+  stage: doing
 ---
 
 # No test module imports another test module
@@ -177,3 +186,4 @@ Expect: `1`
 
    `lint`: lint: green (0.2 s)
    `test`: test: green (166.3 s)
+9. factory: started doing as vm.
