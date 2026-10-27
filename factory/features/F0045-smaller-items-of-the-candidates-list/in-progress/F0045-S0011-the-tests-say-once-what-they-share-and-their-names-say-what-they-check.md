@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-27T02:47:00.865853Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-27T02:46:40.869477Z'
   stage: doing
   run: ffc0882c26fd42998216456a168b6327
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-27T02:47:00.865853Z'
+  stage: tests
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -253,3 +262,4 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
     Main choice: the reviewer offered two fixes. I chose the first, swapping `_keeps_without_a_log` for the existing helper. I rejected the second, moving the `no-log-parameter` row into `test_the_preparer_clones_only_a_missing_checkout_and_checks_none` and dropping the new test. That test belongs to an earlier story, and adding a row to it needs the human's leave (the reviewer says so too). The first fix removes the second copy of a helper without that leave.
 
     Noticed but not touched: the `missing-is-cloned` row still appears both in the new test and in the earlier story's test. It also overlaps `test_a_missing_checkout_is_cloned`. Criterion 1 names that row, so it stays unless the human chooses the second fix. The journal did not change the meaning of the task, so the Description stays as it is. I did not run `make check` this round because I changed nothing.
+15. factory: started tests as vm.
