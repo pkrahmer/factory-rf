@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T04:36:08.397870Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -115,6 +119,11 @@ journal:
   at: '2026-10-27T04:35:47.192318Z'
   stage: tests
   run: 78d17cdc405c45e786eb554df047de86
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-27T04:36:08.397870Z'
+  stage: doing
 ---
 
 # The tests of F0045 say once what they share
@@ -319,3 +328,4 @@ Expect: one line that ends `passed in <n>s` and names no failure
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (165.9 s)
+20. factory: started doing as vm.
