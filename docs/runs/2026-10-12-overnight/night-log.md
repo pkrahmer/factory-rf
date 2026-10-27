@@ -1269,3 +1269,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 23:28 UTC: vm rebuilt. Started F0045-S0008 (the idle shutdown, off by default). 94 % weekly.
 - 23:30 UTC: F0045-S0008 intake question on #473 (six untested rules): all six added; details follow failure_detail and no_end_detail as for zfs.
 - 23:35 UTC: F0045-S0008 tester question on #473: 1 (a); 2 the reading confirmed; 3 the wiring check through behaviour.
+- 00:26 UTC: F0045-S0008 round cap on #473 (review sent back 3 times): answered go on, one more round for the test sharpening only; the reviewer's open duplicate (power_off.py against ZfsSnapshots._execute, a third _ROOT) recorded in the candidates for a later tidy-up and accepted for this story (penurious order).
