@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 476
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-27T02:24:46.705795Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-27T02:24:46.705795Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-27T02:25:10.085056Z'
+  stage: intake
+  run: f6030e814949414c842f2a16f9c779b2
+  blocked: question
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -72,3 +75,14 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
 
 1. 2026-10-27 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed; the Interface, smoke test, architecture and scope otherwise read fine):
+
+   1. The Interface says "the docstring no longer names a log" for `CheckoutPreparer`, but no criterion tests it. Two coders could read it two ways and both pass. I would add a criterion to criterion 2's `ast` test: the docstring of `CheckoutPreparer` and of its `__init__` (if any) does not contain the word `log` (case-insensitive). Or the clause could be dropped from the Interface. Which one? I would choose the added criterion.
+
+   2. The Interface says "`factory.entry.run.run_instance` builds it without the log", with no criterion. A call that still passes `log=` would only show up at runtime. I would add it to criterion 2's `ast` test: no call to `CheckoutPreparer` in `src/factory/entry/run.py` passes a `log` keyword. Or the clause could be dropped. Which one? I would choose the added criterion.
+
+   3. Item 10 says the three contract tests lose the version in their names and in their assertions "on the version". Criterion 4 checks only the old names. Nothing checks that the version assertions are gone, or that the new names carry no version. Please add a row, or confirm that criterion 4 together with review is enough. I would add one: no function in the three modules has a name matching `version_[0-9]` or `at_version`, and none of them asserts the contract version string. Which one?
+
+   4. Items 8 and 10 leave the new names to the tester ("names that say what their one row checks"). Criterion 4 only shows that the old names are gone. Please confirm that this is intended, with the reviewer judging the new names. If you want fixed names, state them.
+
+   5. Item 1 asks for one helper serving `_claude_end` and `_opencode_end`, and item 6 asks for one shared constant. Criterion 3 only checks that the old definitions are gone. It does not check that the shared helper or constant exists. Is "absent plus a green `make check`" enough, or should a row check that the helper or constant is defined once in a support module?
