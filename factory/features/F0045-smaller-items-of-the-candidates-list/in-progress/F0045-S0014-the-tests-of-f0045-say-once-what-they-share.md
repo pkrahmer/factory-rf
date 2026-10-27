@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-27T04:43:44.149758Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -146,6 +142,12 @@ journal:
   kind: started
   at: '2026-10-27T04:43:44.149758Z'
   stage: docs
+- number: 25
+  speaker: documenter
+  kind: result
+  at: '2026-10-27T04:44:13.506799Z'
+  stage: docs
+  run: 596961d254834d65b57ea2b70b7a4062
 ---
 
 # The tests of F0045 say once what they share
@@ -396,3 +398,20 @@ Expect: one line that ends `passed in <n>s` and names no failure
     - `tests/vm_support.py`: the standing leave (item 1: the shared place; helpers added, nothing else changed).
     - `tests/wiring_support.py`: the human's leave, entry 4 (item 4).
 24. factory: started docs as vm.
+25. documenter: Docs round 1, criterion 5. I changed one file, `docs/project-guide/README.md`, in *Shared test helpers*, so the lines match the moves and renames:
+    - `vm_support.py` now also lists `in_order` and `lines_with`, which the three `vm/setup.sh` text modules share (`test_vm_setup_caches.py` uses only `in_order`).
+    - `contract_login_support.py` now names `committed` and `values` (no underscore) and says its schema folder is `SCHEMAS` of `contract_support.py`, assigned nowhere else.
+    - `contract_support.py` now lists `SCHEMAS`, the committed schema folder.
+    - `wiring_support.py` now says `record_get_repo`. I removed the note that it keeps its underscore.
+
+    I cross-read these against the `tests/` diff (14 files, all under `tests/`) and against the helpers' definitions in `tests/vm_support.py` and `tests/contract_login_support.py`, and found them current:
+    - `git_support.py` line of the same section: its helper list is unchanged. Item 3 changed only the pipeline definition text, and the line does not describe it.
+    - `docs/operator-guide.md`, `docs/decisions.md` and `README.md`: the criterion says none, and nothing in the diff touches what they describe.
+
+    I changed only documents, so I did not run `make check`. The factory's run after this stage decides.
+
+    I found no stale text outside this story. I have no findings for the coder. The one-off `OSError: [Errno 22]` in `tests/adapters/test_process_session.py` (journal entries 11 and 13) is still unexplained and was not touched.
+
+    `check`: check: green (not run again: passed on tree 19637f912c33 at 2026-10-27T04:39:20Z)
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok
