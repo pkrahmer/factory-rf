@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-27T01:04:53.582306Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-27T01:04:53.582306Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-27T01:05:19.292937Z'
+  stage: intake
+  run: 90618514c63f403c978f3c65cddb33d3
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -55,7 +57,7 @@ No module under `src/factory/` changes. The coder changes `vm/setup.sh` (POSIX `
 - Option `--idle-shutdown <minutes>`: the value is one or more ASCII digits with a value of at least 1; an option without its value, or a value that is not such a number (`0`, `x`, `-5`, `1.5`), prints `setup.sh: <what is wrong>` and the usage to standard error and exits 2, before any step and before the root check, as every other argument fault; the usage names the option. Without the option the idle shutdown is off.
 - Step `poweroff`, right after the step `caches` (S0002) and before the step `folders`, one line on standard output beginning `setup: poweroff: `:
   - with the option: `/etc/sudoers.d/factory-poweroff`, owner root, mode `0440`, holding exactly one rule, `factory ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff`, checked with `visudo -cf`; a failed check removes the file and exits 1, as the step `sudoers` does; the file is written only when its content differs;
-  - without the option: `rm -f /etc/sudoers.d/factory-poweroff`, and the line says that the idle shutdown was not asked.
+  - without the option: `rm -f /etc/sudoers.d/factory-poweroff`, and the line is exactly `setup: poweroff: not asked; the factory gets no power-off right`.
 - The environment file `/srv/factory/<instance>/factory.env`: with the option, one more line after the line `XDG_RUNTIME_DIR=...`, the last one: `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>`; without the option, no line of that name. Every other line is unchanged.
 - The script runs `systemctl poweroff` nowhere: the words appear only in the rule.
 
@@ -68,8 +70,12 @@ Tests (the tester writes and changes them; the leave is decision 29 of `feature.
 3. The usage (one test): `sh vm/setup.sh --help` exits 0 and its standard output holds `--idle-shutdown`.
 4. The step's place and text (rows of one parametrized test over the script's text with its comment lines dropped, the step's text cut as F0043-S0003's criterion 4 cuts it): the first `setup: caches: `, the first `setup: poweroff: ` and the first `setup: folders: ` come in that order; the step `poweroff`'s text holds `/etc/sudoers.d/factory-poweroff`, `chmod 0440`, `visudo -cf` and `rm -f /etc/sudoers.d/factory-poweroff`; the script holds the rule `factory ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff` exactly once, inside the step `poweroff`; the words `systemctl poweroff` appear on no other line of the script.
 5. The environment file's line (one test over the text with its comment lines dropped): `FACTORY_IDLE_SHUTDOWN_MINUTES=` appears exactly once, after the first `XDG_RUNTIME_DIR=` and before the first `factory@.service`; every name of `ENVIRONMENT` of `tests/test_vm_setup_text.py` still appears exactly once, in its order.
-6. `make check` stays green.
-7. docs: `docs/operator-guide.md`, `## The machine`, `### The script`: the option `--idle-shutdown <minutes>` with its rule, and the step `poweroff` in the numbered list of steps (what it writes or removes, and its line), the count of steps following; `### The idle shutdown` (written by S0008): how to turn it on and off with the script (run it again with or without the option, then `systemctl restart factory@<instance>`), and that the right is removed by a run without the option. `docs/decisions.md`: the entry "The machine powers itself off after an idle stretch, an option off by default" (S0008) gains one line on the right: one `sudoers` rule for `/usr/bin/systemctl poweroff`, written only with the option and removed without it (F0045-S0009). `docs/project-guide/`, `README.md`: none (no module changes).
+6. The refused check (one test over the step's text, cut as in criterion 4): the branch of a failed `visudo -cf` runs `rm -f /etc/sudoers.d/factory-poweroff`, prints its message with `>&2` and ends `exit 1`.
+7. The write (rows of one parametrized test over the step's text): the step compares the file with its wanted text before writing and reports `found` or `wrote`; the file is written by root with mode `0440` (the step's `chmod 0440` or `install -m 0440` on `/etc/sudoers.d/factory-poweroff`).
+8. The line without the option (one test over the step's text): it holds exactly `setup: poweroff: not asked; the factory gets no power-off right`.
+9. The environment file's line is the last line the script writes to the file, and it is written only inside the `--idle-shutdown` branch (one test over the text with its comment lines dropped).
+10. `make check` stays green.
+11. docs: `docs/operator-guide.md`, `## The machine`, `### The script`: the option `--idle-shutdown <minutes>` with its rule, and the step `poweroff` in the numbered list of steps (what it writes or removes, and its line), the count of steps following; `### The idle shutdown` (written by S0008): how to turn it on and off with the script (run it again with or without the option, then `systemctl restart factory@<instance>`), and that the right is removed by a run without the option. `docs/decisions.md`: the entry "The machine powers itself off after an idle stretch, an option off by default" (S0008) gains one line on the right: one `sudoers` rule for `/usr/bin/systemctl poweroff`, written only with the option and removed without it (F0045-S0009). `docs/project-guide/`, `README.md`: none (no module changes).
 
 ## Smoke test
 
@@ -77,7 +83,7 @@ Tests (the tester writes and changes them; the leave is decision 29 of `feature.
 sh -n vm/setup.sh && echo syntax-ok
 d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
 (cd "$d" && sh "$OLDPWD/vm/setup.sh" --device /dev/null --repository-url https://example.invalid/r.git --idle-shutdown 0 >out 2>err; echo "status $?"; head -1 err | grep -c '^setup.sh: '; wc -c < out)
-grep -c 'factory ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff' vm/setup.sh
+grep -v '^[[:space:]]*#' vm/setup.sh | grep -c 'factory ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff'
 ```
 Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
 
@@ -97,3 +103,9 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
    4. Yes to both: the new line is the last line the script writes to the environment file, and it is written only inside the `--idle-shutdown` branch (text criterion).
    5. The smoke command drops comment lines: `grep -v '^[[:space:]]*#' vm/setup.sh | grep -c ...`; the Expect stays `1`.
 5. factory: started intake as vm.
+6. intake: accepted, after carrying in the human's answer (journal entry 4) as the human's own edit; nothing of mine added.
+   - Interface: concrete. It names `vm/setup.sh` (POSIX sh), the option with its value rule and exit 2 before the root check, the step `poweroff` between `caches` and `folders`, the file's path, owner, mode and exact rule, the environment line, and the ban on `systemctl poweroff` outside the rule. Per answer 3 I wrote the exact no-option line into the Interface: `setup: poweroff: not asked; the factory gets no power-off right`.
+   - Criteria: each is testable by one test function. Every Interface rule now has its own criterion on both sides. Faults and accepted values are criterion 2, the usage is 3, the step's place and text are 4. The refused check is the new 6 (`rm -f`, `>&2`, `exit 1`, per answer 1). Compare-before-write with `found`/`wrote`, and root with mode 0440, are the new 7 (answer 2). The exact not-asked line is the new 8 (answer 3). The env line being last and only inside the option's branch is the new 9 (answer 4). The env line's place after `XDG_RUNTIME_DIR=` is criterion 5. `make check` and `docs:` are now 10 and 11, still last (R5).
+   - Smoke test: runnable. Per answer 5 the last command now drops comment lines before `grep -c`. The Expect line still has five checkable lines. There is no pytest command, so there is no `-q` issue.
+   - Architecture: no module under `src/factory/` changes, and the layers are not touched. The change is in `vm/setup.sh`, the coder's write path, and its tests follow F0043-S0003's text-test pattern.
+   - Scope: inside S0009 of the feature (decisions 9 and 12). The test changes have the human's leave in decision 29. It adds no start or stop of the service and no power-off by the script. Nothing from "Out of scope" is touched.
