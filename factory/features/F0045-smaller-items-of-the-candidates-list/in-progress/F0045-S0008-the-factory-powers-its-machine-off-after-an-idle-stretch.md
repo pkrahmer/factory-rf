@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-27T00:10:22.703917Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-10-27T00:10:02.263729Z'
   stage: doing
   run: 189e0a77d31c47cfaebcf75c03759f36
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-27T00:10:22.703917Z'
+  stage: tests
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -482,3 +491,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
     What the journal changed: criterion 11 was added, and the reviewer has already rewritten criteria 1, 5 and 8 to the reading in journal 9. The meaning of `## Description` did not change, so I left it alone.
 
     Noticed but not touched: the 2 new `make duplicates` findings from journal 13 are still there. They are the `ProcessRequest` block in `src/factory/adapters/power_off.py`, which is similar to `zfs_snapshots._execute` and `podman_runs._query`. The reviewer said the next review round would judge them.
+26. factory: started tests as vm.
