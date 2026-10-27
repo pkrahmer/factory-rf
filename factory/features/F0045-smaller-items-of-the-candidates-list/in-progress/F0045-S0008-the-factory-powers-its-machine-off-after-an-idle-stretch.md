@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-27T00:07:48.234668Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-27T00:07:48.234668Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-10-27T00:09:24.962334Z'
+  stage: review
+  run: e04d744756d8411ba41c230fd7b68ac5
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -221,18 +223,19 @@ Tests (the tester writes them; the leave is decision 28 of `feature.md`): new mo
 
 ## Acceptance criteria
 
-1. The setting (rows of one parametrized test over `read_settings` with `BASE` of `tests/settings_support.py` and the row's value): unset, `""` and `"  "` give `idle_shutdown_minutes == 0`; `"0"` gives `0`; `"1"` gives `1`; `"30"` gives `30`; `"-1"`, `"x"`, `"100000"` gives `100000`; `"-1"`, `"x"`, `"1.5"` and `"٣"` raise `SettingsInvalid` with variable `FACTORY_IDLE_SHUTDOWN_MINUTES` and fault `is not a whole number of minutes`.
+1. The setting (rows of one parametrized test over `read_settings` with `BASE` of `tests/settings_support.py` and the row's value): unset, `""` and `"  "` give `idle_shutdown_minutes == 0`; `"0"` gives `0`; `"1"` gives `1`; `"30"` gives `30`; `"100000"` gives `100000`; `"-1"`, `"x"`, `"1.5"` and `"٣"` raise `SettingsInvalid` with variable `FACTORY_IDLE_SHUTDOWN_MINUTES` and fault `is not a whole number of minutes`.
 2. The stretch (rows of one parametrized test over `IdleShutdown` with `limit` 30 minutes, a `ManualClock`, a `PowerOff` of the test that counts its calls and the `RecordingLog` of `tests/recording_log.py`; times are minutes and seconds after the object was made; `idle` is an outcome of the event `idle` dispatched `handled`, `waits` the same with the detail `F0001-S0001 waits for the human` (the evaluation's form for a story waiting for its approval or an answer), `other` an outcome of the event `acceptance_due` for `F0001` dispatched `handled`, `stopped` an outcome with `stopped="main_branch_failing"`): `idle` at 00:00, 29:00 and 29:59 gives no call; `idle` at 30:00 gives one call and one log line that begins `idle shutdown: ` and contains `30`; `waits` at 30:00 gives one call; `idle` at 30:00, 59:59 and 60:00 gives two calls, the second at 60:00; `idle` at 05:00, `other` at 10:00 and `idle` at 39:59 give no call, then `idle` at 40:00 one; `stopped` at 20:00 and `idle` at 49:59 give no call, then `idle` at 50:00 one; an `idle` event dispatched `error` at 30:00 gives no call; `idle` at 31:00 as the first outcome gives one call (the first stretch starts when the object is made).
 3. A refused power-off (one test): with a `PowerOff` that raises `PowerOffError("sudo: a password is required")`, `idle` at 30:00 raises nothing, the log's last line begins `idle shutdown: ` and holds `sudo: a password is required`, and `idle` at 59:59 makes no second call while `idle` at 60:00 makes one.
 4. The limit (rows of one parametrized test): `IdleShutdown(timedelta(0), ...)` and `IdleShutdown(timedelta(minutes=-1), ...)` raise `ValueError`; `IdleShutdown(timedelta(minutes=1), ...)` is made and its `limit` is one minute.
-5. The wrapper (rows of one parametrized test over `SystemctlPowerOff(<stand-in>)` with stand-in programs under `tmp_path` that write their words to a file): a stand-in that exits 0 makes `power_off()` return, and its words are exactly `-n`, `/usr/bin/systemctl`, `poweroff`; one that prints `sudo: a password is required` to standard error and exits 1 raises `PowerOffError` whose text names the exit status `1` and holds `sudo: a password is required`; one that prints `sudo: a password is required` to standard output only and exits 1 raises `PowerOffError` holding it; one that prints two lines and a blank line and exits 1 raises `PowerOffError` whose detail holds the second line and not the first; one that prints nothing and exits 1 raises `PowerOffError` whose detail is `exit status 1`; a path that does not exist raises `PowerOffError` whose detail begins `cannot start `; a stand-in that sleeps 60 seconds, with `time_limit` one second, raises `PowerOffError` within `ROOMY_BOUND_SECONDS` of `tests/time_limits.py` whose detail equals `no_end_detail` of that limit, the text the `zfs` time-limit test (`tests/adapters/test_zfs_snapshots_drop_caches.py`) asserts.
+5. The wrapper (rows of one parametrized test over `SystemctlPowerOff(<stand-in>)` with stand-in programs under `tmp_path` that write their words to a file): a stand-in that exits 0 makes `power_off()` return, and its words are exactly `-n`, `/usr/bin/systemctl`, `poweroff`; one that prints `sudo: a password is required` to standard error and exits 1 raises `PowerOffError` whose detail is `sudo: a password is required`, as `failure_detail` gives it (no exit status); one that prints `sudo: a password is required` to standard output only and exits 1 raises `PowerOffError` holding it; one that prints two lines and a blank line and exits 1 raises `PowerOffError` whose detail holds the second line and not the first; one that prints nothing and exits 1 raises `PowerOffError` whose detail is `exit status 1`; a path that does not exist raises `PowerOffError` whose detail begins `cannot start `; a stand-in that sleeps 60 seconds, with `time_limit` one second, raises `PowerOffError` within `ROOMY_BOUND_SECONDS` of `tests/time_limits.py` whose detail equals `no_end_detail` of that limit, the text the `zfs` time-limit test (`tests/adapters/test_zfs_snapshots_drop_caches.py`) asserts.
 6. The error's text (one test): `str(PowerOffError("x")) == "power off failed: x"`.
 7. The activity tick (one test with a stand-in tick that returns an `idle` outcome, then an `other` outcome): `activity_tick(tick, idle)` returns `False`, then `True`, and the `IdleShutdown` stand-in (a subclass of the test that records `observe`) received exactly those two outcomes in order.
-8. The wiring (rows of one parametrized test over `idle_shutdown_of` with the `boundaries` fixture): settings with `idle_shutdown_minutes` `0` give `None`; with `30` an `IdleShutdown` whose `limit` is 30 minutes and whose `power` is a `SystemctlPowerOff`; making it runs nothing (a stand-in `sudo` first on `PATH` records no call).
+8. The wiring (rows of one parametrized test over `idle_shutdown_of` with the `boundaries` fixture): settings with `idle_shutdown_minutes` `0` give `None`; with `30` an `IdleShutdown` whose `limit` is 30 minutes and whose `power` is a `SystemctlPowerOff`; making it runs nothing (a stand-in `sudo` first on `PATH` records no call); with `30`, after `boundaries.clock` moves on 30 minutes, `observe` of an `idle` outcome makes the stand-in record `-n /usr/bin/systemctl poweroff` once and `factory.log` of `boundaries.log` holds `idle shutdown: ` (it reads `boundaries.clock` and logs to `boundaries.log`).
 9. The wrappers (the structural test of `tests/test_wrapper_search.py`): the modules that import `factory.adapters.process` are the seven of the test's set on `main` before this story and `factory.adapters.power_off`.
 10. The run (rows of one parametrized test over `run_instance`, with the settings and fake hosting service of `tests/entry/test_run.py::test_run_instance_builds_one_tick_for_the_whole_run`, whose way of recording `build_tick` it follows for `idle_shutdown_of` and `activity_tick` of `factory.entry.run`): with `idle_shutdown_minutes` `0` and `30`, `run_instance` calls `idle_shutdown_of` once, with settings whose `idle_shutdown_minutes` are the row's, and hands what it returned to `activity_tick` as its `idle` (`None` for `0`, an `IdleShutdown` with `limit` 30 minutes for `30`).
-11. `make check` stays green.
-12. docs: `docs/operator-guide.md`, `## Configuration`: the row `FACTORY_IDLE_SHUTDOWN_MINUTES` (unset, blank or `0` off, the default; a whole number of minutes; the refusal); `## The loop and its pauses`: one paragraph that the idle shutdown counts the loop's idle ticks; `## The machine`: a section `### The idle shutdown` that says what counts as idle and what does not (decision 8 of `feature.md`: a story waiting for the human counts, a stop does not), the two log lines that begin `idle shutdown: `, that a refused power-off leaves the instance running and how to read it, that S0009's script option gives the right, and how the machine starts again: by hand with `gcloud compute instances start factory-vm --zone europe-west3-a`, or by a GCP instance schedule that only starts it (made by hand with `gcloud compute resource-policies create instance-schedule` and attached with `gcloud compute instances add-resource-policies`), and that a merge, a close or an answer given while the VM is off is seen at the first tick after the start. `docs/project-guide/watching.md`, `## Stops, the clock and the factory log`: a section *The idle shutdown* (`IdleShutdown`, `PowerOff`, `SystemctlPowerOff`, `idle_shutdown_of`, the rules of the stretch); `docs/project-guide/README.md`, *The files* and *Errors*: the line of `watching.md` follows and `PowerOffError` is listed. `docs/decisions.md`: a new entry "The machine powers itself off after an idle stretch, an option off by default" (F0045-S0008; decisions 8 to 12 of `feature.md` with their rejected options). `README.md`: none.
+11. The model's limit (rows of one parametrized test over `InstanceSettings`, made through a variable typed `type[BaseModel]` with the required fields, as `tests/domain/test_settings_min_free.py` does for `min_free_gb`): `idle_shutdown_minutes` left out gives `0`; `0` gives `0`; `-1` raises `ValidationError`.
+12. `make check` stays green.
+13. docs: `docs/operator-guide.md`, `## Configuration`: the row `FACTORY_IDLE_SHUTDOWN_MINUTES` (unset, blank or `0` off, the default; a whole number of minutes; the refusal); `## The loop and its pauses`: one paragraph that the idle shutdown counts the loop's idle ticks; `## The machine`: a section `### The idle shutdown` that says what counts as idle and what does not (decision 8 of `feature.md`: a story waiting for the human counts, a stop does not), the two log lines that begin `idle shutdown: `, that a refused power-off leaves the instance running and how to read it, that S0009's script option gives the right, and how the machine starts again: by hand with `gcloud compute instances start factory-vm --zone europe-west3-a`, or by a GCP instance schedule that only starts it (made by hand with `gcloud compute resource-policies create instance-schedule` and attached with `gcloud compute instances add-resource-policies`), and that a merge, a close or an answer given while the VM is off is seen at the first tick after the start. `docs/project-guide/watching.md`, `## Stops, the clock and the factory log`: a section *The idle shutdown* (`IdleShutdown`, `PowerOff`, `SystemctlPowerOff`, `idle_shutdown_of`, the rules of the stretch); `docs/project-guide/README.md`, *The files* and *Errors*: the line of `watching.md` follows and `PowerOffError` is listed. `docs/decisions.md`: a new entry "The machine powers itself off after an idle stretch, an option off by default" (F0045-S0008; decisions 8 to 12 of `feature.md` with their rejected options). `README.md`: none.
 
 ## Smoke test
 
@@ -440,3 +443,21 @@ Expect: `-n /usr/bin/systemctl poweroff`
     `check`: check: green
     `duplicates`: duplicates: 2 new, 42 known, 0 gone
 22. factory: started review as vm.
+23. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item and stopped at group 1 (acceptance criteria). I went through every criterion and every Interface rule.
+    - Criteria 1 to 10 each have a test that checks what they state, in the reading the human settled in journal 9.
+    - The coder's `make check` was green (journal 21).
+    - The code follows the Interface: the idle test in `src/factory/application/idle_shutdown.py:58`, the argv without a shell in `src/factory/adapters/power_off.py:30`, and the wiring in `src/factory/entry/wiring.py:494` and `src/factory/entry/run.py:120`.
+
+    Findings:
+    1. Criterion 11 added: it needs its test. `src/factory/domain/settings.py:128` declares `idle_shutdown_minutes: NonNegativeInt = 0`, but no test reaches the model's own limit. `read_settings` refuses `"-1"` before the model ever sees it, so the model's refused side is never tested. CLAUDE.md (*Tests*) asks for a test of `-1` and of `0` for a `NonNegativeInt` field. `tests/domain/test_settings_min_free.py` already does this for `min_free_gb`. I wrote criterion 11 into `## Acceptance criteria`: rows of one parametrized test over `InstanceSettings`, made through a variable typed `type[BaseModel]`, where the field left out gives `0`, `0` gives `0` and `-1` raises `ValidationError`. I renumbered the closing criteria to 12 (`make check`) and 13 (`docs:`). Fix: the tester writes that test. Nothing under `src/` changes.
+
+    Criteria corrected to the human's answer in journal 9 (journal 15 named them as stale, and the coder's rewrite in journal 17 was dropped because the work item is outside the coder's write paths). The tests already check this reading, so none of them changes:
+    - criterion 1: `"-1"`, `"x"`, `"100000"` gives `100000` -> `"100000"` gives `100000`
+    - criterion 5, the standard-error row: the text "names the exit status `1` and holds `sudo: a password is required`" -> the detail is `sudo: a password is required`, as `failure_detail` gives it (no exit status)
+    - criterion 8: it now also requires that, with `30`, after `boundaries.clock` moves on 30 minutes, `observe` of `idle` makes the stand-in `sudo` record `-n /usr/bin/systemctl poweroff` once, and `factory.log` holds `idle shutdown: `
+
+    Rejected: sending the two `make duplicates` findings (the `ProcessRequest` block in `src/factory/adapters/power_off.py:30`) back as a group 4 finding this round. The review stops at the first failing group, and group 1 failed. Next round's review should judge whether this block repeats `zfs_snapshots._execute`.
+
+    Earlier tests:
+    - `tests/test_wrapper_search.py` (M): the human's leave, which the story's Interface names (decision 28 of `feature.md`). The change adds `factory.adapters.power_off` to the set, and the test keeps its name.
+    - `tests/entry/test_run.py` (M): none needed. The change adds one test and one import, and every earlier test stays as it was.
