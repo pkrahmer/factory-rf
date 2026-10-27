@@ -17,6 +17,7 @@ OPTIONS = (
     "--image",
     "--runtime",
     "--sudoers",
+    "--idle-shutdown",
 )
 
 
