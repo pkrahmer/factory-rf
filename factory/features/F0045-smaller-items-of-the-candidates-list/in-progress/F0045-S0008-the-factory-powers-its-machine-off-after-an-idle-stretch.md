@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717, 6431004693]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-27T00:56:30.501023Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -296,6 +300,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-27T00:56:12.663243Z'
+  stage: smoke-test
+- number: 53
+  speaker: factory
+  kind: started
+  at: '2026-10-27T00:56:30.501023Z'
   stage: smoke-test
 ---
 
@@ -900,3 +909,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
 
     I would choose (a).
 52. 2026-10-27 human: (a): the smoke test is corrected by this answer: command 2's stand-in body becomes `printf '%s\n' "$@"` and its Expect three lines, `-n`, `/usr/bin/systemctl`, `poweroff`. Run it in that form; the code stays.
+53. factory: started smoke-test as vm.
