@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-27T01:23:24.464107Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-27T01:23:24.464107Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-27T01:29:13.125796Z'
+  stage: tests
+  run: ca15ad1578e74049b54073a006cb4620
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -251,3 +253,19 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
 
     I did not run `make check` this round, because nothing changed since the green run in journal entry 10.
 15. factory: started tests as vm.
+16. tester: Approved test change (coder's journal entry 14; reviewer's finding 1 in entry 12, which added criterion 10): I added the row `pytest.param(["--idle-shutdown", ""], False, id="empty")` to `tests/test_vm_setup_idle_shutdown.py::test_the_idle_shutdown_takes_a_whole_number_of_minutes_of_at_least_one`. It sits right after the row `without-value`. Nothing else changed.
+
+    Why: the Interface says the value is "one or more ASCII digits". Until now no row tested the side with no digits. A missing word (`without-value`) is a different case from an empty word.
+
+    Criterion → test:
+    - criterion 10: tests/test_vm_setup_idle_shutdown.py::test_the_idle_shutdown_takes_a_whole_number_of_minutes_of_at_least_one[empty]. It runs the same way as criterion 2's rows and expects exit 2, the first stderr line beginning `setup.sh: `, a line beginning `usage: setup.sh` after it, and empty stdout.
+    - Criteria 1 to 9: unchanged from journal entry 8.
+
+    Files created: none. The file changed is tests/test_vm_setup_idle_shutdown.py, this story's own module.
+
+    Modules the test run could not import: none.
+
+    `make test` (once): green, `test: green (164.6 s)`. The new row passes, because `vm/setup.sh` already refuses an empty value through `need_minutes`.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (163.1 s)

@@ -55,6 +55,7 @@ def _lines_with(text: str, word: str) -> list[str]:
     ("words", "accepted"),
     [
         pytest.param(["--idle-shutdown"], False, id="without-value"),
+        pytest.param(["--idle-shutdown", ""], False, id="empty"),
         pytest.param(["--idle-shutdown", "0"], False, id="zero"),
         pytest.param(["--idle-shutdown", "x"], False, id="letter"),
         pytest.param(["--idle-shutdown", "-5"], False, id="negative"),
