@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 478
-comments_read: []
+comments_read: [6432903366]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: ed41856240664b3ab0c96c65a95ff97a
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-27T03:19:43.622712Z'
+  stage: intake
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -101,3 +106,4 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
    2. The Interface says the request has `merge_stderr=True`. No criterion has a program that prints to standard error. All the stand-ins print on standard output, so `merge_stderr=False` would pass. Proposal: add a row in criterion 1 where `sh -c 'echo boom >&2; exit 3'` raises `RuntimeError("boom")`. I would choose this.
 
    If you accept both, I carry them into criterion 1 as written and end with `tests`.
+4. 2026-10-27 human: Both accepted as you propose: the `OSError` row also checks the text equals `str(` the `__cause__` `)`, and a row with `sh -c 'echo boom >&2; exit 3'` raises `RuntimeError("boom")`.
