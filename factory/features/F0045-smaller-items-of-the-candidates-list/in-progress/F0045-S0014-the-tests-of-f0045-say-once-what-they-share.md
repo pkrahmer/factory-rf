@@ -2,16 +2,12 @@
 stage: doing
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T04:13:10.331617Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,19 @@ journal:
   kind: started
   at: '2026-10-27T04:13:10.331617Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-27T04:19:13.707348Z'
+  stage: doing
+  run: 566e4bc75c624c30bf8e294532500293
+- number: 11
+  speaker: factory
+  kind: stall
+  at: '2026-10-27T04:19:14.004873Z'
+  stage: doing
+  run: 566e4bc75c624c30bf8e294532500293
+  reason: check_red
 ---
 
 # The tests of F0045 say once what they share
@@ -165,3 +174,28 @@ Expect: one line that ends `passed in <n>s` and names no failure
    `lint`: lint: green (0.2 s)
    `test`: test: green (166.2 s)
 9. factory: started doing as vm.
+10. coder: I built nothing, because this story has no code to write. The Interface names no path under `src/factory/`, `vm/`, `template/` or `claude/`. The tester's entry 8 already made all five changes under `tests/` and added the guard tests for criteria 1 to 3. Those tests pass against the code as it stands.
+
+    What I did: I ran `make check` on the committed state, with no changes of my own, and it ended `check: green` (`test: green (165.9 s)`, coverage 99.57 %). The tester had not re-run the full check after their last rename in `tests/test_suite_held_once.py`, so this run confirms it.
+
+    Main choice: I left the working tree untouched and send the story to review. The alternative I rejected was to make some change under `src/` to have something to show; nothing in the story asks for one. Following the step that compares my own diff, I have no diff, so I had nothing to refactor. No journal entry changed the meaning of the task. The human's answers (entry 4) only added criteria, and intake already wrote them into the Description.
+
+    Noticed, not touched:
+    - The tester also changed `tests/domain/test_contract_provider_limit.py`. It imports the renamed `committed` and `values`, but the Interface does not name it. The change is a follow-on of the rename and falls under the standing leave, so the reviewer may want to confirm it.
+    - Criterion 5 (the *Shared test helpers* lines in `docs/project-guide/README.md`) is still open for the docs stage.
+11. factory: Stage doing stalled (attempt 1 of 2): a check is red after the stage: `check`
+    src/factory/entry/check_documents.py               33      1     10      1    95%   51
+    src/factory/entry/check_duplicates.py              44      1      6      1    96%   66
+    src/factory/entry/check_story.py                   92      1     18      1    98%   161
+    src/factory/entry/contract.py                      28      1      6      1    94%   41
+    src/factory/entry/health.py                        33      1     10      1    95%   48
+    src/factory/entry/run.py                           76      1      6      1    98%   186
+    src/factory/entry/watch.py                         52      1      6      1    97%   87
+    -------------------------------------------------------------------------------------------
+    TOTAL                                            9227     24   1834     24    99%
+
+    120 files skipped due to complete coverage.
+    Required test coverage of 90.0% reached. Total coverage: 99.57%
+    ======================================================================================= short test summary info ========================================================================================
+    FAILED tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_group[run_process-group] - OSError: [Errno 22] Invalid argument
+    make: *** [Makefile:84: test] Error 1
