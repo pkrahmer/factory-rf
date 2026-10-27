@@ -38,9 +38,9 @@ from git_support import clone, install_agents, write_executable
 from podman_support import PodmanPlan
 from wiring_support import (
     CREDENTIAL,
-    _record_get_repo,
     after_image,
     dataset_podman,
+    record_get_repo,
     run_words,
     with_dataset,
 )
@@ -325,7 +325,7 @@ def test_build_boundaries_refuses_a_url_without_owner_and_name(
 def test_build_boundaries_without_hosting_hands_pygithub_the_repository(
     monkeypatch: pytest.MonkeyPatch, settings: InstanceSettings
 ) -> None:
-    repositories = _record_get_repo(monkeypatch)
+    repositories = record_get_repo(monkeypatch)
 
     boundaries = build_boundaries(
         settings.model_copy(update={"repository_url": GITHUB_URL}), CREDENTIAL

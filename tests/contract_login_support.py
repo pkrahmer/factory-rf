@@ -1,20 +1,21 @@
 """The committed contract values of the contract's login tests."""
 
 import json
-from pathlib import Path
 
-SCHEMAS = Path(__file__).parent.parent / "src" / "factory" / "contract"
+from contract_support import SCHEMAS
 
 
-def _committed(name: str) -> dict[str, object]:
+def committed(name: str) -> dict[str, object]:
+    """The parsed committed schema file `name`."""
     parsed: dict[str, object] = json.loads((SCHEMAS / name).read_text(encoding="utf-8"))
     return parsed
 
 
-def _values(schema: object) -> set[object]:
+def values(schema: object) -> set[object]:
+    """The values a schema allows: its enum, its const, or None for null, through its anyOf."""
     assert isinstance(schema, dict)
     if "anyOf" in schema:
-        return {value for option in schema["anyOf"] for value in _values(option)}
+        return {value for option in schema["anyOf"] for value in values(option)}
     if "enum" in schema:
         return set(schema["enum"])
     if "const" in schema:

@@ -15,7 +15,7 @@ from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import agent_run_environment, build_boundaries
 from podman_support import IMAGE, Podman
-from wiring_support import CREDENTIAL, HOSTED_URL, _record_get_repo
+from wiring_support import CREDENTIAL, HOSTED_URL, record_get_repo
 from zfs_support import DATASET, Zfs
 
 
@@ -76,7 +76,7 @@ def test_build_boundaries_needs_the_dataset_the_workspace_and_the_image(
     hosted: bool,
     variable: str | None,
 ) -> None:
-    repositories = _record_get_repo(monkeypatch)
+    repositories = record_get_repo(monkeypatch)
     settings = complete_settings.model_copy(update=changes)
     hosting = FakeHostingService() if hosted else None
 

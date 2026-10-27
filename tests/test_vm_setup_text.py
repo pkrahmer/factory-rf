@@ -11,7 +11,9 @@ from vm_support import (
     FUNCTION,
     STEPS,
     enclosing_if,
+    in_order,
     indent,
+    lines_with,
     name_positions,
     setup_code,
     step_texts,
@@ -67,21 +69,12 @@ def script(code: str) -> Script:
     return Script(code, step_texts(code))
 
 
-def _lines_with(text: str, word: str) -> list[str]:
-    return [line for line in text.splitlines() if word in line]
-
-
-def _in_order(text: str, words: list[str]) -> bool:
-    positions = [text.find(word) for word in words]
-    return -1 not in positions and positions == sorted(positions)
-
-
 def test_the_commands_and_the_steps_come_in_their_order(code: str) -> None:
     assert [command for command in ORDERED_COMMANDS if command not in code] == []
-    assert _in_order(code, list(ORDERED_COMMANDS))
+    assert in_order(code, list(ORDERED_COMMANDS))
     markers = [f"setup: {step}: " for step in STEPS]
     assert [marker for marker in markers if marker not in code] == []
-    assert _in_order(code, markers)
+    assert in_order(code, markers)
 
 
 def test_the_packages_are_the_seven_and_updated_before_install(code: str) -> None:
@@ -89,7 +82,7 @@ def test_the_packages_are_the_seven_and_updated_before_install(code: str) -> Non
     lists = re.findall(r"zfsutils-linux(?:[ \t]+[\w.+-]+)*", joined)
 
     assert [" ".join(found.split()) for found in lists] == [PACKAGES]
-    assert _in_order(code, ["apt-get update", "apt-get install"])
+    assert in_order(code, ["apt-get update", "apt-get install"])
 
 
 SECRETS_REDIRECT = re.compile(r">>?[\s\"']*[^\s;|&]*\.secrets")
@@ -156,7 +149,7 @@ def test_the_sudoers_rule_names_each_zfs_command_once_on_base(rule: str, last: b
         pytest.param(
             lambda s: any(
                 "zfs allow" in line.partition("setup: sudoers: ")[2]
-                for line in _lines_with(s.code, "setup: sudoers: ")
+                for line in lines_with(s.code, "setup: sudoers: ")
             ),
             id="not-asked-names-zfs-allow",
         ),
@@ -228,7 +221,7 @@ def _before_end_of_line(text: str, earlier: str, word: str) -> bool:
 def _waiting_then_exit(text: str) -> bool:
     waiting = [
         line
-        for line in _lines_with(text, "waiting for /home/factory/.secrets/hosting-token")
+        for line in lines_with(text, "waiting for /home/factory/.secrets/hosting-token")
         if "run this script again" in line
     ]
     if not waiting:
@@ -257,20 +250,20 @@ def _waiting_then_exit(text: str) -> bool:
         pytest.param(
             lambda s: any(
                 "--config core.askPass=" in line
-                for line in _lines_with(s.code, "git clone -q --branch")
+                for line in lines_with(s.code, "git clone -q --branch")
             ),
             id="clone-writes-askpass",
         ),
         pytest.param(lambda s: "git config" not in s.code, id="no-git-config"),
         *(
             pytest.param(
-                lambda s, later=later: _in_order(s.code, ["runuser -u factory --", later]),
+                lambda s, later=later: in_order(s.code, ["runuser -u factory --", later]),
                 id=f"runuser-before-{later}",
             )
             for later in ("git clone", "uv sync")
         ),
         pytest.param(
-            lambda s: any("0700" in line for line in _lines_with(s.code, "/home/factory/.secrets")),
+            lambda s: any("0700" in line for line in lines_with(s.code, "/home/factory/.secrets")),
             id="secrets-0700",
         ),
         pytest.param(lambda s: "0755" in s.steps["folders"], id="folders-0755"),
@@ -285,7 +278,7 @@ def test_the_checkout_waits_for_the_token_and_clones_as_factory(
 
 def _after_in_order(text: str, first: str, words: list[str]) -> bool:
     position = text.find(first)
-    return position >= 0 and _in_order(text[position:], words)
+    return position >= 0 and in_order(text[position:], words)
 
 
 AS_FACTORY = ("chown factory:factory", "-o factory -g factory")
@@ -309,7 +302,7 @@ OWN_WORD_BASE = re.compile(r"(?:^|\s)\"?\$base\"?(?:\s|$)")
         pytest.param(
             lambda s: any(
                 "0755" in line
-                for line in _lines_with(s.steps["sudoers"], "/usr/local/bin/zfs-factory")
+                for line in lines_with(s.steps["sudoers"], "/usr/local/bin/zfs-factory")
             ),
             id="wrapper-0755",
         ),
@@ -344,7 +337,7 @@ OWN_WORD_BASE = re.compile(r"(?:^|\s)\"?\$base\"?(?:\s|$)")
         pytest.param(
             lambda s: any(
                 'see the operator guide, "The machine"' in line
-                for line in _lines_with(
+                for line in lines_with(
                     s.code[s.code.rfind("setup: service: ") :],
                     "setup: done: build the stage image and start factory@",
                 )
@@ -529,7 +522,7 @@ def test_the_checkout_files_are_installed_only_in_the_run_that_cloned(
     assert all(side(script, condition, path) for condition in conditions)
     assert [
         line
-        for line in _lines_with(script.steps[step], f"setup: {step}: ")
+        for line in lines_with(script.steps[step], f"setup: {step}: ")
         if "differs from the checkout; not installed" in line
     ] != []
 
@@ -556,7 +549,7 @@ def _before_first_install_d(text: str) -> str:
             id="link-test-secrets",
         ),
         pytest.param(
-            lambda text: [line for line in _lines_with(text, "setup: folders: ") if ">&2" in line],
+            lambda text: [line for line in lines_with(text, "setup: folders: ") if ">&2" in line],
             id="line-to-standard-error",
         ),
         pytest.param(lambda text: "exit 1" in text, id="exit-1"),

@@ -113,22 +113,8 @@ def test_the_preparer_clones_only_a_missing_checkout_and_checks_none(
     case(remote, directory, git)
 
 
-def _takes_no_log(_remote: Path, _directory: Path, _git: GitCli) -> None:
+def test_the_preparer_takes_only_the_git_and_the_settings() -> None:
     assert "log" not in inspect.signature(CheckoutPreparer.__init__).parameters
-
-
-@pytest.mark.parametrize(
-    "case",
-    [
-        pytest.param(_takes_no_log, id="no-log-parameter"),
-        pytest.param(_missing, id="missing-is-cloned"),
-        pytest.param(_group_writable, id="existing-is-kept"),
-    ],
-)
-def test_the_preparer_takes_only_the_git_and_the_settings(
-    remote: Path, directory: Path, git: GitCli, case: Callable[[Path, Path, GitCli], None]
-) -> None:
-    case(remote, directory, git)
 
 
 def _preparer_class() -> ast.ClassDef:

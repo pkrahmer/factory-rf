@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from vm_support import SETUP, compares, step_texts, writes_path
+from vm_support import SETUP, compares, in_order, step_texts, writes_path
 
 HELPER = "/usr/local/bin/factory-drop-caches"
 SUDOERS = "/etc/sudoers.d/factory-drop-caches"
@@ -33,11 +33,6 @@ def script(code: str) -> Script:
     return Script(raw, code, step_texts(code)["caches"], step_texts(raw)["caches"])
 
 
-def _in_order(text: str, words: list[str]) -> bool:
-    positions = [text.find(word) for word in words]
-    return -1 not in positions and positions == sorted(positions)
-
-
 def _outside_caches(script: Script, word: str) -> list[str]:
     before, _, after = script.code.partition(script.caches)
     return [line for line in (before + after).splitlines() if word in line]
@@ -47,16 +42,14 @@ def _outside_caches(script: Script, word: str) -> list[str]:
     "check",
     [
         pytest.param(
-            lambda s: _in_order(
-                s.code, ["setup: sudoers: ", "setup: caches: ", "setup: folders: "]
-            ),
+            lambda s: in_order(s.code, ["setup: sudoers: ", "setup: caches: ", "setup: folders: "]),
             id="after-sudoers-before-folders",
         ),
         pytest.param(
             # The shebang is a comment line to the dropping, so the three lines are read raw.
             lambda s: (
                 "\n".join(HELPER_LINES) + "\n" in s.raw
-                and _in_order(s.caches, list(HELPER_LINES[1:]))
+                and in_order(s.caches, list(HELPER_LINES[1:]))
             ),
             id="helper-lines",
         ),
