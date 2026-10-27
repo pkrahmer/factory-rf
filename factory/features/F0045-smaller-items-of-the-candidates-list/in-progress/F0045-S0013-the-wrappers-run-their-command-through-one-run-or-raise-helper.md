@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366, 6433141030]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T03:47:05.123622Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-27T03:47:05.123622Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-27T03:53:18.033502Z'
+  stage: doing
+  run: 19881c3adfb542e7b9ad9d1d98087c97
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -253,3 +255,29 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
     `lint`: lint: green (0.2 s)
     `test`: test: green (165.8 s)
 16. factory: started doing as vm.
+17. coder: `make check` is green (`test: green (166.0 s)`, `check: green`). I changed no code this round. The implementation from the first doing run already passes the four tests the tester changed in entry 15, as I expected in entry 13.
+
+    What I built (in the working tree on the branch):
+    - `src/factory/adapters/process.py`: `ROOT = Path("/")` and `run_or_raise`, as the Interface states. It runs a `ProcessRequest` with `env=None` and `merge_stderr=True` through `run_process`. Each failure raises `fault` of a detail:
+      - `OSError`: `fault(str(error))`, chained from the error.
+      - Time limit reached: `fault(no_end_detail(time_limit))`.
+      - Exit status outside `accepted`: `fault(failure_detail(stdout, status))`.
+      - `accepted=None` returns every status.
+    - `src/factory/adapters/zfs_snapshots.py`: `_execute` calls `run_or_raise` with `fault=functools.partial(SnapshotError, command)` and passes its own `accepted`.
+    - `src/factory/adapters/podman_runs.py`: `_query` calls `run_or_raise` with `cwd=self._workspace` and `accepted=None`, and its fault is `partial(ContainerError, command)`. `run` keeps its own request with `cwd=ROOT`. The comment that sat on `_ROOT` moved onto that line.
+    - `src/factory/adapters/power_off.py`: `power_off` calls `run_or_raise(fault=PowerOffError)`.
+    - None of the three modules defines `_ROOT` any more. `make duplicates` reported `0 new, 41 known, 1 gone` in the first run.
+
+    Main choice: the fault is a callable of the detail, and each wrapper turns its own error into one with `functools.partial`. Power-off is the exception. Its start-failure text is `cannot start <sudo>: <error>`, and the Interface keeps the error texts. So it catches a `PowerOffError` whose `__cause__` is an `OSError` and raises it again with that prefix, still chained from the `OSError`. Alternatives I rejected:
+    - Dropping the prefix: it would change an error text.
+    - Giving the helper a separate start-failure fault: it would change the Interface.
+    - The human also turned down an extra `run` keyword for the tests' patch points (entry 11).
+
+    Refactor: I read the whole diff once again and nothing needed changing.
+
+    What the journal changed: "every existing test, unchanged" now has one exception, by the human's leave in entry 11. Four tests (three in `tests/adapters/test_zfs_snapshots.py`, one in `tests/adapters/test_podman_runs_results.py`) now patch `run_process` on `factory.adapters.process`. I left `## Description` as it is.
+
+    Noticed, not touched: the tester flagged that the new `ast`-based test in `tests/adapters/test_run_or_raise.py` may belong in mutmut's list of structural tests in `pyproject.toml`. That list is the human's to change.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 41 known, 1 gone
