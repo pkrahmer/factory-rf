@@ -1280,3 +1280,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 01:43 UTC: F0045-S0010 intake question on #475: 1 (a)+(b), the statement's first line and a format criterion; 2 accepted as is.
 - 02:24 UTC: F0045-S0010 at approval, PR #475: six checks met (write paths; 49 earlier tests by decision 30's leave, every moved assertion kept (counts equal on main and the branch); check green; reviewer no findings, entry 20; both Expect met; no markers). 11 runs, $3.57. Merged, archived. The human's change 5: the CLAUDE.md Tests bullet. No rebuild (tests and docs only).
 - 02:24 UTC: Started F0045-S0011 (the tests say once what they share), the last story. 96 % weekly.
+- 02:26 UTC: F0045-S0011 intake question on #476: 1, 2, 3 and 5 add the proposed rows; 4 the names are the tester's, judged by the reviewer.
