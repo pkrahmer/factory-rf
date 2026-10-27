@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366, 6433141030]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-27T03:40:41.852123Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-27T03:40:41.852123Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-27T03:46:44.891307Z'
+  stage: tests
+  run: 4b95d78c3ba34ce5ad726af396e8e871
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -227,3 +229,17 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
 
     The journal changes one thing in the description: its "every existing test, unchanged" now has these four tests as the exception, by the human's leave. I left `## Description` as it is and name the change here.
 14. factory: started tests as vm.
+15. tester: I changed the four tests the human allowed in journal entry 11, as the coder's entry 13 named them. Each test keeps its name and checks the same thing. No other test changed.
+
+    - `tests/adapters/test_zfs_snapshots.py::test_the_default_time_limit_is_ten_minutes_and_reaches_run_process` and `::test_the_time_limit_is_named_in_whole_seconds_rounded_up[fraction]` / `[whole]`: these now do `monkeypatch.setattr(process, "run_process", recording)` on `factory.adapters.process` instead of `zfs_snapshots`. The module import changed from `zfs_snapshots` to `process`, since nothing else in the file used `zfs_snapshots` as a module.
+    - `tests/adapters/test_podman_runs_results.py::test_version_runs_under_two_minutes_by_default`: this test now also takes `monkeypatch` and patches `factory.adapters.process.run_process` with the same `recorder`, because `_query` reaches `run_process` through `run_or_raise`. The `recorder` fixture still patches `podman_runs.run_process` for the `run` tests. `process` was added to the import from `factory.adapters`.
+
+    Why: the wrappers now call `run_or_raise`, which calls `run_process` inside `factory.adapters.process`. A patch on the wrapper module no longer reached that call.
+
+    Files changed: `tests/adapters/test_zfs_snapshots.py`, `tests/adapters/test_podman_runs_results.py`. No files created. Every module imported in the test run.
+
+    `make test`: test: green (166.0 s)
+    `make lint`: lint: green (0.2 s)
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (165.8 s)
