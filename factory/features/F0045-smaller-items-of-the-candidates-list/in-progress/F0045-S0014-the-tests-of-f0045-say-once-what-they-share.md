@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T04:36:08.397870Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -124,6 +120,12 @@ journal:
   kind: started
   at: '2026-10-27T04:36:08.397870Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-27T04:42:17.208813Z'
+  stage: doing
+  run: fa0ef1e9a18042e6b8263669fd41cc9c
 ---
 
 # The tests of F0045 say once what they share
@@ -329,3 +331,15 @@ Expect: one line that ends `passed in <n>s` and names no failure
     `lint`: lint: green (0.2 s)
     `test`: test: green (165.9 s)
 20. factory: started doing as vm.
+21. coder: Round 1, after the tester's entry 19. I changed nothing, so there is nothing new to list under what I built. The Interface names no path under `src/factory/`, `vm/`, `template/` or `claude/`. The reviewer's three findings in entry 15 were all about tests. The tester made those changes in `tests/test_suite_leftovers.py` and `tests/test_suite_held_once.py`.
+
+    What I did: I ran `make check` on the committed state with no changes of my own. It ended `test: green (165.7 s)` and `check: green`, with coverage at 99.57 %. The tester ran only `make test` and `make lint` after this round's changes, so this full run confirms them.
+
+    Main choice: I left the working tree untouched and sent the story to review. The alternative I rejected was to end with `tests` or `question`. All three findings are addressed in the tests, and nothing in the journal asks for code. I had no diff, so there was nothing to refactor. No journal entry changed what the task means, so the Description stays as it is.
+
+    Noticed but not touched:
+    - `tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_group[run_process-group]` failed once, with `OSError: [Errno 22]` (entry 11), and has not failed again. There is still no traceback on record. If it comes back, it needs a story of its own.
+    - Criterion 5 (the *Shared test helpers* lines in `docs/project-guide/README.md`) is still open for the docs stage.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 41 known, 0 gone
