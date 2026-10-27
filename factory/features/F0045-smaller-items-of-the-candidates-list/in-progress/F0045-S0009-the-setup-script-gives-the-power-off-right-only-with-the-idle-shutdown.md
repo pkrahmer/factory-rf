@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-27T01:35:58.110910Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-27T01:35:58.110910Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-27T01:36:40.415709Z'
+  stage: review
+  run: 59820aa241a54887a3c531f31de02242
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -312,3 +314,25 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
     `check`: check: green
     `duplicates`: duplicates: 2 new, 42 known, 0 gone
 19. factory: started review as vm.
+20. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`. Files: vm/setup.sh, tests/test_vm_setup_idle_shutdown.py, tests/vm_support.py, tests/test_vm_setup_text.py, tests/test_vm_setup_caches.py and tests/test_vm_setup.py. I read them against the work item.
+
+    - **Criteria 1 to 10:** each has a test that checks what it says.
+      - Criterion 2 and the row `empty` (criterion 10) cover the value rule on both sides. The limit "at least 1" is tested on both sides of its boundary: `0` is refused and `1` is accepted.
+      - The rule's refused side is covered by a missing value, `''`, `x`, `-5` and `1.5`.
+    - **Step `poweroff`:** it follows the pattern of the step `caches`: `stage`, then `unchanged` (`cmp -s`), `cp`, `chmod 0440` and `visudo -cf`. When the check fails it runs `rm -f`, prints with `>&2` and ends `exit 1`. It runs as root, not through `as_factory`.
+    - **Environment line:** it is appended to the root-owned staging file only under `if [ -n "$idle_shutdown" ]`, after the heredoc that ends with `XDG_RUNTIME_DIR=`.
+    - **Parsing:** `need_value` runs before `need_minutes`, so a missing value never reaches the digit check.
+    - **Checks:** the coder's `make check` was green (entry 18).
+    - **No other changes:** no module under `src/` changed, and no check is silenced.
+    - **Description:** it matches what was built, and the docs criterion (12) still says what the reader needs.
+
+    no findings
+
+    Notes:
+    1. tests/test_vm_setup_idle_shutdown.py `_in_order` and `_lines_with` are copies of the same helpers in tests/test_vm_setup_text.py (and `_in_order` is also in tests/test_vm_setup_caches.py). They could move to tests/vm_support.py under the standing leave.
+
+    Earlier tests:
+    - tests/test_vm_setup.py: the human's leave (the story's Interface, decision 29 of `feature.md`). `OPTIONS` gained `--idle-shutdown`.
+    - tests/vm_support.py: the human's leave (the story's Interface, decision 29 of `feature.md`) for `STEPS` gaining `poweroff`. The standing leave to move a shared test helper covers the added `VALUE_END`, `ENVIRONMENT`, `COMPARISONS`, `name_positions`, `indent`, `enclosing_if`, `compares` and `writes_path`, whose bodies did not change.
+    - tests/test_vm_setup_text.py: the standing leave to move a shared test helper. `VALUE_END`, `ENVIRONMENT`, `_name_positions`, `_indent` and `_enclosing_if` moved to tests/vm_support.py. Every test keeps its name and what it checks.
+    - tests/test_vm_setup_caches.py: the standing leave to move a shared test helper. `COMPARISONS`, `_compares` and `_writes` moved to tests/vm_support.py (`_writes` is now `writes_path`, with the same body). Every test keeps its name and what it checks.
