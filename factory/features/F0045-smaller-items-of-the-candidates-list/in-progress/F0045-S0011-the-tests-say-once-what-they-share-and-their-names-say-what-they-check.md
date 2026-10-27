@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-27T02:24:46.705795Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-27T02:24:46.700130Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-27T02:24:46.705795Z'
+  stage: intake
+---
+
 # The tests say once what they share, and their names say what they check
 
 ## Description
@@ -42,3 +69,6 @@ grep -rlE 'def (test_the_extras_come_in_the_operator_guides_order_sudo_only_with
 Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
 
 ## Journal
+
+1. 2026-10-27 human: created.
+2. factory: started intake as vm.
