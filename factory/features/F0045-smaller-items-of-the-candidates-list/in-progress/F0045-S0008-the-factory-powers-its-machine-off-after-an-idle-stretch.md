@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-27T00:29:37.658317Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -223,6 +219,12 @@ journal:
   kind: started
   at: '2026-10-27T00:29:37.658317Z'
   stage: tests
+- number: 39
+  speaker: tester
+  kind: result
+  at: '2026-10-27T00:35:32.933453Z'
+  stage: tests
+  run: 59a61526cf444cb8ad01f0401fce80ea
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -648,3 +650,16 @@ Expect: `-n /usr/bin/systemctl poweroff`
 
     Not touched, as the human decided in journal 33: the run-or-raise block of `power_off.py`, which repeats `ZfsSnapshots._execute`, and the third `_ROOT = Path("/")`. Both are accepted for this story.
 38. factory: started tests as vm.
+39. tester: Round 1, a test change the human approved (journal 33). I made the change the reviewer asked for in journal 35 and the coder named in journal 37. Nothing under `src/` changed.
+
+    - criterion 5, row `missing`: tests/adapters/test_power_off.py::test_the_power_off_runs_its_one_command_or_raises_what_failed[missing]. It used to check `detail.startswith("cannot start ")`. It now checks `detail.startswith(f"cannot start {program}:")`, where `program` is the path the test passed as `sudo_executable` (`tmp_path / "no-sudo"`).
+    - To get that path to the row's check, the `detail` parameter's type changed from `Callable[[str], bool]` to `Callable[[str, Path], bool]`, and the test now calls `detail(raised.value.detail, program)`. The other rows' lambdas take the path as `_` and ignore it, so each still checks exactly what it checked before. The test kept its name and its rows kept their ids.
+
+    Rejected: giving the `missing` row a fixed absolute path so the lambda could stay one-argument. That would point the test at a path outside `tmp_path`.
+
+    Files created: none. Files changed: tests/adapters/test_power_off.py (this story's own test module).
+    Modules the test run could not import: none.
+    `make test` is green (coverage 99.57 %) and `make lint` is green. The new check passes straight away, because `src/factory/adapters/power_off.py` already builds `cannot start {sudo_executable}: {error}`, so there is no red test.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (154.9 s)

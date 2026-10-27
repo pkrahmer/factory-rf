@@ -36,34 +36,37 @@ def _stand_in(folder: Path, body: str) -> Path:
         pytest.param(
             f"echo '{REFUSAL}' >&2\nexit 1",
             ROOMY_LIMIT,
-            lambda detail: detail == REFUSAL,
+            lambda detail, _: detail == REFUSAL,
             id="refused-on-standard-error",
         ),
         pytest.param(
             f"echo '{REFUSAL}'\nexit 1",
             ROOMY_LIMIT,
-            lambda detail: REFUSAL in detail,
+            lambda detail, _: REFUSAL in detail,
             id="refused-on-standard-output",
         ),
         pytest.param(
             "printf 'first line\\nsecond line\\n\\n'\nexit 1",
             ROOMY_LIMIT,
-            lambda detail: "second line" in detail and "first line" not in detail,
+            lambda detail, _: "second line" in detail and "first line" not in detail,
             id="the-last-printed-line",
         ),
         pytest.param(
             "exit 1",
             ROOMY_LIMIT,
-            lambda detail: detail == "exit status 1",
+            lambda detail, _: detail == "exit status 1",
             id="nothing-printed",
         ),
         pytest.param(
-            None, ROOMY_LIMIT, lambda detail: detail.startswith("cannot start "), id="missing"
+            None,
+            ROOMY_LIMIT,
+            lambda detail, program: detail.startswith(f"cannot start {program}:"),
+            id="missing",
         ),
         pytest.param(
             "exec sleep 60",
             LIMIT,
-            lambda detail: detail == no_end_detail(LIMIT),
+            lambda detail, _: detail == no_end_detail(LIMIT),
             id="time-limit",
         ),
     ],
@@ -72,7 +75,7 @@ def test_the_power_off_runs_its_one_command_or_raises_what_failed(
     tmp_path: Path,
     body: str | None,
     time_limit: timedelta,
-    detail: Callable[[str], bool] | None,
+    detail: Callable[[str, Path], bool] | None,
 ) -> None:
     program = tmp_path / "no-sudo" if body is None else _stand_in(tmp_path, body)
     power = SystemctlPowerOff(str(program), time_limit=time_limit)
@@ -85,5 +88,5 @@ def test_the_power_off_runs_its_one_command_or_raises_what_failed(
     else:
         with pytest.raises(PowerOffError) as raised:
             power.power_off()
-        assert detail(raised.value.detail), raised.value.detail
+        assert detail(raised.value.detail, program), raised.value.detail
     assert time.monotonic() - started < ROOMY_BOUND_SECONDS
