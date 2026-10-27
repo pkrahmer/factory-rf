@@ -8,56 +8,23 @@ from typing import override
 
 import pytest
 
-from application.test_preflight_run import RecordingCommands
 from factory.adapters.clock import ManualClock
 from factory.adapters.git_cli import GitCli
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.files import RecordLog
 from factory.application.known_results import KnownResults
-from factory.domain.checks import CheckResult, ReusedRun, status_of
+from factory.domain.checks import CheckResult, ReusedRun
 from factory.domain.errors import GitError, ProjectCommandError
 from factory.domain.git import TreeId
 from factory.domain.known_results import ResultKey, ResultRecord, definition_digest
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.settings import InstanceSettings
-from git_support import PIPELINE_YAML
 from human_clone import HumanClone
-from log_support import log_lines
+from known_results_support import DEFINITION_YAML, TIME_LIMIT, Rig, _answering, _result, _rig
 from project_command_support import raising
 from record_support import UnwritableRecordLog
 
 NOT_READ = ["docs/*"]
-DEFINITION_YAML = PIPELINE_YAML.replace(
-    "check: {time_limit: 10}", 'check: {time_limit: 10, not_read: ["docs/*"]}'
-)
 OTHER_LINT_YAML = DEFINITION_YAML.replace("lint: {time_limit: 5}", "lint: {time_limit: 6}")
-TIME_LIMIT = timedelta(minutes=10)
-
-
-def _result(command: str, exit_status: int | None) -> CheckResult:
-    return CheckResult(
-        command=command,
-        status=status_of(exit_status),
-        exit_status=exit_status,
-        duration=timedelta(seconds=42.5),
-        last_line=f"{command}: green" if exit_status == 0 else "make: *** Error",
-        output_tail="the tail\n",
-        targets=[],
-    )
-
-
-def _answering(
-    clock: ManualClock, exit_statuses: Sequence[int | None] = ()
-) -> Callable[[str, timedelta], CheckResult]:
-    """Answer each run with the next exit status (then 0), the clock advanced by a minute."""
-    queue = list(exit_statuses)
-
-    def answer(command: str, _limit: timedelta) -> CheckResult:
-        clock.advance(timedelta(minutes=1))
-        return _result(command, queue.pop(0) if queue else 0)
-
-    return answer
 
 
 class KeylessGit(GitCli):
@@ -81,39 +48,6 @@ class UnreadableRecordLog(RecordLog[ResultRecord]):
     @override
     def read(self) -> list[ResultRecord]:
         raise OSError("unreadable")
-
-
-@dataclass
-class Rig:
-    """Boundaries on the test's checkout whose project commands record their calls."""
-
-    boundaries: Boundaries
-    commands: RecordingCommands
-    records: JsonLinesRecordLog[ResultRecord]
-    definition: PipelineDefinition
-    tmp_path: Path
-
-    def known(self) -> KnownResults:
-        """A `KnownResults` on the rig's boundaries and definition."""
-        return KnownResults(self.boundaries, self.definition)
-
-    def log_lines(self) -> list[str]:
-        """The factory log's lines without their time stamps."""
-        return [line.split(" ", 1)[1] for line in log_lines(self.tmp_path)]
-
-
-def _rig(
-    boundaries: Boundaries,
-    tmp_path: Path,
-    answer: Callable[[str, timedelta], CheckResult],
-) -> Rig:
-    commands = RecordingCommands(answer)
-    records = JsonLinesRecordLog(
-        tmp_path / "state" / "records" / "known-results.jsonl", ResultRecord
-    )
-    rigged = replace(boundaries, project_commands=commands, result_records=records)
-    definition = rigged.pipeline_reader.parse(DEFINITION_YAML)
-    return Rig(rigged, commands, records, definition, tmp_path)
 
 
 def test_a_first_run_is_recorded_under_its_key_at_the_time_before_it(

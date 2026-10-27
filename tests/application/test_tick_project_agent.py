@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from application.test_tick_agent_definition import (
+from agent_definition_support import (
     BACKLOG_PATH,
     COMPLETED,
     STORY,

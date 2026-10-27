@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 from adapters.claude_stand_in import Step, claude_request, read_calls, write_stand_in
-from adapters.test_claude_runtime_resume import _after, _budget_reply
+from claude_resume_support import _after, _budget_reply
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.domain.provider_limits import ProviderLimit
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT

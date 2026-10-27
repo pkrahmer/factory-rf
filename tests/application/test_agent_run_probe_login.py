@@ -13,13 +13,9 @@ from factory.application.preflight import agent_run_probe_item
 from factory.domain.agent_runs import AgentRunResult, EndReason
 from factory.domain.settings import InstanceSettings
 from git_support import install_agents
+from probe_login_support import HINT, LOGIN_FILE
 from probe_support import ENVIRONMENT
 
-LOGIN_FILE = Path("/home/agent/.claude-token")
-HINT = (
-    "; the agent's login token is read from /home/agent/.claude-token: "
-    "make it with claude setup-token if it is missing, empty or expired"
-)
 FAILED_REASONS: list[EndReason] = ["died", "no_result", "time_limit", "budget"]
 FACTORY_USER = "the factory user"
 

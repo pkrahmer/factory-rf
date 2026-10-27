@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from adapters.claude_stand_in import Step
-from adapters.test_claude_runtime_resume import _reply, _request, _runtime
+from claude_resume_support import _reply, _request, _runtime
 from factory.domain.agent_runs import PermissionDenial
 
 

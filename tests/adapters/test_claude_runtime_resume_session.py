@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from adapters.claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
-from adapters.test_claude_runtime_resume import _after, _budget_reply
+from claude_resume_support import _after, _budget_reply
 from factory.adapters.claude_runtime import FINISH_MESSAGE, ClaudeCodeRuntime
 from factory.domain.agent_runs import AgentRunRequest
 

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 475
 comments_read: [6431654376]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-27T01:46:06.247491Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-27T01:46:06.247491Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-27T01:55:08.830973Z'
+  stage: tests
+  run: 127170a28c334ea1b7dab4024d4afb7e
 ---
 
 # No test module imports another test module
@@ -120,3 +122,58 @@ Expect: `1`
 
    Answer 2 (the guard and `make check` are the only checks for a moved fixture keeping its name and a private name losing its underscore) needed no edit.
 7. factory: started tests as vm.
+8. tester: Wrote the guard. Moved everything that modules under `tests/` imported from test modules into support modules, under the leave in decision 30. No module under `src/factory/` changed.
+
+   Criteria → tests:
+   - criterion 1: tests/test_shared_imports.py::test_no_module_under_tests_imports_a_test_module
+   - criterion 2: tests/test_shared_imports.py::test_the_guard_finds_every_form_of_a_test_module_import (parametrized: the seven found forms, multi-line parenthesised one included, and the four not found)
+   - criterion 3: tests/test_shared_imports.py::test_the_guard_names_each_import_by_file_line_and_module
+   - criterion 4: `make check`, no test of its own
+   - criterion 5: docs, for the documenter
+
+   The guard's reader is `imported_test_modules(source) -> list[tuple[int, str]]`, giving the first line of the statement and the module. Its message builder is `import_messages(file, source)`. Both live in the guard module itself, so no module imports them.
+
+   Files created (all under `tests/`, each named after what it now holds):
+   - `agent_login_support.py`: API_LOGIN, SUBSCRIPTION, _utf_16
+   - `claude_reply_support.py`: LOGIN, REPLY, BUDGET_STOP
+   - `claude_resume_support.py`: LIMIT, _reply, _budget_reply, _request, _runtime, _after
+   - `cost_records_support.py`: COMPLETED_LINE, REQUIRED, STARTED_AT, STARTED_AT_TEXT, STARTED_LINE, _completed, _started
+   - `probe_login_support.py`: HINT, LOGIN_FILE
+   - `cost_image_support.py`: _launch, _settings and the constants they use
+   - `git_interface_support.py`: OPERATIONS
+   - `hosting_interface_support.py`: OPERATIONS
+   - `known_results_support.py`: TIME_LIMIT, DEFINITION_YAML, Rig, _answering, _result, _rig
+   - `agent_definition_support.py`: BACKLOG_PATH, COMPLETED, STORY
+   - `contract_login_support.py`: SCHEMAS, _committed, _values
+   - `sections_support.py`: TICKS
+   - `story_form_support.py`: FORM, SMOKE, _state
+   - `check_documents_support.py`: MISSING_LINES
+   - `wiring_login_support.py`: the wiring tests' REPLY
+   - `opencode_events_support.py`: WAIT_SECONDS
+   - `opencode_resume_support.py`: WAIT_SECONDS
+   - `test_shared_imports.py`: the guard
+
+   Existing support module extended: `preflight_support.py` now holds IMAGE, OTHER_IMAGE, MAKEFILE, ROLES, TOOLS, RecordingWhich, RecordingCommands, Rig and the fixtures `rig` and `red_main`, which `test_preflight_run.py` held before. I updated its docstring.
+
+   The fixtures stayed out of `tests/conftest.py`. They went into `preflight_support.py` instead, and each test module that uses them binds them with `rig = preflight_support.rig`, the pattern those modules already used. A root conftest fixture named `rig` would reach every module, and two other rigs exist under that name.
+
+   Private names kept their underscore, which the Interface allows.
+
+   Earlier test modules changed:
+   - tests/adapters: test_agent_launch_login, test_claude_runtime_login, test_claude_runtime_resume, test_cost_records_jsonl, test_opencode_events, test_opencode_resume_session, test_claude_runtime_api_login, test_claude_runtime_container, test_claude_runtime_denial_paths, test_claude_runtime_provider_limit, test_claude_runtime_resume_session, test_cost_records_jsonl_denials, test_cost_records_jsonl_instance, test_cost_records_jsonl_login, test_opencode_runtime_container, test_opencode_runtime_launch, test_runtime_podman_timeout_status
+   - tests/application: test_agent_run_probe_login, test_cost_image, test_git_interface, test_hosting_interface, test_known_results, test_preflight_run, test_tick_agent_definition, test_agent_run_probe_api_login, test_cost_instance, test_interfaces, test_known_results_torn, test_preflight_login_line, test_preflight_stale_main_stop, test_preflight_stops_commit, test_recording_project_commands, test_tick_project_agent
+   - tests/domain: test_contract_login, test_sections, test_story_form, test_contract_provider_limit, test_section_edges, test_story_form_edges
+   - tests/entry: test_check_documents, test_wiring_login, test_check_documents_guide_files, test_wiring_api_login, test_wiring_container_extra, test_wiring_opencode, test_wiring_stage_environment
+   - tests/ root: container_extra_support.py, preflight_support.py, test_time_limits.py
+
+   Every test kept its name and what it checks.
+
+   Run:
+   - `make lint` and `make types` are green. I ran the types check too, since every module exists in this story.
+   - The first smoke grep gives 0.
+   - The single `make test` run had two failures: test_contract_login::test_the_committed_cost_record_schema_lists_the_optional_login and test_contract_provider_limit::test_the_committed_schemas_list_provider_limit_at_version_1_2, both with `FileNotFoundError: /work/src/factory/contract/...`. The cause was that `SCHEMAS` moved up one folder but its `__file__`-relative path did not. I fixed it to `Path(__file__).parent.parent`. Per the stage rules I did not re-run the tests, so this fix is unconfirmed until the factory's `make test`.
+
+   No module failed to import. The guard tests pass already, since this story's work is the move itself, which the tester does. Nothing is left for the coder to implement.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (166.3 s)

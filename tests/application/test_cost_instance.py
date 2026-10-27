@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from application.test_cost_image import _launch, _settings
+from cost_image_support import _launch, _settings
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.costs import CostRecorder

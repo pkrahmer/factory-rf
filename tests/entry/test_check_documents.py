@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from check_documents_support import MISSING_LINES
 from document_texts import clean_texts, operator_guide, project_guide, readme, write_documents
 from factory.adapters.process import ProcessRequest, run_process
 from factory.domain.documents import (
@@ -16,13 +17,6 @@ from factory.domain.documents import (
     README,
 )
 from factory.entry.check_documents import main
-
-MISSING_LINES = (
-    "README.md: missing\n"
-    "docs/operator-guide.md: missing\n"
-    "docs/project-guide/README.md: missing\n"
-    "docs/decisions.md: missing\n"
-)
 
 
 def test_clean_documents_print_documents_ok_and_return_zero(

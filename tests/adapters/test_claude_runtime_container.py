@@ -14,8 +14,8 @@ from adapters.container_runtime_support import (
     read_only,
     run_folders,
 )
-from adapters.test_agent_launch_login import API_LOGIN
-from adapters.test_claude_runtime_login import BUDGET_STOP, LOGIN, REPLY
+from agent_login_support import API_LOGIN
+from claude_reply_support import BUDGET_STOP, LOGIN, REPLY
 from factory.adapters.agent_launch import (
     LOGIN_VARIABLE,
     VERSION_TIME_LIMIT,

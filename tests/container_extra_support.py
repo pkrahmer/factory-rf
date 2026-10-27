@@ -9,7 +9,7 @@ from adapters.claude_stand_in import Step, claude_request, write_stand_in
 from adapters.container_runtime_support import container_environment, container_request, make_state
 from adapters.opencode_stand_in import MODELS, write_opencode
 from adapters.opencode_stand_in import REPLY as OPENCODE_REPLY
-from adapters.test_claude_runtime_login import REPLY as CLAUDE_REPLY
+from claude_reply_support import REPLY as CLAUDE_REPLY
 from container_support import FIVE_MINUTES, Dataset
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.fake_containers import FakeContainerRuns

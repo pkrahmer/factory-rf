@@ -13,7 +13,7 @@ from adapters.opencode_stand_in import (
     step_start,
     write_agent_settings,
 )
-from adapters.test_agent_launch_login import API_LOGIN
+from agent_login_support import API_LOGIN
 from factory.adapters.agent_launch import LoginFiles, login_argv
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.fake_hosting import FakeHostingService

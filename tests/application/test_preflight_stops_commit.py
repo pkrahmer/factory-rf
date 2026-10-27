@@ -8,17 +8,15 @@ from pathlib import Path
 import pytest
 
 import preflight_support
-from application import test_preflight_run
-from application.test_preflight_run import IMAGE, OTHER_IMAGE, Rig
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.domain.paths import STOP_RECORDS_FILE
 from factory.domain.preflight import PreflightStamp
 from factory.domain.stops import StopRecord, stop_records_text
 from log_support import log_lines
-from preflight_support import CLEARED_LINE, fail_once
+from preflight_support import CLEARED_LINE, IMAGE, OTHER_IMAGE, Rig, fail_once
 
-rig = test_preflight_run.rig
-red_main = test_preflight_run.red_main
+rig = preflight_support.rig
+red_main = preflight_support.red_main
 failed_once = preflight_support.failed_once
 
 AT = datetime(2026, 10, 18, 10, 0, tzinfo=UTC)

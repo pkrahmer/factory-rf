@@ -1,6 +1,5 @@
 """The wiring hands the setting that names the login file to the agent runtime."""
 
-import json
 from pathlib import Path
 
 import pytest
@@ -11,22 +10,10 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
 from podman_support import PodmanPlan
+from wiring_login_support import REPLY
 from wiring_support import CREDENTIAL, after_image, dataset_podman, run_words, with_dataset
 
 LOGIN = "stand-in-login"
-REPLY = json.dumps(
-    {
-        "type": "result",
-        "subtype": "success",
-        "is_error": False,
-        "num_turns": 1,
-        "total_cost_usd": 0.1,
-        "duration_ms": 100,
-        "usage": {"input_tokens": 1, "output_tokens": 1},
-        "permission_denials": [],
-        "structured_output": {"decision": "doing", "entry": "Done."},
-    }
-)
 
 
 @pytest.mark.parametrize(

@@ -2,7 +2,7 @@
 
 import pytest
 
-from adapters.test_cost_records_jsonl import COMPLETED_LINE, _completed
+from cost_records_support import COMPLETED_LINE, _completed
 from factory.adapters.cost_records_jsonl import (
     JsonLinesCostRecordReader,
     JsonLinesCostRecordWriter,

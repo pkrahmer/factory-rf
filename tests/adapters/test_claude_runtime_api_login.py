@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 
 from adapters.claude_stand_in import Step, claude_request, read_calls, write_stand_in
-from adapters.test_agent_launch_login import API_LOGIN, SUBSCRIPTION, _utf_16
-from adapters.test_claude_runtime_login import BUDGET_STOP, REPLY
+from agent_login_support import API_LOGIN, SUBSCRIPTION, _utf_16
+from claude_reply_support import BUDGET_STOP, REPLY
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.domain.agent_runs import Login

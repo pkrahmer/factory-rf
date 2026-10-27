@@ -25,13 +25,13 @@ from factory.application.boundaries import Boundaries
 from factory.application.costs import CostRecorder, CostRun
 from factory.domain.agent_runs import AgentRunResult, PermissionDenial, TokenCounts
 from factory.domain.cost_records import CostRecord
+from opencode_events_support import WAIT_SECONDS
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 SIDECAR = "F0001-S0001-first.costs.jsonl"
 ANSWER = text(result_text())
 FIRST_TOKENS = {"input": 10, "output": 5, "reasoning": 2, "cache": {"read": 100, "write": 20}}
 SECOND_TOKENS = {"input": 20, "output": 6, "reasoning": 0, "cache": {"read": 0, "write": 5}}
-WAIT_SECONDS = 30
 
 
 def _run(tmp_path: Path, lines: list[str], *, exit_status: int = 0) -> AgentRunResult:

@@ -1,0 +1,25 @@
+"""The operations of the git interface, shared by the interface tests."""
+
+OPERATIONS = {
+    "fetch",
+    "remote_branches",
+    "resolve",
+    "show_file",
+    "list_files",
+    "is_ancestor",
+    "log",
+    "changed_paths",
+    "status",
+    "clone",
+    "checkout",
+    "commit",
+    "push",
+    "delete_remote_branch",
+    "delete_branch",
+    "merge",
+    "reset_to",
+    "revert_paths",
+    "move",
+    "work_tree_id",
+    "ignored",
+}

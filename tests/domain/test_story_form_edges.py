@@ -2,10 +2,10 @@
 
 import pytest
 
-from domain.test_story_form import FORM, SMOKE, _state
 from factory.domain.paths import LifecycleFolder
 from factory.domain.story_form import FormFinding, check_story_form
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from story_form_support import FORM, SMOKE, _state
 
 START = "# A story\n\n## Description\n\nText.\n\n## Interface\n\n"
 CRITERIA = "1. It works.\n2. make check stays green.\n3. docs: none."
