@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -136,6 +136,11 @@ journal:
   at: '2026-10-27T03:55:55.751628Z'
   stage: smoke-test
   run: 1a48bafc6a5441a0bffd6157570e3f88
+- number: 24
+  speaker: factory
+  kind: done
+  at: '2026-10-27T03:57:16.056816Z'
+  stage: approval
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -370,3 +375,4 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
     - Criterion 5: `docs/project-guide/processes-and-checks.md:60-66` describes `run_or_raise`, `ROOT`, its rules and the three wrappers that use it.
 
     Findings: none.
+24. factory: done (pull request merged); cost: 10 runs, 22.2 min, 66 turns, 221519 tokens in (1356266 more from cache), 26287 out, $2.23
