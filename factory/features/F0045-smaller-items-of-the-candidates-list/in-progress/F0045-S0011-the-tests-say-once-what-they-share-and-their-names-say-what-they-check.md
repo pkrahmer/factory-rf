@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-27T02:27:37.778240Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-27T02:27:17.503978Z'
   stage: intake
   run: 24c2a4c4cdef4b8da11e935dac0b948e
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-27T02:27:37.778240Z'
+  stage: tests
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -114,3 +123,4 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
    - Smoke test: the three commands are runnable. Each `Expect:` line is checkable: the parameter list, `gone`, `0`. The block runs no pytest.
    - Architecture: the only source change is in the application layer's `CheckoutPreparer` and its wiring in `entry`, which goes the right way. The rest is under `tests/` and keeps the support-module rules of `CLAUDE.md`.
    - Scope: within feature decisions 19 and 31, which give the leave for the ten items. Journal entry 4, point 4: the tester chooses the new names and the reviewer judges them. No fixed names were added.
+7. factory: started tests as vm.
