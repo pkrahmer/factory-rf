@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-27T04:02:10.224197Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-27T04:01:49.327757Z'
   stage: intake
   run: 0dd47be2432945cd8283fb5d91b242d6
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-27T04:02:10.224197Z'
+  stage: tests
 ---
 
 # The tests of F0045 say once what they share
@@ -112,3 +121,4 @@ Expect: one line that ends `passed in <n>s` and names no failure
    - Smoke test: The commands are runnable. The first block gains a grep for `def _committed|def _values` (answer 2), so its Expect reads three lines, `0`; `0`; `0`. The pytest line passes no `-q` (`addopts` already sets it), so `tail -1` shows `N passed in <n>s`.
    - Architecture: `tests/` only. Helpers move to support modules, as `CLAUDE.md` (*Tests*) asks. No layer is touched.
    - Scope: All five items are F0045's own tests' leftovers from A0001 and are not in "Out of scope". The description's meaning is unchanged, so it was not rewritten.
+7. factory: started tests as vm.
