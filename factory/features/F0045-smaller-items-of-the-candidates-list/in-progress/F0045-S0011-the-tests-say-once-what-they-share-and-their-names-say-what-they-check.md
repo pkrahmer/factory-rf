@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-27T02:59:58.188628Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-27T02:59:58.188628Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-27T03:01:01.306702Z'
+  stage: review
+  run: f441b951a3cb461f9a91d919e7c38781
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -328,3 +330,58 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
     `check`: check: green
     `duplicates`: duplicates: 2 new, 42 known, 0 gone
 19. factory: started review as vm.
+20. reviewer: Round 1 review: no findings.
+
+    I read the whole diff against the work item again, not only the round-1 change.
+
+    - Finding 1 of entry 12 is fixed. `_keeps_without_a_log` is gone, and the `existing-is-kept` row of `tests/application/test_checkout_preparer.py::test_the_preparer_takes_only_the_git_and_the_settings` now runs the existing `_group_writable`.
+    - Criteria 1 to 4: each has one parametrized test, with one row for each part the criterion names:
+      - criterion 1: `test_the_preparer_takes_only_the_git_and_the_settings`
+      - criterion 2: `test_the_preparer_s_source_holds_no_log` (the `_log` store, both docstrings, the `log=` keyword in `run.py`)
+      - criterion 3: `tests/test_suite_held_once.py` (items 1 to 7 plus `shared-from-support`)
+      - criterion 4: `tests/test_suite_old_names.py` (six old names, the seal module, the contract-version row)
+    - The coder's entry 18 says `make check` is green.
+    - Interface: `src/factory/application/scheduler.py:78` is `CheckoutPreparer(git, settings)`, with no `_log` and no log in its docstrings. `src/factory/entry/run.py:116` passes no `log=`. Nothing else under `src/` changed.
+    - Items 1 to 10 are done as listed:
+      - item 1: `run_end` in `tests/run_layout_support.py`
+      - item 2: `CONTAINER` in `tests/settings_support.py`
+      - item 3: `_record_get_repo` in `tests/wiring_support.py`
+      - item 4: `recording_stand_in` and `recorded_calls` in `tests/recording_stand_in_support.py`
+      - item 5: `CA_NAMES` is gone everywhere; the tests use `CA_BUNDLE_NAMES`
+      - item 6: `RESET_PREFIX` in `tests/container_support.py`, built from the existing `TIMING_PREFIX`
+    - New names: each says what its one row checks.
+    - Contract tests: `committed_is_generated` takes an optional version, so S0004's `4.0` check still holds.
+    - Architecture and security: nothing in this diff raises either.
+    - Description and docs criterion: both still match what was built.
+
+    Notes:
+    1. `tests/application/test_checkout_preparer.py::test_the_preparer_takes_only_the_git_and_the_settings`: two rows, `missing-is-cloned` (`_missing`) and `existing-is-kept` (`_group_writable`), repeat rows of the earlier `test_the_preparer_clones_only_a_missing_checkout_and_checks_none`, and `_missing` also overlaps `test_a_missing_checkout_is_cloned`. Criterion 1 asks for these rows. Merging them into the earlier test would need the human's leave.
+    2. `tests/wiring_support.py:23`: `_record_get_repo` is imported by two modules but keeps its leading underscore, because criterion 3 names it that way.
+
+    Earlier tests changed. All are under the human's leave in decision 31 of `feature.md`, which the Interface names:
+    - tests/adapters/test_agent_launch_extra.py: decision 31, item 5
+    - tests/adapters/test_claude_runtime_no_hook.py: decision 31, item 7
+    - tests/adapters/test_runtimes_without_wrapper.py: decision 31, item 1
+    - tests/application/test_agent_run_probe_factory_user.py: decision 31, item 8
+    - tests/application/test_checkout_preparer_seal.py -> tests/application/test_checkout_preparer.py: decision 31, items 8 and 9 (the criterion 1 and 2 tests in it are added tests)
+    - tests/application/test_container_environment_extra.py: decision 31, item 5
+    - tests/application/test_stage_on_container_fakes.py: decision 31, item 6
+    - tests/domain/test_contract_provider_limit.py: decision 31, item 10
+    - tests/domain/test_contract_version_2.py (deleted; continued as tests/domain/test_contract_without_tool_paths.py): decision 31, item 10
+    - tests/domain/test_contract_version_3.py (deleted; continued as tests/domain/test_contract_without_nested_repository.py): decision 31, item 10
+    - tests/domain/test_settings_agent_user_unread.py: decision 31, item 2
+    - tests/domain/test_settings_one_environment.py: decision 31, item 2
+    - tests/domain/test_settings_stage_environment.py: decision 31, item 2
+    - tests/entry/test_wiring_boundaries.py: decision 31, item 3
+    - tests/entry/test_wiring_container_extra.py: decision 31, items 4 and 5
+    - tests/entry/test_wiring_extras.py: decision 31, item 8
+    - tests/entry/test_wiring_one_environment.py: decision 31, item 3
+    - tests/entry/test_wiring_stage_environment.py: decision 31, item 4
+    - tests/test_suite_fixtures.py: decision 31, item 6
+    - support modules: decision 31, the moves of items 1 to 6 and item 10's optional version
+      - tests/container_extra_support.py
+      - tests/container_support.py
+      - tests/contract_support.py
+      - tests/run_layout_support.py
+      - tests/settings_support.py
+      - tests/wiring_support.py
