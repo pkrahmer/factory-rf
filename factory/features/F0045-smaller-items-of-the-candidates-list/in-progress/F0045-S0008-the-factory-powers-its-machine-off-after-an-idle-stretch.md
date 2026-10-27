@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T00:35:53.234292Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -234,6 +230,12 @@ journal:
   kind: started
   at: '2026-10-27T00:35:53.234292Z'
   stage: doing
+- number: 41
+  speaker: coder
+  kind: result
+  at: '2026-10-27T00:41:58.363107Z'
+  stage: doing
+  run: bc5d3fb5a2514da69ed3436b3f45b635
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -673,3 +675,20 @@ Expect: `-n /usr/bin/systemctl poweroff`
     `lint`: lint: green (0.2 s)
     `test`: test: green (154.9 s)
 40. factory: started doing as vm.
+41. coder: Round 1. I changed no code and the working tree is clean. `make check` is green on the committed state: `check: green`, with coverage at 99.57 %.
+
+    - The round's one finding was the `missing` row of criterion 5 (journal 35). The tester has made that change (journal 39): `tests/adapters/test_power_off.py::test_the_power_off_runs_its_one_command_or_raises_what_failed[missing]` now asserts `detail.startswith(f"cannot start {program}:")`.
+    - The row passes against the code as it is. `src/factory/adapters/power_off.py` already builds `cannot start {sudo_executable}: {error}`, so nothing under `src/` changes.
+
+    What was built for this story is unchanged from the earlier rounds: `src/factory/domain/settings.py`, `src/factory/domain/errors.py`, `src/factory/application/machine.py`, `src/factory/application/idle_shutdown.py`, `src/factory/adapters/power_off.py`, `src/factory/entry/wiring.py` and `src/factory/entry/run.py`.
+
+    Main choice: I sent the work item straight to review. The only thing left from the finding was the test change, and that is done. I rejected touching the code: it already does what the Interface states.
+
+    Refactor pass: no code changed this round, so there was nothing to change.
+
+    What the journal changed: journal 33 limited this round to the `missing` row. `## Description` keeps its meaning, so I left it alone.
+
+    Noticed but not touched, as the human decided in journal 33: the run-or-raise block in `power_off.py`, which repeats `ZfsSnapshots._execute`, and the third copy of `_ROOT = Path("/")`. Both are accepted for this story.
+
+    `check`: check: green
+    `duplicates`: duplicates: 2 new, 42 known, 0 gone
