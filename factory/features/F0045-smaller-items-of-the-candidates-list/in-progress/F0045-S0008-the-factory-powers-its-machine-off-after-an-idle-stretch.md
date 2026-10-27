@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-27T00:27:44.368242Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -201,6 +197,12 @@ journal:
   kind: started
   at: '2026-10-27T00:27:44.368242Z'
   stage: review
+- number: 35
+  speaker: reviewer
+  kind: result
+  at: '2026-10-27T00:28:31.984788Z'
+  stage: review
+  run: 3baaca898edb4f478d6e7fce06584aa5
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -596,3 +598,20 @@ Expect: `-n /usr/bin/systemctl poweroff`
 32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 33. 2026-10-27 human: Go on, one more round for finding 1 only: the tester sharpens row `missing` of `tests/adapters/test_power_off.py` to the Interface's `cannot start <sudo_executable>:` beginning; the code stays. The duplicate the reviewer named as open (the run-or-raise block of `power_off.py:30-50` against `ZfsSnapshots._execute`, and the third `_ROOT = Path("/")`) is recorded by the human for a later tidy-up and is not to be fixed or reported in this story; the next review judges it accepted.
 34. factory: started review as vm.
+35. reviewer: Round 0, after the human restarted the count (journal 33). I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I stopped at group 1 (acceptance criteria) after going through every criterion and every Interface rule.
+    - Criteria 1 to 4 and 6 to 11 each have a test that checks what they state. Criterion 5 has a test for every row except one (finding 1).
+    - The coder's `make check` was green (journal 29).
+    - The code follows the Interface: the idle rule is in `src/factory/application/idle_shutdown.py` (`_is_idle`), the argv without a shell is in `src/factory/adapters/power_off.py`, and the wiring is in `src/factory/entry/wiring.py` (`idle_shutdown_of`) and `src/factory/entry/run.py` (`run_instance`).
+
+    1. The `missing` row of `tests/adapters/test_power_off.py` (`pytest.param(None, ROOMY_LIMIT, lambda detail: detail.startswith("cannot start "), id="missing")`) still checks only the beginning `cannot start `.
+       - Criterion 5, as sharpened in journal 31, asks that the detail begin `cannot start <that path>:`: the path the test gave as `sudo_executable`, then a colon. The human's answer in journal 33 orders exactly this change.
+       - The factory moved straight on to review after journal 33, so no tester ran and the row is unchanged. Code that dropped the executable or the colon would still pass.
+       - Fix: the coder ends with `tests` and names this change. The tester makes the row assert `detail.startswith(f"cannot start {program}:")`, where `program` is the path the test passed, `tmp_path / "no-sudo"`; the lambda then needs that path, for example through the row's own value. Nothing under `src/` changes, because `src/factory/adapters/power_off.py` already builds `cannot start {self._sudo_executable}: {error}`.
+
+    Not judged, as the human decided in journal 33: the run-or-raise block of `src/factory/adapters/power_off.py` against `ZfsSnapshots._execute`, and the third `_ROOT = Path("/")`. The human recorded them for a later tidy-up, so they are accepted for this story.
+
+    Group 4 (quality) of the test files was not reached, because group 1 failed.
+
+    Earlier tests:
+    - `tests/test_wrapper_search.py` (M): the human's leave, which the story's Interface names (decision 28 of `feature.md`). The change adds `factory.adapters.power_off` to the set, and the test keeps its name.
+    - `tests/entry/test_run.py` (M): none needed. The change adds one test and one import (`IdleShutdown`), and every earlier test stays as it was.
