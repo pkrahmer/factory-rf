@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T01:22:39.238098Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-27T01:22:39.238098Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-27T01:23:03.721214Z'
+  stage: doing
+  run: a99c137f3199460c9654b060d2a4e2df
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -224,3 +226,18 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
     - tests/test_vm_setup_text.py: the standing leave to move a shared test helper. `VALUE_END`, `ENVIRONMENT`, `_name_positions`, `_indent` and `_enclosing_if` moved to tests/vm_support.py. Every test keeps its name and what it checks.
     - tests/test_vm_setup_caches.py: the standing leave to move a shared test helper. `COMPARISONS`, `_compares` and `_writes` moved to tests/vm_support.py (`_writes` is now `writes_path`, same body). Every test keeps its name and what it checks.
 13. factory: started doing as vm.
+14. coder: Round 1: the reviewer added only a test. I changed no code and no test.
+
+    The reviewer's finding 1 (journal entry 12) added criterion 10: `--idle-shutdown ''` exits 2. Its first line of standard error begins `setup.sh: `, a line beginning `usage: setup.sh` follows it, and nothing is printed on standard output. `vm/setup.sh` already behaves this way. `need_minutes` refuses an empty value through its `''|*[!0-9]*` arm, which calls `fault`. I ran it once by hand, the way criterion 2 runs the script: in a temporary directory, with a stand-in `id` that prints `1000`. It gave status 2, then `setup.sh: --idle-shutdown takes a whole number of minutes, not `, then the usage, and 0 bytes on standard output.
+
+    For the tester: add the row `pytest.param(["--idle-shutdown", ""], False, id="empty")` to `tests/test_vm_setup_idle_shutdown.py::test_the_idle_shutdown_takes_a_whole_number_of_minutes_of_at_least_one`.
+
+    What I built: nothing new this round. The work in `vm/setup.sh` is unchanged from journal entry 10. The main choice still stands: the minutes are checked in the option's case arm through `need_minutes`, so an empty value is refused. I rejected checking after the loop, because that check would read an empty value as "off" and accept it.
+
+    The Description already lists criterion 10, so I did not rewrite it.
+
+    Noticed, not touched:
+    - The fault message for an empty value ends with a trailing space (`not `). It is harmless, and no criterion pins it.
+    - The three copies of the sudoers block (in the steps `sudoers`, `caches` and `poweroff`) remain. Merging them is a story of its own (journal entry 10).
+
+    I did not run `make check` this round, because nothing changed since the green run in journal entry 10.
