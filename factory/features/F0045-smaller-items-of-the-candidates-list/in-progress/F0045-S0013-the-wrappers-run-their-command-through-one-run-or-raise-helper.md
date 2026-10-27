@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366, 6433141030]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-27T03:55:31.591846Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-27T03:55:31.591846Z'
   stage: smoke-test
+- number: 23
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-27T03:55:55.751628Z'
+  stage: smoke-test
+  run: 1a48bafc6a5441a0bffd6157570e3f88
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -342,3 +344,29 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok
 22. factory: started smoke-test as vm.
+23. smoke-tester: Smoke test: I ran both commands from the repository root exactly as written. Both met their `Expect:` lines. There are no findings.
+
+    Command 1 (`uv run python -c '...run_or_raise...'`):
+    ```
+    Bytecode compiled 4164 files in 57ms
+    boom
+    /
+    ```
+    It met `Expect:` (two lines: `boom`; `/`). The first line is uv's own build message, not output from the script. The script's two lines are `boom` (the fault raised from a refused exit status, with the detail taken from the printed output) and `/` (the default `cwd=ROOT`). Exit status was 0.
+
+    Command 2 (`grep -c '^_ROOT = ' ...` and `make duplicates 2>&1 | grep '^duplicates:'`):
+    ```
+    src/factory/adapters/zfs_snapshots.py:0
+    src/factory/adapters/power_off.py:0
+    src/factory/adapters/podman_runs.py:0
+    duplicates: 0 new, 41 known, 1 gone
+    ```
+    It met `Expect:` (the three `:0` counts and a line that begins `duplicates: 0 new,`).
+
+    Acceptance criteria, read again against the run:
+    - Criteria 1 and 2: command 1 showed the refused-status row and the default directory. Nothing contradicts the other rows.
+    - Criterion 3: command 2 shows no `_ROOT` in any of the three modules. A grep also shows that `PodmanRuns.run` passes `cwd=ROOT` (`src/factory/adapters/podman_runs.py:123`) and that the three wrappers call `run_or_raise`.
+    - Criterion 4: I did not run `make check` in this stage. The factory's last run was green (entries 17 and 21).
+    - Criterion 5: `docs/project-guide/processes-and-checks.md:60-66` describes `run_or_raise`, `ROOT`, its rules and the three wrappers that use it.
+
+    Findings: none.
