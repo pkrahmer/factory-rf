@@ -117,20 +117,12 @@ def _takes_no_log(_remote: Path, _directory: Path, _git: GitCli) -> None:
     assert "log" not in inspect.signature(CheckoutPreparer.__init__).parameters
 
 
-def _keeps_without_a_log(remote: Path, directory: Path, git: GitCli) -> None:
-    added = _existing(remote, directory)
-
-    CheckoutPreparer(git, _settings(remote, directory)).prepare()
-
-    assert added.read_text(encoding="utf-8") == "put there by the test\n"
-
-
 @pytest.mark.parametrize(
     "case",
     [
         pytest.param(_takes_no_log, id="no-log-parameter"),
         pytest.param(_missing, id="missing-is-cloned"),
-        pytest.param(_keeps_without_a_log, id="existing-is-kept"),
+        pytest.param(_group_writable, id="existing-is-kept"),
     ],
 )
 def test_the_preparer_takes_only_the_git_and_the_settings(

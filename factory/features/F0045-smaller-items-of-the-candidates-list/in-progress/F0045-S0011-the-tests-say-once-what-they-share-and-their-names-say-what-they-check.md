@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-27T02:47:00.865853Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-27T02:47:00.865853Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-27T02:53:03.410590Z'
+  stage: tests
+  run: 2758a8f71da14fa2a07e71bfd87a34d4
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -263,3 +265,26 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
 
     Noticed but not touched: the `missing-is-cloned` row still appears both in the new test and in the earlier story's test. It also overlaps `test_a_missing_checkout_is_cloned`. Criterion 1 names that row, so it stays unless the human chooses the second fix. The journal did not change the meaning of the task, so the Description stays as it is. I did not run `make check` this round because I changed nothing.
 15. factory: started tests as vm.
+16. tester: Round 1, test change: the one the coder named in entry 14, which is the first fix the reviewer gave for finding 1 in entry 12.
+
+    What I changed, in tests/application/test_checkout_preparer.py only:
+    - Deleted `_keeps_without_a_log`. It was a second copy of `_group_writable`, minus the mode assertion.
+    - The `existing-is-kept` row of `test_the_preparer_takes_only_the_git_and_the_settings` now runs the existing `_group_writable`. That helper clones through `_existing`, prepares with `CheckoutPreparer(git, settings)` and checks that the file the test added is still there. It also checks the mode of `.git`.
+    - The test keeps its name and its three rows (`no-log-parameter`, `missing-is-cloned`, `existing-is-kept`). It is still criterion 1's one parametrized test.
+
+    Why: it removes the second copy of a helper without touching the earlier story's test. I did not take the reviewer's second fix, which moves the `no-log-parameter` row into `test_the_preparer_clones_only_a_missing_checkout_and_checks_none`: that would add a row to another story's test without the human's leave.
+
+    Criterion → test (unchanged since entry 8):
+    - criterion 1: tests/application/test_checkout_preparer.py::test_the_preparer_takes_only_the_git_and_the_settings
+    - criterion 2: tests/application/test_checkout_preparer.py::test_the_preparer_s_source_holds_no_log
+    - criterion 3: tests/test_suite_held_once.py::test_each_shared_helper_and_constant_is_held_once
+    - criterion 4: tests/test_suite_old_names.py::test_no_test_keeps_an_old_name_or_a_contract_version
+
+    Files created this round: none. Every module imported.
+
+    Still open: the `missing-is-cloned` row also exists in the earlier story's test, and it overlaps `test_a_missing_checkout_is_cloned`. Criterion 1 names that row, so it stays unless the human chooses the second fix.
+
+    `make test` (one run): test: green (166.9 s), coverage 99.57 %. `make lint`: green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (166.6 s)
