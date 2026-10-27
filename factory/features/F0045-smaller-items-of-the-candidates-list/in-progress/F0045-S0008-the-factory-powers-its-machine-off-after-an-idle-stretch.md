@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T00:16:45.313976Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-10-27T00:16:45.313976Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-10-27T00:23:04.904537Z'
+  stage: doing
+  run: 0080818522864ca3b8e25b611c440dae
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -522,3 +524,28 @@ Expect: `-n /usr/bin/systemctl poweroff`
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.3 s)
 28. factory: started doing as vm.
+29. coder: Round 2. I changed no code, and the working tree is clean. The tester's new test for criterion 11 (`tests/domain/test_settings_idle_shutdown.py::test_the_settings_keep_idle_shutdown_minutes_of_at_least_zero`) passes against the field that is already in place: `idle_shutdown_minutes: NonNegativeInt = 0` in `src/factory/domain/settings.py`. I ran `make check` on the committed state and it is green, with coverage at 99.57 %.
+
+    What was built for this story is unchanged from the earlier rounds:
+    - `src/factory/domain/settings.py`
+    - `src/factory/domain/errors.py`
+    - `src/factory/application/machine.py`
+    - `src/factory/application/idle_shutdown.py`
+    - `src/factory/adapters/power_off.py`
+    - `src/factory/entry/wiring.py`
+    - `src/factory/entry/run.py`
+
+    Main choice this round: I handed the work item straight to review without touching anything, because the round's one finding (criterion 11) needed only its test, and the tester has written it.
+
+    Refactor pass: I looked again at the `ProcessRequest` block in `src/factory/adapters/power_off.py` (the 2 `make duplicates` findings), which looks like `zfs_snapshots._execute` and `podman_runs._query`.
+    - I rejected pulling out a shared helper. Each wrapper raises its own error type and handles exit statuses its own way, so a shared helper would mean changing the zfs and podman wrappers. That restructuring goes beyond this story (R13).
+    - I left the block as it is, for the reviewer to judge as the reviewer said in journal 23.
+
+    What the journal changed: criterion 11 now has its test, and the reviewer has already corrected criteria 1, 5 and 8. The meaning of `## Description` is unchanged, so I left it alone.
+
+    Noticed but not touched: the 2 new `make duplicates` findings above.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 2 new, 42 known, 0 gone
