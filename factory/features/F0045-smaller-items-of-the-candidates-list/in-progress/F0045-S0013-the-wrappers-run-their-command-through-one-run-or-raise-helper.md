@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 478
 comments_read: [6432903366]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T03:27:50.340280Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-27T03:27:29.738088Z'
   stage: tests
   run: de65a84aece243808a8013dda984d162
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-27T03:27:50.340280Z'
+  stage: doing
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -151,3 +160,4 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
 
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/adapters/test_run_or_raise.py - ImportError while importing test module '/work/checkout/tests/adapters/test_run_or_raise.py'.
+9. factory: started doing as vm.
