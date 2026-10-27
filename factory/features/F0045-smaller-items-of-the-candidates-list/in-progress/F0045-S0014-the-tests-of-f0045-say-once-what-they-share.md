@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-27T04:44:33.790338Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -148,6 +152,11 @@ journal:
   at: '2026-10-27T04:44:13.506799Z'
   stage: docs
   run: 596961d254834d65b57ea2b70b7a4062
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-27T04:44:33.790338Z'
+  stage: smoke-test
 ---
 
 # The tests of F0045 say once what they share
@@ -415,3 +424,4 @@ Expect: one line that ends `passed in <n>s` and names no failure
     `check`: check: green (not run again: passed on tree 19637f912c33 at 2026-10-27T04:39:20Z)
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok
+26. factory: started smoke-test as vm.
