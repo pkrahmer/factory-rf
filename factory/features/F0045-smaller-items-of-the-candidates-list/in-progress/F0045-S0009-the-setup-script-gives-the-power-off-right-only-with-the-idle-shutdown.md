@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-27T01:21:08.808867Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-27T01:21:08.808867Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-27T01:22:18.537965Z'
+  stage: review
+  run: 5b6c4edfa96948ca98754284038ae045
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -105,8 +107,9 @@ Tests (the tester writes and changes them; the leave is decision 29 of `feature.
 7. The write (rows of one parametrized test over the step's text): the step compares the file with its wanted text before writing and reports `found` or `wrote`; the file is written by root with mode `0440` (the step's `chmod 0440` or `install -m 0440` on `/etc/sudoers.d/factory-poweroff`).
 8. The line without the option (one test over the step's text): it holds exactly `setup: poweroff: not asked; the factory gets no power-off right`.
 9. The environment file's line is the last line the script writes to the file, and it is written only inside the `--idle-shutdown` branch (one test over the text with its comment lines dropped).
-10. `make check` stays green.
-11. docs: `docs/operator-guide.md`, `## The machine`, `### The script`: the option `--idle-shutdown <minutes>` with its rule, and the step `poweroff` in the numbered list of steps (what it writes or removes, and its line), the count of steps following; `### The idle shutdown` (written by S0008): how to turn it on and off with the script (run it again with or without the option, then `systemctl restart factory@<instance>`), and that the right is removed by a run without the option. `docs/decisions.md`: the entry "The machine powers itself off after an idle stretch, an option off by default" (S0008) gains one line on the right: one `sudoers` rule for `/usr/bin/systemctl poweroff`, written only with the option and removed without it (F0045-S0009). `docs/project-guide/`, `README.md`: none (no module changes).
+10. The empty value (a row of criterion 2's parametrized test, run the same way): `--idle-shutdown ''` (a value of no digits, which "one or more ASCII digits" refuses) exits 2 with the first line of standard error beginning `setup.sh: ` and a line beginning `usage: setup.sh` after it, and prints nothing on standard output.
+11. `make check` stays green.
+12. docs: `docs/operator-guide.md`, `## The machine`, `### The script`: the option `--idle-shutdown <minutes>` with its rule, and the step `poweroff` in the numbered list of steps (what it writes or removes, and its line), the count of steps following; `### The idle shutdown` (written by S0008): how to turn it on and off with the script (run it again with or without the option, then `systemctl restart factory@<instance>`), and that the right is removed by a run without the option. `docs/decisions.md`: the entry "The machine powers itself off after an idle stretch, an option off by default" (S0008) gains one line on the right: one `sudoers` rule for `/usr/bin/systemctl poweroff`, written only with the option and removed without it (F0045-S0009). `docs/project-guide/`, `README.md`: none (no module changes).
 
 ## Smoke test
 
@@ -202,3 +205,12 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
     `check`: check: green
     `duplicates`: duplicates: 2 new, 42 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (vm/setup.sh, tests/test_vm_setup_idle_shutdown.py, tests/vm_support.py, tests/test_vm_setup_text.py, tests/test_vm_setup_caches.py, tests/test_vm_setup.py) against the work item. Criteria 1 to 9 each have a test that checks what the criterion says. The limit "at least 1" is tested on both sides (`0` refused, `1` accepted). The step `poweroff` copies the pattern of the step `caches` (stage, `unchanged`/`cmp`, `cp`, `chmod 0440`, `visudo -cf`, and on refusal `rm -f`, `>&2`, `exit 1`). The environment line is appended to the staged file only under `if [ -n "$idle_shutdown" ]`. The coder's `make check` was green (entry 10). The script has three copies of the sudoers block. I do not count that as a finding: criteria 4, 6 and 7 read the block's text inside each step, so a shared function would break them.
+
+    1. criterion 10 added: it needs its test. Location: vm/setup.sh `need_minutes` (the `''|*[!0-9]*` arm) and tests/test_vm_setup_idle_shutdown.py::test_the_idle_shutdown_takes_a_whole_number_of_minutes_of_at_least_one. The problem: the Interface's rule "one or more ASCII digits" is not tested on its zero-digit side. The coder built the refusal of an empty value on purpose (entry 10), but no criterion or row checks `--idle-shutdown ''`. The "without-value" row covers a missing word, not a word with no digits. The fix: add the row `["--idle-shutdown", ""]` with `accepted=False` to that parametrized test. Criteria 10 and 11 are renumbered to 11 and 12.
+
+    Earlier tests:
+    - tests/test_vm_setup.py: the human's leave (the story's Interface, decision 29 of `feature.md`). `OPTIONS` gained `--idle-shutdown`.
+    - tests/vm_support.py: the human's leave (the story's Interface, decision 29 of `feature.md`) for `STEPS` gaining `poweroff`. The standing leave to move a shared test helper covers the added `VALUE_END`, `ENVIRONMENT`, `COMPARISONS`, `name_positions`, `indent`, `enclosing_if`, `compares` and `writes_path`. Their bodies are unchanged.
+    - tests/test_vm_setup_text.py: the standing leave to move a shared test helper. `VALUE_END`, `ENVIRONMENT`, `_name_positions`, `_indent` and `_enclosing_if` moved to tests/vm_support.py. Every test keeps its name and what it checks.
+    - tests/test_vm_setup_caches.py: the standing leave to move a shared test helper. `COMPARISONS`, `_compares` and `_writes` moved to tests/vm_support.py (`_writes` is now `writes_path`, same body). Every test keeps its name and what it checks.
