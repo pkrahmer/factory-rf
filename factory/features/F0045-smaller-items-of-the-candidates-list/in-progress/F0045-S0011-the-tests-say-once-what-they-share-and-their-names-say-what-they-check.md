@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-27T03:01:21.902081Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-27T03:01:21.902081Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-27T03:02:19.333481Z'
+  stage: docs
+  run: 04eb4a04bb554681a384fa08c98c0e33
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -395,3 +397,28 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
       - tests/settings_support.py
       - tests/wiring_support.py
 21. factory: started docs as vm.
+22. documenter: Docs round 1 for F0045-S0011. I changed only documents, so I ran no `make check`; the factory's checks decide.
+
+    Files changed:
+    - `docs/project-guide/watching.md`: the `CheckoutPreparer` paragraph now says `CheckoutPreparer(git, settings).prepare()`. It drops the unused `log` parameter and the "no log line" clause, says it takes no log, and names `tests/application/test_checkout_preparer.py`.
+    - `docs/project-guide/README.md`, *Shared test helpers*, one line each:
+      - New `recording_stand_in_support.py` entry (`recording_stand_in`, `recorded_calls`).
+      - `run_layout_support.py`: added `run_end`.
+      - `container_support.py`: added `TIMING_PREFIX` and `RESET_PREFIX`.
+      - `settings_support.py`: added `CONTAINER`.
+      - `wiring_support.py`: added `_record_get_repo`, with a note that it keeps its underscore.
+      - `contract_support.py`: added `committed_is_generated(entry, version=None)`.
+
+    I read the helper definitions in `tests/` and wrote each line from them.
+
+    Renamed modules and tests: the index lists no individual test modules, so the renamed ones (`test_checkout_preparer.py`, `test_contract_without_tool_paths.py`, `test_contract_without_nested_repository.py`) need no line. `CA_NAMES` was in no document.
+
+    Cross-read and found current: the *The files* list of `docs/project-guide/README.md`; `docs/operator-guide.md`, `docs/decisions.md` and `README.md` (the criterion says none, and none names `CheckoutPreparer` or the renamed modules).
+
+    Findings for the coder: none. The diff matches the Interface: `src/factory/application/scheduler.py` and `src/factory/entry/run.py:116`.
+
+    Stale text I saw and did not touch: none.
+
+    `check`: check: green (not run again: passed on tree 4103552a37e6 at 2026-10-27T02:56:40Z)
+    `secrets`: secrets: green (0.9 s)
+    `documents`: documents ok
