@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-27T02:26:45.670984Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-27T02:26:27.870937Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-27T02:26:45.670984Z'
   stage: intake
 ---
 
@@ -96,3 +105,4 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
    3. Add the row: no function in the three modules has a name matching `version_[0-9]` or `at_version`, and none asserts the contract version string.
    4. Intended: the tester chooses the new names, the reviewer judges them; no fixed names.
    5. Add a row: the shared helper and the shared constant are each defined once, in a support module under `tests/`, and the test modules import them from there.
+5. factory: started intake as vm.
