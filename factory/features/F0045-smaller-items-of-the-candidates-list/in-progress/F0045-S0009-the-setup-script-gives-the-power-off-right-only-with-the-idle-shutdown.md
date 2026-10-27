@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 474
 comments_read: [6431120801]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T01:13:54.810572Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-27T01:13:34.429846Z'
   stage: tests
   run: 1d30e4dbe4a749bca6d4c28f002bae94
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:13:54.810572Z'
+  stage: doing
 ---
 
 # The setup script gives the power-off right only with the idle shutdown
@@ -160,3 +169,4 @@ Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
 
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/test_vm_setup_text.py::test_the_folders_step_refuses_a_link_at_state_or_repo[exit-1] - AssertionError: no 'setup: poweroff: ' text
+9. factory: started doing as vm.
