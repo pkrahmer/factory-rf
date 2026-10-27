@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 473
-comments_read: [6429816658, 6429884713]
+comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
 claim: null
 journal:
@@ -187,6 +187,11 @@ journal:
   stage: review
   run: a798a7783c7c4a89b9e86885b3a5bfdb
   blocked: round_cap
+- number: 33
+  speaker: human
+  kind: comment
+  at: '2026-10-27T00:27:26.586900Z'
+  stage: review
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -580,3 +585,4 @@ Expect: `-n /usr/bin/systemctl poweroff`
     - `tests/test_wrapper_search.py` (M): the human's leave, which the story's Interface names (decision 28 of `feature.md`). The change adds `factory.adapters.power_off` to the set, and the test keeps its name.
     - `tests/entry/test_run.py` (M): none needed. The change adds one test and one import, and every earlier test stays as it was.
 32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+33. 2026-10-27 human: Go on, one more round for finding 1 only: the tester sharpens row `missing` of `tests/adapters/test_power_off.py` to the Interface's `cannot start <sudo_executable>:` beginning; the code stays. The duplicate the reviewer named as open (the run-or-raise block of `power_off.py:30-50` against `ZfsSnapshots._execute`, and the third `_ROOT = Path("/")`) is recorded by the human for a later tidy-up and is not to be fixed or reported in this story; the next review judges it accepted.
