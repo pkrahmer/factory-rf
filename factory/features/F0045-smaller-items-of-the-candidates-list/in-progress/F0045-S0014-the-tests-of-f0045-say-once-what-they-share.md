@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T04:19:36.254299Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -80,6 +76,12 @@ journal:
   kind: started
   at: '2026-10-27T04:19:36.254299Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-27T04:26:51.561824Z'
+  stage: doing
+  run: ce6ea1c891c5412190510aa4ddd8fc2e
 ---
 
 # The tests of F0045 say once what they share
@@ -209,3 +211,19 @@ Expect: one line that ends `passed in <n>s` and names no failure
     FAILED tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_group[run_process-group] - OSError: [Errno 22] Invalid argument
     make: *** [Makefile:84: test] Error 1
 12. factory: started doing as vm.
+13. coder: I built nothing, because there is no code to write. The Interface names no path under `src/factory/`, `vm/`, `template/` or `claude/`. The tester's entry 8 already made all five changes under `tests/` and added the guard tests, and I left the working tree as it was. This round only had to deal with the factory's stall in entry 11.
+
+    The stall: under the factory's `make check`, `tests/adapters/test_process_session.py::test_time_limit_ends_every_process_of_the_group[run_process-group]` failed with `OSError: [Errno 22] Invalid argument`. This story did not touch that test. It also did not touch the module it covers, `src/factory/adapters/process.py`, or its support modules; the story's diff is `tests/` only and the tester changed none of those files.
+    - I ran `make check` again on the committed state with no changes. It ended `test: green (165.8 s)` and `check: green`, with coverage at 99.57 %.
+    - I then ran that test on its own: all six of its rows passed (`6 passed in 60.04s`).
+
+    So the test failed once, under the factory's `make check`, and has passed twice since. The project guide asks for the `E` lines and the `file:line` of such a failure. I cannot quote them: entry 11 holds only pytest's short summary line, and none of my runs reproduced the failure. It looks like an environmental or timing fault in the process-group kill path, not something this story caused. I did not change it, because it is unrelated code (R13). If it comes back, it deserves a story of its own that captures the full `--tb=short` output.
+
+    Main choice: send the story to review without changes. I rejected two alternatives. One was to touch `process.py` or the test to harden it against EINVAL, which is outside this story and is a test I did not write. The other was to end with `question`, but the check is green and the failure did not repeat. I had no diff, so there was nothing to refactor, and no journal entry changed the meaning of the task.
+
+    Noticed, not touched (as in entry 10):
+    - The tester also changed `tests/domain/test_contract_provider_limit.py`, which imports the renamed `committed` and `values`, although the Interface does not name it.
+    - Criterion 5 (the *Shared test helpers* lines in `docs/project-guide/README.md`) is still open for the docs stage.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 41 known, 0 gone
