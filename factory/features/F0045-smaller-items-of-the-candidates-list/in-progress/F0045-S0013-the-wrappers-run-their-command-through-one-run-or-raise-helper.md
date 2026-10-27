@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 478
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-27T03:18:05.534971Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-27T03:18:05.534971Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-27T03:18:27.981856Z'
+  stage: intake
+  run: ed41856240664b3ab0c96c65a95ff97a
+  blocked: question
 ---
 
 # The wrappers run their command through one run-or-raise helper
@@ -91,3 +94,10 @@ Expect: four lines: `src/factory/adapters/zfs_snapshots.py:0`; `src/factory/adap
 
 1. 2026-10-27 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. Interface, architecture (the helper sits in `factory.adapters.process` and imports `printed_output`, both in `adapters`), scope (A0001 story within F0045, nothing in "Out of scope") and smoke test (commands runnable, no pytest, every `Expect:` checkable) are fine. Two Interface clauses have no criterion, so two coders could read them two ways and both would pass:
+
+   1. The Interface says an `OSError` raises `fault(str(error))`. Criterion 1 checks only that the `RuntimeError`'s `__cause__` is an `OSError`. It does not check the detail text. Proposal: add that the `RuntimeError`'s text equals `str(` the `__cause__` `)` in the same row. I would choose this.
+
+   2. The Interface says the request has `merge_stderr=True`. No criterion has a program that prints to standard error. All the stand-ins print on standard output, so `merge_stderr=False` would pass. Proposal: add a row in criterion 1 where `sh -c 'echo boom >&2; exit 3'` raises `RuntimeError("boom")`. I would choose this.
+
+   If you accept both, I carry them into criterion 1 as written and end with `tests`.
