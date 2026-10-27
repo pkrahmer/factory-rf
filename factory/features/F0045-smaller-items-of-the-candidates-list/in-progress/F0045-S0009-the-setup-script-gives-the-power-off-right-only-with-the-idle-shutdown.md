@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-27T01:01:51.937422Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-27T01:01:51.932153Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-27T01:01:51.937422Z'
+  stage: intake
+---
+
 # The setup script gives the power-off right only with the idle shutdown
 
 ## Description
@@ -38,3 +65,6 @@ grep -c 'factory ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff' vm/setup.sh
 Expect: five lines: `syntax-ok`; `status 2`; `1`; `0`; `1`
 
 ## Journal
+
+1. 2026-10-27 human: created.
+2. factory: started intake as vm.
