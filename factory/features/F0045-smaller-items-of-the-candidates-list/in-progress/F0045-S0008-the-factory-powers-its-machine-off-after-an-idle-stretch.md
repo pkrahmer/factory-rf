@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 473
 comments_read: [6429816658, 6429884713, 6430617717]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-27T00:28:52.697799Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -212,6 +208,12 @@ journal:
   kind: started
   at: '2026-10-27T00:28:52.697799Z'
   stage: doing
+- number: 37
+  speaker: coder
+  kind: result
+  at: '2026-10-27T00:29:16.851435Z'
+  stage: doing
+  run: 55e3bb7371ce44d3bca33cade6edaad5
 ---
 
 # The factory powers its machine off after an idle stretch
@@ -625,3 +627,14 @@ Expect: `-n /usr/bin/systemctl poweroff`
     - `tests/test_wrapper_search.py` (M): the human's leave, which the story's Interface names (decision 28 of `feature.md`). The change adds `factory.adapters.power_off` to the set, and the test keeps its name.
     - `tests/entry/test_run.py` (M): none needed. The change adds one test and one import (`IdleShutdown`), and every earlier test stays as it was.
 36. factory: started doing as vm.
+37. coder: Round 1. I changed no code and the working tree is clean. The reviewer's one finding (journal 35) is the test change the human ordered in journal 33, so this goes to the tester.
+
+    The test change: in `tests/adapters/test_power_off.py`, the row `missing` should assert `detail.startswith(f"cannot start {program}:")` instead of `detail.startswith("cannot start ")`. Here `program` is the path the test passed as `sudo_executable` (`tmp_path / "no-sudo"`), so the row's check needs to receive that path. Criterion 5 as sharpened in journal 31 asks for this.
+
+    Nothing under `src/` changes. `src/factory/adapters/power_off.py:40` already builds `cannot start {self._sudo_executable}: {error}`.
+
+    Rejected: changing the code or the test myself. The code already does what the Interface says, and R9 forbids the coder to edit tests.
+
+    Description: the journal did not change what the task means. Journal 31 already rewrote that row of criterion 5, and journal 33 limits this round to that row.
+
+    Not touched, as the human decided in journal 33: the run-or-raise block of `power_off.py`, which repeats `ZfsSnapshots._execute`, and the third `_ROOT = Path("/")`. Both are accepted for this story.
