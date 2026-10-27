@@ -43,7 +43,7 @@ Tests write a Makefile into `tmp_path` and run the class against it; nothing is 
 
 ## Starting a process
 
-`subprocess` is imported, and a process started, in `factory.adapters.process` only (R5). The git wrapper, the make class and the `claude -p` runtime each reach their tool through `run_process(request) -> ProcessResult`; no other module calls a command-line tool.
+`subprocess` is imported, and a process started, in `factory.adapters.process` only (R5). Eight modules import it, as `tests/test_wrapper_search.py` lists them. The git wrapper (`git_cli`), the make class (`make_commands`), the `claude -p` runtime (`claude_runtime`) and the tests' container fake (`fake_containers`) reach their tool through `run_process(request) -> ProcessResult`; the opencode runtime (`opencode_runtime`) through `run_process` and, for a run it watches line by line, `run_streaming`; the Podman wrapper (`podman_runs`) through `run_process` for a container run and `run_or_raise` for its queries; the ZFS wrapper (`zfs_snapshots`) and the power-off (`power_off`) through `run_or_raise` only. No other module calls a command-line tool.
 
 `ProcessRequest` (frozen, unknown keys forbidden) holds:
 
