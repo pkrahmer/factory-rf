@@ -15,9 +15,8 @@ from factory.adapters.agent_launch import LOGIN_PREFIX, LoginFiles, Starters, ca
 from factory.adapters.claude_runtime import SWITCHES, ClaudeCodeRuntime
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.application import preflight
-from factory.domain.errors import AgentRuntimeError
 from factory.entry.wiring import build_boundaries
-from run_layout_support import Layout, run_request, write_script
+from run_layout_support import Layout, run_end, run_request, write_script
 
 CONFINE_LINE = "factory-confine: the kernel offers Landlock ABI 2"
 SUDO_LINE = "sudo: a password is required"
@@ -58,6 +57,7 @@ sys.stdout.write({reply!r})
         pytest.param(opencode_runtime, "RUNTIME_FOLDERS", id="opencode-runtime-folders"),
         pytest.param(claude_runtime, "CONFIG_VARIABLE", id="claude-config-variable"),
         pytest.param(claude_runtime, "RUNTIME_FOLDER", id="claude-runtime-folder"),
+        pytest.param(ClaudeCodeRuntime, "confine_executable", id="claude-runtime-confine"),
     ],
 )
 def test_the_wrapper_s_names_are_gone(module: object, name: str) -> None:
@@ -79,7 +79,6 @@ def test_no_constructor_takes_the_wrapper_or_its_folders(
     callable_: Callable[..., object], parameter: str
 ) -> None:
     assert parameter not in inspect.signature(callable_).parameters
-    assert not hasattr(ClaudeCodeRuntime, "confine_executable")
 
 
 def _recording(folder: Path, state: Path, reply: str) -> Path:
@@ -136,24 +135,15 @@ def test_a_call_without_a_user_has_no_rules_file_and_makes_no_run_folder(
     assert run_folders() <= before
 
 
-def _claude_end(layout: Layout, stderr: str) -> tuple[str | None, str | None]:
+def _claude(layout: Layout, stderr: str) -> ClaudeCodeRuntime:
     executable = write_stand_in(layout.stand_in, [Step(stderr=stderr, exit_status=1)])
-    try:
-        result = ClaudeCodeRuntime(str(executable), layout.state).run(run_request(layout))
-    except AgentRuntimeError as error:
-        return error.detail, None
-    return None, result.end_reason
+    return ClaudeCodeRuntime(str(executable), layout.state)
 
 
-def _opencode_end(layout: Layout, stderr: str) -> tuple[str | None, str | None]:
+def _opencode(layout: Layout, stderr: str) -> OpencodeRuntime:
     layout.state.mkdir(parents=True, exist_ok=True)
     executable = write_opencode(layout.stand_in, [Step(stderr=stderr, exit_status=1)])
-    runtime = OpencodeRuntime(str(executable), layout.state, models=MODELS)
-    try:
-        result = runtime.run(run_request(layout))
-    except AgentRuntimeError as error:
-        return error.detail, None
-    return None, result.end_reason
+    return OpencodeRuntime(str(executable), layout.state, models=MODELS)
 
 
 def _login_refused(_: Layout) -> tuple[str | None, str | None]:
@@ -166,13 +156,13 @@ def _login_refused(_: Layout) -> tuple[str | None, str | None]:
     ("end_of", "refusal_words", "end_reason"),
     [
         pytest.param(
-            lambda layout: _claude_end(layout, f"{CONFINE_LINE}\n"),
+            lambda layout: run_end(_claude(layout, f"{CONFINE_LINE}\n"), layout),
             None,
             "died",
             id="claude-wrapper-line",
         ),
         pytest.param(
-            lambda layout: _opencode_end(layout, f"{CONFINE_LINE}\n"),
+            lambda layout: run_end(_opencode(layout, f"{CONFINE_LINE}\n"), layout),
             None,
             "died",
             id="opencode-wrapper-line",
@@ -197,7 +187,7 @@ def _login_refused(_: Layout) -> tuple[str | None, str | None]:
             id="login-file-refused",
         ),
         pytest.param(
-            lambda layout: _claude_end(layout, f"{SUDO_LINE}\n"),
+            lambda layout: run_end(_claude(layout, f"{SUDO_LINE}\n"), layout),
             None,
             "died",
             id="sudo-line-without-a-user",

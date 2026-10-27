@@ -1,34 +1,16 @@
 """The `claude -p` runtime registers no write hook."""
 
-from collections.abc import Callable
 from pathlib import Path
-
-import pytest
 
 from adapters.claude_stand_in import REPLY, Step, read_calls, write_stand_in
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.domain.agent_runs import AgentRunRequest
 from run_layout_support import Layout, run_request
 
 
-def _unconfined(layout: Layout, claude: Path) -> ClaudeCodeRuntime:
-    return ClaudeCodeRuntime(str(claude), layout.state)
-
-
-@pytest.mark.parametrize(
-    ("runtime_of", "request_of"),
-    [
-        pytest.param(_unconfined, run_request, id="unconfined"),
-    ],
-)
-def test_no_run_registers_a_hook(
-    layout: Layout,
-    runtime_of: Callable[[Layout, Path], ClaudeCodeRuntime],
-    request_of: Callable[[Layout], AgentRunRequest],
-) -> None:
+def test_no_run_registers_a_hook(layout: Layout) -> None:
     claude = write_stand_in(layout.stand_in, [Step(stdout=REPLY)])
 
-    result = runtime_of(layout, claude).run(request_of(layout))
+    result = ClaudeCodeRuntime(str(claude), layout.state).run(run_request(layout))
 
     [call] = read_calls(layout.stand_in)
     assert "--settings" not in call.arguments

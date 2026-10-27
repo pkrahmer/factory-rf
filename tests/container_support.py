@@ -44,6 +44,7 @@ BASE = "workspace-base"
 SYNC_MARKER = ".synced"
 SYNC_RECIPE = f"@echo synced > {SYNC_MARKER}"
 TIMING_PREFIX = "stage environment:"
+RESET_PREFIX = f"{TIMING_PREFIX} reset"
 TAKE_SECONDS = 0.25
 GONE = "gone"
 FIVE_MINUTES = timedelta(minutes=5)

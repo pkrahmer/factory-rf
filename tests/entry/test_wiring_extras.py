@@ -60,7 +60,7 @@ COMPLETED = AgentRunResult(
         ),
     ],
 )
-def test_the_extras_come_in_the_operator_guides_order_sudo_only_with_an_agent_user(
+def test_the_extras_are_the_container_items_then_the_agent_run_probe(
     boundaries: Boundaries,
     tmp_path: Path,
     agent_home: Path,

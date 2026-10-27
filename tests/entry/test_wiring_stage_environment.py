@@ -1,6 +1,5 @@
 """The wiring builds a container instance's boundaries: the dataset's adapters."""
 
-import json
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -19,42 +18,22 @@ from factory.application.tick import Tick
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries, build_tick
-from git_support import write_executable
 from podman_support import IMAGE
+from recording_stand_in_support import recorded_calls, recording_stand_in
 from wiring_support import CREDENTIAL, every_tool
 from zfs_support import DATASET
-
-
-def _recording_stand_in(folder: Path, *, printed: str = "") -> Path:
-    """A program that appends its arguments, one JSON list a line, to `calls` beside it."""
-    folder.mkdir(parents=True)
-    calls = folder / "calls"
-    return write_executable(
-        folder,
-        "import json, sys\n"
-        f"with open({str(calls)!r}, 'a', encoding='utf-8') as file:\n"
-        "    file.write(json.dumps(sys.argv[1:]) + '\\n')\n"
-        f"sys.stdout.write({printed!r})\n",
-    )
-
-
-def _calls(executable: Path) -> list[list[str]]:
-    calls = executable.parent / "calls"
-    if not calls.exists():
-        return []
-    return [json.loads(line) for line in calls.read_text(encoding="utf-8").splitlines()]
 
 
 @pytest.fixture
 def zfs(tmp_path: Path) -> Path:
     """The stand-in `zfs`, which records its arguments."""
-    return _recording_stand_in(tmp_path / "zfs-bin")
+    return recording_stand_in(tmp_path / "zfs-bin")
 
 
 @pytest.fixture
 def podman(tmp_path: Path) -> Path:
     """The stand-in `podman`, which records its arguments and prints a completed reply."""
-    return _recording_stand_in(tmp_path / "podman-bin", printed=REPLY)
+    return recording_stand_in(tmp_path / "podman-bin", printed=REPLY)
 
 
 @pytest.fixture
@@ -100,7 +79,7 @@ def test_a_container_instance_gets_the_dataset_s_adapters_and_asks_for_no_tool(
     assert launch.argv[0] == str(podman)
     assert IMAGE in launch.argv
     snapshots.reset()
-    assert _calls(zfs) == [["rollback", "-r", f"{DATASET}@base"]]
+    assert recorded_calls(zfs) == [["rollback", "-r", f"{DATASET}@base"]]
     project_commands = boundaries.project_commands
     assert isinstance(project_commands, RecordingProjectCommands)
     assert isinstance(project_commands.inner, ContainerMakeCommands)
@@ -159,7 +138,7 @@ def test_a_container_instance_s_runtime_mounts_its_login_file(
     result = boundaries.agent_runtime.run(request)
 
     assert result.end_reason == "completed"
-    [words] = _calls(podman)
+    [words] = recorded_calls(podman)
     volume = f"{login}:{login}:ro"
     assert any(
         first == "--volume" and second == volume
@@ -175,5 +154,5 @@ def test_wiring_a_container_instance_s_tick_starts_no_tool(
     tick = build_tick(boundaries, container_settings, every_tool)
 
     assert isinstance(tick, Tick)
-    assert _calls(zfs) == []
-    assert _calls(podman) == []
+    assert recorded_calls(zfs) == []
+    assert recorded_calls(podman) == []

@@ -75,11 +75,10 @@ class Scheduler:
 class CheckoutPreparer:
     """Clones the instance's checkout when it is missing."""
 
-    def __init__(self, git: Git, settings: InstanceSettings, log: FactoryLog | None = None) -> None:
-        """Bind the working copy, the settings that name its repository and the log, if any."""
+    def __init__(self, git: Git, settings: InstanceSettings) -> None:
+        """Bind the working copy and the settings that name its repository."""
         self._git = git
         self._settings = settings
-        self._log = log
 
     def prepare(self) -> None:
         """Clone when the checkout holds no `.git`; keep any checkout that does."""

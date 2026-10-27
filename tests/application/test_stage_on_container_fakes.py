@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from container_support import timing_lines
+from container_support import RESET_PREFIX, timing_lines
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
@@ -34,7 +34,6 @@ KEPT = "tests/test_new.py"
 FORBIDDEN = "src/forbidden.py"
 KEPT_TEXT = "def test_new() -> None:\n    assert True\n"
 FORBIDDEN_TEXT = "FORBIDDEN = 1\n"
-RESET_PREFIX = "stage environment: reset"
 
 
 def _stage_request(

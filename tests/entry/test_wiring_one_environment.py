@@ -1,9 +1,7 @@
 """The wiring builds only container instances: their three settings, the agent's home."""
 
-from collections.abc import Callable
 from pathlib import Path
 
-import github
 import pytest
 
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
@@ -17,7 +15,7 @@ from factory.domain.errors import SettingsInvalid
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import agent_run_environment, build_boundaries
 from podman_support import IMAGE, Podman
-from wiring_support import CREDENTIAL, HOSTED_URL
+from wiring_support import CREDENTIAL, HOSTED_URL, _record_get_repo
 from zfs_support import DATASET, Zfs
 
 
@@ -39,18 +37,6 @@ def complete_settings(
         zfs_executable=str(listing_zfs.path),
         podman_executable=str(versioned_podman.path),
     )
-
-
-def _record_get_repo(monkeypatch: pytest.MonkeyPatch) -> list[tuple[object, ...]]:
-    repositories: list[tuple[object, ...]] = []
-    original: Callable[..., object] = github.Github.get_repo
-
-    def recording(self: github.Github, *args: object, **kwargs: object) -> object:
-        repositories.append((*args, *kwargs.values()))
-        return original(self, *args, **kwargs)
-
-    monkeypatch.setattr(github.Github, "get_repo", recording)
-    return repositories
 
 
 @pytest.mark.parametrize(

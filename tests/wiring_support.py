@@ -1,6 +1,10 @@
 """Constants and helpers the wiring and preflight tests share."""
 
+from collections.abc import Callable
 from pathlib import Path
+
+import github
+import pytest
 
 from factory.application.boundaries import Boundaries
 from factory.domain.preflight import PreflightItem
@@ -14,6 +18,19 @@ ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
 HOSTED_URL = "https://github.com/example/project.git"
 PODMAN_VERSION = "podman version 4.9.3"
 CONTAINER_ITEMS = ["token-file", "podman", "zfs", "dataset", "stage-image"]
+
+
+def _record_get_repo(monkeypatch: pytest.MonkeyPatch) -> list[tuple[object, ...]]:
+    """Record the arguments of every `Github.get_repo` call; the calls still go through."""
+    repositories: list[tuple[object, ...]] = []
+    original: Callable[..., object] = github.Github.get_repo
+
+    def recording(self: github.Github, *args: object, **kwargs: object) -> object:
+        repositories.append((*args, *kwargs.values()))
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(github.Github, "get_repo", recording)
+    return repositories
 
 
 def every_tool(name: str) -> str | None:

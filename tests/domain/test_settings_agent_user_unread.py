@@ -3,13 +3,7 @@
 import pytest
 
 from factory.domain.settings import read_settings
-from settings_support import BASE
-
-CONTAINER = {
-    "FACTORY_DATASET": "tank/factory/vm",
-    "FACTORY_WORKSPACE": "/srv/factory/vm/work",
-    "FACTORY_STAGE_IMAGE": "factory-stage:1",
-}
+from settings_support import BASE, CONTAINER
 
 
 @pytest.mark.parametrize(

@@ -20,7 +20,7 @@ from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint
         pytest.param("the factory user", id="no-user"),
     ],
 )
-def test_the_opencode_login_hint_names_the_agent_user_or_the_factory_user(
+def test_the_opencode_login_hint_names_the_factory_user(
     boundaries: Boundaries,
     probe_settings: InstanceSettings,
     agent_runtime: FakeAgentRuntime,
