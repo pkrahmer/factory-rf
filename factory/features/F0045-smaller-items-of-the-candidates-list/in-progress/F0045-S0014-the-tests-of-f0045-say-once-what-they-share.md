@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 479
 comments_read: [6433412562]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-27T04:44:33.790338Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -157,6 +153,12 @@ journal:
   kind: started
   at: '2026-10-27T04:44:33.790338Z'
   stage: smoke-test
+- number: 27
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-27T04:45:12.108052Z'
+  stage: smoke-test
+  run: 3681ab81ad2e47d0a8b701943fd164ac
 ---
 
 # The tests of F0045 say once what they share
@@ -425,3 +427,39 @@ Expect: one line that ends `passed in <n>s` and names no failure
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok
 26. factory: started smoke-test as vm.
+27. smoke-tester: Ran the two smoke-test commands from the repository root, in order, exactly as written. Nothing was changed.
+
+    Command 1:
+    ```bash
+    grep -rlE 'def _in_order|def _lines_with|def _record_get_repo' tests | wc -l
+    grep -c '^SCHEMAS' tests/contract_login_support.py
+    grep -cE 'def _committed|def _values' tests/contract_login_support.py
+    ```
+    Output:
+    ```
+    0
+    0
+    0
+    ```
+    Met its `Expect:` (three lines: `0`; `0`; `0`). The two `grep -c` calls exit 1 because they count zero matches. That is how grep reports no match, not an error.
+
+    Command 2:
+    ```bash
+    uv run pytest tests/test_suite_held_once.py tests/application/test_checkout_preparer.py tests/test_vm_setup_text.py -p no:cacheprovider 2>&1 | tail -1
+    ```
+    Output:
+    ```
+    149 passed in 4.14s
+    ```
+    Met its `Expect:` (one line that ends `passed in <n>s` and names no failure).
+
+    Checked against the acceptance criteria again. The smoke test contradicts none of them:
+    - Criterion 1: the old private helper names are defined nowhere. `contract_login_support.py` no longer assigns `SCHEMAS` and no longer defines `_committed` or `_values`.
+    - Criterion 2: `tests/git_support.py:44` reads `smoke-test: {role: smoke-tester, next: [approval, doing, docs], round_cap: 3}`.
+    - Criterion 3: the preparer test module passed in command 2.
+    - Criterion 4: `make check` was not run here. The factory runs it as the gate.
+    - Criterion 5 (docs): the lines in `docs/project-guide/README.md` for `vm_support.py` (`in_order`, `lines_with`), `contract_support.py` (`SCHEMAS`), `contract_login_support.py` (`committed`, `values`, `SCHEMAS` taken from `contract_support.py`) and `wiring_support.py` (`record_get_repo`) name the helpers by their new names.
+
+    Small remark, not a finding: the `vm_support.py` line in the project guide is missing a comma between "(`run_setup`)" and "`entries`". It does not contradict the code.
+
+    Findings: none.
