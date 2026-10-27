@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 476
 comments_read: [6432211115]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-27T02:53:24.055181Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-27T02:53:03.410590Z'
   stage: tests
   run: 2758a8f71da14fa2a07e71bfd87a34d4
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-27T02:53:24.055181Z'
+  stage: doing
 ---
 
 # The tests say once what they share, and their names say what they check
@@ -288,3 +297,4 @@ Expect: three lines: `['self', 'git', 'settings']`; `gone`; `0`
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (166.6 s)
+17. factory: started doing as vm.
