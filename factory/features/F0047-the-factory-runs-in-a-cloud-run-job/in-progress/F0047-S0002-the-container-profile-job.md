@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T17:09:20.930725Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-10-31T17:09:20.930725Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-10-31T17:15:30.992363Z'
+  stage: doing
+  run: b98dc05b7da14c6f96cea17a55659bf5
 ---
 
 # The container profile job
@@ -350,3 +352,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.6 s)
 24. factory: started doing as vm.
+25. coder: Round 1, after the tester's move of the shared fixture. The reviewer's two findings from entry 19 are both fixed in the committed state, so I changed no code this run.
+
+    - Finding 1 (the copied `recorder` fixture): the tester moved it to `tests/conftest.py` as `podman_recorder` (entry 23). `tests/adapters/test_podman_runs_results.py` and `tests/adapters/test_podman_runs_job_profile.py` both use it now.
+    - Finding 2 (the copied settings reader): already fixed in entry 21. `src/factory/domain/settings.py` has one reader, `_one_of`, and `_snapshots`, `_container_profile` and `_agent_runtime` all call it.
+
+    What the story built (paths): `src/factory/domain/settings.py` (`CONTAINER_PROFILE_VARIABLE`, `InstanceSettings.container_profile`, `_one_of`), `src/factory/domain/containers.py` (`JOB_PODMAN_OPTIONS`), `src/factory/adapters/podman_runs.py` (`PodmanRuns(..., profile=)`: the global options come right after the executable, and the profile picks its own isolation words), and `src/factory/entry/wiring.py` (passes the setting's profile to `PodmanRuns`).
+
+    Main choice, unchanged: the profile sets the global options and the isolation words once, and both profiles share the rest of `launch`. I rejected a subclass for the job profile, because it would have to copy `launch`.
+
+    Refactor: I read the `settings.py` diff again and there is nothing to change.
+
+    The journal did not change what the task means, so `## Description` stays as it is.
+
+    Noticed but not touched: nothing.
+
+    `check`: check: green (`test: green (167.3 s)`, coverage 99.57 %)
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 41 known, 0 gone
