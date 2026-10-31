@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T20:30:10.351726Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -368,6 +364,12 @@ journal:
   kind: started
   at: '2026-10-31T20:30:10.351726Z'
   stage: tests
+- number: 65
+  speaker: tester
+  kind: result
+  at: '2026-10-31T20:36:09.032069Z'
+  stage: tests
+  run: 7add2ea739704837b30d54ade2ee39d4
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1032,3 +1034,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `masked` has no test of its own.
     - vulture's `OpenUrl.__call__` finding is the false positive that entry 14 accepts.
 64. factory: started tests as vm.
+65. tester: Mode: a test change the human approved. I made the one change that coder entry 63 names, and nothing else.
+
+    What changed: in `tests/entry/test_refresh_token.py::test_the_loop_keeps_the_file_after_a_failure_and_retries_after_a_minute`, the `token-error` row of the `failure` parametrize now wraps its two values in one tuple: `(TokenError("no route"), "refresh_token: token request failed: no route")`. The `any-other-error` row already had this shape.
+
+    Why: my lint fix in entry 61 turned `failure` into one parameter that holds a tuple, but I left this row with two separate values. pytest then could not collect the module, and `make test` was red. The change fixes my slip in the test change the human ordered in entry 52. The row keeps its id and checks the same thing.
+
+    Criterion mapping, unchanged by this run:
+    - criterion 7: `tests/entry/test_refresh_token.py::test_the_loop_keeps_the_file_after_a_failure_and_retries_after_a_minute`
+
+    Files: I created none and changed only `tests/entry/test_refresh_token.py`. Every module imported.
+
+    Runs:
+    - `make test` once: `test: green (165.1 s)`, coverage 99.56 %.
+    - `make lint`: green.
+
+    Open, carried from entries 59 and 63:
+    - The Interface and criteria 4, 7 and 9 in the work item still lack the rules and rows from entry 52.
+    - `masked` in `factory.domain.tokens` has no direct test. No criterion names it.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (165.2 s)

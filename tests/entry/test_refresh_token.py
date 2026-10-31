@@ -178,8 +178,7 @@ def test_the_loop_refreshes_after_each_wait_until_a_signal(
     "failure",
     [
         pytest.param(
-            TokenError("no route"),
-            "refresh_token: token request failed: no route",
+            (TokenError("no route"), "refresh_token: token request failed: no route"),
             id="token-error",
         ),
         pytest.param(
