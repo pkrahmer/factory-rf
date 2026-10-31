@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T22:57:53.894727Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-31T22:57:53.894727Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-31T23:03:58.497955Z'
+  stage: doing
+  run: 36b2379c630d49f698e8f0cb792e8399
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -241,3 +243,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.4 s)
 13. factory: started doing as vm.
+14. coder: Coder: I changed no code this round. The tester widened the `recording_of` stand-in in `tests/entry/test_run.py` (entry 12). Those two rows were the only failures in entry 7, and `make check` is now green: `test: green (164.6 s)` with coverage at 99.56 %, then `check: green`.
+
+    What I built (committed in bb2ef5948):
+    - `src/factory/domain/settings.py`: `IDLE_SHUTDOWN_ACTION_VARIABLE`, the type `IdleShutdownActionName` (`Literal["poweroff", "exit"]`) and the field `InstanceSettings.idle_shutdown_action = "poweroff"`. The value is read through the existing `_one_of` helper with the fault `is neither poweroff nor exit`, so unset or blank gives `poweroff`.
+    - `src/factory/adapters/power_off.py`: `ProcessExit(PowerOff)`. Each call to `power_off` calls `request_stop` once.
+    - `src/factory/entry/wiring.py`: `idle_shutdown_of(settings, boundaries, request_stop=None)`. The private `_idle_power` returns `SystemctlPowerOff()` for `poweroff` and `ProcessExit(request_stop)` for `exit`. For `exit` without a `request_stop` it raises the Interface's `ValueError`.
+    - `src/factory/entry/run.py`: `run_instance(..., request_stop=None)` passes `request_stop` to `idle_shutdown_of`, and `run_until_stopped` passes `event.set`. The idle exit therefore stops the same loop the signal handlers stop, and `main` returns 0 as it does after a `SIGTERM`. I added `build_boundaries` to `__all__` because the new loop test patches it on the module, and mypy refuses an attribute the module does not export.
+
+    Main choice: the action is picked in the entry wiring, as one more implementation of the existing `PowerOff` interface. `IdleShutdown` in the application layer is unchanged. I rejected a separate stop interface in `factory.application`: `PowerOff` already says what the idle shutdown needs, and the idle rule and its log line stay exactly as they were.
+
+    Refactor: I read the whole diff against main and found nothing to change.
+
+    Journal: the human's answer in entry 8 changed only a test stand-in, not the meaning of the task, so I left `## Description` unchanged.
+
+    Noticed, not touched: the log line still says `powering the machine off` when the action is `exit`. The Description requires that line unchanged, so it stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 1 gone
