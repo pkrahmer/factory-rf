@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T22:26:49.867914Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -234,6 +230,12 @@ journal:
   kind: started
   at: '2026-10-31T22:26:49.867914Z'
   stage: review
+- number: 41
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T22:28:02.916081Z'
+  stage: review
+  run: e6dcbda9657d42fba9248c142d8ca3dc
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -694,3 +696,42 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 1 gone
 40. factory: started review as vm.
+41. reviewer: Reviewer, round 2. I read `git diff main...HEAD -- . ':!factory'` (`vm/setup.sh`, `vm/git-credential-factory` and five test files) against the work item and the journal up to entry 39. The factory's `make check` after the coder was green (entry 39: `check: green`).
+
+    no findings
+
+    Checked:
+    - Round 1 finding 1 (entry 33) is fixed in `tests/test_vm_setup_code_url.py`:
+      - `test_a_different_code_url_is_cloned_after_the_wait_without_the_askpass` requires a `!=` comparison (and no `=`) on the code clone's own `if`/`elif` line.
+      - `test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_url` requires `=` (and no `!=`) on the askpass clone's own `if`/`elif` line.
+      - `test_the_code_url_defaults_to_the_repository_url` pins the `-z` default at `vm/setup.sh:96-98`.
+      - If the default were deleted, or `=` and `!=` swapped, a test would now fail.
+    - Criteria 1 to 11 each have a test that matches their text, as the mapping in entry 37 lists. Criterion 1 is the earlier helper tests, which still check what they checked before. The parts after the secrets wait (5, 6, 7, 8 and 11) are tested from the script's text, as the human's answers in entries 9 and 25 allow.
+    - Interface rules, the failing side of each:
+      - The helper exits 1 with no output for another host, a longer host, a request with no `host=` line, and a URL whose host differs.
+      - Case, user and port are each tested on both sides: they are stripped from the URL, and case and port from the request.
+      - The code clone carries no `GIT_ASKPASS=`, no `core.askPass`, and has `env -u GIT_ASKPASS` and `GIT_TERMINAL_PROMPT=0`.
+      - A failed clone prints the story's message and exits 1.
+      - The first pass stops at the wait without a clone in all three rows: different url, equal url, option absent.
+    - `vm/git-credential-factory` matches the Interface:
+      - It parses the three URL forms, lower-cased, with user and port removed.
+      - It reads the first `host=` line of the request, lower-cased, with the port removed.
+      - The host check runs only when `FACTORY_REPOSITORY_URL` is set, and only for `get`, after the token-file check as before.
+    - `vm/setup.sh`:
+      - The code clone runs after the wait, in the same pass that installs the helper and the unit, as the human's answer in entry 25 asks. Each `if`/`elif` branch sets `cloned=yes` and reports the clone.
+      - `factory.env` is unchanged.
+      - Setup writes no credential helper into the factory user's git config, so the code clone has no route to the token. `as_factory` hands root's environment on; `env -u GIT_ASKPASS` covers that.
+    - Architecture: nothing under `src/` changed.
+    - Security: no secret and no marker that silences a check. The token is offered only to the project's host.
+    - Work item hygiene:
+      - The Description matches what was built, after the corrections in entry 33.
+      - The journal gives the main choice (flat `if`/`elif`, because `tests/test_vm_setup_text.py`'s `_clone_variables` reads the first clone's own branch) and what was rejected (an inner `if`/`else`).
+      - The docs criterion (13) still describes what the reader needs.
+
+    Earlier tests:
+    - `tests/conftest.py`: the standing leave to move a shared test helper. The `token` fixture moved here from `tests/test_git_credential_helper.py` unchanged.
+    - `tests/test_git_credential_helper.py`: the standing leave to move a shared test helper. `HELPER`, `EXAMPLE_VALUE` and `SYSTEM_PATH` now come from `tests/vm_support.py`, and `token` from `tests/conftest.py`. Every test keeps its name and what it checks.
+    - `tests/vm_support.py`: the standing leave to move a shared test helper. It gains `HELPER` and `EXAMPLE_VALUE`; nothing it already held changed.
+
+    Notes:
+    - `tests/test_vm_setup_code_url.py:122-127`: `_guard` is a second copy of `vm_support.enclosing_if` (`tests/vm_support.py:133`) that also accepts `elif`. Under the standing leave, `enclosing_if` could be extended to cover `elif` instead.
