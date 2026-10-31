@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T17:02:49.142641Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-10-31T17:02:28.248841Z'
   stage: doing
   run: 68fc0b08253b49f982c57ab05bcd4642
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-10-31T17:02:49.142641Z'
+  stage: tests
 ---
 
 # The container profile job
@@ -314,3 +323,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Noticed and not touched: nothing.
 
     `check`: check: green (`test: green (167.6 s)`, coverage 99.57 %)
+22. factory: started tests as vm.
