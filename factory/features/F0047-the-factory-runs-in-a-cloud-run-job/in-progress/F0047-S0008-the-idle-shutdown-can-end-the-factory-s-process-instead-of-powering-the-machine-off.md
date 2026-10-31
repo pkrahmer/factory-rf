@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T23:12:36.823098Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-31T23:12:36.823098Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-10-31T23:18:49.845627Z'
+  stage: doing
+  run: 4262698d07ae405bb8abbe9313a3af37
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -351,3 +353,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.4 s)
 21. factory: started doing as vm.
+22. coder: Coder, round 1: I changed no code. The reviewer's one finding (entry 16) was the new criterion 8, and it needed only a test. The tester wrote it in entry 20: `tests/entry/test_run_idle_exit.py::test_run_until_stopped_ends_through_the_idle_exit_with_its_own_event`. It passes against the code already committed in bb2ef5948, because `run_until_stopped` already passes `request_stop=event.set` (`src/factory/entry/run.py:96-98`). I ran `make check` this round and it is green: `test: green (165.0 s)`, total coverage 99.56 %, then `check: green`.
+
+    What I built (unchanged since entry 14):
+    - `src/factory/domain/settings.py`: `IDLE_SHUTDOWN_ACTION_VARIABLE`, the type `IdleShutdownActionName`, and the field `InstanceSettings.idle_shutdown_action`. The value is read through the existing `_one_of` helper.
+    - `src/factory/adapters/power_off.py`: `ProcessExit(PowerOff)`.
+    - `src/factory/entry/wiring.py`: `idle_shutdown_of(settings, boundaries, request_stop=None)`, which picks the power switch through the private `_idle_power`.
+    - `src/factory/entry/run.py`: `run_instance(..., request_stop=None)`, with `run_until_stopped` passing `event.set`. I also added `build_boundaries` to `__all__`.
+
+    Main choice (unchanged): the action is chosen in the entry wiring, with `ProcessExit` as one more implementation of the existing `PowerOff` interface. I rejected a separate stop interface in `factory.application`, because `PowerOff` already says what the idle shutdown needs.
+
+    Refactor: I read the diff against main again and found nothing to change.
+
+    Journal: the reviewer added criterion 8. That does not change what the task means, so I left `## Description` unchanged.
+
+    Noticed, not touched: with `exit`, the idle shutdown still logs `powering the machine off`. The Description requires that line to stay as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 1 gone
