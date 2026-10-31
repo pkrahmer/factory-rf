@@ -1,0 +1,27 @@
+== creating probe-lifecycle-timeout (docker.io/library/debian:trixie-slim, 1 cpu, 512Mi, gen2)
+== execution probe-lifecycle-timeout-ft8pl
+== final state: [		1	2026-10-31T17:51:10.378501Z] (running, succeeded, failed, completion)
+Task probe-lifecycle-timeout-ft8pl-task0 failed with exit code: 0 and message: The configured timeout was reached.
+0 s: start, pid 1 (1 means the job's first process), mode timeout
+0 s: background child 15 started
+5 s: alive
+10 s: alive
+15 s: alive
+20 s: alive
+25 s: alive
+30 s: alive
+35 s: alive
+40 s: alive
+45 s: alive
+50 s: alive
+55 s: alive
+60 s: alive
+65 s: alive
+70 s: alive
+75 s: alive
+80 s: alive
+85 s: alive
+Terminating task because it has reached the maximum timeout of 90 seconds. To change this limit, see https://cloud.google.com/run/docs/configuring/task-timeout
+90 s: the main process got SIGTERM
+92 s: the main process exits 0 after SIGTERM
+PROBE DONE

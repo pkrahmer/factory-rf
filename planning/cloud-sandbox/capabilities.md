@@ -331,3 +331,37 @@ Probe `p16-native-overlay-test.sh` (with a CPU watch added at work), result `res
 - **Is the suite CPU-bound or still storage-bound?** With the native overlay it is CPU-bound against the quota: 80 to 88 % use and a quarter of the periods throttled. More CPUs (the job asks for at most 8) would shorten it further, but the quota is 7.89 whatever the job's CPU count shows.
 - **Against the pipeline definition.** 182 s is below the 8-minute `time_limit` of `check`; the other check targets (about 135 s together with `secrets`, as in P15) add to it, so `make check` would take about 5 minutes in this setup, inside the limit.
 - **Verdict against the probe's VERDICT line.** The time is close to the VM's per CPU (182 s on 7.9 CPUs against 167 s on 4), far from 600 s: fuse-overlayfs was the cause, and S0002's storage words should change to a tmpfs root with the native overlay (a mount of a tmpfs for podman's root, the `overlay` driver without a mount program), at the price of holding the image layers in memory (the job's cgroup stayed under 5.4 GiB here).
+
+## P17: opencode in the stage image (2026-10-31)
+
+Probe `p17-opencode-in-the-stage-image.sh`, result `results/p17-opencode-in-the-stage-image.txt`. One job of 8 vCPU and 32 GiB, 3 min 18 s in all (136 s inside the probe), the stage image built from a fresh clone of factory-rf at `49ffe8c20`, podman's storage on a tmpfs with the native overlay, runc 1.5.2, the metadata block loaded (exit 0), the token fetched from the identity endpoint (status 200).
+
+| Item | Result |
+|---|---|
+| Image build | exit 0 in **112 s** |
+| In the image | Node **v18.20.4**, opencode **1.19.3**, user id **0** (root, every capability dropped, no-new-privileges) |
+| Agent call | model `claude-sonnet-5`, F0046's provider block and S0007's lockdown; **exit 0 in 14 s**, 15 events |
+| `calc.py` afterwards | `return a + b` (fixed), owned by `root:root` |
+| Tool calls | `bash`, `read`, `edit`, `bash`, all `completed`; 5 steps |
+| Agent's report | it said python printed **5** |
+| Strict result block | **parses**, `decision=doing` |
+| Cost reported | **0.0**: the probe's provider block carries no prices (as P10 showed, prices in the block make opencode report cost) |
+| Stderr | empty |
+
+Verdict against the probe's VERDICT line: all four conditions hold, so the stage image runs the factory's agents in the job, as root with every capability dropped, with the lockdown in place and Debian's Node 18.
+
+## P18: how a job execution ends (2026-10-31)
+
+Probe `p18-job-lifecycle.sh`, results `results/p18-job-lifecycle-exit.txt` and `results/p18-job-lifecycle-timeout.txt`. One CPU, 512 MiB, gen2.
+
+| Item | Exit run (A) | Timeout run (B, task timeout 90 s) |
+|---|---|---|
+| Probe was process 1 | yes (`pid 1`) | yes |
+| What happened | the main process exited 0 at 20 s with its background child still running | nothing ended it until the platform did |
+| Final state | `succeeded` (condition `completion` true), "Execution completed successfully in 1m48.58s" | failed: "Task ... failed with exit code: 0 and message: The configured timeout was reached." |
+| SIGTERM | none involved | the platform logged "Terminating task because it has reached the maximum timeout of 90 seconds", and **`the main process got SIGTERM` appeared at 90 s**, no early warning |
+| Trap | | the main process exited 0 at 92 s after SIGTERM (its trap sleeps 2 s) |
+| The child | printed nothing after the main exit; it was not signalled separately | **the child's SIGTERM line never appeared**: the main process's trap killed it first, so only the main process was signalled by the platform as far as the log shows |
+
+- **A.** The execution ended as succeeded although a background process was still running: the platform follows the main process (process 1), and the leftover child does not keep it open or fail it. The 1m48 includes the platform's start-up and tear-down around the 20 s the script ran; the log cannot split them.
+- **B.** `SIGTERM` reaches the main process at the timeout itself (90 s), not before, and the process had about the time it needed for its trap (2 s here) to finish; how long the platform waits before a hard kill was not measured, because the trap ended the process. The execution counts as **failed** with the message "The configured timeout was reached", even though the exit code was 0: the operator must read the message, not the exit code, to tell a timeout from a normal end. A `sleep 5` in the foreground may have delayed the trap by up to 5 s; the 90 s to 92 s gap is within that.
