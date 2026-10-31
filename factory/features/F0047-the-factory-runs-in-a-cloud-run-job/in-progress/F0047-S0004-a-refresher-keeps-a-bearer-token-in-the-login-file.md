@@ -1,3 +1,127 @@
+---
+stage: review
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 485
+comments_read: [6547461929, 6547499303, 6547757087]
+handed_over: null
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-31T18:28:13.483562Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:28:13.489362Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-31T18:28:36.343974Z'
+  stage: intake
+  run: 273dfe6c5cf34a6cbd137820f910b0be
+  blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-31T18:30:56.023993Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:31:13.667716Z'
+  stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-31T18:31:35.962632Z'
+  stage: intake
+  run: b032c6603b4b4ab7959a124b35582e96
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:31:56.119016Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-31T18:32:29.594579Z'
+  stage: tests
+  run: 99abe17cb5844bb88c91d9f4c25c1923
+  blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-31T18:34:47.752318Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:35:05.467890Z'
+  stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-31T18:43:11.621775Z'
+  stage: tests
+  run: 0e8204d4eafb473c9edc6d20588c7bc5
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:43:34.121408Z'
+  stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-10-31T18:55:18.761625Z'
+  stage: doing
+  run: 020995acf7214c7b9fe7835a7d710756
+  blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-10-31T18:57:38.771324Z'
+  stage: doing
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:57:56.487842Z'
+  stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-10-31T18:58:18.063306Z'
+  stage: doing
+  run: feb1a9a237144de5befd931f3e42a090
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:58:38.591628Z'
+  stage: tests
+- number: 18
+  speaker: tester
+  kind: result
+  at: '2026-10-31T19:04:43.819557Z'
+  stage: tests
+  run: 5b647afa244a44f88eb14d6e5dc91b0a
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-31T19:05:06.047018Z'
+  stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-10-31T19:14:23.509972Z'
+  stage: doing
+  run: 5380150082dc418b8f85c028d2539599
+---
+
 # A refresher keeps a bearer token in the login file
 
 ## Description
@@ -22,11 +146,11 @@ Tests (the tester writes them): `tests/domain/test_tokens.py`, `tests/applicatio
 
 1. `refresh_wait`, rows of one test: a life of 3599 s waits 600 s (the interval); 7200 s waits 600 s; 1200 s waits 600 s; 1000 s waits 500 s (half of a short life); 40 s waits 30 s (the floor); 10 s waits 30 s.
 2. `Token` refuses a blank value, a value with a space or a newline, an `expires_in` of 0 and of -1, and accepts 1.
-3. `ClientCredentialsTokenSource.fetch` with an `open_url` that records its request and answers `{"access_token": "t", "expires_in": 3599}`: the request is a POST to the given URL with the content type above and a body that holds the four fields, URL-encoded (a secret with `&`, `=`, `+` and a space round-trips through `parse_qs`), and the token is `Token(value="t", expires_in=3599)`; `"expires_in": "3599"` gives the same.
-4. Faults, rows of one test: an `HTTPError` 400 with the body `{"error": "invalid_client", "error_description": "AADSTS7000215: bad secret\r\nTrace ID: x"}` gives `HTTP 400: invalid_client: AADSTS7000215: bad secret`; an error description of 300 characters is cut at 200; a `URLError("no route")` gives `no route`; a `TimeoutError` gives its message; the body `[]`, a body without `access_token` and a body with `expires_in` 0 give the sentences of the Interface; none of these details contains the client secret even when the server's body echoes it (the echo is replaced by `***`).
+3. `ClientCredentialsTokenSource.fetch` with an `open_url` that records its request and answers `{"access_token": "t", "expires_in": 3599}`: the request is a POST to the given URL with the content type above and a body that holds the four fields, URL-encoded (a secret with `&`, `=`, `+` and a space round-trips through `parse_qs`), and the token is `Token(value="t", expires_in=3599)`; `"expires_in": "3599"` gives the same; `open_url` receives `timeout=30.0` by default and the given value when `timeout` is passed.
+4. Faults, rows of one test: an `HTTPError` 400 with the body `{"error": "invalid_client", "error_description": "AADSTS7000215: bad secret\r\nTrace ID: x"}` gives `HTTP 400: invalid_client: AADSTS7000215: bad secret`; the 200-character cut applies to the first line of `error_description` alone, so an error description of 300 characters gives `HTTP 400: invalid_client: ` followed by its first 200 characters; an `HTTPError` 500 whose body is not JSON gives `HTTP 500`; an `HTTPError` 400 whose JSON body has neither `error` nor `error_description` gives `HTTP 400`; a `URLError("no route")` gives `no route`; a plain `OSError("boom")` gives `boom`; a `TimeoutError` gives its message; the body `[]`, a body without `access_token` and a body with `expires_in` 0 give the sentences of the Interface; none of these details contains the client secret or the token even when the server's body echoes either (the echo is replaced by `***`, one row for the secret and one for the token).
 5. `TokenRefresher.refresh` writes the token into the target with no other text and no newline, replaces an older value, creates the folder, leaves the old file untouched when the source raises, and turns an `OSError` of the write (a target that is a folder) into `TokenError("cannot write <target>: <error>")`.
-6. The command: a missing variable exits 2 and names it (one row per variable); a blank secret file exits 2; `--once` with a source that answers 3599 s writes the file, prints `token refreshed: valid 3599 s, next in 600 s` (the wait's whole seconds) and exits 0; `--once` with a source that fails prints `refresh_token: token request failed: <detail>` to standard error, leaves the file as it was and exits 1.
-7. The loop (injected wait): two successes then `SIGTERM` gives two writes, waits of the refresh interval, exit 0; a failure between two successes keeps the file of the first, prints the error, waits `RETRY_INTERVAL` once and goes on.
+6. The command: a missing and a blank variable each exit 2 and name it as `refresh_token: <variable> is not set` on standard error (two rows per variable); a missing secret file and a blank one each exit 2 with `refresh_token: cannot read <path>` on standard error; `--once` with a source that answers 3599 s writes the file, prints `token refreshed: valid 3599 s, next in 600 s` (the wait's whole seconds) and exits 0; `--once` with a source that fails prints `refresh_token: token request failed: <detail>` to standard error, leaves the file as it was and exits 1.
+7. The loop (injected wait), rows `SIGTERM` and `SIGINT`: two successes then the signal gives two writes, waits of the refresh interval, exit 0; a failure between two successes keeps the file of the first, prints the error, waits `RETRY_INTERVAL` once and goes on.
 8. Neither standard output, standard error, a raised error nor the environment given to a child process contains the client secret or the token (a test over all of them with a secret `s3cret-value` and a token `tok-abc`).
 9. `make check` stays green.
 10. docs: `docs/operator-guide.md`: a subsection *A bearer token for the model API* with the variables, what the command writes and when (every ten minutes; a run reads the file when its container starts, so the token must live longer than the interval plus the longest stage), that the file is the one `FACTORY_API_LOGIN_FILE` names, the provider file's `api_key_env` that reads it as `ANTHROPIC_API_KEY`, the proxy (set `NO_PROXY` for an internal API host and `https_proxy` for the token endpoint) and that the secret is a file mounted from Secret Manager. `docs/project-guide/agents.md`: *The opencode runtime* names the refresher. `docs/decisions.md`: an entry *A refresher keeps the bearer token fresh*, from the feature's decisions 7 and 8. `README.md`: none.
@@ -60,3 +184,204 @@ Expect: two lines, `refresh_token: FACTORY_TOKEN_URL is not set` and `exit 2`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-31 human: created.
+2. factory: started intake as vm.
+3. intake: Questions (the format check passed, so none from it). The Interface, smoke test, architecture and scope are otherwise fine; these gaps in the criteria are not:
+
+   1. SIGINT: the Interface ends the loop on `SIGTERM` or `SIGINT` (exit 0). Criterion 7 tests only `SIGTERM`. Proposal: add a row for `SIGINT`, with the same two writes and exit 0.
+
+   2. An unreadable secret file: the Interface says exit 2 with `refresh_token: cannot read <path>`. Criterion 6 covers only a blank file, and checks the exit code but not the message. Proposal: add rows for a missing file and for a blank file, each with exit 2 and the exact message on standard error.
+
+   3. HTTPError detail, cases the Interface leaves open:
+      a. A body that is not JSON, or a JSON body with no `error` and no `error_description`. What is the detail? Proposal: `HTTP <code>` alone, with one criterion row for each case.
+      b. "at most 200 characters": does that cut the description line alone, or the whole detail after `HTTP 400: `? Criterion 4 only says "cut at 200". Proposal: it cuts the `error_description` line alone, and the criterion states the expected full string.
+
+   4. Criterion 4 has no row for a plain `OSError` (the Interface names it next to `URLError` and `TimeoutError`). It also tests only the client secret being removed from details, not the token, although the Interface says both become `***`. Proposal: add an `OSError` row and a row where the server's body echoes the token.
+
+   5. Criterion 3 does not check that `open_url` receives `timeout=30.0` by default, or a custom value. The `timeout` parameter is Interface behaviour. Proposal: add a check of the timeout argument in criterion 3.
+
+   6. Criterion 6 says a missing variable exits 2, but the Interface says "missing or blank". Proposal: make each variable's row cover both an unset and a blank value.
+4. 2026-10-31 human: Answers to question 3: all six as you propose.
+
+   1. Yes: a `SIGINT` row in criterion 7, the same two writes and exit 0.
+   2. Yes: rows for a missing secret file and a blank one, each exit 2 with the exact message on standard error.
+   3. a. Yes: a body that is not JSON, and a JSON body with neither `error` nor `error_description`, each give `HTTP <code>` alone (one row each).
+      b. The 200-character cut applies to the first line of `error_description` alone; the criterion states the full expected string.
+   4. Yes: an `OSError` row, and a row where the server's body echoes the token, which is replaced by `***` as the secret is.
+   5. Yes: criterion 3 checks that `open_url` receives `timeout=30.0` by default and a custom value when one is given.
+   6. Yes: each variable's row covers both an unset and a blank value.
+5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: concrete modules and signatures (`factory.domain.tokens`, `factory.domain.errors.TokenError`, `factory.application.tokens`, `factory.adapters.oauth_token`, `factory.entry.refresh_token`). Every rule has a criterion on both sides. The human's answers in journal entry 4 settled the open cases: a non-JSON body or a JSON body without `error`/`error_description` gives `HTTP <code>`, and the 200-character cut applies to the first line of `error_description` alone.
+   - Criteria: after the edits below, each is testable by one parametrized test. Entry 4 (the human's answers 1 to 6) is carried into the story as the human's edit, not as my own improvement:
+     - Criterion 3 now checks `timeout=30.0` by default and a custom value.
+     - Criterion 4 now has rows for the non-JSON body, the JSON body without `error` or `error_description`, a plain `OSError`, and the echoed token. It also states that the cut applies to the first line of `error_description`.
+     - Criterion 6 now covers missing and blank variables, and a missing and a blank secret file, each with the exact stderr message.
+     - Criterion 7 now has `SIGTERM` and `SIGINT` rows.
+     - The Description is unchanged, since the task's meaning did not change. The two closing criteria stay last.
+   - Smoke test: both commands are runnable. The first is a Python snippet with an injected opener whose output is `tok-1 3599 600.0`. The second is `FACTORY_TOKEN_URL=` with `--once`, which gives the stderr line and `exit 2`. Neither runs pytest, so the `-q` rule does not apply. Both `Expect:` lines are checkable.
+   - Architecture: the layers are right. The `Token` DTO and `refresh_wait` are domain, the `TokenSource` ABC and `TokenRefresher` are application, the urllib adapter is in adapters, and the command is in entry. `TokenSource` is an ABC with the adapter inheriting it. No new dependency, and no wrapper rule is broken, because the standard library HTTP sits in one adapter.
+   - Scope: this is S0004 of F0047, the refresher only. Running it is left to S0006. It is within the feature's scope and touches nothing in its "Out of scope".
+7. factory: started tests as vm.
+8. tester: Question before I write the tests. I stopped before writing any files. Criteria 1 to 5 can be tested against the Interface as it stands. Criteria 6, 7 and 8 cannot, because the Interface leaves `main`'s injected parameters as `...`.
+
+   1. **How a test gives `main` its token source, its wait and its stop.** Criterion 6 needs "a source that answers 3599 s" and "a source that fails". Criterion 7 needs an injected wait and a `SIGTERM`/`SIGINT` that ends the loop. The Interface does not name any of these parameters. My proposal, following `factory.entry.run` (`install_stop_handlers`, `run_instance(sleep=…, should_stop=…)`):
+      `main(argv=None, environ=os.environ, *, source: Callable[[str, str, str, str], TokenSource] | None = None, sleep: Callable[[float], None] | None = None) -> int`
+      - `source` takes `url, client_id, client_secret, scope` and defaults to `ClientCredentialsTokenSource`.
+      - `sleep` takes seconds and defaults to waiting on a `threading.Event`.
+      - `main` installs `SIGTERM` and `SIGINT` handlers that set its stop flag, checks the flag after each wait, and restores the previous handlers before it returns.
+      - The loop test's fake `sleep` records the seconds and, on the chosen wait, calls `signal.raise_signal(sig)`. That exercises the real handlers without sleeping.
+      - "The clock" in the Interface would then need no parameter: nothing in the criteria reads a time.
+      - Alternatives:
+        - (b) inject a `threading.Event` stop and have the test set it directly. This would not test the signals themselves, so the SIGTERM/SIGINT rows would only be labels.
+        - (c) other parameter names you prefer.
+      - I would choose the proposal.
+
+   2. **Criterion 8, "the environment given to a child process".** The command starts no child process, so there is nothing to observe. Options:
+      - (a) Test that `os.environ` holds neither the secret nor the token after `main` has run. Any child the process later starts inherits `os.environ`.
+      - (b) Drop the child clause from criterion 8.
+      - (c) Name the child you mean.
+      - I would choose (a).
+
+   The tests, once the answers are in:
+   - `tests/domain/test_tokens.py`
+   - `tests/application/test_tokens.py`
+   - `tests/adapters/test_oauth_token.py`
+   - `tests/entry/test_refresh_token.py`
+
+   A note for the coder, not a question for the tests: the Interface has `factory.application.tokens` call `replace_text`, but that function lives in `factory.adapters.atomic_file`, and the application layer may not import adapters.
+9. 2026-10-31 human: Answers to question 8:
+
+   1. Your proposal: `main(argv=None, environ=os.environ, *, source: Callable[[str, str, str, str], TokenSource] | None = None, sleep: Callable[[float], None] | None = None) -> int`, with `source` defaulting to `ClientCredentialsTokenSource` and `sleep` to waiting on a `threading.Event`; `main` installs `SIGTERM` and `SIGINT` handlers that set its stop flag, checks it after each wait, and restores the previous handlers before it returns. The loop test raises the real signal from its fake `sleep`. No clock parameter.
+   2. (a): after `main` has run, `os.environ` holds neither the secret nor the token.
+
+   On your note to the coder: right, the application layer may not import `factory.adapters.atomic_file`. `TokenRefresher` takes the writer as a third constructor argument, `write: Callable[[Path, str], None]`, without a default; `factory.entry.refresh_token` passes `replace_text`. Criterion 5's tests construct it with `replace_text` (a test may import the adapter), so the file behaviour it names (no newline, replace, folder made, an `OSError` of the write becoming `TokenError("cannot write <target>: <error>")`) is tested on the real writer.
+10. factory: started tests as vm.
+11. tester: I wrote the tests from the criteria, using the human's answers in entry 9: `main(argv, environ, *, source=<factory of url, client_id, secret, scope>, sleep=<seconds>)`, and `TokenRefresher(source, target, write)` built with `replace_text`. The loop tests raise the real signal from the fake `sleep`, and criterion 8 checks `os.environ`.
+
+    - criterion 1: tests/domain/test_tokens.py::test_the_wait_is_the_interval_or_half_a_short_life_and_at_least_the_floor (six rows)
+    - criterion 2: tests/domain/test_tokens.py::test_a_token_needs_a_value_without_whitespace_and_a_positive_life (blank, space, newline, 0, -1 refused; 1 accepted)
+    - criterion 3: tests/adapters/test_oauth_token.py::test_a_fetch_posts_the_four_fields_form_encoded_and_returns_the_token (integer and string `expires_in`) and ::test_open_url_receives_the_timeout (default 30.0 and a given 5.0)
+    - criterion 4: tests/adapters/test_oauth_token.py::test_a_failed_fetch_is_a_token_error_without_the_secret_or_the_token (12 rows)
+    - criterion 5: tests/application/test_tokens.py::test_a_refresh_writes_the_token_alone_and_replaces_the_older_one (also creates the folder), ::test_a_failed_fetch_leaves_the_old_file_untouched, ::test_a_write_that_fails_is_a_token_error_naming_the_target
+    - criterion 6: tests/entry/test_refresh_token.py::test_a_missing_or_blank_variable_exits_2_naming_it (5 variables × unset/blank), ::test_an_unreadable_or_blank_secret_file_exits_2, ::test_once_writes_the_token_and_names_its_life_and_the_wait, ::test_once_with_a_failing_source_keeps_the_file_and_exits_1
+    - criterion 7: tests/entry/test_refresh_token.py::test_the_loop_refreshes_after_each_wait_until_a_signal and ::test_the_loop_keeps_the_file_after_a_failure_and_retries_after_a_minute (each with SIGTERM and SIGINT rows)
+    - criterion 8: tests/entry/test_refresh_token.py::test_the_secret_and_the_token_appear_in_no_output_error_or_environment
+
+    **How I read criterion 4's echoed-token row.** In a failure, the only token the source can know is one its body holds or one it handed out earlier. The test covers both: each fault row first fetches `tok-abc` successfully, and the echo row's error body also carries `"access_token": "tok-abc"`. An implementation that masks either one passes, so the test does not pick a reading.
+
+    Files created:
+    - tests/domain/test_tokens.py
+    - tests/application/test_tokens.py
+    - tests/adapters/test_oauth_token.py
+    - tests/entry/test_refresh_token.py
+    - tests/token_support.py: `ScriptedTokenSource(TokenSource)`, `RecordingOpener`, `answer`, `http_error`, `ENDPOINT`
+
+    **Earlier test files I changed, under the standing leave to move a shared test helper:**
+    - tests/entry/test_run.py: I moved its `restored_signals` fixture unchanged to tests/conftest.py and dropped the `Iterator` import it no longer needs. Every test keeps its name and checks the same thing.
+    - tests/conftest.py: now holds that fixture.
+
+    **`make test`, one run:** it fails with collection errors (ImportError) for the four new modules. The modules the test run could not import are `factory.domain.tokens`, `factory.application.tokens`, `factory.adapters.oauth_token` and `factory.entry.refresh_token`, plus `factory.domain.errors.TokenError`. That run started before the last renames below; they change no import, so I did not run it again. `make lint` is green. `make secrets` is green too, but it may not have scanned the new files, because they are not tracked yet.
+
+    **Name choices:** I named the test constants `HIDDEN`, `ISSUED` and `ENDPOINT`, because ruff's S105 flags names like `SECRET` and `TOKEN`.
+
+    **Open, for the coder and intake:**
+    - The Interface still says `TokenRefresher(source, target)` with two arguments, but the human's answer in entry 9 adds `write` as a third, required argument.
+    - The smoke test's Python snippet also constructs it with two arguments, so it will fail as written until the snippet passes `replace_text`.
+
+    `lint`: lint: green (0.2 s)
+    `test`: ERROR tests/entry/test_refresh_token.py - ImportError while importing test module '/work/checkout/tests/entry/test_refresh_token.py'.
+12. factory: started doing as vm.
+13. coder: I stopped with the code written. Every new test passes, along with `make types`, `make layers`, `make sast`, `make secrets` and `make licenses`. `make check` is still red for two reasons I may not fix myself.
+
+    **Built (working tree):**
+    - `src/factory/domain/tokens.py`: `Token`, the three intervals and `refresh_wait`.
+    - `src/factory/domain/errors.py`: `TokenError`.
+    - `src/factory/application/tokens.py`: `TokenSource` and `TokenRefresher(source, target, write)`, as entry 9 says.
+    - `src/factory/adapters/oauth_token.py`: `ClientCredentialsTokenSource`. It calls `open_url(request, timeout=...)` by keyword, because `urlopen`'s second positional parameter is `data`. It masks the client secret, every token it has handed out, and an `access_token` that an error body echoes.
+    - `src/factory/entry/refresh_token.py`: `main`. It reuses `install_stop_handlers` from `factory.entry.run` and restores the previous handlers when it returns.
+    - `src/factory/entry/wiring.py`: `client_credentials_source` and `build_token_refresher`.
+
+    **Main choice:** the adapter construction lives in `factory.entry.wiring`. The rejected alternative was importing the adapters directly in `refresh_token.py`, as the Interface reads; `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` forbids that. I also renamed one internal constant to `_CLIENT_CREDENTIAL_FILE`, because ruff S105 flags `SECRET` in a name; the variable's text is unchanged.
+
+    **Questions:**
+
+    1. **An existing test contradicts the Interface.** `tests/test_hosting_search.py::test_no_module_imports_another_route_to_the_hosting_service[urllib.request]` forbids any module from importing `urllib.request`. The Interface requires `oauth_token` to use it, for its `Request` and the default `open_url=urllib.request.urlopen`. That test fails now: `assert {'factory.ada....oauth_token'} == set()`. The options I see:
+       - (a) The tester changes that test so `factory.adapters.oauth_token` may import `urllib.request` (and only it). This needs your leave, since another story wrote it.
+       - (b) Another HTTP route. `httpx`, `requests`, `urllib3` and `http.client` are all forbidden too, and the first three would be new dependencies.
+       - (c) `from urllib import request`. That only gets past the test without honouring it, so I rule it out.
+       
+       I would choose (a). With it I would end with `tests` and name exactly that change.
+
+    2. **Two `make lint` findings on `oauth_token.py` that only a per-file ignore in `pyproject.toml` can settle.** Earlier ignores of this kind were your commits (b3022aba5), and the project wants no `noqa` in the source.
+       - PLR0913: the six-argument constructor is pinned by the Interface and the tests.
+       - S310: `urllib.request.Request` gets a URL that is not a literal; it comes from the operator's `FACTORY_TOKEN_URL`.
+       
+       The options I see:
+       - (a) You add `"src/factory/adapters/oauth_token.py" = ["PLR0913", "S310"]` with a reason, or tell me I may.
+       - (b) For S310, also refuse a non-https `url` in the constructor. That is beyond the Interface, and it would still need the PLR0913 ignore.
+       
+       I would choose (a) without the scheme check.
+
+    **Noticed, not touched:**
+    - `make duplicates` reports one new finding: vulture's "unused `__call__`" on the `OpenUrl` Protocol in `oauth_token.py`. That is a false positive, because the Protocol only types `open_url`.
+    - The Interface's text and the first smoke-test snippet still build `TokenRefresher` with two arguments. Entry 9 made `write` a third, required argument, so the snippet fails as written until it passes `replace_text`. My write paths do not cover the smoke test, so I left it.
+    - No refactor yet; I will do it once `make check` can go green.
+14. 2026-10-31 human: Answers to question 13:
+
+    1. (a). The tester may change `tests/test_hosting_search.py::test_no_module_imports_another_route_to_the_hosting_service` so that `factory.adapters.oauth_token`, and no other module, may import `urllib.request`: the feature names the standard library's `urllib` as the refresher's HTTP (*The human's changes*, decision 8), and the token endpoint is not the hosting service. Every other module stays refused, and a row shows that a second module importing it is still caught. End with `tests` and name that change.
+    2. (a), without the scheme check. The per-file ignore is on `main` now (commit after this answer's time, `pyproject.toml`: `"src/factory/adapters/oauth_token.py" = ["PLR0913", "S310"]` with its reason); your stage merges `origin/main`, so `make lint` sees it.
+
+    On your notes: the smoke test's first snippet and the Interface's sentence about `TokenRefresher` are the work item's text; the reviewer corrects both to pass `replace_text` as the third argument (entry 9). The vulture finding on the `OpenUrl` Protocol's `__call__` is a known false positive; leave it, it goes into the duplicates baseline at approval.
+15. factory: started doing as vm.
+16. coder: The test change the human allowed in entry 14, answer 1: change `tests/test_hosting_search.py::test_no_module_imports_another_route_to_the_hosting_service` so that `factory.adapters.oauth_token`, and no other module, may import `urllib.request`. Every other module is still refused, and a new row shows that a second module importing `urllib.request` is still caught.
+
+    I changed no code in this run. The code from entry 13 is committed and unchanged: `src/factory/domain/tokens.py`, `src/factory/domain/errors.py` (`TokenError`), `src/factory/application/tokens.py`, `src/factory/adapters/oauth_token.py`, `src/factory/entry/refresh_token.py` and `src/factory/entry/wiring.py`. With the per-file ignore the human added to `pyproject.toml` on `main` (answer 2), `make lint` is green: `lint: green (0.2 s)`. Once that test is changed, the last red in `make check` should be gone. I did not run the full `make check` here, because the test still fails until the tester changes it. I will run it and do the refactor step when the work item comes back.
+
+    Still open, not mine to change:
+    - The reviewer corrects the Interface's sentence on `TokenRefresher` and the first smoke-test snippet so they pass `replace_text` as the third argument (entry 14).
+    - The vulture finding on the `OpenUrl` Protocol's `__call__` goes into the duplicates baseline at approval.
+17. factory: started tests as vm.
+18. tester: I made the test change the human approved in entry 14, answer 1, which the coder named in entry 16. I changed one earlier test file, `tests/test_hosting_search.py`, with the human's leave from entry 14.
+
+    **What I changed in `test_no_module_imports_another_route_to_the_hosting_service`** (the test keeps its name):
+    - New constant `ALLOWED = {"urllib.request": {"factory.adapters.oauth_token"}}`. A comment gives the reason: the token endpoint is not the hosting service.
+    - The test now checks that the set of importers minus the allowed ones equals the expected set. So `factory.adapters.oauth_token` is the only module that may import `urllib.request`.
+    - Every other forbidden route still expects no importer. Those rows keep their earlier ids (`requests`, `httpx`, … `urllib.request`, …).
+    - New row `urllib.request-in-a-second-module`: it adds a parsed second module, `factory.adapters.elsewhere` (`import urllib.request`), to the real modules. The test expects that module to be caught, which shows a second importer is still refused.
+    - To support this, the test is parametrized over `(module, added, caught)`, and the file imports `ast`.
+
+    Criterion → test: no criterion of this work item maps here. This is the approved change to an earlier test. The mapping from entry 11 is unchanged.
+
+    **Files changed:** `tests/test_hosting_search.py`. No files were created.
+
+    **Modules the test run could not import:** none.
+
+    **Runs:** `make test` passed: `test: green (165.3 s)`, total coverage 99.53 %. `make lint` passed: `lint: green (0.2 s)`. Before that I ran `tests/test_hosting_search.py` alone once with pytest, and it passed.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (163.8 s)
+19. factory: started doing as vm.
+20. coder: The tester changed `tests/test_hosting_search.py` with the human's leave from entry 14. With that change and the human's per-file ignore in `pyproject.toml`, `make check` is green (`check: green`, `test: green (165.6 s)`, total coverage 99.53 %). This run did no new work beyond the refactor below.
+
+    **Built (in the branch):**
+    - `src/factory/domain/tokens.py`: `Token`, `REFRESH_INTERVAL`, `MIN_REFRESH_INTERVAL`, `RETRY_INTERVAL` and `refresh_wait`.
+    - `src/factory/domain/errors.py`: `TokenError`.
+    - `src/factory/application/tokens.py`: `TokenSource` (an ABC) and `TokenRefresher(source, target, write)`, as entry 9 says.
+    - `src/factory/adapters/oauth_token.py`: `ClientCredentialsTokenSource`. It calls `open_url(request, timeout=...)` by keyword, because `urlopen`'s second positional parameter is `data`. It masks the client secret, every token it has given out, and an `access_token` that an error body echoes.
+    - `src/factory/entry/refresh_token.py`: `main(argv, environ, *, source, sleep)`. It reuses `install_stop_handlers` from `factory.entry.run` and restores the previous handlers when it returns.
+    - `src/factory/entry/wiring.py`: `client_credentials_source` and `build_token_refresher`. The refresher gets `replace_text` there.
+
+    **Main choice:** the adapter construction lives in `factory.entry.wiring`, not in `refresh_token.py`. I rejected importing the adapters directly in `refresh_token.py`, as the Interface reads, because `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` forbids it. One internal constant is named `_CLIENT_CREDENTIAL_FILE` because ruff S105 flags `SECRET` in a name. The variable it holds, `FACTORY_TOKEN_CLIENT_SECRET_FILE`, is unchanged.
+
+    **Refactor:** the secret and token masking was written twice in `oauth_token.py`, once in `_error` and once in `_http_detail`. Both now call one private `_masked(detail, hidden)`. Behaviour is unchanged and `make check` is green after it. Nothing else needed changing.
+
+    **What the journal changed:** entry 9 adds `write` as a third, required argument of `TokenRefresher` and gives `main` its `source` and `sleep` parameters. Entry 14 lets only `oauth_token` import `urllib.request`. I did not rewrite the Description: its meaning is unchanged, and the human assigned the corrections to the reviewer.
+
+    **Noticed, not touched:**
+    - The Interface's sentence on `TokenRefresher` and the first smoke-test snippet still build it with two arguments. They need `replace_text` as the third. Entry 14 leaves that correction to the reviewer.
+    - `make duplicates` will report vulture's "unused `__call__`" on the `OpenUrl` Protocol. Entry 14 says this is a known false positive that goes into the duplicates baseline at approval.
+    - `_token_of` checks the token for whitespace itself, so that a bad value becomes the Interface's `TokenError` sentence and not a Pydantic `ValidationError`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 0 gone
