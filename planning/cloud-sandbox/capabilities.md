@@ -246,3 +246,16 @@ Probe P11, `results/p11-podman-overlay-volumes.txt`. Podman 5.4.2 + runc, as roo
 | Cost on a 1 GiB, 20000-file base | small | Container start 0.18 s, 200 appends plus one delete 0.20 s, 199 files and 1 whiteout in the upper, `find` 0.01 s, reset 0.01 s. | P11 O12 |
 | Lower tree on the memory-backed root | yes | Only the upper and work directories need the tmpfs or the disk. | P11 O13 |
 | Opaque directories (a directory deleted and recreated) | untested | The take would have to read `trusted.overlay.opaque`; the probe's list showed none because none were created. | P11 O5 |
+
+## P14: the opencode lockdown (2026-10-31)
+
+Probe `p14-opencode-lockdown.sh`, result `results/p14-opencode-lockdown.txt`. **The run did not answer the question: the probe has a bug, so opencode never ran.**
+
+- **What happened.** In the probe's function `one_run`, the extra `-e NAME=value` words are placed after the image name in the `podman run` command, so podman treated them as the command to run. The container started `node` with `OPENCODE_CONFIG=...` as an argument and failed with "Unknown regular expression flags" in both run A and run B, and in the three runs of section D. Every run exited 1 after one second with no events and no `hello.txt`.
+- **The two host lists.** (A) without the lockdown: empty. (B) with the lockdown: empty. Section D's three one-switch lines are empty as well. They are empty because opencode never started, so they say nothing about opencode.
+- **Did run B work?** No: exit 1, `hello.txt` missing, `result block parses: False`. That is the probe's fault, not the lockdown's.
+- **Did 1.19.3 accept `enabled_providers`?** Not shown. No line mentions `enabled_providers` except the probe's own search pattern, which counted the node error lines (2 per run) as "complaints".
+- **Which switch changed the host list?** Not shown.
+- **What did work.** The token request returned 200. The logging proxy on the job's loopback passed a self-test and recorded the host (`CONNECT deb.debian.org:443`). The install of `opencode-ai@1.19.3` contacted exactly `deb.debian.org` (the package install, before the proxy) and `registry.npmjs.org`, and the installed binary printed 1.19.3. In this job the metadata-block rule file again failed to load (a one-line chain syntax error in the probe's own heredoc, as in the first run of P10), so the rule was not in force in this probe; it does not affect the host list.
+- **Cost.** No model call was made, so no cost was reported.
+- **Verdict.** None against the probe's own VERDICT line: the probe must be corrected (the `-e` words go before the image name, for example by building the container words with the image last) and run again before S0007 can be judged.
