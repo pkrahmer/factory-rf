@@ -1,0 +1,148 @@
+== creating probe-podman-overlay (docker.io/library/debian:trixie-slim, 4 cpu, 16Gi, gen2)
+== execution probe-podman-overlay-tqn8p
+== final state: [	1		2026-10-31T12:54:18.467172Z] (running, succeeded, failed, completion)
+Execution completed successfully in 1m38.38s.
+tmpfs at /mnt/t
+##### setup: a small base tree
+$ find /tmp/base | sort
+/tmp/base
+/tmp/base/dir1
+/tmp/base/dir1/a
+/tmp/base/dir2
+/tmp/base/dir2/b
+/tmp/base/top.txt
+[exit 0]
+##### O1: default upper (podman chooses), graph root on the memory-backed root, vfs driver
+$ pv run --rm --http-proxy=false --network=host -v /tmp/base:/work:O docker.io/library/busybox:latest sh -c echo new > /work/n; rm /work/top.txt; ls /work
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+Error: OCI runtime error: runc: runc create failed: unable to start container process: error during container init: error mounting "/tmp/gv/vfs-containers/ca0b098127524bb2b375dc305ebb4b17a7db3bcc8df67e3987020647ce35baf6/userdata/overlay/1874337629/merge" to rootfs at "/work": mount /tmp/gv/vfs-containers/ca0b098127524bb2b375dc305ebb4b17a7db3bcc8df67e3987020647ce35baf6/userdata/overlay/1874337629/merge:/work (via /proc/self/fd/6), data: lowerdir=/tmp/base,upperdir=/tmp/gv/vfs-containers/ca0b098127524bb2b375dc305ebb4b17a7db3bcc8df67e3987020647ce35baf6/userdata/overlay/1874337629/upper,workdir=/tmp/gv/vfs-containers/ca0b098127524bb2b375dc305ebb4b17a7db3bcc8df67e3987020647ce35baf6/userdata/overlay/1874337629/work,userxattr: invalid argument
+[exit 126]
+$ ls /tmp/base; test -f /tmp/base/n && echo "BASE WAS WRITTEN" || echo "base untouched"
+dir1
+dir2
+top.txt
+base untouched
+[exit 0]
+##### O2: the same with overlay graph driver on the memory-backed root (expected to hit the upperdir limit)
+$ pa run --rm --http-proxy=false --network=host -v /tmp/base:/work:O docker.io/library/busybox:latest sh -c echo new > /work/n; ls /work
+Error: configure storage: 'overlay' is not supported over overlayfs, a mount_program is required: backing file system is unsupported for this graph driver
+[exit 125]
+##### O3: overlay graph driver on a tmpfs graph root, default upper
+$ pt run --rm --http-proxy=false --network=host -v /tmp/base:/work:O docker.io/library/busybox:latest sh -c echo new > /work/n; rm /work/top.txt; ls /work
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+dir1
+dir2
+n
+[exit 0]
+$ ls /tmp/base
+dir1
+dir2
+top.txt
+[exit 0]
+##### O4: explicit upperdir and workdir on a tmpfs, kept after the container ends
+$ pv run --rm --http-proxy=false --network=host -v /tmp/base:/work:O,upperdir=/mnt/t/u1,workdir=/mnt/t/w1 docker.io/library/busybox:latest sh -c echo new > /work/n; echo changed > /work/dir1/a; rm /work/top.txt; mkdir /work/d3; echo x > /work/d3/f
+[exit 0]
+$ echo "--- upper:"; find /mnt/t/u1 | sort; echo "--- types:"; find /mnt/t/u1 -type c | head -3; echo "base still:"; find /tmp/base -type f | sort; cat /tmp/base/dir1/a
+--- upper:
+/mnt/t/u1
+/mnt/t/u1/d3
+/mnt/t/u1/d3/f
+/mnt/t/u1/dir1
+/mnt/t/u1/dir1/a
+/mnt/t/u1/n
+/mnt/t/u1/top.txt
+--- types:
+/mnt/t/u1/top.txt
+base still:
+/tmp/base/dir1/a
+/tmp/base/dir2/b
+/tmp/base/top.txt
+one
+[exit 0]
+##### O5: the take: list changes from the upper dir (files, whiteouts as character devices, opaque dirs)
+$ cd /mnt/t/u1; find . -type f | sort | sed "s/^/added-or-modified: /"; find . -type c | sed "s/^/deleted: /"; for d in $(find . -type d); do v=$(getfattr -n trusted.overlay.opaque --only-values $d 2>/dev/null); [ -n "$v" ] && echo "opaque: $d"; done; echo done
+added-or-modified: ./d3/f
+added-or-modified: ./dir1/a
+added-or-modified: ./n
+deleted: ./top.txt
+done
+[exit 0]
+##### O6: reset = discard the upper; run again: clean view of the base?
+$ pv run --rm --http-proxy=false --network=host -v /tmp/base:/work:O,upperdir=/mnt/t/u1,workdir=/mnt/t/w1 docker.io/library/busybox:latest sh -c ls /work; cat /work/top.txt
+dir1
+dir2
+top.txt
+top
+[exit 0]
+##### O7: the factory's flags (cap-drop=all, no-new-privileges, pids, memory) with an overlay volume
+$ pv run --rm --http-proxy=false --network=host --cap-drop=all --security-opt=no-new-privileges --pids-limit=256 --memory=512m --user 1000:1000 -v /tmp/base:/work:O,upperdir=/mnt/t/u2,workdir=/mnt/t/w2 docker.io/library/busybox:latest sh -c id; echo u > /work/u; echo m >> /work/dir1/a; ls -ln /work/u
+uid=1000(1000) gid=1000(1000) groups=1000(1000)
+-rw-r--r--    1 1000     1000             2 Oct 31 12:53 /work/u
+[exit 0]
+$ ls -ln /mnt/t/u2 /mnt/t/u2/dir1 2>&1 | head -8
+/mnt/t/u2:
+total 4
+drwxr-xr-x 2 1000 1000 60 Oct 31 12:53 dir1
+-rw-r--r-- 1 1000 1000  2 Oct 31 12:53 u
+/mnt/t/u2/dir1:
+total 4
+-rw-r--r-- 1 1000 1000 6 Oct 31 12:53 a
+[exit 0]
+##### O8: a read-only lower with an overlay on top (the base mounted :ro,O is refused or fine?)
+$ pv run --rm --http-proxy=false --network=host -v /tmp/base:/work:ro,O,upperdir=/mnt/t/u3,workdir=/mnt/t/w3 docker.io/library/busybox:latest sh -c echo x > /work/x; echo "write exit $?"
+Error: can't use 'O' with other options
+[exit 125]
+##### O9: two containers at the same time, same base, different uppers
+A sees: A; B sees: B
+##### O10: a directory rename inside the overlay (the redirect_dir / EXDEV question)
+$ pv run --rm --http-proxy=false --network=host -v /tmp/base:/work:O,upperdir=/mnt/t/u4,workdir=/mnt/t/w4 docker.io/library/busybox:latest sh -c mv /work/dir1 /work/dir1b; echo "mv exit $?"; ls /work /work/dir1b
+mv exit 0
+/work:
+dir1b
+dir2
+top.txt
+/work/dir1b:
+a
+[exit 0]
+$ find /mnt/t/u4 | sort | head -12
+/mnt/t/u4
+/mnt/t/u4/dir1
+/mnt/t/u4/dir1b
+/mnt/t/u4/dir1b/a
+[exit 0]
+##### O11: the same rename with a tool that falls back (busybox mv copies on EXDEV? cp -r then rm)
+$ pv run --rm --http-proxy=false --network=host -v /tmp/base:/work:O,upperdir=/mnt/t/u5,workdir=/mnt/t/w5 docker.io/library/busybox:latest sh -c cp -a /work/dir2 /work/dir2b && rm -rf /work/dir2; ls /work
+dir1
+dir2b
+top.txt
+[exit 0]
+##### O12: a 1 GiB, 20000-file base: time for the mount at container start, writes and the reset
+$ du -sh /mnt/t/big | tail -1; find /mnt/t/big -type f | wc -l
+1016M	/mnt/t/big
+20000
+[exit 0]
+container start with a 20000-file lower: 0.18 s
+200 appends (copy-up) + 1 delete: 0.20 s
+$ echo "upper: files $(find /mnt/t/ub2 -type f | wc -l), whiteouts $(find /mnt/t/ub2 -type c | wc -l)"
+upper: files 199, whiteouts 1
+[exit 0]
+   0.01 s  (exit 0)  changed paths = find upper
+   0.01 s  (exit 0)  reset = rm -rf upper and work
+##### O13: the lower tree on the memory-backed root instead of a tmpfs (lower on an overlay root is fine?)
+$ pv run --rm --http-proxy=false --network=host -v /tmp/bigroot:/work:O,upperdir=/mnt/t/ub3,workdir=/mnt/t/wb3 docker.io/library/busybox:latest sh -c echo x >> /work/pkg1/f1; ls /work | wc -l
+400
+[exit 0]
+##### memory after
+$ echo "cgroup usage: $(( $(cat /sys/fs/cgroup/memory/memory.usage_in_bytes) / 1048576 )) MiB"
+cgroup usage: 2339 MiB
+[exit 0]
+PROBE DONE
+Container called exit(0).

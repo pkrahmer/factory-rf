@@ -59,6 +59,7 @@ line names its evidence: `P1` to `P8` are the probes in `probes/`, their output 
 | Other volume types | documented, not tested | `in-memory` (size-limited, counts as memory), `cloud-storage` (Cloud Storage FUSE bucket), `nfs` (server:/path). | CLI help |
 | Filesystems the kernel knows | list | `ext3 ext4 squashfs erofs overlay fuse fuseblk fusectl 9p virtiofs ceph nfs nfs4 cifs smb3 btrfs tmpfs ramfs hugetlbfs` and the pseudo filesystems. No `xfs`, no `zfs`. | P4 |
 | Mount an image file (ext4, xfs, btrfs) | no | `mount -o loop` fails: no loop control device. btrfs exists in the kernel but cannot be reached without a block device. | P4 |
+| btrfs on the ephemeral disk's block device | no | `findmnt` shows `/dev/mapper/md0`, but the node does not exist inside the job (`/dev/mapper` and `/dev/md*` absent, `lsblk` lists only nbd/pmem stubs), `umount /disk` says "not mounted", `mkfs.btrfs` cannot open the device, `mount -t btrfs` is denied. | P12 |
 | ZFS | no | Not in `/proc/filesystems`, no module. | P4, P6 |
 | Reflink copies | no | "Operation not supported" on the root and on ext4. | P4, P8 |
 | `drop_caches` | no | Writing to `/proc/sys/vm/drop_caches` is denied. | P8 |
@@ -161,6 +162,7 @@ ephemeral disk (P8). The factory's interface has three operations: reset, advanc
 | Reflink copy | n/a | n/a | n/a | **no**: not supported |
 | Kernel overlay, upper and work on a tmpfs | 0.01 s | 0.08 s (apply whiteouts, rsync the upper) | 0.00 s: list the upper layer; deletions are character-device whiteouts | **yes, best on memory** |
 | Kernel overlay, all on the ephemeral disk | 0.06 s | not timed | the upper layer | **yes, best for size** (10 GiB limit) |
+| Podman overlay volume `-v base:/work:O,upperdir=U,workdir=W` (U and W on a tmpfs) | 0.01 s (`rm -rf` the upper) | none needed: the base is written by the sync step, not by the agent | 0.01 s: `find` the upper (files, whiteouts as character devices) | **yes, the best fit** (P11) |
 | fuse-overlayfs | about 0.16 s per 200 writes | not timed | the upper layer | works, slower than the kernel overlay |
 | tar archive as base | 1.84 s extract (disk: 4.95 s) | 1.30 s pack (disk: 4.63 s) | none | works, no diff |
 | Loop-mounted ext4, xfs, btrfs image | n/a | n/a | n/a | **no**: no loop devices |
@@ -193,3 +195,37 @@ decide what can be built there, independently of the platform's technical limits
 - People hold operator roles; the roles that create resources belong to pipeline service accounts, and a
   small set of impersonation grants is the sanctioned way for a person to act with them.
 - Compute Engine VMs could not be created by people in the project.
+
+## 11. A model API and opencode (partial: the key was rejected)
+
+Probe P10, `results/p10-opencode-partial-key-rejected.txt`. An OpenAI-style API of the organisation (spec read
+from its OpenAPI file: `/api/v1/chat/completions`, `/models`, `/models_metadata`, `/embeddings`, `/batches`,
+`/files`; bearer-JWT authentication; the request schema has `tools`, `tool_choice`, `parallel_tool_calls`,
+`stream`, `stream_options`, `reasoning_effort`, `max_tokens`, `max_completion_tokens`).
+
+| Question | Verdict | Detail | Evidence |
+|---|---|---|---|
+| Can the job reach the internal API host? | yes | It resolves to a private address through the job's resolver; a request without a key answers 401, **directly and through the proxy** (both paths work). | P10 |
+| Does the API need the proxy? | no | The host is internal; list its domain in `NO_PROXY` so the proxy is not used for it. Not yet shown to matter. | P10 |
+| Is the secret that was tried a valid bearer token? | **no** | `401 {"Error": "Invalid Token"}` on `/models` and `/chat/completions`. The secret (40 characters) belongs to another use; how the JWT is issued is not in the spec. Nothing else was tried. | P10 |
+| Pinned opencode 1.19.3 via npm through the proxy in a Node 22 container | yes | Installed in 9 s; `opencode --version` prints 1.19.3. | P10 |
+| opencode with the provider block, streaming, tool calls, the strict result block | **untested** | Blocked by the key. The script bugs of the first run (nft syntax, a shell function called by `timeout`) are fixed in `probes/p10-opencode.sh`. | P10 |
+| Models offered, prices, context sizes | unknown | `/models` answered 401. | P10 |
+| Metadata block rule | note | The first run's rule file had a syntax error and was not applied (fixed); the same rule worked in P2b. | P10 |
+
+## 12. Podman overlay volumes (`-v SRC:DST:O`)
+
+Probe P11, `results/p11-podman-overlay-volumes.txt`. Podman 5.4.2 + runc, as root, host network.
+
+| Question | Verdict | Detail | Evidence |
+|---|---|---|---|
+| Explicit `upperdir` and `workdir` on a tmpfs | **yes** | The container sees base plus its changes at the mount target; the base directory is never written; the upper holds added and modified files and a character-device whiteout for each deletion; a new directory appears as a directory. | P11 O4, O5 |
+| Default upper (no `upperdir`) | partly | Fails with a `vfs` or overlay graph root on the memory-backed root (an overlay cannot sit on the root overlay); works when the graph root is on a tmpfs. Always give `upperdir` and `workdir`. | P11 O1, O2, O3 |
+| Reset | free | Discard the upper and work directories; the next container sees the base again. | P11 O6, O12 |
+| The factory's flags with an overlay volume | yes | `--cap-drop=all --security-opt=no-new-privileges --pids-limit --memory --user 1000:1000`: works; files copied up keep the numeric owner. | P11 O7 |
+| `:ro,O` together | no | "can't use 'O' with other options". | P11 O8 |
+| Two containers at once on one base, different uppers | yes | Each sees only its own writes. | P11 O9 |
+| Rename of a directory inside the overlay | yes (busybox `mv`) | `mv dir1 dir1b` exit 0; the upper holds a whiteout for `dir1` and a copy as `dir1b`. GNU `mv` and other tools were not tried. | P11 O10, O11 |
+| Cost on a 1 GiB, 20000-file base | small | Container start 0.18 s, 200 appends plus one delete 0.20 s, 199 files and 1 whiteout in the upper, `find` 0.01 s, reset 0.01 s. | P11 O12 |
+| Lower tree on the memory-backed root | yes | Only the upper and work directories need the tmpfs or the disk. | P11 O13 |
+| Opaque directories (a directory deleted and recreated) | untested | The take would have to read `trusted.overlay.opaque`; the probe's list showed none because none were created. | P11 O5 |

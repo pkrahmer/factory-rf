@@ -1,0 +1,55 @@
+== creating probe-btrfs-device (docker.io/library/debian:trixie-slim, 4 cpu, 8Gi, gen2)
+== execution probe-btrfs-device-qtwcd
+== final state: [	1		2026-10-31T12:56:54.642883Z] (running, succeeded, failed, completion)
+Execution completed successfully in 1m24.6s.
+##### the device behind /disk
+$ findmnt /disk; ls -l /dev/mapper/ /dev/md* 2>&1 | head -6; lsblk 2>&1 | head -10; cat /proc/filesystems | grep -c btrfs
+TARGET SOURCE          FSTYPE OPTIONS
+/disk  /dev/mapper/md0 ext4   rw,relatime,stripe=512
+ls: cannot access '/dev/mapper/': No such file or directory
+ls: cannot access '/dev/md*': No such file or directory
+NAME    MAJ:MIN RM  SIZE RO TYPE  MOUNTPOINTS
+nbd0     43:0    0    0B  0 disk  
+nbd1     43:32   0    0B  0 disk  
+nbd2     43:64   0    0B  0 disk  
+nbd3     43:96   0    0B  0 disk  
+nbd4     43:128  0    0B  0 disk  
+nbd5     43:160  0    0B  0 disk  
+nbd6     43:192  0    0B  0 disk  
+nbd7     43:224  0    0B  0 disk  
+pmem1   259:0    0  256M  0 disk  
+1
+[exit 0]
+device: /dev/mapper/md0
+##### can we write to the device node and create nodes (CAP_MKNOD is missing)?
+$ ls -l /dev/mapper/md0; test -b /dev/mapper/md0 && echo block-device-visible || echo NOT-A-BLOCK-DEVICE-HERE
+ls: cannot access '/dev/mapper/md0': No such file or directory
+NOT-A-BLOCK-DEVICE-HERE
+[exit 0]
+##### unmount /disk
+$ umount /disk
+umount: /disk: not mounted.
+[exit 32]
+$ findmnt /disk || echo "/disk is no longer mounted"
+TARGET SOURCE          FSTYPE OPTIONS
+/disk  /dev/mapper/md0 ext4   rw,relatime,stripe=512
+[exit 0]
+##### mkfs.btrfs on the device
+$ mkfs.btrfs -f /dev/mapper/md0
+ERROR: mount check: cannot open /dev/mapper/md0: No such file or directory
+WARNING: forced overwrite but cannot check mount status of /dev/mapper/md0: No such file or directory
+ERROR: zoned: unable to stat /dev/mapper/md0
+ERROR: failed to check size for /dev/mapper/md0: No such file or directory
+btrfs-progs v6.14
+See https://btrfs.readthedocs.io for more information.
+[exit 1]
+##### mount it as btrfs
+$ mount -t btrfs /dev/mapper/md0 /mnt/b
+mount: /mnt/b: permission denied.
+       dmesg(1) may have more information after failed mount system call.
+[exit 32]
+$ findmnt /mnt/b; df -hT /mnt/b | tail -1
+none           overlay  8.0G   30M  8.0G   1% /
+[exit 0]
+PROBE DONE
+Container called exit(0).

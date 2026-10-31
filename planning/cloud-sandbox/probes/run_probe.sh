@@ -10,6 +10,12 @@
 #   PROBE_RUN_AS       (optional) the service account the job runs as (default: the project's default)
 #   PROBE_CONNECTOR    (optional) a serverless VPC connector, full resource name
 #   PROBE_PROXY        (optional) an HTTP proxy URL the job's scripts use for downloads
+#   PROBE_NO_PROXY     (optional) hosts that must NOT use the proxy (for example an internal API domain)
+#   PROBE_LLM_BASE_URL (optional) base URL of an OpenAI-compatible API, for the opencode probe
+#   PROBE_TOKEN_URL    (optional) an OAuth2 token endpoint (client-credentials grant) for the API
+#   PROBE_TOKEN_SCOPE  (optional) the scope to request there
+#   PROBE_CLIENT_ID    (optional) the client id; the client secret arrives as LLM_KEY (a mounted secret)
+#   PROBE_MODEL        (optional) a model id to use; otherwise the probe chooses
 #   PROBE_EXTRA_ARGS   (optional) more arguments for `gcloud run jobs create`, split on spaces
 #                      (for example a volume: --add-volume=name=d,type=ephemeral-disk,size=10Gi ...)
 #
@@ -27,7 +33,7 @@ common=(--project="$PROBE_PROJECT" --region="$region" "${impersonate[@]}")
 payload=$(cat "$here/lib.sh" "$here/$script" | gzip -9 | base64 | tr -d '\n')
 create=(gcloud run jobs create "$job" "${common[@]}" --image="$image"
   --execution-environment="$gen" --cpu="$cpu" --memory="$memory" --max-retries=0 --task-timeout=1500
-  --set-env-vars="PROBE_PROXY=${PROBE_PROXY:-}"
+  --set-env-vars="^@^PROBE_PROXY=${PROBE_PROXY:-}@PROBE_NO_PROXY=${PROBE_NO_PROXY:-}@PROBE_LLM_BASE_URL=${PROBE_LLM_BASE_URL:-}@PROBE_MODEL=${PROBE_MODEL:-}@PROBE_TOKEN_URL=${PROBE_TOKEN_URL:-}@PROBE_TOKEN_SCOPE=${PROBE_TOKEN_SCOPE:-}@PROBE_CLIENT_ID=${PROBE_CLIENT_ID:-}"
   --command=sh --args="-c,echo $payload | base64 -d | gzip -d > /tmp/probe.sh; sh /tmp/probe.sh")
 [ -n "${PROBE_RUN_AS:-}" ] && create+=(--service-account="$PROBE_RUN_AS")
 [ -n "${PROBE_EXTRA_ARGS:-}" ] && create+=($PROBE_EXTRA_ARGS)

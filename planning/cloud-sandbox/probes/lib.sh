@@ -26,7 +26,7 @@ sh_run() {
 setup_env() {
   if [ -n "${PROBE_PROXY:-}" ]; then
     export http_proxy="$PROBE_PROXY" https_proxy="$PROBE_PROXY" HTTP_PROXY="$PROBE_PROXY" HTTPS_PROXY="$PROBE_PROXY"
-    export no_proxy="169.254.169.254,metadata.google.internal,localhost,127.0.0.1"
+    export no_proxy="169.254.169.254,metadata.google.internal,localhost,127.0.0.1${PROBE_NO_PROXY:+,$PROBE_NO_PROXY}"
     export NO_PROXY="$no_proxy"
     if [ -d /etc/apt/apt.conf.d ]; then
       echo "Acquire::http::Proxy \"$PROBE_PROXY\"; Acquire::https::Proxy \"$PROBE_PROXY\";" > /etc/apt/apt.conf.d/99proxy

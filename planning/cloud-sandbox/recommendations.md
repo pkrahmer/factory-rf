@@ -26,11 +26,12 @@ Not recommended: Podman 4.3 (works, old), Podman 6 and any crun (refuse the plat
 
 ## Snapshots
 
-1. **Kernel overlayfs, upper layer on a tmpfs (S1).** Reset 0.01 s, the diff is the upper layer; counts as memory.
-2. **Overlayfs on the ephemeral disk (S2).** Reset 0.06 s; 10 GiB, 210 MB/s ceiling. For large checkouts.
-3. **Plain copy or rsync (S3).** 1.6 s reset per GiB; the fallback.
+1. **Podman overlay volume with an explicit upper layer (S5, `-v base:/work:O,upperdir=...,workdir=...`).** Measured in P11: the base is never written, reset is deleting a directory (0.01 s), the take reads the upper layer, it works with the factory's flags and a numeric user, and two containers can share one base. Upper and work directories on a tmpfs (or the ephemeral disk). Open: tools other than busybox `mv` for directory renames, and opaque directories.
+2. **Kernel overlayfs mounted by the factory, upper layer on a tmpfs (S1).** Same idea without podman doing the mount; reset 0.01 s. Use it if the engine is not podman.
+3. **Overlayfs on the ephemeral disk (S2).** Reset 0.06 s; 10 GiB, 210 MB/s ceiling. For large checkouts.
+4. **Plain copy or rsync (S3).** 1.6 s reset per GiB, simplest, the fallback. Both a copy and an overlay need memory for the base.
 
-Hard links, reflinks, loop images, btrfs and ZFS do not work here.
+Hard links, reflinks, loop images, btrfs (also on the ephemeral disk's device) and ZFS do not work here.
 
 ## The per-step design (option 5) in more detail
 
@@ -87,7 +88,7 @@ that holds only `run.jobs.run`.
 ## Suggested order of work
 
 1. Ask for the VM route and the platform answers in `offline-planning.md` in parallel.
-2. If the VM stays closed: option 2 with S1 as one feature (a "job profile" for `PodmanRuns`, an overlay
+2. If the VM stays closed: option 2 with S5 (podman overlay volumes) as one feature, S3 (copy) as the fallback (a "job profile" for `PodmanRuns`, an overlay
    `Snapshots` adapter, a metadata-block step with a preflight proof, a start-up recipe), built by the factory
    itself, public defaults unchanged.
 3. Before relying on it, run one real story in a job and add what it shows to `results/`.

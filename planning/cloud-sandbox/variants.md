@@ -30,7 +30,8 @@ paths the role may write. The seams in the code are two interfaces, `Snapshots` 
 | S1 | Snapshot: overlayfs, upper on a tmpfs | **yes** | Fastest; counts against memory. |
 | S2 | Snapshot: overlayfs on the ephemeral disk | **yes** | 10 GiB cap; real disk. |
 | S3 | Snapshot: plain copy or rsync | works | Simple; 1.6 s per GiB. |
-| S4 | Snapshot: hard links, reflinks, loop images, btrfs, ZFS | **no** | See `capabilities.md` section 8. |
+| S5 | Snapshot: podman `:O` overlay volume with `upperdir` on a tmpfs | **yes, preferred** | No reset step, the upper layer is the take's list; needs the container engine of V1/V2. |
+| S4 | Snapshot: hard links, reflinks, loop images, btrfs (also on the disk's device), ZFS | **no** | See `capabilities.md` section 8 and P12. |
 
 ## V1. Podman 5.4 + runc, root, host network
 
@@ -156,6 +157,16 @@ sandbox, kernel and filesystem. Design notes, none measured:
   kernel modules (so no ZFS), no non-containerised processes, Docker rather than Podman (documented).
 
 ## Snapshot variants
+
+**S5 is now the preferred one** (measured in P11): give each agent container its own overlay view of the base,
+`-v <base>:/work:O,upperdir=<tmpfs>/<run>/upper,workdir=<tmpfs>/<run>/work`. The base is only ever written by
+the sync step; the agent writes into the upper layer; after the run the factory reads the upper layer (files =
+added or modified, character devices = deleted) for the take and removes it. Reset and the diff walk
+disappear, and `advance` becomes "the sync step ran". The checks can take the same view, copy the taken files
+into a fresh upper, and run. Always pass `upperdir` and `workdir` (the default upper fails on the memory-backed
+root), do not combine `:ro` with `O`, and keep both directories on a tmpfs or the ephemeral disk. Open:
+directory renames with tools other than busybox `mv`, opaque directories in the take, and how the sync step
+(which writes the base) coexists with running checks.
 
 The measured numbers are in `capabilities.md` section 8. The recommendation by situation:
 
