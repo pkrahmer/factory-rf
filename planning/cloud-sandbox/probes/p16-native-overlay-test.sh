@@ -47,9 +47,37 @@ RUN="$P run --rm --http-proxy=false --network=host --cap-drop=all --security-opt
 s=$(date +%s)
 timeout 420 $RUN --timeout 420 factory-stage:probe make sync > /tmp/sync.log 2>&1; rc=$?
 echo "make sync exit $rc after $(since $s)"; tail -2 /tmp/sync.log | cut -c1-200
+# A watch added at work (2026-10-31): every 5 s the CPU use of the whole job (/proc/stat), the load average, the
+# number of xdist worker processes, the number of busy python processes and the cgroup's memory; and the
+# cgroup's CPU throttling counters before and after. It reads only; the test run itself is unchanged.
+sh_run 'echo "cpu.stat before:"; cat /sys/fs/cgroup/cpu/cpu.stat; cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us /sys/fs/cgroup/cpu/cpu.cfs_period_us'
+cat > /tmp/sampler.sh <<'EOF'
+#!/bin/sh
+read_stat() { awk '/^cpu /{idle=$5+$6; total=0; for(i=2;i<=NF;i++) total+=$i; print idle, total}' /proc/stat; }
+prev=$(read_stat); t=0
+while [ -e /tmp/sampling ]; do
+  sleep 5; t=$((t+5)); cur=$(read_stat)
+  set -- $prev $cur
+  awk -v pi=$1 -v pt=$2 -v ci=$3 -v ct=$4 -v t=$t -v load="$(cut -d' ' -f1 /proc/loadavg)" \
+      -v w="$(ps -eo args= | grep -c '[e]xecnet')" -v busy="$(ps -eo pcpu=,args= | awk '$1>20 && /python/' | wc -l)" \
+      -v mem="$(( $(cat /sys/fs/cgroup/memory/memory.usage_in_bytes) / 1048576 ))" \
+      'BEGIN{d=ct-pt; printf "t=%ds cpu=%.1f%% load=%s workers=%d busy=%d mem=%d MiB\n", t, (d>0)?100*(d-(ci-pi))/d:0, load, w, busy, mem}'
+  prev=$cur
+done
+EOF
+touch /tmp/sampling; sh /tmp/sampler.sh > /tmp/samples.log 2>&1 &
+SP=$!
 s=$(date +%s)
 timeout 900 $RUN --timeout 900 factory-stage:probe make test > /tmp/test.log 2>&1; rc=$?
 echo "make test exit $rc after $(since $s)"
+rm -f /tmp/sampling; sleep 6; kill $SP 2>/dev/null
+sh_run 'echo "cpu.stat after:"; cat /sys/fs/cgroup/cpu/cpu.stat'
+echo "--- the watch, summarised:"
+awk '{ for(i=1;i<=NF;i++){ if($i ~ /^cpu=/){v=$i; sub("cpu=","",v); sub("%","",v); c+=v; n++; if(v+0>m)m=v+0; if(v+0<80)low++ } if($i ~ /^workers=/){w=$i; sub("workers=","",w); if(w+0>mw)mw=w+0} if($i ~ /^mem=/){mm=$i; sub("mem=","",mm); if(mm+0>mx)mx=mm+0} } }
+END{ printf "samples %d, average cpu %.1f%%, peak %.1f%%, samples below 80%% cpu: %d, most workers seen %d, peak mem %d MiB\n", n, c/n, m, low, mw, mx }' /tmp/samples.log
+echo "--- first 8 samples:"; head -8 /tmp/samples.log
+echo "--- every 10th sample:"; awk 'NR%10==0' /tmp/samples.log | head -20
+echo "--- last 8 samples:"; tail -8 /tmp/samples.log
 echo "--- the test target's last lines:"; grep -v -i "level=warning" /tmp/test.log | tail -6 | cut -c1-240
 echo "--- failed tests and their E lines (first 40 lines):"; grep -E "^FAILED|^ERROR|^E  " /tmp/test.log | head -40 | cut -c1-240
 s=$(date +%s)

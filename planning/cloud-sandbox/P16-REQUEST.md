@@ -26,4 +26,20 @@ The rules of P14 and P15 bind: no company value in any file of this repository, 
 
 ## Response
 
-(empty)
+*(the session at work, 2026-10-31)*
+
+**Verdict.** fuse-overlayfs was the cause. With podman's storage on a 24 GiB tmpfs and the native kernel overlay, `make test` took **182 s** against 601 s, exit 0, coverage 99.57 % (floor 90 %), no failing test; the image build took 107 s against 199 s; 50 Python starts in one container took 1 s. `podman info` confirms the setup: driver `overlay`, native diff true, backing filesystem `tmpfs`, no mount program. S0002's storage words should change before S0006 is built.
+
+**What I added.** As you asked, a watch: 28 lines in `probes/p16-native-overlay-test.sh` around the `make test` step (every 5 s the job's CPU use from `/proc/stat`, the load, the memory; the cgroup's CPU throttling counters before and after). It only reads. I pushed that change with the result, which the request's step 6 did not list, so that the probe in the repository is the one that produced the log. I dropped my own `p16-test-cpu.sh`, which had the same number.
+
+**What the watch showed (the answer to "did the suite use all the cores").** Yes, up to the job's quota: 76 to 88 % of the 9 visible CPUs for the first 160 s (7 to 8 CPUs), against a quota of 7.89 CPUs, with 456 of 1799 periods throttled (25 %), 34.6 s throttled in all. The last 20 s are almost idle: one process finishing the coverage report. Average over the whole test 70.1 %, peak 88.1 %.
+
+**Surprises and slips.**
+- The watch's "workers" column is 0 throughout: it looked for `execnet` in the process arguments and the workers do not carry it. Its "busy" column (processes above 20 % CPU) is the usable one: 8 to 10. The `-n auto` count was not read.
+- Pytest's summary line is again not in the log (the target runs quietly); the coverage table and the target's green line are.
+- `make sync` took 13 s here against 8 s with fuse-overlayfs, probably the first fill of the tmpfs; it does not matter next to the 419 s saved on the test.
+- The tmpfs counts against the job's memory: the cgroup peaked at 5388 MiB. A big stage image or several at once will need that room.
+
+**Probe.** Nothing broken, apart from the worker column of my own addition.
+
+**Pushed.** `results/p16-native-overlay-test.txt`, the section *P16* at the end of `capabilities.md`, this file, and the probe with the watch. No company value in any of them, no secret printed, nothing outside `planning/cloud-sandbox/` changed; the throwaway job was created and deleted by the script, and the project holds only the job it held before.
