@@ -16,13 +16,13 @@ WORK_HOME = "/work/home"
 # Node, OpenSSL and Python's requests each read the CA bundle from one of these.
 CA_BUNDLE_NAMES = ("NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE")
 # Podman's global options in a managed sandbox such as a Cloud Run job: crun refuses its hybrid
-# cgroups where runc accepts them, and podman's overlay storage on an overlay root filesystem
-# needs a mount program.
+# cgroups where runc accepts them, and `overlay` makes podman refuse an unsuitable storage root
+# instead of falling back to a slower driver. The machine puts that root where the kernel's own
+# overlay accepts it, a tmpfs in a job, since a userspace overlay made the tests too slow there.
 JOB_PODMAN_OPTIONS: tuple[str, ...] = (
     "--runtime=runc",
     "--cgroup-manager=cgroupfs",
     "--storage-driver=overlay",
-    "--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs",
 )
 # The instance id is the metadata server's smallest answer; `000` means curl could not connect.
 METADATA_PROBE_URL = "http://169.254.169.254/computeMetadata/v1/instance/id"

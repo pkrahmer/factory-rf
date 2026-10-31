@@ -158,7 +158,7 @@ Measured on 2026-10-24 on the local VM (Ubuntu 24.04, podman 4.9.3, rootless as 
 
 `profile` is `FACTORY_CONTAINER_PROFILE` (`InstanceSettings.container_profile`, passed by `_container_adapters` in `factory.entry.wiring`): `rootless`, the default, builds every word as described above; `job` is for a managed sandbox such as a Cloud Run job (the operator guide, *The job profile*, has the measured reasons). It changes two things and nothing else:
 
-- `JOB_PODMAN_OPTIONS` (`factory.domain.containers`: `--runtime=runc`, `--cgroup-manager=cgroupfs`, `--storage-driver=overlay`, `--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs`) go right after the executable, before `run`, in `launch`, `version` and `image_exists`, and in the command text of a `ContainerError`.
+- `JOB_PODMAN_OPTIONS` (`factory.domain.containers`: `--runtime=runc`, `--cgroup-manager=cgroupfs`, `--storage-driver=overlay`; three words, no mount program, the storage's place being the machine's) go right after the executable, before `run`, in `launch`, `version` and `image_exists`, and in the command text of a `ContainerError`.
 - In `launch`, `--userns=keep-id` gives way to `--http-proxy=false --network=host` (`_isolation_words`). All other words keep their order, so a `job` launch reads `<executable> <options> run --rm --http-proxy=false --network=host --timeout <seconds> --cap-drop=all ...`. It has no `--user` either: the container runs as the job's root.
 
 Mounts, the grace, the reading of the end (255 at or after the limit is the time limit) and the `ValueError` rules are the same in both profiles. Tests: `tests/adapters/test_podman_runs_job_profile.py`.

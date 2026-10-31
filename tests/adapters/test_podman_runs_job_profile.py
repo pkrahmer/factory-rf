@@ -19,8 +19,8 @@ JOB_WORDS = [
     "--runtime=runc",
     "--cgroup-manager=cgroupfs",
     "--storage-driver=overlay",
-    "--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs",
 ]
+MOUNT_PROGRAM_WORDS = ("mount_program", "fuse-overlayfs")
 
 
 @pytest.fixture
@@ -126,6 +126,45 @@ def _image_exists(runs: PodmanRuns) -> object:
     return runs.image_exists()
 
 
+def _launched_words(runs: PodmanRuns, _podman: Podman) -> list[str]:
+    return _launch_words(runs, ["make", "check"], [])
+
+
+def _version_words(runs: PodmanRuns, podman: Podman) -> list[str]:
+    podman.plan(PodmanPlan(stdout="podman version 5.4.2\n"))
+    runs.version()
+    [call] = podman.calls()
+    return call.arguments
+
+
+def _image_exists_words(runs: PodmanRuns, podman: Podman) -> list[str]:
+    podman.plan(PodmanPlan())
+    runs.image_exists()
+    [call] = podman.calls()
+    return call.arguments
+
+
+@pytest.mark.parametrize(
+    "words",
+    [
+        pytest.param(_launched_words, id="launch"),
+        pytest.param(_version_words, id="version"),
+        pytest.param(_image_exists_words, id="image-exists"),
+    ],
+)
+def test_a_job_runner_names_no_mount_program(
+    podman: Podman, tmp_path: Path, words: Callable[[PodmanRuns, Podman], list[str]]
+) -> None:
+    # The queries run podman in the workspace, so it must exist.
+    job_runs = PodmanRuns(str(podman.path), IMAGE, tmp_path, profile="job")
+
+    assert [
+        word
+        for word in words(job_runs, podman)
+        if any(name in word for name in MOUNT_PROGRAM_WORDS)
+    ] == []
+
+
 @pytest.mark.parametrize(
     ("query", "arguments", "plan", "expected"),
     [
@@ -214,4 +253,4 @@ def test_a_job_run_reads_its_end_as_the_rootless_one(
     assert result.timed_out is timed_out
     assert result.exit_status == expected_status
     [request] = podman_recorder.requests
-    assert request.argv[1:5] == JOB_WORDS
+    assert request.argv[1 : 1 + len(JOB_WORDS)] == JOB_WORDS

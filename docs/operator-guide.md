@@ -363,20 +363,22 @@ What the sandbox lacks, measured on 2026-10-31 with Podman 5.4:
 
 - Rootless Podman is impossible: the job's root has `NoNewPrivs`, so `newuidmap` cannot map a user namespace.
 - The cgroup layout is hybrid. `crun` and Podman 6 refuse it; `runc` accepts it.
-- The root file system is an overlay, and Podman's overlay storage on top of it needs a mount program.
+- The root file system is an overlay, and Podman's overlay storage cannot sit on top of it.
 - No bridge network reaches the outside.
 - Podman copies the job's proxy variables into every container.
 
-The profile therefore puts four global options in front of every `podman` command, `launch`, `version` and `image exists` alike, and swaps the isolation words of `run`:
+The profile therefore puts three global options in front of every `podman` command, `launch`, `version` and `image exists` alike, and swaps the isolation words of `run`:
 
 | Word | Why |
 | --- | --- |
 | `--runtime=runc` | `crun` refuses the hybrid cgroups |
 | `--cgroup-manager=cgroupfs` | the cgroup manager measured to work with `runc` in the job |
-| `--storage-driver=overlay` and `--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs` | overlay storage on an overlay root needs `fuse-overlayfs`, which the image must hold at that path |
+| `--storage-driver=overlay` | Podman uses the kernel's native overlay and refuses to start on an unsuitable storage root instead of falling back to a slower driver |
 | `--network=host` | a bridge reaches nothing; the container shares the job's network |
 | `--http-proxy=false` | the job's proxy variables are not copied into the container (name the ones you want in `FACTORY_CONTAINER_ENV`) |
 | no `--userns=keep-id` | rootless is impossible here |
+
+Podman's storage root must be on a filesystem the kernel's overlay accepts as its upper layer. In a job, whose root file system is itself an overlay, that is a tmpfs (the start script mounts one at Podman's storage root). The factory names no mount program: a userspace overlay (`fuse-overlayfs`) passes every file read from an image through a daemon, and measured on 2026-10-31 (`planning/cloud-sandbox/`, P15 and P16) `make test` took 601 s with it in a job of eight CPUs against 182 s with the native overlay on a tmpfs, and the image build 199 s against 107 s. A tmpfs is memory: the image layers and the containers' writes then count against the job's memory, so size the job for them.
 
 The container runs as the job's root with every capability dropped (`--cap-drop=all`). `--security-opt=no-new-privileges`, `--pids-limit`, `--memory`, `--timeout` and the mounts are those of `rootless`, and a container ended by `--timeout` still exits with status 255, read as the time limit as before. Files a container writes to `/work` belong to root, which is the job's own user.
 
