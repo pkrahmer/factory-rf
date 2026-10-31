@@ -398,3 +398,30 @@ Probe `p20-github-reachability.sh`, result `results/p20-github-reachability.txt`
 - **Needs the proxy.** Direct access fails and the job cannot resolve `github.com` by itself, so the runtime's git and PyGithub calls must go through the proxy (as the stage's other network calls already do). Git honours `https_proxy`; PyGithub (requests) honours it too.
 - **The job could read the secret.** The job's run-as identity was allowed to read the mounted secret, so a secret mount works for a token the runtime needs.
 - **Not tested.** A push, a pull-request create or a merge from the job (the token had the rights, nothing was written); a fine-grained token scoped to one repository (the run used a classic token); the organisation's SSO or IP allow-list effects (none appeared).
+
+## P21: the trial project in a job (2026-10-31)
+
+Probe `p21-demo-project-in-a-job.sh`, result `results/p21-demo-project-in-a-job.txt`. One job of 8 vCPU and 32 GiB, 3 min 47 s in all, with a classic personal token mounted as `GIT_TOKEN` (the factory's own fine-grained token does not exist yet, so this is **not** the token the factory will use), through the proxy.
+
+- **The seeded repository.** Before the request's *First* step it held the demo project (copied earlier the same day, before the `sync` target), plus the `LICENSE` the repository was created with: not the template. Two files differed from the current demo (`Makefile` and `factory/pipeline.yml`, the `sync` fix). Its `main` now holds exactly the files of `demo/todo-service/project` at factory-rf's `13f992c2d` (the `LICENSE` removed, as the request words it); `diff -r` (without `.git` and tool caches) showed no difference.
+
+| Item | Result |
+|---|---|
+| Clone, through the proxy | 12 files; has `factory/pipeline.yml`, `factory/story-form.md`, `Makefile`, `uv.lock`: all four; targets `check`, `lint`, `test`, `sync`: 4 of 4 |
+| Stage image build | exit 0 in 115 s |
+| `make sync` | exit 0 in 12 s |
+| `make -k check` | exit 0 in **12 s**: lint 0.1 s, types 1.2 s, layers 0.5 s, sast 4.9 s, secrets 0.8 s, licenses 0.5 s, test 4.2 s, all green; coverage 100 % (floor 90 %); no failed test; `detect-secrets` flagged nothing |
+| Part B: push of a new branch | exit 0 in 2 s |
+| Create a draft pull request | 201 |
+| "Ready for review" by `PATCH {"draft": false}` | 200, **but the pull request stayed a draft**: the REST update ignores `draft`; marking ready needs the GraphQL mutation `markPullRequestReadyForReview` (or creating the pull request as ready) |
+| Add a label / remove it | 200 / 200 |
+| Post a comment / list the comments | 201 / 200, one comment with an author |
+| Read the pull request | 200, `mergeable_state` clean, state open |
+| Close / reopen / close again | 200 / 200 / 200 |
+| Delete the label from the repository | 204 |
+| Delete the branch | exit 0; 0 `probe/` branches left |
+
+- **Left over (checked through the API afterwards).** Only `main` exists, no open pull request, no label `p21-...`; one closed draft pull request stays in the history.
+- **The demo is tiny.** It holds no product code yet, so pytest ran no tests (`no tests ran`) and coverage reads 100 %; the 12 s for the whole check says nothing about a real story's check time (factory-rf's own suite took 182 s in P16).
+- **Finding for the hosting adapter (R10).** The factory's "create as draft or ready" is safe at creation (`draft` in the create call), but **converting a draft to ready cannot use the REST update**: it answers 200 and changes nothing. A step that marks a pull request ready (S0006 or the hosting adapter) must use GraphQL, or open the pull request as ready.
+- **Verdict.** The demo project is ready for the trial: `make sync` and every check target are green in the stage image in a job, and the write path (push, create, label, comment, read, close, reopen, delete) answers 2xx with this token, with one exception, the draft-to-ready update, which silently does nothing over REST. Whether a fine-grained token limited to the repository suffices is still open.

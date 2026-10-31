@@ -1,0 +1,61 @@
+== creating probe-demo-project (docker.io/library/debian:trixie-slim, 8 cpu, 32Gi, gen2)
+== execution probe-demo-project-jwnc2
+== final state: [	1		2026-10-31T19:22:56.484276Z] (running, succeeded, failed, completion)
+Execution completed successfully in 3m47.54s.
+##### inputs (presence only)
+GIT_TOKEN set: yes; repository given: yes
+token kind: ghp_
+##### A1: the demo project, cloned with the token through the proxy
+clone: 12 files, at 4b887e3
+has factory/pipeline.yml: yes
+has factory/story-form.md: yes
+has Makefile: yes
+has uv.lock: yes
+Makefile targets check, lint, test, sync: 4 of 4
+##### A2: runc 1.5.2, podman storage on a tmpfs, the stage image (S0006, S0009)
+tmpfs mount exit 0
+stage image build exit 0 after 115 s
+##### A3: the demo's make sync and make check in containers of the stage image
+make sync exit 0 after 12 s
+ + wrapt==1.17.3
+ + zipp==4.1.1
+sync: green (11.2 s)
+make -k check exit 0 after 12 s
+--- every target's line:
+lint: green (0.1 s)
+types: green (1.2 s)
+layers: green (0.5 s)
+sast: green (4.9 s)
+secrets: green (0.8 s)
+licenses: green (0.5 s)
+test: green (4.2 s)
+check: green
+--- the test target's last lines:
+1 file skipped due to complete coverage.
+Required test coverage of 90.0% reached. Total coverage: 100.00%
+no tests ran in 2.64s
+test: green (4.2 s)
+check: green
+--- failed tests and E lines (first 30):
+--- what detect-secrets flagged (type and place only):
+##### B: the factory's write path, on a throwaway branch (nothing touches main)
+remote:      https://github.com/<repo>/pull/new/probe/p21-687d0eb2        
+remote: 
+push of a new branch: exit 0 after 2 s
+create a draft pull request: 201 
+ready for review (draft false): 200 
+add a label: 200 
+remove the label: 200 
+post a comment: 201 
+list the comments: 200 1 comment(s), author present: true
+read the pull request's merge state: 200 mergeable_state clean, state open
+close it: 200 
+reopen it: 200 
+close it again: 200 
+delete the label from the repository: 204 
+delete the branch: exit 0
+branches named probe/ left: 0
+total 161 s
+VERDICT: the demo project is ready for the trial if make sync and every check target are green in the stage image, and the token suffices if every step of B answers 2xx (201 for creates, 200 for reads and updates, 204 or 200 for deletes) and no probe/ branch is left. A 403 or 404 in B names the permission the token lacks.
+PROBE DONE
+Container called exit(0).
