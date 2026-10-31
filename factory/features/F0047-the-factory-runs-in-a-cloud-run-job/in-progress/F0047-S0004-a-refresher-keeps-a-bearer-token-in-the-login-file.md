@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 485
-comments_read: [6547461929]
+comments_read: [6547461929, 6547499303]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 99abe17cb5844bb88c91d9f4c25c1923
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-31T18:34:47.752318Z'
+  stage: tests
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -184,3 +189,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - `tests/entry/test_refresh_token.py`
 
    A note for the coder, not a question for the tests: the Interface has `factory.application.tokens` call `replace_text`, but that function lives in `factory.adapters.atomic_file`, and the application layer may not import adapters.
+9. 2026-10-31 human: Answers to question 8:
+
+   1. Your proposal: `main(argv=None, environ=os.environ, *, source: Callable[[str, str, str, str], TokenSource] | None = None, sleep: Callable[[float], None] | None = None) -> int`, with `source` defaulting to `ClientCredentialsTokenSource` and `sleep` to waiting on a `threading.Event`; `main` installs `SIGTERM` and `SIGINT` handlers that set its stop flag, checks it after each wait, and restores the previous handlers before it returns. The loop test raises the real signal from its fake `sleep`. No clock parameter.
+   2. (a): after `main` has run, `os.environ` holds neither the secret nor the token.
+
+   On your note to the coder: right, the application layer may not import `factory.adapters.atomic_file`. `TokenRefresher` takes the writer as a third constructor argument, `write: Callable[[Path, str], None]`, without a default; `factory.entry.refresh_token` passes `replace_text`. Criterion 5's tests construct it with `replace_text` (a test may import the adapter), so the file behaviour it names (no newline, replace, folder made, an `OSError` of the write becoming `TokenError("cannot write <target>: <error>")`) is tested on the real writer.
