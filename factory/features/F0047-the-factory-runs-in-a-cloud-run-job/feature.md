@@ -11,6 +11,7 @@ The hand-over note for whoever builds this is `planning/cloud-sandbox/HANDOVER-F
 - `FACTORY_SNAPSHOTS=copy` and `FACTORY_SNAPSHOT_BASE`: `CopySnapshots`, which `FakeSnapshots` becomes a thin subclass of (S0001).
 - `FACTORY_CONTAINER_PROFILE=job`: the `podman` words of a root engine on the host network, runc, fuse-overlayfs storage, no `--userns=keep-id` (S0002).
 - The preflight item `metadata-block` for the job profile (S0003).
+- The job profile without `fuse-overlayfs`: podman's native overlay on a tmpfs the start script mounts (S0009, S0006).
 - `python -m factory.entry.refresh_token`: client-credentials token into the login file, atomically, before it expires (S0004).
 - The credential helper's host check and `vm/setup.sh --code-url`: the factory's code from one repository, the project from another (S0005).
 - `vm/job-start.sh` and the operator guide's chapter *On Cloud Run*: first boot installs the tools, builds the stage image, blocks the metadata server, starts the refresher and `factory-run` (S0006).
@@ -34,6 +35,7 @@ The build order; start one at a time, the next when the one before is archived i
 - S0001: A snapshot adapter that copies a directory
 - S0002: The container profile `job`
 - S0003: The preflight proves that a container cannot reach the metadata server
+- S0009: The job profile stores images with the native overlay (added on 2026-10-31 after P16)
 - S0004: A refresher keeps a bearer token in the login file
 - S0005: The factory's code comes from another repository than the project, and the credential helper answers only its host
 - S0008: The idle shutdown can end the factory's process instead of powering the machine off (built before S0006, whose script sets it; added on 2026-10-31)
@@ -64,3 +66,4 @@ None. Checked against `factory/pipeline.yml`: the coder writes `src/*`, `templat
 16. The repository split keeps the names of these stories, `--code-url` and `--code-ref` with `FACTORY_CODE_URL` and `FACTORY_CODE_REF` (the human, 2026-10-31); the multi-project plan in `planning/v1.2-candidates.md`, whose step 1 this split is, takes the same names (S0005, S0006).
 17. The stage image's Debian packages follow the base image's release instead of exact versions (the human, 2026-10-31). The job rebuilds the image at every start, and Debian's mirror keeps only a package's current version, so a pinned version breaks the build at the next point release (P15 found today's pins resolving and the build taking 169 s). The base image stays pinned by digest, which fixes the Debian release; `uv`, Claude Code and opencode keep exact versions, because they shape a stage's result and their registries keep every version. A move to a new Debian release stays a deliberate change of the digest. This changes the rule of 2026-10-16 for the operating system's packages, and the VM's image with it (S0006).
 18. The idle shutdown gets a second action, `exit`, for the job (the human, 2026-10-31, for parity with the VM): `systemctl poweroff` cannot work in a job, so without it an idle job is billed until its task timeout. `exit` sets the same stop flag a `SIGTERM` sets, so the loop ends cleanly after the tick in progress and `factory-run` returns 0, which ends the execution; the job's schedule or the operator starts it again, as an operator starts a stopped VM. The default stays `poweroff`; S0006's script sets `exit` where the job gives no value. Waking the job when work arrives is not in this feature (`planning/v1.2-candidates.md`, *One job per repository*) (S0008, S0006).
+19. Decision 4 is corrected by measurement (P15, P16, 2026-10-31; decided for the human as unavoidable): podman's storage in a job uses the native kernel overlay on a tmpfs, not `fuse-overlayfs`. With FUSE the suite took 601 s (eight minutes are `check`'s limit), with the native overlay 182 s; the image build 199 s and 107 s. The factory's words drop the mount program (S0009), and the start script mounts the tmpfs at podman's storage root (S0006). The price: the image layers live in memory (the job's cgroup peaked at 5.4 GiB in P16).
