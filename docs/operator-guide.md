@@ -387,12 +387,12 @@ In a Cloud Run job a container shares the job's network (`--network=host`), and 
 The block is a firewall rule on the job's side, installed before the factory starts (the start script does it): reject TCP port 80 to that address. DNS, the proxy and everything the factory needs keep working. As an `nft` file, loaded with `nft -f <file>`:
 
 ```
-table inet metadata_block {
-    chain out {
+table inet factory_block {
+    chain blockout {
         type filter hook output priority 0; policy accept;
         ip daddr 169.254.169.254 tcp dport 80 reject
     }
-    chain forwarding {
+    chain blockfwd {
         type filter hook forward priority 0; policy accept;
         ip daddr 169.254.169.254 tcp dport 80 reject
     }
