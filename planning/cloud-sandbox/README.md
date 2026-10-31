@@ -17,6 +17,7 @@ environment-specific value from environment variables, and the stored results ar
 |---|---|
 | `capabilities.md` | The capability matrix: what the environment supports, what it refuses, with the evidence for each line. Start here for a yes/no answer. |
 | `variants.md` | Every plan variant that was tested (Podman, Docker, newer runtimes, engine-free sandboxes, snapshot replacements, the ephemeral disk), its verdict, the flags that work, and what each would mean for the factory's code. |
+| `HANDOVER-F0047.md` | For the factory instance that builds F0047 and for the human who starts its stories: the order, the rules (no company values, no cloud access from a stage), the measured facts a stage would otherwise guess, and where it is likely to stumble. |
 | `recommendations.md` | The ranked setups (platform, isolation, snapshots), the per-step design with the ephemeral-disk sharing facts and a probability estimate, and a suggested order of work. |
 | `offline-planning.md` | The numbers to plan with, a decision guide, the list of what was NOT tested, and how to re-run a probe when the platform changes. |
 | `results/` | The raw, sanitised output of every probe run (`p1` to `p13`). Quote these, do not trust summaries over them. |
