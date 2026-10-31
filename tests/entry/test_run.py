@@ -275,8 +275,12 @@ def test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_ti
     made: list[tuple[int, IdleShutdown | None]] = []
     handed: list[IdleShutdown | None] = []
 
-    def recording_of(given: InstanceSettings, boundaries: Boundaries) -> IdleShutdown | None:
-        shutdown = original_of(given, boundaries)
+    def recording_of(
+        given: InstanceSettings,
+        boundaries: Boundaries,
+        request_stop: Callable[[], None] | None = None,
+    ) -> IdleShutdown | None:
+        shutdown = original_of(given, boundaries, request_stop)
         made.append((given.idle_shutdown_minutes, shutdown))
         return shutdown
 

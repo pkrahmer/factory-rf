@@ -25,7 +25,7 @@ from factory.adapters.oauth_token import ClientCredentialsTokenSource
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.podman_runs import PodmanRuns
-from factory.adapters.power_off import SystemctlPowerOff
+from factory.adapters.power_off import ProcessExit, SystemctlPowerOff
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.adapters.pygithub_hosting import pygithub_service
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
@@ -55,7 +55,7 @@ from factory.application.handlers.run import RunHandler
 from factory.application.handlers.run_gate import RunGate
 from factory.application.hosting import HostingService
 from factory.application.idle_shutdown import IdleShutdown
-from factory.application.machine import Clock, FactoryLog, HealthStatusStore
+from factory.application.machine import Clock, FactoryLog, HealthStatusStore, PowerOff
 from factory.application.preflight import (
     MachineChecks,
     Preflight,
@@ -575,13 +575,28 @@ def build_tick(
     )
 
 
-def idle_shutdown_of(settings: InstanceSettings, boundaries: Boundaries) -> IdleShutdown | None:
-    """Return the idle shutdown `settings` ask for, on `boundaries`; `None` when it is off."""
+def idle_shutdown_of(
+    settings: InstanceSettings,
+    boundaries: Boundaries,
+    request_stop: Callable[[], None] | None = None,
+) -> IdleShutdown | None:
+    """Return the idle shutdown `settings` ask for, on `boundaries`; `None` when it is off.
+
+    Its `exit` ends the loop through `request_stop` and raises `ValueError` without one.
+    """
     if settings.idle_shutdown_minutes == 0:
         return None
     return IdleShutdown(
         timedelta(minutes=settings.idle_shutdown_minutes),
         boundaries.clock,
-        SystemctlPowerOff(),
+        _idle_power(settings, request_stop),
         boundaries.log,
     )
+
+
+def _idle_power(settings: InstanceSettings, request_stop: Callable[[], None] | None) -> PowerOff:
+    if settings.idle_shutdown_action == "poweroff":
+        return SystemctlPowerOff()
+    if request_stop is None:
+        raise ValueError("the idle shutdown's exit needs a way to stop the loop")
+    return ProcessExit(request_stop)

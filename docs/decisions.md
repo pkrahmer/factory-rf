@@ -1279,3 +1279,12 @@ Date: 2026-10-31 (F0047-S0005; decision 9 of the feature).
 - Decision: `vm/setup.sh` takes `--code-url`, the repository the factory's code and the stage image's `vm/Dockerfile` come from, default `--repository-url`. A different code url is cloned without any credential (`GIT_TERMINAL_PROMPT=0`, no `GIT_ASKPASS`, no `core.askPass`), and a clone that asks for one fails with a message. `FACTORY_REPOSITORY_URL` stays the project. The credential helper answers only a request for the host of `FACTORY_REPOSITORY_URL`.
 - Why: a company on its own enterprise host runs the factory's public code from a public repository, which that host allows no fork of; code and project are then two repositories on two hosts, and the project's token must never be offered to the code's host.
 - Rejected: a token for the code repository (the code must be public and readable without one); the helper trusting git to ask for the right host (git asks the helper for whatever host a remote names).
+
+## In a job the idle shutdown ends the process
+
+Date: 2026-10-31 (F0047-S0008; decision 18 of the feature).
+
+- Decision: `FACTORY_IDLE_SHUTDOWN_ACTION` is `poweroff` (default, unchanged) or `exit`. With `exit`, `ProcessExit` calls the stop request of the loop instead of running `systemctl`: the same flag a `SIGTERM` sets, so the scheduler ends after the tick in progress and `factory-run` returns 0, which ends a job's execution. The idle rule, the log line (`powering the machine off`, also with `exit`) and every other setting are unchanged.
+- Why: in a Cloud Run job `sudo` and `systemctl` do not exist, so an idle job would be billed until its task timeout. Ending the command is the job's equivalent of switching a VM off; the schedule or the operator starts it again.
+- The choice is made in the entry wiring, with `ProcessExit` as one more `PowerOff`; the loop's event is passed in as `request_stop`, so `exit` without one is a `ValueError`.
+- Rejected: a separate stop interface in the application layer (`PowerOff` already says what the idle shutdown needs); `exit` for every machine (a VM keeps `poweroff`); waking the job when work arrives (not in this feature).
