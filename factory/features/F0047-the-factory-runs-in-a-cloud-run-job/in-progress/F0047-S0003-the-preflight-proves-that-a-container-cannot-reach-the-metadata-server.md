@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T17:40:09.694246Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-31T17:40:09.694246Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-31T17:43:41.938323Z'
+  stage: doing
+  run: c1d331cf1791456ab4445cb9334f8b40
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -210,3 +212,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none. Both test files the diff touches are new (`A`), and no test file `main` already holds was changed.
 13. factory: started doing as vm.
+14. coder: Round 1. I fixed review finding 1, the only one in the code. Findings 2 to 4 are changes to tests, so they go to the tester. `make check` is green.
+
+    Finding 1, the second copy of `printed_lines`:
+    - New file `src/factory/domain/printed_lines.py` holds `printed_lines(output)`. It moved there unchanged from `factory.adapters.printed_output`.
+    - `src/factory/adapters/printed_output.py` now imports it from the domain module. Its `first_printed_line` and `failure_detail` are unchanged. No other module or test imported `printed_lines` from the adapter.
+    - In `src/factory/application/preflight.py`, `_last_line` now calls `printed_lines` and the copied comprehension is gone.
+
+    Main choice: a new small domain module named after the helper. The alternative I rejected was putting `printed_lines` in `factory.domain.containers`. The adapters also use it on output from plain processes and zfs, not only on container results, so it would have been in the wrong module there.
+
+    Tests for the tester, from the reviewer's entry 12. I touched none of them.
+    - Finding 2: move the `environment` fixture and `_settings` from `tests/entry/test_wiring_metadata_block.py` and `tests/entry/test_wiring_container_extras.py` to one shared place: `tests/wiring_support.py` for `_settings`, and the fixture there or in a conftest. This falls under the standing leave. `tests/entry/test_wiring_copy_snapshots.py` also holds a copy of the `environment` fixture and should use the shared one.
+    - Finding 3: `tests/entry/test_wiring_metadata_block.py` should use `run_words` and `after_image` from `tests/wiring_support.py` instead of redoing them on lines 96-97.
+    - Finding 4: move `_value_of` (`tests/entry/test_wiring_metadata_block.py:77`) and its copy `_after` (`tests/adapters/test_claude_runtime_container.py:79`) to one shared support module, and have both tests use it. This falls under the standing leave.
+
+    Refactor pass: I read the diff and found nothing more to change. The journal changed nothing in the Description.
+
+    Noticed but did not touch: `_metadata_probe` in the wiring is still typed with the concrete `PodmanRuns`, as in round 0.
+
+    `check`: check: green

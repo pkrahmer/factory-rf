@@ -40,6 +40,7 @@ from factory.domain.preflight import (
     machine_stop,
     version_matches,
 )
+from factory.domain.printed_lines import printed_lines
 from factory.domain.settings import (
     API_LOGIN_FILE_VARIABLE,
     CLAUDE_VERSION_VARIABLE,
@@ -232,7 +233,7 @@ def _metadata_fault(result: ContainerResult) -> str | None:
 
 
 def _last_line(output: str) -> str | None:
-    lines = [line.strip() for line in output.splitlines() if line.strip()]
+    lines = printed_lines(output)
     return lines[-1] if lines else None
 
 
