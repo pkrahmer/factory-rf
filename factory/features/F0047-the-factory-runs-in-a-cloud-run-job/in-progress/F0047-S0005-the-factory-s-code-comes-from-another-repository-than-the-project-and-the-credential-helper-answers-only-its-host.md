@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 486
-comments_read: [6549192607, 6549244772]
+comments_read: [6549192607, 6549244772, 6549403733]
 handed_over: null
 claim: null
 journal:
@@ -82,6 +82,11 @@ journal:
   stage: doing
   run: 403914c58c1246a99f00862c888b0e0e
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-10-31T21:33:23.207273Z'
+  stage: doing
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -245,3 +250,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed, not touched: with a different `--code-url`, the clone happens in the first pass, so the second pass, the one with the token, runs with `cloned=no`. That pass installs `git-credential-factory` and `factory@.service` only if they do not exist yet. If older copies are already there (from another instance), it does not replace them and prints the existing "differs from the checkout" warning instead. Without `--code-url`, both installs happen in the same pass as the clone. The story says nothing about this.
 
     Not done yet: the Description is unchanged, because no journal entry changed the task's meaning.
+14. 2026-10-31 human: Answer: (A). The tester makes both changes in `tests/test_vm_setup_code_url.py`, which is this story's own test file: the brace in `REFUSING_GIT` escaped (`${{GIT_ASKPASS-}}`) or that part kept out of the `.format` call, and `_setup` typed so that mypy accepts it (`tuple[int | None, str, str]`, or returning the `ProcessResult`). What the tests check stays the same. End with `tests`.
