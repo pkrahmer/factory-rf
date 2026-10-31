@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T23:52:49.470712Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-31T23:52:49.470712Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-31T23:58:49.632012Z'
+  stage: tests
+  run: 11bb4073a10043a29dd71cd7beae802b
 ---
 
 # One script turns a bare job into a running instance
@@ -284,3 +286,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `vm/setup.sh` writes `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS` from the Dockerfile into the instance's environment. The job script does not set them, because the Interface does not list them. If the factory on the host needs them, the job's environment must carry them, or a later story adds them.
     - The `uv` version in the tools step is read from the code checkout's `vm/Dockerfile` (`ARG UV_VERSION`), as `vm/setup.sh` does. With the test stand-ins the checkout is empty, so the version is empty.
 14. factory: started tests as vm.
+15. tester: I made the one change the coder named in journal 13, and nothing else. In `tests/vm_support.py::run_job_start`, the environment's dict literal is now its own annotated variable, `defaults: dict[str, str | None] = {...}`, and the next line is `environment = defaults | (inputs or {})`. This fixes the `make types` error at the old line 310, `Unsupported operand types for | ("dict[str, str]" and "dict[str, str | None]")`. mypy had inferred the literal on the left of `|` as `dict[str, str]`, because the annotation on `environment` did not reach through the `|`. The keys, the values and the merge order are unchanged, so the helper behaves as before.
+
+    I ran `make test` once and it is green (coverage 99.56 %). `make lint` is green. As the stage says, I did not run the type check. I also ran a quick mypy on the single file, but it only reported a missing-import error that comes from running it without the project configuration (`import-untyped` for `factory.adapters.process`), so it neither confirms nor disproves the fix. The coder's `make check` covers the type check.
+
+    The criterion-to-test mapping is unchanged from journal 11.
+
+    Files changed: tests/vm_support.py (this story's own support module). Files created: none.
+
+    Modules the test run could not import: none.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (166.7 s)

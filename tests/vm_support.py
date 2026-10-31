@@ -297,7 +297,7 @@ def run_job_start(
     }
     for name in (*JOB_STAND_INS, "tools-python", "factory-python", "factory-run"):
         _write_stand_in(stand_ins / name, name, fields)
-    environment: dict[str, str | None] = {
+    defaults: dict[str, str | None] = {
         "PATH": f"{stand_ins}:{SYSTEM_PATH}",
         "HOME": str(tmp_path / "home"),
         "FACTORY_INSTANCE": JOB_INSTANCE,
@@ -307,7 +307,8 @@ def run_job_start(
         "FACTORY_TOKEN_FILE": str(token),
         "FACTORY_JOB_ROOT": str(root),
         "FACTORY_JOB_PREFIX": str(prefix),
-    } | (inputs or {})
+    }
+    environment = defaults | (inputs or {})
     result = run_process(
         ProcessRequest(
             argv=["sh", str(JOB_START)],
