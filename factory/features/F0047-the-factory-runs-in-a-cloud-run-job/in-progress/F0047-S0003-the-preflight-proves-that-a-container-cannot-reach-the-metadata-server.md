@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T17:24:17.599492Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-31T17:24:17.599492Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-31T17:31:19.063802Z'
+  stage: tests
+  run: d0414a3684fb40298df660e9b79fbfd8
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -128,3 +130,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the constants are in domain, the item is in application, and only entry wiring picks the container run. That matches the layering, and the probe goes through `containers.run`, so no new tool is called.
    - Scope: it is inside F0047's scope ("preflight item `metadata-block` for the job profile"). The start script and the rule's installation are left to S0006, as `feature.md` says. It does not touch anything under "Out of scope".
 7. factory: started tests as vm.
+8. tester: Wrote the tests from the Interface and the acceptance criteria. There is one test per criterion. Criterion 3 is a single parametrized test whose rows are the ones the criterion lists.
+
+   - criterion 1: tests/entry/test_wiring_metadata_block.py::test_the_metadata_block_item_runs_after_the_stage_image_with_the_job_profile_alone, rows `default` and `rootless`. The items must be `CONTAINER_ITEMS` plus `agent-run-probe`, with no `metadata-block`.
+   - criterion 2, item order: the same test, row `job`. `metadata-block` must come right after `stage-image` and before `agent-run-probe`.
+   - criterion 2, run arguments: tests/entry/test_wiring_metadata_block.py::test_the_metadata_probe_runs_its_command_alone_for_30_seconds_in_work. It reads the one `podman run` call that the suite's stand-in podman records. The words after the image must be exactly `METADATA_PROBE_COMMAND`. There must be no `--env`. There must be one `--volume` only, the workspace volume that every run gets; this is what "no mounts" means here. `--timeout` must be `30` and `--workdir` must be `WORK`.
+   - criterion 3: tests/application/test_preflight_metadata_block.py::test_the_metadata_block_item_passes_only_when_the_probe_could_not_connect, with the 12 rows of the criterion in its order. Each row asserts the item's name, whether it passed and its detail. The two `000` rows with exit 7 and exit 28 also assert the detail `refused`, which the Interface gives for `000`.
+   - criterion 4: tests/application/test_preflight_metadata_block.py::test_a_probe_that_cannot_run_fails_the_metadata_block_item
+   - criterion 5: tests/application/test_preflight_metadata_block.py::test_a_failed_metadata_block_item_stops_the_machine. It runs the preflight rig's `Preflight.run`, where every other item passes, plus a `metadata-block` item whose probe answers `200`. The run must return `preflight_failed`, there must be exactly one machine stop, with the detail `metadata-block: <the HTTP 200 sentence>`, and no project command may run.
+   - criteria 6 and 7 (`make check` and docs): no tests.
+
+   Files created: tests/application/test_preflight_metadata_block.py and tests/entry/test_wiring_metadata_block.py. No earlier test file changed.
+
+   `make test`: both new modules fail to collect with an ImportError. `metadata_block_item` does not exist yet in `factory.application.preflight`, nor `METADATA_PROBE_COMMAND` in `factory.domain.containers`. `make lint` is green.
+
+   `lint`: lint: green (0.2 s)
+   `test`: ERROR tests/entry/test_wiring_metadata_block.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_metadata_block.py'.
