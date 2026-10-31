@@ -1,4 +1,4 @@
-"""Throwaway containers of one image on the dataset, started rootless by the `podman` executable."""
+"""Throwaway containers of one image on the dataset, started by the `podman` executable."""
 
 import functools
 import math
@@ -11,6 +11,7 @@ from factory.adapters.printed_output import failure_detail, first_printed_line
 from factory.adapters.process import ROOT, ProcessRequest, ProcessResult, run_or_raise, run_process
 from factory.application.containers import ContainerRuns
 from factory.domain.containers import (
+    JOB_PODMAN_OPTIONS,
     WORK,
     ContainerLaunch,
     ContainerResult,
@@ -18,6 +19,7 @@ from factory.domain.containers import (
     check_container_call,
 )
 from factory.domain.errors import ContainerError
+from factory.domain.settings import ContainerProfileName
 
 # Podman's `--timeout` ends the container at its limit; the factory's own kill waits this
 # much longer, so that it fires only when podman's did not.
@@ -36,12 +38,20 @@ def _volume(mount: Mount) -> str:
     return f"{mount.source}:{mount.target}{suffix}"
 
 
+def _isolation_words(profile: ContainerProfileName) -> list[str]:
+    if profile == "job":
+        # The job's root has `NoNewPrivs`, so no user namespace can be mapped; no bridge network
+        # reaches the outside; and the job's proxy variables must not be copied into the container.
+        return ["--http-proxy=false", "--network=host"]
+    return ["--userns=keep-id"]
+
+
 def _killed_at_limit(result: ProcessResult, time_limit: timedelta) -> bool:
     return result.exit_status in CONTAINER_KILL_STATUSES and result.duration >= time_limit
 
 
 class PodmanRuns(ContainerRuns):
-    """Throwaway containers of one image, started rootless by the `podman` executable."""
+    """Throwaway containers of one image, started rootless or as a job's root by `podman`."""
 
     def __init__(
         self,
@@ -50,12 +60,16 @@ class PodmanRuns(ContainerRuns):
         workspace: Path,
         *,
         time_limit: timedelta = PODMAN_TIME_LIMIT,
+        profile: ContainerProfileName = "rootless",
     ) -> None:
         """Start containers of `image` through `executable`, `workspace` mounted at `/work`.
 
-        `time_limit` bounds the queries `version` and `image_exists`.
+        `time_limit` bounds the queries `version` and `image_exists`. `profile` `job` starts them
+        as root in a managed sandbox, with podman's global options before every command.
         """
         self._executable = executable
+        self._profile = profile
+        self._global_options = list(JOB_PODMAN_OPTIONS) if profile == "job" else []
         self._image = image
         self._workspace = workspace
         self._time_limit = time_limit
@@ -77,10 +91,10 @@ class PodmanRuns(ContainerRuns):
         volumes = [Mount(source=self._workspace, target=WORK), *mounts]
         volume_words = [word for mount in volumes for word in ("--volume", _volume(mount))]
         argv = [
-            self._executable,
+            *self._podman(),
             "run",
             "--rm",
-            "--userns=keep-id",
+            *_isolation_words(self._profile),
             "--timeout",
             str(math.ceil(time_limit.total_seconds())),
             # No capability: code in the checkout cannot use root's rights inside its namespace.
@@ -160,12 +174,15 @@ class PodmanRuns(ContainerRuns):
             )
         return result.exit_status == 0
 
+    def _podman(self) -> list[str]:
+        return [self._executable, *self._global_options]
+
     def _command(self, arguments: list[str]) -> str:
-        return " ".join([self._executable, *arguments])
+        return " ".join([*self._podman(), *arguments])
 
     def _query(self, arguments: list[str]) -> ProcessResult:
         return run_or_raise(
-            [self._executable, *arguments],
+            [*self._podman(), *arguments],
             time_limit=self._time_limit,
             fault=functools.partial(ContainerError, self._command(arguments)),
             cwd=self._workspace,

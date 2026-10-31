@@ -330,7 +330,12 @@ def _container_adapters(settings: InstanceSettings) -> _ContainerAdapters:
     return _ContainerAdapters(
         image=settings.stage_image,
         snapshots=snapshots,
-        containers=PodmanRuns(settings.podman_executable, settings.stage_image, workspace),
+        containers=PodmanRuns(
+            settings.podman_executable,
+            settings.stage_image,
+            workspace,
+            profile=settings.container_profile,
+        ),
     )
 
 

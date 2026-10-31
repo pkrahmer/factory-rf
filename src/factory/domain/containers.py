@@ -15,6 +15,15 @@ WORK_CHECKOUT = "/work/checkout"
 WORK_HOME = "/work/home"
 # Node, OpenSSL and Python's requests each read the CA bundle from one of these.
 CA_BUNDLE_NAMES = ("NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE")
+# Podman's global options in a managed sandbox such as a Cloud Run job: crun refuses its hybrid
+# cgroups where runc accepts them, and podman's overlay storage on an overlay root filesystem
+# needs a mount program.
+JOB_PODMAN_OPTIONS: tuple[str, ...] = (
+    "--runtime=runc",
+    "--cgroup-manager=cgroupfs",
+    "--storage-driver=overlay",
+    "--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs",
+)
 
 
 def _must_be_container_path(target: str) -> str:

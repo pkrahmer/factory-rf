@@ -75,6 +75,7 @@ ZFS_EXECUTABLE_VARIABLE = "FACTORY_ZFS"
 CONTAINER_ENV_VARIABLE = "FACTORY_CONTAINER_ENV"
 CA_BUNDLE_VARIABLE = "FACTORY_CA_BUNDLE"
 IDLE_SHUTDOWN_VARIABLE = "FACTORY_IDLE_SHUTDOWN_MINUTES"
+CONTAINER_PROFILE_VARIABLE = "FACTORY_CONTAINER_PROFILE"
 # The names the factory gives a container itself: the home, the logins, opencode's
 # configuration, git's credential prompt, and every name of its own.
 RESERVED_CONTAINER_NAMES = frozenset(
@@ -92,6 +93,8 @@ AgentRuntimeName = Literal["claude", "opencode"]
 _AGENT_RUNTIMES: tuple[AgentRuntimeName, ...] = ("claude", "opencode")
 SnapshotsName = Literal["zfs", "copy"]
 _SNAPSHOTS: tuple[SnapshotsName, ...] = ("zfs", "copy")
+ContainerProfileName = Literal["rootless", "job"]
+_CONTAINER_PROFILES: tuple[ContainerProfileName, ...] = ("rootless", "job")
 
 _NAME = TypeAdapter(Name)
 _VARIABLE_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
@@ -128,6 +131,7 @@ class InstanceSettings(BaseModel):
     snapshot_base: Path | None = None
     stage_image: str | None = None
     podman_executable: str = _PODMAN_EXECUTABLE_DEFAULT
+    container_profile: ContainerProfileName = "rootless"
     zfs_executable: str = _ZFS_EXECUTABLE_DEFAULT
     container_env: tuple[str, ...] = ()
     ca_bundle: Path | None = None
@@ -268,6 +272,7 @@ def read_settings(
         stage_image=stage_image,
         podman_executable=_optional(environ, PODMAN_EXECUTABLE_VARIABLE)
         or _PODMAN_EXECUTABLE_DEFAULT,
+        container_profile=_container_profile(environ),
         zfs_executable=_optional(environ, ZFS_EXECUTABLE_VARIABLE) or _ZFS_EXECUTABLE_DEFAULT,
         container_env=_container_env(environ),
         ca_bundle=_optional_absolute_path(environ, CA_BUNDLE_VARIABLE),
@@ -325,6 +330,16 @@ def _snapshots(environ: Mapping[str, str]) -> SnapshotsName:
         if value == snapshots:
             return snapshots
     raise SettingsInvalid(SNAPSHOTS_VARIABLE, "is neither zfs nor copy")
+
+
+def _container_profile(environ: Mapping[str, str]) -> ContainerProfileName:
+    value = _optional(environ, CONTAINER_PROFILE_VARIABLE)
+    if not value:
+        return "rootless"
+    for profile in _CONTAINER_PROFILES:
+        if value == profile:
+            return profile
+    raise SettingsInvalid(CONTAINER_PROFILE_VARIABLE, "is neither rootless nor job")
 
 
 def _opencode_models(environ: Mapping[str, str]) -> dict[str, str]:

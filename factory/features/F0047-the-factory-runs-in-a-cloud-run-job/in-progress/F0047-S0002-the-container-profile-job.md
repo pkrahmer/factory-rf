@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 482
 comments_read: [6546068187]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T16:36:12.713545Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-10-31T16:36:12.713545Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-10-31T16:41:16.732584Z'
+  stage: doing
+  run: 40c8f543029a4984832369365612eff7
+  blocked: question
 ---
 
 # The container profile job
@@ -157,3 +160,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/adapters/test_podman_runs_job_profile.py::test_a_job_run_reads_its_end_as_the_rootless_one[podman-s-own-fault] - TypeError: PodmanRuns.__init__() got an unexpected keyword argument 'pro...
 9. factory: started doing as vm.
+10. coder: The code is done, but one test can't pass without either changing the test or breaking another story's test. I need the human to choose.
+
+    Built (in the working tree, not committed):
+    - `src/factory/domain/settings.py`: `CONTAINER_PROFILE_VARIABLE`, the type `ContainerProfileName = Literal["rootless", "job"]`, the field `InstanceSettings.container_profile = "rootless"`, and `_container_profile`, which works like `_snapshots`. Unset or blank gives `rootless`, anything else is `SettingsInvalid(FACTORY_CONTAINER_PROFILE, "is neither rootless nor job")`.
+    - `src/factory/domain/containers.py`: `JOB_PODMAN_OPTIONS`.
+    - `src/factory/adapters/podman_runs.py`: `PodmanRuns(..., profile=)`. `_podman()` puts the global options after the executable in `launch`, `_query` and `_command`. `_isolation_words` gives `--userns=keep-id` for `rootless`, and `--http-proxy=false --network=host` for `job`.
+    - `src/factory/entry/wiring.py`: `_container_adapters` passes `settings.container_profile`.
+
+    Main choice: the profile becomes a list of global options plus a set of isolation words, picked once in `__init__`. I rejected a separate job subclass, which would copy `launch`.
+
+    `make check`: everything is green up to `make test`. `make test` fails only in `tests/adapters/test_podman_runs_job_profile.py::test_a_job_runner_s_queries_carry_the_global_options`, all 5 rows. Quoted from the run:
+    `E   FileNotFoundError: [Errno 2] No such file or directory: PosixPath('/srv/factory/vm/work')`
+    `E   factory.domain.errors.ContainerError: container command .../podman --runtime=runc ... --version failed: [Errno 2] No such file or directory: PosixPath('/srv/factory/vm/work')`
+
+    The contradiction: the `job_runs` fixture builds the runner on `WORKSPACE = Path("/srv/factory/vm/work")`, a path that does not exist. `version` and `image_exists` run podman with the workspace as their working directory (`cwd=self._workspace` in `_query`). The Interface says their results and faults are those of `rootless`, so a query in a missing workspace fails before podman starts. I tried running the queries from `/` instead, as `run` already does. That made these rows pass, but it broke `tests/adapters/test_podman_runs_results.py::test_version_is_the_first_line_podman_prints[version]` and `test_image_exists_reads_podman_s_exit_status[exists|missing]`, which require the workspace as the working directory:
+    `tests/adapters/test_podman_runs_results.py:261: E   AssertionError: assert [PosixPath('/')] == [PosixPath('/.../work')]`
+    I undid that change.
+
+    Options:
+    (a) The tester gives the queries test an existing workspace, for example a `job_runs` fixture on `tmp_path`, or `tmp_path` in that one test. The other rows in the file never start a process, so `WORKSPACE` can stay for them. The coder changes nothing more.
+    (b) Queries run from `/`, and the earlier results tests in `tests/adapters/test_podman_runs_results.py` change their expected working directory to `/`. That is a behaviour change to another story's tests, beyond this story.
+    I would choose (a).
+
+    Refactor: I read my diff and there is nothing to change. Noticed and not touched: the module docstring of `podman_runs.py` and the class docstring said "rootless". I reworded them to cover both profiles.
