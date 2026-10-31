@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T21:25:48.407984Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,13 @@ journal:
   kind: started
   at: '2026-10-31T21:25:48.407984Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-10-31T21:31:05.210558Z'
+  stage: doing
+  run: 403914c58c1246a99f00862c888b0e0e
+  blocked: question
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -217,3 +220,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/test_vm_setup_code_url.py::test_the_usage_text_names_the_code_url_option[fault] - AssertionError: assert '--code-url' in 'usage: setup.sh --device <path> --repository-url <url> [--inst...
 12. factory: started doing as vm.
+13. coder: Stopped with the implementation done and `make check` red. Two defects in the tester's `tests/test_vm_setup_code_url.py` cause it. I cannot fix either one, because I may not edit tests (R9).
+
+    1. `REFUSING_GIT` holds `${GIT_ASKPASS-}`, and `_stand_ins` runs `git.format(log=log)` on it. `str.format` reads the braces as a field, so `test_a_code_repository_that_asks_for_a_credential_fails_the_clone` (criterion 6) raises `KeyError: 'GIT_ASKPASS-'` at `tests/test_vm_setup_code_url.py:80`. This happens before `setup.sh` runs.
+    2. `make types` fails: `tests/test_vm_setup_code_url.py:124: error: Incompatible return value type (got "tuple[int | None, str, str]", expected "tuple[int, str, str]")  [return-value]`. `_setup` returns `result.exit_status`, which is `int | None`.
+
+    Options:
+    (A) The tester makes two changes. First, write the brace in `REFUSING_GIT` as `${{GIT_ASKPASS-}}`, or keep that part of the stand-in out of the `.format` call. Second, make `_setup` return a type mypy accepts, for example by annotating it `tuple[int | None, str, str]` or by returning the `ProcessResult`. Neither change alters what the tests check.
+    (B) Some other change you name.
+    I would choose (A). It needs your leave, since it changes these tests, and then the decision `tests`.
+
+    What I built (left in the working tree):
+    - `vm/git-credential-factory`: the helper now reads the request into a variable instead of throwing it away. Two small functions find the hosts. `url_host` handles the `scheme://[user@]host[:port]/...` and `[user@]host:path` forms. `requested_host` reads the first `host=` line and removes its port. Both lower-case the result. With `FACTORY_REPOSITORY_URL` set, `get` exits 1 unless the request names a host and that host equals the URL's host. Without the variable, and for every other operation, the helper behaves as before.
+    - `vm/setup.sh` gains `--code-url` (usage text, option table, the `code_url` variable). Its default, `$repository_url`, is set after the option parsing.
+      - When the code url differs from the project url and there is no checkout yet, the checkout step clones before the secrets wait. The clone runs `as_factory env -u GIT_ASKPASS GIT_TERMINAL_PROMPT=0 git clone --quiet --branch "$ref" "$code_url" "$checkout"`, with no `core.askPass`. A failed clone prints the story's message and exits 1. A successful one sets `cloned=yes`.
+      - `cloned=no` moved above the secrets wait. The askpass clone after the wait is unchanged, and `factory.env` never names `$code_url`.
+
+    Main choice: the code clone sits inline in the checkout step, its `git clone` line directly under its `if`, with the failure handled by `|| { ...; exit 1; }`. It is written `--quiet` rather than `-q`. Several tests in `tests/test_vm_setup_text.py` read the first `git clone` lines of the checkout step: `_clone_variables` reads the first `git clone` line and needs `cloned=yes` in its `if` branch; the `GIT_ASKPASS=` row and the `ORDERED_COMMANDS` check both read the first `git clone -q --branch`, and the `GIT_ASKPASS=` row needs that line to hold the askpass. I rejected a nested `if ! ... git clone`, which hides `cloned=yes` from `_clone_variables`. I also rejected a clone function defined earlier in the script, which would move the first `git clone` text out of the checkout step.
+
+    Test results: every other test passes, including all of `tests/test_vm_credential_helper_host.py`, `tests/test_git_credential_helper.py` and `tests/test_vm_setup_text.py`. Coverage is 99 %. `make lint` is green. The criterion 6 test has not run against my script, because it fails at that `KeyError` first. A manual run of a corrected copy was denied by the permission prompt.
+
+    Refactor pass: I read the diff and found nothing to change.
+
+    Noticed, not touched: with a different `--code-url`, the clone happens in the first pass, so the second pass, the one with the token, runs with `cloned=no`. That pass installs `git-credential-factory` and `factory@.service` only if they do not exist yet. If older copies are already there (from another instance), it does not replace them and prints the existing "differs from the checkout" warning instead. Without `--code-url`, both installs happen in the same pass as the clone. The story says nothing about this.
+
+    Not done yet: the Description is unchanged, because no journal entry changed the task's meaning.
