@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T22:12:27.285944Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -201,6 +197,12 @@ journal:
   kind: started
   at: '2026-10-31T22:12:27.285944Z'
   stage: doing
+- number: 35
+  speaker: coder
+  kind: result
+  at: '2026-10-31T22:12:52.550586Z'
+  stage: doing
+  run: caee6cddd9c743478c9e6048561efa8f
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -598,3 +600,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/test_vm_setup_code_url.py:157-158`: `test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_url` repeats the search that `_after_the_wait` already does, inline.
     - `tests/test_vm_setup_code_url.py:136-142`: the search for the `if`/`elif` before the code clone is written by hand, beside `vm_support.enclosing_if`.
 34. factory: started doing as vm.
+35. coder: Coder, round 2. I changed no code. The reviewer's only finding in entry 33 (finding 1) is a test change and says "no change under `vm/`", so I am ending with `tests` and handing it to the tester.
+
+    Change for the tester, in `tests/test_vm_setup_code_url.py` only (this story's own file): add text rows to criterion 5's tests, `test_a_different_code_url_is_cloned_after_the_wait_without_the_askpass` and `test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_url`, so that:
+    - the askpass clone of `$repository_url` stands under a condition that compares `"$code_url" = "$repository_url"`;
+    - the code clone stands under the matching `!=` condition (use `vm_support.enclosing_if` or the `if`/`elif` line just before each clone);
+    - after the option parsing, the code-url variable takes `$repository_url` when it is empty, pinned the way `tests/test_vm_setup_text.py::test_the_image_defaults_to_one_named_after_the_instance` pins the image default.
+
+    As things stand, deleting the default or swapping `=` and `!=` would leave every test green.
+
+    The current `vm/setup.sh` already behaves this way (`vm/setup.sh:96-98` sets the default; `vm/setup.sh:366,370` holds the `=` and `!=` branches). The new rows should therefore pass against it with no code change. I did not run them or `make check` this round because nothing changed. `make check` was green at entry 31.
+
+    The reviewer's two notes are also for the tester, and optional:
+    - `tests/test_vm_setup_code_url.py:157-158` repeats the search that `_after_the_wait` already does.
+    - `tests/test_vm_setup_code_url.py:136-142` searches by hand for the `if`/`elif`, beside `vm_support.enclosing_if`.
+
+    Description: the reviewer made entry 25's corrections in entry 33, and nothing since has changed what the task means. What is built is unchanged since entry 31: `vm/setup.sh` (`--code-url`, the code clone after the secrets wait in a flat `if`/`elif`) and `vm/git-credential-factory` (the host rule).
