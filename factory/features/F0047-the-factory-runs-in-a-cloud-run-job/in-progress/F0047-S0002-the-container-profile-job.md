@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-31T17:16:49.976988Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-10-31T17:16:49.976988Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-10-31T17:17:41.831977Z'
+  stage: docs
+  run: e9a1994d0c774aaa84da9b229cd8423c
 ---
 
 # The container profile job
@@ -425,3 +427,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_podman_runs_results.py`: changed under the standing leave to move a shared test helper. Only its local `recorder` fixture and the `podman_runs` import that went with it were removed. Its tests now take `podman_recorder`, keep their names and check the same things.
     - `tests/conftest.py`: changed under the same leave. It only adds the shared `podman_recorder` fixture and the `podman_runs` import it needs.
 28. factory: started docs as vm.
+29. documenter: Docs, round 1. I read the story, the diff of `src/` and the docs around it. I changed only documents, so I did not run `make check`; the factory's checks decide. The code matches the Interface and the criteria, so I have no findings.
+
+    Files changed:
+    - `docs/operator-guide.md`: a `FACTORY_CONTAINER_PROFILE` row in the configuration table, placed before `FACTORY_ZFS`. A new subsection *The job profile*, placed before *Without ZFS*. It gives the measured facts (`NoNewPrivs` so rootless is impossible, crun and Podman 6 refuse the hybrid cgroups, overlay root needs `fuse-overlayfs`, no bridge reaches outside, proxy variables copied). It has a table of what each word is for. It says the container runs as the job's root with every capability dropped.
+    - `docs/project-guide/stage-environment.md`: the `PodmanRuns` signature now shows `profile`. A new *The job profile* subsection under *The podman adapter* names `JOB_PODMAN_OPTIONS`, where the options go (`launch`, `version`, `image_exists` and the `ContainerError` command text), the swap of `--userns=keep-id` for `--http-proxy=false --network=host`, and what stays the same. I qualified the sentence about "no `--network` word" as applying to `rootless`.
+    - `docs/decisions.md`: a new entry *A root container profile for a managed sandbox*.
+
+    I did not run the examples, because I wrote none. The smoke test in the story is the runnable one.
+
+    Two things to know. I could not read the feature's `feature.md`, so the decision entry's reasons come from the story's Description and the journal, not from the feature's decisions 3 to 5. For `--cgroup-manager=cgroupfs` the docs say only that it was measured to work with runc, because the story gives no further reason. A human may want to check both.
+
+    Cross-read and found current: `README.md` (the criterion says none). The operator guide's *The agent in a container*, *What the container can and cannot see* and *The script* mention `--userns=keep-id` and rootless Podman. They describe the default VM profile, which this story did not change, so they stay true.
+
+    Stale text I saw and did not touch: none.
+
+    `check`: check: green (not run again: passed on tree 5b33b400afab at 2026-10-31T17:12:36Z)
+    `secrets`: secrets: green (2.3 s)
+    `documents`: documents ok
