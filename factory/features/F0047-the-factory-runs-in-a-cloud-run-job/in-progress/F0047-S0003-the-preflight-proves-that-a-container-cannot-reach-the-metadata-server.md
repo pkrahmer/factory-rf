@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T17:23:37.944619Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-31T17:23:37.944619Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-31T17:23:57.194376Z'
+  stage: intake
+  run: 4382554ee5fe488ca2afae75663a2544
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -56,7 +58,7 @@ In a Cloud Run job the agent's container shares the job's network, and the metad
 
 - `000` (curl could not connect, whatever its exit status): passes, detail `refused`.
 - Any other three digits: fails with `a container reached the metadata server (HTTP <code>); reject tcp port 80 to 169.254.169.254 in the job's firewall`.
-- A result with `timed_out` true: fails with `the metadata probe did not end within its limit`.
+- A result with `timed_out` true, whatever its output (this rule is checked first): fails with `the metadata probe did not end within its limit`.
 - No such line (the program is missing, the exit status 127, an empty output): fails with `the metadata probe could not tell (exit <status>): <the last line or "no output">`.
 - `probe` raising `ContainerError`: fails with `cannot run the metadata probe: <error>`.
 
@@ -67,8 +69,8 @@ Tests (the tester writes them): `tests/application/test_preflight_metadata_block
 ## Acceptance criteria
 
 1. With the profile `rootless` (the default) the preflight's items are those of before this story, none named `metadata-block`.
-2. With the profile `job` the items hold `metadata-block` right after `stage-image` and before `agent-run-probe`, and the run's command words are exactly `METADATA_PROBE_COMMAND`, with no mounts and an empty environment.
-3. `metadata_block_item`, rows of one parametrized test: the output `000` with exit status 7 passes with the detail `refused`; `000` with exit status 28 passes; the output `200` fails with the sentence naming HTTP 200; `404` fails with HTTP 404; `000` printed after an earlier line `x` passes (the last line counts); an empty output with exit status 127 fails with `could not tell (exit 127): no output`; the output `curl: not found` with exit status 127 fails with that line in the sentence; a result with `timed_out` fails with the sentence about the limit.
+2. With the profile `job` the items hold `metadata-block` right after `stage-image` and before `agent-run-probe`, and the run's command words are exactly `METADATA_PROBE_COMMAND`, with no mounts and an empty environment, a time limit of 30 seconds and the working directory `WORK`.
+3. `metadata_block_item`, rows of one parametrized test: the output `000` with exit status 7 passes with the detail `refused`; `000` with exit status 28 passes; the output `200` fails with the sentence naming HTTP 200; `404` fails with HTTP 404; `000` printed after an earlier line `x` passes (the last line counts); an empty output with exit status 127 fails with `could not tell (exit 127): no output`; the output `curl: not found` with exit status 127 fails with that line in the sentence; a result with `timed_out` fails with the sentence about the limit; a result with `timed_out` and the output `000` fails with the same sentence; the output `"000\n\n"` passes; the output `" 000 "` passes (stripped); the output `2000` with exit status 0 fails with `could not tell (exit 0): 2000`.
 4. A probe that raises `ContainerError("curl", "no such image")` fails with `cannot run the metadata probe: container command curl failed: no such image`.
 5. A failed `metadata-block` item makes the preflight's report fail and stops the machine through the existing path (a test through `Preflight.run` with the other items passing).
 6. `make check` stays green.
@@ -110,3 +112,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    3. Yes: add the row `"000\n\n"` passes, and `" 000 "` passes (stripped).
    4. Yes: add the row `2000` failing with `could not tell (exit 0): 2000`.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: concrete. `factory.domain.containers` constants, `factory.application.preflight.metadata_block_item(probe)` with five outcomes, and the `factory.entry.wiring` change are all named with their exact sentences. I carried in journal entry 4 (the human's answer to question 3): the timed-out rule is now stated to win whatever the output (checked first).
+   - Criteria: each is testable by one test function. Every Interface rule has both sides: `000` passes; HTTP codes fail; `timed_out` fails; no line fails; `ContainerError` fails. From entry 4, criterion 2 now also pins the 30-second limit and the working directory `WORK`. Criterion 3 gained rows for `timed_out` with `000`, `"000\n\n"`, `" 000 "` and `2000` (exit 0, "could not tell"). The `rootless` default has criterion 1, the stop through `Preflight.run` has criterion 5, and the docs criterion is last.
+   - Smoke test: the command is runnable. Its `Expect:` line gives two exact lines, `True` and the HTTP 200 sentence, which the output can be checked against. It runs no pytest, so the `-q` rule does not apply.
+   - Architecture: the constants are in domain, the item is in application, and only entry wiring picks the container run. That matches the layering, and the probe goes through `containers.run`, so no new tool is called.
+   - Scope: it is inside F0047's scope ("preflight item `metadata-block` for the job profile"). The start script and the rule's installation are left to S0006, as `feature.md` says. It does not touch anything under "Out of scope".
