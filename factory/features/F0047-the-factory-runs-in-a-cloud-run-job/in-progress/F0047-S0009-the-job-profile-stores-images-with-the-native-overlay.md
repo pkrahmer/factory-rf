@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 484
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-31T18:23:29.733095Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-10-31T18:23:29.733095Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-10-31T18:24:00.223378Z'
+  stage: docs
+  run: 9dc6d3abc3764a519aa62df77de2afba
 ---
 
 # The job profile stores images with the native overlay
@@ -175,3 +177,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Earlier tests:
    - `tests/adapters/test_podman_runs_job_profile.py`: changed under the story's own leave, which the human wrote into the Interface (`JOB_WORDS` and every expectation built on it hold the three words). Two edits did that: `JOB_WORDS` now holds three words, and the slice `argv[1:5]` became `argv[1 : 1 + len(JOB_WORDS)]`. Beyond that the file only gains `MOUNT_PROGRAM_WORDS`, three helpers and a new test (no leave needed); every earlier test keeps its name and what it checks.
 10. factory: started docs as vm.
+11. documenter: Docs for the three-word job profile. I changed three files and ran no `make check`, since only documents changed. The factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The job profile*:
+      - The words' table now has three storage words. The `--storage-driver=overlay` row says Podman uses the kernel's native overlay and refuses an unsuitable storage root. The mount-program text is gone.
+      - Another line and the intro now say "three" options, and the root-overlay finding says Podman's storage cannot sit on it.
+      - A new paragraph says podman's storage root must be on a filesystem the kernel's overlay accepts as its upper layer (a tmpfs in a job, which the start script mounts). It gives the measured numbers: the suite 601 s against 182 s, the image build 199 s against 107 s. It also says the layers count against the job's memory.
+    - `docs/project-guide/stage-environment.md`: the `JOB_PODMAN_OPTIONS` line lists three words, with no mount program.
+    - `docs/decisions.md`, *A root container profile for a managed sandbox*: "Four" became "Three", the root's cause is reworded, and a closing line names this change (F0047-S0009, the feature's decision 19) with its reason and numbers.
+
+    Cross-read and found current:
+    - `README.md`: criterion says none, and it names no job options.
+    - The rest of `stage-environment.md`. Its "all four words" at line 153 and "the four words" at line 194 are about the rootless fence, not the job options.
+    - `src/factory/domain/containers.py` (comment and tuple) agrees with the docs. `grep -rn -e fuse-overlayfs -e mount_program src/` finds nothing, as the smoke test expects.
+
+    No findings against the code. I noticed no unrelated stale text.
+
+    Open: I took "the start script mounts a tmpfs" from the story Description (S0006), not from a start script in this diff. If S0006 ends up different, the operator guide sentence needs a check.
+
+    `check`: check: green (not run again: passed on tree be1e273ad3f0 at 2026-10-31T18:19:04Z)
+    `secrets`: secrets: green (2.1 s)
+    `documents`: documents ok
