@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T15:40:41.810451Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-31T15:40:41.810451Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-31T15:41:11.715745Z'
+  stage: intake
+  run: eb8ad0dc3f124a58a34ea049a75f6652
 ---
 
 # A snapshot adapter that copies a directory
@@ -55,7 +57,7 @@ The factory's stage environment needs a `Snapshots`: reset the dataset to its ba
 - `read_settings`: `FACTORY_SNAPSHOTS` unset or blank is `zfs`; `zfs` and `copy` are accepted; anything else is `SettingsInvalid(FACTORY_SNAPSHOTS, "is neither zfs nor copy")`.
 - `FACTORY_SNAPSHOT_BASE` is read with the optional-path reader: unset or blank is `None`; a relative path is `SettingsInvalid(FACTORY_SNAPSHOT_BASE, "is not an absolute path")`.
 - With `copy`: a missing base is `SettingsInvalid(FACTORY_SNAPSHOT_BASE, "missing")` when the boundaries are built (like the dataset today), not when the settings are read; a base that is the workspace, lies inside it, holds it, or is, holds or lies inside the checkout or the state directory is `SettingsInvalid(FACTORY_SNAPSHOT_BASE, "<path> overlaps <workspace|checkout|state>")` when the settings are read. The model validator refuses the same combinations with a `ValidationError`.
-- With `zfs`: a base set is `SettingsInvalid(FACTORY_SNAPSHOT_BASE, "is only used with FACTORY_SNAPSHOTS=copy")`.
+- With `zfs`: a base set is `SettingsInvalid(FACTORY_SNAPSHOT_BASE, "is only used with FACTORY_SNAPSHOTS=copy")`; the model validator refuses `snapshots="zfs"` with a `snapshot_base` too, with a `ValidationError`.
 
 `factory.adapters.copy_snapshots` (adapters, new): `class CopySnapshots(Snapshots)` with the constructor `(folder: Path, base: Path)` and the three operations of `FakeSnapshots` today, with these rules:
 
@@ -64,7 +66,7 @@ The factory's stage environment needs a `Snapshots`: reset the dataset to its ba
 
 `factory.adapters.fake_snapshots` (adapters): `class FakeSnapshots(CopySnapshots)` with no body of its own beyond its docstring; every test of it passes unchanged.
 
-`factory.application.preflight` (application): `def snapshots_item(workspace: Path, base: Path) -> PreflightItem`, the item `snapshots`: passes when both are directories, with the detail `workspace <w>, base <b>`; fails with `the workspace <w> is not a directory` or `the base <b> does not exist; make it empty with mkdir, the first advance fills it`.
+`factory.application.preflight` (application): `def snapshots_item(workspace: Path, base: Path) -> PreflightItem`, the item `snapshots`: passes when both are directories, with the detail `workspace <w>, base <b>`; fails with `the workspace <w> is not a directory`, `the base <b> does not exist; make it empty with mkdir, the first advance fills it` or, for a base that exists but is not a directory, `the base <b> is not a directory`.
 
 `factory.entry.wiring` (entry): `_container_adapters` builds `CopySnapshots(workspace, base)` for `copy` (and then needs no dataset) and `ZfsSnapshots` as today for `zfs`; `_container_items` gives, for `copy`, `podman`, `snapshots` and `stage-image` and no `zfs` or `dataset` item. `build_boundaries` raises `SettingsInvalid(FACTORY_SNAPSHOT_BASE, "missing")` first for `copy` without a base, then the workspace and image faults as today.
 
@@ -75,16 +77,17 @@ Tests (the tester writes them): `tests/domain/test_settings_snapshots.py`, `test
 1. With `FACTORY_SNAPSHOTS` unset the settings, the boundaries and the preflight items are those of before this story (rows: settings fields, the type of `Boundaries.snapshots`, the item names).
 2. `FACTORY_SNAPSHOTS` is read, rows of one parametrized test: unset, blank and `zfs` give `zfs`; `copy` gives `copy`; `ZFS`, `btrfs` and `copy now` are refused as `is neither zfs nor copy`.
 3. `FACTORY_SNAPSHOT_BASE` is read, rows of one test: unset and blank give `None`; `/var/base` gives that path; `base` is refused as not absolute; with `copy` and the workspace `/work`, the bases `/work`, `/work/b` and `/` are refused as overlapping the workspace; `/work2` is accepted; with the checkout `/srv/repo`, `/srv/repo` and `/srv` are refused as overlapping it and `/srv/base` is accepted; the same for the state directory; with `zfs` a base is refused as `is only used with FACTORY_SNAPSHOTS=copy`.
-4. `InstanceSettings(snapshots="copy", snapshot_base=Path("/work/b"), workspace=Path("/work"))` is a `ValidationError`.
+4. The model validator of `InstanceSettings`, rows of one parametrized test: with `snapshots="copy"`, a `snapshot_base` inside, equal to and holding each of the workspace, the checkout and the state directory (for the workspace `/work`: `/work/b`, `/work`, `/`) is a `ValidationError`; one base that overlaps none is accepted; `snapshots="zfs"` with a `snapshot_base` is a `ValidationError`.
 5. `CopySnapshots` over a real tree: after `advance`, a modified file, an added file and a deleted file, `changed_paths` is those three changes sorted by path; a directory-only change lists nothing; a changed mode is `modified`; a link that now points elsewhere is `modified`; `reset` brings the tree back byte for byte and mode for mode, links as links, and keeps the folder itself.
 6. `CopySnapshots` without a base: `reset` and `changed_paths` raise `SnapshotError` whose detail is `no base at <base>` and `reset` leaves the folder as it was; `advance` makes the base.
 7. A file of 3 MiB that differs from the base in its last byte is `modified`, and the comparison reads at most 1 MiB at a time (a test that wraps the file reader and checks the largest read).
-8. An `OSError` of the copy (a base that is a file) is a `SnapshotError` naming the operation.
+8. An `OSError` of the copy is a `SnapshotError` naming the operation, rows of one test: `reset` with a base that is a file; `advance` with a base whose parent path is a regular file (`NotADirectoryError`, independent of the user the tests run as), operation name `advance`.
 9. `FakeSnapshots` is a `CopySnapshots` and `tests/adapters/test_fake_snapshots.py` is unchanged and green.
-10. `snapshots_item`: a workspace and a base that are directories pass with the detail `workspace <w>, base <b>`; a workspace that is a file, a missing workspace and a missing base each fail with the sentences of the Interface.
+10. `snapshots_item`: a workspace and a base that are directories pass with the detail `workspace <w>, base <b>`; a workspace that is a file, a missing workspace, a missing base and a base that is a file each fail with the sentences of the Interface (the base that is a file with `the base <b> is not a directory`).
 11. `build_boundaries` with `copy`, a workspace, a base and an image, and no dataset, gives `CopySnapshots` on those paths; without the base it raises `SettingsInvalid` naming `FACTORY_SNAPSHOT_BASE`; `machine_extras` for `copy` holds the items `podman`, `snapshots`, `stage-image` and `agent-run-probe` and none named `zfs` or `dataset`.
-12. `make check` stays green.
-13. docs: `docs/operator-guide.md`: the two variables in the configuration table, and a subsection *Without ZFS* under the stage environment: the copy adapter, the empty base made once with `mkdir`, the cost (reset about 1.6 s per GiB, both copies in memory in a memory-backed sandbox). `docs/project-guide/stage-environment.md`: *The snapshots* names `CopySnapshots`, and the fake's section says `FakeSnapshots` is its subclass. `docs/decisions.md`: an entry *A snapshot adapter that copies a directory*, from the feature's decisions 1 and 2. `README.md`: none.
+12. `build_boundaries` with `copy` and no base raises `SettingsInvalid` naming `FACTORY_SNAPSHOT_BASE`, also when the workspace is missing (one row) and when the stage image is missing (a second row).
+13. `make check` stays green.
+14. docs: `docs/operator-guide.md`: the two variables in the configuration table, and a subsection *Without ZFS* under the stage environment: the copy adapter, the empty base made once with `mkdir`, the cost (reset about 1.6 s per GiB, both copies in memory in a memory-backed sandbox). `docs/project-guide/stage-environment.md`: *The snapshots* names `CopySnapshots`, and the fake's section says `FakeSnapshots` is its subclass. `docs/decisions.md`: an entry *A snapshot adapter that copies a directory*, from the feature's decisions 1 and 2. `README.md`: none.
 
 ## Smoke test
 
@@ -140,3 +143,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    5. A base that exists but is a file fails with its own sentence, `the base <b> is not a directory`; "does not exist" would mislead the operator. Change the Interface's `snapshots_item` line accordingly and add the row to criterion 10. The same for a workspace that is a file, which already has `is not a directory`.
    6. Yes, a row for `advance` with the operation name `advance`. Make the fault independent of the user the tests run as (a check container may run them as root, where a read-only folder is still writable): a base whose parent path is a regular file, so the copy raises `NotADirectoryError`.
 5. factory: started intake as vm.
+6. intake: accepted
+   Carried in from journal entry 4 (the human's answers to entry 3), written into the story as their edit, nothing of mine added: (2) new criterion 12 for the `build_boundaries` ordering (no base plus a missing workspace, and plus a missing stage image, both naming `FACTORY_SNAPSHOT_BASE`), "first" kept; `make check` and `docs:` are now 13 and 14. (3) criterion 4 is rows of one test: base inside, equal to and holding the workspace, the checkout and the state directory are each a `ValidationError`, plus one accepted non-overlapping base. (4) the Interface says the model validator also refuses `zfs` with a base, and criterion 4 has that row. (5) the Interface's `snapshots_item` line gains `the base <b> is not a directory`, and criterion 10 gains the file-base row. (6) criterion 8 has rows for `reset` (base is a file) and `advance` (base whose parent is a regular file, `NotADirectoryError`, independent of the user).
+   - Interface: concrete modules and signatures (`factory.domain.settings`, `factory.adapters.copy_snapshots.CopySnapshots(folder, base)`, `FakeSnapshots(CopySnapshots)`, `snapshots_item(workspace, base)`, `factory.entry.wiring` functions). Fault sentences are exact.
+   - Criteria: each is testable by one parametrized test function. Every Interface rule has both sides: read-settings values and refusals, the overlap refusals and acceptances, the zfs-with-base refusal, no-base errors, the OSError rules for `reset` and `advance`, the 1 MiB chunk limit, the three `snapshots_item` failures. The model-validator rules are covered by criterion 4.
+   - Smoke test: both commands are runnable (neither runs pytest), and the `Expect:` lines are checkable against printed output.
+   - Architecture: settings in domain, the adapter in adapters, the item in application, the wiring in entry. Layers are respected, no new dependency.
+   - Scope: within F0047's S0001 scope, nothing from S0002 onward, and nothing in the feature's "Out of scope". `tests/adapters/test_fake_snapshots.py` stays unchanged, so no other story's test is touched.
