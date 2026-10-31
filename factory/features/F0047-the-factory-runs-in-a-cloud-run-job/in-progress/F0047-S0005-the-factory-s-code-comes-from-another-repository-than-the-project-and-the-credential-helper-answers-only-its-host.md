@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 486
 comments_read: [6549192607]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T21:13:11.099638Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-10-31T21:13:11.099638Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-31T21:14:39.381888Z'
+  stage: tests
+  run: 251e102226974720ad3af7f2ddb8ee99
+  blocked: question
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -133,3 +136,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: only `vm/` shell scripts change, so no layer is touched. They are within the coder's write paths.
    - Scope: within feature decision 9 and the scope item for S0005. It does not touch S0006's start script or any "Out of scope" item. It changes no earlier story's test.
 7. factory: started tests as vm.
+8. tester: Stopped before writing `tests/test_vm_setup_code_url.py`. The `vm/setup.sh` criteria cannot all be tested the way the Interface asks for them: through `run_setup` with stand-in executables, and no files outside `tmp_path`.
+
+   What a run with stand-ins can reach: the script uses fixed paths (`/etc/subuid`, `/srv/factory/<instance>`, `/home/factory/.secrets`). Stand-ins for `id`, `dpkg-query`, `zpool`, `zfs`, `grep`, `stat`, `install`, `cp`, `chmod`, `rm`, `visudo`, `loginctl`, `mktemp` and `runuser` would carry a run up to the checkout step. `runuser` would hand its command to a stand-in `git` that records its arguments and environment. After that, the shell test `[ ! -f /home/factory/.secrets/hosting-token ]` always stops the run with the wait message, because a test may not place that file. So these can be run:
+   - criterion 5, different url: the clone runs before the wait;
+   - criterion 6: the failing clone;
+   - criterion 7, both halves.
+
+   These cannot be run, because they come after the wait:
+   - criterion 5's other side: the clone with the askpass when the url is equal or the option is absent;
+   - criterion 8: what `factory.env` holds.
+
+   Options:
+   (A) Test those two from the script's text, as `tests/test_vm_setup_text.py` already does for the steps after the wait. For criterion 5's other side: the checkout step still holds the clone with `GIT_ASKPASS=$askpass`, `core.askPass` and `$repository_url`. For criterion 8: the environment step's text never names the variable that the `--code-url) need_value "$@"; X=$2` branch assigns. Criterion 9 and every run-reachable part stay as runs.
+   (B) The coder gives `setup.sh` a way to move the secrets folder, for example an environment variable. That changes the Interface, which says nothing of it.
+   (C) Run the script in a user and mount namespace (`unshare -rm`) with `tmp_path` folders bind-mounted over `/home/factory` and `/srv/factory`. This depends on what the machine allows, and could break under `make check` on another machine.
+   I would choose (A).
+
+   Done so far (left in the working tree): `tests/test_vm_credential_helper_host.py`, which covers criteria 2, 3, 4 and 10. Criterion 1 is the existing `tests/test_git_credential_helper.py`, unchanged.
+   - criterion 2: `tests/test_vm_credential_helper_host.py::test_get_answers_only_a_request_for_the_project_repository_s_host`
+   - criterion 3: `tests/test_vm_credential_helper_host.py::test_the_ssh_url_forms_name_their_host`
+   - criterion 4: `tests/test_vm_credential_helper_host.py::test_any_other_operation_prints_nothing_and_succeeds_with_the_url_set`
+   - criterion 10: `tests/test_vm_credential_helper_host.py::test_the_url_s_case_user_and_port_do_not_change_its_host`
+
+   A single run of that file showed the refused rows failing for the right reason (the helper still answers). `make test` has not been run yet: I will run it once the setup tests are written. `make lint` is green. Every module the new tests use imports.
