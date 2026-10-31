@@ -39,4 +39,17 @@ The rules of P14 bind: no company value in any file of this repository, no secre
 
 ## Response
 
-(empty)
+*(the session at work, 2026-10-31)*
+
+**Verdict.** Half answered. The stage image builds in the job (exit 0 in 169 s, 2.2 GiB), the pinned Debian versions of `vm/Dockerfile` all resolve today, `snapshot.debian.org` answers 200 through the proxy, and `make sync` passes as root in 8 s. But `make check` exited 2 at the `secrets` target, after `lint`, `types`, `layers` and `sast` were green, so `licenses` and `test` never ran: whether the suite passes as root is **not answered**.
+
+**Why `secrets` is red is not in the log.** The probe prints only a one-line grep of the check log (`ERROR: Potential secrets about to be committed to git repo!`), not the hook's `Secret Type` and `Location` lines. I ran the same hook locally on the same commit with the Makefile's own file filter and it exits 0, so I cannot tell from here whether this is the job (the checkout was a `cp -a` copy as the job's root, git's view of it, the hook's version) or a file that exists only there. I did not fix the probe, as asked. Two additions would settle it on the next run: print the lines of the check log that start with `Secret Type` or `Location`, and run `make test` on its own when `make check` stops early, so that the root question gets an answer even when `secrets` is red.
+
+**What surprised me.**
+- `diff -r` of the base and work trees exits 2 with 226 lines of "No such file or directory": the virtual environment's and the uv cache's links point to paths that exist only inside the image. They dangle in the job's host view. The copy and rsync handle them (links as links), but a Python `changed_paths` that stats the target of a link would fail on them; S0001's tests should have a dangling link in the tree, and so should S0006's expectations about `.venv`.
+- The job had 9 CPUs for the 8 requested.
+- The image build and the tree together hold 4.7 GiB of the 32, mostly the image layers in the memory-backed overlay.
+
+**Anything wrong in the probe.** Nothing that breaks it. Besides the missing secrets output, its `diff -r -q` is a poor stand-in for `changed_paths` for the reason above; `diff -rq --no-dereference` would be closer.
+
+**Pushed.** `results/p15-stage-image-and-check.txt`, the section *P15* at the end of `capabilities.md`, and this file. No company value in any of them, no secret printed, nothing changed outside `planning/cloud-sandbox/`; the throwaway job was created and deleted by the script, and the project holds only the job it held before.
