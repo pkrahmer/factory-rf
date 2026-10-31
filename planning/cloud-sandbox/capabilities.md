@@ -285,3 +285,26 @@ Probe `p15-stage-image-and-check.sh`, result `results/p15-stage-image-and-check.
 - **What the probe does not show.** Which file `detect-secrets` flagged: the probe prints only a one-line grep of the check log, not the secret hook's `Secret Type` and `Location` lines. On the same commit, run locally with the Makefile's own file filter (every tracked file except `uv.lock`, `.secrets.baseline`, `planning/`, `docs/runs/` and the cost records), the hook exits 0, so the cause is not visible from here. Candidates, none checked: a difference between the job's container and the VM that changes what the hook sees (the checkout was a `cp -a` copy owned by the job's root, git's view of it, the hook's version), or a file that exists only in the job's tree.
 - **What that means for the questions of the request.** The build and the image work, the pinned Debian versions resolve today and the proxy reaches the date-pinned archive; `make sync` works as root. Whether the suite passes as root is **unanswered**, because the tests were never reached.
 - **Verdict against the probe's VERDICT line.** S0006 can build its image at start (exit 0 in 169 s, the longest part of a start), but "the factory's checks run in the job" is not shown: `make check` exited 2 at the `secrets` target before the tests, for a reason the probe's log does not contain.
+
+### P15, second run (2026-10-31, `results/p15-stage-image-and-check.txt`; the first run's log is `results/p15-stage-image-and-check-run1.txt`)
+
+The probe now ran the check's seven targets with `make -k`, printed what `detect-secrets` flagged, and used `diff --no-dereference`. The job again had 8 vCPU and 32 GiB (10 CPUs seen), at the factory's commit that carries the false-positive records for the two acceptance reports; 17 min 26 s for the whole job.
+
+| Target | Result |
+|---|---|
+| `make sync` | exit 0 in 8 s, `sync: green (7.4 s)` |
+| `lint` | `green (0.5 s)` |
+| `types` | `green (12.6 s)` |
+| `layers` | `green (0.4 s)` |
+| `sast` | `green (5.4 s)` |
+| `secrets` | **`green (113.7 s)`**, and the probe's list of what `detect-secrets` flagged is empty: red in the first run, green now, as the answer from home said (the false positives are recorded in `.secrets.baseline`) |
+| `licenses` | `green (0.5 s)` |
+| `test` | **`green (601.2 s)`**: the whole suite passed in the job, as the job's root with every capability dropped |
+| `make -k` as a whole | exit 0 after 736 s |
+
+- **The suite as root: no test failed.** No `FAILED`, no `ERROR` and no `E` line is in the log, so no test expecting a file to be unreadable, unwritable or not owned by the user was hit. The root-in-container question of F0047 decision 3 is answered: the suite passes as root.
+- **What the log does not hold.** Pytest's own summary line (the number of tests and the coverage) is not in the saved text: the probe keeps only the lines of the check log that match `passed|failed|error` from its tail, and the output shows only `All checks passed!` (ruff's line). The green `test` target is the Makefile's own result (it ends with its `green` line only when pytest and the coverage floor pass).
+- **Time.** `test` took 601 s of the 736 s, in a container limited to 4 GiB memory and 4096 pids; the image build took 199 s. `make check` as the factory runs it would be about 12.5 minutes plus the sync and a base copy, under the 8-minute `time_limit` the pipeline definition gives `check` today: the factory's `check` would be stopped by its own time limit in this job unless it gets more time or more CPUs.
+- **Copy snapshots on the synced tree** (1015 MB, 19039 files): copy 2 s, reset 3 s, `diff -r --no-dereference` 1 s and exit 0 (no dangling-link errors this time), `rsync` of an unchanged tree under 1 s.
+- **Image and memory.** The image is 2,371,193,788 bytes; the tree and the image together held 4.7 GiB of the 32 at the end.
+- **Verdict.** Against the probe's VERDICT line the checks run in the job, as root: every target is green, `secrets` included; the one thing the job changes is the time (`test` alone takes about ten minutes here), which the pipeline definition's 8-minute `time_limit` for `check` does not allow.
