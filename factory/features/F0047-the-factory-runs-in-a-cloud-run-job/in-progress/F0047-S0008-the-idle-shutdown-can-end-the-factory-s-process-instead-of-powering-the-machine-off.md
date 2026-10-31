@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-31T22:33:39.558909Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-31T22:33:39.553128Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-31T22:33:39.558909Z'
+  stage: intake
+---
+
 # The idle shutdown can end the factory's process instead of powering the machine off
 
 ## Description
@@ -56,3 +83,5 @@ Expect: two lines, `poweroff exit` and a message that names `FACTORY_IDLE_SHUTDO
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-31 human: created.
+2. factory: started intake as vm.
