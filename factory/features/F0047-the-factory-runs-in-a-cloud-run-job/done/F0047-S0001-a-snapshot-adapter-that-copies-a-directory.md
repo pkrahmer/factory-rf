@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-31T16:18:32.303297Z'
   stage: smoke-test
   run: 8a6da066f69e4c7f8c9d4811ab542f3f
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-31T16:22:58.628299Z'
+  stage: approval
 ---
 
 # A snapshot adapter that copies a directory
@@ -448,3 +453,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Against the acceptance criteria: the output agrees with criteria 1 and 2 (unset gives `zfs`, `btrfs` is refused with the stated message) and with criterion 5 (a modified file and an added file are listed sorted by path, and `reset` brings back the tree and the file's bytes while keeping the folder). It contradicts no criterion. Criteria 3, 4 and 6 to 16 are not exercised by these commands.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 22.9 min, 105 turns, 442392 tokens in (2953006 more from cache), 68910 out, $4.92
