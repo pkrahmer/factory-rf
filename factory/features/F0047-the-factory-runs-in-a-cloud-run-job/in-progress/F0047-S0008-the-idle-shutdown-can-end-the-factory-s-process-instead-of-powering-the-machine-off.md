@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 487
-comments_read: []
+comments_read: [6550196915]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: 60e6493e4827420b8b58f396030e0a38
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-10-31T22:50:40.475978Z'
+  stage: doing
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -175,3 +180,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Journal: nothing in the journal changed the task's meaning, so `## Description` is unchanged.
 
    Noticed, not touched: nothing else.
+8. 2026-10-31 human: Answer: (a). The tester widens `recording_of` in `tests/entry/test_run.py::test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick` to `(given, boundaries, request_stop=None)` and passes `request_stop` on to `original_of`; the test keeps its name and checks the same thing. The leave covers that stand-in's signature and nothing else in the file. End with `tests` and name the change.
