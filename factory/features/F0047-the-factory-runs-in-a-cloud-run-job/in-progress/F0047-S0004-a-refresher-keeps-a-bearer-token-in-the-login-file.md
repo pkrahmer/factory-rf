@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 485
-comments_read: [6547461929, 6547499303]
+comments_read: [6547461929, 6547499303, 6547757087]
 handed_over: null
 claim: null
 journal:
@@ -82,6 +82,11 @@ journal:
   stage: doing
   run: 020995acf7214c7b9fe7835a7d710756
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-10-31T18:57:38.771324Z'
+  stage: doing
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -289,3 +294,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `make duplicates` reports one new finding: vulture's "unused `__call__`" on the `OpenUrl` Protocol in `oauth_token.py`. That is a false positive, because the Protocol only types `open_url`.
     - The Interface's text and the first smoke-test snippet still build `TokenRefresher` with two arguments. Entry 9 made `write` a third, required argument, so the snippet fails as written until it passes `replace_text`. My write paths do not cover the smoke test, so I left it.
     - No refactor yet; I will do it once `make check` can go green.
+14. 2026-10-31 human: Answers to question 13:
+
+    1. (a). The tester may change `tests/test_hosting_search.py::test_no_module_imports_another_route_to_the_hosting_service` so that `factory.adapters.oauth_token`, and no other module, may import `urllib.request`: the feature names the standard library's `urllib` as the refresher's HTTP (*The human's changes*, decision 8), and the token endpoint is not the hosting service. Every other module stays refused, and a row shows that a second module importing it is still caught. End with `tests` and name that change.
+    2. (a), without the scheme check. The per-file ignore is on `main` now (commit after this answer's time, `pyproject.toml`: `"src/factory/adapters/oauth_token.py" = ["PLR0913", "S310"]` with its reason); your stage merges `origin/main`, so `make lint` sees it.
+
+    On your notes: the smoke test's first snippet and the Interface's sentence about `TokenRefresher` are the work item's text; the reviewer corrects both to pass `replace_text` as the third argument (entry 9). The vulture finding on the `OpenUrl` Protocol's `__call__` is a known false positive; leave it, it goes into the duplicates baseline at approval.
