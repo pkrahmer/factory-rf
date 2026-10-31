@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 488
-comments_read: []
+comments_read: [6550566644]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 4ef04e44d3674c7fb9591d8a13156115
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-31T23:26:56.150102Z'
+  stage: intake
 ---
 
 # One script turns a bare job into a running instance
@@ -101,3 +106,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    7. Interface, "A secret file's content is never printed, and the script passes no secret on a command line": criterion 11 checks files and output only. Is "no secret on a command line" to be tested, with the recorded stand-in arguments not containing `s3cret-token-text`? I would add that to criterion 11.
 
    8. Failing sides not covered: (a) a `curl` download that fails (stand-in exits non-zero) at the `runc` step; (b) a failing `nft -f` at `metadata`; (c) a failing `apt-get`. The Interface says nothing about what the script does in these cases (stop with which message and exit code, or fall through). Please state the rule, I would choose "stop on the first failing step with exit 1 and `factory-run` never called", and add a row for each.
+4. 2026-10-31 human: Answers to question 3:
+
+   1. `<ref>` is `FACTORY_CODE_REF`, the tag or commit the code was checked out at (decision 20): `--build-arg FACTORY_IMAGE=<FACTORY_CODE_REF>`. Criterion 8 names it.
+   2. The three words are S0009's `JOB_PODMAN_OPTIONS` of `factory.domain.containers`: `--runtime=runc --cgroup-manager=cgroupfs --storage-driver=overlay`. The script holds them as one shell constant, `JOB_PODMAN_OPTIONS`, and a test compares that constant's words with the Python tuple, so the two cannot drift apart. List the three words in the Interface.
+   3. Yes, one criterion with your three rows. The rule: the proxy is the value of `HTTPS_PROXY` when it is set, else of `https_proxy`; the script exports it under both spellings for every later step, so the `curl` and `git` stand-ins see `https_proxy` and `HTTPS_PROXY` with that value; with neither set they see neither.
+   4. Yes: rows for the image name in the `podman build -t` call with and without `FACTORY_STAGE_IMAGE`. The `/srv/factory/<instance>` default of `FACTORY_JOB_ROOT` is tested from the script's text only (the default is written there once), since a run cannot use `/srv`.
+   5. Yes, as you propose: the three are absent from `factory-run`'s environment when the input had none, and present with the input's value when it had one.
+   6. Yes: a row where `RUNC_VERSION` and `RUNC_SHA256` are both given and replace the URL's version and the checksum fed to `sha256sum -c`.
+   7. Yes: criterion 11 also checks that no recorded stand-in argument contains `s3cret-token-text`.
+   8. The rule: the script stops at the first failing step with exit 1 and `job-start: <step>: failed` on standard error (the steps with their own message keep it), and `factory-run` is never called. Rows for a failing `curl` at `runc`, a failing `nft -f` at `metadata`, and a failing `apt-get` at `packages`.
