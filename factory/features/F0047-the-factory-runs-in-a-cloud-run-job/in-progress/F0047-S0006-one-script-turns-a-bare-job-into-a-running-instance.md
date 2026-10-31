@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T23:28:06.145796Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-31T23:27:45.804491Z'
   stage: intake
   run: 5a724fd32469478ca5e5bfa5336a2e2a
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-31T23:28:06.145796Z'
+  stage: tests
 ---
 
 # One script turns a bare job into a running instance
@@ -144,3 +153,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: both commands run from the repository root. `sh vm/job-start.sh` stops at `inputs` with the message and exit 2, and `grep -c` gives 2 for the two chains. Both `Expect:` lines can be checked against the output. No pytest command, so there is no `-q` problem.
    - Architecture: shell and Dockerfile under `vm/`, which is in the coder's write paths. No layer is touched. Tests go through `tests/vm_support.py` with stand-ins. The change to `tests/test_stage_image.py` carries the human's leave in the Interface.
    - Scope: within F0047's scope (S0006 line, decisions 10 to 12, 17, 18 and 20). Creating the job is out of scope and the story leaves it out. The Dockerfile pin change is feature decision 17.
+7. factory: started tests as vm.
