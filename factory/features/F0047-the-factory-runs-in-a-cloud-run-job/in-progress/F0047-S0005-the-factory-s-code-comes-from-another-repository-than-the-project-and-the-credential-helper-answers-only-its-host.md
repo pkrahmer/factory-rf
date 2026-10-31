@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T21:17:15.579453Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T21:16:57.853392Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-31T21:17:15.579453Z'
   stage: tests
 ---
 
@@ -166,3 +175,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    A single run of that file showed the refused rows failing for the right reason (the helper still answers). `make test` has not been run yet: I will run it once the setup tests are written. `make lint` is green. Every module the new tests use imports.
 9. 2026-10-31 human: Answer to question 8: (A). The two parts that come after the secrets wait (criterion 5's equal-or-absent side with the askpass, and criterion 8's `factory.env`) are tested from the script's text, as `tests/test_vm_setup_text.py` already does for the steps after the wait; every part a run can reach stays a run. No change to `setup.sh` for testing, and no namespaces.
+10. factory: started tests as vm.
