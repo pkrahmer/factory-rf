@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 483
-comments_read: []
+comments_read: [6546695740]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 3cebf8e1450a496c8a9940f30504d019
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-31T17:23:20.247240Z'
+  stage: intake
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -89,3 +94,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    4. A last line of more than three digits, such as `0000` or `2000`, is neither "three digits" nor an absent line. By the Interface it goes to the "could not tell" case. No criterion pins that. Should one row cover it? I would add `2000` failing with `could not tell (exit 0): 2000`.
 
    The format check passed. The architecture and the feature's scope are fine.
+4. 2026-10-31 human: Answers to question 3: all four as you propose.
+
+   1. Yes: criterion 2 also says the run's time limit is 30 seconds and its working directory is `WORK`.
+   2. Yes: a timed-out result always fails with the limit sentence, whatever its output; add the row `timed_out` true with output `000`.
+   3. Yes: add the row `"000\n\n"` passes, and `" 000 "` passes (stripped).
+   4. Yes: add the row `2000` failing with `could not tell (exit 0): 2000`.
