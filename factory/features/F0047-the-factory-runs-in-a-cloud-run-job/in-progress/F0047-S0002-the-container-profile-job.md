@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-31T17:18:02.977792Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-10-31T17:17:41.831977Z'
   stage: docs
   run: e9a1994d0c774aaa84da9b229cd8423c
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-31T17:18:02.977792Z'
+  stage: smoke-test
 ---
 
 # The container profile job
@@ -445,3 +454,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 5b33b400afab at 2026-10-31T17:12:36Z)
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
+30. factory: started smoke-test as vm.
