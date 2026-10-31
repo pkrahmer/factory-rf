@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -163,6 +163,11 @@ journal:
   at: '2026-10-31T23:21:52.129255Z'
   stage: smoke-test
   run: dd4a2d13216d447d8a305872f460a5d3
+- number: 29
+  speaker: factory
+  kind: done
+  at: '2026-10-31T23:23:12.194145Z'
+  stage: approval
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -480,3 +485,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The smoke test does not exercise criteria 4–10 (wiring, the loop, `main`, `run_until_stopped`, `make check`, docs), so it neither confirms nor contradicts them. Those are covered by the stage's checks and the tests.
 
     Findings: none.
+29. factory: done (pull request merged); cost: 13 runs, 28.1 min, 99 turns, 347717 tokens in (2530219 more from cache), 44087 out, $3.84
