@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-31T20:09:18.679954Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -297,6 +301,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T20:09:00.319290Z'
+  stage: review
+- number: 53
+  speaker: factory
+  kind: started
+  at: '2026-10-31T20:09:18.679954Z'
   stage: review
 ---
 
@@ -860,3 +869,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     One more line in the same spirit, so the daemon cannot die of a fault nobody listed: `refresh_token`'s loop catches any `Exception` of one refresh besides `TokenError`, prints `refresh_token: <type>: <message>` masked like every other message (the secret and the last token replaced by `***`), keeps the old file and waits `RETRY_INTERVAL`, as for a `TokenError`; `--once` exits 1 for it. A fourth test row in criterion 7's loop test: a source raising `RuntimeError("boom")` between two successes. `KeyboardInterrupt` and `SystemExit` are not caught.
 
     After this round, the review sends the story back only for a criterion without a test or a test that fails; any further edge case it finds goes into its entry as a note, which I record on `main` for a later story.
+53. factory: started review as vm.
