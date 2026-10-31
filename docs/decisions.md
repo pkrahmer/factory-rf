@@ -1271,3 +1271,11 @@ Date: 2026-10-31 (F0047-S0004; decisions 7 and 8 of the feature).
 - The client secret is read from a file that Secret Manager mounts, never from the environment, and appears in no log line, no error message and no child's environment: every detail is masked with `***`. The same holds for the token.
 - The HTTP goes through the standard library (`urllib`), which honours `https_proxy` and `no_proxy`; no dependency is added. `factory.adapters.oauth_token` is the one module allowed to import `urllib.request` and `http.client`.
 - Rejected: a refresh at half the token's life alone (see above); a change in the runtimes to fetch the token themselves (every runtime would need it); the secret in the environment (a child would inherit it).
+
+## The code and the project apart
+
+Date: 2026-10-31 (F0047-S0005; decision 9 of the feature).
+
+- Decision: `vm/setup.sh` takes `--code-url`, the repository the factory's code and the stage image's `vm/Dockerfile` come from, default `--repository-url`. A different code url is cloned without any credential (`GIT_TERMINAL_PROMPT=0`, no `GIT_ASKPASS`, no `core.askPass`), and a clone that asks for one fails with a message. `FACTORY_REPOSITORY_URL` stays the project. The credential helper answers only a request for the host of `FACTORY_REPOSITORY_URL`.
+- Why: a company on its own enterprise host runs the factory's public code from a public repository, which that host allows no fork of; code and project are then two repositories on two hosts, and the project's token must never be offered to the code's host.
+- Rejected: a token for the code repository (the code must be public and readable without one); the helper trusting git to ask for the right host (git asks the helper for whatever host a remote names).

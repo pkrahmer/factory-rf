@@ -94,7 +94,7 @@ Git is reached only through the `Git` interface (`factory.application.git`, an a
 | `executable` | `"git"` | the program to run (tests give a stand-in) |
 | `time_limit` | `GIT_TIME_LIMIT` (5 minutes) | per command |
 
-`factory.entry.wiring` fills `identity` from the instance settings `GIT_USER_NAME` and `GIT_USER_EMAIL`, and `environment` with the credential helper for the factory's own pushes (the helper reads the token file; the token itself is never in the environment), so that the agent run never receives it.
+`factory.entry.wiring` fills `identity` from the instance settings `GIT_USER_NAME` and `GIT_USER_EMAIL`, and `environment` with the credential helper for the factory's own pushes (the helper reads the token file; the token itself is never in the environment), so that the agent run never receives it. `vm/git-credential-factory` (shell) answers `get` only for the host of `FACTORY_REPOSITORY_URL` when that variable is set: it takes the URL's host (`https://`, `ssh://` or `[user@]host:path`, lower-cased, user and port removed) and the request's `host=` line (lower-cased, port removed), and prints nothing and exits 1 unless they are equal or when the request has no `host=` line. Why: the code may come from another repository on another host (`vm/setup.sh --code-url`), and the project's token must not reach it.
 
 The twenty-one operations of the `Git` interface (`tests/application/test_git_interface.py` checks that the interface has exactly these and that `GitCli` has each):
 

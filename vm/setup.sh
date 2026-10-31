@@ -8,9 +8,11 @@ set -eu
 
 usage() {
   cat <<'EOF'
-usage: setup.sh --device <path> --repository-url <url> [--instance <name>] [--pool <name>] [--quota <size>] [--ref <git ref>] [--image <tag>] [--runtime claude|opencode] [--sudoers] [--idle-shutdown <minutes>] [--help]
+usage: setup.sh --device <path> --repository-url <url> [--code-url <url>] [--instance <name>] [--pool <name>] [--quota <size>] [--ref <git ref>] [--image <tag>] [--runtime claude|opencode] [--sudoers] [--idle-shutdown <minutes>] [--help]
   --device <path>           the disk or file the pool is made on, when it does not exist yet
-  --repository-url <url>    the repository the factory works on and runs from
+  --repository-url <url>    the repository the factory works on, and runs from without --code-url
+  --code-url <url>          the repository the factory's code comes from, read without a token
+                            (default the --repository-url)
   --instance <name>         the instance's name (default vm)
   --pool <name>             the ZFS pool (default tank)
   --quota <size>            the quota of the instance's dataset (default 30G)
@@ -50,6 +52,7 @@ need_minutes() {
 
 device=
 repository_url=
+code_url=
 instance=vm
 pool=tank
 quota=30G
@@ -65,6 +68,7 @@ while [ $# -gt 0 ]; do
     --sudoers) sudoers=yes; shift ;;
     --device) need_value "$@"; device=$2; shift 2 ;;
     --repository-url) need_value "$@"; repository_url=$2; shift 2 ;;
+    --code-url) need_value "$@"; code_url=$2; shift 2 ;;
     --instance) need_value "$@"; instance=$2; shift 2 ;;
     --pool) need_value "$@"; pool=$2; shift 2 ;;
     --quota) need_value "$@"; quota=$2; shift 2 ;;
@@ -88,6 +92,9 @@ case "$runtime" in
 esac
 if [ -z "$image" ]; then
   image=factory-stage:$instance
+fi
+if [ -z "$code_url" ]; then
+  code_url=$repository_url
 fi
 
 if [ "$(id -u)" != 0 ]; then
@@ -353,9 +360,18 @@ fi
 # Root's git refuses a repository another user owns, so the clone writes its own askPass.
 # Only a fresh clone holds the remote's text before the service ever ran, so only then are
 # files of the checkout installed as root.
+# Code from a repository apart from the project is cloned without any credential, so the
+# project's token never reaches the code's host.
 cloned=no
-if [ ! -d "$checkout/.git" ]; then
+if [ ! -d "$checkout/.git" ] && [ "$code_url" = "$repository_url" ]; then
   as_factory GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 git clone -q --branch "$ref" --config core.askPass="$askpass" "$repository_url" "$checkout"
+  cloned=yes
+  changed "cloned $ref into $checkout"
+elif [ ! -d "$checkout/.git" ] && [ "$code_url" != "$repository_url" ]; then
+  as_factory env -u GIT_ASKPASS GIT_TERMINAL_PROMPT=0 git clone --quiet --branch "$ref" "$code_url" "$checkout" || {
+    echo "setup: checkout: cannot clone $code_url without a credential; the code repository must be readable without a token" >&2
+    exit 1
+  }
   cloned=yes
   changed "cloned $ref into $checkout"
 fi
