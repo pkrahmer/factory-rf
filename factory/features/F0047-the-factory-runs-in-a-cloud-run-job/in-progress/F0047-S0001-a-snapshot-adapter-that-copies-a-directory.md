@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T15:59:14.800471Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-31T15:59:14.800471Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T16:00:22.681633Z'
+  stage: review
+  run: 94dab09fe25940f7851e55e1d60b9c06
 ---
 
 # A snapshot adapter that copies a directory
@@ -117,8 +119,10 @@ Tests (the tester writes them): `tests/domain/test_settings_snapshots.py`, `test
 10. `snapshots_item`: a workspace and a base that are directories pass with the detail `workspace <w>, base <b>`; a workspace that is a file, a missing workspace, a missing base and a base that is a file each fail with the sentences of the Interface (the base that is a file with `the base <b> is not a directory`).
 11. `build_boundaries` with `copy`, a workspace, a base and an image, and no dataset, gives `CopySnapshots` on those paths; without the base it raises `SettingsInvalid` naming `FACTORY_SNAPSHOT_BASE`; `machine_extras` for `copy` holds the items `podman`, `snapshots`, `stage-image` and `agent-run-probe` and none named `zfs` or `dataset`.
 12. `build_boundaries` with `copy` and no base raises `SettingsInvalid` naming `FACTORY_SNAPSHOT_BASE`, also when the workspace is missing (one row) and when the stage image is missing (a second row).
-13. `make check` stays green.
-14. docs: `docs/operator-guide.md`: the two variables in the configuration table, and a subsection *Without ZFS* under the stage environment: the copy adapter, the empty base made once with `mkdir`, the cost (reset about 1.6 s per GiB, both copies in memory in a memory-backed sandbox). `docs/project-guide/stage-environment.md`: *The snapshots* names `CopySnapshots`, and the fake's section says `FakeSnapshots` is its subclass. `docs/decisions.md`: an entry *A snapshot adapter that copies a directory*, from the feature's decisions 1 and 2. `README.md`: none.
+13. An `OSError` of `reset`'s copy that comes after the base is found is a `SnapshotError` naming `reset` whose detail is the operating system's message, not `no base at <base>`: a base that is a directory and a folder that is a regular file (`NotADirectoryError`, independent of the user the tests run as).
+14. `build_boundaries` with `copy` and a base keeps today's faults after it, rows of one test: without the workspace it raises `SettingsInvalid` naming `FACTORY_WORKSPACE`; with the workspace and without the stage image, `SettingsInvalid` naming `FACTORY_STAGE_IMAGE`.
+15. `make check` stays green.
+16. docs: `docs/operator-guide.md`: the two variables in the configuration table, and a subsection *Without ZFS* under the stage environment: the copy adapter, the empty base made once with `mkdir`, the cost (reset about 1.6 s per GiB, both copies in memory in a memory-backed sandbox). `docs/project-guide/stage-environment.md`: *The snapshots* names `CopySnapshots`, and the fake's section says `FakeSnapshots` is its subclass. `docs/decisions.md`: an entry *A snapshot adapter that copies a directory*, from the feature's decisions 1 and 2. `README.md`: none.
 
 ## Smoke test
 
@@ -253,3 +257,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (5 src files, 4 new test modules) against the work item. Group 1 (acceptance criteria) fails, so I stopped there. Both gaps are against the story, not the tester. Neither needs a change under `src/`, so I added a criterion for each before the two closing criteria, which are now 15 and 16.
+
+    1. criterion 13 added: it needs its test. `tests/adapters/test_copy_snapshots.py::test_an_operating_system_fault_of_the_copy_is_a_snapshot_error_naming_the_operation`, row `reset-on-a-file`: the base that criterion 8 names (a file) is stopped by `CopySnapshots._require_base` (`src/factory/adapters/copy_snapshots.py:57`) with `no base at <base>`. So `_as_snapshot_error("reset", ...)` (`copy_snapshots.py:35`) is never reached, and the Interface's rule for `reset` (an `OSError` becomes `SnapshotError("reset", <the OS message>)`) has no test. The coder's entry 10 says the same. Fix: the tester adds the row from criterion 13 (the base is a directory and the folder is a regular file, so `_clear` raises `NotADirectoryError`) and asserts that the detail is not `no base at <base>`.
+    2. criterion 14 added: it needs its test. The Interface says that with `copy`, `build_boundaries` raises the missing base first, "then the workspace and image faults as today". The new path `_copy_snapshots` → `_required_workspace` (`src/factory/entry/wiring.py:337-343`) and the stage-image check after it (`wiring.py:327`) have no test for a `copy` instance that has a base: `tests/entry/test_wiring_copy_snapshots.py` only tests a missing base. Fix: the tester adds one parametrized test to `tests/entry/test_wiring_copy_snapshots.py` with two rows, no workspace naming `FACTORY_WORKSPACE` and no stage image naming `FACTORY_STAGE_IMAGE`.
+
+    The other criteria (1–7 and 9–12) each have a matching test, and the factory's `make check` after the coder was green (entry 10). I did not judge groups 2–5 because group 1 failed.
+
+    Earlier tests: none. The diff adds only new test files (all status `A`), and `tests/adapters/test_fake_snapshots.py` is unchanged.
