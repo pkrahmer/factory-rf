@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T19:24:01.830248Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-10-31T19:24:01.830248Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-10-31T19:30:11.267701Z'
+  stage: doing
+  run: d007c035777c49cb9e48af4902543728
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -480,3 +482,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (165.3 s)
 27. factory: started doing as vm.
+28. coder: Round 1. The reviewer's only finding (entry 22) was a test with no code change: new criterion 9 on how `ClientCredentialsTokenSource.fetch` handles a 200 answer. The tester wrote it in entry 26 as `tests/adapters/test_oauth_token.py::test_a_200_answer_needs_a_token_string_and_a_positive_life`. The code from entry 20 already passes every row, so I changed no code.
+
+    **What is built** (unchanged from entry 20, already in the branch):
+    - `src/factory/domain/tokens.py`
+    - `src/factory/domain/errors.py` (`TokenError`)
+    - `src/factory/application/tokens.py`
+    - `src/factory/adapters/oauth_token.py`
+    - `src/factory/entry/refresh_token.py`
+    - `src/factory/entry/wiring.py` (`client_credentials_source`, `build_token_refresher`)
+
+    **Main choice, unchanged:** the adapters are built in `factory.entry.wiring` and not in `refresh_token.py`. Importing them directly in `refresh_token.py` was the alternative; I rejected it because `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` forbids it.
+
+    **Refactor:** nothing to change this round, since there is no new diff. The round-0 refactor, one shared `_masked` helper, still stands.
+
+    **What the journal changed:** criterion 9 was added, and the reviewer has already corrected the Interface and the smoke test. The Description is unchanged.
+
+    **Noticed, not touched:** vulture's false positive on `OpenUrl.__call__` in `make duplicates` is meant to go into the duplicates baseline at approval (entry 14).
+
+    `check`: check: green (`test: green (165.0 s)`, total coverage 99.55 %)
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 0 gone
