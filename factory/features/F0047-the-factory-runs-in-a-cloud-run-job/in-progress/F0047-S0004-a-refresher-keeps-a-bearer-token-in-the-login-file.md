@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T20:46:21.152802Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -392,6 +396,11 @@ journal:
   at: '2026-10-31T20:46:00.452762Z'
   stage: review
   run: d2bcb852ba914f89a783217d448a402a
+- number: 70
+  speaker: factory
+  kind: started
+  at: '2026-10-31T20:46:21.152802Z'
+  stage: doing
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1128,3 +1137,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/conftest.py`: the standing leave to move a shared test helper. It only adds the `restored_signals` fixture, moved unchanged from `tests/entry/test_run.py`.
     - `tests/entry/test_run.py`: the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
     - `tests/test_hosting_search.py`: the human's leave in entries 14 (answer 1) and 57. `ALLOWED` lets `factory.adapters.oauth_token` alone import `urllib.request` and `http.client`. Every earlier row keeps its id and still expects no importer. The new rows `urllib.request-in-a-second-module` and `http.client-in-a-second-module` show that a second importer is caught. The test keeps its name, and the change stays within the leave.
+70. factory: started doing as vm.
