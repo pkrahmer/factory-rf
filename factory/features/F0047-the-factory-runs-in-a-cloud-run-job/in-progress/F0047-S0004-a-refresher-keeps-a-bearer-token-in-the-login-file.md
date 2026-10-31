@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T19:42:05.895047Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,13 +191,26 @@ journal:
   kind: started
   at: '2026-10-31T19:42:05.895047Z'
   stage: review
+- number: 34
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T19:43:13.670958Z'
+  stage: review
+  run: 6397c081c2704c5c8e1dddc56767146b
+- number: 35
+  speaker: factory
+  kind: question
+  at: '2026-10-31T19:43:13.670958Z'
+  stage: review
+  run: 6397c081c2704c5c8e1dddc56767146b
+  blocked: round_cap
 ---
 
 # A refresher keeps a bearer token in the login file
 
 ## Description
 
-A model API behind an OAuth2 client-credentials grant gives out a bearer token that lives one hour (measured on 2026-10-31, `planning/cloud-sandbox/`, P10: `expires_in` 3599, a 1278-character JWT; opencode reading it as the API key ran a real task). The opencode runtime already reads the file named by `FACTORY_API_LOGIN_FILE` at every call and hands its content to the agent as `ANTHROPIC_API_KEY`; the F0046 provider file names that variable as the provider's key. So the factory needs no runtime change, only something that keeps that file fresh. This story adds a command, `python -m factory.entry.refresh_token`, that requests a token from the grant's endpoint with a client id from a variable and a client secret read from a file (Secret Manager mounts it), writes the token into the login file atomically, and again every ten minutes (the human, 2026-10-31: a fixed interval, not a rule on the token's life). A container mounts the file when it starts and its login shell reads it once, so a run has at least the token's life less ten minutes: fifty minutes with the measured token, more than one forty-minute stage. A failed request keeps the old file and tries again after a minute. The client secret appears in no log line, no error message and no child's environment. The HTTP goes through the standard library, which honours `https_proxy` and `no_proxy`. Unchanged: the runtimes, the login shell, every setting that exists. Left to later stories: running it (S0006).
+A model API behind an OAuth2 client-credentials grant gives out a bearer token that lives one hour (measured on 2026-10-31, `planning/cloud-sandbox/`, P10: `expires_in` 3599, a 1278-character JWT; opencode reading it as the API key ran a real task). The opencode runtime already reads the file named by `FACTORY_API_LOGIN_FILE` at every call and hands its content to the agent as `ANTHROPIC_API_KEY`; the F0046 provider file names that variable as the provider's key. So the factory needs no runtime change, only something that keeps that file fresh. This story adds a command, `python -m factory.entry.refresh_token`, that requests a token from the grant's endpoint with a client id from a variable and a client secret read from a file (Secret Manager mounts it), writes the token into the login file atomically, and again every ten minutes (the human, 2026-10-31: a fixed interval, not a rule on the token's life), or after half the token's life when that is shorter, and never sooner than thirty seconds. A container mounts the file when it starts and its login shell reads it once, so a run has at least the token's life less ten minutes: fifty minutes with the measured token, more than one forty-minute stage. A failed request keeps the old file and tries again after a minute. The client secret appears in no log line, no error message and no child's environment. The HTTP goes through the standard library, which honours `https_proxy` and `no_proxy`. Unchanged: the runtimes, the login shell, every setting that exists. Left to later stories: running it (S0006).
 
 ## Interface
 
@@ -228,8 +237,9 @@ Tests (the tester writes them): `tests/domain/test_tokens.py`, `tests/applicatio
 7. The loop (injected wait), rows `SIGTERM` and `SIGINT`: two successes then the signal gives two writes, waits of the refresh interval, exit 0; a failure between two successes keeps the file of the first, prints the error, waits `RETRY_INTERVAL` once and goes on.
 8. Neither standard output, standard error, a raised error nor the environment given to a child process contains the client secret or the token (a test over all of them with a secret `s3cret-value` and a token `tok-abc`).
 9. `ClientCredentialsTokenSource.fetch` on a 200 answer, rows of one test: a body that is not JSON (`<html>`), an `access_token` that is blank, holds a space, or is not a string (`5`) each give `TokenError("the answer holds no access_token")`; a missing `expires_in`, `"soon"`, `true` and `"0"` each give `TokenError("the answer holds no expires_in")`; an `expires_in` of `1` and of `"1"` each give a token that lives 1 s.
-10. `make check` stays green.
-11. docs: `docs/operator-guide.md`: a subsection *A bearer token for the model API* with the variables, what the command writes and when (every ten minutes; a run reads the file when its container starts, so the token must live longer than the interval plus the longest stage), that the file is the one `FACTORY_API_LOGIN_FILE` names, the provider file's `api_key_env` that reads it as `ANTHROPIC_API_KEY`, the proxy (set `NO_PROXY` for an internal API host and `https_proxy` for the token endpoint) and that the secret is a file mounted from Secret Manager. `docs/project-guide/agents.md`: *The opencode runtime* names the refresher. `docs/decisions.md`: an entry *A refresher keeps the bearer token fresh*, from the feature's decisions 7 and 8. `README.md`: none.
+10. A secret file that is not UTF-8 text (the bytes `b"\xff\xfe"`) exits 2 with `refresh_token: cannot read <path>` on standard error, as a third row of criterion 6's secret-file test beside the missing and the blank file.
+11. `make check` stays green.
+12. docs: `docs/operator-guide.md`: a subsection *A bearer token for the model API* with the variables, what the command writes and when (every ten minutes; a run reads the file when its container starts, so the token must live longer than the interval plus the longest stage), that the file is the one `FACTORY_API_LOGIN_FILE` names, the provider file's `api_key_env` that reads it as `ANTHROPIC_API_KEY`, the proxy (set `NO_PROXY` for an internal API host and `https_proxy` for the token endpoint) and that the secret is a file mounted from Secret Manager. `docs/project-guide/agents.md`: *The opencode runtime* names the refresher. `docs/decisions.md`: an entry *A refresher keeps the bearer token fresh*, from the feature's decisions 7 and 8. `README.md`: none.
 
 ## Smoke test
 
@@ -575,3 +585,29 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 0 gone
 33. factory: started review as vm.
+34. reviewer: Review round 2. I read the work item and `git diff main...HEAD -- . ':!factory'`. Entry 32 records `check: green` after the coder, and `duplicates: 1 new`, which is the `OpenUrl.__call__` false positive that entry 14 accepts.
+
+    Both round-1 findings are fixed in the code:
+    - `src/factory/entry/refresh_token.py:82-89` (`_secret`) now reads the secret through `read_input` and turns `UnreadableInput` into `cannot read <path>`. The printed message holds only the path, not the decode error.
+    - `src/factory/adapters/oauth_token.py:54,68,96-98` keeps only the last issued token and masks it together with the secret.
+
+    Group 1 (acceptance criteria) fails, because the round-1 fix built a behaviour that no test pins. I went through every criterion and every Interface rule again. Criteria 1 to 9 each still have their test, and this is the only gap.
+
+    1. criterion 10 added: it needs its test. Location: `src/factory/entry/refresh_token.py:82-89` and `tests/entry/test_refresh_token.py:98-112` (`test_an_unreadable_or_blank_secret_file_exits_2`).
+       - The Interface says an unreadable secret file exits 2 with `refresh_token: cannot read <path>`. Round 1 found that a non-UTF-8 file crashed instead, and the code now handles it, but only the missing and the blank file are tested. A regression to a `UnicodeDecodeError` traceback would go unseen.
+       - Pinning it needs no change under `src/`. I wrote it as criterion 10 and renumbered the closing criteria to 11 and 12.
+       - Fix: the tester adds a third row, `not-utf-8`, to `test_an_unreadable_or_blank_secret_file_exits_2`. The secret file holds `b"\xff\xfe"`, and the row expects exit 2 and the message on standard error.
+
+    description corrected: "and again every ten minutes (the human, 2026-10-31: a fixed interval, not a rule on the token's life)." -> "and again every ten minutes (the human, 2026-10-31: a fixed interval, not a rule on the token's life), or after half the token's life when that is shorter, and never sooner than thirty seconds." The Interface's `refresh_wait` and criterion 1 already settle this.
+
+    Groups 2 and 3 (architecture, security) passed in round 1, and the round-2 changes do not affect them. I did not review groups 4 and 5 again, because group 1 failed first. In what I read for the two fixes, I found nothing new in either group.
+
+    Earlier tests:
+    - `tests/conftest.py`: the standing leave to move a shared test helper. The only change is the `restored_signals` fixture, moved unchanged from `tests/entry/test_run.py`.
+    - `tests/entry/test_run.py`: the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
+    - `tests/test_hosting_search.py`: the human's leave, journal entry 14, answer 1. Only `factory.adapters.oauth_token` may import `urllib.request` (`ALLOWED`). The earlier rows keep their ids and still expect no importer, and the new row `urllib.request-in-a-second-module` shows that a second importer is caught. The test keeps its name, and the change stays within the leave.
+
+    Notes:
+    - `tests/adapters/test_oauth_token.py:13-14` and `tests/entry/test_refresh_token.py:17-18`: `HIDDEN` and `ISSUED` are defined in both modules. They belong in `tests/token_support.py`, next to `ENDPOINT`.
+    - `tests/entry/test_refresh_token.py:116-145`: the success and the failure side of `--once` are two test functions. They could be two rows of one parametrized test.
+35. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
