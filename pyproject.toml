@@ -61,6 +61,7 @@ ignore = ["PLR2004", "N818", "D105", "D107"]
 "src/factory/adapters/claude_runtime.py" = ["PLR0913"]  # F0014-S0003 pins the runtime's six-argument constructor; no noqa in the source
 "src/factory/adapters/opencode_runtime.py" = ["PLR0913"]  # F0020-S0004 pins the second runtime's constructor beside the first's; no noqa in the source
 "src/factory/adapters/make_commands.py" = ["PLR0913"]  # F0046-S0002 pins the check commands' constructor with the extras and the bundle; no noqa in the source
+"src/factory/adapters/oauth_token.py" = ["PLR0913", "S310"]  # F0047-S0004 pins the token source's six-argument constructor; the token URL is the operator's FACTORY_TOKEN_URL, read by the one module allowed urllib.request; no noqa in the source
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
