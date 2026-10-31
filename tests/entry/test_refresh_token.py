@@ -140,20 +140,35 @@ def test_once_writes_the_token_and_names_its_life_and_the_wait(
 
 
 @pytest.mark.usefixtures("restored_signals")
+@pytest.mark.parametrize(
+    ("error", "line"),
+    [
+        pytest.param(
+            TokenError("HTTP 400: invalid_client"),
+            "refresh_token: token request failed: HTTP 400: invalid_client",
+            id="token-error",
+        ),
+        pytest.param(
+            RuntimeError("boom"), "refresh_token: RuntimeError: boom", id="any-other-error"
+        ),
+    ],
+)
 def test_once_with_a_failing_source_keeps_the_file_and_exits_1(
-    environ: dict[str, str], login_file: Path, capsys: pytest.CaptureFixture[str]
+    environ: dict[str, str],
+    login_file: Path,
+    error: Exception,
+    line: str,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     login_file.parent.mkdir()
     login_file.write_text("old-token", encoding="utf-8")
-    source = ScriptedTokenSource(TokenError("HTTP 400: invalid_client"))
+    source = ScriptedTokenSource(error)
 
     status = main(["--once"], environ, source=scripted(source), sleep=never_sleep)
 
     assert status == 1
     assert login_file.read_text(encoding="utf-8") == "old-token"
-    assert (
-        "refresh_token: token request failed: HTTP 400: invalid_client" in capsys.readouterr().err
-    )
+    assert line in capsys.readouterr().err
 
 
 @pytest.mark.usefixtures("restored_signals")

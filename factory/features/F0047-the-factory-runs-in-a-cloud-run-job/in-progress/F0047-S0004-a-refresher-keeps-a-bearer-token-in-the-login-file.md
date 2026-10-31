@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T20:47:25.998378Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -412,6 +408,12 @@ journal:
   kind: started
   at: '2026-10-31T20:47:25.998378Z'
   stage: tests
+- number: 73
+  speaker: tester
+  kind: result
+  at: '2026-10-31T20:53:28.014241Z'
+  stage: tests
+  run: f39d529e5d6b425b969520a22a0dc612
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1164,3 +1166,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `masked` in `factory.domain.tokens` has no direct test.
     - The names `SECOND` and `SECOND_CLIENT` in `tests/test_hosting_search.py` are unclear.
 72. factory: started tests as vm.
+73. tester: Round 2: the test change the coder named in entry 71, which answers reviewer entry 69, finding 1. The test `tests/entry/test_refresh_token.py::test_once_with_a_failing_source_keeps_the_file_and_exits_1` was one case and is now parametrized over `(error, line)`. It keeps its name, and both rows share the same setup and asserts:
+    - `token-error`: the existing case, unchanged. `TokenError("HTTP 400: invalid_client")` gives `refresh_token: token request failed: HTTP 400: invalid_client`.
+    - `any-other-error`: the new row. `RuntimeError("boom")` gives `refresh_token: RuntimeError: boom`.
+
+    In both rows the test checks that the old file stays `old-token`, that the command exits 1 and that the line appears on standard error. I changed no other test.
+
+    Criterion mapping, changed row only:
+    - criterion 6 (`--once` with a failing source, `TokenError` and any other exception): tests/entry/test_refresh_token.py::test_once_with_a_failing_source_keeps_the_file_and_exits_1 [token-error, any-other-error]
+
+    Files: I created none and changed only `tests/entry/test_refresh_token.py`. Every module imported.
+
+    Runs:
+    - `make test` once: `test: green (165.3 s)`, total coverage 99.56 %. The new row passes, because the code already handles this case, as entry 71 says.
+    - `make lint`: green.
+
+    Open: the reviewer's notes in entry 69 are untouched, because none of them is a finding:
+    - The `incomplete-read` row computes its expected value with the same expression as the code.
+    - `masked` has no direct test.
+    - The names `SECOND` and `SECOND_CLIENT` are unclear.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (165.5 s)
