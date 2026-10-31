@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T23:05:28.514966Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-31T23:05:08.142441Z'
   stage: review
   run: 760c9f1438a4421a883a0332d075fb61
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-31T23:05:28.514966Z'
+  stage: doing
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -281,3 +290,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests:
     - tests/entry/test_run.py: under the human's leave in journal entry 8. Only the `recording_of` stand-in's signature changed, widened to take `request_stop`, which it passes on to `original_of`. The test keeps its name and checks the same thing.
+17. factory: started doing as vm.
