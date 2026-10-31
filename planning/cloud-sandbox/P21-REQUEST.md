@@ -2,12 +2,13 @@
 
 For the session at work, which seeded the demo project into a repository on the company's GitHub. Answer in this file, under *Response*, and push. Thank you for P20: it showed that GitHub is reached only through the proxy, now in S0006's chapter.
 
-## First: bring the seeded demo up to v1.2
+## First: the trial repository must hold the demo project
 
-The demo project in factory-rf was stale: since v1.2 the stage environment runs `make sync` before every agent run and every check, and the demo had no `sync` target, so the first stage would have failed. Fixed at home in commit `7c7b045b7`. Your seeded repository has the same gap.
+The human thinks the repository was seeded from factory-rf's `template/`, not from the demo. The template is only a skeleton (`CLAUDE.md`, a `Makefile`, `factory/pipeline.yml`): it has no code, no `pyproject.toml` and no `uv.lock`, so `make sync` (`uv sync --frozen`) fails at the first stage, and it has no `factory/story-form.md`, without which the factory refuses every story. The demo project, `demo/todo-service/project` in factory-rf, is a complete small project (a todo service with its tests) made for exactly this trial. It was stale for v1.2 (no `sync` target); fixed at home in commit `7c7b045b7`.
 
 1. `git pull --ff-only` in factory-rf.
-2. Copy `demo/todo-service/project/Makefile` and `demo/todo-service/project/factory/pipeline.yml` over the same two files of the seeded repository, commit them on its `main` with the message `v1.2: the sync target and command`, and push. Compare the rest of the seeded repository with `demo/todo-service/project` (`diff -r`, leaving out `.git`) and name any other difference in the response; change nothing else.
+2. Look at what the seeded repository holds now and say in the response which it was (the template, the demo, or something else).
+3. Make its `main` hold exactly the files of `demo/todo-service/project` from factory-rf's current `main`: copy them over, remove what is not in the demo (the `.git` folder excepted), commit with the message `the demo project of factory-rf at <factory-rf's short commit>`, and push. Check with `diff -r` (leaving out `.git`) that nothing differs.
 
 ## Why
 
@@ -28,7 +29,7 @@ Two questions stand between F0047 and its first real story, and both are about t
 3. Afterwards, check in the repository's web page that no branch `probe/...`, no open pull request of the probe and no label `p21-...` is left. A closed pull request stays in the history; that is expected.
 4. Save the log as `results/p21-demo-project-in-a-job.txt`, masked as before (the repository's name never appears; check it).
 5. Add a section `## P21: the trial project in a job (<date>)` at the end of `capabilities.md`: whether the seeded repository has the four files and the four targets; the build's time; `make sync` and every check target, green or red, with failed tests and their `E` lines and what `detect-secrets` flagged; for part B every step's HTTP status and message; whether anything was left over; and your one-sentence verdict against the probe's VERDICT line. If a step of B answers 403 or 404, name the permission the token lacks, as GitHub's message names it.
-6. Write a short answer under *Response* below, with the differences found in *First*. Commit the result file, `capabilities.md` and this file with the message `planning: cloud sandbox: P21, the trial project in a job`, stage only those, push to factory-rf's `main`.
+6. Write a short answer under *Response* below, with what the repository held before *First* and the `diff -r` result. Commit the result file, `capabilities.md` and this file with the message `planning: cloud sandbox: P21, the trial project in a job`, stage only those, push to factory-rf's `main`.
 
 The rules of the earlier probes bind: no company value in any file of factory-rf, no secret printed or committed, no change outside `planning/cloud-sandbox/` in factory-rf, nothing created in the cloud project beyond the throwaway job the script makes and deletes.
 
