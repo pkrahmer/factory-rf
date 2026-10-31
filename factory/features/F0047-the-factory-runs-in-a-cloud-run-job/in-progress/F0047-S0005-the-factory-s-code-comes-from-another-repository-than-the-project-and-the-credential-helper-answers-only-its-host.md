@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 486
-comments_read: [6549192607, 6549244772, 6549403733]
+comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
 claim: null
 journal:
@@ -143,6 +143,11 @@ journal:
   stage: doing
   run: 057b23881cd743608fe3cc1a5e6ea823
   blocked: question
+- number: 25
+  speaker: human
+  kind: comment
+  at: '2026-10-31T21:52:57.712767Z'
+  stage: doing
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -398,3 +403,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - finding 3: under the standing leave, `tests/test_vm_credential_helper_host.py` imports `SYSTEM_PATH` from `tests/vm_support.py`. The `token` fixture moves to `tests/conftest.py`, and `ROOT`, `HELPER` and `EXAMPLE_VALUE` move to a support module, both used from there by `tests/test_git_credential_helper.py` too.
 
     What is built, unchanged since entry 13: `vm/setup.sh` (`--code-url`, the clone without credentials before the wait) and `vm/git-credential-factory` (the host rule). Nothing changed this round, so I did not run `make check`. It was green at entry 20. The Description is unchanged: entry 22 adds criterion 11, which intake had already put in the story, and the answer to this question may add one more.
+25. 2026-10-31 human: Answer to question 24: (B). The code clone moves after the secrets wait, into the same pass as the installs, so `cloned` works exactly as today: a fresh clone in this pass installs the helper and the unit as root, and nothing new decides "fresh". (A) would add a root-owned marker and a second footprint outside `$base` for a gain of one pass; (C) would leave an older helper without the host rule on a machine that has one, the very helper this story replaces.
+
+    What changes in the story (correct the Interface and criterion 7 in this round):
+    - Interface: "That clone happens before the wait for the secrets, so the first pass stops later" becomes: the clone of a different `--code-url` happens in the checkout step after the wait for the secrets, where the clone of today happens, still with `GIT_TERMINAL_PROMPT=0`, without `GIT_ASKPASS` and without `core.askPass`; the first pass stops at `waiting for /home/factory/.secrets/hosting-token` (exit 0) without cloning, as today.
+    - Criterion 7: with a different `--code-url` and no `hosting-token`, the script prints the wait message and exits 0 without calling the stand-in `git clone`; with the token, the clone of the code url runs with no askpass and sets `cloned=yes` (text-tested after the wait, as in the answer (A) of entry 9, together with criterion 5's other side).
+    - The tester changes criterion 7's test in `tests/test_vm_setup_code_url.py` (this story's own file) accordingly.
+
+    Findings 1 and 3 of entry 22 go to the tester in the same run, as you list them: criterion 11's test (a `GIT_ASKPASS` the stand-in `runuser` exports must not reach the code clone; with the clone after the wait, test it from the text if a run cannot reach it), and the helpers moved under the standing leave.
