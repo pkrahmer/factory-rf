@@ -1249,3 +1249,13 @@ Date: 2026-10-31 (F0047-S0002; decisions 3 to 5 of the feature).
 - The container runs as root with `--cap-drop=all`; the job itself is the sandbox's boundary, and the container fence stays what it was.
 - One class with a profile, not a subclass: a subclass would copy `launch`. The grace, the reading of exit statuses and the `ValueError` rules are shared.
 - Rejected: changing the default profile (the VM's words must not move); a setting for each option (the four belong together and have one cause).
+
+## A container must not reach the metadata server
+
+Date: 2026-10-31 (F0047-S0003; decision 6 of the feature).
+
+- Decision: with `FACTORY_CONTAINER_PROFILE=job` the preflight gains the item `metadata-block`. One container runs `curl` against `http://169.254.169.254/computeMetadata/v1/instance/id` and the item passes only when curl prints `000` (no connection). A machine that fails it stops like any failed preflight item. The rule itself, a firewall reject of TCP port 80 to that address, is installed outside the factory (the start script).
+- Why: in a Cloud Run job a container shares the job's network, and the server hands the job's service-account token to any process there (measured 2026-10-31, reachable from host-network and bridge containers, by address and by name). Rejecting port 80 stops it without touching DNS or the proxy.
+- The probe proves the rule where it matters, from a container, and a timeout proves nothing: `timed_out` fails the item whatever the output was. Any other reading than `000` or three digits fails as "could not tell", never as a pass.
+- The item takes a callable and the wiring holds the run's arguments (30 seconds, no mounts, empty environment), as `stage_image_item` does; the application layer knows no container details.
+- Rejected: checking the rule's text or the firewall's state (it proves the file, not the effect); letting the item pass on a timeout (a hung probe is not a refusal); the item under `rootless` (the VM has no service account, so the server gives no token).

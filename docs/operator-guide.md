@@ -380,6 +380,39 @@ The profile therefore puts four global options in front of every `podman` comman
 
 The container runs as the job's root with every capability dropped (`--cap-drop=all`). `--security-opt=no-new-privileges`, `--pids-limit`, `--memory`, `--timeout` and the mounts are those of `rootless`, and a container ended by `--timeout` still exits with status 255, read as the time limit as before. Files a container writes to `/work` belong to root, which is the job's own user.
 
+### The metadata server in a job
+
+In a Cloud Run job a container shares the job's network (`--network=host`), and the metadata server at `169.254.169.254` answers any process there with the job's service-account token (measured on 2026-10-31, `planning/cloud-sandbox/`: reachable from host-network and bridge containers, by address and by name). An agent that holds that token acts as the job's account, so no container may reach the server. (The VM is different: it has no service account, see *The metadata server* below.)
+
+The block is a firewall rule on the job's side, installed before the factory starts (the start script does it): reject TCP port 80 to that address. DNS, the proxy and everything the factory needs keep working. As an `nft` file, loaded with `nft -f <file>`:
+
+```
+table inet metadata_block {
+    chain out {
+        type filter hook output priority 0; policy accept;
+        ip daddr 169.254.169.254 tcp dport 80 reject
+    }
+    chain forwarding {
+        type filter hook forward priority 0; policy accept;
+        ip daddr 169.254.169.254 tcp dport 80 reject
+    }
+}
+```
+
+Do not call a chain `fwd`: `nft` reads it as a reserved word and refuses the file. The names above are free of it.
+
+With the profile `job` the preflight proves that the rule is in force. Its item `metadata-block` runs one container, right after `stage-image`, that asks the server for the instance id with `curl -sS -m 5 -o /dev/null -w %{http_code} http://169.254.169.254/computeMetadata/v1/instance/id`, with no mounts and an empty environment, within 30 seconds. It reads the last non-blank line of the output:
+
+| The probe | The item |
+| --- | --- |
+| prints `000` (curl could not connect, whatever its exit status) | passes, detail `refused` |
+| ends past its limit, whatever it printed (checked first) | `the metadata probe did not end within its limit` |
+| prints three other digits, such as `200` | `a container reached the metadata server (HTTP <code>); reject tcp port 80 to 169.254.169.254 in the job's firewall` |
+| prints nothing, or a line that is not three digits (no `curl` in the image gives exit status 127) | `the metadata probe could not tell (exit <status>): <the last line or "no output">` |
+| cannot be started | `cannot run the metadata probe: <error>` |
+
+A failed item stops the machine like any failed preflight item (`preflight_failed`, scope `machine`). If the container reached the server, load the rule in the job's network namespace and restart. If the probe could not tell, run the command by hand in the stage image and fix what it shows (`curl` missing from the image, for instance). The item is not run with the profile `rootless`.
+
 ### Without ZFS
 
 A sandbox that has no ZFS, such as a Cloud Run job, keeps the base as a plain copy. Set `FACTORY_SNAPSHOTS=copy` and `FACTORY_SNAPSHOT_BASE` to an absolute directory outside the workspace, the checkout and the state directory. `FACTORY_DATASET` and `FACTORY_ZFS` are then not read.
@@ -840,7 +873,7 @@ Nothing runs the check by itself, and the factory builds no watchdog: systemd re
 
 ### The preflight's items
 
-The preflight is a list of five items, and of up to twelve with the machine's extras (`token-file`, `podman`, `zfs`, `dataset` (under `FACTORY_SNAPSHOTS=copy`, the one item `snapshots` in their place), `stage-image`, `opencode` under opencode only, and `agent-run-probe`), in the order of the table. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. The items run only when the image build has changed (see "The stamp and the probe of the main branch").
+The preflight is a list of five items, and of up to thirteen with the machine's extras (`token-file`, `podman`, `zfs`, `dataset` (under `FACTORY_SNAPSHOTS=copy`, the one item `snapshots` in their place), `stage-image`, `metadata-block` under the profile `job` only, `opencode` under opencode only, and `agent-run-probe`), in the order of the table. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. The items run only when the image build has changed (see "The stamp and the probe of the main branch").
 
 | Item | Passes when | If it fails |
 |---|---|---|
@@ -855,6 +888,7 @@ The preflight is a list of five items, and of up to twelve with the machine's ex
 | `dataset` | `zfs list -H -o name <dataset>` names `FACTORY_DATASET` | `the dataset <dataset> does not exist; make it with zfs create, and its base with zfs snapshot <dataset>@base`: do that, once. When `zfs list` itself fails, the detail is `cannot list the dataset <dataset>: <the error>` (for example a permission the factory's user lacks). |
 | `snapshots` | with `FACTORY_SNAPSHOTS=copy` only, in place of `zfs` and `dataset`: the workspace and the base are directories; the detail is `workspace <w>, base <b>` | `the workspace <w> is not a directory`, `the base <b> does not exist; make it empty with mkdir, the first advance fills it` or `the base <b> is not a directory`. |
 | `stage-image` | `podman image exists <FACTORY_STAGE_IMAGE>` answers yes | `the stage image <image> is not built; build it with podman build`. When podman cannot answer, the detail is `cannot look for the stage image <image>: <the error>`. |
+| `metadata-block` | with `FACTORY_CONTAINER_PROFILE=job` only: a container's request to the metadata server is refused (curl prints `000`); the detail is `refused` | See "The metadata server in a job": the sentences are there, and so is the rule to load. |
 | `agent-run-probe` | one `claude -p` call, or one `opencode run` call under opencode, made as a stage makes it, ends `completed` | See "The probe of the agent run" below. |
 
 The preflight asks for no `make`, no `claude` and no `opencode` on the factory's `PATH`: the runtime and `make` run only inside the stage image's containers, and `agent-runtime-version` fails when the runtime is missing there.

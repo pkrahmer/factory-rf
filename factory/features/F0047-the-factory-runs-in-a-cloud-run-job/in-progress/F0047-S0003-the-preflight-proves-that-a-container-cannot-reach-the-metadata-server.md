@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-31T18:02:08.965807Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-10-31T18:02:08.965807Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-10-31T18:02:59.626745Z'
+  stage: docs
+  run: ceb31ec8d0b44fd986fc6b7af5145f72
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -351,3 +353,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/entry/test_wiring_copy_snapshots.py: standing leave. Its local `environment` fixture was replaced by `run_environment` with the same value. The tests keep their names and checks.
     - tests/wiring_support.py: standing leave. It gains `profile_settings`, moved from tests/entry/test_wiring_container_extras.py. The existing helpers are unchanged.
 21. factory: started docs as vm.
+22. documenter: Docs, round 1. I read the story, the source diff (`git diff main...HEAD -- . ':!factory' ':!docs' ':!README.md'`) and the docs. The code matches the Interface, so I have no findings. I changed only documents, so I did not run `make check`. `make documents` prints `documents ok`.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - New subsection *The metadata server in a job*, after *The job profile*. It covers why a container must not reach the server, and the rule as an `nft` file (`ip daddr 169.254.169.254 tcp dport 80 reject` in the output and forward hooks, loaded with `nft -f`). It warns that a chain called `fwd` is a reserved word. It also gives the `metadata-block` item's sentences as a table and says what to do when it fails.
+      - I did not use the exact heading *The metadata server*, because the VM section already has a subsection of that name (line 722). Two equal headings would make the anchor ambiguous. The new text points to the old one.
+      - The preflight's item count now reads "up to thirteen", and the item table has the `metadata-block` row before `agent-run-probe`.
+    - `docs/project-guide/stage-environment.md`: *The preflight* names `metadata-block` in both item orders, has a new table row (function, callable, sentences, where the constants and `printed_lines` live), and lists the two new test modules.
+    - `docs/decisions.md`: new entry *A container must not reach the metadata server*, from the feature's decision 6, with the reasons and the rejected alternatives.
+    - `README.md`: none, as the criterion says.
+
+    Not run: the `nft` file. `nft` is not installed here, so the syntax is from my knowledge, not from a run. The rule text is the Interface's. The start script (S0006) will exercise it. Please have the smoke tester or the human load it once on a real job if possible.
+
+    Cross-read and found current: `docs/operator-guide.md` (*The job profile*, *What the container can and cannot see*, *The metadata server* for the VM), `docs/project-guide/stage-environment.md`, and `docs/decisions.md`'s F0047-S0001 and S0002 entries.
+
+    Stale text I saw and did not touch: none from this story. The coder and tester entries report that `run_words` in `tests/wiring_support.py` misses calls whose first word is a podman global option. That is a test matter for another story, not a doc matter.
+
+    `check`: check: green (not run again: passed on tree 30703d7b4f6f at 2026-10-31T17:57:48Z)
+    `secrets`: secrets: green (2.3 s)
+    `documents`: documents ok
