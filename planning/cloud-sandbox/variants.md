@@ -156,6 +156,16 @@ sandbox, kernel and filesystem. Design notes, none measured:
 - **V9 a VM on Container-Optimized OS.** Allowed as an image, unusable: no package manager, no third-party
   kernel modules (so no ZFS), no non-containerised processes, Docker rather than Podman (documented).
 
+## Agent runtime check (opencode in the job, measured)
+
+The factory's opencode runtime was reproduced by hand in the V1 setup (Podman 5.4 + runc, root, host network,
+`--http-proxy=false`, the pinned opencode 1.19.3 installed with npm through the proxy in a Node 22 container,
+the provider block of F0046-S0001 with `{env:KEY}` for the bearer). It ran a real agent task with tool calls and
+produced a parsable result block (capabilities.md section 11). What still needs work for the factory:
+prices in the provider file (cost was 0), the one-hour token life (the key variable must be refreshed outside
+opencode), the proxy exclusion for the internal API, and the per-run `opencode-<run>.json` and login shell
+(the factory's own path) were not exercised; the probe used a hand-written config and `LLM_KEY` directly.
+
 ## Snapshot variants
 
 **S5 is now the preferred one** (measured in P11): give each agent container its own overlay view of the base,

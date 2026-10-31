@@ -196,22 +196,27 @@ decide what can be built there, independently of the platform's technical limits
   small set of impersonation grants is the sanctioned way for a person to act with them.
 - Compute Engine VMs could not be created by people in the project.
 
-## 11. A model API and opencode (partial: the key was rejected)
+## 11. A model API and opencode (measured end to end)
 
-Probe P10, `results/p10-opencode-partial-key-rejected.txt`. An OpenAI-style API of the organisation (spec read
-from its OpenAPI file: `/api/v1/chat/completions`, `/models`, `/models_metadata`, `/embeddings`, `/batches`,
-`/files`; bearer-JWT authentication; the request schema has `tools`, `tool_choice`, `parallel_tool_calls`,
-`stream`, `stream_options`, `reasoning_effort`, `max_tokens`, `max_completion_tokens`).
+Probe P10, `results/p10-opencode-model-api.txt`. An OpenAI-style API of the organisation, authenticated by an
+Azure-AD-style OAuth2 client-credentials grant: the client id and secret go to the identity provider's token
+endpoint (form-encoded, with the API's scope) and the returned JWT is the bearer token for the API. The API
+spec has `/models`, `/models_metadata`, `/chat/completions`, `/embeddings`, `/batches`, `/files`; the request
+schema has `tools`, `tool_choice`, `parallel_tool_calls`, `stream`, `stream_options`, `reasoning_effort`.
 
 | Question | Verdict | Detail | Evidence |
 |---|---|---|---|
-| Can the job reach the internal API host? | yes | It resolves to a private address through the job's resolver; a request without a key answers 401, **directly and through the proxy** (both paths work). | P10 |
-| Does the API need the proxy? | no | The host is internal; list its domain in `NO_PROXY` so the proxy is not used for it. Not yet shown to matter. | P10 |
-| Is the secret that was tried a valid bearer token? | **no** | `401 {"Error": "Invalid Token"}` on `/models` and `/chat/completions`. The secret (40 characters) belongs to another use; how the JWT is issued is not in the spec. Nothing else was tried. | P10 |
-| Pinned opencode 1.19.3 via npm through the proxy in a Node 22 container | yes | Installed in 9 s; `opencode --version` prints 1.19.3. | P10 |
-| opencode with the provider block, streaming, tool calls, the strict result block | **untested** | Blocked by the key. The script bugs of the first run (nft syntax, a shell function called by `timeout`) are fixed in `probes/p10-opencode.sh`. | P10 |
-| Models offered, prices, context sizes | unknown | `/models` answered 401. | P10 |
-| Metadata block rule | note | The first run's rule file had a syntax error and was not applied (fixed); the same rule worked in P2b. | P10 |
+| Token from inside the job | yes | The token endpoint answered 200 through the proxy: `token_type` Bearer, `expires_in` 3599 s (one hour), a 1278-character JWT. | P10 |
+| The stored secret | a bare client secret | 40 characters with `-`, `_`, `~`, no colon, JSON or whitespace; as a bearer it is refused (`401 Invalid Token`); as the client secret it works. The client id is stored nowhere in Secret Manager. | P10, read of properties only |
+| Internal API host reachable | yes | Resolves to a private address; without a token it answers 401, directly and through the proxy. | P10 |
+| **The proxy must NOT be used for the internal API host** | yes, important | With the host in `NO_PROXY` everything works; without it opencode ran 79 s and failed (exit 1, one event). Put the API's domain in `NO_PROXY`. | P10 C4 |
+| `/models`, `/models_metadata` | yes | 35 models of several vendor families; each metadata entry has `context_window`, `max_output_tokens`, `pricing`, `rate_limit`, `reasoning_levels`, `aliases`, `hosted_on_prem`. | P10 |
+| Plain, tool-call and streamed completions | yes | 200 on all three; the stream ends with `[DONE]` and carries a final `usage` chunk (`stream_options.include_usage`). | P10 B1 to B3 |
+| Pinned opencode 1.19.3 from npm through the proxy in a `node:22-slim` container | yes | 9 to 15 s to install; prints 1.19.3. | P10 |
+| The factory's opencode run: provider block, `--format json --auto --agent`, tools, result block | **yes** | Exit 0 in 15 s; 5 steps, 4 tool calls (`write`, `bash` x3), the file was created in the bind-mounted checkout, one session id, no error events, and the final text ended with a `<factory-result>` block that the factory's strict pattern accepts (`decision: doing`). Tokens 5614 in, 530 out, 21465 cache read. | P10 C2 |
+| Cost as opencode reports it | **0.0** | The provider block had no prices, so opencode reported 0 for every step: the factory's budget stop would never fire. The API's `/models_metadata` has `pricing`; the provider file's `cost` fields must be filled from it. | P10 C2 |
+| Metadata block rule | yes | Applied from a file; after it the metadata endpoint is unreachable from the job (000). | P10 |
+| The token's one-hour life | design point | A long-running factory must fetch a new token before it expires and rewrite what holds it (opencode reads the key from `{env:...}` once per process, so a run lasts at most one token life unless the process is restarted with a fresh one). Not tested beyond one run. | spec, P10 |
 
 ## 12. Podman overlay volumes (`-v SRC:DST:O`)
 

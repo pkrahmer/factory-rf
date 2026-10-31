@@ -77,6 +77,15 @@ one writing a 1 GiB tree through the mount and one reading it back, timing both 
 copy; opencode in a job against the model proxy; whether a job can start another job under a service account
 that holds only `run.jobs.run`.
 
+## What the agent-runtime check showed
+
+On option 2's setup, opencode 1.19.3 with the F0046 provider block ran a real task against the organisation's
+model API and ended with a result block the factory accepts. The remaining work is small and specific: fill
+the `cost` fields (cost was reported as 0), refresh the one-hour bearer token outside opencode, and put the
+API domain in `NO_PROXY` (without it a run hangs for over a minute and fails). Probability that a small story
+runs end to end on option 2 is therefore higher than the earlier 75 % for the agent link; the remaining risks
+are the factory's start-up inside a job, the image/registry question and restarts.
+
 ## Caveats for every option
 
 - The factory itself, its test suite and the agent runtimes were never run inside a job; every verdict is about

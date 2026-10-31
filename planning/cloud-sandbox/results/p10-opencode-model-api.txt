@@ -1,0 +1,97 @@
+== creating probe-opencode (docker.io/library/debian:trixie-slim, 4 cpu, 8Gi, gen2)
+== execution probe-opencode-ct2k8
+== final state: [	1		2026-10-31T13:14:20.712764Z] (running, succeeded, failed, completion)
+Execution completed successfully in 3m19.98s.
+##### inputs (presence only)
+LLM_KEY set: yes, length 40
+base url set: yes
+no_proxy for this job: <corp-host>
+##### T: obtain a bearer token (client-credentials grant) if a token endpoint was given
+token endpoint status: 200
+token_type=Bearer expires_in=3599 access_token_length=1278
+using the fetched token as the bearer key from here on
+##### metadata block (same rule as P2b), proven from the job
+$ nft -f /tmp/probe.nft
+[exit 0]
+$ curl -sS -m 5 -o /dev/null -w "metadata after block: %{http_code}
+" -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id 2>&1 | tail -1
+metadata after block: 000
+[exit 0]
+##### A1: the API host: DNS and TCP, direct (no proxy), and through the proxy
+$ getent hosts <llm-api-host> | head -1
+<corp-ip>      <llm-api-alias> <llm-api-host>
+[exit 0]
+$ curl -sS -m 10 -o /dev/null -w 'no key, direct: %{http_code}
+' https://<llm-api-host>/<llm-path>/api/v1/models 2>&1 | tail -1
+no key, direct: 401
+[exit 0]
+$ curl -sS -m 10 -x http://<proxy-host>:83 -o /dev/null -w 'no key, via proxy: %{http_code}
+' https://<llm-api-host>/<llm-path>/api/v1/models 2>&1 | tail -1
+no key, via proxy: 401
+[exit 0]
+##### A2: list models with the key (status and ids only; the body is not printed)
+GET /models: 200
+<model ids: 35 models of several vendor families>
+model count: 35
+GET /models_metadata: 200; keys of the first entry: aliases,batch_enabled,context_window,created,description,hosted_on_prem,id,max_output_tokens,object,owned_by,pricing,rate_limit,reasoning_levels,responses_api_supported_tools,scheduled_for_deprecation,secret_data_compliant,supports_audio_input,supports_image_input,supports_video_input,token_limit,type,valid_args
+chosen model: claude-sonnet-5
+##### B1: raw chat completion, no tools (status, finish reason, usage keys)
+status 200
+##### B2: raw chat completion WITH a tool definition (does the model call it?)
+status 200
+##### B3: streamed completion with usage (events, [DONE], usage chunk)
+status 200; data lines: 8; done marker: 1; usage chunk: 1
+data: {"id": "claude-sonnet-51793452332", "object": "chat.completion.chunk", "created": 1793452332, "model": "claude-sonnet-5", "choices": [], "usage": {"completion_tokens": 23, "prompt_tokens": 16, "total_tokens": 39, "prompt_tokens_detail
+##### B4: the same call with a bad key (the error shape the runtime would see)
+status 401: {"Error": "Invalid Token"}
+##### C: the factory's opencode runtime, in a container (pinned opencode, provider block, strict result block)
+node image pull:
+c469fbffcbb0086ddfb92598192d3e09eab25f2d81b9750a00f77f0910fed744
+##### C1: install the pinned opencode through the proxy (npm)
+opencode
+install took 15 s
+$ podman --runtime=runc --storage-driver=vfs --cgroup-manager=cgroupfs --root /tmp/ps --runroot /tmp/pr run --rm --http-proxy=false --network=host --cap-drop=all --security-opt=no-new-privileges --pids-limit=512 --memory=3g -v /tmp/oc:/work -e HOME=/work/home -e LLM_KEY -e OPENCODE_CONFIG=/work/state/opencode.json -e http_proxy=http://<proxy-host>:83 -e https_proxy=http://<proxy-host>:83 -e HTTP_PROXY=http://<proxy-host>:83 -e HTTPS_PROXY=http://<proxy-host>:83 -e no_proxy=localhost,127.0.0.1,<corp-host> -e NO_PROXY=localhost,127.0.0.1,<corp-host> --workdir /work/checkout docker.io/library/node:22-slim sh -c /work/npm/bin/opencode --version
+1.19.3
+[exit 0]
+##### C2: opencode run with the factory's flags: one tiny task, tool use, strict result block
+opencode exit 0 after 15 s; stdout lines 15; stderr lines 0
+--- stderr (first lines, masked)
+--- the file the agent was to create:
+total 4
+drwxrwxrwx 2 root root  60 Oct 31 13:12 .
+drwxrwxrwx 6 root root 120 Oct 31 13:12 ..
+-rw-r--r-- 1 root root   5 Oct 31 13:12 hello.txt
+hello--- events summary
+event types: {'step_start': 5, 'tool_use': 4, 'step_finish': 5, 'text': 1}
+steps: 5 cost reported: 0.0 tokens: {'input': 5614, 'output': 530, 'read': 21465, 'write': 0}
+tool calls: [('write', 'completed'), ('bash', 'completed'), ('bash', 'completed'), ('bash', 'completed')]
+last text (first 500 chars): I created `hello.txt` in `/work/checkout` containing exactly the 5 characters `hello` with no trailing newline or extra whitespace.\n\n<factory-result>\ndecision: doing\nentry:\nCreated hello.txt in the current directory containing exactly "hello" (verified byte-for-byte with od -c).\n</factory-result>
+STRICT RESULT BLOCK PARSES: True decision=doing
+error events: 0 []
+session ids seen: 1
+##### C3: what did opencode try to reach? (it writes its own log)
+$ find /tmp/oc/home -name "*.log" 2>/dev/null | head -3
+/tmp/oc/home/.npm/_logs/2026-10-31T13_12_26_295Z-debug-0.log
+/tmp/oc/home/.local/share/opencode/log/opencode.log
+[exit 0]
+--- /tmp/oc/home/.npm/_logs/2026-10-31T13_12_26_295Z-debug-0.log
+13 silly fetch manifest opencode-ai@1.19.3
+15 http fetch GET 200 https://registry.npmjs.org/npm 491ms
+16 http fetch GET 200 https://registry.npmjs.org/opencode-ai 2127ms (cache miss)
+19 silly fetch manifest opencode-linux-x64@1.19.3
+21 silly fetch manifest opencode-darwin-x64@1.19.3
+23 silly fetch manifest opencode-linux-arm64@1.19.3
+25 silly fetch manifest opencode-windows-x64@1.19.3
+27 http fetch GET 200 https://registry.npmjs.org/opencode-linux-arm64 941ms (cache miss)
+29 silly fetch manifest opencode-darwin-arm64@1.19.3
+31 http fetch GET 200 https://registry.npmjs.org/opencode-windows-x64 1127ms (cache miss)
+33 silly fetch manifest opencode-windows-arm64@1.19.3
+35 http fetch GET 200 https://registry.npmjs.org/opencode-linux-x64 1308ms (cache miss)
+37 silly fetch manifest opencode-linux-x64-musl@1.19.3
+39 http fetch GET 200 https://registry.npmjs.org/opencode-darwin-x64 1487ms (cache miss)
+41 silly fetch manifest opencode-linux-arm64-musl@1.19.3
+--- /tmp/oc/home/.local/share/opencode/log/opencode.log
+##### C4: opencode run without NO_PROXY for the API host (does the proxy path break the internal API?)
+exit 1 after 79 s; events: 1; first stderr lines:
+PROBE DONE
+Container called exit(0).

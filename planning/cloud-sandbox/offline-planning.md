@@ -68,8 +68,8 @@ Snapshots:
 
 ## Questions a platform owner could answer (unmeasured, decisive)
 
-- How does a person or a job obtain a valid bearer JWT for the model API (client credentials, a token
-  service, a long-lived key)? The secret tried in P10 was rejected as "Invalid Token".
+- (Answered by P10: the model API takes a JWT from an OAuth2 client-credentials grant; the stored secret is the
+  client secret only. Open: who owns the client, its rate-limit tier, and where the client id should live.)
 - Is there a supported way to push an image to the project's registry from a person's session or a build? (The
   three attempts failed with unreadable logs.)
 - Will the execution environment stay on cgroup v1, and on which kernel line?
