@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 484
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T18:08:47.679066Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-31T18:08:27.690055Z'
   stage: intake
   run: d20264d03b7a4a1088409634905937da
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:08:47.679066Z'
+  stage: tests
 ---
 
 # The job profile stores images with the native overlay
@@ -76,3 +85,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: both commands are runnable. Neither uses pytest, so the `-q` rule does not apply. Each `Expect:` is checkable against the output. The grep currently finds the line at containers.py:25, so the second expectation (`exit 1`) fails until the story is built.
    Architecture: the change is a domain constant only. The adapter and the layers stay as `CLAUDE.md` describes.
    Scope: it matches feature.md's scope bullet 'job profile without fuse-overlayfs' and decision 19. S0009 is listed in the Stories. The story changes S0002's tests with the leave it states, and names the two files.
+4. factory: started tests as vm.
