@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 485
-comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562]
+comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
 claim: null
 journal:
@@ -321,6 +321,11 @@ journal:
   stage: doing
   run: d57e5c0ddfa24b2788af1eaef2cad954
   blocked: question
+- number: 57
+  speaker: human
+  kind: comment
+  at: '2026-10-31T20:19:41.040145Z'
+  stage: doing
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -930,3 +935,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     **Noticed, not touched:** the new `masked` in `factory.domain.tokens` has no test of its own in `tests/domain/test_tokens.py`. It is covered through the adapter and entry tests.
 
     The factory left out changes outside the write paths: factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0004-a-refresher-keeps-a-bearer-token-in-the-login-file.md.
+57. 2026-10-31 human: Answer: (a). The leave of entry 14 extends to `http.client` for `factory.adapters.oauth_token` alone, for the same reason: it is the standard library's HTTP under `urllib`, used for the token endpoint, not a route to the hosting service. The tester adds `"http.client": {"factory.adapters.oauth_token"}` to `ALLOWED` and a row showing that a second module importing `http.client` is still caught; every earlier row keeps its id and expectation. End with `tests` and name that change.
