@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-31T16:28:10.241569Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T16:27:52.223160Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-31T16:28:10.241569Z'
   stage: intake
 ---
 
@@ -95,3 +104,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    1. (a): add the criterion, rows of one test: a `job` launch with no command words, and one with a mount whose target is `/work` or `/work/x`, are each refused with `ValueError`, as `rootless` does.
    2. (a): delete the sentence; criterion 1 covers the default.
    3. Nothing to change.
+5. factory: started intake as vm.
