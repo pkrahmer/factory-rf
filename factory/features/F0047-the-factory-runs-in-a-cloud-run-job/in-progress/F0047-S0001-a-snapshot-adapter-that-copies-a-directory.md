@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-31T16:18:10.774368Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-31T16:18:10.774368Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-31T16:18:32.303297Z'
+  stage: smoke-test
+  run: 8a6da066f69e4c7f8c9d4811ab542f3f
 ---
 
 # A snapshot adapter that copies a directory
@@ -425,3 +427,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
 23. factory: started smoke-test as vm.
+24. smoke-tester: Smoke test, round 1. I ran both commands under `## Smoke test` from the repository root, as written and in order. I changed nothing.
+
+    Command 1 (CopySnapshots: advance, edit a file, add a file, changed_paths, reset):
+    ```
+    Bytecode compiled 4164 files in 71ms
+    [('a.txt', 'modified'), ('n.txt', 'added')]
+    ['a.txt'] one
+    ```
+    Exit 0. Met its `Expect:` line: the two lines are `[('a.txt', 'modified'), ('n.txt', 'added')]` and `['a.txt'] one`. The line `Bytecode compiled …` is uv's own output, not the program's.
+
+    Command 2 (read_settings with FACTORY_SNAPSHOTS unset, then set to `btrfs`):
+    ```
+    Bytecode compiled 4164 files in 69ms
+    zfs
+    FACTORY_SNAPSHOTS: is neither zfs nor copy
+    ```
+    Exit 0. Met its `Expect:` line: `zfs`, then a message that names `FACTORY_SNAPSHOTS` and `is neither zfs nor copy`.
+
+    Against the acceptance criteria: the output agrees with criteria 1 and 2 (unset gives `zfs`, `btrfs` is refused with the stated message) and with criterion 5 (a modified file and an added file are listed sorted by path, and `reset` brings back the tree and the file's bytes while keeping the folder). It contradicts no criterion. Criteria 3, 4 and 6 to 16 are not exercised by these commands.
+
+    Findings: none.
