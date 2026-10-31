@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T16:36:12.713545Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-31T16:35:50.611030Z'
   stage: tests
   run: f089d702076a4d32a7ee868d5e501bb7
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-31T16:36:12.713545Z'
+  stage: doing
 ---
 
 # The container profile job
@@ -147,3 +156,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/adapters/test_podman_runs_job_profile.py::test_a_job_run_reads_its_end_as_the_rootless_one[podman-s-own-fault] - TypeError: PodmanRuns.__init__() got an unexpected keyword argument 'pro...
+9. factory: started doing as vm.
