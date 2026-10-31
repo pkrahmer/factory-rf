@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T18:31:13.667716Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-31T18:31:13.667716Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-31T18:31:35.962632Z'
+  stage: intake
+  run: b032c6603b4b4ab7959a124b35582e96
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -66,11 +68,11 @@ Tests (the tester writes them): `tests/domain/test_tokens.py`, `tests/applicatio
 
 1. `refresh_wait`, rows of one test: a life of 3599 s waits 600 s (the interval); 7200 s waits 600 s; 1200 s waits 600 s; 1000 s waits 500 s (half of a short life); 40 s waits 30 s (the floor); 10 s waits 30 s.
 2. `Token` refuses a blank value, a value with a space or a newline, an `expires_in` of 0 and of -1, and accepts 1.
-3. `ClientCredentialsTokenSource.fetch` with an `open_url` that records its request and answers `{"access_token": "t", "expires_in": 3599}`: the request is a POST to the given URL with the content type above and a body that holds the four fields, URL-encoded (a secret with `&`, `=`, `+` and a space round-trips through `parse_qs`), and the token is `Token(value="t", expires_in=3599)`; `"expires_in": "3599"` gives the same.
-4. Faults, rows of one test: an `HTTPError` 400 with the body `{"error": "invalid_client", "error_description": "AADSTS7000215: bad secret\r\nTrace ID: x"}` gives `HTTP 400: invalid_client: AADSTS7000215: bad secret`; an error description of 300 characters is cut at 200; a `URLError("no route")` gives `no route`; a `TimeoutError` gives its message; the body `[]`, a body without `access_token` and a body with `expires_in` 0 give the sentences of the Interface; none of these details contains the client secret even when the server's body echoes it (the echo is replaced by `***`).
+3. `ClientCredentialsTokenSource.fetch` with an `open_url` that records its request and answers `{"access_token": "t", "expires_in": 3599}`: the request is a POST to the given URL with the content type above and a body that holds the four fields, URL-encoded (a secret with `&`, `=`, `+` and a space round-trips through `parse_qs`), and the token is `Token(value="t", expires_in=3599)`; `"expires_in": "3599"` gives the same; `open_url` receives `timeout=30.0` by default and the given value when `timeout` is passed.
+4. Faults, rows of one test: an `HTTPError` 400 with the body `{"error": "invalid_client", "error_description": "AADSTS7000215: bad secret\r\nTrace ID: x"}` gives `HTTP 400: invalid_client: AADSTS7000215: bad secret`; the 200-character cut applies to the first line of `error_description` alone, so an error description of 300 characters gives `HTTP 400: invalid_client: ` followed by its first 200 characters; an `HTTPError` 500 whose body is not JSON gives `HTTP 500`; an `HTTPError` 400 whose JSON body has neither `error` nor `error_description` gives `HTTP 400`; a `URLError("no route")` gives `no route`; a plain `OSError("boom")` gives `boom`; a `TimeoutError` gives its message; the body `[]`, a body without `access_token` and a body with `expires_in` 0 give the sentences of the Interface; none of these details contains the client secret or the token even when the server's body echoes either (the echo is replaced by `***`, one row for the secret and one for the token).
 5. `TokenRefresher.refresh` writes the token into the target with no other text and no newline, replaces an older value, creates the folder, leaves the old file untouched when the source raises, and turns an `OSError` of the write (a target that is a folder) into `TokenError("cannot write <target>: <error>")`.
-6. The command: a missing variable exits 2 and names it (one row per variable); a blank secret file exits 2; `--once` with a source that answers 3599 s writes the file, prints `token refreshed: valid 3599 s, next in 600 s` (the wait's whole seconds) and exits 0; `--once` with a source that fails prints `refresh_token: token request failed: <detail>` to standard error, leaves the file as it was and exits 1.
-7. The loop (injected wait): two successes then `SIGTERM` gives two writes, waits of the refresh interval, exit 0; a failure between two successes keeps the file of the first, prints the error, waits `RETRY_INTERVAL` once and goes on.
+6. The command: a missing and a blank variable each exit 2 and name it as `refresh_token: <variable> is not set` on standard error (two rows per variable); a missing secret file and a blank one each exit 2 with `refresh_token: cannot read <path>` on standard error; `--once` with a source that answers 3599 s writes the file, prints `token refreshed: valid 3599 s, next in 600 s` (the wait's whole seconds) and exits 0; `--once` with a source that fails prints `refresh_token: token request failed: <detail>` to standard error, leaves the file as it was and exits 1.
+7. The loop (injected wait), rows `SIGTERM` and `SIGINT`: two successes then the signal gives two writes, waits of the refresh interval, exit 0; a failure between two successes keeps the file of the first, prints the error, waits `RETRY_INTERVAL` once and goes on.
 8. Neither standard output, standard error, a raised error nor the environment given to a child process contains the client secret or the token (a test over all of them with a secret `s3cret-value` and a token `tok-abc`).
 9. `make check` stays green.
 10. docs: `docs/operator-guide.md`: a subsection *A bearer token for the model API* with the variables, what the command writes and when (every ten minutes; a run reads the file when its container starts, so the token must live longer than the interval plus the longest stage), that the file is the one `FACTORY_API_LOGIN_FILE` names, the provider file's `api_key_env` that reads it as `ANTHROPIC_API_KEY`, the proxy (set `NO_PROXY` for an internal API host and `https_proxy` for the token endpoint) and that the secret is a file mounted from Secret Manager. `docs/project-guide/agents.md`: *The opencode runtime* names the refresher. `docs/decisions.md`: an entry *A refresher keeps the bearer token fresh*, from the feature's decisions 7 and 8. `README.md`: none.
@@ -131,3 +133,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    5. Yes: criterion 3 checks that `open_url` receives `timeout=30.0` by default and a custom value when one is given.
    6. Yes: each variable's row covers both an unset and a blank value.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: concrete modules and signatures (`factory.domain.tokens`, `factory.domain.errors.TokenError`, `factory.application.tokens`, `factory.adapters.oauth_token`, `factory.entry.refresh_token`). Every rule has a criterion on both sides. The human's answers in journal entry 4 settled the open cases: a non-JSON body or a JSON body without `error`/`error_description` gives `HTTP <code>`, and the 200-character cut applies to the first line of `error_description` alone.
+   - Criteria: after the edits below, each is testable by one parametrized test. Entry 4 (the human's answers 1 to 6) is carried into the story as the human's edit, not as my own improvement:
+     - Criterion 3 now checks `timeout=30.0` by default and a custom value.
+     - Criterion 4 now has rows for the non-JSON body, the JSON body without `error` or `error_description`, a plain `OSError`, and the echoed token. It also states that the cut applies to the first line of `error_description`.
+     - Criterion 6 now covers missing and blank variables, and a missing and a blank secret file, each with the exact stderr message.
+     - Criterion 7 now has `SIGTERM` and `SIGINT` rows.
+     - The Description is unchanged, since the task's meaning did not change. The two closing criteria stay last.
+   - Smoke test: both commands are runnable. The first is a Python snippet with an injected opener whose output is `tok-1 3599 600.0`. The second is `FACTORY_TOKEN_URL=` with `--once`, which gives the stderr line and `exit 2`. Neither runs pytest, so the `-q` rule does not apply. Both `Expect:` lines are checkable.
+   - Architecture: the layers are right. The `Token` DTO and `refresh_wait` are domain, the `TokenSource` ABC and `TokenRefresher` are application, the urllib adapter is in adapters, and the command is in entry. `TokenSource` is an ABC with the adapter inheriting it. No new dependency, and no wrapper rule is broken, because the standard library HTTP sits in one adapter.
+   - Scope: this is S0004 of F0047, the refresher only. Running it is left to S0006. It is within the feature's scope and touches nothing in its "Out of scope".
