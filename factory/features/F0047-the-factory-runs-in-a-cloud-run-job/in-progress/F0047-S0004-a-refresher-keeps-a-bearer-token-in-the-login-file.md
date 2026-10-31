@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T18:58:38.591628Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-10-31T18:58:38.591628Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: result
+  at: '2026-10-31T19:04:43.819557Z'
+  stage: tests
+  run: 5b647afa244a44f88eb14d6e5dc91b0a
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -329,3 +331,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The reviewer corrects the Interface's sentence on `TokenRefresher` and the first smoke-test snippet so they pass `replace_text` as the third argument (entry 14).
     - The vulture finding on the `OpenUrl` Protocol's `__call__` goes into the duplicates baseline at approval.
 17. factory: started tests as vm.
+18. tester: I made the test change the human approved in entry 14, answer 1, which the coder named in entry 16. I changed one earlier test file, `tests/test_hosting_search.py`, with the human's leave from entry 14.
+
+    **What I changed in `test_no_module_imports_another_route_to_the_hosting_service`** (the test keeps its name):
+    - New constant `ALLOWED = {"urllib.request": {"factory.adapters.oauth_token"}}`. A comment gives the reason: the token endpoint is not the hosting service.
+    - The test now checks that the set of importers minus the allowed ones equals the expected set. So `factory.adapters.oauth_token` is the only module that may import `urllib.request`.
+    - Every other forbidden route still expects no importer. Those rows keep their earlier ids (`requests`, `httpx`, … `urllib.request`, …).
+    - New row `urllib.request-in-a-second-module`: it adds a parsed second module, `factory.adapters.elsewhere` (`import urllib.request`), to the real modules. The test expects that module to be caught, which shows a second importer is still refused.
+    - To support this, the test is parametrized over `(module, added, caught)`, and the file imports `ast`.
+
+    Criterion → test: no criterion of this work item maps here. This is the approved change to an earlier test. The mapping from entry 11 is unchanged.
+
+    **Files changed:** `tests/test_hosting_search.py`. No files were created.
+
+    **Modules the test run could not import:** none.
+
+    **Runs:** `make test` passed: `test: green (165.3 s)`, total coverage 99.53 %. `make lint` passed: `lint: green (0.2 s)`. Before that I ran `tests/test_hosting_search.py` alone once with pytest, and it passed.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (163.8 s)
