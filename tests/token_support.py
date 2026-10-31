@@ -7,7 +7,6 @@ import urllib.request
 from email.message import Message
 
 from factory.application.tokens import TokenSource
-from factory.domain.errors import TokenError
 from factory.domain.tokens import Token
 
 ENDPOINT = "https://login.example.invalid/token"
@@ -18,7 +17,7 @@ ISSUED = "tok-abc"
 class ScriptedTokenSource(TokenSource):
     """Answers each fetch with the next token of its script, or raises the next error."""
 
-    def __init__(self, *outcomes: Token | TokenError) -> None:
+    def __init__(self, *outcomes: Token | Exception) -> None:
         """Keep the answers in the order the fetches receive them."""
         self.outcomes = list(outcomes)
         self.fetches = 0
@@ -27,7 +26,7 @@ class ScriptedTokenSource(TokenSource):
         """Return or raise the next scripted outcome."""
         outcome = self.outcomes[self.fetches]
         self.fetches += 1
-        if isinstance(outcome, TokenError):
+        if isinstance(outcome, Exception):
             raise outcome
         return outcome
 
@@ -40,6 +39,20 @@ def answer(body: object) -> bytes:
 def http_error(code: int, body: bytes) -> urllib.error.HTTPError:
     """An HTTP error of `code` whose body is `body`."""
     return urllib.error.HTTPError(ENDPOINT, code, "error", Message(), io.BytesIO(body))
+
+
+class UnreadableBody(io.BytesIO):
+    """A response body that fails when it is read."""
+
+    def read(self, size: int | None = -1) -> bytes:
+        """Fail as a broken connection does."""
+        del size
+        raise OSError("connection reset")
+
+
+def unreadable_http_error(code: int) -> urllib.error.HTTPError:
+    """An HTTP error of `code` whose body cannot be read."""
+    return urllib.error.HTTPError(ENDPOINT, code, "error", Message(), UnreadableBody())
 
 
 class RecordingOpener:

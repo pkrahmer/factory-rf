@@ -20,8 +20,12 @@ FORBIDDEN = (
     "githubkit",
 )
 # The token endpoint is not the hosting service: the refresher's HTTP is the standard library's.
-ALLOWED = {"urllib.request": {"factory.adapters.oauth_token"}}
+ALLOWED = {
+    "urllib.request": {"factory.adapters.oauth_token"},
+    "http.client": {"factory.adapters.oauth_token"},
+}
 SECOND = {"factory.adapters.elsewhere": ast.parse("import urllib.request\n")}
+SECOND_CLIENT = {"factory.adapters.elsewhere": ast.parse("import http.client\n")}
 
 
 def test_only_the_pygithub_client_imports_github() -> None:
@@ -39,6 +43,12 @@ def test_only_the_pygithub_client_imports_github() -> None:
             SECOND,
             {"factory.adapters.elsewhere"},
             id="urllib.request-in-a-second-module",
+        ),
+        pytest.param(
+            "http.client",
+            SECOND_CLIENT,
+            {"factory.adapters.elsewhere"},
+            id="http.client-in-a-second-module",
         ),
     ],
 )

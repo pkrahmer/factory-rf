@@ -1,5 +1,6 @@
 """Tests of the token source behind an OAuth2 client-credentials grant."""
 
+import http.client
 import urllib.error
 from urllib.parse import parse_qs
 
@@ -8,7 +9,15 @@ import pytest
 from factory.adapters.oauth_token import ClientCredentialsTokenSource
 from factory.domain.errors import TokenError
 from factory.domain.tokens import Token
-from token_support import ENDPOINT, HIDDEN, ISSUED, RecordingOpener, answer, http_error
+from token_support import (
+    ENDPOINT,
+    HIDDEN,
+    ISSUED,
+    RecordingOpener,
+    answer,
+    http_error,
+    unreadable_http_error,
+)
 
 
 def source_of(opener: RecordingOpener, secret: str = HIDDEN) -> ClientCredentialsTokenSource:
@@ -62,6 +71,7 @@ def test_open_url_receives_the_timeout(timeout: float | None, expected: float) -
 
 
 LONG_DESCRIPTION = "d" * 300
+CUT_SHORT = http.client.IncompleteRead(b"")
 
 
 @pytest.mark.parametrize(
@@ -94,6 +104,8 @@ LONG_DESCRIPTION = "d" * 300
         pytest.param(urllib.error.URLError("no route"), "no route", id="url-error"),
         pytest.param(OSError("boom"), "boom", id="os-error"),
         pytest.param(TimeoutError("timed out"), "timed out", id="timeout"),
+        pytest.param(CUT_SHORT, str(CUT_SHORT) or type(CUT_SHORT).__name__, id="incomplete-read"),
+        pytest.param(unreadable_http_error(400), "HTTP 400", id="http-error-body-unreadable"),
         pytest.param(answer([]), "the answer holds no access_token", id="body-not-an-object"),
         pytest.param(
             answer({"expires_in": 3599}), "the answer holds no access_token", id="no-access-token"
@@ -178,6 +190,11 @@ def test_a_failed_fetch_is_a_token_error_without_the_secret_or_the_token(
             answer({"access_token": "t", "expires_in": "0"}),
             "the answer holds no expires_in",
             id="expires-in-string-0",
+        ),
+        pytest.param(
+            answer({"access_token": "t", "expires_in": "\u00b2"}),
+            "the answer holds no expires_in",
+            id="expires-in-superscript",
         ),
         pytest.param(
             answer({"access_token": "t", "expires_in": 1}),

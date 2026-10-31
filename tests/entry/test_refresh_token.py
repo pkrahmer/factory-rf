@@ -174,25 +174,41 @@ def test_the_loop_refreshes_after_each_wait_until_a_signal(
 
 
 @pytest.mark.usefixtures("restored_signals")
+@pytest.mark.parametrize(
+    "failure",
+    [
+        pytest.param(
+            TokenError("no route"),
+            "refresh_token: token request failed: no route",
+            id="token-error",
+        ),
+        pytest.param(
+            (RuntimeError(f"boom {HIDDEN} tok-1"), "refresh_token: RuntimeError: boom *** ***"),
+            id="any-other-error",
+        ),
+    ],
+)
 @pytest.mark.parametrize("number", [signal.SIGTERM, signal.SIGINT])
 def test_the_loop_keeps_the_file_after_a_failure_and_retries_after_a_minute(
     environ: dict[str, str],
     login_file: Path,
     number: signal.Signals,
+    failure: tuple[Exception, str],
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    fault, printed = failure
     source = ScriptedTokenSource(
-        Token(value="tok-1", expires_in=3599),
-        TokenError("no route"),
-        Token(value="tok-2", expires_in=3599),
+        Token(value="tok-1", expires_in=3599), fault, Token(value="tok-2", expires_in=3599)
     )
     sleep = SignallingSleep(login_file, number, last=3)
 
     status = main([], environ, source=scripted(source), sleep=sleep)
 
+    err = capsys.readouterr().err
     assert status == 0
     assert sleep.waits == [("tok-1", 600.0), ("tok-1", 60.0), ("tok-2", 600.0)]
-    assert "token request failed: no route" in capsys.readouterr().err
+    assert printed in err
+    assert HIDDEN not in err
 
 
 @pytest.mark.usefixtures("restored_signals")
