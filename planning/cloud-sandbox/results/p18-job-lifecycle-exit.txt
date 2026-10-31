@@ -1,0 +1,9 @@
+== creating probe-lifecycle-exit (docker.io/library/debian:trixie-slim, 1 cpu, 512Mi, gen2)
+== execution probe-lifecycle-exit-r87c9
+== final state: [	1		2026-10-31T17:46:40.561901Z] (running, succeeded, failed, completion)
+Execution completed successfully in 1m48.58s.
+0 s: start, pid 1 (1 means the job's first process), mode exit
+0 s: background child 15 started
+20 s: the main process exits 0 now; the child is still running: yes
+PROBE DONE
+Container called exit(0).

@@ -1,0 +1,41 @@
+== creating probe-opencode-stage (docker.io/library/debian:trixie-slim, 8 cpu, 32Gi, gen2)
+== execution probe-opencode-stage-z5kp8
+== final state: [	1		2026-10-31T17:59:08.000341Z] (running, succeeded, failed, completion)
+Execution completed successfully in 3m18.05s.
+##### inputs (presence only)
+LLM_KEY set: yes; base url set: yes
+##### T: a bearer token, as in P10 and P14
+token endpoint status: 200
+using the fetched token
+##### M: the metadata block (S0006's rule)
+$ nft -f /tmp/block.nft
+[exit 0]
+##### 1: runc 1.5.2 and podman storage on a tmpfs (S0006, S0009)
+/tmp/runc.amd64: OK
+tmpfs at /var/lib/containers: exit 0
+##### 2: the stage image from a fresh clone of factory-rf
+clone exit 0, at 49ffe8c20
+build exit 0 after 112 s
+$ podman --runtime=runc --cgroup-manager=cgroupfs --storage-driver=overlay run --rm --network=host --http-proxy=false --cap-drop=all --security-opt=no-new-privileges factory-stage:probe sh -c 'node --version; opencode --version; id -u'
+v18.20.4
+1.19.3
+0
+[exit 0]
+##### 3: the provider block as F0046 writes it, with S0007's lockdown
+model: claude-sonnet-5
+##### 4: one real task: fix a bug, run python to show it, end with the result block
+opencode exit 0 after 14 s; events 15
+--- stderr (first lines, masked):
+--- calc.py now:
+def add(a, b):
+    return a + b
+--- calc.py owned by root:root
+event types: {'step_start': 5, 'tool_use': 4, 'step_finish': 5, 'text': 1}
+steps: 5 cost reported: 0.0
+tool calls: [('bash', 'completed'), ('read', 'completed'), ('edit', 'completed'), ('bash', 'completed')]
+last text (first 400 chars): Fixed `calc.py` (changed `return a - b` to `return a + b`), and running `python3 -c "import calc; print(calc.add(2, 3))"` printed **5**.\n\n<factory-result>\ndecision: doing\nentry:\nFixed the `add` function in calc.py (subtraction → addition) and confirmed `calc.add(2, 3)` now prints 5.\n</factory-result>
+STRICT RESULT BLOCK PARSES: True decision=doing
+total 136 s
+VERDICT: the stage image runs the factory's agents in the job if opencode exits 0, calc.py returns a + b, the agent reports that python printed 5, and the strict result block parses.
+PROBE DONE
+Container called exit(0).

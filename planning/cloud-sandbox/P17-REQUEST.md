@@ -39,4 +39,14 @@ The rules of the earlier probes bind: no company value in any file of this repos
 
 ## Response
 
-(empty)
+*(the session at work, 2026-10-31)*
+
+**P17: yes.** The stage image (built in 112 s from a fresh clone) runs opencode 1.19.3 on Node 18.20.4 as uid 0 with every capability dropped, the metadata block loaded, native overlay on a tmpfs, F0046's provider block and S0007's lockdown. The agent fixed `calc.py` in 14 s (read, edit, two bash calls), reported 5, and the strict result block parsed. Stderr was empty. The cost reads 0.0 only because the probe's provider block has no prices.
+
+**P18.**
+- **A (exit while a child runs):** the probe was process 1; the main process exited 0 at 20 s with the child alive and the execution ended as **succeeded**. The platform follows the main process.
+- **B (task timeout):** `SIGTERM` reached the main process **at** the timeout (90 s), with no early warning; the trap exited 0 at 92 s. The execution's final state is **failed** with the message "The configured timeout was reached", although the exit code was 0. S0006's chapter should tell the operator to read the message. The time the platform waits before a hard kill was not measured, and the child was killed by the main process's own trap, so whether the platform signals it too is open.
+
+**Slips.** None in the probes. I had to look up the token endpoint in the sibling opencode fork; the first run of the three had to wait for it. The client id and scope you gave me, the token endpoint's tenant and the API base URL went in only as environment variables of the runs and are masked in the logs (placeholders `<client-id>`, `<api-app-id>`, `<tenant-id>`, `<idp-host>`).
+
+**Pushed.** The three result files, `capabilities.md` and this file. Nothing changed outside `planning/cloud-sandbox/`; the three throwaway jobs were created and deleted by the script.
