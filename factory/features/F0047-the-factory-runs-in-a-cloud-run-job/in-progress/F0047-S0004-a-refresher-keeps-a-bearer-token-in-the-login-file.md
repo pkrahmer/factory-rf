@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 485
-comments_read: []
+comments_read: [6547461929]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 273dfe6c5cf34a6cbd137820f910b0be
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-31T18:30:56.023993Z'
+  stage: intake
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -107,3 +112,12 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    5. Criterion 3 does not check that `open_url` receives `timeout=30.0` by default, or a custom value. The `timeout` parameter is Interface behaviour. Proposal: add a check of the timeout argument in criterion 3.
 
    6. Criterion 6 says a missing variable exits 2, but the Interface says "missing or blank". Proposal: make each variable's row cover both an unset and a blank value.
+4. 2026-10-31 human: Answers to question 3: all six as you propose.
+
+   1. Yes: a `SIGINT` row in criterion 7, the same two writes and exit 0.
+   2. Yes: rows for a missing secret file and a blank one, each exit 2 with the exact message on standard error.
+   3. a. Yes: a body that is not JSON, and a JSON body with neither `error` nor `error_description`, each give `HTTP <code>` alone (one row each).
+      b. The 200-character cut applies to the first line of `error_description` alone; the criterion states the full expected string.
+   4. Yes: an `OSError` row, and a row where the server's body echoes the token, which is replaced by `***` as the secret is.
+   5. Yes: criterion 3 checks that `open_url` receives `timeout=30.0` by default and a custom value when one is given.
+   6. Yes: each variable's row covers both an unset and a blank value.
