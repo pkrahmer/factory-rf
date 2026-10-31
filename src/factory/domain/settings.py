@@ -75,6 +75,7 @@ ZFS_EXECUTABLE_VARIABLE = "FACTORY_ZFS"
 CONTAINER_ENV_VARIABLE = "FACTORY_CONTAINER_ENV"
 CA_BUNDLE_VARIABLE = "FACTORY_CA_BUNDLE"
 IDLE_SHUTDOWN_VARIABLE = "FACTORY_IDLE_SHUTDOWN_MINUTES"
+IDLE_SHUTDOWN_ACTION_VARIABLE = "FACTORY_IDLE_SHUTDOWN_ACTION"
 CONTAINER_PROFILE_VARIABLE = "FACTORY_CONTAINER_PROFILE"
 # The names the factory gives a container itself: the home, the logins, opencode's
 # configuration, git's credential prompt, and every name of its own.
@@ -95,6 +96,8 @@ SnapshotsName = Literal["zfs", "copy"]
 _SNAPSHOTS: tuple[SnapshotsName, ...] = ("zfs", "copy")
 ContainerProfileName = Literal["rootless", "job"]
 _CONTAINER_PROFILES: tuple[ContainerProfileName, ...] = ("rootless", "job")
+IdleShutdownActionName = Literal["poweroff", "exit"]
+_IDLE_SHUTDOWN_ACTIONS: tuple[IdleShutdownActionName, ...] = ("poweroff", "exit")
 
 _NAME = TypeAdapter(Name)
 _VARIABLE_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
@@ -136,6 +139,7 @@ class InstanceSettings(BaseModel):
     container_env: tuple[str, ...] = ()
     ca_bundle: Path | None = None
     idle_shutdown_minutes: NonNegativeInt = 0
+    idle_shutdown_action: IdleShutdownActionName = "poweroff"
 
     @field_validator(
         "checkout",
@@ -277,6 +281,7 @@ def read_settings(
         container_env=_container_env(environ),
         ca_bundle=_optional_absolute_path(environ, CA_BUNDLE_VARIABLE),
         idle_shutdown_minutes=_idle_shutdown_minutes(environ),
+        idle_shutdown_action=_idle_shutdown_action(environ),
     )
 
 
@@ -406,6 +411,11 @@ def _whole_number(
 def _idle_shutdown_minutes(environ: Mapping[str, str]) -> int:
     value = _whole_number(environ, IDLE_SHUTDOWN_VARIABLE, "minutes", minimum=0)
     return 0 if value is None else value
+
+
+def _idle_shutdown_action(environ: Mapping[str, str]) -> IdleShutdownActionName:
+    fault = "is neither poweroff nor exit"
+    return _one_of(environ, IDLE_SHUTDOWN_ACTION_VARIABLE, _IDLE_SHUTDOWN_ACTIONS, fault)
 
 
 def _provider_limit(environ: Mapping[str, str]) -> ProviderLimit:

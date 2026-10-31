@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 487
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T22:42:26.877155Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-10-31T22:42:26.877155Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-10-31T22:49:25.368963Z'
+  stage: doing
+  run: 60e6493e4827420b8b58f396030e0a38
+  blocked: question
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -144,3 +147,31 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/entry/test_wiring_idle_shutdown_action.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_idle_shutdown_action.py'.
 6. factory: started doing as vm.
+7. coder: Question: an earlier story's test, `tests/entry/test_run.py::test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick`, conflicts with this story's Interface. May the tester change that test's stand-in?
+
+   The conflict: the test patches `factory.entry.run.idle_shutdown_of` with a local `recording_of(given, boundaries)` that takes exactly two arguments. The Interface says `run_instance` "hands [request_stop] to `idle_shutdown_of`". So the call `idle_shutdown_of(settings, boundaries, request_stop)` fails in both rows of that test:
+   ```
+   E   TypeError: test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick.<locals>.recording_of() takes 2 positional arguments but 3 were given
+   FAILED tests/entry/test_run.py::test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick[0-None]
+   FAILED tests/entry/test_run.py::test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick[30-limit1]
+   ```
+   These two are the only failures in `make test`. All four new test modules pass, and lint, types, layers, sast, secrets and licenses are green. The story's list of tests that must pass unchanged does not name `tests/entry/test_run.py`. The test is not mine, though, and the change is not the standing leave to move a shared helper, so I need your leave.
+
+   Options:
+   - (a) The tester widens `recording_of` to `(given, boundaries, request_stop=None)` and passes `request_stop` on to `original_of`. The test keeps its name and still checks the same thing. I would choose this.
+   - (b) `run_instance` calls `idle_shutdown_of(settings, boundaries)` when `request_stop` is None and passes three arguments only otherwise. That shapes production code around a test's stand-in; I reject it.
+   - (c) Pass `request_stop` some other way, for example a closure set on the boundaries. That goes against the Interface.
+
+   What I built (left in the working tree; `make check` is red only on those two rows):
+   - `src/factory/domain/settings.py`: `IDLE_SHUTDOWN_ACTION_VARIABLE`, the type `IdleShutdownActionName`, and the field `InstanceSettings.idle_shutdown_action = "poweroff"`. The value is read through the existing `_one_of`, so unset or blank gives `poweroff` and anything else is refused with `is neither poweroff nor exit`.
+   - `src/factory/adapters/power_off.py`: `ProcessExit(PowerOff)`, which calls `request_stop` on each `power_off`.
+   - `src/factory/entry/wiring.py`: `idle_shutdown_of(settings, boundaries, request_stop=None)`. A private `_idle_power` picks `SystemctlPowerOff()` or `ProcessExit(request_stop)`, and raises the Interface's `ValueError` for `exit` without a `request_stop`.
+   - `src/factory/entry/run.py`: `run_instance(..., request_stop=None)` hands it on, and `run_until_stopped` passes `event.set`. I also added `build_boundaries` to `__all__`, because the new `tests/entry/test_run_idle_exit.py` patches `run_module.build_boundaries` and mypy refuses an attribute the module does not export. `build_tick` is exported for the same reason.
+
+   Main choice: the action is picked in the entry wiring (`_idle_power`), not inside `IdleShutdown`. The application layer keeps knowing only the `PowerOff` interface. I rejected a new stop interface in `factory.application`, because `PowerOff` already says what the idle shutdown needs.
+
+   Refactor: I read my diff and found nothing to change.
+
+   Journal: nothing in the journal changed the task's meaning, so `## Description` is unchanged.
+
+   Noticed, not touched: nothing else.

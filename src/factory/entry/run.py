@@ -33,6 +33,7 @@ from factory.entry.wiring import (
 __all__ = [
     "activity",
     "activity_tick",
+    "build_boundaries",
     "build_tick",
     "idle_shutdown_of",
     "install_stop_handlers",
@@ -92,7 +93,9 @@ def run_until_stopped(
     def sleep(seconds: float) -> None:
         event.wait(seconds)
 
-    run_instance(settings, sleep=sleep, should_stop=event.is_set, hosting=hosting)
+    run_instance(
+        settings, sleep=sleep, should_stop=event.is_set, hosting=hosting, request_stop=event.set
+    )
 
 
 def run_instance(
@@ -101,8 +104,11 @@ def run_instance(
     sleep: Callable[[float], None],
     should_stop: Callable[[], bool],
     hosting: HostingService | None = None,
+    request_stop: Callable[[], None] | None = None,
 ) -> None:
     """Run the instance of `settings` until `should_stop`; `hosting` replaces PyGithub.
+
+    The idle shutdown's `exit` ends the loop through `request_stop`.
 
     Raises `SettingsInvalid` when the token file cannot be read, and `OSError` when the
     health file cannot be written.
@@ -117,7 +123,7 @@ def run_instance(
     waiter = RepositoryWaiter(preparer, boundaries, StopService(boundaries))
     Scheduler(
         prepare=waiter.prepare,
-        tick=activity_tick(tick, idle_shutdown_of(settings, boundaries)),
+        tick=activity_tick(tick, idle_shutdown_of(settings, boundaries, request_stop)),
         sleep=sleep,
         should_stop=should_stop,
         log=boundaries.log,

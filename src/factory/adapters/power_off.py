@@ -1,5 +1,6 @@
-"""The machine's power, switched off through `sudo` and `systemctl`."""
+"""The machine's power, switched off through `sudo` and `systemctl`, or the loop's stop."""
 
+from collections.abc import Callable
 from datetime import timedelta
 
 from factory.adapters.process import run_or_raise
@@ -34,3 +35,15 @@ class SystemctlPowerOff(PowerOff):
                 detail = f"cannot start {self._sudo_executable}: {error.detail}"
                 raise PowerOffError(detail) from error.__cause__
             raise
+
+
+class ProcessExit(PowerOff):
+    """Ends the factory's own process instead of the machine, by asking its loop to stop."""
+
+    def __init__(self, request_stop: Callable[[], None]) -> None:
+        """Stop the loop through `request_stop`."""
+        self._request_stop = request_stop
+
+    def power_off(self) -> None:
+        """Ask the loop to stop; it ends after the tick in progress."""
+        self._request_stop()
