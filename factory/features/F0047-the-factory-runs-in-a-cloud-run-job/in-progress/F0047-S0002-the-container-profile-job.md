@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T17:02:49.142641Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-10-31T17:02:49.142641Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-10-31T17:08:58.657539Z'
+  stage: tests
+  run: 7491f2e441ab4472aad09c10b3058574
 ---
 
 # The container profile job
@@ -324,3 +326,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green (`test: green (167.6 s)`, coverage 99.57 %)
 22. factory: started tests as vm.
+23. tester: I moved the shared test helper from review finding 1, which the coder passed on in entry 21. I did this under the standing leave in `CLAUDE.md` to move a shared test helper. I changed nothing else.
+
+    - Moved: the `recorder` fixture that patches `podman_runs.run_process` with a `Recorder`. Two modules each had a word-for-word copy of it. It now lives once in `tests/conftest.py` as `podman_recorder`, with a docstring. It needs its own name because `tests/conftest.py` already has a `recorder` for `claude_runtime`. `tests/conftest.py` now also imports `podman_runs`.
+    - Earlier test file changed under the leave: `tests/adapters/test_podman_runs_results.py`. I removed its local `recorder` fixture and the import of `podman_runs` it no longer uses. Its tests now take `podman_recorder`. Every test keeps its name and checks the same thing.
+    - This story's test file changed: `tests/adapters/test_podman_runs_job_profile.py`. I removed its local copy, and its tests now take `podman_recorder`.
+    - No new files.
+    - Criteria mapping: unchanged from entry 8. The renamed fixture changes no test function.
+    - Modules the test run could not import: none.
+
+    `make lint`: lint: green (0.1 s)
+    `make test`: test: green (167.5 s), coverage 99.57 %
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (163.6 s)

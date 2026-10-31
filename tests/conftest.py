@@ -16,7 +16,7 @@ from adapters.container_runtime_support import make_workspace
 from container_support import Dataset, container_dataset, fake_dataset
 from definition_support import pipeline_definition
 from disk_support import FakeDiskSpace
-from factory.adapters import claude_runtime
+from factory.adapters import claude_runtime, podman_runs
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 from factory.adapters.clock import ManualClock, ManualWaiter
@@ -378,6 +378,14 @@ def recorder(monkeypatch: pytest.MonkeyPatch) -> Recorder:
     """Replace the runtime's `run_process` with a `Recorder` and return it."""
     recording = Recorder()
     monkeypatch.setattr(claude_runtime, "run_process", recording)
+    return recording
+
+
+@pytest.fixture
+def podman_recorder(monkeypatch: pytest.MonkeyPatch) -> Recorder:
+    """Replace the podman adapter's `run_process` with a `Recorder` and return it."""
+    recording = Recorder()
+    monkeypatch.setattr(podman_runs, "run_process", recording)
     return recording
 
 

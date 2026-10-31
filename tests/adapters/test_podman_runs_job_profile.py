@@ -29,13 +29,6 @@ def job_runs(podman: Podman) -> PodmanRuns:
     return PodmanRuns(str(podman.path), IMAGE, WORKSPACE, profile="job")
 
 
-@pytest.fixture
-def recorder(monkeypatch: pytest.MonkeyPatch) -> Recorder:
-    recording = Recorder()
-    monkeypatch.setattr(podman_runs, "run_process", recording)
-    return recording
-
-
 def _launch_words(runs: PodmanRuns, command: list[str], mounts: list[Mount]) -> list[str]:
     return runs.launch(
         command,
@@ -193,14 +186,14 @@ def test_a_job_runner_s_queries_carry_the_global_options(
 )
 def test_a_job_run_reads_its_end_as_the_rootless_one(
     job_runs: PodmanRuns,
-    recorder: Recorder,
+    podman_recorder: Recorder,
     *,
     exit_status: int,
     seconds: int,
     timed_out: bool,
     expected_status: int | None,
 ) -> None:
-    recorder.results.append(
+    podman_recorder.results.append(
         ProcessResult(
             exit_status=exit_status,
             stdout="",
@@ -220,5 +213,5 @@ def test_a_job_run_reads_its_end_as_the_rootless_one(
 
     assert result.timed_out is timed_out
     assert result.exit_status == expected_status
-    [request] = recorder.requests
+    [request] = podman_recorder.requests
     assert request.argv[1:5] == JOB_WORDS
