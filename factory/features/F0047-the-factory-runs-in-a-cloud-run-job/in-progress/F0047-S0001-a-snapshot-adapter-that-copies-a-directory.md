@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T16:08:03.006206Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-31T16:07:42.737131Z'
   stage: tests
   run: fe75fe6535cf40d2a4ec84e57c297e63
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-31T16:08:03.006206Z'
+  stage: doing
 ---
 
 # A snapshot adapter that copies a directory
@@ -320,3 +329,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (167.0 s)
+17. factory: started doing as vm.
