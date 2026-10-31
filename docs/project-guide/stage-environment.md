@@ -118,7 +118,7 @@ No test runs a real `zfs`; it runs only on the VM. `tests/zfs_support.py` writes
 
 ## The podman adapter
 
-`PodmanRuns(executable, image, workspace, *, time_limit=PODMAN_TIME_LIMIT)` (`factory.adapters.podman_runs`) implements `ContainerRuns` with the `podman` executable: every command runs in a throwaway container of `image`, `workspace` (the dataset's mount point) mounted at `/work`. `executable` is run as given, so an operator can pass a wrapper script. `time_limit` bounds only `version` and `image_exists`; `PODMAN_TIME_LIMIT` is two minutes.
+`PodmanRuns(executable, image, workspace, *, time_limit=PODMAN_TIME_LIMIT, profile="rootless")` (`factory.adapters.podman_runs`) implements `ContainerRuns` with the `podman` executable: every command runs in a throwaway container of `image`, `workspace` (the dataset's mount point) mounted at `/work`. `executable` is run as given, so an operator can pass a wrapper script. `time_limit` bounds only `version` and `image_exists`; `PODMAN_TIME_LIMIT` is two minutes.
 
 ### The command line
 
@@ -146,13 +146,22 @@ No test runs a real `zfs`; it runs only on the VM. `tests/zfs_support.py` writes
 - `--workdir`: the command's working directory in the container.
 - the image, then the command words, which are never joined into a string.
 
-There is no `--network` word, so every container keeps podman's default network: the sync needs the package index, the check runs `make sync` first, which needs the index when the take changed `uv.lock` or `pyproject.toml`, and the agent needs the model's API. Cutting the network is a later step, for example an allow-list (decision *Every container runs without rights and within limits*).
+There is no `--network` word under `rootless`, so every container keeps podman's default network (`job` uses the host's): the sync needs the package index, the check runs `make sync` first, which needs the index when the take changed `uv.lock` or `pyproject.toml`, and the agent needs the model's API. Cutting the network is a later step, for example an allow-list (decision *Every container runs without rights and within limits*).
 
 The limits are the constants `PIDS_LIMIT = 4096` and `MEMORY_LIMIT = "4g"`, read on every call of `launch`. 4096 processes leave room for the test suite's workers under `-n auto` on the VM's cores and what each starts; 4 GB lets one container run at a time on a machine of 8 GB. A container the kernel kills for its memory before the time limit is an ordinary result with its exit status, not a time-out: a command that fails with make's status 2 when the kernel ended one of its children, 137 when it ended the container's first process.
 
 Measured on 2026-10-24 on the local VM (Ubuntu 24.04, podman 4.9.3, rootless as `factory`): podman accepts all four words; the container's effective capabilities are `0000000000000000`; a write to the dataset still works under `--userns=keep-id`; `--pids-limit=50` stops the 49th fork with "can't fork: Resource temporarily unavailable"; `--memory=64m` sets the container's `memory.max` to 67108864; and the user's systemd delegates the `cpu memory pids` controllers.
 
 `launch` returns `ContainerLaunch(argv, env=None, time_limit=<limit> + CONTAINER_GRACE)`. `env` is `None`: the `podman` program itself runs with the factory's environment (`HOME`, `XDG_RUNTIME_DIR` and `PATH` it needs), as `version` does.
+
+### The job profile
+
+`profile` is `FACTORY_CONTAINER_PROFILE` (`InstanceSettings.container_profile`, passed by `_container_adapters` in `factory.entry.wiring`): `rootless`, the default, builds every word as described above; `job` is for a managed sandbox such as a Cloud Run job (the operator guide, *The job profile*, has the measured reasons). It changes two things and nothing else:
+
+- `JOB_PODMAN_OPTIONS` (`factory.domain.containers`: `--runtime=runc`, `--cgroup-manager=cgroupfs`, `--storage-driver=overlay`, `--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs`) go right after the executable, before `run`, in `launch`, `version` and `image_exists`, and in the command text of a `ContainerError`.
+- In `launch`, `--userns=keep-id` gives way to `--http-proxy=false --network=host` (`_isolation_words`). All other words keep their order, so a `job` launch reads `<executable> <options> run --rm --http-proxy=false --network=host --timeout <seconds> --cap-drop=all ...`. It has no `--user` either: the container runs as the job's root.
+
+Mounts, the grace, the reading of the end (255 at or after the limit is the time limit) and the `ValueError` rules are the same in both profiles. Tests: `tests/adapters/test_podman_runs_job_profile.py`.
 
 ### The grace
 

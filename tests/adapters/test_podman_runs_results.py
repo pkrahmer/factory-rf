@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters import podman_runs, process
+from factory.adapters import process
 from factory.adapters.podman_runs import PODMAN_TIME_LIMIT, PodmanRuns
 from factory.adapters.process import ProcessResult
 from factory.domain.errors import ContainerError
@@ -26,13 +26,6 @@ def workspace(tmp_path: Path) -> Path:
 @pytest.fixture
 def runs(podman: Podman, workspace: Path) -> PodmanRuns:
     return PodmanRuns(str(podman.path), IMAGE, workspace)
-
-
-@pytest.fixture
-def recorder(monkeypatch: pytest.MonkeyPatch) -> Recorder:
-    recording = Recorder()
-    monkeypatch.setattr(podman_runs, "run_process", recording)
-    return recording
 
 
 def test_a_run_passes_the_command_s_status_and_output_through(
@@ -118,7 +111,7 @@ def test_a_run_passes_the_command_s_status_and_output_through(
 def test_a_kill_at_the_limit_is_a_timed_out_run(
     runs: PodmanRuns,
     podman: Podman,
-    recorder: Recorder,
+    podman_recorder: Recorder,
     *,
     plan: PodmanPlan,
     answer: ProcessResult | None,
@@ -128,7 +121,7 @@ def test_a_kill_at_the_limit_is_a_timed_out_run(
 ) -> None:
     podman.plan(plan)
     if answer is not None:
-        recorder.results.append(answer)
+        podman_recorder.results.append(answer)
 
     result = runs.run(
         ["/bin/true"],
@@ -140,7 +133,7 @@ def test_a_kill_at_the_limit_is_a_timed_out_run(
 
     assert result.timed_out is timed_out
     assert result.exit_status == exit_status
-    [request] = recorder.requests
+    [request] = podman_recorder.requests
     assert request.time_limit == time_limit + timedelta(seconds=30)
     assert request.merge_stderr is True
     assert request.cwd == Path("/")
@@ -265,10 +258,10 @@ def test_version_is_the_first_line_podman_prints(
 
 
 def test_version_runs_under_two_minutes_by_default(
-    runs: PodmanRuns, recorder: Recorder, monkeypatch: pytest.MonkeyPatch
+    runs: PodmanRuns, podman_recorder: Recorder, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(process, "run_process", recorder)
-    recorder.results.append(
+    monkeypatch.setattr(process, "run_process", podman_recorder)
+    podman_recorder.results.append(
         ProcessResult(
             exit_status=0,
             stdout="podman version 4.9.3\n",
@@ -281,7 +274,7 @@ def test_version_runs_under_two_minutes_by_default(
     runs.version()
 
     assert timedelta(minutes=2) == PODMAN_TIME_LIMIT
-    [request] = recorder.requests
+    [request] = podman_recorder.requests
     assert request.time_limit == timedelta(minutes=2)
 
 

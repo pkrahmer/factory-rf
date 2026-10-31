@@ -84,6 +84,7 @@ One factory instance runs one project and is told what it needs through environm
 | `FACTORY_WORKSPACE` | yes | The dataset's mount point on the host, an absolute path (`/srv/factory/vm/work`). A relative path is refused by `read_settings` with `FACTORY_WORKSPACE` as the variable and `is not an absolute path`; a missing or blank one when the boundaries are built, with `missing`. |
 | `FACTORY_STAGE_IMAGE` | yes | The image the stage containers run (`factory-stage:1`). Missing or blank is refused when the boundaries are built, with `FACTORY_STAGE_IMAGE` as the variable and `missing`. |
 | `FACTORY_PODMAN` | no | The `podman` executable, one word. Default `podman`; unset or blank gives the default. |
+| `FACTORY_CONTAINER_PROFILE` | no | How the factory starts its containers: `rootless` (the default) or `job` (see *The job profile*). Unset or blank gives `rootless`; anything else (`Job`, `root`) is refused by `read_settings` with `FACTORY_CONTAINER_PROFILE` as the variable and `is neither rootless nor job`. |
 | `FACTORY_ZFS` | no | The `zfs` executable, one word. Default `zfs`; unset or blank gives the default. |
 | `FACTORY_CONTAINER_ENV` | no | Comma-separated names of environment variables of the factory's own environment that every agent, sync and check container also gets, with their values (`HTTPS_PROXY,NO_PROXY`). Each part is stripped and blank parts are left out; unset or blank gives none. A name must match `[A-Za-z_][A-Za-z0-9_]*` (`http_proxy` is fine), or it is refused with `FACTORY_CONTAINER_ENV` as the variable and `holds <name>, which is not a variable name`; a name twice is refused with `names <name> twice`; `HOME`, `ANTHROPIC_API_KEY`, `CLAUDE_CODE_OAUTH_TOKEN`, `OPENCODE_CONFIG`, `GIT_ASKPASS` and every name that starts with `FACTORY_` are refused with `holds <name>, which the factory sets itself`. A listed name the factory's environment lacks is skipped. See "Behind a proxy". |
 | `FACTORY_CA_BUNDLE` | no | The absolute path of a PEM file on the machine, the company's CA certificates. Every agent, sync and check container gets it mounted read-only at the same path, and `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE` and `REQUESTS_CA_BUNDLE` name it. Unset or blank gives none; a relative path is refused with `FACTORY_CA_BUNDLE` as the variable and `is not an absolute path`. The file's existence is not checked when the settings are read: podman refuses to mount a missing file, and the container fails. See "Behind a proxy". |
@@ -353,6 +354,31 @@ The layout of `/srv/factory/<instance>`:
 | `factory.local.env` | your own environment file, optional; the script never writes it |
 | `image-id` | the identity of the stage image |
 | `askpass` | the script git asks for the hosting token |
+
+### The job profile
+
+A managed sandbox such as a Cloud Run job cannot start the factory's containers the way the VM does. Set `FACTORY_CONTAINER_PROFILE=job` there; the default, `rootless`, is what the VM uses and is unchanged.
+
+What the sandbox lacks, measured on 2026-10-31 with Podman 5.4:
+
+- Rootless Podman is impossible: the job's root has `NoNewPrivs`, so `newuidmap` cannot map a user namespace.
+- The cgroup layout is hybrid. `crun` and Podman 6 refuse it; `runc` accepts it.
+- The root file system is an overlay, and Podman's overlay storage on top of it needs a mount program.
+- No bridge network reaches the outside.
+- Podman copies the job's proxy variables into every container.
+
+The profile therefore puts four global options in front of every `podman` command, `launch`, `version` and `image exists` alike, and swaps the isolation words of `run`:
+
+| Word | Why |
+| --- | --- |
+| `--runtime=runc` | `crun` refuses the hybrid cgroups |
+| `--cgroup-manager=cgroupfs` | the cgroup manager measured to work with `runc` in the job |
+| `--storage-driver=overlay` and `--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs` | overlay storage on an overlay root needs `fuse-overlayfs`, which the image must hold at that path |
+| `--network=host` | a bridge reaches nothing; the container shares the job's network |
+| `--http-proxy=false` | the job's proxy variables are not copied into the container (name the ones you want in `FACTORY_CONTAINER_ENV`) |
+| no `--userns=keep-id` | rootless is impossible here |
+
+The container runs as the job's root with every capability dropped (`--cap-drop=all`). `--security-opt=no-new-privileges`, `--pids-limit`, `--memory`, `--timeout` and the mounts are those of `rootless`, and a container ended by `--timeout` still exits with status 255, read as the time limit as before. Files a container writes to `/work` belong to root, which is the job's own user.
 
 ### Without ZFS
 

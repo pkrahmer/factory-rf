@@ -1239,3 +1239,13 @@ Date: 2026-10-31 (F0047-S0001; decisions 1 and 2 of the feature).
 - The base must not overlap the workspace (a reset would empty it), the checkout or the state directory (the base would be copied over them): `read_settings` and the model validator both refuse it. An absent base is the wiring's fault, like an absent dataset. With `copy` the preflight's `zfs` and `dataset` items give way to one, `snapshots`, and the dataset is not read.
 - Cost accepted: a reset takes about 1.6 s per GiB (a tree of 20000 files), and the comparison is slower than the 0.2 s of `rsync`.
 - Rejected: `rsync` in the first version (a later one may use it if the cost shows); a base inside the workspace (a reset would delete it).
+
+## A root container profile for a managed sandbox
+
+Date: 2026-10-31 (F0047-S0002; decisions 3 to 5 of the feature).
+
+- Decision: `FACTORY_CONTAINER_PROFILE=job` makes `PodmanRuns` start containers as the job's root, for a Cloud Run job. Four global options (`JOB_PODMAN_OPTIONS`: `--runtime=runc`, `--cgroup-manager=cgroupfs`, `--storage-driver=overlay`, `--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs`) go before every podman command, and `run` gets `--http-proxy=false --network=host` in place of `--userns=keep-id`. The default `rootless` keeps every word it had.
+- Why: measured on 2026-10-31 (Podman 5.4, `planning/cloud-sandbox/`): the job's root has `NoNewPrivs`, so rootless cannot map a user; the hybrid cgroups are refused by `crun` and Podman 6 and accepted by `runc`; the overlay root needs a mount program; no bridge reaches the outside; and podman copies the job's proxy variables into containers. With these words, `--timeout` (exit status 255), `--pids-limit`, `--memory`, `--security-opt=no-new-privileges`, bind mounts and `:ro` all worked.
+- The container runs as root with `--cap-drop=all`; the job itself is the sandbox's boundary, and the container fence stays what it was.
+- One class with a profile, not a subclass: a subclass would copy `launch`. The grace, the reading of exit statuses and the `ValueError` rules are shared.
+- Rejected: changing the default profile (the VM's words must not move); a setting for each option (the four belong together and have one cause).
