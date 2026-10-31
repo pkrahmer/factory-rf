@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-31T22:26:49.867914Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -225,6 +229,11 @@ journal:
   at: '2026-10-31T22:26:29.265257Z'
   stage: doing
   run: 22f4fecf570642a6b1a6f5fa20f3970c
+- number: 40
+  speaker: factory
+  kind: started
+  at: '2026-10-31T22:26:49.867914Z'
+  stage: review
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -684,3 +693,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 1 gone
+40. factory: started review as vm.
