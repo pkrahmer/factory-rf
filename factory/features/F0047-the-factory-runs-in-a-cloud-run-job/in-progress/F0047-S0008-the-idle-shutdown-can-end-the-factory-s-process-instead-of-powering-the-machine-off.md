@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 487
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T22:34:20.215645Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-31T22:34:20.215645Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-31T22:42:06.777368Z'
+  stage: tests
+  run: 488b33b7863046f08de2fece06cc5d30
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -103,3 +105,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: the domain holds the setting, the adapter holds `ProcessExit` as an implementation of the `PowerOff` interface, and the entry layer wires it and passes the event's `set`. This matches the layering in `CLAUDE.md`. No new dependency is added.
    Scope: this is S0008 of F0047, listed in the feature's Scope and in decision 18. It names the earlier idle-shutdown tests that must pass unchanged, so no other story's test is changed.
 4. factory: started tests as vm.
+5. tester: I wrote the tests for criteria 1 to 7. Each one fails because the code it needs does not exist yet, not because of a broken test. `make lint` is green. I skipped the type check, as this stage says to.
+
+   Criterion → test:
+   - criterion 1: tests/entry/test_wiring_idle_shutdown_action.py::test_without_an_action_the_idle_shutdown_powers_the_machine_off (rows: minutes 0 gives None, minutes 30 gives SystemctlPowerOff; the setting reads `poweroff`)
+   - criterion 2: tests/domain/test_settings_idle_shutdown_action.py::test_the_idle_shutdown_action_is_read_or_refused (rows: unset, empty, blank, poweroff, exit, exit with minutes 0, Exit, stop, exit now)
+   - criterion 3: tests/adapters/test_process_exit.py::test_each_power_off_requests_the_stop_once
+   - criterion 4: tests/entry/test_wiring_idle_shutdown_action.py::test_the_exit_action_stops_the_loop_it_is_given (rows: exit with a stop gives a ProcessExit that calls it; exit without a stop raises the ValueError; exit with minutes 0 gives None)
+   - criterion 5: tests/entry/test_run_idle_exit.py::test_the_idle_exit_stops_the_loop_after_the_tick_that_ends_the_stretch (rows: idle at 0:59 does not stop the loop and idle at 1:00 does; a non-idle tick at 0:45 starts the stretch again, so 1:44 runs on and 1:45 stops. Each row checks that the log line appears once and that no scripted tick runs after the stop.)
+   - criterion 6: tests/entry/test_run_idle_exit.py::test_main_returns_zero_after_the_idle_exit_ends_the_loop
+   - criterion 7: tests/entry/test_run_idle_exit.py::test_a_refused_power_off_does_not_stop_the_loop (a `sudo` stand-in first on PATH exits 1; the log holds `the factory runs on`, the next tick runs, and the stop is never requested)
+
+   How the loop tests work: `run_instance` runs with a real clone of the `remote` fixture and the fake hosting service. Two things are patched in `factory.entry.run`, as `tests/entry/test_run.py` already does:
+   - `build_tick` returns a scripted tick. Each run moves the manual clock to its step's time and returns IDLE or OTHER from `power_support`.
+   - `build_boundaries` calls the real one, then sets the boundaries' clock and log (`machine_log`) to the manual clock.
+
+   The test passes `request_stop=stop.set`, and `should_stop` returns `stop.is_set() or tick.exhausted`, so an idle shutdown that never stops the loop ends with the script rather than hanging the test. There is no real sleep.
+
+   Rejected:
+   - A test that only checks the `IDLE_SHUTDOWN_ACTION_VARIABLE` constant. No criterion asks for it.
+   - Moving the `settings`/`token_file` fixtures out of `tests/entry/test_run.py`. My module has its own small `instance_settings` fixture, so I changed no earlier test file.
+
+   Files created: tests/domain/test_settings_idle_shutdown_action.py, tests/adapters/test_process_exit.py, tests/entry/test_wiring_idle_shutdown_action.py, tests/entry/test_run_idle_exit.py.
+
+   Modules pytest could not import: tests/adapters/test_process_exit.py and tests/entry/test_wiring_idle_shutdown_action.py, both because `ProcessExit` does not exist yet in `factory.adapters.power_off`. The other two modules import, and their tests fail on the missing `InstanceSettings.idle_shutdown_action` (AttributeError, or SettingsInvalid not raised) and on `run_instance()` not accepting `request_stop`.
+
+   Process note: my one `make test` run went to the background because I gave it the default timeout. I waited for it to finish and read its result. I ran `make lint` in the foreground.
+
+   `lint`: lint: green (0.2 s)
+   `test`: ERROR tests/entry/test_wiring_idle_shutdown_action.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_idle_shutdown_action.py'.
