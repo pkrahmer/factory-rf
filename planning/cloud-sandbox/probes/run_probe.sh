@@ -16,6 +16,7 @@
 #   PROBE_TOKEN_SCOPE  (optional) the scope to request there
 #   PROBE_CLIENT_ID    (optional) the client id; the client secret arrives as LLM_KEY (a mounted secret)
 #   PROBE_MODEL        (optional) a model id to use; otherwise the probe chooses
+#   PROBE_TASK_TIMEOUT (optional) the task timeout in seconds (default 1500)
 #   PROBE_EXTRA_ARGS   (optional) more arguments for `gcloud run jobs create`, split on spaces
 #                      (for example a volume: --add-volume=name=d,type=ephemeral-disk,size=10Gi ...)
 #
@@ -32,9 +33,9 @@ common=(--project="$PROBE_PROJECT" --region="$region" "${impersonate[@]}")
 # The script is shipped inside the job's arguments: lib.sh and the probe, gzipped and base64-coded.
 payload=$(cat "$here/lib.sh" "$here/$script" | gzip -9 | base64 | tr -d '\n')
 create=(gcloud run jobs create "$job" "${common[@]}" --image="$image"
-  --execution-environment="$gen" --cpu="$cpu" --memory="$memory" --max-retries=0 --task-timeout=1500
+  --execution-environment="$gen" --cpu="$cpu" --memory="$memory" --max-retries=0 --task-timeout=${PROBE_TASK_TIMEOUT:-1500}
   --set-env-vars="^@^PROBE_PROXY=${PROBE_PROXY:-}@PROBE_NO_PROXY=${PROBE_NO_PROXY:-}@PROBE_LLM_BASE_URL=${PROBE_LLM_BASE_URL:-}@PROBE_MODEL=${PROBE_MODEL:-}@PROBE_TOKEN_URL=${PROBE_TOKEN_URL:-}@PROBE_TOKEN_SCOPE=${PROBE_TOKEN_SCOPE:-}@PROBE_CLIENT_ID=${PROBE_CLIENT_ID:-}"
-  --command=sh --args="-c,echo $payload | base64 -d | gzip -d > /tmp/probe.sh; sh /tmp/probe.sh")
+  --command=sh --args="-c,echo $payload | base64 -d | gzip -d > /tmp/probe.sh; exec sh /tmp/probe.sh")
 [ -n "${PROBE_RUN_AS:-}" ] && create+=(--service-account="$PROBE_RUN_AS")
 [ -n "${PROBE_EXTRA_ARGS:-}" ] && create+=($PROBE_EXTRA_ARGS)
 [ -n "${PROBE_CONNECTOR:-}" ] && create+=(--vpc-connector="$PROBE_CONNECTOR" --vpc-egress=all-traffic)
