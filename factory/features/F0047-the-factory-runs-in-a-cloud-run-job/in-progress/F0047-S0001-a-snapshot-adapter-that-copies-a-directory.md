@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 481
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T15:37:43.126780Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-31T15:37:43.126780Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-31T15:38:04.318649Z'
+  stage: intake
+  run: 06e4182a36874f048ca3ad07e187ce5e
+  blocked: question
 ---
 
 # A snapshot adapter that copies a directory
@@ -107,3 +110,11 @@ Expect: two lines, `zfs` and a message that names `FACTORY_SNAPSHOTS` and `is ne
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-31 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Format check: passed. Nothing to add.
+   2. The Interface says `build_boundaries` raises `SettingsInvalid(FACTORY_SNAPSHOT_BASE, "missing")` "first ... then the workspace and image faults as today". Criterion 11 only tests the missing base on its own. No criterion checks the ordering, for example a copy setup with no base and also a missing workspace or image, which must name `FACTORY_SNAPSHOT_BASE`. Should I add that criterion, or drop "first" from the Interface? I would add the criterion.
+   3. The Interface says "The model validator refuses the same combinations with a `ValidationError`." That covers a base that overlaps the workspace, the checkout or the state directory. Criterion 4 tests only the workspace case (`/work/b`). The checkout and state overlaps, and the "holds it" side (base `/`), have no model-level criterion. Should criterion 4 become rows covering the workspace, the checkout and the state directory (inside, equal, holding), plus an accepted non-overlapping base? I would add those rows.
+   4. The `zfs` rule "a base set is `only used with FACTORY_SNAPSHOTS=copy`" is tested in `read_settings` (criterion 3). The Interface does not say whether the model validator also refuses `snapshots="zfs"` with a `snapshot_base`. Please state which, and add a criterion for it either way.
+   5. `snapshots_item` fails when the "base does not exist". Criterion 10 does not say what happens when the base exists but is a file. The Interface says the item passes "when both are directories", so a file base should fail. The failure sentence ("does not exist") would then be misleading. Which sentence should a file base get? I would use a separate row with the same "does not exist" sentence, to keep the Interface as written.
+   6. Criterion 8 names only a base that is a file, which gives the `OSError` for `reset`. The Interface also gives `advance` its own `OSError` to `SnapshotError` rule. Is a second row for `advance` wanted, for example with a read-only or unreadable folder? I would add it with the operation name `advance`.
+
+   Checked and fine: the smoke test commands are runnable and neither runs pytest. The `Expect:` lines are checkable. The architecture is right: domain settings, adapters, application preflight, entry wiring. The scope matches the feature's S0001.
