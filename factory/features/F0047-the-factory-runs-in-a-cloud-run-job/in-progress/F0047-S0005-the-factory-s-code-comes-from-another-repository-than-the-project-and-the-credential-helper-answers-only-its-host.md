@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T22:10:16.847096Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -190,6 +186,12 @@ journal:
   kind: started
   at: '2026-10-31T22:10:16.847096Z'
   stage: review
+- number: 33
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T22:12:07.046208Z'
+  stage: review
+  run: e7a26e70e8334211b4874459a1deab37
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -211,11 +213,11 @@ No module under `src/factory/` changes. The coder changes `vm/setup.sh` and `vm/
 `vm/setup.sh` (shell): the option `--code-url <url>` (usage text and the option table of the operator guide), default the value of `--repository-url`.
 
 - With `--code-url` equal to `--repository-url` or absent: the checkout step is as today.
-- With a different `--code-url`: the clone of `/srv/factory/<instance>/factory` runs with `GIT_TERMINAL_PROMPT=0` and without `GIT_ASKPASS` and `core.askPass`, so a code repository that asks for a credential fails the clone with the message `setup: checkout: cannot clone <url> without a credential; the code repository must be readable without a token`, exit 1. That clone happens before the wait for the secrets, so the first pass stops later, at `waiting for /home/factory/.secrets/hosting-token` (exit 0), as today.
+- With a different `--code-url`: the clone of `/srv/factory/<instance>/factory` runs with `GIT_TERMINAL_PROMPT=0` and without `GIT_ASKPASS` and `core.askPass`, so a code repository that asks for a credential fails the clone with the message `setup: checkout: cannot clone <url> without a credential; the code repository must be readable without a token`, exit 1. That clone happens in the checkout step after the wait for the secrets, where the clone of today happens, and sets `cloned=yes` as today, so the same pass installs the helper and the unit; the first pass stops at `waiting for /home/factory/.secrets/hosting-token` (exit 0) without cloning, as today.
 - `factory.env` holds `FACTORY_REPOSITORY_URL=<--repository-url>` as today; it never holds the code url.
 - Everything else (the thirteen step names and order, the secrets, the unit) is unchanged.
 
-Tests (the tester writes them): `tests/test_vm_credential_helper_host.py` (the helper run with a made-up environment and requests on standard input), `tests/test_vm_setup_code_url.py` (through `tests/vm_support.py`'s `run_setup` with stand-in executables).
+Tests (the tester writes them): `tests/test_vm_credential_helper_host.py` (the helper run with a made-up environment and requests on standard input), `tests/test_vm_setup_code_url.py` (through `tests/vm_support.py`'s `run_setup` with stand-in executables up to the secrets wait, and from the script's text after it).
 
 ## Acceptance criteria
 
@@ -223,9 +225,9 @@ Tests (the tester writes them): `tests/test_vm_credential_helper_host.py` (the h
 2. With `FACTORY_REPOSITORY_URL=https://git.example.invalid/o/r.git` and a readable token file: a request `protocol=https` / `host=git.example.invalid` gets the two lines `username=x-access-token` and `password=<the file's text>`; `host=GIT.EXAMPLE.INVALID` and `host=git.example.invalid:443` get them too; `host=github.com`, `host=git.example.invalid.evil.example` and a request without a `host=` line get no output and exit status 1.
 3. The URL forms: `ssh://git@git.example.invalid:22/o/r.git` and `git@git.example.invalid:o/r.git` both mean the host `git.example.invalid`.
 4. A request for another operation (`store`, `erase`) prints nothing and exits 0, as before.
-5. `setup.sh --code-url <u>` with `<u>` different from `--repository-url`: the stand-in `git`'s `clone` call carries `GIT_TERMINAL_PROMPT=0`, no `GIT_ASKPASS` and no `core.askPass`, and names `<u>` as its source; with `<u>` equal to `--repository-url` or no option, it carries the askpass as before.
-6. A stand-in `git clone` that fails when no credential is offered makes `setup.sh` print `setup: checkout: cannot clone <url> without a credential; the code repository must be readable without a token` to standard error and exit 1.
-7. With a different `--code-url` and no `hosting-token`, the clone still runs and the script then prints `setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again` and exits 0; without `--code-url` the order and the message are as before.
+5. `setup.sh --code-url <u>` with `<u>` different from `--repository-url`: the checkout step's clone after the secrets wait (read from the script's text) carries `GIT_TERMINAL_PROMPT=0`, no `GIT_ASKPASS` and no `core.askPass`, and names `<u>` as its source; with `<u>` equal to `--repository-url` or no option, it carries the askpass as before.
+6. A failing clone of the code url (read from the script's text after the secrets wait) makes `setup.sh` print `setup: checkout: cannot clone <url> without a credential; the code repository must be readable without a token` to standard error and exit 1.
+7. With a different `--code-url` and no `hosting-token`, the script prints `setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again` and exits 0 without calling the stand-in `git clone`; without `--code-url` the order and the message are as before. With the token, the clone of the code url runs with no askpass and sets `cloned=yes` (read from the script's text after the wait).
 8. `factory.env` made by a run with a different `--code-url` holds `FACTORY_REPOSITORY_URL` with the project's url and no line with the code url.
 9. `setup.sh --help` and the usage text name `--code-url`.
 10. The URL rows of the helper, each against the request `host=git.example.invalid`: `FACTORY_REPOSITORY_URL=https://GIT.EXAMPLE.INVALID/o/r.git` (upper case), `https://user@git.example.invalid:8443/o/r.git` (user and port together) and `https://git.example.invalid:8443/o/r.git` (a port only) get the two lines; `https://user@other.example.invalid/o/r.git` gets no output and exit status 1.
@@ -548,3 +550,41 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 1 gone
 32. factory: started review as vm.
+33. reviewer: Reviewer, round 1. I read `git diff main...HEAD -- . ':!factory'` (`vm/setup.sh`, `vm/git-credential-factory`, five test files) against the work item and the journal up to entry 31. The factory's `make check` after the coder was green (entry 31).
+
+    Findings:
+
+    1. Location: `tests/test_vm_setup_code_url.py:133` (`test_a_different_code_url_is_cloned_after_the_wait_without_the_askpass`) and `:154` (`test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_url`), against `vm/setup.sh:96-98` and `vm/setup.sh:366,370`. Problem: criterion 5 (the "equal or no option" side) and the Interface's "default the value of `--repository-url`" have no test for which clone runs. The text tests check that both clone lines exist and that some `if`/`elif` names both urls. They never check which comparison guards which clone, or that `code_url` falls back to `$repository_url`. As a result, either change below leaves every test green, and either one makes every call without `--code-url` clone the project without its token, so the checkout fails on a private project:
+       - deleting `if [ -z "$code_url" ]; then code_url=$repository_url; fi`;
+       - swapping the `=` and `!=` of the two conditions.
+
+       Fix (the tester; no change under `vm/`): add text rows to criterion 5's tests. The askpass clone must stand under a condition that compares `"$code_url" = "$repository_url"`, and the code clone under `!=`. Use `vm_support.enclosing_if` or the `if`/`elif` line just before each clone. After the option parsing, the code-url variable must take `$repository_url` when it is empty, as `tests/test_vm_setup_text.py::test_the_image_defaults_to_one_named_after_the_instance` pins the image default.
+
+    Description corrections (the human ordered them in entry 25: "correct the Interface and criterion 7 in this round"). The coder's rewrite in entry 27 was dropped because the work item is outside the coder's write paths, so I made it. Entries 9 and 25 settle each correction.
+    - description corrected: Interface, `setup.sh` bullet "With a different `--code-url`": "That clone happens before the wait for the secrets, so the first pass stops later, at `waiting for …` (exit 0), as today" -> "That clone happens in the checkout step after the wait for the secrets, where the clone of today happens, and sets `cloned=yes` as today, so the same pass installs the helper and the unit; the first pass stops at `waiting for …` (exit 0) without cloning, as today".
+    - description corrected: Interface, "Tests" line: "through `run_setup` with stand-in executables" -> "through `run_setup` with stand-in executables up to the secrets wait, and from the script's text after it".
+    - description corrected: criterion 5: "the stand-in `git`'s `clone` call carries" -> "the checkout step's clone after the secrets wait (read from the script's text) carries".
+    - description corrected: criterion 6: "A stand-in `git clone` that fails when no credential is offered makes" -> "A failing clone of the code url (read from the script's text after the secrets wait) makes".
+    - description corrected: criterion 7: "the clone still runs and the script then prints the wait message and exits 0" -> "the script prints the wait message and exits 0 without calling the stand-in `git clone` … With the token, the clone of the code url runs with no askpass and sets `cloned=yes` (read from the script's text after the wait)".
+
+    Checked and fine:
+    - Criteria 1 to 4 and 6 to 11 each have a test that matches their text, as corrected above.
+    - The helper's host rule in `vm/git-credential-factory` matches the Interface:
+      - the three URL forms, lower-cased, with user and port removed;
+      - the request's host lower-cased and its port removed;
+      - a request with no `host=` line refused;
+      - with the variable unset, and for every other operation, the helper behaves as before.
+    - The reviewer's finding 2 from entry 22 is settled as the human chose in entry 25. The code clone now runs after the wait, in the same pass as the installs.
+    - Architecture: no change under `src/`.
+    - Security: no secret, no suppression marker. The code clone strips `GIT_ASKPASS` and passes no `core.askPass`.
+    - The journal records the main choice (flat `if`/`elif`, because of `_clone_variables`) and what was rejected.
+    - The docs criterion still describes what the reader needs.
+
+    Earlier tests:
+    - `tests/conftest.py`: the standing leave to move a shared test helper (the `token` fixture moved here from `tests/test_git_credential_helper.py`, unchanged).
+    - `tests/test_git_credential_helper.py`: the standing leave to move a shared test helper. `HELPER`, `EXAMPLE_VALUE`, `SYSTEM_PATH` and `token` now come from `tests/vm_support.py` and `tests/conftest.py`. Its four tests keep their names and what they check. `ROOT` was used only for `HELPER`.
+    - `tests/vm_support.py`: the standing leave to move a shared test helper (it gains `HELPER` and `EXAMPLE_VALUE`, and nothing it held changed).
+
+    Notes:
+    - `tests/test_vm_setup_code_url.py:157-158`: `test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_url` repeats the search that `_after_the_wait` already does, inline.
+    - `tests/test_vm_setup_code_url.py:136-142`: the search for the `if`/`elif` before the code clone is written by hand, beside `vm_support.enclosing_if`.
