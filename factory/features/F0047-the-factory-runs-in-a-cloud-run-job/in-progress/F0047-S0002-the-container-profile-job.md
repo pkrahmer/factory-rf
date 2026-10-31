@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T16:28:49.927822Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-31T16:28:29.727744Z'
   stage: intake
   run: c96d9d8580cb4aefa59a74ba52a8ad8b
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-31T16:28:49.927822Z'
+  stage: tests
 ---
 
 # The container profile job
@@ -113,3 +122,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: the command is runnable and runs no pytest, so the `-q` rule does not apply. The `Expect:` line gives two exact lines to compare with the output.
    - Architecture: the setting and the option words are in the domain, `PodmanRuns` is in the adapters, and the profile is wired in the entry layer, so the layering holds.
    - Scope: the story is within F0047's scope item "FACTORY_CONTAINER_PROFILE=job" and touches nothing in "Out of scope". Its decisions 3 to 5 are the ones the story states.
+7. factory: started tests as vm.
