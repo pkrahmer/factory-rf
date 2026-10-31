@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T20:28:29.980686Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -357,6 +353,12 @@ journal:
   kind: started
   at: '2026-10-31T20:28:29.980686Z'
   stage: doing
+- number: 63
+  speaker: coder
+  kind: result
+  at: '2026-10-31T20:29:49.884868Z'
+  stage: doing
+  run: 43a2303af8b84746a872d3f13cd27dee
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1008,3 +1010,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: ERROR tests/entry/test_refresh_token.py - Failed: tests/entry/test_refresh_token.py::test_the_loop_keeps_the_file_after_a_failure_and_retries_after_a_minute: in "parametrize" the number of names (1):
 62. factory: started doing as vm.
+63. coder: Round 1. I changed no code in this run. The test change for the tester, in one sentence: in `tests/entry/test_refresh_token.py`, the `token-error` row of `test_the_loop_keeps_the_file_after_a_failure_and_retries_after_a_minute`'s `failure` parametrize must wrap its two values in one tuple, `(TokenError("no route"), "refresh_token: token request failed: no route")`, as the `any-other-error` row already does.
+
+    Why: entry 61's last lint change made `failure` one tuple-valued parameter, but the `token-error` row still passes its two values separately. So pytest stops collecting the whole module, and `make test` is red: `in "parametrize" the number of names (1): ['failure'] must be equal to the number of values (2): (TokenError('token request failed: no route'), 'refresh_token: token request failed: no route')`. It is a slip in the change the human ordered in entry 52, not a new rule, so I end with `tests` and not `question`.
+
+    Verified, without touching the test: I ran a copy of the module with only that row wrapped, from a `mktemp` folder, and all 22 tests passed against the committed code. `tests/adapters/test_oauth_token.py`, `tests/application/test_tokens.py`, `tests/domain/test_tokens.py` and `tests/test_hosting_search.py` pass as they stand. I did not run the full `make check`, because it stays red until the row is fixed.
+
+    What is built, unchanged since entry 59: `src/factory/domain/tokens.py` (with `masked`), `src/factory/domain/errors.py` (`TokenError`), `src/factory/application/tokens.py`, `src/factory/adapters/oauth_token.py` (`isdecimal`, `http.client.HTTPException`, `_error_body`), `src/factory/entry/refresh_token.py` (`_Refreshes`) and `src/factory/entry/wiring.py`. Main choice: the same as entry 56. The entry masks messages with its own secret and the last token it received. I rejected reaching into the source's issued tokens, because that would break the `TokenSource` interface.
+
+    Noticed, not touched:
+    - The Interface and criteria 4, 7 and 9 still lack the rules and rows from entry 52. The work item is outside my write paths.
+    - `masked` has no test of its own.
+    - vulture's `OpenUrl.__call__` finding is the false positive that entry 14 accepts.
