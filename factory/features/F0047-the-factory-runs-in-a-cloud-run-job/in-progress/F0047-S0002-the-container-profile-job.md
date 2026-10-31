@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T16:43:54.331400Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-31T16:43:54.331400Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-31T16:44:11.789134Z'
+  stage: doing
+  run: 3878a76eb3c04d4f825ac28a2ecba99e
 ---
 
 # The container profile job
@@ -200,3 +202,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Refactor: I read my diff and there is nothing to change. Noticed and not touched: the module docstring of `podman_runs.py` and the class docstring said "rootless". I reworded them to cover both profiles.
 11. 2026-10-31 human: Answer to question 10: (a). The tester gives the queries test an existing workspace (a `job_runs` fixture on `tmp_path`, or `tmp_path` in that one test); the rows that start no process keep `WORKSPACE`. The queries keep the workspace as their working directory, as in `rootless`; no earlier test changes.
 12. factory: started doing as vm.
+13. coder: The human's answer in entry 11 (option a) needs a change to a test. That is the tester's job, so this round goes to the tester. I changed no code this round.
+
+    The test to change: in `tests/adapters/test_podman_runs_job_profile.py`, `test_a_job_runner_s_queries_carry_the_global_options` must build its job runner on an existing workspace, either `tmp_path` in that one test or a `job_runs` fixture on `tmp_path`. The tests that start no process keep `WORKSPACE = Path("/srv/factory/vm/work")`. No earlier test file changes.
+
+    Why: `version` and `image_exists` run podman with the workspace as their working directory, as the rootless profile does. `tests/adapters/test_podman_runs_results.py` requires that. With the workspace missing, all 5 rows of the test fail with `FileNotFoundError` before podman starts.
+
+    The code from the previous run is already in the commit (`git diff main --stat -- src`):
+    - `src/factory/domain/settings.py`: `CONTAINER_PROFILE_VARIABLE`, `InstanceSettings.container_profile` and its reader.
+    - `src/factory/domain/containers.py`: `JOB_PODMAN_OPTIONS`.
+    - `src/factory/adapters/podman_runs.py`: `PodmanRuns(..., profile=)`. The global options come right after the executable in `launch`, `version` and `image_exists`. The rootless profile adds `--userns=keep-id`; the job profile adds `--http-proxy=false --network=host` instead.
+    - `src/factory/entry/wiring.py`: `_container_adapters` passes the setting's profile to `PodmanRuns`.
+
+    Main choice, unchanged: the profile picks the global options and those words once, in `__init__`. I rejected a separate subclass for the job profile, because it would copy `launch`.
+
+    Once the tester has changed the test, the next coder round runs `make check` and hands on to review if it is green.
+
+    The journal did not change what the task means, so `## Description` stays as it is.
