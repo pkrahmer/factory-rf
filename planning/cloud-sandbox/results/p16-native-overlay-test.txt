@@ -1,0 +1,81 @@
+== creating probe-native-overlay (docker.io/library/debian:trixie-slim, 8 cpu, 32Gi, gen2)
+== execution probe-native-overlay-gszvh
+== final state: [	1		2026-10-31T17:20:43.119357Z] (running, succeeded, failed, completion)
+Execution completed successfully in 6m59.46s.
+##### 0: the job
+cpus 9
+MemTotal: 32094 MiB  MemAvailable: 31153 MiB  Shmem: 335 MiB  
+model name	: Intel(R) Xeon(R) CPU @ 2.00GHz
+##### 1: upstream runc 1.5.2, as in P15
+/tmp/runc.amd64: OK
+##### 2: podman storage on a tmpfs, the native kernel overlay (no fuse-overlayfs)
+tmpfs mount exit 0
+$ podman --runtime=runc --cgroup-manager=cgroupfs --storage-driver=overlay --root /srv/cstore/root --runroot /srv/cstore/run info --format 'runtime {{.Host.OCIRuntime.Path}}, storage {{.Store.GraphDriverName}} at {{.Store.GraphRoot}}, native diff {{index .Store.GraphStatus "Native Overlay Diff"}}, backing {{index .Store.GraphStatus "Backing Filesystem"}}'
+runtime /usr/local/bin/runc, storage overlay at /srv/cstore/root, native diff true, backing tmpfs
+[exit 0]
+$ podman --runtime=runc --cgroup-manager=cgroupfs --storage-driver=overlay --root /srv/cstore/root --runroot /srv/cstore/run info 2>&1 | grep -i -E 'mount_program|fuse' | head -3; echo '(no line above: no mount program)'
+(no line above: no mount program)
+[exit 0]
+##### 3: the stage image, as in P15
+clone exit 0 after 3 s, at a79d8fd15
+build exit 0 after 107 s
+##### 4: make sync and make test in containers of the image, P15's words except the storage
+make sync exit 0 after 13 s
+ + zipp==4.1.1
+sync: green (13.0 s)
+$ echo "cpu.stat before:"; cat /sys/fs/cgroup/cpu/cpu.stat; cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us /sys/fs/cgroup/cpu/cpu.cfs_period_us
+cpu.stat before:
+nr_periods 1565
+nr_throttled 14
+throttled_time 1478323339
+nr_bursts 0
+burst_time 0
+789000
+100000
+[exit 0]
+make test exit 0 after 182 s
+$ echo "cpu.stat after:"; cat /sys/fs/cgroup/cpu/cpu.stat
+cpu.stat after:
+nr_periods 3364
+nr_throttled 470
+throttled_time 36077735951
+nr_bursts 0
+burst_time 0
+[exit 0]
+--- the watch, summarised:
+samples 37, average cpu 70.1%, peak 88.1%, samples below 80% cpu: 14, most workers seen 0, peak mem 5388 MiB
+--- first 8 samples:
+t=5s cpu=36.5% load=0.95 workers=0 busy=10 mem=4297 MiB
+t=10s cpu=88.1% load=1.60 workers=0 busy=10 mem=4553 MiB
+t=15s cpu=87.9% load=2.19 workers=0 busy=9 mem=4625 MiB
+t=20s cpu=88.1% load=2.73 workers=0 busy=9 mem=4693 MiB
+t=25s cpu=88.0% load=3.24 workers=0 busy=9 mem=4752 MiB
+t=30s cpu=88.1% load=3.70 workers=0 busy=9 mem=4843 MiB
+t=35s cpu=76.1% load=3.88 workers=0 busy=9 mem=5013 MiB
+t=40s cpu=87.4% load=4.53 workers=0 busy=9 mem=5028 MiB
+--- every 10th sample:
+t=50s cpu=80.7% load=5.07 workers=0 busy=9 mem=5055 MiB
+t=100s cpu=78.9% load=6.59 workers=0 busy=9 mem=5141 MiB
+t=150s cpu=79.2% load=7.48 workers=0 busy=8 mem=5335 MiB
+--- last 8 samples:
+t=150s cpu=79.2% load=7.48 workers=0 busy=8 mem=5335 MiB
+t=155s cpu=70.3% load=7.12 workers=0 busy=8 mem=5355 MiB
+t=160s cpu=64.7% load=6.87 workers=0 busy=8 mem=5377 MiB
+t=165s cpu=17.9% load=6.48 workers=0 busy=8 mem=5386 MiB
+t=170s cpu=0.2% load=5.96 workers=0 busy=8 mem=5388 MiB
+t=175s cpu=1.5% load=5.49 workers=0 busy=8 mem=5368 MiB
+t=180s cpu=24.5% load=5.13 workers=0 busy=0 mem=4034 MiB
+t=185s cpu=0.9% load=4.72 workers=0 busy=0 mem=3873 MiB
+--- the test target's last lines:
+-------------------------------------------------------------------------------------------
+TOTAL                                            9323     24   1870     24    99%
+121 files skipped due to complete coverage.
+Required test coverage of 90.0% reached. Total coverage: 99.57%
+test: green (180.9 s)
+--- failed tests and their E lines (first 40 lines):
+50 python starts in one container: 1 s
+MemTotal: 32094 MiB  MemAvailable: 27792 MiB  Shmem: 3721 MiB  
+total 313 s
+VERDICT: compare make test's time with P15's 601 s (fuse-overlayfs) and the VM's 167 s on 4 CPUs. If it is close to the VM's per CPU, S0002's storage words should change to a tmpfs root with the native overlay. If it is still near 600 s, fuse-overlayfs is not the cause, and the job's CPUs or the memory limit are next.
+PROBE DONE
+Container called exit(0).

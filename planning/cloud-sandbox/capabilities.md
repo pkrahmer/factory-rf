@@ -308,3 +308,26 @@ The probe now ran the check's seven targets with `make -k`, printed what `detect
 - **Copy snapshots on the synced tree** (1015 MB, 19039 files): copy 2 s, reset 3 s, `diff -r --no-dereference` 1 s and exit 0 (no dangling-link errors this time), `rsync` of an unchanged tree under 1 s.
 - **Image and memory.** The image is 2,371,193,788 bytes; the tree and the image together held 4.7 GiB of the 32 at the end.
 - **Verdict.** Against the probe's VERDICT line the checks run in the job, as root: every target is green, `secrets` included; the one thing the job changes is the time (`test` alone takes about ten minutes here), which the pipeline definition's 8-minute `time_limit` for `check` does not allow.
+
+## P16: the test suite with the native overlay on a tmpfs (2026-10-31)
+
+Probe `p16-native-overlay-test.sh` (with a CPU watch added at work), result `results/p16-native-overlay-test.txt`. One job of 8 vCPU and 32 GiB (9 CPUs seen, an Intel Xeon at 2.0 GHz), 6 min 59 s in all. The only change against P15's second run is podman's storage: a 24 GiB tmpfs for its graph and run roots with the native kernel overlay and no mount program; everything else (runc 1.5.2, the factory's words, root with every capability dropped, a fresh clone of the public factory-rf) is as before.
+
+| Item | Result |
+|---|---|
+| tmpfs mount | exit 0 |
+| `podman info` | storage driver `overlay` at `/srv/cstore/root`, **native diff true**, backing filesystem `tmpfs`, runtime runc 1.5.2, **no mount program** (no line mentions `fuse`) |
+| Image build | exit 0 in **107 s** (199 s with fuse-overlayfs in P15) |
+| `make sync` | exit 0 in 13 s (8 s with fuse-overlayfs) |
+| `make test` | **exit 0 in 182 s**, `test: green (180.9 s)` (601 s with fuse-overlayfs: **3.3 times faster**; the VM's figure is 167 s on 4 CPUs) |
+| Coverage, as the target prints it | `TOTAL 9323 24 1870 24 99%`, `Required test coverage of 90.0% reached. Total coverage: 99.57%` |
+| Failed tests | none (no `FAILED`, `ERROR` or `E` line) |
+| 50 Python starts in one container | 1 s |
+| Memory | MemAvailable 31153 MiB at the start, 27792 MiB at the end (of 32094); the job's cgroup peaked at 5388 MiB during the test |
+
+- **Pytest's own summary line is still not in the log.** The Makefile runs pytest quietly; the last lines of the target are the coverage table and the target's green line. The number of tests is not known from this run.
+- **The watch (every 5 s, the job's whole `/proc/stat`).** 37 samples: average CPU use **70.1 %**, peak 88.1 %. For the first 160 s it stayed at 76 to 88 % of the 9 visible CPUs, that is 7 to 8 CPUs: the job's quota is 7.89 CPUs (`cfs_quota_us` 789000 over a period of 100000), so the suite **used up the job's CPU quota** while it ran. The cgroup's counters agree: **456 of 1799 scheduling periods (25 %) were throttled, 34.6 s of throttled time**. The last 20 s (from 165 s) are nearly idle (0 to 25 %): the end of the run (the coverage report and its combine step) is one process.
+- **Workers.** The sampler's worker count printed 0 because it searched the process arguments for `execnet`, which is not in them; its other column, the number of processes using more than 20 % CPU, was 8 to 10 for the whole run. So about the number of CPUs of worker processes were busy; the exact `-n auto` count was not read.
+- **Is the suite CPU-bound or still storage-bound?** With the native overlay it is CPU-bound against the quota: 80 to 88 % use and a quarter of the periods throttled. More CPUs (the job asks for at most 8) would shorten it further, but the quota is 7.89 whatever the job's CPU count shows.
+- **Against the pipeline definition.** 182 s is below the 8-minute `time_limit` of `check`; the other check targets (about 135 s together with `secrets`, as in P15) add to it, so `make check` would take about 5 minutes in this setup, inside the limit.
+- **Verdict against the probe's VERDICT line.** The time is close to the VM's per CPU (182 s on 7.9 CPUs against 167 s on 4), far from 600 s: fuse-overlayfs was the cause, and S0002's storage words should change to a tmpfs root with the native overlay (a mount of a tmpfs for podman's root, the `overlay` driver without a mount program), at the price of holding the image layers in memory (the job's cgroup stayed under 5.4 GiB here).
