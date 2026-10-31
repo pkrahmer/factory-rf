@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T16:28:10.241569Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-31T16:28:10.241569Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-31T16:28:29.727744Z'
+  stage: intake
+  run: c96d9d8580cb4aefa59a74ba52a8ad8b
 ---
 
 # The container profile job
@@ -58,7 +60,6 @@ journal:
 
 - `rootless`: every word as today.
 - `job`: `launch` gives `<executable> <JOB_PODMAN_OPTIONS...> run --rm --http-proxy=false --network=host --timeout <seconds> --cap-drop=all --security-opt=no-new-privileges --pids-limit=<PIDS_LIMIT> --memory=<MEMORY_LIMIT> <--env words> <--volume words> --workdir <dir> <image> <command...>`: no `--userns=keep-id`, the global options before `run`, the other words in today's order. `version` runs `<executable> <JOB_PODMAN_OPTIONS...> --version` and `image_exists` runs `<executable> <JOB_PODMAN_OPTIONS...> image exists <image>`. Mounts, the grace, the mapping of results and the `ValueError` rules are those of `rootless`.
-- The profile is fixed at construction and changes nothing else.
 
 `factory.entry.wiring` (entry): `_container_adapters` gives `PodmanRuns` the setting's profile.
 
@@ -73,8 +74,9 @@ Tests (the tester writes them): `tests/domain/test_settings_container_profile.py
 5. `version` of a `job` runner runs the executable, the four options and `--version`, and `image_exists` runs the executable, the four options, `image`, `exists` and the image name; their results and faults are those of `rootless` (exit 0 and 1, any other outcome a `ContainerError`).
 6. `run` of a `job` runner reads the end as `rootless` does: exit status 255 at or after the limit is `timed_out`, 255 before it is the command's own, 125 is podman's own fault.
 7. `build_boundaries` with the setting `job` gives a `PodmanRuns` whose launch has the four global options; with the setting unset, none.
-8. `make check` stays green.
-9. docs: `docs/operator-guide.md`: the variable in the configuration table and a subsection *The job profile*: what each word is for, with the measured facts (crun and Podman 6 refuse the hybrid cgroups, rootless is impossible under `NoNewPrivs`, no bridge reaches outside), and that the container runs as the job's root with every capability dropped. `docs/project-guide/stage-environment.md`: *The podman adapter* gains the profile and its words. `docs/decisions.md`: an entry *A root container profile for a managed sandbox*, from the feature's decisions 3 to 5. `README.md`: none.
+8. A `job` launch with no command words, and one with a mount whose target is `/work` or `/work/x`, are each refused with `ValueError`, as `rootless` does (rows of one test).
+9. `make check` stays green.
+10. docs: `docs/operator-guide.md`: the variable in the configuration table and a subsection *The job profile*: what each word is for, with the measured facts (crun and Podman 6 refuse the hybrid cgroups, rootless is impossible under `NoNewPrivs`, no bridge reaches outside), and that the container runs as the job's root with every capability dropped. `docs/project-guide/stage-environment.md`: *The podman adapter* gains the profile and its words. `docs/decisions.md`: an entry *A root container profile for a managed sandbox*, from the feature's decisions 3 to 5. `README.md`: none.
 
 ## Smoke test
 
@@ -105,3 +107,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. (a): delete the sentence; criterion 1 covers the default.
    3. Nothing to change.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answer from journal entry 4 carried into the story (their edit, not mine): I deleted the Interface sentence "The profile is fixed at construction and changes nothing else" (answer 2a), and I added a new criterion 8 before the two closing ones: a `job` launch with no command words, and one with a mount targeting `/work` or `/work/x`, are each refused with `ValueError`, as `rootless` does, rows of one test (answer 1a). `make check` is now criterion 9 and docs is criterion 10. The Description did not change.
+   - Interface: it names concrete modules and signatures: `domain.settings` (`CONTAINER_PROFILE_VARIABLE`, `InstanceSettings.container_profile`), `domain.containers.JOB_PODMAN_OPTIONS`, `adapters.podman_runs.PodmanRuns(..., profile=)` and `entry.wiring._container_adapters`. Every stated behaviour has a criterion. These are the settings values, the job word order, `version` and `image_exists`, the `ValueError` rules, and the wiring.
+   - Criteria: each one is testable by one test function. The rules have both sides. The setting accepts unset, blank and `job` (criterion 2) and refuses `Job`, `root` and `job now` (criterion 2). The job profile has no `--userns=keep-id` or `--user` (criterion 4). `ValueError` is covered in criterion 8. Exit status 255 at or after the limit versus before it, and 125, are in criterion 6. The wiring is covered both with the setting `job` and with it unset (criterion 7).
+   - Smoke test: the command is runnable and runs no pytest, so the `-q` rule does not apply. The `Expect:` line gives two exact lines to compare with the output.
+   - Architecture: the setting and the option words are in the domain, `PodmanRuns` is in the adapters, and the profile is wired in the entry layer, so the layering holds.
+   - Scope: the story is within F0047's scope item "FACTORY_CONTAINER_PROFILE=job" and touches nothing in "Out of scope". Its decisions 3 to 5 are the ones the story states.
