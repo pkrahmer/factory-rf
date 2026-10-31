@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T23:05:28.514966Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-31T23:05:28.514966Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-31T23:05:45.234065Z'
+  stage: doing
+  run: f565e34fc2fa47189e321409d2d357e3
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -291,3 +293,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     - tests/entry/test_run.py: under the human's leave in journal entry 8. Only the `recording_of` stand-in's signature changed, widened to take `request_stop`, which it passes on to `original_of`. The test keeps its name and checks the same thing.
 17. factory: started doing as vm.
+18. coder: Coder, round 1: I changed no code. The reviewer's one finding (entry 16) is the new criterion 8, and it needs only its test. That test does not exist yet: `tests/entry/test_run_idle_exit.py` has no call to `run_until_stopped`.
+
+    For the tester: criterion 8 needs a test in `tests/entry/test_run_idle_exit.py`. The test calls `run_until_stopped(settings, stop, hosting=hosting)` itself, not through a stand-in runner, with minutes 1 and `exit`, and reuses the module's `on_the_manual_clock` fixture and `_scripted` idle ticks. It checks that the call returns after the tick that ends the one-minute idle stretch, that `stop` is set by the idle shutdown, and that no scripted tick runs after it.
+
+    Nothing under src/ needs to change: `run_until_stopped` already passes `request_stop=event.set` (`src/factory/entry/run.py:96-98`, committed in bb2ef5948). The code is unchanged since entry 14, where the coder's `make check` was green. I did not run `make check` this round.
+
+    What I built (unchanged from entry 14): `src/factory/domain/settings.py`, `src/factory/adapters/power_off.py` (`ProcessExit`), `src/factory/entry/wiring.py` (`idle_shutdown_of` with `request_stop`, through `_idle_power`), and `src/factory/entry/run.py`.
+
+    Main choice (unchanged): the action is chosen in the entry wiring, with `ProcessExit` as one more implementation of the existing `PowerOff` interface. I rejected a separate stop interface in `factory.application`.
+
+    Refactor: none this round, because there is no new code.
+
+    Journal: the reviewer added criterion 8 to `## Acceptance criteria`. The meaning of the task is unchanged, so I left `## Description` as it is.
+
+    Noticed, not touched: the idle shutdown's log line still says `powering the machine off` with `exit`. The Description requires that line to stay as it is.
