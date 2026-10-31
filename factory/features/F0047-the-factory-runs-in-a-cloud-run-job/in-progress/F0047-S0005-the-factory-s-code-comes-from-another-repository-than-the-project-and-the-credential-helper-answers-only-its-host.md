@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 486
-comments_read: [6549192607]
+comments_read: [6549192607, 6549244772]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 251e102226974720ad3af7f2ddb8ee99
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-31T21:16:57.853392Z'
+  stage: tests
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -160,3 +165,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - criterion 10: `tests/test_vm_credential_helper_host.py::test_the_url_s_case_user_and_port_do_not_change_its_host`
 
    A single run of that file showed the refused rows failing for the right reason (the helper still answers). `make test` has not been run yet: I will run it once the setup tests are written. `make lint` is green. Every module the new tests use imports.
+9. 2026-10-31 human: Answer to question 8: (A). The two parts that come after the secrets wait (criterion 5's equal-or-absent side with the askpass, and criterion 8's `factory.env`) are tested from the script's text, as `tests/test_vm_setup_text.py` already does for the steps after the wait; every part a run can reach stays a run. No change to `setup.sh` for testing, and no namespaces.
