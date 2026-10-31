@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T20:01:54.406239Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -273,6 +269,12 @@ journal:
   kind: started
   at: '2026-10-31T20:01:54.406239Z'
   stage: doing
+- number: 48
+  speaker: coder
+  kind: result
+  at: '2026-10-31T20:05:33.278356Z'
+  stage: doing
+  run: 4e8ed0bf2e154d389fc543265d4309ab
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -770,3 +772,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/entry/test_run.py`: changed under the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
     - `tests/test_hosting_search.py`: changed under the human's leave, journal entry 14, answer 1. Only `factory.adapters.oauth_token` may import `urllib.request` (`ALLOWED`). The earlier rows keep their ids and still expect no importer, and the new row `urllib.request-in-a-second-module` shows that a second importer is caught. The test keeps its name, and the change stays within the leave.
 47. factory: started doing as vm.
+48. coder: Round 2. The reviewer's one finding (entry 34) is the new criterion 10. It needs only its test, and that test is already in the branch, so I changed no code and am not sending the work item to the tester. The test is the `not-utf-8` row (`b"\xff\xfe"`) of `tests/entry/test_refresh_token.py::test_an_unreadable_or_blank_secret_file_exits_2`. `git log -S'not-utf-8'` shows it came in with commit 358793b72, a tests stage of this work item. It passes against the round-2 code in `src/factory/entry/refresh_token.py` (`_secret` reads the file through `read_input`, and `UnreadableInput` becomes `cannot read <path>`). `make check` passed: `check: green`, `test: green (165.1 s)`, total coverage 99%.
+
+    **What is built** (unchanged from entry 32, already in the branch):
+    - `src/factory/domain/tokens.py`
+    - `src/factory/domain/errors.py` (`TokenError`)
+    - `src/factory/application/tokens.py`
+    - `src/factory/adapters/oauth_token.py`
+    - `src/factory/entry/refresh_token.py`
+    - `src/factory/entry/wiring.py` (`client_credentials_source`, `build_token_refresher`)
+
+    **Main choice:** I ended with `review`, not `tests`. The test the finding asks for exists and pins the behaviour, so another tests stage would change nothing. The adapters are still built only in `factory.entry.wiring`. Importing them directly in `refresh_token.py` was the alternative, and `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` forbids it.
+
+    **Refactor:** no new diff in this round, so nothing to change.
+
+    **What the journal changed:** the reviewer added criterion 10 and corrected the Description's sentence on the refresh interval themselves. I have nothing more to rewrite.
+
+    **Noticed, not touched:**
+    - The test row was already committed before the reviewer asked for it, but no tester entry in the journal names it. The reviewer may want to confirm the mapping: criterion 10 → `test_an_unreadable_or_blank_secret_file_exits_2[not-utf-8]`.
+    - The reviewer's test notes from entry 30 are left to the tester: `HIDDEN` and `ISSUED` are defined in two test modules, and the two `--once` tests could be rows of one test.
+    - vulture still reports `OpenUrl.__call__` as unused. Entry 14 puts it in the duplicates baseline at approval.
+
+    `check`: check: green
+
+    `check`: check: green (not run again: passed on tree 6e68cb2f2c5e at 2026-10-31T19:56:42Z)
+    `duplicates`: duplicates: 1 new, 41 known, 0 gone
