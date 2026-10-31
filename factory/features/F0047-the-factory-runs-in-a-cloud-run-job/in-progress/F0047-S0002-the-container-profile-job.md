@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 482
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T16:25:00.029241Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-31T16:25:00.029241Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-31T16:25:34.096735Z'
+  stage: intake
+  run: 679415d43d2e4748bc9bb2efd57907a8
+  blocked: question
 ---
 
 # The container profile job
@@ -79,3 +82,6 @@ Expect: two lines, `['podman', '--runtime=runc', '--cgroup-manager=cgroupfs', '-
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-31 human: created.
 2. factory: started intake as vm.
+3. intake: 1. The Interface says that for `job` "the `ValueError` rules are those of `rootless`". Those rules are: a launch with no command words, and a mount whose target is `/work` or under it, are both refused with `ValueError`. No criterion tests either on a `job` runner. Without one, a coder could put the profile branch before the validation and every listed test would still pass. Options: (a) add a criterion "a `job` launch with no command words, or with a mount targeting `/work` or `/work/x`, is refused with `ValueError`, as `rootless` does", with the rows in one test; (b) drop the clause from the Interface. I would choose (a).
+   2. The Interface says "The profile is fixed at construction and changes nothing else". It is not a testable behaviour, and no criterion covers it. Options: (a) delete the sentence; (b) replace it with a concrete rule that has a criterion, for example "a `rootless` runner built beside a `job` runner keeps its own words". I would choose (a), because criterion 1 already covers the default.
+   3. Criterion 9 (docs) is an ordinary docs criterion and needs no change. The rest of the story is fine. The format check passed. The Interface names concrete modules and signatures. The smoke test runs no pytest, so the `-q` rule does not apply. The `Expect:` line is checkable against the output. The story is inside the feature's scope and the layering is correct: the domain holds the setting and the words, the adapter holds `PodmanRuns`, and the wiring is in entry.
