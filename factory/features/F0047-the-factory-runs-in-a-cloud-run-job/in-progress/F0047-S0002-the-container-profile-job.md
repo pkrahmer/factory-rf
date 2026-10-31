@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T16:44:32.030338Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-10-31T16:44:11.789134Z'
   stage: doing
   run: 3878a76eb3c04d4f825ac28a2ecba99e
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-31T16:44:32.030338Z'
+  stage: tests
 ---
 
 # The container profile job
@@ -219,3 +228,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Once the tester has changed the test, the next coder round runs `make check` and hands on to review if it is green.
 
     The journal did not change what the task means, so `## Description` stays as it is.
+14. factory: started tests as vm.
