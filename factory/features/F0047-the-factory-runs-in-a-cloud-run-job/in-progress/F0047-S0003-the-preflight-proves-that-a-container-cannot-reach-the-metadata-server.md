@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T17:44:04.568982Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-31T17:44:04.568982Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-31T17:54:14.691292Z'
+  stage: tests
+  run: a07d9adb7337478aa59a2b3d7284674b
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -241,3 +243,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
 15. factory: started tests as vm.
+16. tester: Round 1. I made the test changes the coder's entry 14 handed on from review findings 2 to 4, under the standing leave to move a shared test helper (CLAUDE.md, *Tests*). Every earlier test keeps its name and checks the same thing. No criterion changed, so the mapping is the one in entry 8.
+
+    - criterion 1: tests/entry/test_wiring_metadata_block.py::test_the_metadata_block_item_runs_after_the_stage_image_with_the_job_profile_alone, rows `default` and `rootless`.
+    - criterion 2: the same test, row `job`, and tests/entry/test_wiring_metadata_block.py::test_the_metadata_probe_runs_its_command_alone_for_30_seconds_in_work.
+    - criterion 3: tests/application/test_preflight_metadata_block.py::test_the_metadata_block_item_passes_only_when_the_probe_could_not_connect
+    - criterion 4: tests/application/test_preflight_metadata_block.py::test_a_probe_that_cannot_run_fails_the_metadata_block_item
+    - criterion 5: tests/application/test_preflight_metadata_block.py::test_a_failed_metadata_block_item_stops_the_machine
+
+    Finding 2, the `environment` fixture and `_settings`:
+    - The three copies of the fixture are now one fixture in `tests/conftest.py`. It is named `run_environment` because `tests/conftest.py` already has a different fixture called `environment`.
+    - `_settings` is now `profile_settings` in `tests/wiring_support.py`.
+    - The three modules now use the shared fixture, and the metadata-block and container-extras modules use `profile_settings`. Their local copies are gone.
+
+    Finding 3, `run_words` and `after_image`:
+    - The probe test now uses `after_image`.
+    - It does not use `run_words`. That helper only finds a call whose first word is `run`, and under the `job` profile podman puts its global options before `run`. With `run_words` the test failed with `ValueError: not enough values to unpack (expected 1, got 0)`.
+    - So the test still picks the call that holds `run`, with a comment saying why. I did not change `run_words`: four earlier tests use it, and widening it goes beyond moving a helper.
+
+    Finding 4, `_value_of` and `_after`: both are gone. They are replaced by `value_after` in the new `tests/command_words_support.py`, which both the probe test and `tests/adapters/test_claude_runtime_container.py` now use.
+
+    Files:
+    - Created: `tests/command_words_support.py`.
+    - Earlier test files changed under the standing leave: `tests/conftest.py`, `tests/wiring_support.py`, `tests/entry/test_wiring_container_extras.py`, `tests/entry/test_wiring_copy_snapshots.py`, `tests/adapters/test_claude_runtime_container.py`.
+    - Also changed: this story's own `tests/entry/test_wiring_metadata_block.py`.
+
+    Every module imported; none failed to import. `make test` is green, and so are `make lint` and `make types`.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (163.6 s)

@@ -11,7 +11,7 @@ from factory.domain.preflight import PreflightItem
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import machine_extras
 from podman_support import IMAGE, Podman, PodmanPlan, write_podman
-from zfs_support import DATASET, Answer, write_zfs
+from zfs_support import DATASET, Answer, Zfs, write_zfs
 
 CREDENTIAL = "example-value"
 ENVIRONMENT = {"PATH": "/opt/scripts:/usr/bin:/bin", "HOME": "/home/factory"}
@@ -91,3 +91,25 @@ def run_words(podman: Podman) -> list[str]:
 def after_image(words: list[str]) -> list[str]:
     """The words of a `podman run` call that follow the image: the container's command."""
     return words[words.index(IMAGE) + 1 :]
+
+
+def profile_settings(
+    tmp_path: Path, agent_home: Path, podman: Podman, zfs: Zfs, fields: dict[str, object]
+) -> InstanceSettings:
+    """Container settings on the stand-in `podman` and `zfs`, with `fields` on top."""
+    workspace = tmp_path / "workspace"
+    workspace.mkdir(exist_ok=True)
+    return InstanceSettings.model_validate(
+        {
+            "repository_url": "/srv/project.git",
+            "instance": "factory-1",
+            "state_directory": tmp_path / "state",
+            "agent_home": agent_home,
+            "workspace": workspace,
+            "dataset": DATASET,
+            "stage_image": IMAGE,
+            "podman_executable": str(podman.path),
+            "zfs_executable": str(zfs.path),
+            **fields,
+        }
+    )
