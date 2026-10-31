@@ -1302,3 +1302,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 16:24 UTC: archived (a95415797); vm rebuilt at a95415797 (src only, no setup.sh); F0047-S0002 (the container profile job) started.
 - 16:27 UTC: F0047-S0002 intake asked (#482, question 3): added the ValueError rows for job (a), deleted the untestable sentence (a).
 - 16:29 UTC: the human chose baseline entries for main's red secrets: seven findings (commit ids in F0023-A0001:84, F0023-A0002:99 four times, F0042-A0002:62 and :68) recorded in .secrets.baseline as is_secret false, generated on the VM with detect-secrets 1.5.0; the hook over every tracked file of main exits 0 with it.
+- 16:34 UTC: S0006 changed on main by the human's decision 17: the stage image's seven Debian packages lose their exact versions (base image digest and uv, Claude Code, opencode stay pinned); the stage-image test allows those seven only; docs criterion names the changed rule.
