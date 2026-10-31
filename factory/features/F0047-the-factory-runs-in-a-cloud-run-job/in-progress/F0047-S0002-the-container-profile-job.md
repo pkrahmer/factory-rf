@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T16:57:38.450128Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-10-31T16:57:38.450128Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T16:58:36.446026Z'
+  stage: review
+  run: 6a227d976290456f8ab1063bf2195300
 ---
 
 # The container profile job
@@ -283,3 +285,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 0 gone
 18. factory: started review as vm.
+19. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'` (4 files under `src/`, 3 new test files). Groups 1 to 3 pass. Group 1: every criterion from 1 to 8 has a test named after it that checks what it says. Criterion 2's rows are unset, empty, blank, `job`, `Job`, `root` and `job now`. Criterion 3 checks the exact argv, the limit plus the grace, and `env is None`. Criterion 5 covers exit 0, exit 1 and the faults of both queries. Criterion 6 covers 255 at, after and before the limit, and 125. Criterion 7 checks the wiring with the setting unset and with `job`. Criterion 8 refuses no command, `/work` and `/work/x`. Entry 17 records `check: green`. Group 2: the layers hold. The adapter imports only `factory.domain` names, and the wiring stays in `factory.entry`. Group 3: no secret, no string-built command and no new silencing marker. The `# noqa: PT011` follows the precedent at `tests/adapters/test_podman_runs.py:134`. Group 4 fails:
+
+    1. `tests/adapters/test_podman_runs_job_profile.py:32-36`: the `recorder` fixture is a word-for-word copy of the `recorder` fixture at `tests/adapters/test_podman_runs_results.py:31-35`, which also monkeypatches `podman_runs.run_process` with a `Recorder`. Fix: under the standing leave, the tester moves it to `tests/conftest.py` once. It needs a name of its own, for example `podman_recorder`, because `tests/conftest.py:377` already has a `recorder` for `claude_runtime`. Both modules then use that fixture, and every earlier test keeps its name and its checks.
+    2. `src/factory/domain/settings.py` `_container_profile` (added after `_snapshots`): it copies `_snapshots` (same file, just above it) line for line, with only the variable, the tuple of names and the default changed. `_agent_runtime` is a third copy of the same loop, with a different fault text. Fix: the coder writes one generic private reader for a setting that must be one of a tuple of names, for example `_one_of(environ, variable, names, fault) -> T`, where the first name is the default for unset or blank. `_snapshots` and `_container_profile` both use it, and `_agent_runtime` too if it passes its own fault.
+
+    Earlier tests: no test file that `main` already holds was changed, renamed or deleted (`git diff --name-status`: every test file has status `A`), so no leave was needed.
