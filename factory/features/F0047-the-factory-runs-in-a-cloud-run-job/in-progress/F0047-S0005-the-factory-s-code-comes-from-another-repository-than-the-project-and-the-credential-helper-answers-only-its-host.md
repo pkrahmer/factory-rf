@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T21:47:08.310829Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-10-31T21:47:08.310829Z'
   stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T21:49:29.537047Z'
+  stage: review
+  run: ba12a4d175d8469f83296ad9817a45d5
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -168,8 +170,9 @@ Tests (the tester writes them): `tests/test_vm_credential_helper_host.py` (the h
 8. `factory.env` made by a run with a different `--code-url` holds `FACTORY_REPOSITORY_URL` with the project's url and no line with the code url.
 9. `setup.sh --help` and the usage text name `--code-url`.
 10. The URL rows of the helper, each against the request `host=git.example.invalid`: `FACTORY_REPOSITORY_URL=https://GIT.EXAMPLE.INVALID/o/r.git` (upper case), `https://user@git.example.invalid:8443/o/r.git` (user and port together) and `https://git.example.invalid:8443/o/r.git` (a port only) get the two lines; `https://user@other.example.invalid/o/r.git` gets no output and exit status 1.
-11. `make check` stays green.
-12. docs: `docs/operator-guide.md`: the option in the script's table; the paragraph *In v1.2 one repository URL serves both ...* is rewritten (one url by default, two with `--code-url`); a subsection *The code and the project apart*: what the project must bring (`factory/pipeline.yml`, `factory/story-form.md`, `factory/feature-form.md`, optional `factory/agents/`, a `Makefile` with `check`, `lint`, `test` and `sync`), that the stage image comes from the code checkout's `vm/Dockerfile`, that an update of the code is a new ref and a rebuild, and the helper's host rule. `docs/project-guide/git-and-hosting.md`: the helper. `docs/decisions.md`: an entry *The code and the project apart*, from the feature's decision 9. `README.md`: none.
+11. `setup.sh --code-url <u>` with `<u>` different from `--repository-url`, when `GIT_ASKPASS` is set in the environment that `runuser` hands on to the clone: the stand-in `git`'s `clone` call still carries no `GIT_ASKPASS`.
+12. `make check` stays green.
+13. docs: `docs/operator-guide.md`: the option in the script's table; the paragraph *In v1.2 one repository URL serves both ...* is rewritten (one url by default, two with `--code-url`); a subsection *The code and the project apart*: what the project must bring (`factory/pipeline.yml`, `factory/story-form.md`, `factory/feature-form.md`, optional `factory/agents/`, a `Makefile` with `check`, `lint`, `test` and `sync`), that the stage image comes from the code checkout's `vm/Dockerfile`, that an update of the code is a new ref and a rebuild, and the helper's host rule. `docs/project-guide/git-and-hosting.md`: the helper. `docs/decisions.md`: an entry *The code and the project apart*, from the feature's decision 9. `README.md`: none.
 
 ## Smoke test
 
@@ -353,3 +356,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 1 gone
 21. factory: started review as vm.
+22. reviewer: Findings:
+
+    1. criterion 11 added: it needs its test. Location: `tests/test_vm_setup_code_url.py:149` (`test_only_a_different_code_url_is_cloned_without_the_askpass`, the `different` row) together with `tests/vm_support.py:83`. Problem: `run_setup` starts the script with only `PATH` in its environment, so `GIT_ASKPASS` never reaches the clone in any test. Deleting `env -u GIT_ASKPASS` from `vm/setup.sh:350` would leave every test green, which means the Interface's "without `GIT_ASKPASS`" rule has no test for its failing side. Fix: the tester adds a test for the new criterion 11. For example, the stand-in `runuser` exports a `GIT_ASKPASS` before its `exec`, the way the real `runuser` passes root's environment on, and the test asserts that the code clone still carries no `GIT_ASKPASS`. The old closing criteria are renumbered 12 (`make check`) and 13 (`docs:`).
+    2. Location: `vm/setup.sh:344-355` against `vm/setup.sh:394-400` and `vm/setup.sh:436-441`. Problem: with a different `--code-url`, the clone sets `cloned=yes` on the first pass, and that pass then ends at the secrets wait. The second pass, the one with the token, therefore runs with `cloned=no`, even though the checkout is a fresh clone the service has never run. So an older `/usr/local/bin/git-credential-factory` or `factory@.service` is not replaced; the script only prints its "differs from the checkout" warning. That older helper is exactly the one without the new host rule. The clone is also never reported as `cloned $ref into $checkout`. The Interface says "Everything else (... the unit) is unchanged", and the coder (entries 13, 16, 20) and the tester (entry 18) both flagged this without asking. Fix: make a checkout cloned by the first pass count as fresh on the second pass, and report its clone. The Interface does not settle how, so the coder asks the human (R8) for the mechanism and for a criterion that pins it.
+    3. Location: `tests/test_vm_credential_helper_host.py:9-25`. Problem: this file holds second copies of `ROOT`, `HELPER`, `EXAMPLE_VALUE` and the `token` fixture from `tests/test_git_credential_helper.py:12-25`, and of `SYSTEM_PATH` from `tests/vm_support.py:10`. Fix: the tester imports `SYSTEM_PATH` from `tests/vm_support.py`, and under the standing leave moves the `token` fixture to `tests/conftest.py` and the helper constants to a support module under `tests/`. Both files then use them from there, with every earlier test keeping its name and what it checks.
+
+    Checked and fine:
+    - Criteria 1 to 10 each have a test that matches its text.
+    - The text tests for criterion 5's after-the-wait side and for criterion 8 follow the human's answer (A) in entry 9.
+    - The helper's host parsing in `vm/git-credential-factory` matches the Interface's three URL forms and its request-host rule. A request without a `host=` line is refused.
+    - The journal's entry 20 records `check: green`.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` shows both test files as `A`, and no test file that `main` already holds is changed.
