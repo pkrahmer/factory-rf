@@ -214,9 +214,21 @@ schema has `tools`, `tool_choice`, `parallel_tool_calls`, `stream`, `stream_opti
 | Plain, tool-call and streamed completions | yes | 200 on all three; the stream ends with `[DONE]` and carries a final `usage` chunk (`stream_options.include_usage`). | P10 B1 to B3 |
 | Pinned opencode 1.19.3 from npm through the proxy in a `node:22-slim` container | yes | 9 to 15 s to install; prints 1.19.3. | P10 |
 | The factory's opencode run: provider block, `--format json --auto --agent`, tools, result block | **yes** | Exit 0 in 15 s; 5 steps, 4 tool calls (`write`, `bash` x3), the file was created in the bind-mounted checkout, one session id, no error events, and the final text ended with a `<factory-result>` block that the factory's strict pattern accepts (`decision: doing`). Tokens 5614 in, 530 out, 21465 cache read. | P10 C2 |
-| Cost as opencode reports it | **0.0** | The provider block had no prices, so opencode reported 0 for every step: the factory's budget stop would never fire. The API's `/models_metadata` has `pricing`; the provider file's `cost` fields must be filled from it. | P10 C2 |
+| Cost as opencode reports it | **depends on the provider block's prices** | Without `cost` in the provider block opencode reports 0 (P10). With the catalogue's prices (dollars per million tokens, `pricing.per_1M_input_tokens` and `per_1M_output_tokens`) it reports a cost per step: a one-step task cost 0.00009 dollars and a four-step task with a test run 0.0005 dollars on the smallest Claude model, so the factory's budget stop works. | P10 C2, P13 |
 | Metadata block rule | yes | Applied from a file; after it the metadata endpoint is unreachable from the job (000). | P10 |
 | The token's one-hour life | design point | A long-running factory must fetch a new token before it expires and rewrite what holds it (opencode reads the key from `{env:...}` once per process, so a run lasts at most one token life unless the process is restarted with a fresh one). Not tested beyond one run. | spec, P10 |
+
+### 11a. The model catalogue and a second run (P13)
+
+`results/p13-claude-catalogue-and-cost.txt`.
+
+| Question | Verdict | Detail | Evidence |
+|---|---|---|---|
+| Which models are hosted on-prem (free for the organisation)? | not the Claude ones | `hosted_on_prem` is true for deepseek, qwen, glm, a 27B model family and embedding/speech models; **false for every Claude model** (haiku, sonnet, opus in two generations). | P13 |
+| Claude family in the catalogue | five models | Context 1,000,000 tokens, max output 128,000, reasoning levels `minimal` to `max`. Prices in dollars per million tokens (input / output): haiku 0.1 / 0.5, sonnet 2 / 10, opus 4 to 5 / 20 to 25; above 100k input tokens the price rises (haiku 0.5 / 2.5). Rate limit tiers `Basic`, `Advanced`, `VIP`, 100 requests per 60 s on Basic. | P13 |
+| Catalogue field names | note | `pricing.per_1M_input_tokens`, `pricing.per_1M_output_tokens`, `pricing.per_1M_input_tokens_above_100k`; `rate_limit` by tier; `context_window`; `max_output_tokens`. A reader that expects other names reads price 0 without error. | P13 (the first run read 0) |
+| Two tasks on the smallest Claude model | works, with a caveat | Both ran to exit 0 with tool calls (write, write, bash x2). **The strict result block parsed in one task and not in the other**: the model wrote `entry: <text>` on one line, but the parser requires `entry:` alone on its line, so the factory would end that run as `no_result` (a stall). The longer task parsed. | P13 |
+| The python test the agent was to run | environment | The `node:22-slim` image has no `python3`; the agent reported that it could not run the test and asked (`decision: question`). The factory's stage image has the project's tools. | P13 |
 
 ## 12. Podman overlay volumes (`-v SRC:DST:O`)
 

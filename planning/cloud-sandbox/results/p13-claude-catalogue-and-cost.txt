@@ -1,0 +1,114 @@
+== creating probe-claude-onprem (docker.io/library/debian:trixie-slim, 4 cpu, 8Gi, gen2)
+== execution probe-claude-onprem-bsh6g
+== final state: [	1		2026-10-31T14:02:21.295713Z] (running, succeeded, failed, completion)
+Execution completed successfully in 3m23.66s.
+##### inputs (presence only)
+LLM_KEY set: yes, length 40
+base url set: yes
+no_proxy for this job: <corp-host>
+##### T: obtain a bearer token (client-credentials grant) if a token endpoint was given
+token endpoint status: 200
+token_type=Bearer expires_in=3599 access_token_length=1274
+using the fetched token as the bearer key from here on
+##### metadata block (same rule as P2b), proven from the job
+$ nft -f /tmp/probe.nft
+[exit 0]
+$ curl -sS -m 5 -o /dev/null -w "metadata after block: %{http_code}
+" -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id 2>&1 | tail -1
+metadata after block: 000
+[exit 0]
+##### A1: the API host: DNS and TCP, direct (no proxy), and through the proxy
+$ getent hosts <llm-api-host> | head -1
+<corp-ip>      <llm-api-alias> <llm-api-host>
+[exit 0]
+$ curl -sS -m 10 -o /dev/null -w 'no key, direct: %{http_code}
+' https://<llm-api-host>/<llm-path>/api/v1/models 2>&1 | tail -1
+no key, direct: 401
+[exit 0]
+$ curl -sS -m 10 -x http://<proxy-host>:83 -o /dev/null -w 'no key, via proxy: %{http_code}
+' https://<llm-api-host>/<llm-path>/api/v1/models 2>&1 | tail -1
+no key, via proxy: 401
+[exit 0]
+##### A2: list models with the key (status and ids only; the body is not printed)
+GET /models: 200
+<model ids: 35 models of several vendor families>
+model count: 35
+GET /models_metadata: 200; keys of the first entry: aliases,batch_enabled,context_window,created,description,hosted_on_prem,id,max_output_tokens,object,owned_by,pricing,rate_limit,reasoning_levels,responses_api_supported_tools,scheduled_for_deprecation,secret_data_compliant,supports_audio_input,supports_image_input,supports_video_input,token_limit,type,valid_args
+##### M: the catalogue as the factory needs it: claude-family models, where they are hosted, what they cost
+claude-haiku-5-5	false	1000000	128000	{"per_1M_input_tokens":0.1,"per_1M_output_tokens":0.5,"per_1M_input_tokens_above_100k":0.5,"per_1M_output_tokens_above_100k":2.5}	["minimal","low","medium","high","xhigh","max"]	{"Basic":{"max_requests":100,"window":60},"Advanced":{"max_r
+claude-sonnet-5	false	1000000	128000	{"per_1M_input_tokens":2.0,"per_1M_output_tokens":10.0}	["minimal","low","medium","high","xhigh","max"]	{"Basic":{"max_requests":100,"window":60},"Advanced":{"max_r
+claude-sonnet-5-5	false	1000000	128000	{"per_1M_input_tokens":2.0,"per_1M_output_tokens":10.0}	["minimal","low","medium","high","xhigh","max"]	{"Basic":{"max_requests":100,"window":60},"Advanced":{"max_r
+claude-opus-5	false	1000000	128000	{"per_1M_input_tokens":5.0,"per_1M_output_tokens":25.0}	["minimal","low","medium","high","xhigh","max"]	{"Basic":{"max_requests":100,"window":60},"Advanced":{"max_r
+claude-opus-5-5	false	1000000	128000	{"per_1M_input_tokens":4.0,"per_1M_output_tokens":20.0}	["minimal","low","medium","high","xhigh","max"]	{"Basic":{"max_requests":100,"window":60},"Advanced":{"max_r
+--- other on-prem models (ids only): deepseekv41-flash qwen38-27b-fp8 glm-5-3 glm-5-3-flash muse-spark-open-816b bge_small bge_large whisper-large kev-27b clef-27b 
+chosen model: claude-haiku-5-5
+limits for the provider block: context 1000000 output 128000; price input 0.1 output 0.5 (as read; the unit is whatever the catalogue uses)
+##### B1: raw chat completion, no tools (status, finish reason, usage keys)
+status 200
+##### B2: raw chat completion WITH a tool definition (does the model call it?)
+status 200
+##### B3: streamed completion with usage (events, [DONE], usage chunk)
+status 200; data lines: 5; done marker: 1; usage chunk: 1
+data: {"id": "claude-haiku-5-51793455225", "object": "chat.completion.chunk", "created": 1793455225, "model": "claude-haiku-5-5", "choices": [], "usage": {"completion_tokens": 15, "prompt_tokens": 18, "total_tokens": 33, "prompt_tokens_deta
+##### B4: the same call with a bad key (the error shape the runtime would see)
+status 401: {"Error": "Invalid Token"}
+##### C: the factory's opencode runtime, in a container (pinned opencode, provider block, strict result block)
+node image pull:
+c469fbffcbb0086ddfb92598192d3e09eab25f2d81b9750a00f77f0910fed744
+##### C1: install the pinned opencode through the proxy (npm)
+opencode
+install took 9 s
+$ podman --runtime=runc --storage-driver=vfs --cgroup-manager=cgroupfs --root /tmp/ps --runroot /tmp/pr run --rm --http-proxy=false --network=host --cap-drop=all --security-opt=no-new-privileges --pids-limit=512 --memory=3g -v /tmp/oc:/work -e HOME=/work/home -e LLM_KEY -e OPENCODE_CONFIG=/work/state/opencode.json -e http_proxy=http://<proxy-host>:83 -e https_proxy=http://<proxy-host>:83 -e HTTP_PROXY=http://<proxy-host>:83 -e HTTPS_PROXY=http://<proxy-host>:83 -e no_proxy=localhost,127.0.0.1,<corp-host> -e NO_PROXY=localhost,127.0.0.1,<corp-host> --workdir /work/checkout docker.io/library/node:22-slim sh -c /work/npm/bin/opencode --version
+1.19.3
+[exit 0]
+##### C2: opencode run with the factory's flags: one tiny task, tool use, strict result block
+opencode exit 0 after 6 s; stdout lines 6; stderr lines 0
+--- stderr (first lines, masked)
+--- the file the agent was to create:
+total 4
+drwxrwxrwx 2 root root  60 Oct 31 14:00 .
+drwxrwxrwx 6 root root 120 Oct 31 14:00 ..
+-rw-r--r-- 1 root root   5 Oct 31 14:00 hello.txt
+hello--- events summary (task 1)
+event types: {'step_start': 2, 'tool_use': 1, 'step_finish': 2, 'text': 1}
+steps: 2 cost reported: 8.510000000000001e-05 tokens: {'input': 6, 'output': 169, 'read': 10444, 'write': 0}
+tool calls: [('write', 'completed')]
+last text (first 500 chars): I created `hello.txt` in `/work/checkout` containing exactly the word `hello`, with no trailing newline.\n\n<factory-result>\ndecision: doing\nentry: Created hello.txt in /work/checkout containing exactly the word "hello".\n</factory-result>
+STRICT RESULT BLOCK PARSES: False 
+error events: 0 []
+session ids seen: 1
+##### C2b: a second, longer task: write a small python function and a test, run it, fix if it fails
+opencode exit 0 after 11 s; stdout lines 15
+add.py
+test_add.py
+event types: {'step_start': 4, 'tool_use': 4, 'step_finish': 4, 'text': 2}
+steps: 4 cost reported: 0.0005122 tokens: {'input': 327, 'output': 959, 'read': 21694}
+tool calls: [('write', 'completed'), ('write', 'completed'), ('bash', 'completed'), ('bash', 'completed')]
+last text tail: hen run the test, or you can run `python3 test_add.py` yourself in `/work/checkout`.\n\n<factory-result>\ndecision: question\nentry:\nCreated add.py and test_add.py in /work/checkout, but could not run the test because python3 is not installed; asked whether to install Python and rerun.\n</factory-result>
+STRICT RESULT BLOCK PARSES: True
+##### C3: what did opencode try to reach? (it writes its own log)
+$ find /tmp/oc/home -name "*.log" 2>/dev/null | head -3
+/tmp/oc/home/.npm/_logs/2026-10-31T14_00_34_389Z-debug-0.log
+/tmp/oc/home/.local/share/opencode/log/opencode.log
+[exit 0]
+--- /tmp/oc/home/.npm/_logs/2026-10-31T14_00_34_389Z-debug-0.log
+13 silly fetch manifest opencode-ai@1.19.3
+15 http fetch GET 200 https://registry.npmjs.org/npm 272ms
+16 http fetch GET 200 https://registry.npmjs.org/opencode-ai 911ms (cache miss)
+19 silly fetch manifest opencode-linux-x64@1.19.3
+21 silly fetch manifest opencode-darwin-x64@1.19.3
+23 silly fetch manifest opencode-linux-arm64@1.19.3
+25 silly fetch manifest opencode-windows-x64@1.19.3
+27 silly fetch manifest opencode-darwin-arm64@1.19.3
+29 http fetch GET 200 https://registry.npmjs.org/opencode-linux-x64 635ms (cache miss)
+31 silly fetch manifest opencode-windows-arm64@1.19.3
+33 http fetch GET 200 https://registry.npmjs.org/opencode-darwin-x64 810ms (cache miss)
+35 silly fetch manifest opencode-linux-x64-musl@1.19.3
+37 http fetch GET 200 https://registry.npmjs.org/opencode-linux-arm64 931ms (cache miss)
+39 silly fetch manifest opencode-linux-arm64-musl@1.19.3
+41 http fetch GET 200 https://registry.npmjs.org/opencode-windows-x64 1056ms (cache miss)
+--- /tmp/oc/home/.local/share/opencode/log/opencode.log
+##### C4: opencode run without NO_PROXY for the API host (does the proxy path break the internal API?)
+exit 1 after 75 s; events: 1; first stderr lines:
+PROBE DONE
+Container called exit(0).

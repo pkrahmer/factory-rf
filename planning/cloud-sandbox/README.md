@@ -19,7 +19,7 @@ environment-specific value from environment variables, and the stored results ar
 | `variants.md` | Every plan variant that was tested (Podman, Docker, newer runtimes, engine-free sandboxes, snapshot replacements, the ephemeral disk), its verdict, the flags that work, and what each would mean for the factory's code. |
 | `recommendations.md` | The ranked setups (platform, isolation, snapshots), the per-step design with the ephemeral-disk sharing facts and a probability estimate, and a suggested order of work. |
 | `offline-planning.md` | The numbers to plan with, a decision guide, the list of what was NOT tested, and how to re-run a probe when the platform changes. |
-| `results/` | The raw, sanitised output of every probe run (`p1` to `p12`). Quote these, do not trust summaries over them. |
+| `results/` | The raw, sanitised output of every probe run (`p1` to `p13`). Quote these, do not trust summaries over them. |
 | `probes/` | The scripts: `run_probe.sh` (create a throwaway job, run it once, print its log, delete it), `lib.sh` and one script per question. |
 
 ## The short version

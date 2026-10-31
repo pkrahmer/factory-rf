@@ -86,6 +86,16 @@ API domain in `NO_PROXY` (without it a run hangs for over a minute and fails). P
 runs end to end on option 2 is therefore higher than the earlier 75 % for the agent link; the remaining risks
 are the factory's start-up inside a job, the image/registry question and restarts.
 
+## Model choice and cost (measured on the organisation's catalogue)
+
+No Claude model is on-prem; the free (on-prem) models are other families. Claude prices are small for a factory
+stage (one to four steps cost between 0.0001 and 0.0005 dollars on the smallest, about 20 times that on opus).
+With prices filled in, opencode reports a real cost and the factory's per-run budget works; with an on-prem
+model the price is 0, so the budget never fires and only the time limit bounds a run. The smallest Claude model
+did not always end with the exact result block the factory requires (`entry:` alone on its line): expect
+`no_result` stalls with it; use sonnet or opus for roles where a stall is expensive, and test any other family
+before relying on it. This is a property of the strict parser, decided in v1.1.
+
 ## Caveats for every option
 
 - The factory itself, its test suite and the agent runtimes were never run inside a job; every verdict is about
