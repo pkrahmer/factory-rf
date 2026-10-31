@@ -440,3 +440,12 @@ def holder_file(tmp_path: Path) -> Iterator[Path]:
     if path.exists() and path.read_text(encoding="utf-8"):
         with contextlib.suppress(ProcessLookupError):
             os.kill(int(path.read_text(encoding="utf-8")), signal.SIGKILL)
+
+
+@pytest.fixture
+def restored_signals() -> Iterator[None]:
+    """Put back the handlers of `SIGTERM` and `SIGINT` the test found."""
+    previous = {number: signal.getsignal(number) for number in (signal.SIGTERM, signal.SIGINT)}
+    yield
+    for number, handler in previous.items():
+        signal.signal(number, handler)

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T18:35:05.467890Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-10-31T18:35:05.467890Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-31T18:43:11.621775Z'
+  stage: tests
+  run: 0e8204d4eafb473c9edc6d20588c7bc5
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -205,3 +207,37 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    On your note to the coder: right, the application layer may not import `factory.adapters.atomic_file`. `TokenRefresher` takes the writer as a third constructor argument, `write: Callable[[Path, str], None]`, without a default; `factory.entry.refresh_token` passes `replace_text`. Criterion 5's tests construct it with `replace_text` (a test may import the adapter), so the file behaviour it names (no newline, replace, folder made, an `OSError` of the write becoming `TokenError("cannot write <target>: <error>")`) is tested on the real writer.
 10. factory: started tests as vm.
+11. tester: I wrote the tests from the criteria, using the human's answers in entry 9: `main(argv, environ, *, source=<factory of url, client_id, secret, scope>, sleep=<seconds>)`, and `TokenRefresher(source, target, write)` built with `replace_text`. The loop tests raise the real signal from the fake `sleep`, and criterion 8 checks `os.environ`.
+
+    - criterion 1: tests/domain/test_tokens.py::test_the_wait_is_the_interval_or_half_a_short_life_and_at_least_the_floor (six rows)
+    - criterion 2: tests/domain/test_tokens.py::test_a_token_needs_a_value_without_whitespace_and_a_positive_life (blank, space, newline, 0, -1 refused; 1 accepted)
+    - criterion 3: tests/adapters/test_oauth_token.py::test_a_fetch_posts_the_four_fields_form_encoded_and_returns_the_token (integer and string `expires_in`) and ::test_open_url_receives_the_timeout (default 30.0 and a given 5.0)
+    - criterion 4: tests/adapters/test_oauth_token.py::test_a_failed_fetch_is_a_token_error_without_the_secret_or_the_token (12 rows)
+    - criterion 5: tests/application/test_tokens.py::test_a_refresh_writes_the_token_alone_and_replaces_the_older_one (also creates the folder), ::test_a_failed_fetch_leaves_the_old_file_untouched, ::test_a_write_that_fails_is_a_token_error_naming_the_target
+    - criterion 6: tests/entry/test_refresh_token.py::test_a_missing_or_blank_variable_exits_2_naming_it (5 variables × unset/blank), ::test_an_unreadable_or_blank_secret_file_exits_2, ::test_once_writes_the_token_and_names_its_life_and_the_wait, ::test_once_with_a_failing_source_keeps_the_file_and_exits_1
+    - criterion 7: tests/entry/test_refresh_token.py::test_the_loop_refreshes_after_each_wait_until_a_signal and ::test_the_loop_keeps_the_file_after_a_failure_and_retries_after_a_minute (each with SIGTERM and SIGINT rows)
+    - criterion 8: tests/entry/test_refresh_token.py::test_the_secret_and_the_token_appear_in_no_output_error_or_environment
+
+    **How I read criterion 4's echoed-token row.** In a failure, the only token the source can know is one its body holds or one it handed out earlier. The test covers both: each fault row first fetches `tok-abc` successfully, and the echo row's error body also carries `"access_token": "tok-abc"`. An implementation that masks either one passes, so the test does not pick a reading.
+
+    Files created:
+    - tests/domain/test_tokens.py
+    - tests/application/test_tokens.py
+    - tests/adapters/test_oauth_token.py
+    - tests/entry/test_refresh_token.py
+    - tests/token_support.py: `ScriptedTokenSource(TokenSource)`, `RecordingOpener`, `answer`, `http_error`, `ENDPOINT`
+
+    **Earlier test files I changed, under the standing leave to move a shared test helper:**
+    - tests/entry/test_run.py: I moved its `restored_signals` fixture unchanged to tests/conftest.py and dropped the `Iterator` import it no longer needs. Every test keeps its name and checks the same thing.
+    - tests/conftest.py: now holds that fixture.
+
+    **`make test`, one run:** it fails with collection errors (ImportError) for the four new modules. The modules the test run could not import are `factory.domain.tokens`, `factory.application.tokens`, `factory.adapters.oauth_token` and `factory.entry.refresh_token`, plus `factory.domain.errors.TokenError`. That run started before the last renames below; they change no import, so I did not run it again. `make lint` is green. `make secrets` is green too, but it may not have scanned the new files, because they are not tracked yet.
+
+    **Name choices:** I named the test constants `HIDDEN`, `ISSUED` and `ENDPOINT`, because ruff's S105 flags names like `SECRET` and `TOKEN`.
+
+    **Open, for the coder and intake:**
+    - The Interface still says `TokenRefresher(source, target)` with two arguments, but the human's answer in entry 9 adds `write` as a third, required argument.
+    - The smoke test's Python snippet also constructs it with two arguments, so it will fail as written until the snippet passes `replace_text`.
+
+    `lint`: lint: green (0.2 s)
+    `test`: ERROR tests/entry/test_refresh_token.py - ImportError while importing test module '/work/checkout/tests/entry/test_refresh_token.py'.

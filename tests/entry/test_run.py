@@ -4,7 +4,7 @@ import re
 import signal
 import tempfile
 import threading
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -109,15 +109,6 @@ class RecordingEvent(threading.Event):
         self.timeouts.append(timeout)
         self.set()
         return True
-
-
-@pytest.fixture
-def restored_signals() -> Iterator[None]:
-    """Put back the handlers of `SIGTERM` and `SIGINT` the test found."""
-    previous = {number: signal.getsignal(number) for number in (signal.SIGTERM, signal.SIGINT)}
-    yield
-    for number, handler in previous.items():
-        signal.signal(number, handler)
 
 
 @pytest.fixture
