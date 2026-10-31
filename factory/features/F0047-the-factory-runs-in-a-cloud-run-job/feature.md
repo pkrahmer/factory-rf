@@ -15,6 +15,7 @@ The hand-over note for whoever builds this is `planning/cloud-sandbox/HANDOVER-F
 - The credential helper's host check and `vm/setup.sh --code-url`: the factory's code from one repository, the project from another (S0005).
 - `vm/job-start.sh` and the operator guide's chapter *On Cloud Run*: first boot installs the tools, builds the stage image, blocks the metadata server, starts the refresher and `factory-run` (S0006).
 - The opencode runtime's lockdown with a company provider: `enabled_providers` and three environment switches (S0007).
+- `FACTORY_IDLE_SHUTDOWN_ACTION=exit`: the idle shutdown ends `factory-run` with exit 0 instead of powering the machine off, which ends a job's execution (S0008).
 
 ## Out of scope
 
@@ -35,6 +36,7 @@ The build order; start one at a time, the next when the one before is archived i
 - S0003: The preflight proves that a container cannot reach the metadata server
 - S0004: A refresher keeps a bearer token in the login file
 - S0005: The factory's code comes from another repository than the project, and the credential helper answers only its host
+- S0008: The idle shutdown can end the factory's process instead of powering the machine off (built before S0006, whose script sets it; added on 2026-10-31)
 - S0006: One script turns a bare job into a running instance
 - S0007: The opencode runtime limits what opencode may load and contact when it uses a company provider
 
@@ -61,3 +63,4 @@ None. Checked against `factory/pipeline.yml`: the coder writes `src/*`, `templat
 15. The nightly restart of the job is accepted as it is (the human, 2026-10-31): a restart in the middle of a stage charges one crash to the work item in flight, and after `crash_cap` crashes (two by default) the work item waits for the human's answer, so a story in flight on two nights waits once. S0006's chapter says so. A stop between stages before the restart, like the idle shutdown, is a candidate for later, not a story here (S0006).
 16. The repository split keeps the names of these stories, `--code-url` and `--code-ref` with `FACTORY_CODE_URL` and `FACTORY_CODE_REF` (the human, 2026-10-31); the multi-project plan in `planning/v1.2-candidates.md`, whose step 1 this split is, takes the same names (S0005, S0006).
 17. The stage image's Debian packages follow the base image's release instead of exact versions (the human, 2026-10-31). The job rebuilds the image at every start, and Debian's mirror keeps only a package's current version, so a pinned version breaks the build at the next point release (P15 found today's pins resolving and the build taking 169 s). The base image stays pinned by digest, which fixes the Debian release; `uv`, Claude Code and opencode keep exact versions, because they shape a stage's result and their registries keep every version. A move to a new Debian release stays a deliberate change of the digest. This changes the rule of 2026-10-16 for the operating system's packages, and the VM's image with it (S0006).
+18. The idle shutdown gets a second action, `exit`, for the job (the human, 2026-10-31, for parity with the VM): `systemctl poweroff` cannot work in a job, so without it an idle job is billed until its task timeout. `exit` sets the same stop flag a `SIGTERM` sets, so the loop ends cleanly after the tick in progress and `factory-run` returns 0, which ends the execution; the job's schedule or the operator starts it again, as an operator starts a stopped VM. The default stays `poweroff`; S0006's script sets `exit` where the job gives no value. Waking the job when work arrives is not in this feature (`planning/v1.2-candidates.md`, *One job per repository*) (S0008, S0006).
