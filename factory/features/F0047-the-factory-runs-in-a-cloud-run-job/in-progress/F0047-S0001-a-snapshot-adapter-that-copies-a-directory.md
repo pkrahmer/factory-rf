@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T15:50:34.517996Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-31T15:50:12.327985Z'
   stage: tests
   run: cc0b8bd4ec7143eba3c13eb29f9a7de9
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-31T15:50:34.517996Z'
+  stage: doing
 ---
 
 # A snapshot adapter that copies a directory
@@ -202,3 +211,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/entry/test_wiring_copy_snapshots.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_copy_snapshots.py'.
+9. factory: started doing as vm.
