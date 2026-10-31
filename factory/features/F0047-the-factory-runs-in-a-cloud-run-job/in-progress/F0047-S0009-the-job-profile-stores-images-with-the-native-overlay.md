@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 484
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-31T18:24:21.409125Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-10-31T18:24:00.223378Z'
   stage: docs
   run: 9dc6d3abc3764a519aa62df77de2afba
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:24:21.409125Z'
+  stage: smoke-test
 ---
 
 # The job profile stores images with the native overlay
@@ -199,3 +208,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree be1e273ad3f0 at 2026-10-31T18:19:04Z)
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
