@@ -1,5 +1,6 @@
 """The token source behind an OAuth2 client-credentials grant, over the standard library."""
 
+import http.client
 import json
 import urllib.error
 import urllib.parse
@@ -9,9 +10,8 @@ from typing import Protocol
 
 from factory.application.tokens import TokenSource
 from factory.domain.errors import TokenError
-from factory.domain.tokens import Token
+from factory.domain.tokens import Token, masked
 
-_MASK = "***"
 _DESCRIPTION_LIMIT = 200
 _NO_ACCESS = "the answer holds no access_token"
 _NO_EXPIRY = "the answer holds no expires_in"
@@ -64,6 +64,9 @@ class ClientCredentialsTokenSource(TokenSource):
             raise self._error(str(error.reason)) from None
         except OSError as error:
             raise self._error(str(error)) from None
+        except http.client.HTTPException as error:
+            # Neither an OSError nor wrapped by urlopen: a cut body or a malformed status line.
+            raise self._error(str(error) or type(error).__name__) from None
         token = self._token_of(body)
         self._issued = token.value
         return token
@@ -95,14 +98,7 @@ class ClientCredentialsTokenSource(TokenSource):
     def _error(self, detail: str) -> TokenError:
         # A server may echo what it was sent or gave out; neither may reach a log line.
         # Only the last token is kept, so a long-running refresher holds no growing list.
-        return TokenError(_masked(detail, [self._client_secret, self._issued]))
-
-
-def _masked(detail: str, hidden: list[str]) -> str:
-    for value in hidden:
-        if value:
-            detail = detail.replace(value, _MASK)
-    return detail
+        return TokenError(masked(detail, [self._client_secret, self._issued]))
 
 
 def _json_object(body: bytes) -> dict[str, object]:
@@ -118,7 +114,7 @@ def _json_object(body: bytes) -> dict[str, object]:
 def _positive_seconds(value: object) -> int | None:
     if isinstance(value, bool):
         return None
-    if isinstance(value, str) and value.strip().isdigit():
+    if isinstance(value, str) and value.strip().isdecimal():
         value = int(value)
     if isinstance(value, int) and value > 0:
         return value
@@ -126,7 +122,7 @@ def _positive_seconds(value: object) -> int | None:
 
 
 def _http_detail(error: urllib.error.HTTPError) -> str:
-    answer = _json_object(error.read())
+    answer = _json_object(_error_body(error))
     parts = [f"HTTP {error.code}"]
     kind = answer.get("error")
     if isinstance(kind, str) and kind:
@@ -135,4 +131,11 @@ def _http_detail(error: urllib.error.HTTPError) -> str:
     if isinstance(description, str) and description.strip():
         parts.append(description.splitlines()[0][:_DESCRIPTION_LIMIT])
     echoed = answer.get("access_token")
-    return _masked(": ".join(parts), [echoed] if isinstance(echoed, str) else [])
+    return masked(": ".join(parts), [echoed] if isinstance(echoed, str) else [])
+
+
+def _error_body(error: urllib.error.HTTPError) -> bytes:
+    try:
+        return error.read()
+    except (OSError, http.client.HTTPException):
+        return b""

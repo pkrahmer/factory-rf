@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T20:10:28.656207Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -318,6 +314,13 @@ journal:
   kind: started
   at: '2026-10-31T20:10:28.656207Z'
   stage: doing
+- number: 56
+  speaker: coder
+  kind: question
+  at: '2026-10-31T20:18:25.231033Z'
+  stage: doing
+  run: d57e5c0ddfa24b2788af1eaef2cad954
+  blocked: question
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -896,3 +899,34 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/entry/test_run.py`: the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
     - `tests/test_hosting_search.py`: the human's leave in journal entry 14, answer 1. Only `factory.adapters.oauth_token` may import `urllib.request` (`ALLOWED`). The earlier rows keep their ids and still expect no importer, and the new row `urllib.request-in-a-second-module` shows that a second importer is caught. The test keeps its name, and the change stays within the leave.
 55. factory: started doing as vm.
+56. coder: Round 1, answering entry 54 (and entries 50 and 52) by number. The code for all three findings is in the working tree, but `make check` is red on one earlier test, so I am asking before going on.
+
+    **What I built**
+    - `src/factory/adapters/oauth_token.py`. This covers findings 1 and 2.
+      - `_positive_seconds` uses `isdecimal()`.
+      - `fetch` also catches `http.client.HTTPException`, as `self._error(str(error) or type(error).__name__)`.
+      - A new `_error_body` gives `_http_detail` an empty body when `error.read()` raises `OSError` or `HTTPException`, so the detail is `HTTP <code>`.
+    - `src/factory/entry/refresh_token.py`. This covers finding 3.
+      - A small class `_Refreshes` replaces the function `_refresh`. It holds the secret and the last token it was given.
+      - A `TokenError` and any other `Exception` both print and return `None`, so the loop keeps the old file and waits `RETRY_INTERVAL`, and `--once` exits 1. Any other exception prints as `refresh_token: <type>: <message>`, masked. `KeyboardInterrupt` and `SystemExit` are not `Exception` subclasses, so they are not caught.
+    - `src/factory/domain/tokens.py`: a new `masked(message, hidden)`, moved out of the adapter as `_masked` was. The entry needs it too, and `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` refuses an entry module that imports an adapter.
+    - The work item: the Interface (the `HTTPException` and unreadable-body rules, `isdecimal`, and the entry's rule for any other `Exception`) and criteria 4, 7 and 9 now hold entry 52's rules and rows.
+
+    **Main choice:** the entry masks with its own secret and the last token it received. I rejected reaching into the source for its `_issued` value: that would break the `TokenSource` interface.
+
+    **Why `make check` is red:** only `tests/test_hosting_search.py::test_no_module_imports_another_route_to_the_hosting_service[http.client]` fails:
+    `E   AssertionError: assert {'factory.ada....oauth_token'} == set()`
+    `FORBIDDEN` lists `http.client`, and `ALLOWED` lets only `oauth_token` import `urllib.request` (the human's leave in entry 14). Entry 52 asks for `except http.client.HTTPException` in `fetch` and `_http_detail`, which needs that import. The test belongs to another story, and the leave in entry 14 names only `urllib.request`.
+
+    **Question:** what should I do about the forbidden `http.client` import?
+    - (a) Extend the leave to `http.client`. `ALLOWED` gets `"http.client": {"factory.adapters.oauth_token"}`, and maybe a matching row showing a second importer is still caught. The coder then ends with `tests` naming that change together with the four new rows: `expires-in-superscript` in criterion 9's test, `IncompleteRead(b"")` and an `HTTPError` whose body raises in criterion 4's test, and `RuntimeError("boom")` between two successes in criterion 7's loop test. That last row needs `ScriptedTokenSource` in `tests/token_support.py` to accept any `Exception`.
+    - (b) Avoid the import: catch `Exception` in `fetch` and `_error_body` instead of `HTTPException`. That is broader than entry 52's words.
+    - (c) Reach the class without an import statement (`urllib.request.http.client`). I would not do this: it gets past the test without keeping its rule.
+
+    I would choose (a). The reason is the same one entry 14 accepted: the refresher's HTTP is the standard library's, and `http.client` is the layer under `urllib.request`.
+
+    **Refactor:** I read the diff once. Nothing else needs changing.
+
+    **Noticed, not touched:** the new `masked` in `factory.domain.tokens` has no test of its own in `tests/domain/test_tokens.py`. It is covered through the adapter and entry tests.
+
+    The factory left out changes outside the write paths: factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0004-a-refresher-keeps-a-bearer-token-in-the-login-file.md.
