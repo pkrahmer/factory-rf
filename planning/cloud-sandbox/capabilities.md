@@ -247,15 +247,20 @@ Probe P11, `results/p11-podman-overlay-volumes.txt`. Podman 5.4.2 + runc, as roo
 | Lower tree on the memory-backed root | yes | Only the upper and work directories need the tmpfs or the disk. | P11 O13 |
 | Opaque directories (a directory deleted and recreated) | untested | The take would have to read `trusted.overlay.opaque`; the probe's list showed none because none were created. | P11 O5 |
 
-## P14: the opencode lockdown (2026-10-31)
+## P14: the opencode lockdown (2026-10-31, second run)
 
-Probe `p14-opencode-lockdown.sh`, result `results/p14-opencode-lockdown.txt`. **The run did not answer the question: the probe has a bug, so opencode never ran.**
+Probe `p14-opencode-lockdown.sh`, result `results/p14-opencode-lockdown.txt` (the first run failed by a bug of the probe and is kept as `results/p14-opencode-lockdown-run1-failed.txt`). Every outbound connection of the container went through a logging proxy on the job's loopback; the model API's host is in `no_proxy` and goes direct, so it is not in the lists by design. opencode 1.19.3 from npm, claude-sonnet-5, the same task in both runs (create `hello.txt`, end with the result block).
 
-- **What happened.** In the probe's function `one_run`, the extra `-e NAME=value` words are placed after the image name in the `podman run` command, so podman treated them as the command to run. The container started `node` with `OPENCODE_CONFIG=...` as an argument and failed with "Unknown regular expression flags" in both run A and run B, and in the three runs of section D. Every run exited 1 after one second with no events and no `hello.txt`.
-- **The two host lists.** (A) without the lockdown: empty. (B) with the lockdown: empty. Section D's three one-switch lines are empty as well. They are empty because opencode never started, so they say nothing about opencode.
-- **Did run B work?** No: exit 1, `hello.txt` missing, `result block parses: False`. That is the probe's fault, not the lockdown's.
-- **Did 1.19.3 accept `enabled_providers`?** Not shown. No line mentions `enabled_providers` except the probe's own search pattern, which counted the node error lines (2 per run) as "complaints".
-- **Which switch changed the host list?** Not shown.
-- **What did work.** The token request returned 200. The logging proxy on the job's loopback passed a self-test and recorded the host (`CONNECT deb.debian.org:443`). The install of `opencode-ai@1.19.3` contacted exactly `deb.debian.org` (the package install, before the proxy) and `registry.npmjs.org`, and the installed binary printed 1.19.3. In this job the metadata-block rule file again failed to load (a one-line chain syntax error in the probe's own heredoc, as in the first run of P10), so the rule was not in force in this probe; it does not affect the host list.
-- **Cost.** No model call was made, so no cost was reported.
-- **Verdict.** None against the probe's own VERDICT line: the probe must be corrected (the `-e` words go before the image name, for example by building the container words with the image last) and run again before S0007 can be judged.
+| | Hosts contacted (connections) | Exit | `hello.txt` | Result block parses |
+|---|---|---|---|---|
+| A, without the lockdown | `registry.npmjs.org` (4), `models.opencode.ai` (1) | 0, 7 s | `hello` | yes |
+| B, with `enabled_providers: ["corp"]` and the three switches | `registry.npmjs.org` (4) | 0, 8 s | `hello` | yes |
+
+- **Did run B still work?** Yes, completely: exit 0, 6 events, the file created, the strict result block parsed.
+- **`enabled_providers`.** opencode 1.19.3 accepted it without a word: the "lines about the configuration" section of run B is empty, and the run behaved as in A.
+- **Which switch changed the host list on its own (section D, each alone, start only).** Only `OPENCODE_DISABLE_MODELS_FETCH=1`: with it the list is `registry.npmjs.org`; with `OPENCODE_DISABLE_AUTOUPDATE=1` alone or `OPENCODE_DISABLE_DEFAULT_PLUGINS=1` alone it is `models.opencode.ai` and `registry.npmjs.org`, the same as run A. So the other two switches changed nothing observable in this task; they are not shown to be wrong, only not shown to matter here (an update check and default plugins may only act in other situations).
+- **The model catalogue host is the vendor's, not `models.dev`.** The fetch of the public model list goes to `models.opencode.ai`, a vendor host. Without the fetch switch every run contacts it once.
+- **What stays in B.** `registry.npmjs.org`, four connections in each run, also with all three switches. I did not read which package: the likely cause is opencode installing the provider's package (`@ai-sdk/openai-compatible`) from npm at the start of a run, which the provider block names; this is an inference, not shown. If it is that, the registry is needed at every start of a run and no switch removes it; a deployment that must not reach npm would have to pre-install the package, which was not tried.
+- **Cost.** The runs reported no cost figure in the saved output (the probe prints none); not measured here.
+- **Verdict against the probe's own VERDICT line.** By its letter S0007 fails (the line says B must list no npm registry), but the one host that is the vendor's, `models.opencode.ai`, is gone in B, the run works, the key is accepted, and the remaining registry traffic is not a vendor host and is not caused by a switch S0007 leaves out; S0007 does what its text says, and the line's "npm registry" condition asks for something the switches cannot give.
+- **Also seen.** The metadata-block rule file loaded this time (exit 0); the token request returned 200.

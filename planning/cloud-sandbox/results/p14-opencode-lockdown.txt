@@ -1,7 +1,7 @@
 == creating probe-opencode-lockdown (docker.io/library/debian:trixie-slim, 4 cpu, 8Gi, gen2)
-== execution probe-opencode-lockdown-c9vmd
-== final state: [	1		2026-10-31T15:10:53.143451Z] (running, succeeded, failed, completion)
-Execution completed successfully in 1m33.51s.
+== execution probe-opencode-lockdown-b8dj5
+== final state: [	1		2026-10-31T15:28:18.259983Z] (running, succeeded, failed, completion)
+Execution completed successfully in 2m6.15s.
 ##### inputs (presence only)
 LLM_KEY set: yes, length 40
 base url set: yes
@@ -11,24 +11,9 @@ token endpoint status: 200
 using the fetched token
 ##### metadata block (P2b's rule)
 $ nft -f /tmp/probe.nft
-/tmp/probe.nft:2:116-116: Error: syntax error, unexpected '}', expecting newline or semicolon
-  chain blockout { type filter hook output priority 0; policy accept; ip daddr 169.254.169.254 tcp dport 80 reject }
-                                                                                                                   ^
-/tmp/probe.nft:3:3-7: Error: syntax error, unexpected chain
-  chain blockfwd { type filter hook forward priority 0; policy accept; ip daddr 169.254.169.254 tcp dport 80 reject }
-  ^^^^^
-/tmp/probe.nft:3:57-69: Error: you cannot set chain policy twice
-  chain blockfwd { type filter hook forward priority 0; policy accept; ip daddr 169.254.169.254 tcp dport 80 reject }
-                                                        ^^^^^^^^^^^^^
-/tmp/probe.nft:3:117-117: Error: syntax error, unexpected '}', expecting newline or semicolon
-  chain blockfwd { type filter hook forward priority 0; policy accept; ip daddr 169.254.169.254 tcp dport 80 reject }
-                                                                                                                    ^
-/tmp/probe.nft:5:1-1: Error: syntax error, unexpected end of file
-}
-^
-[exit 1]
+[exit 0]
 ##### L: a logging proxy on 127.0.0.1:3128 (records the host of every CONNECT and GET, forwards upstream)
-logging proxy pid 3565, upstream: the job's proxy
+logging proxy pid 3564, upstream: the job's proxy
 $ curl -sS -m 10 -x http://127.0.0.1:3128 -o /dev/null -w "self-test through the logging proxy: %{http_code}
 " https://deb.debian.org/ 2>&1 | tail -1
 self-test through the logging proxy: 200
@@ -46,51 +31,43 @@ $ podman --runtime=runc --storage-driver=vfs --cgroup-manager=cgroupfs --root /t
 [exit 0]
 hosts the install contacted: deb.debian.org registry.npmjs.org 
 ##### A: WITHOUT the lockdown (the factory of F0046 today)
-exit 1 after 1 s; events 0; hello.txt: MISSING
+exit 0 after 7 s; events 6; hello.txt: hello
 stderr (first lines, masked):
-[eval]:1
-OPENCODE_CONFIG=/work/state/plain.json
-                ^
-Unknown regular expression flags.
-SyntaxError: Invalid regular expression flags
-config complaints in stderr/events: /tmp/A.err:2 /tmp/A.out:0 
-/tmp/A.err:Unknown regular expression flags.
-/tmp/A.err:SyntaxError: Invalid regular expression flags
-result block parses: False
-HOSTS CONTACTED (A): 
+lines about the configuration (opencode's own words on an unknown key, if any):
+[end of configuration lines]
+result block parses: True
+HOSTS CONTACTED (A): registry.npmjs.org(4) models.opencode.ai(1) 
 note: the API host <llm-api-host> is in no_proxy and goes direct, so it is not in this list by design
 opencode's own log mentions of update/models.dev/plugin:
 13 silly fetch manifest opencode-ai@1.19.3
-15 http fetch GET 200 https://registry.npmjs.org/npm 303ms
-16 http fetch GET 200 https://registry.npmjs.org/opencode-ai 686ms (cache miss)
+15 http fetch GET 200 https://registry.npmjs.org/npm 291ms
+16 http fetch GET 200 https://registry.npmjs.org/opencode-ai 702ms (cache miss)
 19 silly fetch manifest opencode-linux-x64@1.19.3
 21 silly fetch manifest opencode-darwin-x64@1.19.3
 23 silly fetch manifest opencode-linux-arm64@1.19.3
+timestamp=2026-10-31T15:27:31.177Z level=INFO run=b2e979d2 message=created id=ses_e6d6d4896ffeNP0VVxNgH63Qty slug=crisp-wizard version=1.19.3 projectID=global directory=/work/checkout path=work/checko
+timestamp=2026-10-31T15:27:32.368Z level=INFO run=b2e979d2 message="project copy refresh done" projectID=global updated=[] removed=[]
 ##### B: WITH the lockdown of S0007: enabled_providers + the three switches
-exit 1 after 1 s; events 0; hello.txt: MISSING
+exit 0 after 8 s; events 6; hello.txt: hello
 stderr (first lines, masked):
-[eval]:1
-OPENCODE_CONFIG=/work/state/locked.json
-                ^
-Unknown regular expression flags.
-SyntaxError: Invalid regular expression flags
-config complaints in stderr/events: /tmp/B.err:2 /tmp/B.out:0 
-/tmp/B.err:Unknown regular expression flags.
-/tmp/B.err:SyntaxError: Invalid regular expression flags
-result block parses: False
-HOSTS CONTACTED (B): 
+lines about the configuration (opencode's own words on an unknown key, if any):
+[end of configuration lines]
+result block parses: True
+HOSTS CONTACTED (B): registry.npmjs.org(4) 
 note: the API host <llm-api-host> is in no_proxy and goes direct, so it is not in this list by design
 opencode's own log mentions of update/models.dev/plugin:
 13 silly fetch manifest opencode-ai@1.19.3
-15 http fetch GET 200 https://registry.npmjs.org/npm 303ms
-16 http fetch GET 200 https://registry.npmjs.org/opencode-ai 686ms (cache miss)
+15 http fetch GET 200 https://registry.npmjs.org/npm 291ms
+16 http fetch GET 200 https://registry.npmjs.org/opencode-ai 702ms (cache miss)
 19 silly fetch manifest opencode-linux-x64@1.19.3
 21 silly fetch manifest opencode-darwin-x64@1.19.3
 23 silly fetch manifest opencode-linux-arm64@1.19.3
+timestamp=2026-10-31T15:27:40.894Z level=INFO run=07690ae3 message=created id=ses_e6d6d22a2ffeeIsiO7jVGeNdEj slug=nimble-canyon version=1.19.3 projectID=global directory=/work/checkout path=work/check
+timestamp=2026-10-31T15:27:42.452Z level=INFO run=07690ae3 message="project copy refresh done" projectID=global updated=[] removed=[]
 ##### D: the switches one at a time, start only (opencode --version does not start the app; a 20 s run does)
-OPENCODE_DISABLE_MODELS_FETCH=1 alone: 
-OPENCODE_DISABLE_AUTOUPDATE=1 alone: 
-OPENCODE_DISABLE_DEFAULT_PLUGINS=1 alone: 
+OPENCODE_DISABLE_MODELS_FETCH=1 alone: registry.npmjs.org 
+OPENCODE_DISABLE_AUTOUPDATE=1 alone: models.opencode.ai registry.npmjs.org 
+OPENCODE_DISABLE_DEFAULT_PLUGINS=1 alone: models.opencode.ai registry.npmjs.org 
 VERDICT: compare HOSTS CONTACTED (A) with (B). S0007 is right if (B) lists neither models.dev nor an npm registry nor opencode.ai, and the run B ended with a parsing result block and hello.txt. A config complaint about enabled_providers means the key is not known to 1.19.3.
 PROBE DONE
 Container called exit(0).
