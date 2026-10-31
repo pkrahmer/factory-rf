@@ -1,0 +1,9 @@
+== deploying probe-worker-pool (docker.io/library/debian:trixie-slim, 2 cpu, 4Gi, one instance)
+DEPLOY FAILED:
+WARNING: This command is using service account impersonation. All API calls will be executed as [sa-developer@<project-id>.iam.gserviceaccount.com].
+WARNING: This command is using service account impersonation. All API calls will be executed as [sa-developer@<project-id>.iam.gserviceaccount.com].
+WARNING: This command is using service account impersonation. All API calls will be executed as [sa-developer@<project-id>.iam.gserviceaccount.com].
+Deploying container to Cloud Run worker pool [probe-worker-pool] in project [<project-id>] region [us-central1]
+Deploying new worker pool...
+Done.
+ERROR: (gcloud.run.worker-pools.deploy) 403 Access to the subnetwork sb-<network> is not allowed. See https://cloud.google.com/run/docs/configuring/shared-vpc-direct-vpc#iam for details on how to provide required permissions. 7: Access to the subnetwork sb-<network> is not allowed. See https://cloud.google.com/run/docs/configuring/shared-vpc-direct-vpc#iam for details on how to provide required permissions.
