@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T17:40:09.694246Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-31T17:39:49.228456Z'
   stage: review
   run: 62346ef7291c44aca11a76bea9b03fa8
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-31T17:40:09.694246Z'
+  stage: doing
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -200,3 +209,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Group 5 (work item hygiene) was not reached.
 
     Earlier tests: none. Both test files the diff touches are new (`A`), and no test file `main` already holds was changed.
+13. factory: started doing as vm.
