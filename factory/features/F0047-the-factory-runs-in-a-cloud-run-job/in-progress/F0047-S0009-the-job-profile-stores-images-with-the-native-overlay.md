@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 484
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T18:08:47.679066Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-10-31T18:08:47.679066Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-10-31T18:15:23.870079Z'
+  stage: tests
+  run: 6509faa0b6ad489786c1fa3cbe0ca89f
 ---
 
 # The job profile stores images with the native overlay
@@ -86,3 +88,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: the change is a domain constant only. The adapter and the layers stay as `CLAUDE.md` describes.
    Scope: it matches feature.md's scope bullet 'job profile without fuse-overlayfs' and decision 19. S0009 is listed in the Stories. The story changes S0002's tests with the leave it states, and names the two files.
 4. factory: started tests as vm.
+5. tester: Wrote the tests for the three-word job profile. They are red on purpose: `src/factory/domain/containers.py` still holds the fourth word, `--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs`.
+
+   Criterion → test:
+   - criterion 1: the existing rootless tests, which I left unchanged: `tests/adapters/test_podman_runs.py`, `test_podman_runs_fence.py`, `test_podman_runs_results.py`, and `tests/adapters/test_podman_runs_job_profile.py::test_the_default_profile_launches_as_the_rootless_one`.
+   - criterion 2: `tests/domain/test_containers_job_options.py::test_the_job_options_store_images_with_the_native_overlay`
+   - criterion 3: `tests/adapters/test_podman_runs_job_profile.py::test_a_job_launch_puts_the_global_options_first_and_runs_on_the_host_network`, `::test_a_job_runner_s_queries_carry_the_global_options`, `::test_a_job_run_reads_its_end_as_the_rootless_one` (the three words right after the executable, every other word in its place), and the new `::test_a_job_runner_names_no_mount_program` (one row each for launch, version and image-exists; no word may contain `mount_program` or `fuse-overlayfs`).
+   - criterion 4: `tests/test_mount_program_search.py::test_no_source_file_names_the_overlay_mount_program`, with one row per name. It reads every file under `src/` and skips `__pycache__`.
+   - criteria 5 and 6 (`make check`, docs): no test.
+
+   Files:
+   - Created `tests/domain/test_containers_job_options.py` and `tests/test_mount_program_search.py`.
+   - Changed `tests/adapters/test_podman_runs_job_profile.py`, an earlier test of S0002, under this story's own leave:
+     - `JOB_WORDS` now holds the three words.
+     - Added the constant `MOUNT_PROGRAM_WORDS`.
+     - In `test_a_job_run_reads_its_end_as_the_rootless_one`, the slice `argv[1:5]` became `argv[1 : 1 + len(JOB_WORDS)]`.
+     - Added the new test and its three helpers.
+   - Left `tests/entry/test_wiring_container_profile.py` unchanged. It names the options only through `JOB_PODMAN_OPTIONS`, so it follows the constant.
+
+   Run: `make test` fails for the right reason. Before the change the job-profile tests get four words where they expect three, the new no-mount-program rows for launch, version and image-exists find `--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs`, and the constant and source-search tests fail. Every module imported; no collection errors. `make lint` is green.
+
+   I started that one `make test` run without the large timeout, so the shell tool moved it to the background; I waited for its output file and did not run it again. Open: nothing.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/adapters/test_podman_runs_job_profile.py::test_a_job_runner_s_queries_carry_the_global_options[exists-fault] - AssertionError: assert [['--runtime=...exists', ...]] == [['--runtime=......
