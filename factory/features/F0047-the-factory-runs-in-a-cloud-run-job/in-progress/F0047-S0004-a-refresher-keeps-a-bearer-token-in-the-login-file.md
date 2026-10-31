@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 485
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T18:28:13.489362Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-31T18:28:13.489362Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-31T18:28:36.343974Z'
+  stage: intake
+  run: 273dfe6c5cf34a6cbd137820f910b0be
+  blocked: question
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -89,3 +92,18 @@ Expect: two lines, `refresh_token: FACTORY_TOKEN_URL is not set` and `exit 2`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-31 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed, so none from it). The Interface, smoke test, architecture and scope are otherwise fine; these gaps in the criteria are not:
+
+   1. SIGINT: the Interface ends the loop on `SIGTERM` or `SIGINT` (exit 0). Criterion 7 tests only `SIGTERM`. Proposal: add a row for `SIGINT`, with the same two writes and exit 0.
+
+   2. An unreadable secret file: the Interface says exit 2 with `refresh_token: cannot read <path>`. Criterion 6 covers only a blank file, and checks the exit code but not the message. Proposal: add rows for a missing file and for a blank file, each with exit 2 and the exact message on standard error.
+
+   3. HTTPError detail, cases the Interface leaves open:
+      a. A body that is not JSON, or a JSON body with no `error` and no `error_description`. What is the detail? Proposal: `HTTP <code>` alone, with one criterion row for each case.
+      b. "at most 200 characters": does that cut the description line alone, or the whole detail after `HTTP 400: `? Criterion 4 only says "cut at 200". Proposal: it cuts the `error_description` line alone, and the criterion states the expected full string.
+
+   4. Criterion 4 has no row for a plain `OSError` (the Interface names it next to `URLError` and `TimeoutError`). It also tests only the client secret being removed from details, not the token, although the Interface says both become `***`. Proposal: add an `OSError` row and a row where the server's body echoes the token.
+
+   5. Criterion 3 does not check that `open_url` receives `timeout=30.0` by default, or a custom value. The `timeout` parameter is Interface behaviour. Proposal: add a check of the timeout argument in criterion 3.
+
+   6. Criterion 6 says a missing variable exits 2, but the Interface says "missing or blank". Proposal: make each variable's row cover both an unset and a blank value.
