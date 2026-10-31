@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T21:12:33.240933Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-10-31T21:12:33.240933Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-10-31T21:12:50.668024Z'
+  stage: intake
+  run: 86005898b4ff4e35b9630bc8011e192e
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -78,8 +80,9 @@ Tests (the tester writes them): `tests/test_vm_credential_helper_host.py` (the h
 7. With a different `--code-url` and no `hosting-token`, the clone still runs and the script then prints `setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again` and exits 0; without `--code-url` the order and the message are as before.
 8. `factory.env` made by a run with a different `--code-url` holds `FACTORY_REPOSITORY_URL` with the project's url and no line with the code url.
 9. `setup.sh --help` and the usage text name `--code-url`.
-10. `make check` stays green.
-11. docs: `docs/operator-guide.md`: the option in the script's table; the paragraph *In v1.2 one repository URL serves both ...* is rewritten (one url by default, two with `--code-url`); a subsection *The code and the project apart*: what the project must bring (`factory/pipeline.yml`, `factory/story-form.md`, `factory/feature-form.md`, optional `factory/agents/`, a `Makefile` with `check`, `lint`, `test` and `sync`), that the stage image comes from the code checkout's `vm/Dockerfile`, that an update of the code is a new ref and a rebuild, and the helper's host rule. `docs/project-guide/git-and-hosting.md`: the helper. `docs/decisions.md`: an entry *The code and the project apart*, from the feature's decision 9. `README.md`: none.
+10. The URL rows of the helper, each against the request `host=git.example.invalid`: `FACTORY_REPOSITORY_URL=https://GIT.EXAMPLE.INVALID/o/r.git` (upper case), `https://user@git.example.invalid:8443/o/r.git` (user and port together) and `https://git.example.invalid:8443/o/r.git` (a port only) get the two lines; `https://user@other.example.invalid/o/r.git` gets no output and exit status 1.
+11. `make check` stays green.
+12. docs: `docs/operator-guide.md`: the option in the script's table; the paragraph *In v1.2 one repository URL serves both ...* is rewritten (one url by default, two with `--code-url`); a subsection *The code and the project apart*: what the project must bring (`factory/pipeline.yml`, `factory/story-form.md`, `factory/feature-form.md`, optional `factory/agents/`, a `Makefile` with `check`, `lint`, `test` and `sync`), that the stage image comes from the code checkout's `vm/Dockerfile`, that an update of the code is a new ref and a rebuild, and the helper's host rule. `docs/project-guide/git-and-hosting.md`: the helper. `docs/decisions.md`: an entry *The code and the project apart*, from the feature's decision 9. `README.md`: none.
 
 ## Smoke test
 
@@ -114,3 +117,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. Agreed: criterion 7 is enough.
    3. Agreed: no criterion for the unset case; criterion 1 covers it.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: names concrete files (`vm/setup.sh`, `vm/git-credential-factory`), the `--code-url` option with its default, the exact error message and exit codes, and the helper's host rule with the three URL forms. No module under `src/factory/` changes.
+   - Criteria: each is testable by one test function. Every rule has both sides: the helper answers or refuses (2, 10), the clone carries or omits the askpass (5), the clone fails with the message (6), the wait message appears with and without `--code-url` (7). The URL-form clauses (lower case, user, port) are covered by the new criterion 10. I added that criterion from the human's answer in journal entry 4, question 1: three answering rows and one refused row. It sits before the two closing criteria, which are now 11 (`make check`) and 12 (`docs:`). Entry 4's answers 2 and 3 change nothing in the story.
+   - Smoke test: both commands are runnable with `sh` and a temp token file. The `Expect:` lines (two named lines; `exit 1` alone) can be checked against the output. Neither runs pytest.
+   - Architecture: only `vm/` shell scripts change, so no layer is touched. They are within the coder's write paths.
+   - Scope: within feature decision 9 and the scope item for S0005. It does not touch S0006's start script or any "Out of scope" item. It changes no earlier story's test.
