@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 485
-comments_read: [6547461929, 6547499303, 6547757087]
+comments_read: [6547461929, 6547499303, 6547757087, 6548259634]
 handed_over: null
 claim: null
 journal:
@@ -204,6 +204,11 @@ journal:
   stage: review
   run: 6397c081c2704c5c8e1dddc56767146b
   blocked: round_cap
+- number: 36
+  speaker: human
+  kind: comment
+  at: '2026-10-31T19:44:29.583784Z'
+  stage: review
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -611,3 +616,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_oauth_token.py:13-14` and `tests/entry/test_refresh_token.py:17-18`: `HIDDEN` and `ISSUED` are defined in both modules. They belong in `tests/token_support.py`, next to `ENDPOINT`.
     - `tests/entry/test_refresh_token.py:116-145`: the success and the failure side of `--once` are two test functions. They could be two rows of one parametrized test.
 35. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+36. 2026-10-31 human: Go on. Each of the three rounds found something real and the story is converging; what is left is test work.
+
+    For this round, so that it is the last one:
+    1. The tester adds criterion 10's row as the reviewer wrote it: `not-utf-8` in `test_an_unreadable_or_blank_secret_file_exits_2`, a secret file holding `b"\xff\xfe"`, exit 2 and `refresh_token: cannot read <path>` on standard error.
+    2. In the same run, under the standing leave to move a shared test helper: `HIDDEN` and `ISSUED` move from `tests/adapters/test_oauth_token.py` and `tests/entry/test_refresh_token.py` to `tests/token_support.py`, both tests using them from there, every test keeping its name and what it checks.
+    3. The two `--once` tests stay as they are; turning them into rows of one test is not needed for this story.
+
+    No code change is expected; if the coder finds one, it names why.
