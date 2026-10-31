@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-31T18:31:13.667716Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T18:30:56.023993Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:31:13.667716Z'
   stage: intake
 ---
 
@@ -121,3 +130,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    4. Yes: an `OSError` row, and a row where the server's body echoes the token, which is replaced by `***` as the secret is.
    5. Yes: criterion 3 checks that `open_url` receives `timeout=30.0` by default and a custom value when one is given.
    6. Yes: each variable's row covers both an unset and a blank value.
+5. factory: started intake as vm.
