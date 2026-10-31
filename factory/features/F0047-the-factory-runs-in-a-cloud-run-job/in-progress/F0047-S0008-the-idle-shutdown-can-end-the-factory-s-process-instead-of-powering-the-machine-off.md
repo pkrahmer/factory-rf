@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T22:51:37.143297Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-31T22:51:37.143297Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-10-31T22:57:33.487299Z'
+  stage: tests
+  run: f80deaa61f9e4e9aa42acbcbc91d9759
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -216,3 +218,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: nothing else.
 11. factory: started tests as vm.
+12. tester: Tester: I made the test change the human approved in entry 8 and the coder named in entry 10, and nothing else.
+
+    Change, in tests/entry/test_run.py::test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick: the local stand-in `recording_of(given, boundaries)` now takes `(given, boundaries, request_stop: Callable[[], None] | None = None)` and passes `request_stop` on to `original_of`. The test keeps its name and checks the same thing. No other line in the file changed. Why: `run_instance` now calls `idle_shutdown_of(settings, boundaries, request_stop)`, as the Interface says, and the old two-argument stand-in refused that call with a TypeError in both rows.
+
+    Criterion → test: unchanged from entry 5. This round adds or removes no test.
+
+    Files changed: tests/entry/test_run.py (the earlier test file, under the human's leave in entry 8). Files created: none. Modules the test run could not import: none.
+
+    `make test`: test: green (164.7 s), total coverage 99.56 %.
+    `make lint`: lint: green (0.2 s).
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (163.4 s)
