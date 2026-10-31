@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-31T23:20:26.078508Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-10-31T23:20:26.078508Z'
   stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-10-31T23:21:06.726286Z'
+  stage: docs
+  run: b42c61df599947ca9bd79f7d31936e6b
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -419,3 +421,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - tests/entry/test_run_idle_exit.py:55 `instance_settings` copies the `settings` fixture in tests/entry/test_run.py:123. The only differences are that it writes its own token and sets `idle_shutdown_minutes=1`. Moving that fixture to a shared place, under the standing leave, would remove the copy.
 25. factory: started docs as vm.
+26. documenter: Docs, round 1. I wrote the documentation for the new idle-shutdown action `exit` and found nothing that sends the story back to the coder. The code matches the Interface and the criteria. I changed only documents, so I did not run `make check`; the factory's checks follow this stage.
+
+    Files changed:
+    - `docs/operator-guide.md`: a row for `FACTORY_IDLE_SHUTDOWN_ACTION` in the configuration table, after the `FACTORY_IDLE_SHUTDOWN_MINUTES` row. It covers the default, the refused values with the fault `is neither poweroff nor exit`, and that the variable is read even when the idle shutdown is off. A new paragraph *In a job* in *The idle shutdown*, before *The right*. It says that `exit` ends `factory-run` with status 0 after the limit and so ends the job's execution. The schedule or `gcloud run jobs execute` starts it again, a VM keeps `poweroff`, and the log line stays the same.
+    - `docs/project-guide/watching.md` (the guide file that names the idle shutdown): `ProcessExit` beside `SystemctlPowerOff`, the setting, the new `idle_shutdown_of(settings, boundaries, request_stop=None)` with its `ValueError`, and `run_instance` and `run_until_stopped` passing the event's `set`.
+    - `docs/decisions.md`: the entry *In a job the idle shutdown ends the process*, from the feature's decision 18. It gives the decision, the reason, where the choice is made and what was rejected.
+
+    I ran the `ProcessExit` smoke example from the story and it prints `['stop']`.
+
+    Cross-read and found current:
+    - `README.md`: the criterion says none, and nothing in it is stale.
+    - `docs/operator-guide.md`, the other idle-shutdown places: the setup-script option table and the environment-file step are about the VM's `poweroff` and are unchanged. The loop paragraph about idle ticks and pauses still holds.
+    - `docs/project-guide/README.md`: the `PowerOffError` paragraph still holds.
+    - `docs/project-guide/processes-and-checks.md`: the line on `SystemctlPowerOff` still holds. `ProcessExit` starts no process.
+    - `docs/decisions.md`: the F0045-S0008 entry stays true as the `poweroff` default.
+
+    Stale or unrelated text I saw and did not touch: none. The log line still says `powering the machine off` with `exit`. The story's Description requires that, and the operator guide now says so.
+
+    `check`: check: green (not run again: passed on tree bb5344db4737 at 2026-10-31T23:15:54Z)
+    `secrets`: secrets: green (2.3 s)
+    `documents`: documents ok
