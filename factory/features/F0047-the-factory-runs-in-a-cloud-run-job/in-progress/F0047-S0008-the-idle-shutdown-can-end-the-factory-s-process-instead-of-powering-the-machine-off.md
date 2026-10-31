@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T23:12:36.823098Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-31T23:12:16.551436Z'
   stage: tests
   run: e2141de88bb04d91a4b24db43f53b960
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-31T23:12:36.823098Z'
+  stage: doing
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -341,3 +350,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.4 s)
+21. factory: started doing as vm.
