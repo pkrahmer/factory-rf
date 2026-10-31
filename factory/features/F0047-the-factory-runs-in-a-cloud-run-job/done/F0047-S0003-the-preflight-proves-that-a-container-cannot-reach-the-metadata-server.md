@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-10-31T18:03:39.517968Z'
   stage: smoke-test
   run: bf183eaf450746ebbe97825649183a8e
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-10-31T18:06:04.286177Z'
+  stage: approval
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -400,3 +405,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Checked against `## Acceptance criteria`: the output contradicts none of them. It agrees with criterion 3: `000` with exit status 7 passes, and `200` fails with the sentence that names HTTP 200. The smoke test does not cover the other criteria (the wiring for `job` and `rootless`, `ContainerError`, the `Preflight.run` stop path, the docs), and nothing it printed contradicts them.
 
     Findings: none. Nothing was fixed.
+25. factory: done (pull request merged); cost: 11 runs, 25.1 min, 99 turns, 289935 tokens in (2445956 more from cache), 39741 out, $3.25
