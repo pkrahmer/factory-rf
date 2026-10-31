@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T17:31:39.714982Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-10-31T17:31:19.063802Z'
   stage: tests
   run: d0414a3684fb40298df660e9b79fbfd8
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-10-31T17:31:39.714982Z'
+  stage: doing
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -146,3 +155,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/entry/test_wiring_metadata_block.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_metadata_block.py'.
+9. factory: started doing as vm.
