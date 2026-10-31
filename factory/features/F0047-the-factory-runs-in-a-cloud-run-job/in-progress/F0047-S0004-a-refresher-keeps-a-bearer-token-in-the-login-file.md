@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T20:46:21.152802Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -401,6 +397,12 @@ journal:
   kind: started
   at: '2026-10-31T20:46:21.152802Z'
   stage: doing
+- number: 71
+  speaker: coder
+  kind: result
+  at: '2026-10-31T20:47:03.024145Z'
+  stage: doing
+  run: 2b37958c5fc442a78fcbe67e5567000a
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1138,3 +1140,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/entry/test_run.py`: the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
     - `tests/test_hosting_search.py`: the human's leave in entries 14 (answer 1) and 57. `ALLOWED` lets `factory.adapters.oauth_token` alone import `urllib.request` and `http.client`. Every earlier row keeps its id and still expects no importer. The new rows `urllib.request-in-a-second-module` and `http.client-in-a-second-module` show that a second importer is caught. The test keeps its name, and the change stays within the leave.
 70. factory: started doing as vm.
+71. coder: Round 2, answering reviewer entry 69, finding 1. I changed no code: the finding needs only its test, the criterion 6 extension the reviewer wrote into the work item.
+
+    **For the tester:** add a second row to `tests/entry/test_refresh_token.py::test_once_with_a_failing_source_keeps_the_file_and_exits_1` (criterion 6, extended). The source raises `RuntimeError("boom")`, and the test expects `refresh_token: RuntimeError: boom` on standard error, the old file left as it was, and exit 1. It sits beside the existing `TokenError` row, which keeps what it checks. The test keeps its name.
+
+    **Why no code change:** `src/factory/entry/refresh_token.py` already does this. Under `--once`, `main` returns `_FAILED` when `_Refreshes.run()` gives `None`, and `run` returns `None` for any `Exception` after printing it masked. The `--once` path is the same code that the loop's `any-other-error` row (criterion 7) already covers. The working tree was clean before and after this run, and I did not run `make check`, because nothing changed since entry 67's `check: green`.
+
+    **Main choice:** I end with `tests` and leave the row to the tester (R9). I rejected adding any code to pin it, because the behaviour already exists.
+
+    **What the journal changed:** the reviewer's entry 69 brought the Description, the Interface and criteria 4, 6, 7 and 9 up to date with entries 9 and 52. The work item is outside my write paths, so I left it as it is.
+
+    **Noticed, not touched** (the reviewer's notes in entry 69, all test-side):
+    - The `incomplete-read` row computes its expected detail with the same expression as the code.
+    - `masked` in `factory.domain.tokens` has no direct test.
+    - The names `SECOND` and `SECOND_CLIENT` in `tests/test_hosting_search.py` are unclear.
