@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T23:40:25.490997Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-10-31T23:40:25.490997Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-31T23:46:47.847107Z'
+  stage: tests
+  run: d6608963bfc04ce99f9d33540da2f2d7
 ---
 
 # One script turns a bare job into a running instance
@@ -209,3 +211,35 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    For the coder: write the checksum into `vm/job-start.sh` the way the script writes its other constants. If `make secrets` flags that line, do not add a marker or an exclusion: end the stage with `question`, naming the line and the plugin, and the work item waits for the human's decision in the morning (a line filter like the human's `api_key_env` one, a baseline entry, or a marker).
 10. factory: started tests as vm.
+11. tester: The tests from the previous tests round (journal 8) were already committed, and they already follow the human's answer (c) in journal 9. The `defaults` row of the runc test checks that `sha256sum -c` is fed a 64-character lowercase hex value. The `given` row (`RUNC_VERSION=1.4.0`, `RUNC_SHA256="b"*64`) checks the exact feed. There is no `pragma: allowlist secret` and no `.secrets.baseline` entry. I left the test code unchanged. I rewrote one part of criterion 5 in the Description to match the answer: the default checksum is now checked as "a 64-character lowercase hex value, the checksum of the Interface checked by reading (the human, 2026-10-31)".
+
+    I ran `make test` once. The new tests fail for the right reason: `vm/job-start.sh` does not exist yet. The run tests get `sh` exit 2 where they expect 0 or 1, and the text tests raise `FileNotFoundError`. The changed tests in `tests/test_stage_image.py` fail because `vm/Dockerfile` still pins its packages. `make lint` is green. As the stage says, I did not run the type check.
+
+    criterion 1: tests/test_vm_job_start.py::test_a_missing_input_stops_the_script_before_any_call
+    criterion 2: tests/test_vm_job_start.py::test_the_steps_run_in_order_and_factory_run_replaces_the_script
+    criterion 3: tests/test_vm_job_start.py::test_apt_goes_through_the_proxy_only_when_one_is_set
+    criterion 4: tests/test_vm_job_start.py::test_the_packages_are_one_install_by_name_alone
+    criterion 5: tests/test_vm_job_start.py::test_runc_is_downloaded_checked_against_its_checksum_and_installed, tests/test_vm_job_start.py::test_runc_without_a_matching_checksum_stops_the_script
+    criterion 6: tests/test_vm_job_start.py::test_the_metadata_address_is_rejected_on_output_and_forward
+    criterion 7: tests/test_vm_job_start.py::test_the_directories_are_made_and_the_code_is_fetched_at_its_ref_without_a_credential, tests/test_vm_job_start.py::test_a_ref_that_does_not_exist_stops_the_script
+    criterion 8: tests/test_vm_job_start.py::test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options, tests/test_vm_job_start.py::test_a_failed_mount_stops_the_script_before_podman
+    criterion 9: tests/test_vm_job_start.py::test_the_refresher_runs_from_the_factory_environment_when_a_token_url_is_set
+    criterion 10: tests/test_vm_job_start.py::test_factory_run_gets_the_derived_settings_where_the_job_gave_none
+    criterion 11: tests/test_vm_job_start.py::test_the_token_is_never_printed_written_or_passed_on_a_command_line
+    criterion 12: tests/test_stage_image.py::test_the_stage_image_has_no_floating_reference (parametrized), tests/test_stage_image.py::test_each_debian_package_is_installed_by_name_alone
+    criterion 13: tests/test_vm_job_start.py::test_the_proxy_reaches_curl_and_git_under_both_names
+    criterion 14: tests/test_vm_job_start.py::test_the_script_holds_the_job_podman_options_of_the_domain
+    criterion 15: tests/test_vm_job_start.py::test_the_default_root_is_written_once_under_srv_factory
+    criterion 16: tests/test_vm_job_start.py::test_a_failing_step_stops_the_script_before_factory_run
+    criteria 17 and 18: not tests.
+
+    Files created in the tests stage: tests/test_vm_job_start.py. Files changed: tests/vm_support.py, and tests/test_stage_image.py under this story's leave in the Interface (journal 8 has the details). In this round I changed only criterion 5 of the work item.
+
+    Modules the test run could not import: none. The failures come from the missing `vm/job-start.sh` and the still-pinned `vm/Dockerfile`.
+
+    Open, for the coder (journal 9): the checksum is written into `vm/job-start.sh` like the script's other constants. If `make secrets` flags that line, end the stage with `question` and do not add a marker.
+
+    The factory left out changes outside the write paths: factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0006-one-script-turns-a-bare-job-into-a-running-instance.md.
+
+    `lint`: lint: green (0.2 s)
+    `test`: FAILED tests/test_vm_job_start.py::test_a_failing_step_stops_the_script_before_factory_run[apt-get-packages] - AssertionError: assert 2 == 1
