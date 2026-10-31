@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T23:04:18.787389Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-31T23:04:18.787389Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T23:05:08.142441Z'
+  stage: review
+  run: 760c9f1438a4421a883a0332d075fb61
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -124,8 +126,9 @@ Tests (the tester writes them): `tests/domain/test_settings_idle_shutdown_action
 5. The loop: `run_instance`'s scheduler with idle ticks on a manual clock, minutes 1 and `exit`, stops after the tick that ends a one-minute idle stretch; the log holds `idle shutdown: idle for 1 minutes, powering the machine off`; no tick runs after it; a non-idle tick before the limit starts the stretch again, as today.
 6. `main` with a runner that ends through the idle exit returns 0.
 7. With `poweroff` the loop is not stopped by the idle shutdown: a refused power-off logs `the factory runs on` and the next tick runs, as before this story.
-8. `make check` stays green.
-9. docs: `docs/operator-guide.md`: the variable in the configuration table, and in the idle shutdown's section a paragraph *In a job*: `exit` ends `factory-run` with status 0 after the limit, which ends the job's execution; the job's schedule or the operator starts it again; a VM keeps `poweroff`. `docs/project-guide/stage-environment.md` or the guide file that names the idle shutdown: `ProcessExit` beside `SystemctlPowerOff`. `docs/decisions.md`: an entry *In a job the idle shutdown ends the process*, from the feature's decision 18. `README.md`: none.
+8. `run_until_stopped` itself (not a stand-in runner) with minutes 1 and `exit`, scripted idle ticks on a manual clock and its own `stop` event: it returns after the tick that ends the one-minute idle stretch, with `stop` set by the idle shutdown, and no tick runs after it.
+9. `make check` stays green.
+10. docs: `docs/operator-guide.md`: the variable in the configuration table, and in the idle shutdown's section a paragraph *In a job*: `exit` ends `factory-run` with status 0 after the limit, which ends the job's execution; the job's schedule or the operator starts it again; a VM keeps `poweroff`. `docs/project-guide/stage-environment.md` or the guide file that names the idle shutdown: `ProcessExit` beside `SystemctlPowerOff`. `docs/decisions.md`: an entry *In a job the idle shutdown ends the process*, from the feature's decision 18. `README.md`: none.
 
 ## Smoke test
 
@@ -271,3 +274,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 1 gone
 15. factory: started review as vm.
+16. reviewer: Reviewer, round 0. I read the diff against main (src/factory/adapters/power_off.py, src/factory/domain/settings.py, src/factory/entry/run.py, src/factory/entry/wiring.py, the four new test modules and the change to tests/entry/test_run.py) and the work item. Group 1 (acceptance criteria) has a gap, so I stopped there and did not judge groups 2 to 5. I went through every criterion and every rule of the Interface. Criteria 1 to 7 each have a test that checks what the criterion says. Criterion 2 covers both sides of the setting, criterion 4 covers all three branches of the wiring including the ValueError, and criterion 5 tests the limit at 0:59 and at 1:00. The factory's `make check` after the coder was green (entry 14).
+
+    Findings:
+    1. criterion 8 added: it needs its test. The gap is at src/factory/entry/run.py:96-98. The Interface's rule "`run_until_stopped` passes its event's `set`, so the idle shutdown and the signal handlers stop the same loop" is not tested. tests/entry/test_run_idle_exit.py::test_main_returns_zero_after_the_idle_exit_ends_the_loop calls `main` with a stand-in `runner` that calls `run_instance` with its own `request_stop`. The run_until_stopped tests in tests/entry/test_run.py never turn on the idle shutdown with `exit`. So deleting `request_stop=event.set` at line 97 would still pass every test, and in production `exit` would then fail with the ValueError in `idle_shutdown_of`. That call is the wiring that makes the story work in a job. Fix: the tester adds a test in tests/entry/test_run_idle_exit.py that calls `run_until_stopped(settings, stop, hosting=hosting)` with minutes 1 and `exit`. It reuses the module's `on_the_manual_clock` fixture and `_scripted` ticks, and checks that the call returns with `stop` set after the tick that ends the stretch, with no tick after it. No change under src/ is needed. I added this as criterion 8 in `## Acceptance criteria`; the two closing criteria are now 9 and 10.
+
+    Earlier tests:
+    - tests/entry/test_run.py: under the human's leave in journal entry 8. Only the `recording_of` stand-in's signature changed, widened to take `request_stop`, which it passes on to `original_of`. The test keeps its name and checks the same thing.
