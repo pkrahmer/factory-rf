@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T15:41:32.139328Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-31T15:41:32.139328Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-31T15:50:12.327985Z'
+  stage: tests
+  run: cc0b8bd4ec7143eba3c13eb29f9a7de9
 ---
 
 # A snapshot adapter that copies a directory
@@ -160,3 +162,43 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: settings in domain, the adapter in adapters, the item in application, the wiring in entry. Layers are respected, no new dependency.
    - Scope: within F0047's S0001 scope, nothing from S0002 onward, and nothing in the feature's "Out of scope". `tests/adapters/test_fake_snapshots.py` stays unchanged, so no other story's test is touched.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for every acceptance criterion. `make test` fails as expected: all four new modules fail to import because `factory.adapters.copy_snapshots`, `snapshots_item` in `factory.application.preflight`, and `SNAPSHOTS_VARIABLE` / `SNAPSHOT_BASE_VARIABLE` in `factory.domain.settings` do not exist yet. `make lint` is green.
+
+   - criterion 1: tests/entry/test_wiring_copy_snapshots.py::test_without_the_snapshots_setting_the_instance_is_the_zfs_one_of_before (rows: settings-fields, snapshots-type, item-names)
+   - criterion 2: tests/domain/test_settings_snapshots.py::test_the_snapshots_setting_is_zfs_or_copy
+   - criterion 3: tests/domain/test_settings_snapshots.py::test_the_snapshot_base_is_an_absolute_path_apart_from_the_factory_s_paths
+   - criterion 4: tests/domain/test_settings_snapshots.py::test_instance_settings_built_directly_keep_the_snapshot_base_apart
+   - criterion 5: tests/adapters/test_copy_snapshots.py::test_changed_paths_lists_the_changed_files_and_links_sorted_by_path and ::test_reset_brings_the_tree_back_byte_for_byte_and_keeps_the_folder
+   - criterion 6: tests/adapters/test_copy_snapshots.py::test_without_a_base_reset_and_changed_paths_fail_and_leave_the_folder and ::test_advance_without_a_base_makes_the_base
+   - criterion 7: tests/adapters/test_copy_snapshots.py::test_a_large_file_is_compared_in_chunks_of_at_most_a_mebibyte
+   - criterion 8: tests/adapters/test_copy_snapshots.py::test_an_operating_system_fault_of_the_copy_is_a_snapshot_error_naming_the_operation
+   - criterion 9: tests/adapters/test_copy_snapshots.py::test_the_fake_snapshots_are_copy_snapshots (tests/adapters/test_fake_snapshots.py not touched)
+   - criterion 10: tests/application/test_preflight_snapshots_item.py::test_the_snapshots_item_passes_only_when_the_workspace_and_the_base_are_directories
+   - criterion 11: tests/entry/test_wiring_copy_snapshots.py::test_a_copy_instance_gets_copy_snapshots_on_its_workspace_and_base, ::test_a_copy_instance_checks_its_snapshots_and_neither_zfs_nor_a_dataset, and the `base` row of ::test_a_copy_instance_without_a_base_names_the_base_first
+   - criterion 12: tests/entry/test_wiring_copy_snapshots.py::test_a_copy_instance_without_a_base_names_the_base_first (rows `base-and-workspace`, `base-and-stage-image`)
+   - criteria 13, 14: no test (`make check`; docs).
+
+   Files created:
+   - tests/domain/test_settings_snapshots.py
+   - tests/adapters/test_copy_snapshots.py
+   - tests/application/test_preflight_snapshots_item.py
+   - tests/entry/test_wiring_copy_snapshots.py
+
+   Modules the test run could not import:
+   - `factory.adapters.copy_snapshots`
+   - `factory.application.preflight.snapshots_item`
+   - `factory.domain.settings.SNAPSHOTS_VARIABLE` and `SNAPSHOT_BASE_VARIABLE`
+
+   Notes for the coder:
+   - **Overlap message:** the Interface's fault `<path> overlaps <workspace|checkout|state>` is tested exactly. `<path>` is the base, followed by the literal word, for example `/work/b overlaps workspace`. A base of `/` overlaps all three paths and is expected to name `workspace`, which follows the Interface's order: workspace, then checkout, then state.
+   - **Fixed paths in the settings tests:** the workspace is `/work`, the checkout `FACTORY_CHECKOUT=/srv/repo` and the state directory `FACTORY_STATE=/opt/state`. The checkout has to be set because the default `/work/checkout` would lie inside the workspace `/work`.
+   - **How criterion 7 counts reads:** the test wraps `builtins.open`, `io.open`, `os.open` and `os.read` while `changed_paths` runs. It records the bytes each read returns for files under `tmp_path`, and asserts that at least one read was seen and none was larger than 1 MiB.
+   - **Criterion 8 assertions:** only the operation name is checked, plus a non-empty detail.
+   - **What criterion 11 checks:** `machine_extras` must hold `podman`, `snapshots`, `stage-image` and `agent-run-probe`, and must hold neither `zfs` nor `dataset`. The order is not checked, because the criterion does not state one.
+
+   Rejected: putting the passing and failing rows of `snapshots_item` in separate test functions; they are rows of one parametrized test, as the rules ask.
+
+   Nothing is open.
+
+   `lint`: lint: green (0.2 s)
+   `test`: ERROR tests/entry/test_wiring_copy_snapshots.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_copy_snapshots.py'.
