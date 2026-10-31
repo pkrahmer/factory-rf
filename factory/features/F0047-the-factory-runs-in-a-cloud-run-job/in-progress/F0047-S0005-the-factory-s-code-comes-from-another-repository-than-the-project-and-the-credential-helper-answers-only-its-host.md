@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-31T22:28:23.531818Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -245,6 +241,12 @@ journal:
   kind: started
   at: '2026-10-31T22:28:23.531818Z'
   stage: docs
+- number: 43
+  speaker: documenter
+  kind: result
+  at: '2026-10-31T22:29:27.617056Z'
+  stage: docs
+  run: ff995d2032f346b2bc6446e4f5774bae
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -745,3 +747,29 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes:
     - `tests/test_vm_setup_code_url.py:122-127`: `_guard` is a second copy of `vm_support.enclosing_if` (`tests/vm_support.py:133`) that also accepts `elif`. Under the standing leave, `enclosing_if` could be extended to cover `elif` instead.
 42. factory: started docs as vm.
+43. documenter: Docs, round 2. Only documents changed, so I did not run `make check`. The factory runs it right after this stage. My attempt to run the story's smoke-test commands was denied, so the helper examples were not run by me. The diff, and the reviewer's entry 41, show the helper behaving as the text says.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - The paragraph "In v1.2 one repository URL serves both ..." is rewritten: one url by default, two with `--code-url`.
+      - The script's option table gains `--code-url` and the `--repository-url` row is reworded.
+      - New subsection *The code and the project apart*. It covers the credential-free code clone and its failure message, `factory.env` holding only the project, what the project must bring, the stage image coming from the code's `vm/Dockerfile`, a code update being a new ref and a rebuild, and the helper's host rule.
+      - *The hosting-service token* gains the helper's host rule, with the three URL forms and the refusal cases.
+    - `docs/project-guide/git-and-hosting.md`: one sentence at the existing description of the credential helper, giving the helper's host rule and why.
+    - `docs/decisions.md`: new entry *The code and the project apart* (decision, why, rejected), taken from the feature's decision 9.
+    - `README.md`: unchanged, as criterion 13 says.
+
+    Cross-read and found current against the diff:
+    - `docs/operator-guide.md`: the *The script*, *The two passes* and *The rebuild after a merge* sections, and the `FACTORY_REPOSITORY_URL` table row.
+    - `README.md`.
+    - The rest of `docs/project-guide/git-and-hosting.md`.
+
+    I wrote the new text from the diff of `vm/setup.sh` and `vm/git-credential-factory`, which match the Interface. No findings for the coder.
+
+    Noticed, not touched:
+    - Line 958 of the operator guide ("cannot prepare the checkout: ... Check `FACTORY_REPOSITORY_URL` and the credentials") is about the factory's runtime checkout, not `setup.sh`. It is not affected by this story.
+    - Changing `--code-url` on a machine that already has a checkout does not re-clone. I stated this in the new subsection. The same is true of `--repository-url` today.
+
+    `check`: check: green (not run again: passed on tree 374869fe0c07 at 2026-10-31T22:23:33Z)
+    `secrets`: secrets: green (2.3 s)
+    `documents`: documents ok

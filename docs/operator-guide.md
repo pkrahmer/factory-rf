@@ -366,7 +366,7 @@ One host, one dataset, one throwaway container for each step of a stage.
 
 There is one user, `factory`, and no second one. `factory` has no `sudo` right but the page-cache helper, the four `zfs` commands of the optional `--sudoers` fallback and, with the option `--idle-shutdown`, `/usr/bin/systemctl poweroff` (see *The script*). The steps that need root (the script, `systemctl`, the install of the secrets) run from your own account with `sudo`.
 
-In v1.2 one repository URL serves both the factory's own code and the project. `--repository-url` is the clone of `/srv/factory/<instance>/factory` and the value of `FACTORY_REPOSITORY_URL`, so an instance builds the repository it runs from.
+By default one repository URL serves both the factory's own code and the project. `--repository-url` is then the clone of `/srv/factory/<instance>/factory` and the value of `FACTORY_REPOSITORY_URL`, so an instance builds the repository it runs from. With `--code-url` the two are apart: the clone of `/srv/factory/<instance>/factory` comes from `--code-url`, and `--repository-url` stays the project and the value of `FACTORY_REPOSITORY_URL` (see *The code and the project apart*).
 
 The layout of `/srv/factory/<instance>`:
 
@@ -497,6 +497,23 @@ After a change, rebuild the image and renew its id (see "The rebuild after a mer
 
 Every cost record names the image the agent run ran on (the identity from the file `FACTORY_IMAGE_ID_FILE` names). A record made when the instance has no image identity has none.
 
+### The code and the project apart
+
+Some projects live on a host of their own, such as a company's enterprise host, and run the factory's public code from a public repository. Give `--repository-url` the project and `--code-url` the code:
+
+```bash
+sudo sh vm/setup.sh --device /dev/sdb \
+  --repository-url https://git.company.example/team/project.git \
+  --code-url https://github.com/pkrahmer/factory-rf.git
+```
+
+- **The code is cloned without a credential.** The clone of `/srv/factory/<instance>/factory` runs with `GIT_TERMINAL_PROMPT=0` and without `GIT_ASKPASS` and `core.askPass`, after the wait for the secrets, in the same pass as the install of the helper and the unit. A code repository that asks for a credential fails the clone: `setup: checkout: cannot clone <url> without a credential; the code repository must be readable without a token`, exit status 1. `--code-url` equal to `--repository-url`, or absent, keeps the checkout as it was, with the token.
+- **`factory.env` holds the project only.** `FACTORY_REPOSITORY_URL` is `--repository-url`; the code url is written nowhere.
+- **The project brings its own files.** The factory reads `factory/pipeline.yml`, `factory/story-form.md` and `factory/feature-form.md` from the project, and optionally `factory/agents/`. Its `Makefile` has the targets `check`, `lint`, `test` and `sync`.
+- **The stage image comes from the code.** `vm/Dockerfile` is the one in the code checkout, not the project's.
+- **An update of the code is a new ref and a rebuild.** Run `vm/setup.sh` again with the new `--ref`, as *The rebuild after a merge* describes. A checkout that exists is not cloned again, so a changed `--code-url` alone changes nothing on a machine that has one.
+- **The helper answers only the project's host.** With `FACTORY_REPOSITORY_URL` set, `git-credential-factory` gives the token only when git asks for the host of that URL, so the token is never offered to the code repository's host or to any other (see *The hosting-service token*).
+
 ### The script
 
 `vm/setup.sh` makes the machine from a fresh Ubuntu 24.04 with a spare disk and installs the service. It is POSIX `sh`, runs as root and does only what is missing, so a second run changes nothing.
@@ -508,7 +525,8 @@ sudo sh vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner
 | Option | Default | Meaning |
 |---|---|---|
 | `--device <path>` | required | The disk, or a file such as `/var/lib/factory-pool.img`, the pool is made on. The script does not test it: a pool that exists is found whatever `--device` names. |
-| `--repository-url <url>` | required | The repository the factory works on and runs from. |
+| `--repository-url <url>` | required | The repository the factory works on, and runs from when `--code-url` is not given. |
+| `--code-url <url>` | the `--repository-url` | The repository the factory's code and its stage image's `vm/Dockerfile` come from. When it differs from `--repository-url` it is cloned without any credential (see *The code and the project apart*). |
 | `--instance <name>` | `vm` | The instance's name; its folder is `/srv/factory/<instance>`. |
 | `--pool <name>` | `tank` | The ZFS pool. |
 | `--quota <size>` | `30G` | The quota of the instance's dataset. |
@@ -872,7 +890,7 @@ sudo systemctl start factory@vm
 
 The token lives in one file on the VM, `/home/factory/.secrets/hosting-token`, which you place by hand (see "The machine"); the environment file sets `FACTORY_TOKEN_FILE` to that path. `vm/setup.sh` makes the folder `/home/factory/.secrets` as `factory:factory`, mode `0700`: only the factory's user can enter it, whatever the file's own mode. A stage container never mounts the token (only the host fetches and pushes), so the agent has no path to it.
 
-Only two things read the file: the factory process, once, to hand the token to PyGithub, and git's credential helper, `/usr/local/bin/git-credential-factory`. The helper answers git's `get` with the user name `x-access-token` and the file's content as the password. If `FACTORY_TOKEN_FILE` is unset or the file cannot be read, it prints nothing and exits 1, so a process that cannot read the file gets no credential. For `store`, `erase` and any other operation it prints nothing and exits 0. The factory's git reaches the helper only through the environment the factory gives it, so the agent's git has no credential. `vm/setup.sh` installs the helper from `vm/git-credential-factory` (step `tools`, see "The machine").
+Only two things read the file: the factory process, once, to hand the token to PyGithub, and git's credential helper, `/usr/local/bin/git-credential-factory`. The helper answers git's `get` with the user name `x-access-token` and the file's content as the password. If `FACTORY_TOKEN_FILE` is unset or the file cannot be read, it prints nothing and exits 1, so a process that cannot read the file gets no credential. With `FACTORY_REPOSITORY_URL` set (the environment file sets it), the helper also answers only a request whose `host=` line names the host of that URL, compared in lower case with user and port removed from both (`https://[user@]host[:port]/...`, `ssh://[user@]host[:port]/...` and `[user@]host:path` all work); another host, and a request without a `host=` line, get nothing and exit 1. With the variable unset the helper behaves as before. For `store`, `erase` and any other operation it prints nothing and exits 0. The factory's git reaches the helper only through the environment the factory gives it, so the agent's git has no credential. `vm/setup.sh` installs the helper from `vm/git-credential-factory` (step `tools`, see "The machine").
 
 An agent run's environment is an allow list of six names: `PATH`, `HOME`, `LANG`, `LC_ALL`, `TERM` and `TZ`. The factory builds `PATH` and `HOME` itself and takes the other four from its own environment when it has them. Everything else the factory process holds (`FACTORY_TOKEN_FILE`, `GH_TOKEN`, `GITHUB_TOKEN`, `GIT_ASKPASS`, `SSH_AUTH_SOCK`, any variable of yours) is dropped at the source and never reaches an agent. The factory's own pushes and posts are not affected.
 
