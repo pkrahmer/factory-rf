@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T21:34:17.020356Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-10-31T21:33:56.447571Z'
   stage: doing
   run: 7f262b90654843fd85226dfae39baf53
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-31T21:34:17.020356Z'
+  stage: tests
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -268,3 +277,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Change for the tester, in `tests/test_vm_setup_code_url.py` only: escape the brace in `REFUSING_GIT` as `${{GIT_ASKPASS-}}` (or keep that part out of the `.format` call in `_stand_ins`), and type `_setup` so that mypy accepts it (`tuple[int | None, str, str]`, or return the `ProcessResult`). What the tests check stays the same.
 
     Still open from entry 13, not touched: with a different `--code-url` the clone happens in the first pass. So on the second pass `cloned=no`, and older installed copies of the helper and the unit are not replaced; the script only prints its "differs from the checkout" warning.
+17. factory: started tests as vm.
