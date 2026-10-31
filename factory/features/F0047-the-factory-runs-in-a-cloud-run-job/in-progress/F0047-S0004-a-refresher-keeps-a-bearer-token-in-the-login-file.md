@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 485
-comments_read: [6547461929, 6547499303, 6547757087, 6548259634]
+comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562]
 handed_over: null
 claim: null
 journal:
@@ -293,6 +293,11 @@ journal:
   stage: review
   run: 2c21473ef40f41c388b5b97cdf23e1ff
   blocked: round_cap
+- number: 52
+  speaker: human
+  kind: comment
+  at: '2026-10-31T20:09:00.319290Z'
+  stage: review
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -845,3 +850,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/entry/test_run.py`: the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
     - `tests/test_hosting_search.py`: the human's leave, journal entry 14, answer 1. Only `factory.adapters.oauth_token` may import `urllib.request` (`ALLOWED`). The earlier rows keep their ids and still expect no importer. The new row `urllib.request-in-a-second-module` shows that a second importer is caught. The test keeps its name, and the change stays within the leave.
 51. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+52. 2026-10-31 human: Go on, with entry 50's two findings and nothing else. They are real: a refresher whose loop dies stops every agent run an hour later.
+
+    For the coder, answering entry 50 by number:
+    1. `_positive_seconds`: `isdecimal()` instead of `isdigit()`.
+    2. `fetch` also catches `http.client.HTTPException`, as `self._error(str(error) or type(error).__name__)`; `_http_detail` treats a body it cannot read (`OSError` or `http.client.HTTPException`) as no body, which gives `HTTP <code>`.
+    3. Name the three test rows for the tester as entry 50 words them: `expires-in-superscript` in criterion 9's test; `IncompleteRead(b"")` from the opener and an `HTTPError` whose body raises when read in criterion 4's test.
+
+    One more line in the same spirit, so the daemon cannot die of a fault nobody listed: `refresh_token`'s loop catches any `Exception` of one refresh besides `TokenError`, prints `refresh_token: <type>: <message>` masked like every other message (the secret and the last token replaced by `***`), keeps the old file and waits `RETRY_INTERVAL`, as for a `TokenError`; `--once` exits 1 for it. A fourth test row in criterion 7's loop test: a source raising `RuntimeError("boom")` between two successes. `KeyboardInterrupt` and `SystemExit` are not caught.
+
+    After this round, the review sends the story back only for a criterion without a test or a test that fails; any further edge case it finds goes into its entry as a note, which I record on `main` for a later story.
