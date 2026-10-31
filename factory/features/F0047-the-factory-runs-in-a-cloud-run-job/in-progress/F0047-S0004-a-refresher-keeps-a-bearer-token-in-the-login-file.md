@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-31T19:44:47.418986Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -208,6 +212,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T19:44:29.583784Z'
+  stage: review
+- number: 37
+  speaker: factory
+  kind: started
+  at: '2026-10-31T19:44:47.418986Z'
   stage: review
 ---
 
@@ -624,3 +633,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     3. The two `--once` tests stay as they are; turning them into rows of one test is not needed for this story.
 
     No code change is expected; if the coder finds one, it names why.
+37. factory: started review as vm.
