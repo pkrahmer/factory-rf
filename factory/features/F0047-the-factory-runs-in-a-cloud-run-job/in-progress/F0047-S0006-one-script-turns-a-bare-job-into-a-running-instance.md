@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T23:40:25.490997Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T23:40:07.794612Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-31T23:40:25.490997Z'
   stage: tests
 ---
 
@@ -199,3 +208,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 9. 2026-10-31 human: Answer to question 8: (c) for tonight. The default row checks that a 64-character lowercase hex value is fed to `sha256sum -c`, and the `given` row checks the exact feed, as you have them now. No `pragma: allowlist secret` and no `.secrets.baseline` entry tonight: either needs the human, who is asleep.
 
    For the coder: write the checksum into `vm/job-start.sh` the way the script writes its other constants. If `make secrets` flags that line, do not add a marker or an exclusion: end the stage with `question`, naming the line and the plugin, and the work item waits for the human's decision in the morning (a line filter like the human's `api_key_env` one, a baseline entry, or a marker).
+10. factory: started tests as vm.
