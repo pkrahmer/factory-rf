@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T18:01:07.511873Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-31T18:01:07.511873Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T18:01:48.540723Z'
+  stage: review
+  run: 02de2d26e3d94f9c931ca1ab782c1f0a
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -316,3 +318,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 0 gone
 19. factory: started review as vm.
+20. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. No group from 1 to 5 fails.
+
+    - Acceptance criteria: each of criteria 1 to 5 has a test that checks what it is named after. Criterion 3 is one parametrized test with the twelve rows the criterion lists. Each Interface rule has its failing side tested: HTTP 200 and 404; `timed_out`, also with the output `000`, which shows that rule is checked first; no output; a non-numeric last line; `2000`; and `ContainerError`. The "three digits" rule is pinned by `000`/`200`/`404` on one side and by `2000` on the other. Those are the rows the human chose in entry 4. The coder's entry 18 reports `make check` green.
+    - Architecture:
+      - The constants are in `factory.domain.containers`.
+      - `printed_lines` moved down to the new `factory.domain.printed_lines`. `factory.adapters.printed_output` imports it from there, so only one copy remains.
+      - `metadata_block_item` is in application and depends only on a `Callable[[], ContainerResult]`.
+      - The run's arguments (30 s limit, `WORK`, no mounts, empty environment) are in `factory.entry.wiring`, behind the `job` profile only.
+    - Security: nothing to report. No markers, no strings built into commands.
+    - Quality: the round-0 finding about the copied comprehension is fixed (`src/factory/application/preflight.py:234` now calls `printed_lines`). Names and docstrings are fine. `make duplicates` reports 0 new.
+    - Hygiene: entries 10, 14 and 18 explain the main choice and what was rejected. The Description matches what was built. The docs criterion still describes what the reader needs.
+
+    no findings
+
+    Notes:
+    1. tests/application/test_preflight_metadata_block.py:24 `_ended` copies `_result` in tests/application/test_container_environment.py:181 with the arguments swapped. A shared support helper would serve both.
+
+    Earlier tests:
+    - tests/adapters/test_claude_runtime_container.py: standing leave to move a shared test helper. `_after` became `value_after` in tests/command_words_support.py; the test keeps its name and checks the same thing.
+    - tests/conftest.py: standing leave. The new `run_environment` fixture replaces the copied `environment` fixtures. It is a separate name because conftest already has a different `environment`. No existing fixture changed.
+    - tests/entry/test_wiring_container_extras.py: standing leave. `_settings` moved to `profile_settings` in tests/wiring_support.py, and the local `environment` fixture was replaced by `run_environment` with the same value. The tests keep their names and checks.
+    - tests/entry/test_wiring_copy_snapshots.py: standing leave. Its local `environment` fixture was replaced by `run_environment` with the same value. The tests keep their names and checks.
+    - tests/wiring_support.py: standing leave. It gains `profile_settings`, moved from tests/entry/test_wiring_container_extras.py. The existing helpers are unchanged.
