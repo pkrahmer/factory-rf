@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T17:09:20.930725Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-10-31T17:08:58.657539Z'
   stage: tests
   run: 7491f2e441ab4472aad09c10b3058574
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-10-31T17:09:20.930725Z'
+  stage: doing
 ---
 
 # The container profile job
@@ -340,3 +349,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.6 s)
+24. factory: started doing as vm.
