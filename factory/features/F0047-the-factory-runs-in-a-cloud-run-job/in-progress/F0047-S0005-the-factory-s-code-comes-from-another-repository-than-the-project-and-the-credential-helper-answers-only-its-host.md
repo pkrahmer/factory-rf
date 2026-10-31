@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T21:49:49.936699Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,13 @@ journal:
   kind: started
   at: '2026-10-31T21:49:49.936699Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: question
+  at: '2026-10-31T21:50:38.980375Z'
+  stage: doing
+  run: 057b23881cd743608fe3cc1a5e6ea823
+  blocked: question
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -379,3 +382,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none. `git diff --name-status main...HEAD` shows both test files as `A`, and no test file that `main` already holds is changed.
 23. factory: started doing as vm.
+24. coder: Stopped before changing any code in round 1. The reviewer's finding 2 (entry 22) needs the human to pick how it works, so I am asking now. Findings 1 and 3 are test changes for the tester. I will end with `tests` and name them once this question is answered, so they are not lost.
+
+    Question (finding 2). With a different `--code-url`, the first pass clones the code at `vm/setup.sh:349-355` and sets `cloned=yes`, then stops at the secrets wait (`exit 0`). The second pass, the one with the token, finds `$checkout/.git` and runs with `cloned=no`. So it never reports `cloned $ref into $checkout`. It also replaces neither an older `/usr/local/bin/git-credential-factory` (`vm/setup.sh:394-400`) nor an older `/etc/systemd/system/factory@.service` (`vm/setup.sh:436-441`). It only prints the "differs from the checkout" warning. The script installs a checkout's files as root only from a fresh clone because the factory user can change the checkout later. So whatever tells the second pass "fresh" must be something the factory user cannot write.
+
+    Options:
+    (A) A root-owned marker. The first pass's code clone records the commit it cloned in a file only root can write, e.g. `/var/lib/factory-setup/<instance>/cloned` (mode 0600, directory 0700 root). The next pass sets `cloned=yes` when that file exists, the checkout's `HEAD` equals the recorded commit and `git status --porcelain` is empty. It reports `cloned $ref into $checkout` on that pass and removes the marker after the service step. Suggested criterion (text-tested after the wait, as in your answer (A) in entry 9): "With a different `--code-url`, the pass after the secrets wait treats a checkout the code clone made, still at the commit it cloned and unchanged, as freshly cloned: it installs the helper and the unit over older copies and reports `cloned <ref> into <checkout>`; the marker lives where only root writes and is removed once the unit is installed." This needs a new path outside `$base` (which is factory's), so it changes the setup's footprint.
+    (B) Move the code clone after the secrets wait, into the same pass as the installs. That is the simplest code, and `cloned` works as today. But it changes the Interface ("That clone happens before the wait") and criterion 7, and so the tester's criterion 7 test. The code repository's readability would then be checked only on the second pass.
+    (C) Keep the behaviour and document it. The operator guide says that with `--code-url` on a machine that already holds older copies, the operator installs the helper and the unit from the checkout by hand, as the warning says. No code change; the docs criterion gains a sentence.
+
+    I would choose (A). It keeps the Interface's order and criterion 7, and it trusts only a root-written record, so it keeps the reason fresh clones alone are installed as root. If you choose (A), please confirm the marker path (or name another root-only place) and the criterion text. I will add the criterion before the two closing ones.
+
+    Still open for the tester, from entry 22, in the order it will hand them on:
+    - finding 1: criterion 11 (a `GIT_ASKPASS` that the stand-in `runuser` hands on must not reach the code clone) needs its test in `tests/test_vm_setup_code_url.py`.
+    - finding 3: under the standing leave, `tests/test_vm_credential_helper_host.py` imports `SYSTEM_PATH` from `tests/vm_support.py`. The `token` fixture moves to `tests/conftest.py`, and `ROOT`, `HELPER` and `EXAMPLE_VALUE` move to a support module, both used from there by `tests/test_git_credential_helper.py` too.
+
+    What is built, unchanged since entry 13: `vm/setup.sh` (`--code-url`, the clone without credentials before the wait) and `vm/git-credential-factory` (the host rule). Nothing changed this round, so I did not run `make check`. It was green at entry 20. The Description is unchanged: entry 22 adds criterion 11, which intake had already put in the story, and the answer to this question may add one more.
