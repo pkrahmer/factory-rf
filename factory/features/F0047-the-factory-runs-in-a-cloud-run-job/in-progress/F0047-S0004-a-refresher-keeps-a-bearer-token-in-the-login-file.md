@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T20:53:48.420073Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -423,6 +419,12 @@ journal:
   kind: started
   at: '2026-10-31T20:53:48.420073Z'
   stage: doing
+- number: 75
+  speaker: coder
+  kind: result
+  at: '2026-10-31T21:00:29.247783Z'
+  stage: doing
+  run: 6f27bdde604e4da292e23c4ba5548dad
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1198,3 +1200,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (165.5 s)
 74. factory: started doing as vm.
+75. coder: Round 2, after the tester's entry 73. I changed no code. The only finding of this round was reviewer entry 69's finding 1: the extended criterion 6 needed a test for the `--once` exit 1 on any other exception. The tester added that test as the `any-other-error` row of `tests/entry/test_refresh_token.py::test_once_with_a_failing_source_keeps_the_file_and_exits_1`. It passes against the code that was already there: `src/factory/entry/refresh_token.py`, where `main` returns `_FAILED` under `--once` when `_Refreshes.run()` gives `None`. The working tree was clean before this run and is still clean. `make check` is green (`check: green`, coverage 99.56 %).
+
+    What is built (in the branch, unchanged since entry 67): `src/factory/domain/tokens.py`, `TokenError` in `src/factory/domain/errors.py`, `src/factory/application/tokens.py`, `src/factory/adapters/oauth_token.py`, `src/factory/entry/refresh_token.py`, and `client_credentials_source` and `build_token_refresher` in `src/factory/entry/wiring.py`.
+
+    Main choice: I hand on to review without touching anything. I rejected adding code or a refactor, because this round's findings call for neither, and a round only addresses its findings.
+
+    Refactor: nothing needs changing. The diff is the one entries 67 and 69 already read.
+
+    What the journal changed: entry 69 brought the Description, the Interface and criteria 4, 6, 7 and 9 up to date. The work item already reflects that, so I did not rewrite it.
+
+    Noticed, not touched (the reviewer's notes in entry 69, all on the test side):
+    - The `incomplete-read` row in `tests/adapters/test_oauth_token.py` computes its expected detail with the same expression as the code.
+    - `masked` in `factory.domain.tokens` has no direct test.
+    - In `tests/test_hosting_search.py`, the names `SECOND` and `SECOND_CLIENT` are unclear.
+    - vulture's `OpenUrl.__call__` finding is the false positive that entry 14 accepts.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 0 gone
