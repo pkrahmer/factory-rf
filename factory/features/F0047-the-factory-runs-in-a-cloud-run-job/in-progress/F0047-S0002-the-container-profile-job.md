@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T16:58:56.840111Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-10-31T16:58:56.840111Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-10-31T17:02:28.248841Z'
+  stage: doing
+  run: 68fc0b08253b49f982c57ab05bcd4642
 ---
 
 # The container profile job
@@ -301,3 +303,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: no test file that `main` already holds was changed, renamed or deleted (`git diff --name-status`: every test file has status `A`), so no leave was needed.
 20. factory: started doing as vm.
+21. coder: Round 1. I fixed the reviewer's code finding (finding 2). The other one (finding 1) is a change to the tests, so the work item goes to the tester.
+
+    - Finding 2 (fixed): `src/factory/domain/settings.py` has a new private reader, `_one_of[T: str](environ, variable, names, fault) -> T`. Unset or blank gives the first name in `names`, an exact match gives that name, and anything else raises `SettingsInvalid(variable, fault)`. `_snapshots`, `_container_profile` and `_agent_runtime` now all call it; before, each had its own copy of the loop. `_agent_runtime` still reads the value first, because its fault text includes the value (`holds <value>, which is neither claude nor opencode`). Every fault text and default is the same as before.
+      - Rejected: passing a fault-making function to `_one_of` just to cover `_agent_runtime`'s text. Building that text in the caller is simpler.
+      - Rejected: putting the three one-line readers straight into `read_settings`. Its other settings are read through named readers too, so they stay as functions.
+    - Finding 1 (for the tester, under the standing leave in `CLAUDE.md` to move a shared test helper): the `recorder` fixture in `tests/adapters/test_podman_runs_job_profile.py:32-36` is a copy of the one in `tests/adapters/test_podman_runs_results.py:31-35`. The change: move it once to `tests/conftest.py` under its own name, for example `podman_recorder`, because `tests/conftest.py` already has a `recorder` for `claude_runtime`. Both modules then use it, and every earlier test keeps its name and checks the same thing. The earlier test file this changes is `tests/adapters/test_podman_runs_results.py`. I changed no test.
+    - Refactor: I read the diff of `settings.py` and there is nothing more to change.
+    - The journal did not change what the task means, so `## Description` stays as it is.
+    - Noticed and not touched: nothing.
+
+    `check`: check: green (`test: green (167.6 s)`, coverage 99.57 %)

@@ -312,34 +312,29 @@ def _instance(environ: Mapping[str, str]) -> str:
 
 def _agent_runtime(environ: Mapping[str, str]) -> AgentRuntimeName:
     value = _optional(environ, AGENT_RUNTIME_VARIABLE)
-    if not value:
-        return "claude"
-    for runtime in _AGENT_RUNTIMES:
-        if value == runtime:
-            return runtime
-    raise SettingsInvalid(
-        AGENT_RUNTIME_VARIABLE, f"holds {value}, which is neither claude nor opencode"
-    )
+    fault = f"holds {value}, which is neither claude nor opencode"
+    return _one_of(environ, AGENT_RUNTIME_VARIABLE, _AGENT_RUNTIMES, fault)
 
 
 def _snapshots(environ: Mapping[str, str]) -> SnapshotsName:
-    value = _optional(environ, SNAPSHOTS_VARIABLE)
-    if not value:
-        return "zfs"
-    for snapshots in _SNAPSHOTS:
-        if value == snapshots:
-            return snapshots
-    raise SettingsInvalid(SNAPSHOTS_VARIABLE, "is neither zfs nor copy")
+    return _one_of(environ, SNAPSHOTS_VARIABLE, _SNAPSHOTS, "is neither zfs nor copy")
 
 
 def _container_profile(environ: Mapping[str, str]) -> ContainerProfileName:
-    value = _optional(environ, CONTAINER_PROFILE_VARIABLE)
+    fault = "is neither rootless nor job"
+    return _one_of(environ, CONTAINER_PROFILE_VARIABLE, _CONTAINER_PROFILES, fault)
+
+
+def _one_of[T: str](
+    environ: Mapping[str, str], variable: str, names: tuple[T, ...], fault: str
+) -> T:
+    value = _optional(environ, variable)
     if not value:
-        return "rootless"
-    for profile in _CONTAINER_PROFILES:
-        if value == profile:
-            return profile
-    raise SettingsInvalid(CONTAINER_PROFILE_VARIABLE, "is neither rootless nor job")
+        return names[0]
+    for name in names:
+        if value == name:
+            return name
+    raise SettingsInvalid(variable, fault)
 
 
 def _opencode_models(environ: Mapping[str, str]) -> dict[str, str]:
