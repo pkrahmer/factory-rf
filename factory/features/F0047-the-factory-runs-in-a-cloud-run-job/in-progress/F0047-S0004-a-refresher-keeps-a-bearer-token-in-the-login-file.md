@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 485
 comments_read: [6547461929]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T18:31:56.119016Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-10-31T18:31:56.119016Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-31T18:32:29.594579Z'
+  stage: tests
+  run: 99abe17cb5844bb88c91d9f4c25c1923
+  blocked: question
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -154,3 +157,30 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the layers are right. The `Token` DTO and `refresh_wait` are domain, the `TokenSource` ABC and `TokenRefresher` are application, the urllib adapter is in adapters, and the command is in entry. `TokenSource` is an ABC with the adapter inheriting it. No new dependency, and no wrapper rule is broken, because the standard library HTTP sits in one adapter.
    - Scope: this is S0004 of F0047, the refresher only. Running it is left to S0006. It is within the feature's scope and touches nothing in its "Out of scope".
 7. factory: started tests as vm.
+8. tester: Question before I write the tests. I stopped before writing any files. Criteria 1 to 5 can be tested against the Interface as it stands. Criteria 6, 7 and 8 cannot, because the Interface leaves `main`'s injected parameters as `...`.
+
+   1. **How a test gives `main` its token source, its wait and its stop.** Criterion 6 needs "a source that answers 3599 s" and "a source that fails". Criterion 7 needs an injected wait and a `SIGTERM`/`SIGINT` that ends the loop. The Interface does not name any of these parameters. My proposal, following `factory.entry.run` (`install_stop_handlers`, `run_instance(sleep=…, should_stop=…)`):
+      `main(argv=None, environ=os.environ, *, source: Callable[[str, str, str, str], TokenSource] | None = None, sleep: Callable[[float], None] | None = None) -> int`
+      - `source` takes `url, client_id, client_secret, scope` and defaults to `ClientCredentialsTokenSource`.
+      - `sleep` takes seconds and defaults to waiting on a `threading.Event`.
+      - `main` installs `SIGTERM` and `SIGINT` handlers that set its stop flag, checks the flag after each wait, and restores the previous handlers before it returns.
+      - The loop test's fake `sleep` records the seconds and, on the chosen wait, calls `signal.raise_signal(sig)`. That exercises the real handlers without sleeping.
+      - "The clock" in the Interface would then need no parameter: nothing in the criteria reads a time.
+      - Alternatives:
+        - (b) inject a `threading.Event` stop and have the test set it directly. This would not test the signals themselves, so the SIGTERM/SIGINT rows would only be labels.
+        - (c) other parameter names you prefer.
+      - I would choose the proposal.
+
+   2. **Criterion 8, "the environment given to a child process".** The command starts no child process, so there is nothing to observe. Options:
+      - (a) Test that `os.environ` holds neither the secret nor the token after `main` has run. Any child the process later starts inherits `os.environ`.
+      - (b) Drop the child clause from criterion 8.
+      - (c) Name the child you mean.
+      - I would choose (a).
+
+   The tests, once the answers are in:
+   - `tests/domain/test_tokens.py`
+   - `tests/application/test_tokens.py`
+   - `tests/adapters/test_oauth_token.py`
+   - `tests/entry/test_refresh_token.py`
+
+   A note for the coder, not a question for the tests: the Interface has `factory.application.tokens` call `replace_text`, but that function lives in `factory.adapters.atomic_file`, and the application layer may not import adapters.
