@@ -21,6 +21,18 @@ Four of the five jobs; coordinating probes for another session is left out.
 2. **Home: factory-rf, with subfolders where the tools differ.** One skill (a `SKILL.md` with its scripts) serves both tools, since the opencode at work reads Claude Code's skills; `operator/claude/` and `operator/opencode/` hold only what differs, the commands. Versioned with the factory, so what is improved at home reaches work with a pull. No company value in it; those live in the local settings file.
 3. **Watching by a wait inside the turn.** After every act the agent calls a wait script as a plain shell command. It blocks until an event (a question as the newest comment, an approval, a health stop, a story archived) or a time limit below the shell tool's own timeout, and prints one line (`event: ...` or `continue: nothing new`). The agent acts or waits again; its turn never ends, so no cron is needed. Each return costs one model call on a cached context; the laptop stays awake and the session open; the human can interrupt at any time.
 
+4. **Cautious defaults at work.** `merge` off (the skill checks and posts its verdict; the human merges), `answer` on but within the feature's decisions only (beyond them it waits for the human instead of marking For the morning), `start_next` on.
+5. **Status from GitHub first.** Labels, the newest comment and the factory's keyed posts (`<!-- factory key=<id>:<kind>:<n> -->`), the work items on `main`: the same for a VM and a job. The log (multipass on a VM, Cloud Logging in a job) only for detail, such as a stop's reason.
+6. **The log in the project.** One file per UTC day, committed on the project's `main` beside its work; at `operator/log/<date>.md` rather than `docs/runs/`, because a project's documenter may write everything under `docs/` (decided by the operator, 2026-10-31).
+7. **Built by hand, tried later.** A first version is written now in `operator/` of factory-rf and not tried; F0047 is left alone. After F0047, the human and the operator try and finish it on the todo demo; what holds is then hardened by the factory as a feature with tests (the human, 2026-10-31).
+
+## The plan
+
+1. Now: the first version in `operator/` (`README.md` there lists the files). Not installed, not tried.
+2. After F0047's acceptance: install it on the human's machine at home and try it on the todo demo with Claude Code, against an instance on the VM: the loop, the wait, a question, an approval with `merge` off, a start.
+3. Then at work with opencode, against the trial job: the same, with status from GitHub and a stop's reason from Cloud Logging.
+4. What held becomes a factory feature: the scripts tested like `vm/`'s, the references kept true by the documenter.
+
 ## What the skill must carry
 
 - **The standing orders**, today in Claude Code's memory: be penurious (small findings fixed on `main` or recorded, not sent back); decide what is unavoidable, quiz only real alternatives with a recommendation first; never stall (beyond the decisions: the best answer, marked For the morning, and go on); plain full sentences for a reader who is not a native speaker; every feature or story id with its short name; a status bar of phone width only when something changed; a log of every act with times from `date -u`.
