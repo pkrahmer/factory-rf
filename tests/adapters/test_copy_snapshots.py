@@ -1,6 +1,7 @@
 """The copy snapshots on a real tree: a folder whose base is a copy in a directory of its own."""
 
 import builtins
+import errno
 import io
 import os
 from collections.abc import Callable, Iterator
@@ -293,6 +294,22 @@ def test_an_operating_system_fault_of_the_copy_is_a_snapshot_error_naming_the_op
 
     assert raised.value.command == command
     assert raised.value.detail
+
+
+def test_an_operating_system_fault_after_the_base_is_found_is_a_reset_error_with_its_message(
+    tmp_path: Path, base: Path
+) -> None:
+    base.mkdir()
+    folder_file = tmp_path / "work-file"
+    folder_file.write_text("not a directory\n", encoding="utf-8")
+    snapshots = CopySnapshots(folder_file, base)
+
+    with pytest.raises(SnapshotError) as raised:
+        snapshots.reset()
+
+    assert raised.value.command == "reset"
+    assert raised.value.detail != f"no base at {base}"
+    assert os.strerror(errno.ENOTDIR) in raised.value.detail
 
 
 def test_the_fake_snapshots_are_copy_snapshots() -> None:

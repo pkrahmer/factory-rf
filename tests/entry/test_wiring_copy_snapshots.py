@@ -10,7 +10,13 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.zfs_snapshots import ZfsSnapshots
 from factory.application.boundaries import Boundaries
 from factory.domain.errors import SettingsInvalid
-from factory.domain.settings import SNAPSHOT_BASE_VARIABLE, InstanceSettings, read_settings
+from factory.domain.settings import (
+    SNAPSHOT_BASE_VARIABLE,
+    STAGE_IMAGE_VARIABLE,
+    WORKSPACE_VARIABLE,
+    InstanceSettings,
+    read_settings,
+)
 from factory.entry.wiring import build_boundaries, machine_extras
 from podman_support import IMAGE, Podman
 from settings_support import BASE, CONTAINER
@@ -114,6 +120,24 @@ def test_a_copy_instance_without_a_base_names_the_base_first(
         build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
 
     assert (raised.value.variable, raised.value.fault) == (SNAPSHOT_BASE_VARIABLE, "missing")
+
+
+@pytest.mark.parametrize(
+    ("missing", "variable"),
+    [
+        pytest.param({"workspace": None}, WORKSPACE_VARIABLE, id="workspace"),
+        pytest.param({"stage_image": None}, STAGE_IMAGE_VARIABLE, id="stage-image"),
+    ],
+)
+def test_a_copy_instance_with_a_base_keeps_the_workspace_and_image_faults(
+    copy_settings: InstanceSettings, missing: dict[str, object], variable: str
+) -> None:
+    settings = copy_settings.model_copy(update=missing)
+
+    with pytest.raises(SettingsInvalid) as raised:
+        build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService())
+
+    assert raised.value.variable == variable
 
 
 def test_a_copy_instance_checks_its_snapshots_and_neither_zfs_nor_a_dataset(

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T16:01:25.009423Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-10-31T16:01:25.009423Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-10-31T16:07:42.737131Z'
+  stage: tests
+  run: fe75fe6535cf40d2a4ec84e57c297e63
 ---
 
 # A snapshot adapter that copies a directory
@@ -299,3 +301,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: as entry 10 says, `changed_paths` does not turn an `OSError` into a `SnapshotError`. The Interface names only `reset` and `advance`.
 15. factory: started tests as vm.
+16. tester: Round 1. I wrote the tests for the two criteria the reviewer added (13 and 14), which the coder's entry 14 handed to me. Each needed a new test and no existing test had to change. `make test` is green, because the code was already in place as the coder expected. `make lint` is green.
+
+    - criterion 13: tests/adapters/test_copy_snapshots.py::test_an_operating_system_fault_after_the_base_is_found_is_a_reset_error_with_its_message
+    - criterion 14: tests/entry/test_wiring_copy_snapshots.py::test_a_copy_instance_with_a_base_keeps_the_workspace_and_image_faults (rows `workspace`, `stage-image`)
+
+    What the criterion 13 test does: the base is an existing directory and the folder is a regular file. It asserts three things about the result: the `SnapshotError` names `reset`, its detail is not `no base at <base>`, and the detail contains `os.strerror(errno.ENOTDIR)`, which is the operating system's message.
+
+    Rejected: adding the criterion 13 case as a row of `test_an_operating_system_fault_of_the_copy_is_a_snapshot_error_naming_the_operation`, which is what the reviewer and the coder suggested. That test's `reset-on-a-file` row ends with `no base at <base>`, so the new row's assertions would not hold for it. A row would have needed a per-row conditional, so I wrote a test function of its own. That existing test is unchanged.
+
+    What criterion 14 checks: the base stays set, one field is removed, and the test checks only `SettingsInvalid.variable`.
+
+    Files changed: tests/adapters/test_copy_snapshots.py and tests/entry/test_wiring_copy_snapshots.py. Both were written by this story's tests stage. No new files.
+
+    Modules the test run could not import: none.
+
+    Nothing is open.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (167.0 s)
