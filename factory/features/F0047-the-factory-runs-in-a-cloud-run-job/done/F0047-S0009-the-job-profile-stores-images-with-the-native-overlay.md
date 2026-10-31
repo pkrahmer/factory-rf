@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-10-31T18:24:42.284291Z'
   stage: smoke-test
   run: 1b6222512b174bb3b1880ecf79df20c9
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-10-31T18:27:05.039046Z'
+  stage: approval
 ---
 
 # The job profile stores images with the native overlay
@@ -234,3 +239,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Findings: none.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 8.8 min, 44 turns, 123305 tokens in (867130 more from cache), 15490 out, $1.27
