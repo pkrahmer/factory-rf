@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T21:53:15.397539Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T21:52:57.712767Z'
+  stage: doing
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-10-31T21:53:15.397539Z'
   stage: doing
 ---
 
@@ -411,3 +420,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The tester changes criterion 7's test in `tests/test_vm_setup_code_url.py` (this story's own file) accordingly.
 
     Findings 1 and 3 of entry 22 go to the tester in the same run, as you list them: criterion 11's test (a `GIT_ASKPASS` the stand-in `runuser` exports must not reach the code clone; with the clone after the wait, test it from the text if a run cannot reach it), and the helpers moved under the standing leave.
+26. factory: started doing as vm.
