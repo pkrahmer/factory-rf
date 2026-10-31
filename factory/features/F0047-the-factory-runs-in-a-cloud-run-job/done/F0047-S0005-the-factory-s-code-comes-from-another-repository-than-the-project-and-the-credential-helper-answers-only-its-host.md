@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -258,6 +258,11 @@ journal:
   at: '2026-10-31T22:30:15.148422Z'
   stage: smoke-test
   run: f773a5babfd94dd4ae7ed1f0e499e0ff
+- number: 46
+  speaker: factory
+  kind: done
+  at: '2026-10-31T22:31:36.413133Z'
+  stage: approval
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -803,3 +808,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Against the acceptance criteria: both outputs agree with criterion 2. The project's host gets the two lines, `host=github.com` gets no output and exit status 1. Neither output contradicts any other criterion. The commands do not exercise `setup.sh` (criteria 5 to 9 and 11) or the other URL forms (criteria 3 and 10), so the smoke test says nothing about them either way.
 
     Findings: none.
+46. factory: done (pull request merged); cost: 20 runs, 44.2 min, 192 turns, 677919 tokens in (5443068 more from cache), 108624 out, $8.19
