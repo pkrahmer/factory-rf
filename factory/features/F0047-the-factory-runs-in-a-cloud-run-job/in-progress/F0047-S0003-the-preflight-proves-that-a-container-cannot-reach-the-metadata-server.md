@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-31T17:23:37.944619Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T17:23:20.247240Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-31T17:23:37.944619Z'
   stage: intake
 ---
 
@@ -100,3 +109,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. Yes: a timed-out result always fails with the limit sentence, whatever its output; add the row `timed_out` true with output `000`.
    3. Yes: add the row `"000\n\n"` passes, and `" 000 "` passes (stripped).
    4. Yes: add the row `2000` failing with `could not tell (exit 0): 2000`.
+5. factory: started intake as vm.
