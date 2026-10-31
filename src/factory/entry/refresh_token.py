@@ -12,6 +12,7 @@ from pathlib import Path
 from factory.application.tokens import TokenRefresher, TokenSource
 from factory.domain.errors import TokenError
 from factory.domain.tokens import RETRY_INTERVAL
+from factory.entry.inputs import UnreadableInput, read_input
 from factory.entry.run import install_stop_handlers
 from factory.entry.wiring import build_token_refresher, client_credentials_source
 
@@ -81,8 +82,8 @@ def _variable(environ: Mapping[str, str], name: str) -> str:
 
 def _secret(path: Path) -> str:
     try:
-        secret = path.read_text(encoding="utf-8").strip()
-    except OSError as error:
+        secret = read_input(path).strip()
+    except UnreadableInput as error:
         raise _Invalid(f"cannot read {path}") from error
     if not secret:
         raise _Invalid(f"cannot read {path}")

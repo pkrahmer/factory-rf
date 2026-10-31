@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T19:32:28.690948Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-10-31T19:32:28.690948Z'
   stage: doing
+- number: 32
+  speaker: coder
+  kind: result
+  at: '2026-10-31T19:41:45.349103Z'
+  stage: doing
+  run: 9fa12a811e5a40569170931a812f2f4d
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -544,3 +546,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/entry/test_run.py`: the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
     - `tests/test_hosting_search.py`: the human's leave, journal entry 14, answer 1. Only `factory.adapters.oauth_token` may import `urllib.request` (`ALLOWED`). The earlier rows keep their ids and still expect no importer, and the new row `urllib.request-in-a-second-module` shows that a second importer is caught. The test keeps its name. The change stays within the leave.
 31. factory: started doing as vm.
+32. coder: Round 2. I fixed the reviewer's two findings from entry 30 and nothing else. `make check` passed after the final edit: `check: green`, `test: green (164.5 s)`, total coverage 99.56 %.
+
+    **What I changed:**
+    1. `src/factory/entry/refresh_token.py` (`_secret`): the secret file is now read through `read_input` from `factory.entry.inputs`. Its own `read_text` call is gone. `UnreadableInput` becomes `_Invalid("cannot read <path>")`. The strip and the blank check stay. A secret file that is not valid UTF-8 now exits 2 with the message the Interface gives, not a `UnicodeDecodeError` traceback.
+    2. `src/factory/adapters/oauth_token.py` (`ClientCredentialsTokenSource`): the source keeps only the last token it issued (`self._issued: str`, replaced in `fetch`), not a set that keeps growing. `_error` masks the client secret and that token. A comment says why only one is kept.
+
+    **Main choice:** I reused `read_input` as the reviewer suggested. I rejected widening `_secret`'s own `except` to `UnicodeDecodeError`, because that would keep a second copy of the helper.
+
+    **Refactor:** I read the diff once. Nothing needed changing beyond rewording the new comment so it no longer claims that only the last token is still valid.
+
+    **What the journal changed:** nothing in the Description. The findings were code-level.
+
+    **Noticed, not touched:**
+    - The reviewer's notes on the tests are left to the tester. They are not findings and are not mine to change: `HIDDEN` and `ISSUED` are defined in both `tests/adapters/test_oauth_token.py` and `tests/entry/test_refresh_token.py` and could move to `tests/token_support.py`. The two `--once` tests could become rows of one test.
+    - A test of a secret file that is not UTF-8 would pin finding 1. None exists yet.
+    - vulture still reports `OpenUrl.__call__` in `make duplicates`. Entry 14 says it goes into the duplicates baseline at approval.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 0 gone

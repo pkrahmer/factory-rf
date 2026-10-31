@@ -51,7 +51,7 @@ class ClientCredentialsTokenSource(TokenSource):
         self._scope = scope
         self._open_url = open_url
         self._timeout = timeout
-        self._issued: set[str] = set()
+        self._issued = ""
 
     def fetch(self) -> Token:
         """Request a token; raises `TokenError` without the secret or a token in its detail."""
@@ -65,7 +65,7 @@ class ClientCredentialsTokenSource(TokenSource):
         except OSError as error:
             raise self._error(str(error)) from None
         token = self._token_of(body)
-        self._issued.add(token.value)
+        self._issued = token.value
         return token
 
     def _request(self) -> urllib.request.Request:
@@ -94,7 +94,8 @@ class ClientCredentialsTokenSource(TokenSource):
 
     def _error(self, detail: str) -> TokenError:
         # A server may echo what it was sent or gave out; neither may reach a log line.
-        return TokenError(_masked(detail, [self._client_secret, *self._issued]))
+        # Only the last token is kept, so a long-running refresher holds no growing list.
+        return TokenError(_masked(detail, [self._client_secret, self._issued]))
 
 
 def _masked(detail: str, hidden: list[str]) -> str:
