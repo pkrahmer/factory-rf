@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T20:36:29.598424Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -379,6 +375,12 @@ journal:
   kind: started
   at: '2026-10-31T20:36:29.598424Z'
   stage: doing
+- number: 67
+  speaker: coder
+  kind: result
+  at: '2026-10-31T20:43:06.876695Z'
+  stage: doing
+  run: 04971febfff24b6ebb693c477e7f73f6
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1065,3 +1067,29 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (165.2 s)
 66. factory: started doing as vm.
+67. coder: Round 1, after entry 65. I changed no code in this run. The tester's fix in entry 65 put the `token-error` row back into its tuple, and with it `make check` is green on the committed tree: `check: green`, `test: green (165.2 s)`, total coverage 99.56 %. The working tree was clean before and after the run.
+
+    **What is built** (in the branch, unchanged since entry 59):
+    - `src/factory/domain/tokens.py`: `Token`, `REFRESH_INTERVAL`, `MIN_REFRESH_INTERVAL`, `RETRY_INTERVAL`, `refresh_wait` and `masked`.
+    - `src/factory/domain/errors.py`: `TokenError`.
+    - `src/factory/application/tokens.py`: `TokenSource` (an ABC) and `TokenRefresher(source, target, write)`.
+    - `src/factory/adapters/oauth_token.py`: `ClientCredentialsTokenSource`. It uses `isdecimal()`, catches `http.client.HTTPException` in `fetch`, and has `_error_body`, which treats an error body it cannot read as no body.
+    - `src/factory/entry/refresh_token.py`: `main` and `_Refreshes`. `_Refreshes` turns a `TokenError` or any other `Exception` from one refresh into a masked line on standard error, keeps the old file and returns `None`. The loop then waits `RETRY_INTERVAL`, and `--once` exits 1.
+    - `src/factory/entry/wiring.py`: `client_credentials_source` and `build_token_refresher`.
+
+    This answers entry 54's findings 1 to 3 (and entries 50 and 52) by number. Their tests are the rows the tester added in entries 61 and 65: `expires-in-superscript` (criterion 9), `incomplete-read` and `http-error-body-unreadable` (criterion 4), and `any-other-error` × SIGTERM/SIGINT (criterion 7). The `http.client` leave in `tests/test_hosting_search.py` comes from entry 57.
+
+    **Main choice, unchanged:** the entry masks messages with its own secret and the last token it received. I rejected reading the source's issued token, because that would break the `TokenSource` interface. The adapters are also built only in `factory.entry.wiring`, because `tests/entry/test_wiring.py` forbids an entry module from importing them.
+
+    **Refactor:** I read the code diff once. Nothing needs changing.
+
+    **What the journal changed:** entry 52 adds rules to the Interface (the `HTTPException` and unreadable-body handling, `isdecimal`, and the entry's catch of any other `Exception`) and rows to criteria 4, 7 and 9. The work item is outside my write paths, so I did not rewrite it. As entry 59 records, the factory dropped my earlier edit. Those rules and rows live only in entries 52 and 54 until someone who may write the work item adds them.
+
+    **Noticed, not touched:**
+    - `masked` in `factory.domain.tokens` has no direct test. The adapter and entry tests cover it.
+    - vulture's `OpenUrl.__call__` finding is the false positive that entry 14 accepts for the duplicates baseline.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 0 gone
