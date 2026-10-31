@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T23:06:05.494442Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-31T23:06:05.494442Z'
   stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-10-31T23:12:16.551436Z'
+  stage: tests
+  run: e2141de88bb04d91a4b24db43f53b960
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -318,3 +320,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: the idle shutdown's log line still says `powering the machine off` with `exit`. The Description requires that line to stay as it is.
 19. factory: started tests as vm.
+20. tester: Tester, round 1: I wrote the test for criterion 8, the one the reviewer added (entry 16) and the coder named (entry 18). I changed nothing else.
+
+    criterion 8: tests/entry/test_run_idle_exit.py::test_run_until_stopped_ends_through_the_idle_exit_with_its_own_event
+
+    How it works: the test calls `run_until_stopped(settings, stop, hosting=hosting)` directly, with no stand-in runner. It uses minutes 1 and `exit`, the module's `on_the_manual_clock` fixture, and `_scripted` idle ticks at 0:30, 0:59, 1:00 and 1:30. It checks four things:
+    - `stop` is set.
+    - Exactly 3 ticks ran, so the tick that ends the stretch is the last one.
+    - The script is not used up.
+    - The log holds the idle-shutdown line once.
+
+    `stop` is a small local event, `_ScriptBoundEvent`, whose `wait` returns at once and never sets the event. So `stop` can only be set by the idle exit through `request_stop=event.set`, and the loop needs no real time. If the exit is missed, the script runs out and `wait` raises, so the test fails instead of looping. The `restored_signals` fixture from tests/conftest.py puts back the handlers that `run_until_stopped` installs.
+
+    Criteria 1 to 7: same tests as in entry 5. Criteria 9 and 10 (make check, docs) have no test of their own.
+
+    Files changed: tests/entry/test_run_idle_exit.py (my own module from this story; one import added, the new event class and the new test). Files created: none. Earlier tests from other stories: none changed.
+
+    Modules the test run could not import: none. The code is already in place (bb2ef5948), so the new test passes rather than failing first.
+    `make test`: test: green (165.2 s), coverage 99.56 %. `make lint`: lint: green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (163.4 s)

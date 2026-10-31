@@ -16,7 +16,7 @@ from factory.application.boundaries import Boundaries
 from factory.application.hosting import HostingService
 from factory.application.tick import Tick, TickOutcome
 from factory.domain.settings import InstanceSettings
-from factory.entry.run import main, run_instance
+from factory.entry.run import main, run_instance, run_until_stopped
 from factory.entry.wiring import machine_log
 from power_support import IDLE, OTHER
 from stage_run_support import INSTANCE
@@ -199,6 +199,42 @@ def test_main_returns_zero_after_the_idle_exit_ends_the_loop(
     assert status == 0
     assert [stop.is_set() for stop in stops] == [True]
     assert tick.runs == 1
+
+
+class _ScriptBoundEvent(threading.Event):
+    """An event whose `wait` returns at once, and fails once the script has run out."""
+
+    def __init__(self, tick: _ScriptedTick) -> None:
+        super().__init__()
+        self._tick = tick
+
+    @override
+    def wait(self, timeout: float | None = None) -> bool:
+        # A missed stop would otherwise loop on the spent script for ever.
+        if self._tick.exhausted:
+            raise AssertionError("the loop ran past the end of the script")
+        return self.is_set()
+
+
+@pytest.mark.usefixtures("on_the_manual_clock", "restored_signals")
+def test_run_until_stopped_ends_through_the_idle_exit_with_its_own_event(
+    instance_settings: InstanceSettings,
+    hosting: FakeHostingService,
+    clock: ManualClock,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    settings = instance_settings.model_copy(update={"idle_shutdown_action": "exit"})
+    tick = _scripted(
+        clock, [(0, 30, IDLE), (0, 59, IDLE), (1, 0, IDLE), (1, 30, IDLE)], monkeypatch
+    )
+    stop = _ScriptBoundEvent(tick)
+
+    run_until_stopped(settings, stop, hosting=hosting)
+
+    assert stop.is_set()
+    assert tick.runs == 3
+    assert not tick.exhausted
+    assert _log(settings).count(LINE) == 1
 
 
 @pytest.fixture
