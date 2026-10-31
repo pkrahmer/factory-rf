@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T22:03:07.225155Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -170,6 +174,11 @@ journal:
   at: '2026-10-31T22:02:46.955589Z'
   stage: tests
   run: 499654d3db8d4d98a81e3a05d8dbec76
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-10-31T22:03:07.225155Z'
+  stage: doing
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -505,3 +514,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/test_vm_setup_code_url.py::test_the_first_pass_stops_at_the_secrets_wait_without_a_clone[different] - AssertionError: assert 1 == 0
+30. factory: started doing as vm.
