@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 484
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T18:15:45.941646Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-10-31T18:15:45.941646Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-10-31T18:21:59.624763Z'
+  stage: doing
+  run: 0f57eb0a424b43cc90556714c78c9b40
 ---
 
 # The job profile stores images with the native overlay
@@ -122,3 +124,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/adapters/test_podman_runs_job_profile.py::test_a_job_runner_s_queries_carry_the_global_options[exists-fault] - AssertionError: assert [['--runtime=...exists', ...]] == [['--runtime=......
 6. factory: started doing as vm.
+7. coder: I removed the fourth word, `--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs`, from `JOB_PODMAN_OPTIONS` in `src/factory/domain/containers.py`. The tuple now holds the three words the Interface gives, in the same order. I also rewrote the comment above the constant, which said the overlay root "needs a mount program". It now says why `--storage-driver=overlay` stays: it makes podman refuse an unsuitable storage root instead of falling back to a slower driver. It also says the machine puts that root on a filesystem the kernel's own overlay accepts. No other module changed: `PodmanRuns` still puts the constant after the executable.
+
+   `make check` is green (`test: green (166.0 s)`, `check: green`). `grep -rn -e fuse-overlayfs -e mount_program src/` finds nothing.
+
+   Main choice: the comment explains the reason in its own words and cites nothing. I rejected citing `docs/decisions.md`, because the entry that names this change and its reason does not exist yet: the docs stage writes it (criterion 6), so a citation now would point at nothing.
+
+   Refactor: the diff is three lines, and nothing needed changing.
+
+   Noticed but not touched: `docs/decisions.md:1247` (*A root container profile for a managed sandbox*) still lists four options. The operator guide and `docs/project-guide/stage-environment.md` likely do too. Both are the docs stage's work under criterion 6. The journal did not change the meaning of the task, so I did not rewrite the Description.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 41 known, 0 gone
