@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T18:31:56.119016Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-31T18:31:35.962632Z'
   stage: intake
   run: b032c6603b4b4ab7959a124b35582e96
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:31:56.119016Z'
+  stage: tests
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -144,3 +153,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: both commands are runnable. The first is a Python snippet with an injected opener whose output is `tok-1 3599 600.0`. The second is `FACTORY_TOKEN_URL=` with `--once`, which gives the stderr line and `exit 2`. Neither runs pytest, so the `-q` rule does not apply. Both `Expect:` lines are checkable.
    - Architecture: the layers are right. The `Token` DTO and `refresh_wait` are domain, the `TokenSource` ABC and `TokenRefresher` are application, the urllib adapter is in adapters, and the command is in entry. `TokenSource` is an ABC with the adapter inheriting it. No new dependency, and no wrapper rule is broken, because the standard library HTTP sits in one adapter.
    - Scope: this is S0004 of F0047, the refresher only. Running it is left to S0006. It is within the feature's scope and touches nothing in its "Out of scope".
+7. factory: started tests as vm.
