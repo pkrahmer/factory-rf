@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-31T23:21:27.443930Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -161,6 +157,12 @@ journal:
   kind: started
   at: '2026-10-31T23:21:27.443930Z'
   stage: smoke-test
+- number: 28
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-31T23:21:52.129255Z'
+  stage: smoke-test
+  run: dd4a2d13216d447d8a305872f460a5d3
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -452,3 +454,29 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
 27. factory: started smoke-test as vm.
+28. smoke-tester: Smoke test, round 1. I ran both commands under `## Smoke test` from the repository root, as written and in order. Neither starts a server. I changed nothing.
+
+    Command 1 (`ProcessExit(...).power_off()`):
+
+    ```
+    Bytecode compiled 4164 files in 58ms
+    ['stop']
+    ```
+    Exit status 0. **Met** its `Expect:` line ("one line, `['stop']`"). The program printed exactly one line, `['stop']`. The `Bytecode compiled …` line comes from `uv run` on stderr, not from the command.
+
+    Command 2 (`read_settings` with the action unset, set to `exit`, and set to `stop`):
+
+    ```
+    Bytecode compiled 4164 files in 56ms
+    poweroff exit
+    FACTORY_IDLE_SHUTDOWN_ACTION: is neither poweroff nor exit
+    ```
+    Exit status 0. **Met** its `Expect:` line. There are two program lines: `poweroff exit`, and a message that names `FACTORY_IDLE_SHUTDOWN_ACTION` and `is neither poweroff nor exit`. The `uv` line is stderr again.
+
+    Acceptance criteria re-read: nothing the smoke test showed contradicts any of them.
+    - Command 1 is consistent with criterion 3: `request_stop` was called once and nothing was raised.
+    - Command 2 is consistent with criteria 1 and 2: unset gives `poweroff`, `exit` gives itself, and `stop` is refused with the Interface's message.
+
+    The smoke test does not exercise criteria 4–10 (wiring, the loop, `main`, `run_until_stopped`, `make check`, docs), so it neither confirms nor contradicts them. Those are covered by the stage's checks and the tests.
+
+    Findings: none.
