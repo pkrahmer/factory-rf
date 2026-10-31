@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T16:28:49.927822Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-10-31T16:28:49.927822Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-10-31T16:35:50.611030Z'
+  stage: tests
+  run: f089d702076a4d32a7ee868d5e501bb7
 ---
 
 # The container profile job
@@ -123,3 +125,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the setting and the option words are in the domain, `PodmanRuns` is in the adapters, and the profile is wired in the entry layer, so the layering holds.
    - Scope: the story is within F0047's scope item "FACTORY_CONTAINER_PROFILE=job" and touches nothing in "Out of scope". Its decisions 3 to 5 are the ones the story states.
 7. factory: started tests as vm.
+8. tester: I wrote the tests for criteria 1 to 8 against the Interface. They fail for the right reasons, and `make lint` is green.
+
+   - criterion 1: tests/adapters/test_podman_runs_job_profile.py::test_the_default_profile_launches_as_the_rootless_one. The new row compares a default launch with a `profile="rootless"` launch. The existing tests/adapters/test_podman_runs*.py are unchanged and still pin the old words.
+   - criterion 2: tests/domain/test_settings_container_profile.py::test_the_container_profile_is_rootless_by_default_or_job. Rows: unset, `""` and `" "` give rootless; `job` gives job; `Job`, `root` and `job now` give `SettingsInvalid(FACTORY_CONTAINER_PROFILE, …is neither rootless nor job…)`.
+   - criterion 3: tests/adapters/test_podman_runs_job_profile.py::test_a_job_launch_puts_the_global_options_first_and_runs_on_the_host_network. It checks the exact argv, the time limit (90 s plus `CONTAINER_GRACE`) and `env is None`.
+   - criterion 4: tests/adapters/test_podman_runs_job_profile.py::test_a_job_launch_maps_no_user
+   - criterion 5: tests/adapters/test_podman_runs_job_profile.py::test_a_job_runner_s_queries_carry_the_global_options. It uses the stand-in `podman` of tests/podman_support.py. Rows: version prints its line; version exit 2 is a ContainerError; image_exists exit 0 is True, exit 1 is False, exit 125 is a ContainerError. Each row checks the recorded words: the four options, then the query.
+   - criterion 6: tests/adapters/test_podman_runs_job_profile.py::test_a_job_run_reads_its_end_as_the_rootless_one. `run_process` is faked through the existing `run_process_recorder.Recorder`. Rows: 255 at the limit and after it are timed_out; 255 before it passes through as 255; 125 is podman's own fault. Each row also checks that the run's argv carries the four options.
+   - criterion 7: tests/entry/test_wiring_container_profile.py::test_the_container_adapter_gets_the_setting_s_profile. Rows: unset gives no global options before `run`; `job` gives `JOB_PODMAN_OPTIONS` before `run`. In neither row does an option appear after `run`.
+   - criterion 8: tests/adapters/test_podman_runs_job_profile.py::test_a_job_launch_refuses_no_command_or_a_mount_on_the_dataset. Rows: no command, a mount at `/work`, a mount at `/work/x`.
+   - criteria 9 and 10: no test. They cover `make check` and the docs.
+
+   Files I created: tests/domain/test_settings_container_profile.py, tests/adapters/test_podman_runs_job_profile.py and tests/entry/test_wiring_container_profile.py. I changed no earlier test file.
+
+   Run result: tests/adapters/test_podman_runs_job_profile.py fails with `TypeError: PodmanRuns.__init__() got an unexpected keyword argument 'profile'`. The settings and wiring tests cannot import `CONTAINER_PROFILE_VARIABLE` from `factory.domain.settings` or `JOB_PODMAN_OPTIONS` from `factory.domain.containers`, because neither exists yet.
+
+   My first `make test` call went to the background because I gave it the default timeout. I waited for that same run and did not run the tests again.
+
+   Left untested: what a `ContainerError`'s command text says for a job runner. No criterion names it.
+
+   `lint`: lint: green (0.2 s)
+   `test`: ERROR tests/adapters/test_podman_runs_job_profile.py::test_a_job_run_reads_its_end_as_the_rootless_one[podman-s-own-fault] - TypeError: PodmanRuns.__init__() got an unexpected keyword argument 'pro...
