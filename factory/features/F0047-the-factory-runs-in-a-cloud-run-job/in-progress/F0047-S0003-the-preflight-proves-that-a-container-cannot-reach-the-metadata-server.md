@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T17:44:04.568982Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-10-31T17:43:41.938323Z'
   stage: doing
   run: c1d331cf1791456ab4445cb9334f8b40
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-31T17:44:04.568982Z'
+  stage: tests
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -231,3 +240,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed but did not touch: `_metadata_probe` in the wiring is still typed with the concrete `PodmanRuns`, as in round 0.
 
     `check`: check: green
+15. factory: started tests as vm.
