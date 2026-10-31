@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T21:33:40.947994Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-10-31T21:33:40.947994Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-10-31T21:33:56.447571Z'
+  stage: doing
+  run: 7f262b90654843fd85226dfae39baf53
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -261,3 +263,8 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Not done yet: the Description is unchanged, because no journal entry changed the task's meaning.
 14. 2026-10-31 human: Answer: (A). The tester makes both changes in `tests/test_vm_setup_code_url.py`, which is this story's own test file: the brace in `REFUSING_GIT` escaped (`${{GIT_ASKPASS-}}`) or that part kept out of the `.format` call, and `_setup` typed so that mypy accepts it (`tuple[int | None, str, str]`, or returning the `ProcessResult`). What the tests check stays the same. End with `tests`.
 15. factory: started doing as vm.
+16. coder: Ended with `tests` because the human chose (A) in entry 14. I changed no code this round. The implementation in `vm/setup.sh` and `vm/git-credential-factory` is already on the branch from the previous doing run (entry 13).
+
+    Change for the tester, in `tests/test_vm_setup_code_url.py` only: escape the brace in `REFUSING_GIT` as `${{GIT_ASKPASS-}}` (or keep that part out of the `.format` call in `_stand_ins`), and type `_setup` so that mypy accepts it (`tuple[int | None, str, str]`, or return the `ProcessResult`). What the tests check stays the same.
+
+    Still open from entry 13, not touched: with a different `--code-url` the clone happens in the first pass. So on the second pass `cloned=no`, and older installed copies of the helper and the unit are not replaced; the script only prints its "differs from the checkout" warning.
