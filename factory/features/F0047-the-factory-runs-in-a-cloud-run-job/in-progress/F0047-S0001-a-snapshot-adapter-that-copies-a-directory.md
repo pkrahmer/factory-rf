@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T16:00:43.336177Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-10-31T16:00:22.681633Z'
   stage: review
   run: 94dab09fe25940f7851e55e1d60b9c06
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-10-31T16:00:43.336177Z'
+  stage: doing
 ---
 
 # A snapshot adapter that copies a directory
@@ -265,3 +274,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The other criteria (1–7 and 9–12) each have a matching test, and the factory's `make check` after the coder was green (entry 10). I did not judge groups 2–5 because group 1 failed.
 
     Earlier tests: none. The diff adds only new test files (all status `A`), and `tests/adapters/test_fake_snapshots.py` is unchanged.
+13. factory: started doing as vm.
