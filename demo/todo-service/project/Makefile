@@ -1,6 +1,8 @@
-# The contract between a project and the factory is three targets: `check`, `lint`, `test`.
+# The contract between a project and the factory is four targets: `check`, `lint`, `test`, `sync`.
 # `check` is what every stage must pass; `lint` and `test` are what the tests stage runs on its
-# own (the type check is skipped there, because the modules under test do not exist yet).
+# own (the type check is skipped there, because the modules under test do not exist yet); `sync`
+# brings the checkout's tools up to date, and the stage environment runs it before every agent run
+# and every check (v1.2).
 # `duplicates` and `mutants` are reports outside `check`; `openapi` writes docs/openapi.json.
 #
 # The development dependencies the targets need, pinned in pyproject.toml: ruff, mypy, semgrep,
@@ -9,7 +11,7 @@
 # pyproject.toml configures them (coverage's `source` and `fail_under`, mypy's `strict`, and
 # `[tool.mutmut]`, which copies docs/ beside the mutated source); security/semgrep holds
 # the vendored semgrep rules and .secrets.baseline the reviewed findings of detect-secrets.
-.PHONY: check lint types layers sast secrets licenses test duplicates mutants openapi
+.PHONY: check sync lint types layers sast secrets licenses test duplicates mutants openapi
 .SILENT:
 
 # What the project decides: the folder of its package, and the command that checks its layers.
@@ -28,6 +30,11 @@ green = tenths=$$(( ($$(date +%s%N) - started) / 100000000 )); echo "$@: green (
 
 check: lint types layers sast secrets licenses test
 	echo "check: green"
+
+sync:
+	$(start)
+	uv sync --frozen
+	$(green)
 
 lint:
 	$(start)

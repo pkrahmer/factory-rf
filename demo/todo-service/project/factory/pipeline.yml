@@ -6,6 +6,7 @@ project_commands:
   check: {time_limit: 10}
   lint: {time_limit: 5}
   test: {time_limit: 10}
+  sync: {time_limit: 5}  # the tools after a checkout: the stage environment runs it, no stage lists it
   duplicates: {time_limit: 5}
 roles:
   intake: {write_paths: ["{work_item}"]}
