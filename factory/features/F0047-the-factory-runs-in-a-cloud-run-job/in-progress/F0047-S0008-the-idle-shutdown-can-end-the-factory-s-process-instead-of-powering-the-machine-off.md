@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-31T23:21:27.443930Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -152,6 +156,11 @@ journal:
   at: '2026-10-31T23:21:06.726286Z'
   stage: docs
   run: b42c61df599947ca9bd79f7d31936e6b
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-10-31T23:21:27.443930Z'
+  stage: smoke-test
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -442,3 +451,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree bb5344db4737 at 2026-10-31T23:15:54Z)
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
+27. factory: started smoke-test as vm.
