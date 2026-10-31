@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T20:05:55.538871Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -284,6 +280,19 @@ journal:
   kind: started
   at: '2026-10-31T20:05:55.538871Z'
   stage: review
+- number: 50
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T20:06:42.152202Z'
+  stage: review
+  run: 2c21473ef40f41c388b5b97cdf23e1ff
+- number: 51
+  speaker: factory
+  kind: question
+  at: '2026-10-31T20:06:42.152202Z'
+  stage: review
+  run: 2c21473ef40f41c388b5b97cdf23e1ff
+  blocked: round_cap
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -807,3 +816,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 6e68cb2f2c5e at 2026-10-31T19:56:42Z)
     `duplicates`: duplicates: 1 new, 41 known, 0 gone
 49. factory: started review as vm.
+50. reviewer: Review, round 2 (the count started over at entry 36). I read the work item and `git diff main...HEAD -- . ':!factory'`. Entry 48 records `check: green` after the coder, and `duplicates: 1 new`, which is the `OpenUrl.__call__` false positive that entry 14 accepts.
+
+    Nothing under `src/` has changed since entry 46. Entry 48 answered entry 34's finding, which entry 42 had already closed. It did not answer entry 46, the latest review. So both of entry 46's security findings are still open, and I am repeating them here.
+
+    - Group 1 (acceptance criteria) passes. Criteria 1 to 10 each have a test that checks what its name says. Every Interface rule has its refused side tested.
+    - Group 2 (architecture) passes.
+    - Group 3 (security: input validated at the boundary) fails. In both findings below, an answer from the token endpoint escapes `fetch` as a raw exception instead of a `TokenError`. `_refresh` in `src/factory/entry/refresh_token.py` catches only `TokenError`, so the daemon's loop ends with a traceback. The Description says something different: "a failed request keeps the old file and tries again after a minute". I did not review groups 4 and 5.
+
+    1. `src/factory/adapters/oauth_token.py:121` (`_positive_seconds`):
+       - What is wrong: `str.isdigit()` is true for digits that `int()` refuses, such as the superscript `"²"`. So `{"access_token": "t", "expires_in": "²"}` raises an uncaught `ValueError` instead of `TokenError("the answer holds no expires_in")`.
+       - Fix: use `isdecimal()` instead (it accepts exactly the characters `int()` reads), or convert inside `try/except ValueError`.
+       - Test: the coder adds a row `expires-in-superscript` (`"²"` gives the expires_in sentence) to criterion 9 and names it for the tester. Its home is `tests/adapters/test_oauth_token.py::test_a_200_answer_needs_a_token_string_and_a_positive_life`.
+    2. `src/factory/adapters/oauth_token.py:58-67` (`fetch`) and `:129` (`_http_detail`):
+       - What is wrong: `fetch` catches only `HTTPError`, `URLError` and `OSError`. `http.client.HTTPException` is not an `OSError`, and `urlopen` lets it through. Examples:
+         - `IncompleteRead` from `response.read()` on a body that was cut short.
+         - `BadStatusLine` or `LineTooLong` from `getresponse`, which `do_open` does not wrap.
+       - `error.read()` inside the `HTTPError` handler has no `try` around it either, so an error there also leaves raw.
+       - Fix: catch `http.client.HTTPException` in `fetch` as `self._error(str(error) or type(error).__name__)`. Have `_http_detail` treat a body it cannot read (`OSError` or `HTTPException`) as no body, which gives `HTTP <code>`.
+       - Test: the coder adds two rows to criterion 4 and names them for the tester, in `tests/adapters/test_oauth_token.py::test_a_failed_fetch_is_a_token_error_without_the_secret_or_the_token`:
+         - the opener raises `http.client.IncompleteRead(b"")`;
+         - an `HTTPError` whose body raises when read.
+
+    Both fixes change `src/`, so this goes back to `doing`. The coder's next entry should answer this entry and entry 46 by number.
+
+    Earlier tests:
+    - `tests/conftest.py`: the standing leave to move a shared test helper. It only adds the `restored_signals` fixture, moved unchanged from `tests/entry/test_run.py`.
+    - `tests/entry/test_run.py`: the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
+    - `tests/test_hosting_search.py`: the human's leave, journal entry 14, answer 1. Only `factory.adapters.oauth_token` may import `urllib.request` (`ALLOWED`). The earlier rows keep their ids and still expect no importer. The new row `urllib.request-in-a-second-module` shows that a second importer is caught. The test keeps its name, and the change stays within the leave.
+51. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
