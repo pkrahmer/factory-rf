@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T21:40:38.788206Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-10-31T21:40:18.196814Z'
   stage: tests
   run: 6f90f2779ee242c2a18f85fdccc92555
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-31T21:40:38.788206Z'
+  stage: doing
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -306,3 +315,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (164.5 s)
+19. factory: started doing as vm.
