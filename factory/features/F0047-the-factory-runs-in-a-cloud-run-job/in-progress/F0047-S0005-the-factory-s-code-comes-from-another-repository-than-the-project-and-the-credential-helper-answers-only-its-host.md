@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T22:13:12.686205Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -212,6 +208,12 @@ journal:
   kind: started
   at: '2026-10-31T22:13:12.686205Z'
   stage: tests
+- number: 37
+  speaker: tester
+  kind: result
+  at: '2026-10-31T22:19:47.217285Z'
+  stage: tests
+  run: 185cf7ee9eeb43a2af575d33c95bb404
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -626,3 +628,31 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Description: the reviewer made entry 25's corrections in entry 33, and nothing since has changed what the task means. What is built is unchanged since entry 31: `vm/setup.sh` (`--code-url`, the code clone after the secrets wait in a flat `if`/`elif`) and `vm/git-credential-factory` (the host rule).
 36. factory: started tests as vm.
+37. tester: Tester, round 2: I made the test change named in the coder's entry 35, which comes from the reviewer's finding 1 in entry 33. All changes are in this story's own file, `tests/test_vm_setup_code_url.py`. No earlier test file changed and `vm/` is untouched.
+
+    What changed:
+    - New helper `_guard(lines, index)`: returns the `if` or `elif` line that a line is indented under. `vm_support.enclosing_if` returns only `if` lines, and the code clone stands under an `elif`.
+    - New helper `_compares_urls(line, variables, operator)`: checks whether the line compares the `--code-url` variable with `"$repository_url"` using that operator, in either order.
+    - `test_a_different_code_url_is_cloned_after_the_wait_without_the_askpass`: the hand-written search for some `if`/`elif` naming both urls is replaced. The code clone's own guard must now compare with `!=` and must not compare with `=`.
+    - `test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_url`: now uses `_after_the_wait` instead of repeating its search (reviewer's note). The askpass clone's guard must compare with `=` and must not compare with `!=`.
+    - New `test_the_code_url_defaults_to_the_repository_url`: there must be exactly one line assigning `$repository_url` to the code-url variable, and that line must stand under an `if` that tests the variable with `-z`.
+
+    With these, deleting the default or swapping `=` and `!=` in the two guards now fails a test. I read the regexes against `vm/setup.sh:96-98,366,370` but did not run the tests against a changed script.
+
+    Mapping:
+    - criterion 1: tests/test_git_credential_helper.py (all tests, unchanged)
+    - criterion 2: tests/test_vm_credential_helper_host.py::test_get_answers_only_a_request_for_the_project_repository_s_host
+    - criterion 3: tests/test_vm_credential_helper_host.py::test_the_ssh_url_forms_name_their_host
+    - criterion 4: tests/test_vm_credential_helper_host.py::test_any_other_operation_prints_nothing_and_succeeds_with_the_url_set
+    - criterion 5: tests/test_vm_setup_code_url.py::test_a_different_code_url_is_cloned_after_the_wait_without_the_askpass, ::test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_url and ::test_the_code_url_defaults_to_the_repository_url
+    - criterion 6: tests/test_vm_setup_code_url.py::test_a_code_repository_that_asks_for_a_credential_fails_the_clone
+    - criterion 7: tests/test_vm_setup_code_url.py::test_the_first_pass_stops_at_the_secrets_wait_without_a_clone and ::test_the_code_clone_counts_as_a_fresh_clone
+    - criterion 8: tests/test_vm_setup_code_url.py::test_the_environment_file_never_holds_the_code_url
+    - criterion 9: tests/test_vm_setup_code_url.py::test_the_usage_text_names_the_code_url_option
+    - criterion 10: tests/test_vm_credential_helper_host.py::test_the_url_s_case_user_and_port_do_not_change_its_host
+    - criterion 11: tests/test_vm_setup_code_url.py::test_the_code_clone_unsets_an_askpass_the_environment_hands_on
+
+    Files: changed tests/test_vm_setup_code_url.py; none created. Every module imported. `make test` passed (`test: green (166.1 s)`, coverage 99.56 %); the coder expected this in entry 35 because the script already behaves this way. `make lint` passed.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (164.6 s)

@@ -121,6 +121,25 @@ def _code_clone(code: str) -> tuple[list[str], int]:
     return lines, clones[0]
 
 
+def _guard(lines: list[str], index: int) -> str:
+    """The `if` or `elif` line the line at `index` is indented under, or the empty text."""
+    for line in reversed(lines[:index]):
+        if line.strip() and indent(line) < indent(lines[index]):
+            return line if line.lstrip().startswith(("if ", "elif ")) else ""
+    return ""
+
+
+def _compares_urls(line: str, variables: list[str], operator: str) -> bool:
+    """Whether the line compares a code-url variable with `$repository_url` by `operator`."""
+    code = "|".join(variables)
+    left = rf"\"\$\{{?(?:{code})\}}?\""
+    right = r"\"\$\{?repository_url\}?\""
+    return (
+        re.search(rf"{left}\s+{operator}\s+{right}", line) is not None
+        or re.search(rf"{right}\s+{operator}\s+{left}", line) is not None
+    )
+
+
 def _rest_of_block(lines: list[str], index: int) -> list[str]:
     """The lines after the one at `index`, up to the end of the top-level block it stands in."""
     rest: list[str] = []
@@ -135,39 +154,49 @@ def test_a_different_code_url_is_cloned_after_the_wait_without_the_askpass(code:
     lines, index = _code_clone(code)
     clone = lines[index]
     variables = _option_variables(code)
-    conditions = [
-        line
-        for line in lines[:index]
-        if line.lstrip().startswith(("if ", "elif "))
-        and _names(line, "repository_url")
-        and any(_names(line, variable) for variable in variables)
-    ]
 
     assert "GIT_TERMINAL_PROMPT=0" in clone
     assert "GIT_ASKPASS=" not in clone
     assert "core.askpass" not in clone.lower()
     assert not _names(clone, "repository_url")
-    assert conditions != []
+    assert _compares_urls(_guard(lines, index), variables, "!=")
+    assert not _compares_urls(_guard(lines, index), variables, "=")
 
 
 def test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_url(
     code: str,
 ) -> None:
-    checkout = step_texts(code)["checkout"]
-    waiting = checkout.find("waiting for /home/factory/.secrets/hosting-token")
-    sources = ["repository_url", *_option_variables(code)]
+    lines = _after_the_wait(code)
+    variables = _option_variables(code)
     clones = [
-        line
-        for line in checkout[waiting:].splitlines()
+        index
+        for index, line in enumerate(lines)
         if "git clone" in line
         and 'GIT_ASKPASS="$askpass"' in line
         and 'core.askPass="$askpass"' in line
         and "GIT_TERMINAL_PROMPT=0" in line
     ]
 
-    assert waiting >= 0
     assert len(clones) == 1
-    assert any(_names(clones[0], source) for source in sources)
+    assert any(_names(lines[clones[0]], source) for source in ["repository_url", *variables])
+    assert _compares_urls(_guard(lines, clones[0]), variables, "=")
+    assert not _compares_urls(_guard(lines, clones[0]), variables, "!=")
+
+
+def test_the_code_url_defaults_to_the_repository_url(code: str) -> None:
+    lines = code.splitlines()
+    variables = _option_variables(code)
+    names = "|".join(variables)
+    defaults = [
+        index
+        for index, line in enumerate(lines)
+        if re.fullmatch(rf"\s*(?:{names})=\"?\$\{{?repository_url\}}?\"?", line)
+    ]
+
+    assert variables != []
+    assert len(defaults) == 1
+    guard = _guard(lines, defaults[0])
+    assert re.search(rf"-z\s+\"\$\{{?(?:{names})\}}?\"", guard) is not None
 
 
 def test_a_code_repository_that_asks_for_a_credential_fails_the_clone(code: str) -> None:
