@@ -162,14 +162,16 @@ def _image_exists(runs: PodmanRuns) -> object:
     ],
 )
 def test_a_job_runner_s_queries_carry_the_global_options(
-    job_runs: PodmanRuns,
     podman: Podman,
+    tmp_path: Path,
     *,
     query: Callable[[PodmanRuns], object],
     arguments: list[str],
     plan: PodmanPlan,
     expected: object,
 ) -> None:
+    # The queries run podman in the workspace, so it must exist.
+    job_runs = PodmanRuns(str(podman.path), IMAGE, tmp_path, profile="job")
     podman.plan(plan)
 
     if expected is None:

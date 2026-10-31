@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T16:44:32.030338Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-10-31T16:44:32.030338Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-10-31T16:50:39.573788Z'
+  stage: tests
+  run: f74769ad5e7340f88b830873a3c65cab
 ---
 
 # The container profile job
@@ -229,3 +231,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The journal did not change what the task means, so `## Description` stays as it is.
 14. factory: started tests as vm.
+15. tester: I made the test change from the human's answer in entry 11 (option a), which the coder named in entry 13. I changed nothing else.
+
+    - Changed: `tests/adapters/test_podman_runs_job_profile.py::test_a_job_runner_s_queries_carry_the_global_options`. The test no longer takes the `job_runs` fixture. It builds its own job runner, `PodmanRuns(str(podman.path), IMAGE, tmp_path, profile="job")`, so the workspace exists. `version` and `image_exists` run podman with the workspace as their working directory, so they need one that exists. The rows and the checks are the same as before.
+    - Not changed: the `job_runs` fixture and `WORKSPACE = Path("/srv/factory/vm/work")` stay for the tests that start no process. No earlier test file changed, and I created no new files.
+    - Criteria mapping: still as in entry 8. Criterion 5 is still this test.
+    - Modules the test run could not import: none.
+
+    `make test`: test: green (167.8 s), coverage 99.57 %.
+    `make lint`: lint: green (0.2 s).
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (167.5 s)
