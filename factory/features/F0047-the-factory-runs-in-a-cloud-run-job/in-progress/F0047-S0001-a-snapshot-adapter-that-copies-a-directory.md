@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-31T16:18:10.774368Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-31T16:17:50.250025Z'
   stage: docs
   run: 14a4f374b58b470fb8006516ee71ca4d
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-31T16:18:10.774368Z'
+  stage: smoke-test
 ---
 
 # A snapshot adapter that copies a directory
@@ -415,3 +424,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 2d71a41c35f1 at 2026-10-31T16:11:22Z)
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
+23. factory: started smoke-test as vm.
