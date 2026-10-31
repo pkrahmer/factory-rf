@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T16:08:03.006206Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-31T16:08:03.006206Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-31T16:14:21.587839Z'
+  stage: doing
+  run: 79487c6115304c4d9e2e136ffa98b6ff
 ---
 
 # A snapshot adapter that copies a directory
@@ -330,3 +332,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (167.0 s)
 17. factory: started doing as vm.
+18. coder: Round 1, back from the tester. The two criteria the reviewer added (13 and 14) now have tests, and both pass against the code from entry 10 without any change. I changed no code and no test in this round.
+
+    - Criterion 13: `tests/adapters/test_copy_snapshots.py::test_an_operating_system_fault_after_the_base_is_found_is_a_reset_error_with_its_message` passes. `CopySnapshots.reset` gets past `_require_base`. Then `_clear` fails on the folder, which is a regular file, inside `_as_snapshot_error("reset", ...)` (`src/factory/adapters/copy_snapshots.py`). The error's detail is the operating system's message.
+    - Criterion 14: `tests/entry/test_wiring_copy_snapshots.py::test_a_copy_instance_with_a_base_keeps_the_workspace_and_image_faults` passes with both rows. `_copy_snapshots` checks the base and then calls `_required_workspace`. `_container_adapters` checks the stage image after that (`src/factory/entry/wiring.py`).
+
+    What I built: the paths are unchanged from entry 10: `src/factory/adapters/copy_snapshots.py`, `src/factory/adapters/fake_snapshots.py`, `src/factory/domain/settings.py`, `src/factory/application/preflight.py` and `src/factory/entry/wiring.py`.
+
+    Main choice: leave `src/` as it is. The findings asked only for tests, and those tests pass. I rejected changing the code to make the `reset`-with-a-file-base row of criterion 8 reach the `OSError` path. The Interface says a missing base, which a file base is, gives `no base at <base>`, and the tester gave criterion 13 its own test.
+
+    Refactor pass: nothing changed since entry 10's refactor pass, so there was nothing new to refactor.
+
+    The journal changed nothing in the Description beyond the reviewer's criteria 13 and 14, which are already in it.
+
+    Noticed, not touched: `changed_paths` still does not turn an `OSError` into a `SnapshotError`, because the Interface names only `reset` and `advance`.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 41 known, 0 gone
