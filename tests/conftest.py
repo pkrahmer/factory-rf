@@ -58,7 +58,7 @@ from run_process_recorder import Recorder
 from settings_support import AGENT_HOME
 from stage_run_support import INSTANCE
 from tmp_path_support import reopen
-from vm_support import setup_code
+from vm_support import EXAMPLE_VALUE, setup_code
 from wiring_support import HOSTED_URL, PODMAN_VERSION, with_dataset
 from zfs_support import DATASET, Answer, Zfs, write_zfs
 
@@ -85,6 +85,15 @@ def reopened_tmp_path(request: pytest.FixtureRequest) -> Iterator[None]:
 def code() -> str:
     """Return the setup script's text without its comment lines."""
     return setup_code()
+
+
+@pytest.fixture
+def token(tmp_path: Path) -> Path:
+    """Return a token file in `tmp_path`, readable by its owner alone."""
+    path = tmp_path / "hosting-token"
+    path.write_text(f"{EXAMPLE_VALUE}\n", encoding="utf-8")
+    path.chmod(0o600)
+    return path
 
 
 @pytest.fixture

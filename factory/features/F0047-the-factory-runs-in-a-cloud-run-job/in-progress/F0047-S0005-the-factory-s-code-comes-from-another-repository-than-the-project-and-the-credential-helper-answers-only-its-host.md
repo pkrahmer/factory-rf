@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T21:54:31.457254Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -168,6 +164,12 @@ journal:
   kind: started
   at: '2026-10-31T21:54:31.457254Z'
   stage: tests
+- number: 29
+  speaker: tester
+  kind: result
+  at: '2026-10-31T22:02:46.955589Z'
+  stage: tests
+  run: 499654d3db8d4d98a81e3a05d8dbec76
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -458,3 +460,48 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The factory left out changes outside the write paths: factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0005-the-factory-s-code-comes-from-another-repository-than-the-project-and-the-credential-helper-answers-only-its-host.md.
 28. factory: started tests as vm.
+29. tester: Tester, round 1. I made the test changes the coder's entry 27 names, following the human's answer (B) in entry 25. The code-url clone moves after the secrets wait, and a test run cannot get past that wait (it checks the real `/home/factory/.secrets/hosting-token`). So, as answer (A) of entry 9 says, the sides after the wait are tested from the script's text. The pass before the wait is tested by running it.
+
+    Changes in `tests/test_vm_setup_code_url.py` (this story's own file):
+    - Criterion 7: `test_the_first_pass_stops_at_the_secrets_wait_after_the_code_clone` is now `test_the_first_pass_stops_at_the_secrets_wait_without_a_clone`. Its rows are `different`, `equal` and `absent`, and each expects the wait message, the steps up to `checkout`, exit 0 and no call of the stand-in `git clone`.
+    - Criterion 5, `different` side: the run test `test_only_a_different_code_url_is_cloned_without_the_askpass` is replaced by the text test `test_a_different_code_url_is_cloned_after_the_wait_without_the_askpass`. After the wait in the checkout step there is exactly one `git clone` line naming the `--code-url` variable. It has `GIT_TERMINAL_PROMPT=0`, no `GIT_ASKPASS=`, no `core.askPass` and no `$repository_url`, and an earlier `if`/`elif` compares the code-url variable with `$repository_url`.
+    - Criterion 6: `test_a_code_repository_that_asks_for_a_credential_fails_the_clone` is now a text test. The clone line has `||`, then `echo "setup: checkout: cannot clone $code_url without a credential; the code repository must be readable without a token" >&2`, then `exit 1`.
+    - Criterion 11, new: `test_the_code_clone_unsets_an_askpass_the_environment_hands_on`. The clone line carries `env ... -u GIT_ASKPASS`.
+    - Criterion 7, after-the-wait side, new: `test_the_code_clone_counts_as_a_fresh_clone`. A `cloned=yes` comes after the clone line in the same top-level block, at the clone's indent or less.
+    - The stand-in that refuses a clone without a credential and the `GitCall` environment recording are removed, because no run reaches the clone any more.
+
+    Mapping:
+    - criterion 1: tests/test_git_credential_helper.py (all tests, unchanged in what they check)
+    - criterion 2: tests/test_vm_credential_helper_host.py::test_get_answers_only_a_request_for_the_project_repository_s_host
+    - criterion 3: tests/test_vm_credential_helper_host.py::test_the_ssh_url_forms_name_their_host
+    - criterion 4: tests/test_vm_credential_helper_host.py::test_any_other_operation_prints_nothing_and_succeeds_with_the_url_set
+    - criterion 5: tests/test_vm_setup_code_url.py::test_a_different_code_url_is_cloned_after_the_wait_without_the_askpass and ::test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_url
+    - criterion 6: tests/test_vm_setup_code_url.py::test_a_code_repository_that_asks_for_a_credential_fails_the_clone
+    - criterion 7: tests/test_vm_setup_code_url.py::test_the_first_pass_stops_at_the_secrets_wait_without_a_clone and ::test_the_code_clone_counts_as_a_fresh_clone
+    - criterion 8: tests/test_vm_setup_code_url.py::test_the_environment_file_never_holds_the_code_url
+    - criterion 9: tests/test_vm_setup_code_url.py::test_the_usage_text_names_the_code_url_option
+    - criterion 10: tests/test_vm_credential_helper_host.py::test_the_url_s_case_user_and_port_do_not_change_its_host
+    - criterion 11: tests/test_vm_setup_code_url.py::test_the_code_clone_unsets_an_askpass_the_environment_hands_on
+
+    Finding 3 of entry 22, under the standing leave for shared test helpers:
+    - `HELPER` and `EXAMPLE_VALUE` moved to `tests/vm_support.py`, which already holds `ROOT` and `SYSTEM_PATH`.
+    - The `token` fixture moved to `tests/conftest.py`. It writes `example-value\n`, as the earlier test's fixture did.
+    - Earlier test file changed: `tests/test_git_credential_helper.py`. It now imports `EXAMPLE_VALUE`, `HELPER` and `SYSTEM_PATH` from `vm_support` and uses the shared `token` fixture. Every test keeps its name and checks the same thing.
+    - `tests/test_vm_credential_helper_host.py` (this story's own file) changed the same way. Its token file now ends in a newline, like the earlier one; the expected `password=example-value` is unchanged.
+
+    Files changed: tests/test_vm_setup_code_url.py, tests/test_vm_credential_helper_host.py, tests/test_git_credential_helper.py, tests/conftest.py, tests/vm_support.py. No files created.
+
+    `make test`: these five tests fail on purpose until the clone moves, and nothing else failed:
+    - test_a_different_code_url_is_cloned_after_the_wait_without_the_askpass, test_a_code_repository_that_asks_for_a_credential_fails_the_clone, test_the_code_clone_unsets_an_askpass_the_environment_hands_on and test_the_code_clone_counts_as_a_fresh_clone each fail with `assert 0 == 1`: no code-url clone after the wait yet.
+    - test_the_first_pass_stops_at_the_secrets_wait_without_a_clone[different] fails with `assert 1 == 0`: the clone still runs before the wait.
+
+    No module failed to import. `make lint` is green.
+
+    Check against a mock-up: I applied a draft of the moved clone to `vm/setup.sh` in the working tree, ran `tests/test_vm_setup_code_url.py` (11 passed), and copied the original back. `vm/setup.sh` is unchanged. In that draft the askpass clone and the code clone sat in an inner `if`/`else`, and two rows of the earlier `tests/test_vm_setup_text.py::test_the_checkout_files_are_installed_only_in_the_run_that_cloned` failed. The reason: `_clone_variables` takes the first clone's own `if` branch and expects `cloned=` in it. The coder already notes this in entry 27. Laying the branches out with `cloned=yes` inside each one (for example `if [ ! -d ... ] && [ same ]; then ...; cloned=yes; elif [ ! -d ... ]; then ...; cloned=yes; fi`) satisfies both files.
+
+    Note: the factory left out the coder's rewrite of the Description in entry 27, so the work item's Interface and criterion 7 still read as before the answer. These tests follow the answer in entry 25.
+
+    The factory left out changes outside the write paths: vm/setup.sh.
+
+    `lint`: lint: green (0.2 s)
+    `test`: FAILED tests/test_vm_setup_code_url.py::test_the_first_pass_stops_at_the_secrets_wait_without_a_clone[different] - AssertionError: assert 1 == 0

@@ -1,12 +1,11 @@
 """The setup script's option `--code-url`: the factory's code cloned without a credential."""
 
 import re
-from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
 
-from vm_support import REQUIRED, STEPS, SYSTEM_PATH, run_setup, step_texts
+from vm_support import REQUIRED, STEPS, SYSTEM_PATH, indent, run_setup, step_texts
 
 PROJECT_URL = REQUIRED[REQUIRED.index("--repository-url") + 1]
 CODE_URL = "https://code.example.invalid/factory.git"
@@ -15,34 +14,14 @@ WAITING = (
     "setup: checkout: waiting for /home/factory/.secrets/hosting-token;"
     " place the secrets and run this script again"
 )
-NO_CREDENTIAL = (
-    f"setup: checkout: cannot clone {CODE_URL} without a credential;"
-    " the code repository must be readable without a token"
-)
 STEPS_TO_CHECKOUT = list(STEPS[: STEPS.index("checkout") + 1])
 QUIET = "#!/bin/sh\nexit 0\n"
 RECORDING_GIT = """#!/bin/sh
 {{
   echo call
   for word in "$@"; do printf 'arg %s\\n' "$word"; done
-  env | while IFS= read -r line; do printf 'env %s\\n' "$line"; done
 }} >> {log}
 """
-REFUSING_GIT = (
-    RECORDING_GIT
-    + """offered=no
-case "$*" in
-  *core.askPass*|*core.askpass*) offered=yes ;;
-esac
-if [ -n "${{GIT_ASKPASS-}}" ]; then
-  offered=yes
-fi
-if [ "$offered" = no ]; then
-  echo "fatal: could not read Username: terminal prompts disabled" >&2
-  exit 128
-fi
-"""
-)
 # runuser runs only git for real: every other command it is given would write as factory.
 RUNUSER = """#!/bin/sh
 for word in "$@"; do
@@ -53,14 +32,6 @@ for word in "$@"; do
 done
 exit 0
 """
-
-
-@dataclass(frozen=True)
-class GitCall:
-    """One call of the stand-in git: its words and its environment."""
-
-    words: list[str]
-    environment: dict[str, str]
 
 
 def _write(path: Path, text: str) -> None:
@@ -94,24 +65,11 @@ def _stand_ins(tmp_path: Path, git: str) -> Path:
     return folder
 
 
-def _git_calls(tmp_path: Path) -> list[GitCall]:
+def _clones(tmp_path: Path) -> int:
     log = tmp_path / "git.log"
     if not log.exists():
-        return []
-    calls: list[GitCall] = []
-    for line in log.read_text(encoding="utf-8").splitlines():
-        if line == "call":
-            calls.append(GitCall([], {}))
-        elif line.startswith("arg "):
-            calls[-1].words.append(line.removeprefix("arg "))
-        elif line.startswith("env ") and "=" in line:
-            name, _, value = line.removeprefix("env ").partition("=")
-            calls[-1].environment[name] = value
-    return calls
-
-
-def _clones(tmp_path: Path) -> list[GitCall]:
-    return [call for call in _git_calls(tmp_path) if "clone" in call.words]
+        return 0
+    return log.read_text(encoding="utf-8").splitlines().count("arg clone")
 
 
 def _setup(tmp_path: Path, git: str, words: list[str]) -> tuple[int | None, str, str]:
@@ -122,11 +80,6 @@ def _setup(tmp_path: Path, git: str, words: list[str]) -> tuple[int | None, str,
         path=f"{folder}:{SYSTEM_PATH}",
     )
     return result.exit_status, result.stdout, result.stderr
-
-
-def _offers_askpass(call: GitCall) -> bool:
-    texts = [*call.words, *call.environment.values()]
-    return "GIT_ASKPASS" in call.environment or any("core.askpass" in t.lower() for t in texts)
 
 
 def _option_variables(code: str) -> list[str]:
@@ -147,31 +100,54 @@ def _step_names(stdout: str) -> list[str]:
     return names
 
 
-@pytest.mark.parametrize(
-    ("words", "different"),
-    [
-        pytest.param(["--code-url", CODE_URL], True, id="different"),
-        pytest.param(["--code-url", PROJECT_URL], False, id="equal"),
-        pytest.param([], False, id="absent"),
-    ],
-)
-def test_only_a_different_code_url_is_cloned_without_the_askpass(
-    tmp_path: Path, words: list[str], *, different: bool
-) -> None:
-    status, _, stderr = _setup(tmp_path, RECORDING_GIT, words)
+def _after_the_wait(code: str) -> list[str]:
+    checkout = step_texts(code)["checkout"]
+    waiting = checkout.find("waiting for /home/factory/.secrets/hosting-token")
+    assert waiting >= 0
+    return checkout[waiting:].splitlines()
 
-    assert status == 0, stderr
-    clones = _clones(tmp_path)
-    if different:
-        assert len(clones) == 1
-        clone = clones[0]
-        after = clone.words[clone.words.index("clone") + 1 :]
-        assert CODE_URL in after
-        assert PROJECT_URL not in after
-        assert clone.environment.get("GIT_TERMINAL_PROMPT") == "0"
-        assert not _offers_askpass(clone)
-    else:
-        assert clones == []
+
+def _code_clone(code: str) -> tuple[list[str], int]:
+    """The checkout step's lines after the wait, and the index of the one clone of the code url."""
+    lines = _after_the_wait(code)
+    variables = _option_variables(code)
+    assert variables != []
+    clones = [
+        index
+        for index, line in enumerate(lines)
+        if "git clone" in line and any(_names(line, variable) for variable in variables)
+    ]
+    assert len(clones) == 1
+    return lines, clones[0]
+
+
+def _rest_of_block(lines: list[str], index: int) -> list[str]:
+    """The lines after the one at `index`, up to the end of the top-level block it stands in."""
+    rest: list[str] = []
+    for line in lines[index + 1 :]:
+        if line.strip() and indent(line) == 0:
+            break
+        rest.append(line)
+    return rest
+
+
+def test_a_different_code_url_is_cloned_after_the_wait_without_the_askpass(code: str) -> None:
+    lines, index = _code_clone(code)
+    clone = lines[index]
+    variables = _option_variables(code)
+    conditions = [
+        line
+        for line in lines[:index]
+        if line.lstrip().startswith(("if ", "elif "))
+        and _names(line, "repository_url")
+        and any(_names(line, variable) for variable in variables)
+    ]
+
+    assert "GIT_TERMINAL_PROMPT=0" in clone
+    assert "GIT_ASKPASS=" not in clone
+    assert "core.askpass" not in clone.lower()
+    assert not _names(clone, "repository_url")
+    assert conditions != []
 
 
 def test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_url(
@@ -194,31 +170,56 @@ def test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_ur
     assert any(_names(clones[0], source) for source in sources)
 
 
-def test_a_code_repository_that_asks_for_a_credential_fails_the_clone(tmp_path: Path) -> None:
-    status, stdout, stderr = _setup(tmp_path, REFUSING_GIT, ["--code-url", CODE_URL])
+def test_a_code_repository_that_asks_for_a_credential_fails_the_clone(code: str) -> None:
+    lines, index = _code_clone(code)
+    variable = "|".join(_option_variables(code))
+    message = re.compile(
+        rf"echo \"setup: checkout: cannot clone \$\{{?(?:{variable})\}}? without a credential;"
+        r" the code repository must be readable without a token\" >&2"
+    )
+    after = lines[index:]
+    failing = next((i for i, line in enumerate(after) if message.search(line)), None)
 
-    assert status == 1
-    assert NO_CREDENTIAL in stderr.splitlines()
-    assert WAITING not in stdout
-    assert len(_clones(tmp_path)) == 1
+    assert failing is not None
+    assert "||" in lines[index]
+    assert any(line.strip() == "exit 1" for line in after[failing + 1 : failing + 3])
+
+
+def test_the_code_clone_unsets_an_askpass_the_environment_hands_on(code: str) -> None:
+    lines, index = _code_clone(code)
+    clone = lines[index]
+
+    assert re.search(r"(?<![\w-])env\s+(?:-\S+\s+)*-u\s+GIT_ASKPASS(?!\w)", clone) is not None
+
+
+def test_the_code_clone_counts_as_a_fresh_clone(code: str) -> None:
+    lines, index = _code_clone(code)
+    later = [
+        line
+        for line in _rest_of_block(lines, index)
+        if line.strip() == "cloned=yes" and indent(line) <= indent(lines[index])
+    ]
+
+    assert later != []
 
 
 @pytest.mark.parametrize(
-    ("words", "clones"),
+    "words",
     [
-        pytest.param(["--code-url", CODE_URL], 1, id="different"),
-        pytest.param([], 0, id="absent"),
+        pytest.param(["--code-url", CODE_URL], id="different"),
+        pytest.param(["--code-url", PROJECT_URL], id="equal"),
+        pytest.param([], id="absent"),
     ],
 )
-def test_the_first_pass_stops_at_the_secrets_wait_after_the_code_clone(
-    tmp_path: Path, words: list[str], clones: int
+def test_the_first_pass_stops_at_the_secrets_wait_without_a_clone(
+    tmp_path: Path, words: list[str]
 ) -> None:
     status, stdout, stderr = _setup(tmp_path, RECORDING_GIT, words)
 
     assert status == 0, stderr
     assert stdout.splitlines()[-1] == WAITING
     assert _step_names(stdout) == STEPS_TO_CHECKOUT
-    assert len(_clones(tmp_path)) == clones
+    assert _clones(tmp_path) == 0
 
 
 def test_the_environment_file_never_holds_the_code_url(code: str) -> None:

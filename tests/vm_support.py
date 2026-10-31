@@ -10,6 +10,8 @@ ROOT = Path(__file__).parent.parent
 SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 SETUP = ROOT / "vm" / "setup.sh"
 SERVICE = ROOT / "vm" / "factory.service"
+HELPER = ROOT / "vm" / "git-credential-factory"
+EXAMPLE_VALUE = "example-value"
 STEPS = (
     "packages",
     "pool",

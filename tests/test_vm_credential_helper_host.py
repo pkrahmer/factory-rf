@@ -5,23 +5,11 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from vm_support import EXAMPLE_VALUE, HELPER, SYSTEM_PATH
 
-ROOT = Path(__file__).parent.parent
-HELPER = ROOT / "vm" / "git-credential-factory"
-SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
-EXAMPLE_VALUE = "example-value"
 PROJECT_URL = "https://git.example.invalid/o/r.git"
 PROJECT_HOST = "git.example.invalid"
 ANSWER = ["username=x-access-token", f"password={EXAMPLE_VALUE}"]
-
-
-@pytest.fixture
-def token(tmp_path: Path) -> Path:
-    """Return a token file in `tmp_path`, readable by its owner alone."""
-    path = tmp_path / "hosting-token"
-    path.write_text(EXAMPLE_VALUE, encoding="utf-8")
-    path.chmod(0o600)
-    return path
 
 
 def _helper(
