@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T16:58:56.840111Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-10-31T16:58:36.446026Z'
   stage: review
   run: 6a227d976290456f8ab1063bf2195300
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-10-31T16:58:56.840111Z'
+  stage: doing
 ---
 
 # The container profile job
@@ -291,3 +300,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     2. `src/factory/domain/settings.py` `_container_profile` (added after `_snapshots`): it copies `_snapshots` (same file, just above it) line for line, with only the variable, the tuple of names and the default changed. `_agent_runtime` is a third copy of the same loop, with a different fault text. Fix: the coder writes one generic private reader for a setting that must be one of a tuple of names, for example `_one_of(environ, variable, names, fault) -> T`, where the first name is the default for unset or blank. `_snapshots` and `_container_profile` both use it, and `_agent_runtime` too if it passes its own fault.
 
     Earlier tests: no test file that `main` already holds was changed, renamed or deleted (`git diff --name-status`: every test file has status `A`), so no leave was needed.
+20. factory: started doing as vm.
