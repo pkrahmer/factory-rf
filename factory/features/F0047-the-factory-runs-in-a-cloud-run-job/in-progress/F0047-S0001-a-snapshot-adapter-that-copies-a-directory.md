@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 481
-comments_read: []
+comments_read: [6545517612]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 06e4182a36874f048ca3ad07e187ce5e
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-31T15:40:24.131159Z'
+  stage: intake
 ---
 
 # A snapshot adapter that copies a directory
@@ -118,3 +123,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    6. Criterion 8 names only a base that is a file, which gives the `OSError` for `reset`. The Interface also gives `advance` its own `OSError` to `SnapshotError` rule. Is a second row for `advance` wanted, for example with a read-only or unreadable folder? I would add it with the operation name `advance`.
 
    Checked and fine: the smoke test commands are runnable and neither runs pytest. The `Expect:` lines are checkable. The architecture is right: domain settings, adapters, application preflight, entry wiring. The scope matches the feature's S0001.
+4. 2026-10-31 human: Answers to question 3:
+
+   2. Add the criterion: with `copy`, no base and also no workspace (and a second row with no stage image), `build_boundaries` raises `SettingsInvalid` naming `FACTORY_SNAPSHOT_BASE`. Keep "first" in the Interface.
+   3. Yes: criterion 4 becomes rows of one parametrized test, the base inside, equal to and holding each of the workspace, the checkout and the state directory, each a `ValidationError`, plus one accepted base that overlaps none.
+   4. The model validator refuses `snapshots="zfs"` with a `snapshot_base` too, with a `ValidationError`, the same rule as `read_settings`. Add it as a row of criterion 4.
+   5. A base that exists but is a file fails with its own sentence, `the base <b> is not a directory`; "does not exist" would mislead the operator. Change the Interface's `snapshots_item` line accordingly and add the row to criterion 10. The same for a workspace that is a file, which already has `is not a directory`.
+   6. Yes, a row for `advance` with the operation name `advance`. Make the fault independent of the user the tests run as (a check container may run them as root, where a read-only folder is still writable): a base whose parent path is a regular file, so the copy raises `NotADirectoryError`.
