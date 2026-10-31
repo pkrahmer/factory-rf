@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T21:00:49.716963Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -434,6 +430,12 @@ journal:
   kind: started
   at: '2026-10-31T21:00:49.716963Z'
   stage: review
+- number: 77
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T21:01:59.364436Z'
+  stage: review
+  run: c0b469c76a9c49ef906ea26cd4ed6211
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1228,3 +1230,39 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 0 gone
 76. factory: started review as vm.
+77. reviewer: Review, round 2 (the count started over at entry 52). I read the work item and `git diff main...HEAD -- . ':!factory'`. Entry 75 records `check: green` after the coder (coverage 99.56 %). It also records `duplicates: 1 new`, which is the `OpenUrl.__call__` false positive that entry 14 accepts. Since entry 52, the review sends the story back only for a criterion without a test or a test that fails.
+
+    no findings
+
+    - Group 1 (acceptance criteria) passes. I checked criteria 1 to 10 one by one against the tests:
+      - criterion 1: `tests/domain/test_tokens.py::test_the_wait_is_the_interval_or_half_a_short_life_and_at_least_the_floor`, six rows.
+      - criterion 2: `::test_a_token_needs_a_value_without_whitespace_and_a_positive_life`, refusing blank, space, newline, 0 and -1, and accepting 1.
+      - criterion 3: `tests/adapters/test_oauth_token.py::test_a_fetch_posts_the_four_fields_form_encoded_and_returns_the_token` and `::test_open_url_receives_the_timeout`.
+      - criterion 4: `::test_a_failed_fetch_is_a_token_error_without_the_secret_or_the_token`, every row the criterion names.
+      - criterion 5: the three tests in `tests/application/test_tokens.py`.
+      - criterion 6: the four tests in `tests/entry/test_refresh_token.py`. Entry 69's extension is now the `any-other-error` row of `test_once_with_a_failing_source_keeps_the_file_and_exits_1`, beside `token-error`.
+      - criterion 7: the two loop tests, SIGTERM and SIGINT, with the `token-error` and `any-other-error` failure rows.
+      - criterion 8: `test_the_secret_and_the_token_appear_in_no_output_error_or_environment`.
+      - criterion 9: `test_a_200_answer_needs_a_token_string_and_a_positive_life`, with `expires-in-superscript` and both sides of 1.
+      - criterion 10: the `not-utf-8` row of `test_an_unreadable_or_blank_secret_file_exits_2`.
+    - Group 2 (architecture) passes. The domain module is pure, `TokenSource` is an ABC, and the adapters are imported only in `factory.entry.wiring`. Entry 14 and entry 57 allow `factory.adapters.oauth_token` to import `urllib.request` and `http.client`.
+    - Group 3 (security) passes. The secret is read from the file through `read_input` and never placed in the environment. Every error detail is masked and raised `from None`. There is no silencing marker in `src/`.
+    - Group 4 (quality) passes. `_stop_on_signal` reuses `install_stop_handlers` from `factory.entry.run`, and there is no other getsignal/restore helper in `src/factory`. `masked` lives once, in `factory.domain.tokens`.
+    - Group 5 (work item hygiene) passes. The Description, the Interface and the smoke test match the code: `TokenRefresher(source, target, replace_text)`, and the opener is called with `timeout=` as a keyword, which the smoke snippet accepts. Criterion 12 (docs) still describes what the reader must know.
+
+    Notes (entry 52: edge cases go here, and none of them sends the story back):
+    - `src/factory/entry/refresh_token.py:121-132` (`_stop_on_signal`): the Interface says `main` restores the previous `SIGTERM` and `SIGINT` handlers before it returns. No test checks this. Every loop test runs under the `restored_signals` fixture, which restores them anyway. A test that compares `signal.getsignal` before and after `main` would pin it.
+    - `src/factory/entry/refresh_token.py:76-83` (`_Refreshes.run`): the rule that `KeyboardInterrupt` and `SystemExit` are not caught has no test. It holds by construction (`except Exception`).
+    - Carried from entry 69:
+      - `tests/adapters/test_oauth_token.py:72,113`: the `incomplete-read` row computes its expected detail with the code's own expression.
+      - `src/factory/domain/tokens.py:31` (`masked`) has no direct test.
+      - `tests/test_hosting_search.py:27-28`: the names `SECOND` and `SECOND_CLIENT` do not say which import each one adds.
+
+    Earlier tests:
+    - `tests/conftest.py`: changed under the standing leave to move a shared test helper. It only adds the `restored_signals` fixture, moved unchanged from `tests/entry/test_run.py`.
+    - `tests/entry/test_run.py`: changed under the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
+    - `tests/test_hosting_search.py`: changed under the human's leave, journal entries 14 (answer 1) and 57.
+      - `ALLOWED` lets `factory.adapters.oauth_token` alone import `urllib.request` and `http.client`.
+      - Every earlier row keeps its id and still expects no importer.
+      - The rows `urllib.request-in-a-second-module` and `http.client-in-a-second-module` show that a second importer is caught.
+      - The test keeps its name, and the change stays within the leave.
