@@ -12,6 +12,7 @@ The factory runs on a VM with ZFS and rootless Podman. A managed sandbox such as
 - `python -m factory.entry.refresh_token`: client-credentials token into the login file, atomically, before it expires (S0004).
 - The credential helper's host check and `vm/setup.sh --code-url`: the factory's code from one repository, the project from another (S0005).
 - `vm/job-start.sh` and the operator guide's chapter *On Cloud Run*: first boot installs the tools, builds the stage image, blocks the metadata server, starts the refresher and `factory-run` (S0006).
+- The opencode runtime's lockdown with a company provider: `enabled_providers` and three environment switches (S0007).
 
 ## Out of scope
 
@@ -20,6 +21,7 @@ The factory runs on a VM with ZFS and rootless Podman. A managed sandbox such as
 - A pre-built stage image pushed to a registry (the push is unresolved in the sandbox); the image is built at start-up.
 - Rootless mode, `--userns=keep-id`, slirp4netns, pasta and a bridge network in the job profile: none works in the sandbox.
 - A base URL for the hosting client (GitHub Enterprise on github.com needs none), a hosting-token refresher, and any change to the Claude Code runtime or the records contract.
+- A fork of opencode: a company fork of opencode was read on 2026-10-31 (`planning/cloud-sandbox/`); its login is an interactive browser flow and its hardening lives on a newer line, so the factory keeps upstream opencode 1.19.3 and sets upstream's own switches (S0007).
 - Any company value in this repository, a test or a document: tests and documents use `example.invalid` and made-up ids.
 
 ## Stories
@@ -32,6 +34,7 @@ The build order; start one at a time, the next when the one before is archived i
 - S0004: A refresher keeps a bearer token in the login file
 - S0005: The factory's code comes from another repository than the project, and the credential helper answers only its host
 - S0006: One script turns a bare job into a running instance
+- S0007: The opencode runtime limits what opencode may load and contact when it uses a company provider
 
 ## The human's changes
 
@@ -51,3 +54,5 @@ None. Checked against `factory/pipeline.yml`: the coder writes `src/*`, `templat
 10. The start script installs Debian's packages by name, not by exact version: a mirror keeps only the current version, so a pin would break the next start. runc comes from the upstream release with its published SHA-256 (S0006).
 11. Everything lives in memory: the job's size must hold the checkout, the base copy, the engine's image layers and the stage image (about 16 GiB for the factory's own repository). The operator guide says so and gives the measured numbers (S0001, S0006).
 12. A model with price 0 (an on-prem model) makes the per-run budget inert: opencode reports cost 0. The time limit is then the only bound. The operator guide says so (S0006).
+13. The factory's own hardening of opencode stays small: the container is the boundary (no credentials in its environment, the metadata block, `--cap-drop=all`, the proxy's allow-list, the take). A URL guard on `webfetch` is not added: the shipped agents have no `webfetch` tool (S0007).
+14. With a provider file opencode may load only that provider, fetch no public model list, not update itself and load no default plugin. These switches depend on the provider file because without it opencode needs its public model list; the check that opencode contacts nothing else at start is a probe in the sandbox, not a story (S0007).

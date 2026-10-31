@@ -1,0 +1,46 @@
+# The opencode runtime limits what opencode may load and contact when it uses a company provider
+
+## Description
+
+With a provider file (F0046-S0001) opencode runs against the company's model API, but it still loads its whole catalogue of providers, fetches the public model list at start, may update itself and loads its default plugins. A company build of opencode closes those doors (a provider allowlist, no traffic to the vendor, no updater); the factory runs upstream opencode, which has switches for the same, and does not set them. This story sets them, only when a provider file is given, so that the VM path and every run without the file are unchanged. With the file the per-run configuration gains `enabled_providers` (only the file's provider id), `disabled_providers` is not written, and the call's environment gains `OPENCODE_DISABLE_MODELS_FETCH=1`, `OPENCODE_DISABLE_AUTOUPDATE=1` and `OPENCODE_DISABLE_DEFAULT_PLUGINS=1`. The provider file already defines the models, so no fetch is needed. Unchanged: the default configuration and environment (byte for byte), the Claude Code runtime, the login shell, the preflight. Left out: an opencode that reads a model file offline (not needed) and the check of what opencode contacts at start, which a probe in the sandbox makes (see the feature's decision 14).
+
+## Interface
+
+`factory.adapters.opencode_runtime` (adapters):
+
+- `LOCKDOWN_SWITCHES: dict[str, str]` = `{"OPENCODE_DISABLE_MODELS_FETCH": "1", "OPENCODE_DISABLE_AUTOUPDATE": "1", "OPENCODE_DISABLE_DEFAULT_PLUGINS": "1"}`.
+- `_provider_keys` (the provider file's keys) gives, besides `provider` and `small_model`, the key `enabled_providers` with the one id `[<provider id>]`; without a provider file it gives `{}` as today. (`provider_configuration` in `factory.domain.opencode_provider` stays as it is; the runtime adds the key.)
+- `runtime_environment` of a call is `{OPENCODE_CONFIG: <path>, **SWITCHES, **LOCKDOWN_SWITCHES}` when a provider file is set and `{OPENCODE_CONFIG: <path>, **SWITCHES}` otherwise. The same dictionary is used on the host and in a container (`run_environment`, `container_launch`), and by every call of one run, the budget resume included.
+- A request environment entry with the name of a lockdown switch is overridden by the runtime's value (the runtime's switches come last, as `SWITCHES` do today).
+
+Tests (the tester writes them): `tests/adapters/test_opencode_runtime_lockdown.py` (through `tests/adapters/opencode_stand_in.py`, which records the environment and the configuration file of each call). The existing opencode runtime tests pass unchanged.
+
+## Acceptance criteria
+
+1. Without a provider file the configuration file of a run and the environment of its call are exactly those of before this story (a row comparing both with the existing expectations; no key `enabled_providers`, none of the three switches).
+2. With a provider file whose provider id is `corp` the configuration file holds `"enabled_providers": ["corp"]` beside `provider`, `small_model`, `autoupdate`, `share`, `snapshot` and `agent`, and no key `disabled_providers`; with the id `corp-1` it holds `["corp-1"]`.
+3. With a provider file the call's environment holds the three switches with the value `1`, plus `OPENCODE_CONFIG` and `PYTHONDONTWRITEBYTECODE`, and nothing else the runtime did not set before; rows for a call on the host and a call in a container (the `--env` words of the launch).
+4. A request environment that sets `OPENCODE_DISABLE_MODELS_FETCH=0` is overridden: the call's value is `1` with a provider file and `0` without one (the runtime does not touch what it does not own).
+5. A budget resume after a first call stopped by its budget carries the same switches and the same configuration as the first call.
+6. A provider file that is refused (an unknown key) still ends the run with `AgentRuntimeError` before any file is written, as before (no configuration file and no stand-in call).
+7. `make check` stays green.
+8. docs: `docs/operator-guide.md`, *A company's provider*: a paragraph *What opencode may load and contact*: the allowlist key, the three switches and why they depend on the provider file (without it opencode needs its public model list), and that a deployment that must prove no traffic to the vendor reads the proxy's log or runs the startup probe of `planning/cloud-sandbox/`. `docs/project-guide/agents.md`, *The opencode runtime*: the keys and the switches. `docs/decisions.md`: an entry *opencode loads and contacts only what the company provider needs*, from the feature's decision 14. `README.md`: none.
+
+## Smoke test
+
+```bash
+uv run python -c "
+from factory.adapters.opencode_runtime import LOCKDOWN_SWITCHES
+print(sorted(LOCKDOWN_SWITCHES))
+"
+```
+Expect: one line, `['OPENCODE_DISABLE_AUTOUPDATE', 'OPENCODE_DISABLE_DEFAULT_PLUGINS', 'OPENCODE_DISABLE_MODELS_FETCH']`
+
+```bash
+uv run pytest tests/adapters/test_opencode_runtime_lockdown.py 2>&1 | tail -1
+```
+Expect: a final pytest line that says `passed` and does not say `failed` or `error`
+
+## Journal
+
+Empty in the backlog. The factory writes entry 1 when the story starts.
