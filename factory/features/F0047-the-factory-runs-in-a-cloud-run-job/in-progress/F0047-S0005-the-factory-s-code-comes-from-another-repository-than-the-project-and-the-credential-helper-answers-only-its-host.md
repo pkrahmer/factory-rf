@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T22:20:07.702611Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -223,6 +219,12 @@ journal:
   kind: started
   at: '2026-10-31T22:20:07.702611Z'
   stage: doing
+- number: 39
+  speaker: coder
+  kind: result
+  at: '2026-10-31T22:26:29.265257Z'
+  stage: doing
+  run: 22f4fecf570642a6b1a6f5fa20f3970c
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -666,3 +668,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (164.6 s)
 38. factory: started doing as vm.
+39. coder: Coder, round 2: no code change. The reviewer's finding 1 (entry 33) was a test change. The tester made it in entry 37: guard rows for the `=` and `!=` clones, and `test_the_code_url_defaults_to_the_repository_url`. The script already passes those rows: `vm/setup.sh:96-98` sets the default, and `vm/setup.sh:366,370` holds the guarded branches. I ran `make check` in this round against the new tests: `test: green (164.4 s)`, coverage 99.56 %, `check: green`. The working tree is clean.
+
+    What is built, unchanged since entry 31:
+    - `vm/setup.sh`: `--code-url`, defaulting to `--repository-url`. A different code url is cloned after the secrets wait in a flat `if`/`elif` branch with `env -u GIT_ASKPASS GIT_TERMINAL_PROMPT=0` and no `core.askPass`. A failed clone prints the credential message and exits 1, and the branch sets `cloned=yes`.
+    - `vm/git-credential-factory`: the host rule. With `FACTORY_REPOSITORY_URL` set, the helper answers only a request whose `host=` matches that URL's host, both lower-cased with user and port removed.
+
+    Main choice (from entry 31): flat `if`/`elif` branches, each with its own `cloned=yes`. I rejected an inner `if`/`else`, because it breaks `tests/test_vm_setup_text.py`'s `_clone_variables`.
+
+    Refactor pass: I read the diff again and nothing needs changing.
+
+    Description: the reviewer corrected it in entry 33, and nothing since has changed what the task means.
+
+    Noticed, not touched: changing `--code-url` on a machine that already has a checkout does not re-clone. Changing `--repository-url` behaves the same way today.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 1 gone
