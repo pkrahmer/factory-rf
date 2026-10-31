@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 484
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-31T18:23:29.733095Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-10-31T18:23:09.254795Z'
   stage: review
   run: 7b8b41d48791440cafd2fbaab92f4350
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:23:29.733095Z'
+  stage: docs
 ---
 
 # The job profile stores images with the native overlay
@@ -165,3 +174,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Earlier tests:
    - `tests/adapters/test_podman_runs_job_profile.py`: changed under the story's own leave, which the human wrote into the Interface (`JOB_WORDS` and every expectation built on it hold the three words). Two edits did that: `JOB_WORDS` now holds three words, and the slice `argv[1:5]` became `argv[1 : 1 + len(JOB_WORDS)]`. Beyond that the file only gains `MOUNT_PROGRAM_WORDS`, three helpers and a new test (no leave needed); every earlier test keeps its name and what it checks.
+10. factory: started docs as vm.
