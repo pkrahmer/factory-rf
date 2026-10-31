@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T17:15:51.595393Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-10-31T17:15:51.595393Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T17:16:29.630522Z'
+  stage: review
+  run: fc797306969d4ff3ae06a5d9e6233b3c
 ---
 
 # The container profile job
@@ -381,3 +383,35 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 0 gone
 26. factory: started review as vm.
+27. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`: 4 files under `src/`, 3 new test files, and 2 earlier test files changed. Both findings from entry 19 are fixed.
+
+    - Finding 2 is fixed. `src/factory/domain/settings.py` now has one reader, `_one_of[T: str]`. `_snapshots`, `_container_profile` and `_agent_runtime` all call it. Their defaults and fault texts are the same as before.
+    - Finding 1 is fixed. The copied `recorder` fixture now lives once in `tests/conftest.py` as `podman_recorder`. Both podman test modules use it.
+
+    Group 1 (criteria) passes:
+    - Criterion 1: the default launch is compared with a `profile="rootless"` launch. The earlier `test_podman_runs*.py` tests keep their names and what they check.
+    - Criterion 2: the rows are unset, empty, blank, `job`, `Job`, `root` and `job now`.
+    - Criterion 3: the test checks the exact argv, the limit plus `CONTAINER_GRACE`, and that `env` is `None`.
+    - Criterion 4: the test checks that neither `--userns=keep-id` nor `--user` is in the words.
+    - Criterion 5: both queries are tested on the stand-in podman over `tmp_path`. The rows are exit 0, exit 1 and a fault. Each row checks the recorded words.
+    - Criterion 6: exit 255 is tested at 90 s, 91 s and 89 s, which covers both sides of the limit, and 125 too.
+    - Criterion 7: the wiring is tested with the setting unset and with `job`.
+    - Criterion 8: the rows are no command, `/work` and `/work/x`.
+    - Entry 25 records `check: green` and `duplicates: 0 new`.
+
+    Group 2 (architecture) passes. `JOB_PODMAN_OPTIONS` and `ContainerProfileName` are in `factory.domain`. The adapter imports only from the domain, and the profile is wired only in `factory.entry.wiring`.
+
+    Group 3 (security) passes. There is no secret, no command built from a string and no new silencing marker. The `# noqa: PT011` in the new test is a ruff style rule, as at `tests/adapters/test_podman_runs.py:134`, not a security check.
+
+    Group 4 (quality) passes:
+    - `_podman()` puts the global options in front in `launch`, `_query` and `_command`.
+    - `_isolation_words` has a comment that says why.
+    - The docstrings now name both profiles.
+
+    Group 5 (work item) passes. The journal states the main choice (one class whose profile picks the options and the isolation words) and what was rejected (a subclass that would copy `launch`). The Description and the docs criterion match what was built.
+
+    no findings
+
+    Earlier tests:
+    - `tests/adapters/test_podman_runs_results.py`: changed under the standing leave to move a shared test helper. Only its local `recorder` fixture and the `podman_runs` import that went with it were removed. Its tests now take `podman_recorder`, keep their names and check the same things.
+    - `tests/conftest.py`: changed under the same leave. It only adds the shared `podman_recorder` fixture and the `podman_runs` import it needs.
