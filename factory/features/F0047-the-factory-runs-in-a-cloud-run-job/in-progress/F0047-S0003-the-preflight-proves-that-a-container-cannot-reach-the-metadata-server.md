@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T17:39:08.390504Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-10-31T17:39:08.390504Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T17:39:49.228456Z'
+  stage: review
+  run: 62346ef7291c44aca11a76bea9b03fa8
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -188,3 +190,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. Checks 1 to 3 pass. Acceptance criteria: criteria 1 to 5 each have a test that checks what it is named after, and criterion 3's twelve rows are rows of one parametrized test. Every rule in the Interface has its failing side tested: the HTTP codes, `timed_out`, a missing line, `2000` and `ContainerError`. The coder's entry 10 reports `make check` green. Architecture: the constants are in domain, the item is in application and the run's arguments are in entry wiring. Security: nothing to report. Check 4, Quality, fails: four second copies of existing helpers.
+
+    1. src/factory/application/preflight.py:234 `_last_line`: its comprehension `[line.strip() for line in output.splitlines() if line.strip()]` is a second copy of `printed_lines` in src/factory/adapters/printed_output.py:7. The application layer cannot import adapters. Fix: move `printed_lines` down to a domain module, have `factory.adapters.printed_output` and `metadata_block_item` both use it, and drop the copy.
+    2. tests/entry/test_wiring_metadata_block.py:16-40: the `environment` fixture and `_settings` are copies of the ones in tests/entry/test_wiring_container_extras.py:15-41; the fixture is also in tests/entry/test_wiring_copy_snapshots.py:26-29. Fix: the tester moves them to `tests/wiring_support.py` (or the fixture to a conftest) under the standing leave and uses them from there.
+    3. tests/entry/test_wiring_metadata_block.py:96-97: `[words] = [... if "run" in call.arguments]` and `words[words.index(IMAGE) + 1 :]` redo `run_words` and `after_image` of tests/wiring_support.py:85-93. Fix: use those two helpers.
+    4. tests/entry/test_wiring_metadata_block.py:77 `_value_of` is a copy of `_after` in tests/adapters/test_claude_runtime_container.py:79. Fix: the tester moves it to a shared support module under the standing leave and both tests use it.
+
+    Group 5 (work item hygiene) was not reached.
+
+    Earlier tests: none. Both test files the diff touches are new (`A`), and no test file `main` already holds was changed.
