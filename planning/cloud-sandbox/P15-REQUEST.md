@@ -67,7 +67,7 @@ The probe is changed for a second run: step 3 runs the check's seven targets wit
 1. `git pull --ff-only`, read the probe's step 3 once more.
 2. Run it exactly as the first time.
 3. Keep the first run's log as `results/p15-stage-image-and-check-run1.txt`; write the new log to `results/p15-stage-image-and-check.txt`, masked as before.
-4. In the P15 section of `capabilities.md`, add a part *Second run*: each of the seven targets' lines; for `secrets`, the places it flagged (they should be exactly the four above); for `test`, pytest's summary line and every failed test with its `E` lines. Say in one sentence which failures look like the root question (a test that expects a file to be unreadable, unwritable or not owned by the user running it). Keep the first run's part as it is.
+4. In the P15 section of `capabilities.md`, add a part *Second run*: each of the seven targets' lines; for `secrets`, green since commit bf28a27b3, which records those places as false positives in `.secrets.baseline` (if it is still red, the places it flagged); for `test`, pytest's summary line and every failed test with its `E` lines. Say in one sentence which failures look like the root question (a test that expects a file to be unreadable, unwritable or not owned by the user running it). Keep the first run's part as it is.
 5. Write a short answer under *Response (second run)* below, commit the two result files, `capabilities.md` and this file with the message `planning: cloud sandbox: P15 second run, the suite as root in a job`, stage only those, push to `main`.
 
 The same rules bind.
