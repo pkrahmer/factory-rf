@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-31T22:29:48.738186Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -247,6 +251,11 @@ journal:
   at: '2026-10-31T22:29:27.617056Z'
   stage: docs
   run: ff995d2032f346b2bc6446e4f5774bae
+- number: 44
+  speaker: factory
+  kind: started
+  at: '2026-10-31T22:29:48.738186Z'
+  stage: smoke-test
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -773,3 +782,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 374869fe0c07 at 2026-10-31T22:23:33Z)
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
+44. factory: started smoke-test as vm.
