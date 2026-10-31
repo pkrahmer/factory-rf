@@ -341,18 +341,6 @@ fi
 echo "setup: image-id: $(said "found $base/image-id")"
 
 changes=
-# Only a fresh clone holds the remote's text before the service ever ran, so only then are
-# files of the checkout installed as root.
-cloned=no
-# Code from a repository apart from the project is cloned without any credential, so the
-# project's token never reaches the code's host; it needs no token and so no wait for one.
-if [ "$code_url" != "$repository_url" ] && [ ! -d "$checkout/.git" ]; then
-  as_factory env -u GIT_ASKPASS GIT_TERMINAL_PROMPT=0 git clone --quiet --branch "$ref" "$code_url" "$checkout" || {
-    echo "setup: checkout: cannot clone $code_url without a credential; the code repository must be readable without a token" >&2
-    exit 1
-  }
-  cloned=yes
-fi
 if [ ! -f /home/factory/.secrets/hosting-token ]; then
   echo "setup: checkout: waiting for /home/factory/.secrets/hosting-token; place the secrets and run this script again"
   exit 0
@@ -370,8 +358,20 @@ if ! unchanged "$askpass"; then
   changed "wrote $askpass"
 fi
 # Root's git refuses a repository another user owns, so the clone writes its own askPass.
-if [ ! -d "$checkout/.git" ]; then
+# Only a fresh clone holds the remote's text before the service ever ran, so only then are
+# files of the checkout installed as root.
+# Code from a repository apart from the project is cloned without any credential, so the
+# project's token never reaches the code's host.
+cloned=no
+if [ ! -d "$checkout/.git" ] && [ "$code_url" = "$repository_url" ]; then
   as_factory GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 git clone -q --branch "$ref" --config core.askPass="$askpass" "$repository_url" "$checkout"
+  cloned=yes
+  changed "cloned $ref into $checkout"
+elif [ ! -d "$checkout/.git" ] && [ "$code_url" != "$repository_url" ]; then
+  as_factory env -u GIT_ASKPASS GIT_TERMINAL_PROMPT=0 git clone --quiet --branch "$ref" "$code_url" "$checkout" || {
+    echo "setup: checkout: cannot clone $code_url without a credential; the code repository must be readable without a token" >&2
+    exit 1
+  }
   cloned=yes
   changed "cloned $ref into $checkout"
 fi

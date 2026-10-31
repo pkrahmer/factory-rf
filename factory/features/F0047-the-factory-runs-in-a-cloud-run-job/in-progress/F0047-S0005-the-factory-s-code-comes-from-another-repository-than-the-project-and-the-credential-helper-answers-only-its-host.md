@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T22:03:07.225155Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -179,6 +175,12 @@ journal:
   kind: started
   at: '2026-10-31T22:03:07.225155Z'
   stage: doing
+- number: 31
+  speaker: coder
+  kind: result
+  at: '2026-10-31T22:09:56.698679Z'
+  stage: doing
+  run: ca0e41efb4284885a86fcbb70ecc3eed
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -515,3 +517,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/test_vm_setup_code_url.py::test_the_first_pass_stops_at_the_secrets_wait_without_a_clone[different] - AssertionError: assert 1 == 0
 30. factory: started doing as vm.
+31. coder: Round 1: I moved the code-url clone after the wait for the secrets, as the human's answer (B) in entry 25 says. The tester's tests from entry 29 now pass, and `make check` is green (`test: green (164.8 s)`, coverage 99.56 %, `check: green`).
+
+    What I built:
+    - `vm/setup.sh`, checkout step:
+      - The clone before the wait is gone. `cloned=no` is back where it stood on `main`, after the askpass is written.
+      - The clone is now one `if`/`elif`, with `cloned=yes` and `changed "cloned $ref into $checkout"` in each branch:
+        - `if [ ! -d "$checkout/.git" ] && [ "$code_url" = "$repository_url" ]` runs today's askpass clone of `$repository_url`, unchanged.
+        - `elif [ ! -d "$checkout/.git" ] && [ "$code_url" != "$repository_url" ]` runs `as_factory env -u GIT_ASKPASS GIT_TERMINAL_PROMPT=0 git clone --quiet --branch "$ref" "$code_url" "$checkout" || { echo "setup: checkout: cannot clone $code_url without a credential; ..." >&2; exit 1; }`.
+      - Both clones now run in the same pass as the installs of the helper and the unit. That settles the reviewer's finding 2 (entry 22) the way the human chose.
+    - `vm/git-credential-factory`: unchanged since entry 13 (the host rule).
+
+    Main choice: the two clones are flat `if`/`elif` branches, the askpass clone first, each with its own `cloned=yes`. I did it this way because `tests/test_vm_setup_text.py` reads the first `git clone` line of the checkout step as the askpass clone, and needs that line's own `if` branch to hold `cloned=` (`_clone_variables`, `ORDERED_COMMANDS`, the `GIT_ASKPASS=` row). The tests for criteria 5, 6, 7 and 11 also need the code clone under an `if`/`elif` that names both urls. I rejected an inner `if`/`else` under one `[ ! -d ]` test, because the tester's trial in entry 29 showed it breaks `_clone_variables`. The code clone writes the same "cloned" report line as today's clone, so the step's output does not change.
+
+    Refactor pass: I read the diff and changed nothing. The `elif`'s repeated `[ ! -d ]` test stays, because it keeps each branch's condition explicit.
+
+    Description: I did not rewrite it. The work item is outside my write paths: the factory dropped the rewrite I made in entry 27 (see the notes in entries 27 and 29). So the Interface bullet "That clone happens before the wait" and criterion 7 still describe the old order. Entry 25 changed both: the clone of a different `--code-url` happens after the wait for the secrets, and the first pass stops at the wait without cloning. The code and the tests follow entry 25.
+
+    Noticed, not touched: on a machine that already has a checkout, changing `--code-url` later does not re-clone. That is the same as changing `--repository-url` today.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 1 gone
