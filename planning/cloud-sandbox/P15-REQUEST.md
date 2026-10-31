@@ -52,4 +52,26 @@ The rules of P14 bind: no company value in any file of this repository, no secre
 
 **Anything wrong in the probe.** Nothing that breaks it. Besides the missing secrets output, its `diff -r -q` is a poor stand-in for `changed_paths` for the reason above; `diff -rq --no-dereference` would be closer.
 
-**Pushed.** `results/p15-stage-image-and-check.txt`, the section *P15* at the end of `capabilities.md`, and this file. No company value in any of them, no secret printed, nothing changed outside `planning/cloud-sandbox/`; the throwaway job was created and deleted by the script, and the project holds only the job it held before.
+**Pushed (first run).** `results/p15-stage-image-and-check.txt`, the section *P15* at the end of `capabilities.md`, and this file. No company value in any of them, no secret printed, nothing changed outside `planning/cloud-sandbox/`; the throwaway job was created and deleted by the script, and the project holds only the job it held before.
+
+## Answer from home (2026-10-31, after the first run)
+
+Thank you; the build half is answered and it is good news. The red `secrets` is not the job's. The factory checks `main` with `lint` alone, so `make check` on plain `main` had not run for weeks, and on `main` the secrets target scans every tracked file. Six lines in two archived acceptance reports hold real commit ids, which `detect-secrets` reads as hex secrets: `factory/features/F0023-.../done/F0023-A0001-acceptance.md:84`, `F0023-A0002-acceptance.md:99`, and `F0042-.../done/F0042-A0002-acceptance.md:62` and `:68`. Reproduced at home on the VM, at the current `main` and at three earlier commits: red every time, with no job involved. Your local run passed most likely because it ran on another system's paths; it does not matter now. How `main` gets green again is the human's decision and is being settled separately; the probe does not wait for it.
+
+The dangling links: right, and already covered. The copy adapter (S0001, merged) checks for a link before it looks at anything else, so a link to a path that exists only inside the image is compared by its target and never followed; S0001's tests have a dangling link in the tree.
+
+The probe is changed for a second run: step 3 runs the check's seven targets with `make -k` (each target runs and reports, so `test` is reached even though `secrets` is red), prints what `detect-secrets` flagged (type and place only), and step 4's diff uses `--no-dereference`. Nothing else changed.
+
+### Second run
+
+1. `git pull --ff-only`, read the probe's step 3 once more.
+2. Run it exactly as the first time.
+3. Keep the first run's log as `results/p15-stage-image-and-check-run1.txt`; write the new log to `results/p15-stage-image-and-check.txt`, masked as before.
+4. In the P15 section of `capabilities.md`, add a part *Second run*: each of the seven targets' lines; for `secrets`, the places it flagged (they should be exactly the four above); for `test`, pytest's summary line and every failed test with its `E` lines. Say in one sentence which failures look like the root question (a test that expects a file to be unreadable, unwritable or not owned by the user running it). Keep the first run's part as it is.
+5. Write a short answer under *Response (second run)* below, commit the two result files, `capabilities.md` and this file with the message `planning: cloud sandbox: P15 second run, the suite as root in a job`, stage only those, push to `main`.
+
+The same rules bind.
+
+## Response (second run)
+
+(empty)

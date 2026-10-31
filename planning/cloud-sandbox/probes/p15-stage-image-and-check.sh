@@ -66,9 +66,13 @@ echo "make sync exit $rc after $(since $s)"; grep -v -i "level=warning" /tmp/syn
 du -sh /srv/work 2>/dev/null
 if [ $rc -eq 0 ]; then
   s=$(date +%s)
-  timeout 840 $RUN --timeout 840 factory-stage:probe make check > /tmp/check.log 2>&1; rc=$?
-  echo "make check exit $rc after $(since $s)"
+  # `make -k` with the check's targets one by one: on plain main `secrets` is red by itself (commit ids
+  # in two archived acceptance reports, found at home after the first run), so `make check` would stop
+  # before `test`, which is the question here. -k runs every target and reports each.
+  timeout 840 $RUN --timeout 840 factory-stage:probe make -k lint types layers sast secrets licenses test > /tmp/check.log 2>&1; rc=$?
+  echo "make -k (the check's seven targets) exit $rc after $(since $s)"
   echo "--- every target's last line:"; grep -E "^[a-z]+: (green|red)|^check: green|Error|make: \*\*\*" /tmp/check.log | head -20 | cut -c1-200
+  echo "--- what detect-secrets flagged (type and place only):"; grep -E "Secret Type|Location" /tmp/check.log | head -12 | cut -c1-200
   echo "--- pytest's summary:"; grep -E "passed|failed|error" /tmp/check.log | tail -3 | cut -c1-240
   echo "--- the failed tests and their E lines (first 60 lines):"
   grep -E "^FAILED|^ERROR|^E  |^tests/.*:[0-9]+: " /tmp/check.log | head -60 | cut -c1-240
@@ -79,10 +83,10 @@ step "4: the copy snapshots of S0001 on the synced tree (reset is a copy into an
 echo "tree: $(du -sh /srv/work | cut -f1), files $(find /srv/work -type f | wc -l)"
 s=$(date +%s); cp -a /srv/work /srv/base; echo "copy (advance): $(since $s)"
 s=$(date +%s); find /srv/work -mindepth 1 -delete; cp -a /srv/base/. /srv/work/; echo "empty and copy back (reset): $(since $s)"
-s=$(date +%s); diff -r -q /srv/base /srv/work > /dev/null; rc=$?; echo "diff of the two trees (changed_paths' cost, roughly): $(since $s), exit $rc"
+s=$(date +%s); diff -r -q --no-dereference /srv/base /srv/work > /dev/null; rc=$?; echo "diff of the two trees (changed_paths' cost, roughly): $(since $s), exit $rc"
 s=$(date +%s); rsync -a --delete /srv/base/ /srv/work/; echo "rsync of an unchanged tree: $(since $s)"
 mem
 
 echo; echo "total $(since $t0)"
-echo "VERDICT: S0006 can build its image at start if step 2's build exit is 0 (its time is the start's longest part), and the factory's checks run in the job if step 3's make check exit is 0. Failures in step 3 that pass on the VM are the root-in-container question of F0047 decision 3 (tests that expect a file to be unreadable or unwritable). A step-2 failure on an apt version is vm/Dockerfile's pinned Debian versions against a mirror that keeps only the current one."
+echo "VERDICT: S0006 can build its image at start if step 2's build exit is 0 (its time is the start's longest part), and the factory's checks run in the job if step 3's targets are green except `secrets` (red on plain main by itself; it should list only the two acceptance reports of F0023 and F0042). Failures of `test` in step 3 that pass on the VM are the root-in-container question of F0047 decision 3 (tests that expect a file to be unreadable or unwritable). A step-2 failure on an apt version is vm/Dockerfile's pinned Debian versions against a mirror that keeps only the current one."
 echo "PROBE DONE"
