@@ -1,10 +1,10 @@
 == creating probe-stage-image (docker.io/library/debian:trixie-slim, 8 cpu, 32Gi, gen2)
-== execution probe-stage-image-7xc2l
-== final state: [	1		2026-10-31T16:10:49.849880Z] (running, succeeded, failed, completion)
-Execution completed successfully in 6m57.98s.
+== execution probe-stage-image-jb6bv
+== final state: [	1		2026-10-31T16:53:10.460487Z] (running, succeeded, failed, completion)
+Execution completed successfully in 17m26.66s.
 ##### 0: the job
-cpus 9
-MemTotal: 32094 MiB  MemAvailable: 31155 MiB  Shmem: 335 MiB  
+cpus 10
+MemTotal: 32094 MiB  MemAvailable: 31086 MiB  Shmem: 335 MiB  
 none             32G  335M   32G   2% /
 apt: done.
 $ podman --version
@@ -29,11 +29,11 @@ $ podman --runtime=runc --cgroup-manager=cgroupfs --storage-driver=overlay --sto
 runtime runc at /usr/local/bin/runc, storage overlay, cgroups v1
 [exit 0]
 ##### 2: the stage image from a fresh clone of factory-rf (public, no credential)
-clone exit 0 after 3 s
-code at fb5f979ab
-build exit 0 after 169 s
+clone exit 0 after 6 s
+code at aefe4513e
+build exit 0 after 199 s
 $ podman --runtime=runc --cgroup-manager=cgroupfs --storage-driver=overlay --storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs image inspect factory-stage:probe --format 'image size {{.Size}} bytes'
-image size 2371193789 bytes
+image size 2371193788 bytes
 [exit 0]
 $ podman --runtime=runc --cgroup-manager=cgroupfs --storage-driver=overlay --storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs run --rm --network=host --http-proxy=false --cap-drop=all --security-opt=no-new-privileges factory-stage:probe sh -c 'git --version; make --version | head -1; uv --version; node --version; claude --version; opencode --version; id'
 git version 2.39.5
@@ -44,7 +44,7 @@ v18.20.4
 1.19.3
 uid=0(root) gid=0(root) groups=0(root)
 [exit 0]
-MemTotal: 32094 MiB  MemAvailable: 28738 MiB  Shmem: 2725 MiB  
+MemTotal: 32094 MiB  MemAvailable: 28636 MiB  Shmem: 2725 MiB  
 none             32G  2.7G   30G   9% /
 ##### 3: make sync and make check in containers of the image, the factory's words (S0002), as the job's root
 make sync exit 0 after 8 s
@@ -53,255 +53,32 @@ make sync exit 0 after 8 s
  + zipp==4.1.1
 sync: green (7.4 s)
 992M	/srv/work
-make check exit 2 after 134 s
+make -k (the check's seven targets) exit 0 after 736 s
 --- every target's last line:
-lint: green (0.4 s)
-types: green (11.7 s)
-layers: green (0.3 s)
-sast: green (5.0 s)
-make: *** [Makefile:60: secrets] Error 1
+lint: green (0.5 s)
+types: green (12.6 s)
+layers: green (0.4 s)
+sast: green (5.4 s)
+secrets: green (113.7 s)
+licenses: green (0.5 s)
+test: green (601.2 s)
+--- what detect-secrets flagged (type and place only):
 --- pytest's summary:
 All checks passed!
 --- the failed tests and their E lines (first 60 lines):
-ERROR: Potential secrets about to be committed to git repo!
 --- the memory the run left:
-MemTotal: 32094 MiB  MemAvailable: 27698 MiB  Shmem: 3737 MiB  
+MemTotal: 32094 MiB  MemAvailable: 27694 MiB  Shmem: 3739 MiB  
 none             32G  3.7G   29G  12% /
 ##### 4: the copy snapshots of S0001 on the synced tree (reset is a copy into an emptied folder)
-tree: 1012M, files 19030
-copy (advance): 1 s
-empty and copy back (reset): 2 s
-diff: /srv/base/checkout/.venv/bin/python: No such file or directory
-diff: /srv/work/checkout/.venv/bin/python: No such file or directory
-diff: /srv/base/checkout/.venv/bin/python3: No such file or directory
-diff: /srv/work/checkout/.venv/bin/python3: No such file or directory
-diff: /srv/base/checkout/.venv/bin/python3.12: No such file or directory
-diff: /srv/work/checkout/.venv/bin/python3.12: No such file or directory
-diff: /srv/base/home/.cache/uv/sdists-v9/editable/36a89a675e91be96/atYaob832HUPuOJpG2FKC/factory-0.1.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/sdists-v9/editable/36a89a675e91be96/atYaob832HUPuOJpG2FKC/factory-0.1.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/annotated-types/0.8.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/annotated-types/0.8.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/anyio/4.15.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/anyio/4.15.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/ast-serialize/0.13.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/ast-serialize/0.13.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/astroid/4.3.4-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/astroid/4.3.4-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/attrs/26.1.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/attrs/26.1.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/bandit/1.9.4-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/bandit/1.9.4-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/boltons/21.0.0-py2.py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/boltons/21.0.0-py2.py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/bracex/3.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/bracex/3.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/certifi/2026.7.22-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/certifi/2026.7.22-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/cffi/2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/cffi/2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/charset-normalizer/3.5.2-00b06ae7f1096870: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/charset-normalizer/3.5.2-00b06ae7f1096870: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/click/8.4.2-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/click/8.4.2-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/click-option-group/0.5.9-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/click-option-group/0.5.9-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/colorama/0.4.6-py2.py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/colorama/0.4.6-py2.py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/coverage/7.16.2-0583393a640fcf78: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/coverage/7.16.2-0583393a640fcf78: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/cryptography/50.0.2-cp311-abi3-manylinux_2_34_x86_64: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/cryptography/50.0.2-cp311-abi3-manylinux_2_34_x86_64: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/detect-secrets/1.5.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/detect-secrets/1.5.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/dill/0.4.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/dill/0.4.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/editables/0.6-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/editables/0.6-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/exceptiongroup/1.2.2-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/exceptiongroup/1.2.2-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/execnet/2.1.2-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/execnet/2.1.2-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/face/26.0.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/face/26.0.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/glom/25.12.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/glom/25.12.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/googleapis-common-protos/1.75.5-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/googleapis-common-protos/1.75.5-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/grimp/3.17-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/grimp/3.17-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/h11/0.16.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/h11/0.16.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/hatchling/1.32.4-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/hatchling/1.32.4-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/httpcore/1.0.9-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/httpcore/1.0.9-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/httpx/0.28.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/httpx/0.28.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/httpx-sse/0.4.3-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/httpx-sse/0.4.3-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/idna/3.20-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/idna/3.20-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/import-linter/2.15-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/import-linter/2.15-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/importlib-metadata/8.7.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/importlib-metadata/8.7.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/iniconfig/2.3.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/iniconfig/2.3.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/isort/9.0.2-00b06ae7f1096870: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/isort/9.0.2-00b06ae7f1096870: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/jsonschema/4.25.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/jsonschema/4.25.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/jsonschema-specifications/2025.9.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/jsonschema-specifications/2025.9.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/libcst/1.9.0-cp312-cp312-manylinux_2_28_x86_64: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/libcst/1.9.0-cp312-cp312-manylinux_2_28_x86_64: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/librt/0.16.0-00b06ae7f1096870: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/librt/0.16.0-00b06ae7f1096870: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/linkify-it-py/2.2.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/linkify-it-py/2.2.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/markdown-it-py/4.2.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/markdown-it-py/4.2.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/mccabe/0.7.0-py2.py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/mccabe/0.7.0-py2.py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/mcp/1.29.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/mcp/1.29.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/mdit-py-plugins/0.6.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/mdit-py-plugins/0.6.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/mdurl/0.1.2-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/mdurl/0.1.2-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/mutmut/3.8.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/mutmut/3.8.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/mypy/2.4.0-00b06ae7f1096870: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/mypy/2.4.0-00b06ae7f1096870: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/mypy-extensions/1.1.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/mypy-extensions/1.1.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/opentelemetry-api/1.37.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/opentelemetry-api/1.37.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/opentelemetry-exporter-otlp-proto-common/1.37.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/opentelemetry-exporter-otlp-proto-common/1.37.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/opentelemetry-exporter-otlp-proto-http/1.37.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/opentelemetry-exporter-otlp-proto-http/1.37.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/opentelemetry-instrumentation/0.58b0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/opentelemetry-instrumentation/0.58b0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/opentelemetry-instrumentation-requests/0.58b0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/opentelemetry-instrumentation-requests/0.58b0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/opentelemetry-instrumentation-threading/0.58b0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/opentelemetry-instrumentation-threading/0.58b0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/opentelemetry-proto/1.37.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/opentelemetry-proto/1.37.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/opentelemetry-sdk/1.37.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/opentelemetry-sdk/1.37.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/opentelemetry-semantic-conventions/0.58b0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/opentelemetry-semantic-conventions/0.58b0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/opentelemetry-util-http/0.58b0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/opentelemetry-util-http/0.58b0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/packaging/26.3-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/packaging/26.3-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pathspec/1.1.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pathspec/1.1.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/peewee/3.19.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/peewee/3.19.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pip-licenses/5.5.5-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pip-licenses/5.5.5-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/platformdirs/4.13.3-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/platformdirs/4.13.3-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pluggy/1.6.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pluggy/1.6.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pluggy/1.7.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pluggy/1.7.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/prettytable/3.18.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/prettytable/3.18.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/protobuf/6.33.6-cp39-abi3-manylinux2014_x86_64: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/protobuf/6.33.6-cp39-abi3-manylinux2014_x86_64: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pycparser/3.11-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pycparser/3.11-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pydantic/2.14.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pydantic/2.14.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pydantic-core/2.50.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pydantic-core/2.50.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pydantic-settings/2.15.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pydantic-settings/2.15.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pygithub/2.10.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pygithub/2.10.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pygments/2.21.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pygments/2.21.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pyjwt/2.15.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pyjwt/2.15.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pylint/4.1.3-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pylint/4.1.3-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pynacl/1.6.2-cp38-abi3-manylinux_2_34_x86_64: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pynacl/1.6.2-cp38-abi3-manylinux_2_34_x86_64: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pytest/9.1.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pytest/9.1.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pytest-cov/7.1.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pytest-cov/7.1.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pytest-xdist/3.8.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pytest-xdist/3.8.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/python-dotenv/1.2.4-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/python-dotenv/1.2.4-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/python-frontmatter/1.3.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/python-frontmatter/1.3.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/python-multipart/0.0.32-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/python-multipart/0.0.32-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/pyyaml/6.0.3-00b06ae7f1096870: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/pyyaml/6.0.3-00b06ae7f1096870: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/referencing/0.37.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/referencing/0.37.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/requests/2.34.2-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/requests/2.34.2-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/rich/15.0.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/rich/15.0.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/rpds-py/2026.9.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/rpds-py/2026.9.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/ruamel-yaml/0.19.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/ruamel-yaml/0.19.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/ruamel-yaml-clib/0.2.15-00b06ae7f1096870: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/ruamel-yaml-clib/0.2.15-00b06ae7f1096870: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/ruff/0.17.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/ruff/0.17.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/semantic-version/2.10.0-py2.py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/semantic-version/2.10.0-py2.py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/semgrep/1.180.0-4ea413cbc7b0ca71: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/semgrep/1.180.0-4ea413cbc7b0ca71: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/setproctitle/1.3.8-0583393a640fcf78: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/setproctitle/1.3.8-0583393a640fcf78: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/sse-starlette/3.5.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/sse-starlette/3.5.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/starlette/1.7.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/starlette/1.7.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/stevedore/5.9.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/stevedore/5.9.1-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/textual/8.2.8-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/textual/8.2.8-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/tomli/2.4.1-00b06ae7f1096870: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/tomli/2.4.1-00b06ae7f1096870: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/tomlkit/0.15.2-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/tomlkit/0.15.2-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/trove-classifiers/2026.9.21.13-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/trove-classifiers/2026.9.21.13-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/typing-extensions/4.16.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/typing-extensions/4.16.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/typing-inspection/0.4.4-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/typing-inspection/0.4.4-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/urllib3/2.8.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/urllib3/2.8.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/uvicorn/0.54.0-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/uvicorn/0.54.0-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/vulture/2.16-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/vulture/2.16-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/wcmatch/8.5.2-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/wcmatch/8.5.2-py3-none-any: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/wcwidth/0.9.2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/wcwidth/0.9.2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/wrapt/1.17.3-0583393a640fcf78: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/wrapt/1.17.3-0583393a640fcf78: No such file or directory
-diff: /srv/base/home/.cache/uv/wheels-v5/pypi/zipp/4.1.1-py3-none-any: No such file or directory
-diff: /srv/work/home/.cache/uv/wheels-v5/pypi/zipp/4.1.1-py3-none-any: No such file or directory
-diff of the two trees (changed_paths' cost, roughly): 1 s, exit 2
-rsync of an unchanged tree: 1 s
-MemTotal: 32094 MiB  MemAvailable: 26676 MiB  Shmem: 4749 MiB  
+tree: 1015M, files 19039
+copy (advance): 2 s
+empty and copy back (reset): 3 s
+diff of the two trees (changed_paths' cost, roughly): 1 s, exit 0
+rsync of an unchanged tree: 0 s
+MemTotal: 32094 MiB  MemAvailable: 26670 MiB  Shmem: 4753 MiB  
 none             32G  4.7G   28G  15% /
-total 322 s
-VERDICT: S0006 can build its image at start if step 2's build exit is 0 (its time is the start's longest part), and the factory's checks run in the job if step 3's make check exit is 0. Failures in step 3 that pass on the VM are the root-in-container question of F0047 decision 3 (tests that expect a file to be unreadable or unwritable). A step-2 failure on an apt version is vm/Dockerfile's pinned Debian versions against a mirror that keeps only the current one.
+total 959 s
+/tmp/probe.sh: 1: secrets: not found
+VERDICT: S0006 can build its image at start if step 2's build exit is 0 (its time is the start's longest part), and the factory's checks run in the job if step 3's targets are green except  (red on plain main by itself; it should list only the two acceptance reports of F0023 and F0042). Failures of  in step 3 that pass on the VM are the root-in-container question of F0047 decision 3 (tests that expect a file to be unreadable or unwritable). A step-2 failure on an apt version is vm/Dockerfile's pinned Debian versions against a mirror that keeps only the current one.
 PROBE DONE
 Container called exit(0).

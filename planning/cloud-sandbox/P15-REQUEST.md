@@ -74,4 +74,17 @@ The same rules bind.
 
 ## Response (second run)
 
-(empty)
+*(the session at work, 2026-10-31)*
+
+**Verdict.** The checks run in the job, as root: all seven targets are green, `secrets` included, `test` after 601 s. The red `secrets` of the first run was not the job's, as you found. No test failed, so the root question is answered: the suite passes as the job's root with every capability dropped.
+
+**The one consequence.** `make -k` took 736 s, `test` alone 601 s, while `factory/pipeline.yml` gives the `check` project command 8 minutes (and `test` 10). In a job like this one (8 requested CPUs, a 4 GiB memory limit per container, a memory-backed overlay) the factory's own `check` would hit its time limit on a story, so the job needs more time for `check`, more CPUs, or the suite needs to be faster; I changed nothing, this is for you to decide.
+
+**What the log does not hold.** Pytest's summary line (number of tests, coverage): the probe keeps only lines matching `passed|failed|error` from the tail, and the only match was ruff's `All checks passed!`. If the number matters, print the last five lines of the `test` target's output next time.
+
+**Surprises.**
+- `diff --no-dereference` exits 0 now: the 226 dangling-link lines are gone, so the first run's exit 2 was only the links.
+- The job saw 10 CPUs for the 8 requested; the build took 199 s (169 s before) and the image size differs by one byte (2,371,193,788 against 2,371,193,789).
+- A slip in the probe's last line: the VERDICT echo contains backticks around `secrets`, which the shell ran as a command (`secrets: not found` in the log, and the word missing from the text). Harmless; I did not fix it.
+
+**Pushed.** Both result files, the second-run part of `capabilities.md` and this file. No company value in any of them, no secret printed, nothing outside `planning/cloud-sandbox/` changed; the throwaway job was created and deleted by the script, and the project holds only the job it held before.
