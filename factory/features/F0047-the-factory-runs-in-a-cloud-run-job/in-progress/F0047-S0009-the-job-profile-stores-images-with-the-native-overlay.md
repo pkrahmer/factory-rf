@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 484
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T18:08:07.818857Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-31T18:08:07.818857Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-31T18:08:27.690055Z'
+  stage: intake
+  run: d20264d03b7a4a1088409634905937da
 ---
 
 # The job profile stores images with the native overlay
@@ -68,3 +70,9 @@ Expect: one line, `exit 1`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-31 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names the concrete constant `factory.domain.containers.JOB_PODMAN_OPTIONS` with its exact three-word value. I checked the source: the constant exists at `src/factory/domain/containers.py:21` with the fourth word `--storage-opt=overlay.mount_program=...` at line 25, and `PodmanRuns` uses it at `podman_runs.py:72`. The story says no other module changes, and that matches the source. It also names the two test files the tester may change.
+   Criteria: all five testable by one test each. (1) is the existing `rootless` tests passing unchanged. (2) is the exact tuple. (3) is the three words right after the executable in `launch`, `version` and `image_exists`, with no word containing `mount_program` or `fuse-overlayfs`. (4) is a source-reading test. (5) is `make check`. The failing side is covered by the no-`mount_program` and no-`fuse-overlayfs` clauses in (3) and by (4). The docs criterion is last.
+   Smoke test: both commands are runnable. Neither uses pytest, so the `-q` rule does not apply. Each `Expect:` is checkable against the output. The grep currently finds the line at containers.py:25, so the second expectation (`exit 1`) fails until the story is built.
+   Architecture: the change is a domain constant only. The adapter and the layers stay as `CLAUDE.md` describes.
+   Scope: it matches feature.md's scope bullet 'job profile without fuse-overlayfs' and decision 19. S0009 is listed in the Stories. The story changes S0002's tests with the leave it states, and names the two files.
