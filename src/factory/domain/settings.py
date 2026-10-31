@@ -67,6 +67,8 @@ OPENCODE_MODELS_VARIABLE = "FACTORY_OPENCODE_MODELS"
 OPENCODE_PROVIDER_FILE_VARIABLE = "FACTORY_OPENCODE_PROVIDER_FILE"
 DATASET_VARIABLE = "FACTORY_DATASET"
 WORKSPACE_VARIABLE = "FACTORY_WORKSPACE"
+SNAPSHOTS_VARIABLE = "FACTORY_SNAPSHOTS"
+SNAPSHOT_BASE_VARIABLE = "FACTORY_SNAPSHOT_BASE"
 STAGE_IMAGE_VARIABLE = "FACTORY_STAGE_IMAGE"
 PODMAN_EXECUTABLE_VARIABLE = "FACTORY_PODMAN"
 ZFS_EXECUTABLE_VARIABLE = "FACTORY_ZFS"
@@ -88,6 +90,8 @@ _NOT_ABSOLUTE = "is not an absolute path"
 
 AgentRuntimeName = Literal["claude", "opencode"]
 _AGENT_RUNTIMES: tuple[AgentRuntimeName, ...] = ("claude", "opencode")
+SnapshotsName = Literal["zfs", "copy"]
+_SNAPSHOTS: tuple[SnapshotsName, ...] = ("zfs", "copy")
 
 _NAME = TypeAdapter(Name)
 _VARIABLE_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
@@ -120,6 +124,8 @@ class InstanceSettings(BaseModel):
     opencode_provider_file: Path | None = None
     dataset: str | None = None
     workspace: Path | None = None
+    snapshots: SnapshotsName = "zfs"
+    snapshot_base: Path | None = None
     stage_image: str | None = None
     podman_executable: str = _PODMAN_EXECUTABLE_DEFAULT
     zfs_executable: str = _ZFS_EXECUTABLE_DEFAULT
@@ -128,7 +134,12 @@ class InstanceSettings(BaseModel):
     idle_shutdown_minutes: NonNegativeInt = 0
 
     @field_validator(
-        "checkout", "state_directory", "agent_home", "opencode_provider_file", "ca_bundle"
+        "checkout",
+        "state_directory",
+        "agent_home",
+        "opencode_provider_file",
+        "ca_bundle",
+        "snapshot_base",
     )
     @classmethod
     def _absolute(cls, path: Path | None) -> Path | None:
@@ -152,6 +163,15 @@ class InstanceSettings(BaseModel):
             raise ValueError(f"{variable}: {text}")
         return self
 
+    @model_validator(mode="after")
+    def _snapshot_base_apart(self) -> Self:
+        fault = snapshot_base_fault(
+            self.snapshots, self.snapshot_base, self.workspace, self.checkout, self.state_directory
+        )
+        if fault is not None:
+            raise ValueError(f"{SNAPSHOT_BASE_VARIABLE}: {fault}")
+        return self
+
 
 def workspace_overlap_fault(
     workspace: Path | None, checkout: Path, state_directory: Path
@@ -173,6 +193,31 @@ def workspace_overlap_fault(
     return None
 
 
+def snapshot_base_fault(
+    snapshots: SnapshotsName,
+    base: Path | None,
+    workspace: Path | None,
+    checkout: Path,
+    state_directory: Path,
+) -> str | None:
+    """The fault of a base the snapshots do not use, or of one that overlaps a factory path.
+
+    `None` without a base, and for a copy's base apart from the workspace, the checkout and the
+    state directory. A missing copy's base is the wiring's fault, not this one.
+    """
+    if base is None:
+        return None
+    if snapshots != "copy":
+        return "is only used with FACTORY_SNAPSHOTS=copy"
+    # Every reset empties the workspace, and the base must survive it; a base holding the
+    # checkout or the state would be copied over the factory's own files.
+    paths = (("workspace", workspace), ("checkout", checkout), ("state", state_directory))
+    for name, path in paths:
+        if path is not None and (base.is_relative_to(path) or path.is_relative_to(base)):
+            return f"{base} overlaps {name}"
+    return None
+
+
 def read_settings(
     environ: Mapping[str, str], read_file: Callable[[Path], str] | None = None
 ) -> InstanceSettings:
@@ -185,10 +230,15 @@ def read_settings(
     dataset = _optional(environ, DATASET_VARIABLE) or None
     workspace = _optional_path(environ, WORKSPACE_VARIABLE)
     stage_image = _optional(environ, STAGE_IMAGE_VARIABLE) or None
+    snapshots = _snapshots(environ)
+    snapshot_base = _optional_absolute_path(environ, SNAPSHOT_BASE_VARIABLE)
     # Checked here too, so that a fault names its variable instead of a validation error.
     fault = workspace_overlap_fault(workspace, checkout, state_directory)
     if fault is not None:
         raise SettingsInvalid(*fault)
+    base_fault = snapshot_base_fault(snapshots, snapshot_base, workspace, checkout, state_directory)
+    if base_fault is not None:
+        raise SettingsInvalid(SNAPSHOT_BASE_VARIABLE, base_fault)
     return InstanceSettings(
         repository_url=repository_url,
         instance=instance,
@@ -213,6 +263,8 @@ def read_settings(
         opencode_provider_file=_optional_absolute_path(environ, OPENCODE_PROVIDER_FILE_VARIABLE),
         dataset=dataset,
         workspace=workspace,
+        snapshots=snapshots,
+        snapshot_base=snapshot_base,
         stage_image=stage_image,
         podman_executable=_optional(environ, PODMAN_EXECUTABLE_VARIABLE)
         or _PODMAN_EXECUTABLE_DEFAULT,
@@ -263,6 +315,16 @@ def _agent_runtime(environ: Mapping[str, str]) -> AgentRuntimeName:
     raise SettingsInvalid(
         AGENT_RUNTIME_VARIABLE, f"holds {value}, which is neither claude nor opencode"
     )
+
+
+def _snapshots(environ: Mapping[str, str]) -> SnapshotsName:
+    value = _optional(environ, SNAPSHOTS_VARIABLE)
+    if not value:
+        return "zfs"
+    for snapshots in _SNAPSHOTS:
+        if value == snapshots:
+            return snapshots
+    raise SettingsInvalid(SNAPSHOTS_VARIABLE, "is neither zfs nor copy")
 
 
 def _opencode_models(environ: Mapping[str, str]) -> dict[str, str]:

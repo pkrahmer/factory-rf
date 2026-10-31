@@ -13,6 +13,7 @@ from pathlib import Path
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.clock import SleepingWaiter, SystemClock
+from factory.adapters.copy_snapshots import CopySnapshots
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
@@ -60,6 +61,7 @@ from factory.application.preflight import (
     dataset_item,
     installed_models,
     opencode_item,
+    snapshots_item,
     stage_image_item,
     token_file_item,
     tool_version_item,
@@ -67,6 +69,7 @@ from factory.application.preflight import (
 from factory.application.project_agents import ProjectAgentDefinitions
 from factory.application.project_commands import RecordingProjectCommands
 from factory.application.recovery import RecoveryHandler
+from factory.application.snapshots import Snapshots
 from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
 from factory.domain.agent_runs import scrub_environment
@@ -85,6 +88,7 @@ from factory.domain.settings import (
     DATASET_VARIABLE,
     REPOSITORY_URL_VARIABLE,
     RUNS_DIRECTORY_NAME,
+    SNAPSHOT_BASE_VARIABLE,
     STAGE_IMAGE_VARIABLE,
     WORKSPACE_VARIABLE,
     InstanceSettings,
@@ -244,11 +248,11 @@ def build_boundaries(
 ) -> Boundaries:
     """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub.
 
-    `SettingsInvalid` naming the first of the dataset, the workspace and the stage image that
-    is missing, before anything is built.
+    `SettingsInvalid` naming the first of the dataset (the base for copy snapshots), the workspace
+    and the stage image that is missing, before anything is built.
     """
     adapters = _container_adapters(settings)
-    snapshots, containers = adapters.snapshots, adapters.containers
+    snapshots, containers = adapters.snapshots.snapshots, adapters.containers
     if hosting is None:
         hosting = pygithub_service(repository_name(settings.repository_url), token)
     state = settings.state_directory
@@ -299,33 +303,71 @@ def build_boundaries(
 
 
 @dataclass(frozen=True)
-class _ContainerAdapters:
-    """The dataset and the stage image an instance names, and their adapters."""
+class _SnapshotAdapters:
+    """The snapshots an instance names and the preflight items that check them."""
 
-    dataset: str
+    snapshots: Snapshots
+    items: tuple[Callable[[], PreflightItem], ...]
+
+
+@dataclass(frozen=True)
+class _ContainerAdapters:
+    """The snapshots and the stage image an instance names, and their adapters."""
+
     image: str
-    snapshots: ZfsSnapshots
+    snapshots: _SnapshotAdapters
     containers: PodmanRuns
 
 
 def _container_adapters(settings: InstanceSettings) -> _ContainerAdapters:
-    if settings.dataset is None:
-        raise SettingsInvalid(DATASET_VARIABLE, _MISSING)
-    if settings.workspace is None:
-        raise SettingsInvalid(WORKSPACE_VARIABLE, _MISSING)
+    if settings.snapshots == "copy":
+        snapshots = _copy_snapshots(settings)
+    else:
+        snapshots = _zfs_snapshots(settings)
     if settings.stage_image is None:
         raise SettingsInvalid(STAGE_IMAGE_VARIABLE, _MISSING)
+    workspace = snapshots.snapshots.mount_point
     return _ContainerAdapters(
-        dataset=settings.dataset,
         image=settings.stage_image,
-        snapshots=ZfsSnapshots(
-            settings.dataset,
-            settings.workspace,
-            drop_caches=DROP_CACHES_COMMAND,
-            executable=settings.zfs_executable,
-        ),
-        containers=PodmanRuns(settings.podman_executable, settings.stage_image, settings.workspace),
+        snapshots=snapshots,
+        containers=PodmanRuns(settings.podman_executable, settings.stage_image, workspace),
     )
+
+
+def _copy_snapshots(settings: InstanceSettings) -> _SnapshotAdapters:
+    base = settings.snapshot_base
+    if base is None:
+        raise SettingsInvalid(SNAPSHOT_BASE_VARIABLE, _MISSING)
+    workspace = _required_workspace(settings)
+    return _SnapshotAdapters(
+        snapshots=CopySnapshots(workspace, base),
+        items=(lambda: snapshots_item(workspace, base),),
+    )
+
+
+def _zfs_snapshots(settings: InstanceSettings) -> _SnapshotAdapters:
+    dataset = settings.dataset
+    if dataset is None:
+        raise SettingsInvalid(DATASET_VARIABLE, _MISSING)
+    snapshots = ZfsSnapshots(
+        dataset,
+        _required_workspace(settings),
+        drop_caches=DROP_CACHES_COMMAND,
+        executable=settings.zfs_executable,
+    )
+    return _SnapshotAdapters(
+        snapshots=snapshots,
+        items=(
+            lambda: tool_version_item("zfs", snapshots.version),
+            lambda: dataset_item(dataset, snapshots.dataset_exists),
+        ),
+    )
+
+
+def _required_workspace(settings: InstanceSettings) -> Path:
+    if settings.workspace is None:
+        raise SettingsInvalid(WORKSPACE_VARIABLE, _MISSING)
+    return settings.workspace
 
 
 def _agent_runtime(
@@ -465,11 +507,10 @@ def machine_extras(
 def _container_items(settings: InstanceSettings) -> list[Callable[[], PreflightItem]]:
     # Built apart from the boundaries', whose snapshots and containers are only interfaces.
     adapters = _container_adapters(settings)
-    snapshots, containers = adapters.snapshots, adapters.containers
+    containers = adapters.containers
     return [
         lambda: tool_version_item("podman", containers.version),
-        lambda: tool_version_item("zfs", snapshots.version),
-        lambda: dataset_item(adapters.dataset, snapshots.dataset_exists),
+        *adapters.snapshots.items,
         lambda: stage_image_item(adapters.image, containers.image_exists),
     ]
 
