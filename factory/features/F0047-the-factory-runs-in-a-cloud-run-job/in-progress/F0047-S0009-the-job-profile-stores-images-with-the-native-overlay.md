@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 484
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-31T18:22:20.245748Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-10-31T18:21:59.624763Z'
   stage: doing
   run: 0f57eb0a424b43cc90556714c78c9b40
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:22:20.245748Z'
+  stage: review
 ---
 
 # The job profile stores images with the native overlay
@@ -136,3 +145,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 41 known, 0 gone
+8. factory: started review as vm.
