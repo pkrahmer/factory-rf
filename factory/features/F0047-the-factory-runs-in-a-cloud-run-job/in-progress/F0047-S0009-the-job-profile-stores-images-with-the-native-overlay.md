@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 484
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T18:15:45.941646Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-31T18:15:23.870079Z'
   stage: tests
   run: 6509faa0b6ad489786c1fa3cbe0ca89f
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:15:45.941646Z'
+  stage: doing
 ---
 
 # The job profile stores images with the native overlay
@@ -112,3 +121,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/adapters/test_podman_runs_job_profile.py::test_a_job_runner_s_queries_carry_the_global_options[exists-fault] - AssertionError: assert [['--runtime=...exists', ...]] == [['--runtime=......
+6. factory: started doing as vm.
