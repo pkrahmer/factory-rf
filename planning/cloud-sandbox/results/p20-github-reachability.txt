@@ -1,0 +1,27 @@
+== creating probe-github-reach (docker.io/library/debian:trixie-slim, 1 cpu, 1Gi, gen2)
+== execution probe-github-reach-v6df4
+== final state: [	1		2026-10-31T18:40:05.805043Z] (running, succeeded, failed, completion)
+Execution completed successfully in 1m45.2s.
+##### inputs (presence only)
+GIT_TOKEN set: yes; repository given: yes; proxy given: yes
+token kind: ghp_
+##### 1: the host, through the proxy and directly
+DNS github.com resolves: NO
+api.github.com unauthenticated via proxy: 200
+api.github.com unauthenticated, no proxy: 000
+##### 2: the API with the token (names, status and permissions only)
+GET /user: 200
+token user present: yes
+GET /repos/<repo>: 200
+private true, default branch main, merge commits allowed true, delete head branches false, permissions {"admin":true,"maintain":true,"push":true,"triage":true,"pull":true}
+##### 3: git over HTTPS with the token
+c39f472e427a HEAD
+c39f472e427a refs/heads/main
+ls-remote exit 0 after 1 s
+shallow clone after 0 s: 13 files, 456 KiB
+##### 4: the pull-request API is readable
+GET /pulls: 200
+pull requests listed: 0
+VERDICT: a job can run the factory against a github.com repository if the API and git both answer 200 with the token through the proxy, the clone works, and the repository's permissions show push.
+PROBE DONE
+Container called exit(0).

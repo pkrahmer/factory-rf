@@ -378,3 +378,23 @@ Probe `p19-worker-pool.sh` through `run_worker_pool.sh`, result `results/p19-wor
 *Second attempt, with Direct VPC egress (result `results/p19-worker-pool-network.txt`).* The policy `run.allowedVPCEgress` allows only `all-traffic`, and the harness sets that when `PROBE_NETWORK` and `PROBE_SUBNET` are given. The shared-VPC host project (the one behind the job's connector) lists a private regional subnet for the region of /21 on the host's network, found read-only; the connector's own subnet is a /28, too small for Direct VPC egress. The deploy with that network and subnet passed the policy and was **refused by IAM**: `403 Access to the subnetwork <subnet> is not allowed`, with a pointer to the shared-VPC Direct VPC egress permissions. The provisioner's project has not been granted use of that subnet (the `compute.networkUser` role on it, for the Cloud Run service agent and the deployer). That grant lives in the host project, which this identity cannot change, and the project is managed by the platform's provisioning tool: it needs the platform team (or the provisioning definition). Nothing was created; `list` shows zero pools. The sandbox and lifecycle questions stay open until that grant exists.
 
 *Why a job works and a worker pool does not (inference from the flags and the errors; the host project's IAM could not be read).* Jobs reach the VPC through a **Serverless VPC Access connector**, a managed resource of the host project with its own small subnet (a /28); the job's traffic goes through the connector, and the platform team has already allowed this project to use it (every job so far did). **Worker pools have no connector flag**, only **Direct VPC egress**, where each instance takes its own addresses from a subnet of the shared VPC. That needs a separate permission, `roles/compute.networkUser` on the subnet for the Cloud Run service agent and the deployer, and nobody granted it because only the connector path was wired. The organisation policy (`allowedVPCEgress`: `all-traffic` only) applies to both paths and says nothing about who may use a subnet. Consequence: the same grant would also let a **job** use Direct VPC egress instead of the connector (no connector throughput limit, addresses from the /21), so it is worth asking for even if worker pools turn out not to be needed.
+
+## P20: reaching a private github.com repository from a job (2026-10-31)
+
+Probe `p20-github-reachability.sh`, result `results/p20-github-reachability.txt`. One job of 1 CPU and 1 GiB (1 min 45 s in all), through the proxy, with a classic personal token mounted as a secret (`GIT_TOKEN`) and the repository given as `<owner>/<repo>` in a job variable. Nothing was written to the repository.
+
+| Item | Result |
+|---|---|
+| DNS for `github.com` inside the job | does **not** resolve (the proxy resolves it) |
+| `api.github.com` unauthenticated through the proxy | 200 |
+| The same without the proxy | 000: **the proxy is required** |
+| `GET /user` with the token | 200 |
+| `GET /repos/<repo>` | 200: private, default branch `main`, merge commits allowed, delete head branches off, permissions admin, maintain, push, triage and pull |
+| `git ls-remote` with the token (header, no helper) | answers with `HEAD` and `refs/heads/main`, 1 s |
+| Shallow clone | 0 s, 13 files, 456 KiB |
+| `GET /pulls` | 200, none listed |
+
+- **Verdict.** Yes: a job reaches a private `github.com` repository for both the REST API (what PyGithub uses) and git over HTTPS, through the proxy, and the token's permissions show push. The factory's runtime needs only the proxy variables it already sets, the repository URL and a token; no Enterprise base URL.
+- **Needs the proxy.** Direct access fails and the job cannot resolve `github.com` by itself, so the runtime's git and PyGithub calls must go through the proxy (as the stage's other network calls already do). Git honours `https_proxy`; PyGithub (requests) honours it too.
+- **The job could read the secret.** The job's run-as identity was allowed to read the mounted secret, so a secret mount works for a token the runtime needs.
+- **Not tested.** A push, a pull-request create or a merge from the job (the token had the rights, nothing was written); a fine-grained token scoped to one repository (the run used a classic token); the organisation's SSO or IP allow-list effects (none appeared).
