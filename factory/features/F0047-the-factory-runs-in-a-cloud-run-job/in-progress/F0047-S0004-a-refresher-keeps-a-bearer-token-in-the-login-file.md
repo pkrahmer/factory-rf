@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T18:43:34.121408Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-10-31T18:43:11.621775Z'
   stage: tests
   run: 0e8204d4eafb473c9edc6d20588c7bc5
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:43:34.121408Z'
+  stage: doing
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -241,3 +250,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: ERROR tests/entry/test_refresh_token.py - ImportError while importing test module '/work/checkout/tests/entry/test_refresh_token.py'.
+12. factory: started doing as vm.
