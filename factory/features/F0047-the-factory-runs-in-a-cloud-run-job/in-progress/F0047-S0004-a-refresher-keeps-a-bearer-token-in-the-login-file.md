@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-31T21:06:27.811584Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -447,6 +451,11 @@ journal:
   at: '2026-10-31T21:06:07.107624Z'
   stage: docs
   run: e009c4b86d774b1a9db23dd24b97813b
+- number: 80
+  speaker: factory
+  kind: started
+  at: '2026-10-31T21:06:27.811584Z'
+  stage: smoke-test
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1296,3 +1305,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
+80. factory: started smoke-test as vm.
