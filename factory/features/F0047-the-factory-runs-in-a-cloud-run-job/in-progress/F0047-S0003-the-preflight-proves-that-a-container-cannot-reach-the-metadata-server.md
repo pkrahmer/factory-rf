@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-31T18:02:08.965807Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-31T18:01:48.540723Z'
   stage: review
   run: 02de2d26e3d94f9c931ca1ab782c1f0a
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:02:08.965807Z'
+  stage: docs
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -341,3 +350,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/entry/test_wiring_container_extras.py: standing leave. `_settings` moved to `profile_settings` in tests/wiring_support.py, and the local `environment` fixture was replaced by `run_environment` with the same value. The tests keep their names and checks.
     - tests/entry/test_wiring_copy_snapshots.py: standing leave. Its local `environment` fixture was replaced by `run_environment` with the same value. The tests keep their names and checks.
     - tests/wiring_support.py: standing leave. It gains `profile_settings`, moved from tests/entry/test_wiring_container_extras.py. The existing helpers are unchanged.
+21. factory: started docs as vm.
