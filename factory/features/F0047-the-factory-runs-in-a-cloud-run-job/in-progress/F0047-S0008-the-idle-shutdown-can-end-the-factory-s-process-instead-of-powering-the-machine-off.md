@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 487
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T22:42:26.877155Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-10-31T22:42:06.777368Z'
   stage: tests
   run: 488b33b7863046f08de2fece06cc5d30
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-10-31T22:42:26.877155Z'
+  stage: doing
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -134,3 +143,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/entry/test_wiring_idle_shutdown_action.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_idle_shutdown_action.py'.
+6. factory: started doing as vm.
