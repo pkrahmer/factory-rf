@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T19:30:33.539880Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-10-31T19:30:33.539880Z'
   stage: review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T19:32:08.240882Z'
+  stage: review
+  run: ee0114f78f6d4640ae2e2c7fbf10ed03
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -514,3 +516,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 0 gone
 29. factory: started review as vm.
+30. reviewer: Review round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`. Entry 28 records `check: green` after the coder, and `duplicates: 1 new`, which is the `OpenUrl.__call__` false positive that entry 14 accepts.
+
+    - Group 1 (acceptance criteria) passes. Criterion 9 now has its test, `tests/adapters/test_oauth_token.py::test_a_200_answer_needs_a_token_string_and_a_positive_life`, with rows for both sides. Every other criterion and every Interface rule has a test, as round 0 found.
+    - Group 2 (architecture) passes. The layers are right, `TokenSource` is an ABC, and the adapters are built only in `factory.entry.wiring`.
+    - Group 3 (security) passes. The secret is never put into `os.environ`. Error details are masked and raised `from None`. `replace_text` writes the login file through `mkstemp`, so the file is 0600. The diff adds no marker that silences a check.
+    - Group 4 (quality) fails, with the two findings below. I did not review group 5.
+
+    1. `src/factory/entry/refresh_token.py:82-89` (`_secret`): this is a second copy of `read_input` in `src/factory/entry/inputs.py:10`, and of `read_setting_file` in `src/factory/domain/settings.py:512`. It catches only `OSError`, so a secret file that is not valid UTF-8 crashes with a `UnicodeDecodeError` traceback. The Interface says such an unreadable file exits 2 with `refresh_token: cannot read <path>`. Fix: read the file through `read_input`, turn `UnreadableInput` into `_Invalid(f"cannot read {path}")`, and keep the strip and the blank check.
+    2. `src/factory/adapters/oauth_token.py:54,68` (`self._issued`): the source keeps every token it has ever issued in a set that never shrinks. In a daemon that refreshes every ten minutes, that is 144 tokens of about 1.3 kB each per day, and `_masked` walks all of them on every error. Tokens older than an hour have expired. The Interface masks "the token", not every one ever issued. Fix: keep only the last issued token (`self._issued: str = ""`, replaced in `fetch`), and mask it with the secret in `_error`. Criterion 4's echoed-token row still passes, because it echoes the token from the fetch just before.
+
+    Notes:
+    - `tests/adapters/test_oauth_token.py:13-14` and `tests/entry/test_refresh_token.py:17-18`: `HIDDEN` and `ISSUED` are defined in both modules. They belong in `tests/token_support.py`, next to `ENDPOINT`.
+    - `tests/entry/test_refresh_token.py:107-138`: the success and failure sides of `--once` are two test functions. They could be two rows of one parametrized test.
+
+    Earlier tests:
+    - `tests/conftest.py`: the standing leave to move a shared test helper. It only adds the `restored_signals` fixture, moved unchanged from `tests/entry/test_run.py`.
+    - `tests/entry/test_run.py`: the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
+    - `tests/test_hosting_search.py`: the human's leave, journal entry 14, answer 1. Only `factory.adapters.oauth_token` may import `urllib.request` (`ALLOWED`). The earlier rows keep their ids and still expect no importer, and the new row `urllib.request-in-a-second-module` shows that a second importer is caught. The test keeps its name. The change stays within the leave.
