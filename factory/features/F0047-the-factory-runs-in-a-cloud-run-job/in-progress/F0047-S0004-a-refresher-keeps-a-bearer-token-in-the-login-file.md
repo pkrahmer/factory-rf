@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-31T18:28:13.489362Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-31T18:28:13.483562Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:28:13.489362Z'
+  stage: intake
+---
+
 # A refresher keeps a bearer token in the login file
 
 ## Description
@@ -60,3 +87,5 @@ Expect: two lines, `refresh_token: FACTORY_TOKEN_URL is not set` and `exit 2`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-31 human: created.
+2. factory: started intake as vm.
