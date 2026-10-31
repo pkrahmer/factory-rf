@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T21:54:31.457254Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -159,6 +163,11 @@ journal:
   at: '2026-10-31T21:54:10.892606Z'
   stage: doing
   run: a4829758912741b4a7ee35e93016a79a
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-31T21:54:31.457254Z'
+  stage: tests
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -448,3 +457,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     What is built, unchanged since entry 13: `vm/git-credential-factory` (the host rule) and `vm/setup.sh` (`--code-url`; the clone without credentials, still before the wait for now). `make check` was not run this round because no code changed; it was green at entry 20.
 
     The factory left out changes outside the write paths: factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0005-the-factory-s-code-comes-from-another-repository-than-the-project-and-the-credential-helper-answers-only-its-host.md.
+28. factory: started tests as vm.
