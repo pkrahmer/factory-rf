@@ -1,0 +1,123 @@
+== creating probe-snapshots (docker.io/library/debian:trixie-slim, 4 cpu, 16Gi, gen2)
+== execution probe-snapshots-cc44j
+== final state: [	1		2026-10-31T10:49:24.104402Z] (running, succeeded, failed, completion)
+Execution completed successfully in 1m30.08s.
+##### what the kernel offers
+$ cat /proc/filesystems | tr "
+	" "  " | fold -w 150
+nodev sysfs nodev tmpfs nodev bdev nodev proc nodev cgroup nodev cgroup2 nodev cpuset nodev devtmpfs nodev binfmt_misc nodev debugfs nodev tracefs nod
+ev securityfs nodev sockfs nodev bpf nodev pipefs nodev ramfs nodev hugetlbfs nodev rpc_pipefs nodev devpts  ext3  ext4  squashfs nodev nfs nodev nfs4
+ nodev cifs nodev smb3  fuseblk nodev fuse nodev fusectl nodev virtiofs nodev overlay nodev 9p nodev ceph  erofs nodev mqueue nodev selinuxfs  btrfs n
+odev pstore 
+[exit 0]
+$ ls -l /dev/loop-control /dev/loop0 2>&1 | head -3
+ls: cannot access '/dev/loop-control': No such file or directory
+ls: cannot access '/dev/loop0': No such file or directory
+[exit 0]
+$ df -hT /tmp | tail -1; free -m | sed -n 2p
+none           overlay   16G  114M   16G   1% /
+Mem:           15991         598       15536         113         156       15392
+[exit 0]
+$ grep -E "^(CapEff|NoNewPrivs)" /proc/self/status
+CapEff:	000001fff7fcffff
+NoNewPrivs:	1
+[exit 0]
+##### the synthetic checkout: 1 GB, 20000 files, 400 directories
+  14.12 s  (exit 0)  create tree
+$ du -sh /tmp/base; find /tmp/base -type f | wc -l
+1016M	/tmp/base
+20000
+[exit 0]
+##### S1: plain copy (cp -a)
+   1.12 s  (exit 0)  reset  = rm -rf work; cp -a base work
+   0.00 s  (exit 0)  touch 200 files in work
+   0.91 s  (exit 1)  changed_paths = diff -rq base work
+   0.15 s  (exit 0)  changed_paths = rsync -a -n -i base/ work/
+   0.17 s  (exit 0)  advance = rsync -a --delete work/ base/
+##### S2: copy with hard links (cp -al): shares data, so writes in place leak into the base
+   0.38 s  (exit 0)  reset  = rm -rf work; cp -al base work
+$ echo leak >> /tmp/work/pkg1/f1; if cmp -s /tmp/base/pkg1/f1 /tmp/work/pkg1/f1; then echo "BASE CHANGED BY A WRITE IN WORK: hard links share the file, so this is no snapshot"; else echo "base unchanged: the copy was not a hard link"; fi
+BASE CHANGED BY A WRITE IN WORK: hard links share the file, so this is no snapshot
+[exit 0]
+   0.78 s  (exit 0)  rsync --link-dest style: copy-on-write only by replacing files
+##### S3: reflink copy
+$ sh -c cp -a --reflink=always /tmp/base /tmp/refl 2>&1 | head -2
+cp: failed to clone '/tmp/refl/pkg0/f1' from '/tmp/base/pkg0/f1': Operation not supported
+cp: failed to clone '/tmp/refl/pkg0/f2' from '/tmp/base/pkg0/f2': Operation not supported
+[exit 0]
+##### S4: kernel overlayfs as root, upper and work directories on a tmpfs (an overlay root cannot be an upper)
+$ ovmount
+[exit 0]
+$ mount | grep " /tmp/ov " | cut -c1-200
+overlay on /tmp/ov type overlay (rw,relatime,lowerdir=/tmp/base,upperdir=/mnt/up/upper,workdir=/mnt/up/work,redirect_dir=nofollow,uuid=null)
+[exit 0]
+   0.02 s  (exit 0)  touch 200 files through the overlay (copy-up of 200 x 50 KB)
+   0.00 s  (exit 0)  changed_paths = find upper (whiteouts are char devices 0/0)
+$ echo "files: $(find /mnt/up/upper -type f | wc -l)  whiteouts: $(find /mnt/up/upper -type c | wc -l)  dirs: $(find /mnt/up/upper -type d | wc -l)"; getfattr -d -m - /mnt/up/upper/new 2>&1 | head -3
+files: 200  whiteouts: 1  dirs: 202
+[exit 0]
+$ if cmp -s /tmp/base/pkg1/f1 /tmp/ov/pkg1/f1; then echo "file identical through overlay"; else echo "file differs through overlay (base below stays pristine)"; fi; test -f /tmp/base/pkg7/f7 && echo "base still has the deleted file" 
+file differs through overlay (base below stays pristine)
+base still has the deleted file
+[exit 0]
+   0.08 s  (exit 0)  advance = apply upper to base (delete whiteouts, rsync the rest)
+   0.01 s  (exit 0)  reset = umount, empty upper/work, mount again
+$ find /mnt/up/upper | wc -l; ls /tmp/ov | head -2
+1
+new
+pkg0
+[exit 0]
+##### S4b: overlay with the lower tree ALSO on a tmpfs, and a containerised use: a podman container working on the overlay mount
+base copied onto tmpfs
+$ mount -t overlay overlay -o lowerdir=/mnt/low,upperdir=/mnt/up/upper2,workdir=/mnt/up/work2 /tmp/ov
+[exit 0]
+$ echo ok > /tmp/ov/pkg0/newfile; ls /mnt/up/upper2/pkg0
+newfile
+[exit 0]
+##### S5: fuse-overlayfs
+$ fuse-overlayfs -o lowerdir=/tmp/base,upperdir=/tmp/up,workdir=/tmp/wk /tmp/ov
+unknown argument ignored: lazytime
+[exit 0]
+   0.16 s  (exit 0)  touch 200 files through fuse-overlayfs
+$ find /tmp/up -type f | wc -l
+200
+[exit 0]
+$ fusermount3 -u /tmp/ov
+[exit 0]
+##### S6: a loop-mounted filesystem image with its own snapshot facilities
+$ mount -o loop /tmp/img.ext4 /tmp/m.ext4
+mount: /tmp/m.ext4: failed to setup loop device for /tmp/img.ext4.
+[exit 32]
+$ mount | grep /tmp/m.ext4 | head -1
+[exit 0]
+$ mount -o loop /tmp/img.xfs /tmp/m.xfs
+mount: /tmp/m.xfs: failed to setup loop device for /tmp/img.xfs.
+[exit 32]
+$ mount | grep /tmp/m.xfs | head -1
+[exit 0]
+$ mount -o loop /tmp/img.btrfs /tmp/m.btrfs
+mount: /tmp/m.btrfs: failed to setup loop device for /tmp/img.btrfs.
+[exit 32]
+$ mount | grep /tmp/m.btrfs | head -1
+[exit 0]
+##### S7: btrfs subvolume snapshot, if btrfs mounted
+mount: /tmp/m.btrfs: failed to setup loop device for /tmp/img.btrfs.
+$ btrfs subvolume create /tmp/m.btrfs/work
+ERROR: Could not create subvolume: Inappropriate ioctl for device
+[exit 1]
+   1.12 s  (exit 0)  copy 1 GB into the subvolume
+   0.00 s  (exit 1)  advance = read-only snapshot
+   0.00 s  (exit 1)  reset = delete work, snapshot base into place
+##### S8: tar as base (pack once, unpack to reset)
+   0.91 s  (exit 0)  advance = tar cf base.tar
+   1.31 s  (exit 0)  reset = rm -rf work; tar xf
+$ ls -lh /tmp/base.tar | cut -c1-60
+-rw-r--r-- 1 root root 987M Oct 31 10:49 /tmp/base.tar
+[exit 0]
+##### memory and disk afterwards
+$ free -m | sed -n 2p; df -h /tmp | tail -1
+Mem:           15991        5845       10227        5253        5420       10146
+none             16G  4.2G   12G  26% /
+[exit 0]
+PROBE DONE
+Container called exit(0).

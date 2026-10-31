@@ -1,0 +1,166 @@
+== creating probe-environment (docker.io/library/debian:trixie-slim, 8 cpu, 32Gi, gen2)
+== execution probe-environment-f5dqh
+== final state: [	1		2026-10-31T10:59:11.567841Z] (running, succeeded, failed, completion)
+Execution completed successfully in 2m27.19s.
+##### platform
+$ uname -a
+Linux localhost 6.9.12 #1 SMP Fri Sep 25 06:05:22 UTC 2026 x86_64 GNU/Linux
+[exit 0]
+$ grep -m1 "model name" /proc/cpuinfo; nproc; free -m | sed -n 2p
+model name	: AMD EPYC 7B13
+10
+Mem:           32094         510       31821          51          94       31584
+[exit 0]
+$ cat /proc/self/cgroup | head -3; ls /sys/fs/cgroup | tr "
+" " "
+9:pids:/
+8:perf_event:/
+7:net_cls,net_prio:/
+blkio cpu cpu,cpuacct cpuacct cpuset devices freezer memory net_cls net_cls,net_prio net_prio perf_event pids unified 
+[exit 0]
+$ for f in memory/memory.limit_in_bytes cpu/cpu.cfs_quota_us pids/pids.max; do printf "%s: " $f; cat /sys/fs/cgroup/$f 2>&1; done
+memory/memory.limit_in_bytes: 34359738368
+cpu/cpu.cfs_quota_us: 834200
+pids/pids.max: max
+[exit 0]
+$ grep -E "^(Seccomp|NoNewPrivs|CapEff|CapBnd)" /proc/self/status; capsh --decode=$(grep CapEff /proc/self/status | cut -f2) 2>&1 | cut -c1-500
+CapEff:	000001fff7fcffff
+CapBnd:	000001fff7fcffff
+NoNewPrivs:	1
+Seccomp:	2
+Seccomp_filters:	1
+0x000001fff7fcffff=cap_chown,cap_dac_override,cap_dac_read_search,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_linux_immutable,cap_net_bind_service,cap_net_broadcast,cap_net_admin,cap_net_raw,cap_ipc_lock,cap_ipc_owner,cap_sys_chroot,cap_sys_ptrace,cap_sys_pacct,cap_sys_admin,cap_sys_boot,cap_sys_nice,cap_sys_resource,cap_sys_time,cap_sys_tty_config,cap_lease,cap_audit_write,cap_audit_control,cap_setfcap,cap_mac_override,cap_mac_admin,cap_syslog,cap_wake_alarm,cap_block_s
+[exit 0]
+$ cat /proc/filesystems | tr "
+" " "
+nodev	sysfs nodev	tmpfs nodev	bdev nodev	proc nodev	cgroup nodev	cgroup2 nodev	cpuset nodev	devtmpfs nodev	binfmt_misc nodev	debugfs nodev	tracefs nodev	securityfs nodev	sockfs nodev	bpf nodev	pipefs nodev	ramfs nodev	hugetlbfs nodev	rpc_pipefs nodev	devpts 	ext3 	ext4 	squashfs nodev	nfs nodev	nfs4 nodev	cifs nodev	smb3 	fuseblk nodev	fuse nodev	fusectl nodev	virtiofs nodev	overlay nodev	9p nodev	ceph 	erofs nodev	mqueue nodev	selinuxfs 	btrfs nodev	pstore 
+[exit 0]
+$ ls /dev | tr "
+" " "
+core fd full fuse log mqueue null ptmx pts random shm stderr stdin stdout tty urandom zero 
+[exit 0]
+$ ulimit -a | head -20
+time(seconds)        unlimited
+file(blocks)         unlimited
+data(kbytes)         unlimited
+stack(kbytes)        8192
+coredump(blocks)     0
+memory(kbytes)       unlimited
+locked memory(kbytes) unlimited
+process              128358
+nofiles              25000
+vmemory(kbytes)      unlimited
+locks                unlimited
+rtprio               0
+[exit 0]
+$ df -hT / /tmp /dev/shm /run 2>&1
+Filesystem     Type     Size  Used Avail Use% Mounted on
+none           overlay   32G   52M   32G   1% /
+none           overlay   32G   52M   32G   1% /
+none           tmpfs     16G     0   16G   0% /dev/shm
+none           overlay   32G   52M   32G   1% /
+[exit 0]
+$ mount | head -25 | cut -c1-130
+none on / type overlay (rw,relatime,lowerdir=/mnt/riptide/0,upperdir=/tmp/fs/0/upper,workdir=/tmp/fs/0/work,uuid=on)
+none on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)
+none on /dev type tmpfs (rw,noexec)
+none on /dev/pts type devpts (rw,nosuid,noexec,relatime,gid=1005,mode=600,ptmxmode=666)
+none on /dev/shm type tmpfs (rw,nosuid,nodev,noexec,relatime)
+none on /dev/mqueue type mqueue (rw,nosuid,nodev,noexec,relatime)
+loggingfs on /var/log type fuse.loggingfs (rw,nosuid,nodev,relatime,user_id=0,group_id=0,allow_other)
+none on /proc type proc (rw,nosuid,nodev,noexec,relatime)
+none on /sys/fs/cgroup type tmpfs (rw,nosuid,nodev,noexec,relatime,uid=1000,gid=1000)
+none on /sys/fs/cgroup/blkio type cgroup (rw,nosuid,nodev,noexec,relatime,blkio)
+none on /sys/fs/cgroup/cpu,cpuacct type cgroup (rw,nosuid,nodev,noexec,relatime,cpu,cpuacct)
+none on /sys/fs/cgroup/cpuset type cgroup (rw,nosuid,nodev,noexec,relatime,cpuset)
+none on /sys/fs/cgroup/devices type cgroup (rw,nosuid,nodev,noexec,relatime,devices)
+none on /sys/fs/cgroup/freezer type cgroup (rw,nosuid,nodev,noexec,relatime,freezer)
+none on /sys/fs/cgroup/memory type cgroup (rw,nosuid,nodev,noexec,relatime,memory)
+none on /sys/fs/cgroup/net_cls,net_prio type cgroup (rw,nosuid,nodev,noexec,relatime,net_cls,net_prio)
+none on /sys/fs/cgroup/perf_event type cgroup (rw,nosuid,nodev,noexec,relatime,perf_event)
+none on /sys/fs/cgroup/pids type cgroup (rw,nosuid,nodev,noexec,relatime,pids)
+none on /sys/fs/cgroup/unified type cgroup2 (rw,nosuid,nodev,noexec,relatime)
+[exit 0]
+$ zcat /proc/config.gz 2>/dev/null | grep -E "CONFIG_(BTRFS_FS|XFS_FS|OVERLAY_FS|FUSE_FS|USER_NS|CGROUP_BPF|BLK_DEV_LOOP|MD|DM_THIN|ZFS)=" | head; echo "(config.gz: $(ls -l /proc/config.gz 2>&1 | wc -l))"
+(config.gz: 1)
+[exit 0]
+$ lsmod 2>&1 | head -5; modprobe zfs 2>&1 | head -2; modprobe btrfs 2>&1 | head -2
+Module                  Size  Used by
+modprobe: FATAL: Module zfs not found in directory /lib/modules/6.9.12
+modprobe: FATAL: Module btrfs not found in directory /lib/modules/6.9.12
+[exit 0]
+##### environment variable NAMES set by the platform (values are not printed)
+$ env | cut -d= -f1 | grep -E "^(CLOUD_RUN|K_|GOOGLE)" | sort | tr "
+" " "
+CLOUD_RUN_EXECUTION CLOUD_RUN_JOB CLOUD_RUN_TASK_ATTEMPT CLOUD_RUN_TASK_COUNT CLOUD_RUN_TASK_INDEX 
+[exit 0]
+##### write throughput to the memory-backed disk (1 GB)
+$ dd if=/dev/zero of=/tmp/big bs=1M count=1024 conv=fsync 2>&1 | tail -1; rm -f /tmp/big
+1073741824 bytes (1.1 GB, 1.0 GiB) copied, 0.527202 s, 2.0 GB/s
+[exit 0]
+##### can a single file or tree exceed the container memory? (writes 5 GB in /tmp; the job's memory is the limit)
+$ dd if=/dev/zero of=/tmp/big bs=1M count=5120 2>&1 | tail -1; df -h /tmp | tail -1; rm -f /tmp/big
+5368709120 bytes (5.4 GB, 5.0 GiB) copied, 2.52306 s, 2.1 GB/s
+none             32G  5.1G   27G  16% /
+[exit 0]
+##### NET1: resolver and direct reachability (no proxy)
+$ cat /etc/resolv.conf
+nameserver 169.254.169.254
+search google.internal.
+[exit 0]
+dns github.com: 
+dns pypi.org: 
+dns registry.npmjs.org: 
+dns deb.debian.org: 
+$ curl -sS -m 6 -o /dev/null -w "direct to 1.1.1.1: %{http_code}
+" https://1.1.1.1 2>&1 | tail -1
+direct to 1.1.1.1: 000
+[exit 0]
+$ curl -sS -m 6 -o /dev/null -w "direct to 8.8.8.8: %{http_code}
+" https://8.8.8.8 2>&1 | tail -1
+direct to 8.8.8.8: 000
+[exit 0]
+##### NET2: the metadata server from the job itself (status only)
+instance/id -> 200
+project/project-id -> 200
+instance/service-accounts/default/email -> 200
+instance/service-accounts/default/token -> 200
+##### NET3: through the proxy: HTTP status per destination
+200  https://github.com
+200  https://api.github.com
+301  https://raw.githubusercontent.com
+404  https://objects.githubusercontent.com
+301  https://codeload.github.com
+200  https://pypi.org/simple/
+404  https://files.pythonhosted.org/
+200  https://registry.npmjs.org/
+200  https://registry.yarnpkg.com/
+200  https://deb.debian.org/
+200  http://archive.ubuntu.com/
+301  http://security.ubuntu.com/
+200  https://dl-cdn.alpinelinux.org/
+401  https://registry-1.docker.io/v2/
+404  https://auth.docker.io/
+401  https://mirror.gcr.io/v2/
+401  https://quay.io/v2/
+401  https://ghcr.io/v2/
+200  https://download.docker.com/
+200  https://astral.sh/
+403  https://crates.io/
+403  https://static.crates.io/
+200  https://proxy.golang.org/
+200  https://repo.maven.apache.org/maven2/
+200  https://rubygems.org/
+404  https://api.anthropic.com/
+421  https://api.openai.com/
+200  https://opencode.ai/
+200  https://models.dev/
+307  https://nodejs.org/
+400  https://storage.googleapis.com/
+200  https://www.google.com/
+##### NET4: does the proxy rewrite TLS? (issuer of three hosts)
+github.com: *  issuer: C=GB; O=Sectigo Limited; CN=Sectigo Public Server Authentication CA DV E36
+pypi.org: *  issuer: C=BE; O=GlobalSign nv-sa; CN=GlobalSign Atlas R3 DV TLS CA 2025 Q4
+api.anthropic.com: *  issuer: C=US; O=Google Trust Services; CN=WE1
+PROBE DONE
+Container called exit(0).

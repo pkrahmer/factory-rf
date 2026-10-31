@@ -1,0 +1,116 @@
+== creating probe-ephemeral-disk (docker.io/library/debian:trixie-slim, 4 cpu, 8Gi, gen2)
+== execution probe-ephemeral-disk-z9l45
+== final state: [	1		2026-10-31T11:08:24.467149Z] (running, succeeded, failed, completion)
+Execution completed successfully in 2m39.5s.
+##### the volume
+$ mount | grep -E " /disk " | cut -c1-200; df -hT /disk | tail -2; stat -f /disk | head -4
+/dev/mapper/md0 on /disk type ext4 (rw,relatime,stripe=512)
+Filesystem      Type  Size  Used Avail Use% Mounted on
+/dev/mapper/md0 ext4  9.8G  2.1M  9.3G   1% /disk
+  File: "/disk"
+    ID: d8283e7091dd0040 Namelen: 255     Type: ext2/ext3
+Block size: 4096       Fundamental block size: 4096
+Blocks: Total: 2547605    Free: 2547087    Available: 2412278
+[exit 0]
+$ ls -la /disk | head -5; id
+total 20
+drwxrwxrwx 3 root   root     4096 Oct 31 11:06 .
+drwxr-xr-x 1 root   root      140 Oct 31 11:06 ..
+drwx------ 2 nobody nogroup 16384 Oct 31 11:06 lost+found
+uid=0(root) gid=0(root) groups=0(root)
+[exit 0]
+##### features: extended attributes, hard links, reflink, sparse files, fallocate
+$ cd /disk && touch f && setfattr -n user.probe -v 1 f && getfattr -n user.probe f 2>&1 | tail -2
+user.probe="1"
+[exit 0]
+$ cd /disk && setfattr -n trusted.probe -v 1 f 2>&1 | head -1
+setfattr: f: Operation not permitted
+[exit 0]
+$ cd /disk && ln f f2 && echo "hard link ok: $(stat -c %h f)"
+hard link ok: 2
+[exit 0]
+$ cd /disk && dd if=/dev/zero of=big bs=1M count=64 2>/dev/null && cp --reflink=always big big2 2>&1 | head -1; echo "reflink exit $?"
+cp: failed to clone 'big2' from 'big': Operation not supported
+reflink exit 0
+[exit 0]
+$ cd /disk && truncate -s 1G sparse && du -sh --apparent-size sparse && du -sh sparse && fallocate -l 100M fa && echo fallocate-ok
+1.0G	sparse
+0	sparse
+fallocate-ok
+[exit 0]
+##### memory accounting: is the disk memory-backed? (usage before, after writing 3 GB to /disk, after writing 3 GB to /)
+memory usage (cgroup): 333 MiB; Dirty: 65548 kB Shmem: 229016 kB 
+  16.09 s  (exit 0)  write 3 GB to /disk (fsync)
+memory usage (cgroup): 3496 MiB; Dirty: 48 kB Shmem: 228900 kB 
+/tmp/probe.sh: 81: cannot create /proc/sys/vm/drop_caches: Permission denied
+memory usage (cgroup): 3496 MiB; Dirty: 48 kB Shmem: 228900 kB 
+   0.44 s  (exit 0)  read 3 GB back from /disk
+   1.33 s  (exit 0)  write 3 GB to / (the memory-backed overlay root) (fsync)
+memory usage (cgroup): 3412 MiB; Dirty: 0 kB Shmem: 3374568 kB 
+##### the synthetic checkout: 1 GB in 20000 files on /disk (P4 used the same tree on the root)
+  17.42 s  (exit 0)  create tree on /disk
+$ du -sh /disk/base; find /disk/base -type f | wc -l
+1018M	/disk/base
+20000
+[exit 0]
+   1.66 s  (exit 0)  cp -a base work (reset by copy) on /disk
+   0.18 s  (exit 0)  rsync -a -n -i base/ work/ (changed_paths by comparison)
+   4.63 s  (exit 0)  tar cf base.tar (advance)
+   4.95 s  (exit 0)  reset by tar extract
+##### S4: kernel overlay, lower on /disk, upper and work on /disk
+$ ovm
+[exit 0]
+$ mount | grep " /tmp/ov " | cut -c1-220
+overlay on /tmp/ov type overlay (rw,relatime,lowerdir=/disk/base,upperdir=/disk/upper,workdir=/disk/wk,redirect_dir=nofollow,uuid=null)
+[exit 0]
+   0.33 s  (exit 0)  touch 200 files through the overlay
+$ echo "upper files: $(find /disk/upper -type f | wc -l) whiteouts: $(find /disk/upper -type c | wc -l)"
+upper files: 199 whiteouts: 1
+[exit 0]
+   0.06 s  (exit 0)  reset = umount, empty upper/work, mount
+##### S4c: lower on the memory-backed root, upper and work on /disk (a big upper without memory cost)
+$ mount -t overlay overlay -o lowerdir=/tmp/lowtree,upperdir=/disk/upper3,workdir=/disk/wk3 /tmp/ov
+[exit 0]
+$ echo new > /tmp/ov/a/n; ls /disk/upper3/a
+n
+[exit 0]
+##### PODMAN on /disk: native overlay storage (the root cannot hold it; vfs was the fallback)
+##### P1: native overlay driver, an image, the factory's flags
+$ pm a --storage-driver=overlay run --rm --http-proxy=false --network=host --cap-drop=all --security-opt=no-new-privileges --pids-limit=256 --memory=512m docker.io/library/busybox:latest echo overlay-on-disk-ok
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+overlay-on-disk-ok
+[exit 0]
+$ pm a --storage-driver=overlay info --format graph={{.Store.GraphDriverName}} root={{.Store.GraphRoot}} opts={{.Store.GraphOptions}}
+graph=overlay root=/disk/ps-a opts=map[]
+[exit 0]
+##### P2: overlay with fuse-overlayfs mount program
+$ pm b --storage-driver=overlay --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs run --rm --http-proxy=false --network=host docker.io/library/busybox:latest echo fuse-overlay-on-disk-ok
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+fuse-overlay-on-disk-ok
+[exit 0]
+##### P3: second container start speed on the overlay graph root, and a bigger image (python:3.12-slim) pull
+second start: 0.16 s
+pull python:3.12-slim: 7.51 s
+first start of python:3.12-slim: 0.19 s
+##### P4: bind-mount a tree on /disk into a container and write there (the stage workflow)
+$ pm a --storage-driver=overlay run --rm --http-proxy=false --network=host --user 1000:1000 -v /disk/ws:/work docker.io/library/busybox:latest sh -c echo hi > /work/checkout/x; ls -ln /work/checkout
+total 4
+-rw-r--r--    1 1000     1000             3 Oct 31 11:08 x
+[exit 0]
+##### memory after everything
+memory usage (cgroup): 1596 MiB; Dirty: 141844 kB Shmem: 231184 kB 
+$ df -h /disk /tmp | cut -c1-80
+Filesystem       Size  Used Avail Use% Mounted on
+/dev/mapper/md0  9.8G  1.3G  8.0G  15% /disk
+none             8.0G  226M  7.8G   3% /
+[exit 0]
+PROBE DONE
+Container called exit(0).

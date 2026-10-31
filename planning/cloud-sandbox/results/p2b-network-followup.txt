@@ -1,0 +1,220 @@
+== creating probe-podman-netfix (docker.io/library/debian:trixie-slim, 2 cpu, 4Gi, gen2)
+== execution probe-podman-netfix-8trtm
+== final state: [	1		2026-10-31T10:36:07.730804Z] (running, succeeded, failed, completion)
+Execution completed successfully in 1m26.11s.
+##### F0: the platform's own firewall, complete (LINES_MAX raised)
+$ nft list ruleset
+table inet emerald_isolation {
+	set mds_tcp_ports {
+		type inet_service
+		flags constant
+		elements = { 53, 80, 443 }
+	}
+	set apihost_tcp_ports {
+		type inet_service
+		flags constant
+		elements = { 4, 53, 80, 2000, 10001 }
+	}
+	chain OUTPUT {
+		type filter hook output priority mangle; policy accept;
+		oifname "lo" accept
+		ip frag-off & 0x3fff != 0x0 drop
+		exthdr frag exists drop
+		ip daddr 169.254.169.1 accept
+		tcp flags & (syn | ack) != syn accept
+		tcp dport @mds_tcp_ports ip daddr 169.254.169.254 accept
+		tcp dport @mds_tcp_ports ip6 daddr fd20:ce::254 accept
+		udp dport 53 ip daddr 169.254.169.254 accept
+		udp dport 53 ip6 daddr fd20:ce::254 accept
+		tcp dport @apihost_tcp_ports ip daddr 169.254.169.253 accept
+		udp dport 53 ip daddr 169.254.169.253 accept
+		ip daddr 169.254.8.0/24 accept
+		meta l4proto icmp accept
+		icmpv6 type 133-137 accept
+		ip daddr 169.254.0.0/16 drop
+		ip6 daddr fd20:ce::/32 drop
+		ip6 daddr fd20::/64 drop
+		ip6 daddr fe80::/10 drop
+		ip6 daddr ::ffff:169.254.0.0/112 drop
+		ip6 daddr fddf:3978:feb1:d745::c002 drop
+	}
+	chain FORWARD {
+		type filter hook forward priority filter; policy accept;
+		ip frag-off & 0x3fff != 0x0 drop
+		exthdr frag exists drop
+		ip daddr 169.254.169.1 accept
+		tcp flags & (syn | ack) != syn accept
+		tcp dport @mds_tcp_ports ip daddr 169.254.169.254 accept
+		tcp dport @mds_tcp_ports ip6 daddr fd20:ce::254 accept
+		udp dport 53 ip daddr 169.254.169.254 accept
+		udp dport 53 ip6 daddr fd20:ce::254 accept
+		tcp dport @apihost_tcp_ports ip daddr 169.254.169.253 accept
+		udp dport 53 ip daddr 169.254.169.253 accept
+		ip daddr 169.254.8.0/24 accept
+		meta l4proto icmp accept
+		icmpv6 type 133-137 accept
+		ip daddr 169.254.0.0/16 drop
+		ip6 daddr fd20:ce::/32 drop
+		ip6 daddr fd20::/64 drop
+		ip6 daddr fe80::/10 drop
+		ip6 daddr ::ffff:169.254.0.0/112 drop
+		ip6 daddr fddf:3978:feb1:d745::c002 drop
+	}
+	chain INPUT {
+		type filter hook input priority filter; policy accept;
+		iifname "lo" accept
+		ip frag-off & 0x3fff != 0x0 drop
+		exthdr frag exists drop
+		icmpv6 type 133-137 accept
+		ip saddr 169.254.169.5 drop
+		ip6 saddr ::ffff:169.254.169.5 drop
+		ip6 saddr fe80::/10 drop
+	}
+}
+[exit 0]
+$ iptables-save
+[exit 0]
+##### F0b: routing and interfaces
+$ ip addr; ip route; ip rule 2>&1 | head -5
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host proto kernel_lo 
+       valid_lft forever preferred_lft forever
+2: tunl0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN group default qlen 1000
+    link/ipip 0.0.0.0 brd 0.0.0.0
+3: ip6tnl0@NONE: <NOARP> mtu 1452 qdisc noop state DOWN group default qlen 1000
+    link/tunnel6 :: brd :: permaddr da61:4813:1227::
+6: ipvlan-eth0@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 65000 qdisc noqueue state UNKNOWN group default 
+    link/ether 42:00:a9:fe:01:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 169.254.8.1/16 brd 169.254.255.255 scope global ipvlan-eth0
+       valid_lft forever preferred_lft forever
+7: ipvlan-eth1@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 65535 qdisc noqueue state UNKNOWN group default 
+    link/ether 42:00:4e:49:43:00 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 169.254.9.1/24 brd 169.254.9.255 scope global ipvlan-eth1
+       valid_lft forever preferred_lft forever
+    inet 169.254.169.1/25 brd 169.254.169.127 scope global ipvlan-eth1
+       valid_lft forever preferred_lft forever
+[exit 0]
+##### F0c: sysctls that matter for networking
+$ sysctl net.ipv4.ip_forward net.ipv4.conf.all.forwarding net.bridge.bridge-nf-call-iptables 2>&1 | head -5
+sh: 1: sysctl: not found
+[exit 0]
+##### B0: bridge container to the proxy by IP, forwarding OFF (baseline)
+$ pm B0 run --rm --http-proxy=false -e http_proxy=http://<proxy-ip>:83 -e https_proxy=http://<proxy-ip>:83 docker.io/library/busybox:latest sh -c wget -q -T 8 -O /dev/null https://github.com && echo bridge-github-via-proxy-ok
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+wget: error getting response
+[exit 1]
+##### B1: turn forwarding on, then the same
+$ sh -c echo 1 > /proc/sys/net/ipv4/ip_forward; cat /proc/sys/net/ipv4/ip_forward
+1
+[exit 0]
+$ pm B1 run --rm --http-proxy=false -e http_proxy=http://<proxy-ip>:83 -e https_proxy=http://<proxy-ip>:83 docker.io/library/busybox:latest sh -c wget -q -T 8 -O /dev/null https://github.com && echo bridge-github-via-proxy-ok
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+wget: error getting response
+[exit 1]
+##### B2: a bridge container to a non-proxy destination (direct egress is expected to fail: no route out except the connector)
+$ pm B2 run --rm --http-proxy=false docker.io/library/busybox:latest sh -c wget -q -T 6 -O /dev/null http://1.1.1.1 && echo direct-ok || echo direct-failed
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+wget: download timed out
+direct-failed
+[exit 0]
+##### B3: the nft state after podman created its network (netavark's tables)
+$ nft list tables
+table inet emerald_isolation
+table inet netavark
+[exit 0]
+##### M1: baseline from a host-network container and a bridge container
+$ pm M1 run --rm --http-proxy=false --network=host docker.io/library/busybox:latest sh -c wget -q -T 5 -O /dev/null --header "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id && echo metadata-REACHABLE || echo metadata-blocked
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+metadata-REACHABLE
+[exit 0]
+$ pm M1b run --rm --http-proxy=false docker.io/library/busybox:latest sh -c wget -q -T 5 -O /dev/null --header "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id && echo metadata-REACHABLE || echo metadata-blocked
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+metadata-REACHABLE
+[exit 0]
+##### M2: our own rule, loaded from a file (chain names must not be nft keywords)
+$ nft -f /tmp/probe.nft
+[exit 0]
+$ nft list table inet probeblock
+table inet probeblock {
+	chain blockout {
+		type filter hook output priority filter; policy accept;
+		ip daddr 169.254.169.254 tcp dport 80 reject with icmp port-unreachable
+	}
+	chain blockfwd {
+		type filter hook forward priority filter; policy accept;
+		ip daddr 169.254.169.254 tcp dport 80 reject with icmp port-unreachable
+	}
+}
+[exit 0]
+##### M2a: host-network container after the rule
+$ pm M2a run --rm --http-proxy=false --network=host docker.io/library/busybox:latest sh -c wget -q -T 5 -O /dev/null --header "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id && echo metadata-REACHABLE || echo metadata-blocked
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+wget: can't connect to remote host (169.254.169.254): Connection refused
+metadata-blocked
+[exit 0]
+##### M2b: bridge container after the rule
+$ pm M2b run --rm --http-proxy=false docker.io/library/busybox:latest sh -c wget -q -T 5 -O /dev/null --header "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id && echo metadata-REACHABLE || echo metadata-blocked
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+wget: can't connect to remote host (169.254.169.254): Connection refused
+metadata-blocked
+[exit 0]
+##### M2c: by hostname
+$ pm M2c run --rm --http-proxy=false --network=host docker.io/library/busybox:latest sh -c wget -q -T 5 -O /dev/null --header "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/id && echo metadata-REACHABLE || echo metadata-blocked
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+wget: can't connect to remote host (169.254.169.254): Connection refused
+metadata-blocked
+[exit 0]
+##### M2d: https to the metadata address (port 443 is in the platform's own list too)
+$ pm M2d run --rm --http-proxy=false --network=host docker.io/library/busybox:latest sh -c wget -q -T 5 -O /dev/null --no-check-certificate --header "Metadata-Flavor: Google" https://169.254.169.254/computeMetadata/v1/instance/id && echo https-REACHABLE || echo https-blocked-or-failed
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+wget: can't connect to remote host (169.254.169.254): Connection refused
+https-blocked-or-failed
+[exit 0]
+##### M2e: the job itself: DNS and proxy still fine; metadata refused
+$ getent hosts github.com | head -1; curl -sS -m 10 -x "$PROBE_PROXY" -o /dev/null -w "via proxy: %{http_code}
+" https://github.com; curl -sS -m 5 -o /dev/null -w "metadata: %{http_code}
+" -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id 2>&1 | tail -1
+via proxy: 200
+metadata: 000
+[exit 0]
+PROBE DONE
+Container called exit(0).

@@ -1,0 +1,162 @@
+== creating probe-docker (docker.io/library/docker:dind, 2 cpu, 8Gi, gen2)
+== execution probe-docker-hqx75
+== final state: [	1		2026-10-31T11:02:47.916717Z] (running, succeeded, failed, completion)
+Execution completed successfully in 1m43.46s.
+##### versions
+$ docker --version
+Docker version 29.9.2, build a82e528
+[exit 0]
+$ dockerd --version
+Docker version 29.9.2, build 0367cbe
+[exit 0]
+$ runc --version
+runc version 1.5.2
+commit: v1.5.2-0-g29dd3dc
+spec: 1.3.0
+go: go1.26.10
+libseccomp: 2.6.0
+[exit 0]
+##### identity of the sandbox the daemon meets
+$ cat /proc/self/uid_map; grep -E "^(CapBnd|NoNewPrivs)" /proc/self/status; head -3 /proc/self/cgroup
+         0       1000 4294966295
+CapBnd:	000001fff7fcffff
+NoNewPrivs:	1
+9:pids:/
+8:perf_event:/
+7:net_cls,net_prio:/
+[exit 0]
+$ df -hT / | tail -1
+none                 overlay         8.0G      3.2M      8.0G   0% /
+[exit 0]
+tmpfs for data roots mounted
+##### v1: --iptables=false --ip6tables=false --bridge=none  (data root /mnt/dr)
+daemon v1 up after 0 s
+storage=overlayfs cgroup=cgroupfs/v1 runc-features=ok
+RESULT v1: container ran
+##### v2: --iptables=false --ip6tables=false --bridge=none --feature containerd-snapshotter=false --storage-driver=overlay2  (data root /mnt/dr)
+daemon v2 up after 0 s
+storage=overlay2 cgroup=cgroupfs/v1 runc-features=ok
+RESULT v2: container ran
+##### v3: --iptables=false --ip6tables=false --bridge=none --feature containerd-snapshotter=false --storage-driver=fuse-overlayfs  (data root /mnt/dr)
+daemon v3 up after 0 s
+storage=fuse-overlayfs cgroup=cgroupfs/v1 runc-features=ok
+RESULT v3: container ran
+##### v4: --iptables=false --ip6tables=false --bridge=none --feature containerd-snapshotter=false --storage-driver=vfs  (data root /mnt/dr)
+daemon v4 up after 0 s
+storage=vfs cgroup=cgroupfs/v1 runc-features=ok
+RESULT v4: container ran
+first working variant: v1  flags: --iptables=false --ip6tables=false --bridge=none  root: /mnt/dr
+##### FULL TESTS on v1
+##### T1: the factory's controls (cap-drop ALL, no-new-privileges, memory, pids)
+$ dr T --network=host --security-opt=no-new-privileges --memory=256m --pids-limit=256 busybox echo T1-flags-ok
+Unable to find image 'busybox:latest' locally
+latest: Pulling from library/busybox
+37bb94b0940b: Pulling fs layer
+46500c34ad0c: Download complete
+37bb94b0940b: Download complete
+37bb94b0940b: Pull complete
+Digest: sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
+Status: Downloaded newer image for busybox:latest
+T1-flags-ok
+[exit 0]
+##### T2: pids limit enforced (20) by a fork loop
+$ dr T --network=host --pids-limit=20 busybox sh -c i=0; while [ $i -lt 60 ]; do sleep 5 & i=$((i+1)); done 2>&1; echo forked
+sh: line 0: can't fork: Resource temporarily unavailable
+[exit 2]
+##### T3: memory limit enforced: hold 300 MB in a shell variable under --memory=128m (expect exit 137), and without a limit (expect success)
+$ dr T --network=host --memory=128m --memory-swap=128m busybox sh -c x=$(head -c 300000000 /dev/zero | tr "\\0" a); echo held ${#x}
+[exit 137]
+$ dr T --network=host busybox sh -c x=$(head -c 300000000 /dev/zero | tr "\\0" a); echo held ${#x}
+held 300000000
+[exit 0]
+$ dr T --network=host --memory=128m --cpus=0.5 busybox sh -c cat /sys/fs/cgroup/memory/memory.limit_in_bytes /sys/fs/cgroup/cpu/cpu.cfs_quota_us 2>&1
+134217728
+50000
+[exit 0]
+##### T4: bind mounts: read-write works, read-only enforced; read-only root
+$ dr T --network=host -v /tmp/work:/work -v /tmp/ro:/ro:ro busybox sh -c echo x > /work/w; cat /work/w; echo y > /ro/z; echo "ro write exit $?"
+x
+sh: line 0: can't create /ro/z: Read-only file system
+ro write exit 1
+[exit 0]
+$ dr T --network=host --read-only busybox sh -c echo y > /z; echo "ro root write exit $?"
+sh: line 0: can't create /z: Read-only file system
+ro root write exit 1
+[exit 0]
+##### T5: time limit: docker run has none; the caller starts detached, waits, kills
+start, wait 3 s, kill, remove: 3 s; containers left: 0
+##### T6: a numeric user writing to a bind mount that belongs to it, and to one that belongs to root
+$ dr T --network=host --user 1000:1000 -v /tmp/work:/work busybox sh -c id; echo u > /work/u; ls -ln /work/u
+uid=1000 gid=1000 groups=1000
+-rw-r--r--    1 1000     1000             2 Oct 31 11:02 /work/u
+[exit 0]
+$ dr T --network=host --user 1000:1000 -v /tmp/work2:/work busybox sh -c echo u > /work/u 2>&1; echo "exit $?"
+exit 1
+sh: line 0: can't create /work/u: Permission denied
+[exit 0]
+##### T7: reach the metadata server from the container (status only)
+$ dr T --network=host busybox sh -c wget -q -T 5 -O /dev/null --header "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id && echo metadata-REACHABLE || echo metadata-blocked
+metadata-REACHABLE
+[exit 0]
+##### T8: second start speed and image pull through the proxy (daemon honours the proxy env)
+second start: 0 s
+##### T9: a bigger image through the proxy (python:3.12-slim, about 50 MB)
+Status: Downloaded newer image for python:3.12-slim
+docker.io/library/python:3.12-slim
+pull took 6 s
+##### T10: docker build with a Dockerfile (needs buildkit; uses the proxy for apt)
+$ D T build --network=host -t probe-built /tmp/bt
+#0 building with "default" instance using docker driver
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 74B done
+#1 DONE 0.0s
+#2 [internal] load metadata for docker.io/library/busybox:latest
+#2 DONE 0.0s
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+#4 [1/2] FROM docker.io/library/busybox:latest@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
+#4 resolve docker.io/library/busybox:latest@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4 done
+#4 extracting sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc 0.1s done
+#4 DONE 0.1s
+#5 [2/2] RUN echo built > /built
+#5 0.067 runc run failed: unable to start container process: error during container init: unable to apply caps: can't apply capabilities: operation not permitted
+[exit 1]
+build took 1 s
+##### T11: default bridge networking (iptables on, containerd image store): does the daemon start, can a container reach out?
+daemon Tn up after 0 s
+$ dr Tn busybox echo bridge-ok
+Unable to find image 'busybox:latest' locally
+latest: Pulling from library/busybox
+37bb94b0940b: Pulling fs layer
+46500c34ad0c: Download complete
+37bb94b0940b: Download complete
+37bb94b0940b: Pull complete
+Digest: sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
+Status: Downloaded newer image for busybox:latest
+bridge-ok
+[exit 0]
+$ dr Tn busybox sh -c wget -q -T 6 -O /dev/null -Y on -e use_proxy=on https_proxy=http://<proxy-ip>:83 https://github.com && echo bridge-proxy-ok || echo bridge-proxy-failed
+wget: invalid option -- 'e'
+BusyBox v1.38.0 (2026-05-13 02:21:49 UTC) multi-call binary.
+Usage: wget [-cqS] [--spider] [-O FILE] [-o LOGFILE] [--header STR]
+	[--post-data STR | --post-file FILE] [-Y on/off]
+	[--no-check-certificate] [-P DIR] [-U AGENT] [-T SEC] URL...
+Retrieve files via HTTP or FTP
+	--spider	Only check URL existence: $? is 0 if exists
+	--header STR	Add STR (of form 'header: value') to headers
+	--post-data STR	Send STR using POST method
+	--post-file FILE	Send FILE using POST method
+	--no-check-certificate	Don't validate the server's certificate
+	-c		Continue retrieval of aborted transfer
+	-q		Quiet
+	-P DIR		Save to DIR (default .)
+	-S    		Show server response
+	-T SEC		Network read timeout is SEC seconds
+	-O FILE		Save to FILE ('-' for stdout)
+[exit 0]
+$ dr Tn busybox sh -c wget -q -T 5 -O /dev/null --header "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id && echo metadata-REACHABLE || echo metadata-blocked
+metadata-REACHABLE
+[exit 0]
+PROBE DONE
+Container called exit(0).

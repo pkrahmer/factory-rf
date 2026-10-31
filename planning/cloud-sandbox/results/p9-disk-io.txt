@@ -1,0 +1,73 @@
+== creating probe-disk-io (docker.io/library/debian:trixie-slim, 4 cpu, 8Gi, gen2)
+== execution probe-disk-io-27wls
+== final state: [	1		2026-10-31T11:32:19.037797Z] (running, succeeded, failed, completion)
+Execution completed successfully in 8m36.18s.
+##### the volume and the tool
+$ df -hT /disk | tail -1; fio --version; nproc
+/dev/mapper/md0 ext4  9.8G  2.1M  9.3G   1% /disk
+fio-3.39
+5
+[exit 0]
+$ cat /sys/block/*/queue/scheduler 2>&1 | head -3; ls /sys/block | head
+[none] mq-deadline 
+[none] mq-deadline 
+[none] mq-deadline 
+dm-0
+loop0
+loop1
+loop2
+loop3
+loop4
+loop5
+loop6
+loop7
+md0
+[exit 0]
+##### FIO on /disk (direct I/O, 2 GiB file, 20 s per test)
+seq write 1M qd8   : write bw 210 MB/s  iops 200  clat mean 39358 us p99 42729 us
+seq read  1M qd8   : read bw 210 MB/s  iops 200  clat mean 39845 us p99 76022 us
+rand write 4k qd1  : write bw 45 MB/s  iops 10998  clat mean 80 us p99 112 us
+rand read  4k qd1  : read bw 22 MB/s  iops 5317  clat mean 179 us p99 276 us
+rand write 4k qd32 : write bw 203 MB/s  iops 49662  clat mean 635 us p99 2507 us
+rand read  4k qd32 : read bw 205 MB/s  iops 49972  clat mean 634 us p99 2277 us
+mixed 70/30 4k qd16: read bw 142 MB/s  iops 34546  clat mean 344 us p99 1090 us  |  write bw 61 MB/s  iops 14820  clat mean 252 us p99 979 us
+##### FIO on /disk: buffered (page cache) sequential write with fsync at the end, 2 GiB
+buffered seq write : write bw 202 MB/s  iops 193  clat mean 2369 us p99 14352 us
+##### FIO on /tmp (direct I/O, 2 GiB file, 20 s per test)
+seq write 1M qd8   : write bw 4240 MB/s  iops 4044  clat mean 1733 us p99 2179 us
+seq read  1M qd8   : read bw 6336 MB/s  iops 6042  clat mean 1160 us p99 1417 us
+rand write 4k qd1  : write bw 924 MB/s  iops 225517  clat mean 1 us p99 1 us
+rand read  4k qd1  : read bw 1065 MB/s  iops 259910  clat mean 1 us p99 1 us
+rand write 4k qd32 : write bw 956 MB/s  iops 233321  clat mean 134 us p99 167 us
+rand read  4k qd32 : read bw 1080 MB/s  iops 263756  clat mean 119 us p99 155 us
+mixed 70/30 4k qd16: read bw 708 MB/s  iops 172886  clat mean 62 us p99 88 us  |  write bw 304 MB/s  iops 74123  clat mean 62 us p99 88 us
+##### FIO on /tmp: buffered (page cache) sequential write with fsync at the end, 2 GiB
+buffered seq write : write bw 3340 MB/s  iops 3185  clat mean 302 us p99 528 us
+##### FIO on /disk: two and four parallel writers (1 GiB each, direct, sequential 1M)
+seq write x2       : write bw 211 MB/s  iops 201  clat mean 79095 us p99 139461 us
+seq write x4       : write bw 211 MB/s  iops 201  clat mean 158454 us p99 316670 us
+##### FIO on /disk: the same sequential write three times (variation)
+run 1 seq write   : write bw 210 MB/s  iops 200  clat mean 39368 us p99 47972 us
+run 2 seq write   : write bw 210 MB/s  iops 201  clat mean 39311 us p99 50070 us
+run 3 seq write   : write bw 210 MB/s  iops 200  clat mean 39399 us p99 59507 us
+##### SMALL FILES without process spawn: create 20000 files of 4 KiB, read them back, delete them (fio, one directory tree)
+/disk create 20000x4k: write bw 359 MB/s  iops 87719  clat mean 4 us p99 6 us
+/disk find over 20000 files: 0.02 s
+/disk read all (cached): 0.62 s
+/disk delete tree: 0.43 s
+/tmp create 20000x4k: write bw 340 MB/s  iops 82988  clat mean 3 us p99 4 us
+/tmp find over 20000 files: 0.01 s
+/tmp read all (cached): 0.63 s
+/tmp delete tree: 0.16 s
+##### COLD-ish read of a tree: write 1 GiB in 5000 files on /disk, sync, then read with O_DIRECT through dd iflag=direct
+write 50 x 20 MiB direct: 4.99 s (210 MB/s)
+read 50 x 20 MiB direct: 5.00 s (210 MB/s)
+##### memory after
+$ echo "cgroup usage: $(( $(cat /sys/fs/cgroup/memory/memory.usage_in_bytes) / 1048576 )) MiB"; df -h /disk /tmp | cut -c1-80
+cgroup usage: 156 MiB
+Filesystem       Size  Used Avail Use% Mounted on
+/dev/mapper/md0  9.8G  2.1M  9.3G   1% /disk
+none             8.0G  105M  7.9G   2% /
+[exit 0]
+PROBE DONE
+Container called exit(0).

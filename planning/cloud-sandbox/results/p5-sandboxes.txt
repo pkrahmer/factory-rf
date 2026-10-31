@@ -1,0 +1,104 @@
+== creating probe-sandboxes (docker.io/library/debian:trixie-slim, 2 cpu, 4Gi, gen2)
+== execution probe-sandboxes-878tt
+== final state: [	1		2026-10-31T10:55:37.619948Z] (running, succeeded, failed, completion)
+Execution completed successfully in 1m23.3s.
+##### kernel facilities
+$ cat /sys/kernel/security/lsm 2>&1; echo; grep -E "^(Seccomp|NoNewPrivs|CapEff|CapBnd)" /proc/self/status
+cat: /sys/kernel/security/lsm: No such file or directory
+CapEff:	000001fff7fcffff
+CapBnd:	000001fff7fcffff
+NoNewPrivs:	1
+Seccomp:	2
+Seccomp_filters:	1
+[exit 0]
+$ capsh --decode=$(grep CapEff /proc/self/status | cut -f2) 2>&1 | cut -c1-500
+0x000001fff7fcffff=cap_chown,cap_dac_override,cap_dac_read_search,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_linux_immutable,cap_net_bind_service,cap_net_broadcast,cap_net_admin,cap_net_raw,cap_ipc_lock,cap_ipc_owner,cap_sys_chroot,cap_sys_ptrace,cap_sys_pacct,cap_sys_admin,cap_sys_boot,cap_sys_nice,cap_sys_resource,cap_sys_time,cap_sys_tty_config,cap_lease,cap_audit_write,cap_audit_control,cap_setfcap,cap_mac_override,cap_mac_admin,cap_syslog,cap_wake_alarm,cap_block_s
+[exit 0]
+$ cat /proc/sys/user/max_user_namespaces /proc/sys/kernel/unprivileged_userns_clone 2>&1
+2147483647
+cat: /proc/sys/kernel/unprivileged_userns_clone: No such file or directory
+[exit 1]
+$ ls /proc/self/ns | tr "
+" " "
+cgroup ipc mnt net pid pid_for_children time time_for_children user uts 
+[exit 0]
+##### U1: unshare --pid --mount --fork (pid namespace: killing init kills the tree)
+$ unshare --pid --mount-proc --fork sh -c echo "pid inside: $$"; ps -e | wc -l
+pid inside: 1
+4
+[exit 0]
+##### U2: user namespace as root (maps root to root)
+$ unshare --user --map-root-user sh -c id; cat /proc/self/uid_map
+uid=0(root) gid=0(root) groups=0(root)
+         0          0          1
+[exit 0]
+##### U3: network namespace (no interfaces: no way out)
+$ unshare --net sh -c ip link 2>&1 | head -3; curl -sS -m 3 -o /dev/null https://github.com 2>&1 | head -1
+1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: tunl0@NONE: <NOARP> mtu 1480 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+curl: (5) Could not resolve proxy: <proxy-host>
+[exit 0]
+##### B1: bubblewrap, read-only root, one writable directory
+$ bwrap --unshare-all --die-with-parent --ro-bind / / --bind /tmp/w1 /tmp/w1 --dev /dev --proc /proc --tmpfs /tmp/hidden sh -c echo ok > /tmp/w1/a && echo "write to w1: ok"; echo no > /etc/x 2>&1 || echo "write to /etc refused"; cat /tmp/outside.txt
+bwrap: Can't create file /tmp/hidden: Read-only file system
+[exit 1]
+##### B2: bubblewrap with a tmpfs over a credential directory (hide it)
+$ bwrap --unshare-all --die-with-parent --ro-bind / / --tmpfs /root --bind /tmp/w1 /tmp/w1 --dev /dev --proc /proc sh -c ls -la /root; cat /root/.creds/t 2>&1 || echo "credentials hidden"
+total 0
+drwxr-xr-x 2 root root  40 Oct 31 10:55 .
+drwxr-xr-x 1 root root 140 Oct 31 10:55 ..
+cat: /root/.creds/t: No such file or directory
+credentials hidden
+[exit 0]
+##### B3: bubblewrap, network kept (host network) and the proxy still usable
+$ bwrap --unshare-pid --die-with-parent --ro-bind / / --bind /tmp/w1 /tmp/w1 --dev /dev --proc /proc curl -sS -m 10 -o /dev/null -w %{http_code}
+ -x http://<proxy-host>:83 https://github.com
+200
+[exit 0]
+##### B4: bubblewrap, kill the tree at a time limit
+$ timeout 3 bwrap --unshare-pid --die-with-parent --ro-bind / / --dev /dev --proc /proc sh -c sleep 30 & sleep 30
+[exit 124]
+elapsed 3 s
+$ sh -c ps -e | grep -c "[s]leep 30"
+0
+[exit 1]
+##### B5: bubblewrap, nested user namespace with a non-root uid inside
+$ bwrap --unshare-user --uid 1000 --gid 1000 --ro-bind / / --bind /tmp/w1 /tmp/w1 --dev /dev --proc /proc sh -c id; echo u > /tmp/w1/u; ls -ln /tmp/w1/u
+uid=1000 gid=1000 groups=1000
+-rw-r--r-- 1 1000 1000 2 Oct 31 10:55 /tmp/w1/u
+[exit 0]
+##### J1: nsjail
+$ nsjail --version
+/tmp/probe.sh: 11: nsjail: not found
+[exit 127]
+$ nsjail -Mo --user 0 --group 0 --disable_clone_newuser --chroot / --rlimit_as soft --time_limit 5 -- /bin/sh -c echo nsjail-ok
+/tmp/probe.sh: 11: nsjail: not found
+[exit 127]
+##### L1: cgroup v1 limits written by hand (the factory's pids/memory limits without an engine)
+$ ls /sys/fs/cgroup/pids /sys/fs/cgroup/memory 2>&1 | head -6; mkdir /sys/fs/cgroup/pids/probe 2>&1 && echo "created pids cgroup"; echo 20 > /sys/fs/cgroup/pids/probe/pids.max 2>&1 && echo "pids.max set"; cat /sys/fs/cgroup/pids/probe/pids.max 2>&1
+/sys/fs/cgroup/memory:
+cgroup.clone_children
+cgroup.event_control
+cgroup.procs
+memory.failcnt
+memory.force_empty
+created pids cgroup
+pids.max set
+20
+[exit 0]
+$ mkdir /sys/fs/cgroup/memory/probe 2>&1 && echo "created memory cgroup"; echo 67108864 > /sys/fs/cgroup/memory/probe/memory.limit_in_bytes 2>&1 && echo "memory limit set"; cat /sys/fs/cgroup/memory/probe/memory.limit_in_bytes 2>&1
+created memory cgroup
+memory limit set
+67108864
+[exit 0]
+$ echo $$ > /sys/fs/cgroup/pids/probe/cgroup.procs 2>&1 && echo "moved self into pids cgroup"; i=0; while [ $i -lt 40 ]; do sleep 1 & i=$((i+1)); done 2>&1 | tail -1; echo done
+moved self into pids cgroup
+sh: 0: Cannot fork
+done
+[exit 0]
+##### L2: landlock available?
+$ dmesg 2>&1 | grep -i landlock | head -2; ls /sys/kernel/security/ 2>&1 | head
+[exit 0]
+PROBE DONE
+Container called exit(0).

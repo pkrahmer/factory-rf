@@ -1,0 +1,7 @@
+== creating probe-gen1 (docker.io/library/debian:trixie-slim, 2 cpu, 4Gi, gen1)
+CREATE FAILED:
+Creating Cloud Run job [[1mprobe-gen1[m] in project [[1m<project>[m] region [[1mus-central1[m]
+Creating job...
+failed
+Job failed to deploy
+ERROR: (gcloud.run.jobs.create) spec.template.metadata.annotations: Annotation 'run.googleapis.com/execution-environment' with value 'gen1' is not supported on resources of kind Execution.

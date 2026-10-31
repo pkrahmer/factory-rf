@@ -1,0 +1,52 @@
+== creating probe-runtimes (docker.io/library/debian:trixie-slim, 2 cpu, 4Gi, gen2)
+== execution probe-runtimes-xw5h6
+== final state: [	1		2026-10-31T10:42:31.935352Z] (running, succeeded, failed, completion)
+Execution completed successfully in 1m56.45s.
+##### latest releases (API through the proxy)
+runc tag: v1.5.2
+crun tag: 1.30.1
+runc assets: libpathrs-0.2.6.tar.xz libpathrs-0.2.6.tar.xz.asc libseccomp-2.6.1.tar.gz libseccomp-2.6.1.tar.gz.asc runc-1.5.2.tar.xz runc-1.5.2.tar.xz.asc runc.386 runc.386.asc runc.amd64 runc.amd64.asc runc.arm64 runc.arm64.asc runc.armel runc.armel.asc runc.armhf runc.armhf.asc runc.ppc64le runc.ppc64le.asc runc.riscv64 runc.riscv64.asc runc.s390x runc.s390x.asc runc.sha256sum 
+crun assets: crun-1.30.1-linux-amd64 crun-1.30.1-linux-amd64-disable-systemd crun-1.30.1-linux-amd64-disable-systemd.asc crun-1.30.1-linux-amd64.asc 
+##### runc: download, verify, install
+runc.amd64: OK
+$ /usr/local/bin/runc-new --version
+runc version 1.5.2
+commit: v1.5.2-0-g29dd3dc
+spec: 1.3.0
+go: go1.26.8
+libseccomp: 2.6.1
+libpathrs: 0.2.6
+[exit 0]
+##### runc (new): vfs, host network
+$ pm a /usr/local/bin/runc-new run --rm --network=host --rootfs /tmp/rootfs /bin/echo new-runc-ok
+new-runc-ok
+[exit 0]
+##### runc (new): the factory's flags
+$ pm b /usr/local/bin/runc-new run --rm --network=host --cap-drop=all --security-opt=no-new-privileges --pids-limit=256 --memory=512m --timeout 20 --rootfs /tmp/rootfs /bin/echo new-runc-flags-ok
+new-runc-flags-ok
+[exit 0]
+##### runc (new): timeout kills a sleeper
+$ pm c /usr/local/bin/runc-new run --rm --network=host --timeout 3 --rootfs /tmp/rootfs /bin/sleep 30
+[exit 255]
+elapsed 3 s
+##### runc (new): pids limit enforced
+$ pm d /usr/local/bin/runc-new run --rm --network=host --pids-limit=20 --rootfs /tmp/rootfs /bin/sh -c i=0; while [ $i -lt 60 ]; do /bin/sleep 5 & i=$((i+1)); done 2>&1; echo forked
+/bin/sh: can't fork: Resource temporarily unavailable
+[exit 2]
+##### runc (new): memory limit enforced (64m, hold 200 MB in a shell variable; expect exit 137)
+$ pm e /usr/local/bin/runc-new run --rm --network=host --memory=64m --memory-swap=64m --rootfs /tmp/rootfs /bin/sh -c x=$(head -c 200000000 /dev/zero | tr "\0" a); echo held ${#x}
+[exit 137]
+##### crun (newest upstream static binary)
+url: https://github.com/containers/crun/releases/download/1.30.1/crun-1.30.1-linux-amd64
+$ /usr/local/bin/crun-new --version
+crun version 1.30.1
+commit: 079ff6a7a16d029460af882f9ea44674e6a510b6
+rundir: /run/crun
+spec: 1.0.0
++SYSTEMD +SELINUX +APPARMOR +CAP +SECCOMP +EBPF +CRIU +JSON_C
+[exit 0]
+$ pm f /usr/local/bin/crun-new run --rm --network=host --rootfs /tmp/rootfs /bin/echo new-crun-ok
+Error: OCI runtime error: /usr/local/bin/crun-new: cgroups in hybrid mode not supported, drop all controllers from cgroupv2
+[exit 126]
+PROBE DONE
+Container called exit(0).

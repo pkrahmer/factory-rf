@@ -1,0 +1,253 @@
+== creating probe-podman-network (docker.io/library/debian:trixie-slim, 2 cpu, 4Gi, gen2)
+== execution probe-podman-network-7gq4d
+== final state: [	1		2026-10-31T10:33:06.036526Z] (running, succeeded, failed, completion)
+Execution completed successfully in 1m33.87s.
+##### versions and device nodes
+$ podman --version
+podman version 5.4.2
+[exit 0]
+$ ls -l /dev/net/tun /dev/fuse /dev/kvm 2>&1; echo "ip_forward: $(cat /proc/sys/net/ipv4/ip_forward)"; cat /etc/resolv.conf
+ls: cannot access '/dev/net/tun': No such file or directory
+ls: cannot access '/dev/kvm': No such file or directory
+crw-rw-rw- 1 root root 10, 229 Oct 31 10:32 /dev/fuse
+ip_forward: 0
+nameserver 169.254.169.254
+search google.internal.
+[exit 0]
+##### N1: --network=host
+$ pm N1 run --rm --http-proxy=false --network=host --rootfs /tmp/rootfs /bin/echo N1-ok
+N1-ok
+[exit 0]
+##### N2: --network=none
+$ pm N2 run --rm --http-proxy=false --network=none --rootfs /tmp/rootfs /bin/echo N2-ok
+N2-ok
+[exit 0]
+##### N3: default bridge (netavark with nftables)
+$ pm N3 run --rm --http-proxy=false --rootfs /tmp/rootfs /bin/echo N3-bridge-ok
+N3-bridge-ok
+[exit 0]
+##### N4: bridge container to the proxy by IP (does the bridge have outbound NAT here?)
+$ pm N4 run --rm --http-proxy=false -e http_proxy=http://<proxy-ip>:83 -e https_proxy=http://<proxy-ip>:83 docker.io/library/busybox:latest sh -c wget -q -T 8 -O /dev/null https://github.com && echo bridge-github-via-proxy-ok
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+wget: error getting response
+[exit 1]
+##### N4b: bridge container, name resolution inside (resolver reachable from the bridge?)
+$ pm N4b run --rm --http-proxy=false docker.io/library/busybox:latest sh -c nslookup github.com 2>&1 | tail -3
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+Non-authoritative answer:
+[exit 0]
+##### N5: slirp4netns
+$ pm N5 run --rm --http-proxy=false --network=slirp4netns --rootfs /tmp/rootfs /bin/echo N5-ok
+Error: /usr/bin/slirp4netns failed: "open(\"/dev/net/tun\"): No such file or directory
+WARNING: Support for seccomp is experimental
+WARNING: Support for IPv6 is experimental
+child failed(1)
+WARNING: Support for seccomp is experimental
+WARNING: Support for IPv6 is experimental
+"
+[exit 127]
+##### N6: pasta
+$ pm N6 run --rm --http-proxy=false --network=pasta --rootfs /tmp/rootfs /bin/echo N6-ok
+Error: pasta failed with exit code 1:
+Failed to open() /dev/net/tun: No such file or directory
+Failed to set up tap device in namespace
+[exit 127]
+##### M0: the job itself: DNS works, metadata HTTP status
+$ getent hosts github.com | head -1; curl -sS -m 5 -o /dev/null -w "metadata http: %{http_code}
+" -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id
+metadata http: 200
+[exit 0]
+##### M1: metadata from a --network=host container (no proxy variables inside)
+$ pm M1 run --rm --http-proxy=false --network=host docker.io/library/busybox:latest sh -c wget -q -T 5 -O /dev/null --header "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id && echo metadata-REACHABLE || echo metadata-blocked
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+metadata-REACHABLE
+[exit 0]
+##### M2: metadata from a bridge container
+$ pm M2 run --rm --http-proxy=false docker.io/library/busybox:latest sh -c wget -q -T 5 -O /dev/null --header "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id && echo metadata-REACHABLE || echo metadata-blocked
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+metadata-REACHABLE
+[exit 0]
+##### M3: block only TCP port 80 to the metadata address (DNS on port 53 stays), in output and forward
+$ nft -f /tmp/probe.nft
+/tmp/probe.nft:3:9-11: Error: syntax error, unexpected fwd, expecting string or last
+  chain fwd { type filter hook forward priority 0; policy accept; ip daddr 169.254.169.254 tcp dport 80 reject; }
+        ^^^
+/tmp/probe.nft:3:52-57: Error: syntax error, unexpected policy
+  chain fwd { type filter hook forward priority 0; policy accept; ip daddr 169.254.169.254 tcp dport 80 reject; }
+                                                   ^^^^^^
+/tmp/probe.nft:3:67-68: Error: syntax error, unexpected ip
+  chain fwd { type filter hook forward priority 0; policy accept; ip daddr 169.254.169.254 tcp dport 80 reject; }
+                                                                  ^^
+/tmp/probe.nft:4:1-1: Error: syntax error, unexpected '}'
+}
+^
+[exit 1]
+$ nft list ruleset
+table inet emerald_isolation {
+	set mds_tcp_ports {
+		type inet_service
+		flags constant
+		elements = { 53, 80, 443 }
+	}
+	set apihost_tcp_ports {
+		type inet_service
+		flags constant
+		elements = { 4, 53, 80, 2000, 10001 }
+	}
+	chain OUTPUT {
+		type filter hook output priority mangle; policy accept;
+		oifname "lo" accept
+		ip frag-off & 0x3fff != 0x0 drop
+		exthdr frag exists drop
+		ip daddr 169.254.169.1 accept
+		tcp flags & (syn | ack) != syn accept
+[exit 0]
+##### M3a: host-network container after the rule
+$ pm M3a run --rm --http-proxy=false --network=host docker.io/library/busybox:latest sh -c wget -q -T 5 -O /dev/null --header "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id && echo metadata-REACHABLE || echo metadata-blocked
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+metadata-REACHABLE
+[exit 0]
+##### M3b: bridge container after the rule
+$ pm M3b run --rm --http-proxy=false docker.io/library/busybox:latest sh -c wget -q -T 5 -O /dev/null --header "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id && echo metadata-REACHABLE || echo metadata-blocked
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+metadata-REACHABLE
+[exit 0]
+##### M3c: the job itself after the rule: metadata refused, DNS still works, proxy still works
+$ curl -sS -m 5 -o /dev/null -w "metadata http: %{http_code}
+" -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/id 2>&1 | tail -1; getent hosts github.com | head -1; curl -sS -m 10 -x "$PROBE_PROXY" -o /dev/null -w "via proxy: %{http_code}
+" https://github.com
+metadata http: 200
+via proxy: 200
+[exit 0]
+##### M3d: the metadata hostname instead of the address (metadata.google.internal)
+$ pm M3d run --rm --http-proxy=false --network=host docker.io/library/busybox:latest sh -c wget -q -T 5 -O /dev/null --header "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/id && echo metadata-REACHABLE || echo metadata-blocked
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+metadata-REACHABLE
+[exit 0]
+##### MEM1: hold 300 MB in a shell variable under --memory=128m (expect killed, exit 137)
+$ pm Q1 run --rm --http-proxy=false --network=host --memory=128m --memory-swap=128m docker.io/library/busybox:latest sh -c x=$(head -c 300000000 /dev/zero | tr "
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+[exit 137]
+##### MEM2: the same without a limit (expect it to succeed)
+$ pm Q2 run --rm --http-proxy=false --network=host docker.io/library/busybox:latest sh -c x=$(head -c 300000000 /dev/zero | tr "
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+held 300000000
+[exit 0]
+##### MEM3: the limits as the container sees them
+$ pm Q3 run --rm --http-proxy=false --network=host --memory=128m --cpus=0.5 docker.io/library/busybox:latest sh -c cat /sys/fs/cgroup/memory/memory.limit_in_bytes /sys/fs/cgroup/cpu/cpu.cfs_quota_us 2>&1
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+134217728
+50000
+[exit 0]
+##### CPU1: --cpus=0.5 throttles (busy loop 4 s; compare iteration counts)
+$ pm Q4 run --rm --http-proxy=false --network=host --cpus=0.5 docker.io/library/busybox:latest sh -c i=0; end=$(( $(date +%s)+4 )); while [ $(date +%s) -lt $end ]; do i=$((i+1)); done; echo iterations $i
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+iterations 1615
+[exit 0]
+$ pm Q5 run --rm --http-proxy=false --network=host docker.io/library/busybox:latest sh -c i=0; end=$(( $(date +%s)+4 )); while [ $(date +%s) -lt $end ]; do i=$((i+1)); done; echo iterations $i
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+iterations 3438
+[exit 0]
+##### TIME1: a container whose process ignores the time limit and spawns children; podman --timeout kills the whole tree?
+$ pm T1 run --rm --http-proxy=false --network=host --timeout 3 docker.io/library/busybox:latest sh -c sleep 60 & sleep 60 & sleep 60
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+[exit 255]
+$ sh -c ps -e | grep -c "[s]leep 60"
+sh: 1: ps: not found
+0
+[exit 1]
+##### BUILD1: podman build with a RUN step (docker build failed here on capabilities)
+$ pm B1 build --network=host -t probe-built /tmp/bt
+STEP 1/2: FROM docker.io/library/busybox:latest
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+STEP 2/2: RUN echo built > /built
+COMMIT probe-built
+--> 701e244ac5a2
+Successfully tagged localhost/probe-built:latest
+701e244ac5a21dcbe95ebe3f5f46585885e9aac0e257893c0a5a82ef69249a38
+[exit 0]
+##### UID1: a numeric user writing to a bind mount that belongs to that user (the keep-id replacement)
+$ pm U1 run --rm --http-proxy=false --network=host --user 1000:1000 -v /tmp/work:/work docker.io/library/busybox:latest sh -c id; echo u > /work/u; ls -ln /work/u
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+uid=1000(1000) gid=1000(1000) groups=1000(1000)
+-rw-r--r--    1 1000     1000             2 Oct 31 10:33 /work/u
+[exit 0]
+$ ls -ln /tmp/work/u
+-rw-r--r-- 1 1000 1000 2 Oct 31 10:33 /tmp/work/u
+[exit 0]
+##### UID2: the same bind mount owned by root: the numeric user is refused (so ownership must match)
+$ pm U2 run --rm --http-proxy=false --network=host --user 1000:1000 -v /tmp/work2:/work docker.io/library/busybox:latest sh -c echo u > /work/u 2>&1; echo "exit $?"
+Trying to pull docker.io/library/busybox:latest...
+Getting image source signatures
+Copying blob sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc
+Copying config sha256:aaef90e065235eb0b2d9938be85d1b81add2902cf89affe2cdfa19be33476ac0
+Writing manifest to image destination
+sh: line 0: can't create /work/u: Permission denied
+exit 1
+[exit 0]
+##### UID3: --userns=keep-id as root (what the factory sets for rootless)
+$ pm U3 run --rm --http-proxy=false --network=host --userns=keep-id --rootfs /tmp/rootfs /bin/id
+Error: OCI runtime error: runc: runc create failed: unable to start container process: can't get final child's PID from pipe: EOF
+[exit 126]
+PROBE DONE
+Container called exit(0).
