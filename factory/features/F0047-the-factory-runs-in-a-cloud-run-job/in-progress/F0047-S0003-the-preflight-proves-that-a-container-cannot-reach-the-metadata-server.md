@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T17:54:35.272780Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-10-31T17:54:14.691292Z'
   stage: tests
   run: a07d9adb7337478aa59a2b3d7284674b
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-31T17:54:35.272780Z'
+  stage: doing
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -272,3 +281,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.6 s)
+17. factory: started doing as vm.
