@@ -34,7 +34,7 @@ REFUSING_GIT = (
 case "$*" in
   *core.askPass*|*core.askpass*) offered=yes ;;
 esac
-if [ -n "${GIT_ASKPASS-}" ]; then
+if [ -n "${{GIT_ASKPASS-}}" ]; then
   offered=yes
 fi
 if [ "$offered" = no ]; then
@@ -114,7 +114,7 @@ def _clones(tmp_path: Path) -> list[GitCall]:
     return [call for call in _git_calls(tmp_path) if "clone" in call.words]
 
 
-def _setup(tmp_path: Path, git: str, words: list[str]) -> tuple[int, str, str]:
+def _setup(tmp_path: Path, git: str, words: list[str]) -> tuple[int | None, str, str]:
     folder = _stand_ins(tmp_path, git)
     result = run_setup(
         tmp_path,

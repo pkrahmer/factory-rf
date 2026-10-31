@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T21:34:17.020356Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-10-31T21:34:17.020356Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: result
+  at: '2026-10-31T21:40:18.196814Z'
+  stage: tests
+  run: 6f90f2779ee242c2a18f85fdccc92555
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -278,3 +280,29 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Still open from entry 13, not touched: with a different `--code-url` the clone happens in the first pass. So on the second pass `cloned=no`, and older installed copies of the helper and the unit are not replaced; the script only prints its "differs from the checkout" warning.
 17. factory: started tests as vm.
+18. tester: Made the two test changes the human approved in entry 14 (the coder's entry 16 names them). Both are in `tests/test_vm_setup_code_url.py`, this story's own test file. No other file changed.
+
+    - `REFUSING_GIT`: the brace is now escaped as `${{GIT_ASKPASS-}}`. `_stand_ins` passes the stand-in through `git.format(log=log)`, and the unescaped brace raised `KeyError: 'GIT_ASKPASS-'` before `setup.sh` ran. After formatting, the stand-in script reads `${GIT_ASKPASS-}`, as the test meant.
+    - `_setup`: the return annotation is now `tuple[int | None, str, str]`, which matches `ProcessResult.exit_status`. `make types` had reported `return-value` at line 124.
+
+    What the tests check is unchanged. Criterion → test, unchanged from entry 11:
+    - criterion 1: `tests/test_git_credential_helper.py` (the existing tests)
+    - criterion 2: `tests/test_vm_credential_helper_host.py::test_get_answers_only_a_request_for_the_project_repository_s_host`
+    - criterion 3: `tests/test_vm_credential_helper_host.py::test_the_ssh_url_forms_name_their_host`
+    - criterion 4: `tests/test_vm_credential_helper_host.py::test_any_other_operation_prints_nothing_and_succeeds_with_the_url_set`
+    - criterion 5 (runs): `tests/test_vm_setup_code_url.py::test_only_a_different_code_url_is_cloned_without_the_askpass`
+    - criterion 5 (text): `tests/test_vm_setup_code_url.py::test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_url`
+    - criterion 6: `tests/test_vm_setup_code_url.py::test_a_code_repository_that_asks_for_a_credential_fails_the_clone`
+    - criterion 7: `tests/test_vm_setup_code_url.py::test_the_first_pass_stops_at_the_secrets_wait_after_the_code_clone`
+    - criterion 8: `tests/test_vm_setup_code_url.py::test_the_environment_file_never_holds_the_code_url`
+    - criterion 9: `tests/test_vm_setup_code_url.py::test_the_usage_text_names_the_code_url_option`
+    - criterion 10: `tests/test_vm_credential_helper_host.py::test_the_url_s_case_user_and_port_do_not_change_its_host`
+
+    Files created: none this round. Changed: `tests/test_vm_setup_code_url.py`. Every module imported, and the run had no collection errors.
+
+    Results: `make test` is green against the coder's implementation from entry 13, criterion 6 included (`test: green (164.7 s)`, coverage 99.56 %). `make lint` is green and `make types` is green.
+
+    Still open, from the coder's entries 13 and 16, and not a test matter: with a different `--code-url`, the clone happens in the first pass. On the second pass `cloned=no`, so older installed copies of the helper and the unit are not replaced. The story says nothing about this.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (164.5 s)
