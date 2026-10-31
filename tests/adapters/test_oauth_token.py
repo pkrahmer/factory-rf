@@ -143,3 +143,65 @@ def test_a_failed_fetch_is_a_token_error_without_the_secret_or_the_token(
     assert raised.value.detail == detail
     assert HIDDEN not in str(raised.value)
     assert ISSUED not in str(raised.value)
+
+
+@pytest.mark.parametrize(
+    ("body", "expected"),
+    [
+        pytest.param(b"<html>", "the answer holds no access_token", id="not-json"),
+        pytest.param(
+            answer({"access_token": "", "expires_in": 3599}),
+            "the answer holds no access_token",
+            id="access-token-blank",
+        ),
+        pytest.param(
+            answer({"access_token": "t u", "expires_in": 3599}),
+            "the answer holds no access_token",
+            id="access-token-with-a-space",
+        ),
+        pytest.param(
+            answer({"access_token": 5, "expires_in": 3599}),
+            "the answer holds no access_token",
+            id="access-token-not-a-string",
+        ),
+        pytest.param(
+            answer({"access_token": "t"}), "the answer holds no expires_in", id="no-expires-in"
+        ),
+        pytest.param(
+            answer({"access_token": "t", "expires_in": "soon"}),
+            "the answer holds no expires_in",
+            id="expires-in-not-numeric",
+        ),
+        pytest.param(
+            answer({"access_token": "t", "expires_in": True}),
+            "the answer holds no expires_in",
+            id="expires-in-true",
+        ),
+        pytest.param(
+            answer({"access_token": "t", "expires_in": "0"}),
+            "the answer holds no expires_in",
+            id="expires-in-string-0",
+        ),
+        pytest.param(
+            answer({"access_token": "t", "expires_in": 1}),
+            Token(value="t", expires_in=1),
+            id="expires-in-1",
+        ),
+        pytest.param(
+            answer({"access_token": "t", "expires_in": "1"}),
+            Token(value="t", expires_in=1),
+            id="expires-in-string-1",
+        ),
+    ],
+)
+def test_a_200_answer_needs_a_token_string_and_a_positive_life(
+    body: bytes, expected: Token | str
+) -> None:
+    source = source_of(RecordingOpener(body))
+
+    if isinstance(expected, Token):
+        assert source.fetch() == expected
+    else:
+        with pytest.raises(TokenError) as raised:
+            source.fetch()
+        assert raised.value.detail == expected

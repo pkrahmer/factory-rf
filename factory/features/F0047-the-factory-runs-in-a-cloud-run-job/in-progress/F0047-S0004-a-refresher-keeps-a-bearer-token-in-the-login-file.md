@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T19:17:36.134192Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-10-31T19:17:36.134192Z'
   stage: tests
+- number: 26
+  speaker: tester
+  kind: result
+  at: '2026-10-31T19:23:41.354446Z'
+  stage: tests
+  run: 454b3733133a4b208cb444f018b4a0c9
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -451,3 +453,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Still open, not mine to change: vulture's finding on `OpenUrl.__call__` goes into the duplicates baseline at approval (entry 14).
 25. factory: started tests as vm.
+26. tester: Round 1. In entry 24 the coder named the test that criterion 9 needs. The reviewer added that criterion in entry 22, and it needs only its test, so this run had no earlier test to edit. I wrote criterion 9's test as rows of one parametrized test.
+
+    criterion 9: tests/adapters/test_oauth_token.py::test_a_200_answer_needs_a_token_string_and_a_positive_life
+
+    Each row gives the source a single 200 answer through `RecordingOpener`. The rows cover:
+    - `<html>` (`not-json`), an `access_token` that is blank, one with a space, and the number `5`. Each must give `TokenError` with the detail `the answer holds no access_token`.
+    - A missing `expires_in`, `"soon"`, `true` and `"0"`. Each must give `the answer holds no expires_in`.
+    - An `expires_in` of `1` and of `"1"`. Each must give `Token(value="t", expires_in=1)`.
+
+    The earlier mapping, entries 11 and 18, is unchanged.
+
+    Files changed: `tests/adapters/test_oauth_token.py`. I added one test function there and created no files. I changed no test that another story wrote.
+
+    Modules the test run could not import: none. The code from entry 20 already handles these cases, so the new rows pass as they are rather than failing first: `make test` → `test: green (165.2 s)`, total coverage 99.55 %. `make lint` → `lint: green (0.2 s)`.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (165.3 s)
