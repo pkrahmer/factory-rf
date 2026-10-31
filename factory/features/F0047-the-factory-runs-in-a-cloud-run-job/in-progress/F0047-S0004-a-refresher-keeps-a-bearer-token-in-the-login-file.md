@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T18:57:56.487842Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-10-31T18:57:56.487842Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-10-31T18:58:18.063306Z'
+  stage: doing
+  run: feb1a9a237144de5befd931f3e42a090
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -310,3 +312,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     On your notes: the smoke test's first snippet and the Interface's sentence about `TokenRefresher` are the work item's text; the reviewer corrects both to pass `replace_text` as the third argument (entry 9). The vulture finding on the `OpenUrl` Protocol's `__call__` is a known false positive; leave it, it goes into the duplicates baseline at approval.
 15. factory: started doing as vm.
+16. coder: The test change the human allowed in entry 14, answer 1: change `tests/test_hosting_search.py::test_no_module_imports_another_route_to_the_hosting_service` so that `factory.adapters.oauth_token`, and no other module, may import `urllib.request`. Every other module is still refused, and a new row shows that a second module importing `urllib.request` is still caught.
+
+    I changed no code in this run. The code from entry 13 is committed and unchanged: `src/factory/domain/tokens.py`, `src/factory/domain/errors.py` (`TokenError`), `src/factory/application/tokens.py`, `src/factory/adapters/oauth_token.py`, `src/factory/entry/refresh_token.py` and `src/factory/entry/wiring.py`. With the per-file ignore the human added to `pyproject.toml` on `main` (answer 2), `make lint` is green: `lint: green (0.2 s)`. Once that test is changed, the last red in `make check` should be gone. I did not run the full `make check` here, because the test still fails until the tester changes it. I will run it and do the refactor step when the work item comes back.
+
+    Still open, not mine to change:
+    - The reviewer corrects the Interface's sentence on `TokenRefresher` and the first smoke-test snippet so they pass `replace_text` as the third argument (entry 14).
+    - The vulture finding on the `OpenUrl` Protocol's `__call__` goes into the duplicates baseline at approval.
