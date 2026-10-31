@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T20:28:29.980686Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -348,6 +352,11 @@ journal:
   at: '2026-10-31T20:28:07.377076Z'
   stage: tests
   run: 442f2e165a4147be82702fc3a9433104
+- number: 62
+  speaker: factory
+  kind: started
+  at: '2026-10-31T20:28:29.980686Z'
+  stage: doing
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -998,3 +1007,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: ERROR tests/entry/test_refresh_token.py - Failed: tests/entry/test_refresh_token.py::test_the_loop_keeps_the_file_after_a_failure_and_retries_after_a_minute: in "parametrize" the number of names (1):
+62. factory: started doing as vm.
