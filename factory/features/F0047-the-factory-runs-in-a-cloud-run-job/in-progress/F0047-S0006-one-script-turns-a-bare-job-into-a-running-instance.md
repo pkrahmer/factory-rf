@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-31T23:27:13.865521Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T23:26:56.150102Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-31T23:27:13.865521Z'
   stage: intake
 ---
 
@@ -116,3 +125,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    6. Yes: a row where `RUNC_VERSION` and `RUNC_SHA256` are both given and replace the URL's version and the checksum fed to `sha256sum -c`.
    7. Yes: criterion 11 also checks that no recorded stand-in argument contains `s3cret-token-text`.
    8. The rule: the script stops at the first failing step with exit 1 and `job-start: <step>: failed` on standard error (the steps with their own message keep it), and `factory-run` is never called. Rows for a failing `curl` at `runc`, a failing `nft -f` at `metadata`, and a failing `apt-get` at `packages`.
+5. factory: started intake as vm.
