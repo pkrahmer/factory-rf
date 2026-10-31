@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T19:53:16.467083Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -251,6 +247,12 @@ journal:
   kind: started
   at: '2026-10-31T19:53:16.467083Z'
   stage: doing
+- number: 44
+  speaker: coder
+  kind: result
+  at: '2026-10-31T19:59:38.861356Z'
+  stage: doing
+  run: 87a0f6d509aa43de8f2a113584e32e51
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -708,3 +710,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.7 s)
 43. factory: started doing as vm.
+44. coder: Round 1 (the count started over at entry 36). I changed no code in this run. The tester made both changes from entry 38 in entry 42: the `not-utf-8` row of `tests/entry/test_refresh_token.py::test_an_unreadable_or_blank_secret_file_exits_2`, and `HIDDEN` and `ISSUED` moved to `tests/token_support.py`. Both pass against the code as it has stood since entry 32. `make check` passed in this run: `check: green`, `test: green (164.7 s)`, total coverage 99.56 %. The working tree was clean before the run.
+
+    **What is built** (in the branch, unchanged since entry 32):
+    - `src/factory/domain/tokens.py`
+    - `src/factory/domain/errors.py` (`TokenError`)
+    - `src/factory/application/tokens.py`
+    - `src/factory/adapters/oauth_token.py`
+    - `src/factory/entry/refresh_token.py`
+    - `src/factory/entry/wiring.py` (`client_credentials_source`, `build_token_refresher`)
+
+    **Main choice, unchanged:** the adapters are built in `factory.entry.wiring`, not imported directly in `refresh_token.py` as the Interface reads. I rejected the direct import because `tests/entry/test_wiring.py::test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer` forbids it. Also unchanged since entry 32: the secret file is read through `read_input`, and the source masks the secret and the last token it issued.
+
+    **Refactor:** there is no new code diff in this round, so nothing to refactor. The earlier refactors still stand: the shared `_masked` helper, and reading the secret through `read_input`.
+
+    **What the journal changed:** entries 36 to 42 changed only tests, so the Description is unchanged.
+
+    **Noticed, not touched:**
+    - vulture's false positive on `OpenUrl.__call__` (`duplicates: 1 new`) goes into the duplicates baseline at approval (entry 14).
+    - The two `--once` tests stay as two functions (entry 36, answer 3).
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 0 gone
