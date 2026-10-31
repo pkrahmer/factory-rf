@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T22:13:12.686205Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -203,6 +207,11 @@ journal:
   at: '2026-10-31T22:12:52.550586Z'
   stage: doing
   run: caee6cddd9c743478c9e6048561efa8f
+- number: 36
+  speaker: factory
+  kind: started
+  at: '2026-10-31T22:13:12.686205Z'
+  stage: tests
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -616,3 +625,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/test_vm_setup_code_url.py:136-142` searches by hand for the `if`/`elif`, beside `vm_support.enclosing_if`.
 
     Description: the reviewer made entry 25's corrections in entry 33, and nothing since has changed what the task means. What is built is unchanged since entry 31: `vm/setup.sh` (`--code-url`, the code clone after the secrets wait in a flat `if`/`elif`) and `vm/git-credential-factory` (the host rule).
+36. factory: started tests as vm.
