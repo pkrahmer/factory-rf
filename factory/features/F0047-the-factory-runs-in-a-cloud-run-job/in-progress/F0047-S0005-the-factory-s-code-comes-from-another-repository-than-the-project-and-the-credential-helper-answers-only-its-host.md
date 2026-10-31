@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T21:53:15.397539Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -157,6 +153,12 @@ journal:
   kind: started
   at: '2026-10-31T21:53:15.397539Z'
   stage: doing
+- number: 27
+  speaker: coder
+  kind: result
+  at: '2026-10-31T21:54:10.892606Z'
+  stage: doing
+  run: a4829758912741b4a7ee35e93016a79a
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -421,3 +423,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Findings 1 and 3 of entry 22 go to the tester in the same run, as you list them: criterion 11's test (a `GIT_ASKPASS` the stand-in `runuser` exports must not reach the code clone; with the clone after the wait, test it from the text if a run cannot reach it), and the helpers moved under the standing leave.
 26. factory: started doing as vm.
+27. coder: Ended with `tests`. I changed no code this round. The human's answer (B) in entry 25 changes the tests, and the tester has to make those changes before the code moves. If I moved the code clone now, the tests that run it before the wait would go red.
+
+    Description rewritten as entry 25 asks (the heading stays a plain `## Description`, as in every other work item):
+    - Interface, the `setup.sh` bullet "With a different `--code-url`": the clone of the code url now happens in the checkout step after the wait for the secrets, where today's clone happens. It still runs with `GIT_TERMINAL_PROMPT=0` and without `GIT_ASKPASS` and `core.askPass`. It sets `cloned=yes` as today, so the same pass installs the helper and the unit. The first pass stops at the wait message (exit 0) without cloning.
+    - Criterion 7: with a different `--code-url` and no `hosting-token`, the script prints the wait message and exits 0 without calling the stand-in `git clone`. With the token, the clone of the code url runs with no askpass and sets `cloned=yes`. That part is tested from the text after the wait.
+
+    Changes for the tester, all in this story's own test files or under the standing leave:
+    1. Criterion 7: `tests/test_vm_setup_code_url.py::test_the_first_pass_stops_at_the_secrets_wait_after_the_code_clone`. In the `different` row, expect no clone before the wait. Add a text test after the wait: the checkout step's clone of the code-url variable carries `GIT_TERMINAL_PROMPT=0`, no `GIT_ASKPASS` (`env -u GIT_ASKPASS` or the like) and no `core.askPass`, and its branch sets `cloned=yes`.
+    2. Once the clone moves after the wait, a run can no longer reach it. That affects two tests, which per answer (A) in entry 9 become text tests or lose their run rows:
+       - criterion 5's `different` row in `test_only_a_different_code_url_is_cloned_without_the_askpass`, which today expects one clone before the wait;
+       - criterion 6's `test_a_code_repository_that_asks_for_a_credential_fails_the_clone`.
+
+       The tester judges both against the story; I note them because entry 25 names only criterion 7.
+    3. Finding 1 of entry 22: criterion 11 needs its test. A `GIT_ASKPASS` that the stand-in `runuser` exports must not reach the code clone. Since the clone is now after the wait, test it from the text if a run cannot reach it.
+    4. Finding 3 of entry 22, under the standing leave:
+       - `tests/test_vm_credential_helper_host.py` imports `SYSTEM_PATH` from `tests/vm_support.py`.
+       - The `token` fixture moves to `tests/conftest.py`.
+       - `ROOT`, `HELPER` and `EXAMPLE_VALUE` move to a support module under `tests/`.
+       - Both `tests/test_git_credential_helper.py` and `tests/test_vm_credential_helper_host.py` then use them from there.
+
+    Next doing round: move the code-url clone in `vm/setup.sh` from before the secrets wait into the checkout step's clone after it, choosing `$code_url` without the askpass when it differs and keeping today's askpass clone of `$repository_url` otherwise. `cloned=no` goes back to its old place. `tests/test_vm_setup_text.py` reads the first `git clone -q --branch` line of the checkout step as the askpass clone (`ORDERED_COMMANDS`, the `GIT_ASKPASS=` row, `_clone_variables`), so the askpass clone has to stay first there.
+
+    What is built, unchanged since entry 13: `vm/git-credential-factory` (the host rule) and `vm/setup.sh` (`--code-url`; the clone without credentials, still before the wait for now). `make check` was not run this round because no code changed; it was green at entry 20.
+
+    The factory left out changes outside the write paths: factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0005-the-factory-s-code-comes-from-another-repository-than-the-project-and-the-credential-helper-answers-only-its-host.md.
