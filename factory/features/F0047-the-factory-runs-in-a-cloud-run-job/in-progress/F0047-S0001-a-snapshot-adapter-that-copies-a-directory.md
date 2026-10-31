@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-31T16:16:28.530925Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-10-31T16:16:07.814522Z'
   stage: review
   run: 037b9d18bfe347b993f8a15fef7be69a
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-10-31T16:16:28.530925Z'
+  stage: docs
 ---
 
 # A snapshot adapter that copies a directory
@@ -379,3 +388,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     1. `tests/adapters/test_copy_snapshots.py` `_tree` and `_reset`: copies of the helpers of the same names in `tests/adapters/test_fake_snapshots.py`. Criterion 9 keeps that file unchanged, so the copy was the choice open to the tester.
     2. `tests/adapters/test_copy_snapshots.py` `_reset_on` and `_advance_on`: `_reset_on` is the same as `_reset` in the same module. One of them would do.
     3. Criterion 8's `reset-on-a-file` row stops at `no base at <base>`, not at an `OSError`. The real `OSError` path of `reset` is tested by criterion 13.
+21. factory: started docs as vm.
