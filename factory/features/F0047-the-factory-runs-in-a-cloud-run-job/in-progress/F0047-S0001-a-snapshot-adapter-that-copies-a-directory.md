@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T15:50:34.517996Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-31T15:50:34.517996Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-31T15:58:54.264002Z'
+  stage: doing
+  run: af62d7cb8c814acf9587af29c164a02c
 ---
 
 # A snapshot adapter that copies a directory
@@ -212,3 +214,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/entry/test_wiring_copy_snapshots.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_copy_snapshots.py'.
 9. factory: started doing as vm.
+10. coder: Implemented the copy snapshots, the two settings, the `snapshots` preflight item and the wiring. `make check` is green (test: 167.1 s, then `check: green`). The four new test modules and `tests/adapters/test_fake_snapshots.py` pass, and I edited no test.
+
+    What I built:
+    - `src/factory/adapters/copy_snapshots.py` (new): `CopySnapshots(folder, base)`. It has the fake's three operations. `reset` and `advance` turn an `OSError` into `SnapshotError(<operation>, str(error))` through `_as_snapshot_error`. `reset` checks for the base before it empties the folder, so without a base the folder is left as it was. `changed_paths` first compares each entry's mode and size, or a link's mode and target. Only a file whose mode and size match is then read, in 1 MiB chunks (`_same_file_bytes`), so no file is ever read whole.
+    - `src/factory/adapters/fake_snapshots.py`: `FakeSnapshots(CopySnapshots)`. Only its module docstring and class docstring are left.
+    - `src/factory/domain/settings.py`:
+      - New constants `SNAPSHOTS_VARIABLE` and `SNAPSHOT_BASE_VARIABLE`, the type `SnapshotsName`, and the fields `snapshots` (default `zfs`) and `snapshot_base`.
+      - `_snapshots` reads the setting the same way `_agent_runtime` does. The base is read with `_optional_absolute_path`.
+      - One public rule, `snapshot_base_fault`, serves both `read_settings` (as `SettingsInvalid`) and a new model validator (as `ValidationError`). It refuses a base under `zfs`, and a base that is, lies inside or holds the workspace, the checkout or the state directory, checked in that order. `snapshot_base` also joined the `_absolute` field validator.
+    - `src/factory/application/preflight.py`: `snapshots_item(workspace, base)` with the Interface's sentences.
+    - `src/factory/entry/wiring.py`: `_container_adapters` now picks `_copy_snapshots` or `_zfs_snapshots`. Each checks its own source first (the base or the dataset), then the workspace through `_required_workspace`. The stage image is checked after that.
+      - Each returns a `_SnapshotAdapters` that holds the `Snapshots` and its preflight items: copy gives `snapshots`; zfs gives `zfs` and `dataset`, as before. `_container_items` places these between `podman` and `stage-image`.
+      - `PodmanRuns` now takes the workspace from the snapshots' `mount_point`.
+
+    Main choice: each kind of snapshots brings its own preflight items through `_SnapshotAdapters`. I rejected keeping `_ContainerAdapters` typed to `ZfsSnapshots` with a nullable `dataset` and branching on `settings.snapshots` again in `_container_items`. That puts the copy/zfs decision in two places and needs a narrowing of the dataset that the type cannot show.
+
+    Second choice: compare mode and size before reading any bytes, so a changed size is found without reading the file. I rejected `filecmp.cmp`: its cache is keyed on size and mtime, and it could miss a same-size rewrite within the same mtime.
+
+    Refactor pass: I read the diff and found nothing to change.
+
+    The journal did not change the meaning of the task beyond what intake already wrote into the Description; I rewrote nothing.
+
+    Noticed, not touched:
+    - `changed_paths` does not turn an `OSError` into a `SnapshotError`, because the Interface names only `reset` and `advance`.
+    - The `reset-on-a-file` row of the OS-fault test is caught by the no-base check, `no base at <base>`, not by an `OSError`. The test checks only the operation name and that the detail is not empty, so it passes either way.
+    - I did not run `make duplicates`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 41 known, 0 gone
