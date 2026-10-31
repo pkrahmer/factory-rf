@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T21:13:11.099638Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-31T21:12:50.668024Z'
   stage: intake
   run: 86005898b4ff4e35b9630bc8011e192e
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-31T21:13:11.099638Z'
+  stage: tests
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -123,3 +132,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: both commands are runnable with `sh` and a temp token file. The `Expect:` lines (two named lines; `exit 1` alone) can be checked against the output. Neither runs pytest.
    - Architecture: only `vm/` shell scripts change, so no layer is touched. They are within the coder's write paths.
    - Scope: within feature decision 9 and the scope item for S0005. It does not touch S0006's start script or any "Out of scope" item. It changes no earlier story's test.
+7. factory: started tests as vm.
