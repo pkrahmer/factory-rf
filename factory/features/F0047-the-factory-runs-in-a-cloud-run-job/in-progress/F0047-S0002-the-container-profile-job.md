@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T16:43:54.331400Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T16:43:36.519541Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-31T16:43:54.331400Z'
   stage: doing
 ---
 
@@ -190,3 +199,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Refactor: I read my diff and there is nothing to change. Noticed and not touched: the module docstring of `podman_runs.py` and the class docstring said "rootless". I reworded them to cover both profiles.
 11. 2026-10-31 human: Answer to question 10: (a). The tester gives the queries test an existing workspace (a `job_runs` fixture on `tmp_path`, or `tmp_path` in that one test); the rows that start no process keep `WORKSPACE`. The queries keep the workspace as their working directory, as in `rootless`; no earlier test changes.
+12. factory: started doing as vm.
