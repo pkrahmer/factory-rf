@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 488
-comments_read: [6550566644]
+comments_read: [6550566644, 6550672073]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: d6b6cc6a82ae4ba7b51ac4cc917767e9
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-10-31T23:40:07.794612Z'
+  stage: tests
 ---
 
 # One script turns a bare job into a running instance
@@ -191,3 +196,6 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    What the stand-ins expect from the script (the coder should know): curl writes the download to the path after `-o` or `--output`. sha256sum reads the checked line from standard input, or from the files named after `-c`. `python3 -m venv DIR` creates `DIR/bin/{python,python3,pip,uv}`. `uv sync` creates `<root>/factory/.venv/bin/{python,factory-run}`. A git call fails when one of its words contains `no-such-ref`. Every stand-in records its calls in one log, in order. In the refresher rows, factory-run waits on a FIFO until the background refresher has run, so the test does not depend on timing.
 
    Modules the test run could not import: none. The failures come from the missing `vm/job-start.sh` and the still-pinned `vm/Dockerfile`.
+9. 2026-10-31 human: Answer to question 8: (c) for tonight. The default row checks that a 64-character lowercase hex value is fed to `sha256sum -c`, and the `given` row checks the exact feed, as you have them now. No `pragma: allowlist secret` and no `.secrets.baseline` entry tonight: either needs the human, who is asleep.
+
+   For the coder: write the checksum into `vm/job-start.sh` the way the script writes its other constants. If `make secrets` flags that line, do not add a marker or an exclusion: end the stage with `question`, naming the line and the plugin, and the work item waits for the human's decision in the morning (a line filter like the human's `api_key_env` one, a baseline entry, or a marker).
