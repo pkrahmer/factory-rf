@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T23:47:07.970371Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-10-31T23:47:07.970371Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-10-31T23:52:29.202596Z'
+  stage: doing
+  run: 59363041c9cc45fc880639e0e2d986ca
 ---
 
 # One script turns a bare job into a running instance
@@ -253,3 +255,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/test_vm_job_start.py::test_a_failing_step_stops_the_script_before_factory_run[apt-get-packages] - AssertionError: assert 2 == 1
 12. factory: started doing as vm.
+13. coder: `make check` is red, and the failing file is the tester's, so the work item goes back to the tests stage. `make types` fails on `tests/vm_support.py:310`: `error: Unsupported operand types for | ("dict[str, str]" and "dict[str, str | None]")  [operator]`. The cause is in `run_job_start`: the dict literal on the left of `| (inputs or {})` is inferred as `dict[str, str]`. The `environment: dict[str, str | None]` annotation does not reach it through the `|`. The change for the tester, in one sentence: in `run_job_start`, annotate the literal itself as `dict[str, str | None]` (for example `defaults: dict[str, str | None] = {...}`, then `environment = defaults | (inputs or {})`) and leave the behaviour unchanged. The tester's entry says the type check was not run. This is a type error in this story's own test helper, not a wrong test, so I see nothing to ask the human.
+
+    What I built:
+    - `vm/job-start.sh` (new, POSIX `sh`, `set -eu`). It has the shell constant `JOB_PODMAN_OPTIONS`, the runc version and its SHA-256 as constants, and the steps in the Interface's order. Each step prints `job-start: <step>` and stops through `failed <step>` (exit 1). The steps that have their own message keep it: runc checksum, storage mount, missing code ref. A required input that is missing, `FACTORY_TOKEN_FILE` that is not a readable file, and `RUNC_VERSION` without `RUNC_SHA256` each exit 2. The script derives defaults only where the job gave none, through one `default` helper. `FACTORY_STAGE_IMAGE` is exported with its default too, so that `factory-run` sees the image that was built. The proxy is `HTTPS_PROXY`, else `https_proxy`, and is exported under both names. The script never reads the token file; it only tests that the file exists. It ends in `exec .../factory-run`.
+    - `vm/Dockerfile`: the seven Debian packages now have no `=<version>`. Line 2 now says that every tool that shapes a result is pinned and that Debian's packages follow the base image's release. Nothing else in the file changed.
+
+    The main choice: the required-input checks run silently, before `job-start: inputs` is printed. The `inputs` line then marks where the defaults are resolved. This way a missing input prints only its own message, which is what the smoke test expects (two lines: the message and `exit 2`). It also keeps "before anything else runs". I rejected printing `job-start: inputs` first: the smoke test would then see three lines.
+
+    Checks:
+    - `tests/test_vm_job_start.py` and `tests/test_stage_image.py` all pass.
+    - `make lint`, `layers`, `sast`, `secrets`, `licenses` and `test` are each green when run alone (test: coverage 99.56 %, 168 s). Only `make types` is red, as quoted above.
+    - Both smoke tests give the expected output.
+    - `detect-secrets scan vm/job-start.sh` finds nothing on the checksum line. So, following the human's answer to question 8, no marker or baseline entry was needed.
+
+    Refactor: I read my diff. Nothing needed changing.
+
+    Noticed, not touched:
+    - `vm/setup.sh` writes `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS` from the Dockerfile into the instance's environment. The job script does not set them, because the Interface does not list them. If the factory on the host needs them, the job's environment must carry them, or a later story adds them.
+    - The `uv` version in the tools step is read from the code checkout's `vm/Dockerfile` (`ARG UV_VERSION`), as `vm/setup.sh` does. With the test stand-ins the checkout is empty, so the version is empty.

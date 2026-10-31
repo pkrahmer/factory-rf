@@ -1,5 +1,5 @@
 # The stage image of every stage's containers, the tools alone; build: podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> .
-# Every reference is pinned (docs/decisions.md).
+# Every tool that shapes a result is pinned; Debian's packages follow the base image's release (docs/decisions.md).
 ARG BASE_IMAGE=python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
 FROM ${BASE_IMAGE}
 ARG CLAUDE_CODE_VERSION=2.1.296
@@ -9,7 +9,7 @@ ARG UV_VERSION=0.9.2
 ARG FACTORY_IMAGE=unlabelled
 LABEL factory.image="${FACTORY_IMAGE}"
 RUN apt-get update \
- && apt-get install -y --no-install-recommends git=1:2.39.5-0+deb12u3 make=4.3-4.1 curl=7.88.1-10+deb12u15 ca-certificates=20250419~deb12u1 procps=2:4.0.2-3 nodejs=18.20.4+dfsg-1~deb12u3 npm=9.2.0~ds1-1 \
+ && apt-get install -y --no-install-recommends git make curl ca-certificates procps nodejs npm \
  && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir uv==${UV_VERSION}
 RUN npm install --global --no-audit --no-fund @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
