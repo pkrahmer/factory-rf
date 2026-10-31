@@ -66,6 +66,7 @@ _HOSTING_FILE_ITEM = "token-file"
 _OPENCODE_ITEM = "opencode"
 _PROBE_ITEM = "agent-run-probe"
 _DATASET_ITEM = "dataset"
+_SNAPSHOTS_ITEM = "snapshots"
 _STAGE_IMAGE_ITEM = "stage-image"
 _NO_MAIN_TO_PREPARE = "no origin/main to prepare the stage environment from"
 
@@ -158,6 +159,28 @@ def dataset_item(dataset: str, exists: Callable[[], bool]) -> PreflightItem:
         )
         return PreflightItem(name=_DATASET_ITEM, passed=False, detail=detail)
     return PreflightItem(name=_DATASET_ITEM, passed=True)
+
+
+def snapshots_item(workspace: Path, base: Path) -> PreflightItem:
+    """Check that the workspace and the base of the copy snapshots are directories."""
+    fault = _snapshots_fault(workspace, base)
+    if fault is not None:
+        return PreflightItem(name=_SNAPSHOTS_ITEM, passed=False, detail=fault)
+    return PreflightItem(
+        name=_SNAPSHOTS_ITEM, passed=True, detail=f"workspace {workspace}, base {base}"
+    )
+
+
+def _snapshots_fault(workspace: Path, base: Path) -> str | None:
+    if not workspace.is_dir():
+        return f"the workspace {workspace} is not a directory"
+    if not base.exists():
+        return (
+            f"the base {base} does not exist; make it empty with mkdir, the first advance fills it"
+        )
+    if not base.is_dir():
+        return f"the base {base} is not a directory"
+    return None
 
 
 def stage_image_item(image: str, exists: Callable[[], bool]) -> PreflightItem:

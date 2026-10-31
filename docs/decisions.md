@@ -1228,3 +1228,14 @@ Date: 2026-10-27 (F0045-S0010; F0039-A0002's note 4, decision 7 of `feature.md`)
 - Why: an import of a test module runs its setup, ties two stories' tests together, and turns a removed or renamed test module into failures elsewhere, as F0044's removals showed.
 - Rejected: the candidates list's rule that shared test code lives only in `*_support.py` modules (it would rename `human_clone.py`, `recording_log.py`, `source_search.py` and others, some hundred imports, for no gain).
 - The fixtures `rig` and `red_main` of the preflight tests went to `preflight_support.py`, not `conftest.py`: a root fixture `rig` would reach every module, and two other rigs carry that name.
+
+## A snapshot adapter that copies a directory
+
+Date: 2026-10-31 (F0047-S0001; decisions 1 and 2 of the feature).
+
+- Decision: `FACTORY_SNAPSHOTS=copy` with `FACTORY_SNAPSHOT_BASE` chooses `CopySnapshots` in place of `ZfsSnapshots`, for a sandbox without ZFS (a Cloud Run job). `reset` empties the workspace and copies the base into it, `advance` replaces the base with a copy of the workspace, and `changed_paths` compares the two trees. The default is `zfs`; nothing changes for an instance that does not set the variable.
+- The adapter is the suite's fake promoted, not a second implementation: its logic moved from `FakeSnapshots` to `CopySnapshots`, and `FakeSnapshots` is a subclass with the same constructor. The tests of the fake pass unchanged, and what they check is now the real adapter's behaviour.
+- One change when the logic became real: files are compared in chunks of at most 1 MiB, never read whole, because the workspace may hold a gigabyte.
+- The base must not overlap the workspace (a reset would empty it), the checkout or the state directory (the base would be copied over them): `read_settings` and the model validator both refuse it. An absent base is the wiring's fault, like an absent dataset. With `copy` the preflight's `zfs` and `dataset` items give way to one, `snapshots`, and the dataset is not read.
+- Cost accepted: a reset takes about 1.6 s per GiB (a tree of 20000 files), and the comparison is slower than the 0.2 s of `rsync`.
+- Rejected: `rsync` in the first version (a later one may use it if the cost shows); a base inside the workspace (a reset would delete it).
