@@ -1,6 +1,7 @@
 """The preflight: the machine's checks, keyed to the image, and the probe of the main branch."""
 
 import os
+import re
 import stat as stat_module
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping, Sequence
@@ -19,6 +20,7 @@ from factory.domain.agent_runs import (
     Login,
 )
 from factory.domain.checks import CheckResult
+from factory.domain.containers import ContainerResult
 from factory.domain.errors import (
     AgentDefinitionError,
     AgentRuntimeError,
@@ -68,6 +70,10 @@ _PROBE_ITEM = "agent-run-probe"
 _DATASET_ITEM = "dataset"
 _SNAPSHOTS_ITEM = "snapshots"
 _STAGE_IMAGE_ITEM = "stage-image"
+_METADATA_ITEM = "metadata-block"
+# curl writes `000` as the HTTP code when it got no answer: refused, unreachable or timed out.
+_NOT_CONNECTED = "000"
+_HTTP_CODE = re.compile(r"[0-9]{3}")
 _NO_MAIN_TO_PREPARE = "no origin/main to prepare the stage environment from"
 
 PROBE_AGENT = "coder"
@@ -194,6 +200,40 @@ def stage_image_item(image: str, exists: Callable[[], bool]) -> PreflightItem:
         detail = f"the stage image {image} is not built; build it with podman build"
         return PreflightItem(name=_STAGE_IMAGE_ITEM, passed=False, detail=detail)
     return PreflightItem(name=_STAGE_IMAGE_ITEM, passed=True)
+
+
+def metadata_block_item(probe: Callable[[], ContainerResult]) -> PreflightItem:
+    """Check that a container cannot reach the metadata server: `probe` runs the metadata probe."""
+    try:
+        result = probe()
+    except ContainerError as error:
+        detail = f"cannot run the metadata probe: {error}"
+        return PreflightItem(name=_METADATA_ITEM, passed=False, detail=detail)
+    fault = _metadata_fault(result)
+    if fault is not None:
+        return PreflightItem(name=_METADATA_ITEM, passed=False, detail=fault)
+    return PreflightItem(name=_METADATA_ITEM, passed=True, detail="refused")
+
+
+def _metadata_fault(result: ContainerResult) -> str | None:
+    # A probe cut off by its limit proves nothing, whatever it printed before.
+    if result.timed_out:
+        return "the metadata probe did not end within its limit"
+    line = _last_line(result.output)
+    if line == _NOT_CONNECTED:
+        return None
+    if line is not None and _HTTP_CODE.fullmatch(line):
+        return (
+            f"a container reached the metadata server (HTTP {line}); "
+            "reject tcp port 80 to 169.254.169.254 in the job's firewall"
+        )
+    shown = line if line is not None else "no output"
+    return f"the metadata probe could not tell (exit {result.exit_status}): {shown}"
+
+
+def _last_line(output: str) -> str | None:
+    lines = [line.strip() for line in output.splitlines() if line.strip()]
+    return lines[-1] if lines else None
 
 
 def opencode_item(settings: InstanceSettings, agent_models: Sequence[str]) -> PreflightItem:

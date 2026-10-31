@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T17:31:39.714982Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-31T17:31:39.714982Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-31T17:38:46.276058Z'
+  stage: doing
+  run: 1eea099a19e745f1a87be056e4e15889
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -156,3 +158,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/entry/test_wiring_metadata_block.py - ImportError while importing test module '/work/checkout/tests/entry/test_wiring_metadata_block.py'.
 9. factory: started doing as vm.
+10. coder: Added the `metadata-block` preflight item for the container profile `job`. `make check` is green; the tester's two modules pass, and the smoke test prints `True` and then the HTTP 200 sentence.
+
+    - `src/factory/domain/containers.py`: adds `METADATA_PROBE_URL` and `METADATA_PROBE_COMMAND`, as the Interface gives them.
+    - `src/factory/application/preflight.py`: adds `metadata_block_item(probe)`. A `ContainerError` from the probe gives `cannot run the metadata probe: <error>`. The remaining rules live in `_metadata_fault`, in this order:
+      - `timed_out` comes first, whatever the output.
+      - Then the last non-blank line, stripped (`_last_line`): `000` passes with the detail `refused`.
+      - Any other three digits (`[0-9]{3}`, full match) fail with the HTTP sentence.
+      - Anything else, or no line at all, fails with `could not tell (exit <status>): <line or "no output">`.
+    - `src/factory/entry/wiring.py`: `_container_items` adds the item after `stage-image` only when `settings.container_profile == "job"`. The run goes through `_metadata_probe(containers)`: `containers.run(list(METADATA_PROBE_COMMAND), mounts=[], environment={}, time_limit=_METADATA_PROBE_TIME_LIMIT (30 s), working_directory=WORK)`. `machine_extras` still appends `agent-run-probe` after it, so that order is unchanged.
+
+    Main choice: the item takes a bare `Callable[[], ContainerResult]`, as the Interface says, and the wiring holds the run's arguments. The rejected alternative was passing the `Containers` interface into the application function and letting it build the call. That would have put the time limit and working directory in the application layer and broken the `stage_image_item(image, exists)` pattern the other container items follow. I also kept the three-digit test as a regex full match rather than `str.isdigit`, which accepts non-ASCII digits.
+
+    Refactor pass: I read the diff and found nothing to change.
+
+    Noticed but did not touch:
+    - `_metadata_probe` is typed with the concrete `PodmanRuns`, because `_ContainerAdapters.containers` is typed that way already.
+    - The journal changed nothing in the Description's meaning beyond what intake already carried in.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 41 known, 0 gone
