@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 483
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T17:21:44.398244Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-31T17:21:44.398244Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-31T17:22:02.819322Z'
+  stage: intake
+  run: 3cebf8e1450a496c8a9940f30504d019
+  blocked: question
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -77,3 +80,12 @@ Expect: two lines, `True` and `a container reached the metadata server (HTTP 200
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-31 human: created.
 2. factory: started intake as vm.
+3. intake: 1. The Interface says the wiring runs the probe with `time_limit=timedelta(seconds=30)` and `working_directory=WORK`. No criterion tests either value. Criterion 2 covers only the command words, the empty mounts and the empty environment. Two coders could read it two ways and both would pass. Should criterion 2 also say the run's time limit is 30 seconds and its working directory is `WORK`? I would add both to criterion 2.
+
+   2. The Interface does not say which rule wins when the result has `timed_out` true and its output also ends in `000` or another line. The rows in criterion 3 test `timed_out` only with no usable line. A coder can check `timed_out` first or the output first, and both pass. Should a timed-out result always fail with the limit sentence, whatever its output? I would say yes, and add a criterion row for `timed_out` true with output `000`.
+
+   3. The Interface says the item reads the last non-blank line, stripped. No row has trailing blank lines or surrounding whitespace, for example `"000\n\n"` or `" 000 "`. Both are clauses of the rule. Should a row cover them? I would add the row `"000\n\n"` passes.
+
+   4. A last line of more than three digits, such as `0000` or `2000`, is neither "three digits" nor an absent line. By the Interface it goes to the "could not tell" case. No criterion pins that. Should one row cover it? I would add `2000` failing with `could not tell (exit 0): 2000`.
+
+   The format check passed. The architecture and the feature's scope are fine.
