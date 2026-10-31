@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T19:46:02.497966Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -229,6 +225,12 @@ journal:
   kind: started
   at: '2026-10-31T19:46:02.497966Z'
   stage: doing
+- number: 40
+  speaker: coder
+  kind: result
+  at: '2026-10-31T19:46:29.696720Z'
+  stage: doing
+  run: b47b1517c6a84a0ea070d0eb06be256e
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -659,3 +661,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/entry/test_run.py`: changed under the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
     - `tests/test_hosting_search.py`: changed under the human's leave, journal entry 14, answer 1. Only `factory.adapters.oauth_token` may import `urllib.request` (`ALLOWED`). The earlier rows keep their ids and still expect no importer, and the new row `urllib.request-in-a-second-module` shows that a second importer is caught. The test keeps its name. The change stays within the leave.
 39. factory: started doing as vm.
+40. coder: Round 1 (the count started over at entry 36). I changed no code. Both findings in entry 38 are test changes, which entry 36 orders. The tester makes both in one run:
+
+    1. Criterion 10: in `tests/entry/test_refresh_token.py::test_an_unreadable_or_blank_secret_file_exits_2`, add a third row, `not-utf-8`, beside `missing` and `blank`. The secret file holds the bytes `b"\xff\xfe"`, and the row expects exit 2 and `refresh_token: cannot read <path>` on standard error (entry 36, answer 1).
+    2. Under the standing leave to move a shared test helper: move `HIDDEN` and `ISSUED` from `tests/adapters/test_oauth_token.py:13-14` and `tests/entry/test_refresh_token.py:17-18` to `tests/token_support.py`, next to `ENDPOINT`. Both modules then import them from there, and every test keeps its name and what it checks (entry 36, answer 2).
+
+    I checked the branch: neither change is in it yet. No `not-utf-8` row exists, and both modules still define the two constants.
+
+    No code change is needed. The new row should pass as soon as it is written, because `src/factory/entry/refresh_token.py` (`_secret`) has read the secret file through `read_input` since entry 32 and turns `UnreadableInput`, which includes a decode error, into `cannot read <path>`. Built so far, unchanged since entry 32: `src/factory/domain/tokens.py`, `src/factory/domain/errors.py` (`TokenError`), `src/factory/application/tokens.py`, `src/factory/adapters/oauth_token.py`, `src/factory/entry/refresh_token.py` and `src/factory/entry/wiring.py`. The main choice from entry 20 still stands: the adapters are built in `factory.entry.wiring`, not imported directly in `refresh_token.py`, which `tests/entry/test_wiring.py` forbids.
+
+    The Description is unchanged, because entries 36 and 38 changed tests, not the task's meaning. Still open, not mine: vulture's false positive on `OpenUrl.__call__` goes into the duplicates baseline at approval (entry 14). The two `--once` tests stay as they are (entry 36, answer 3).
