@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T19:44:47.418986Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -218,6 +214,12 @@ journal:
   kind: started
   at: '2026-10-31T19:44:47.418986Z'
   stage: review
+- number: 38
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T19:45:42.132118Z'
+  stage: review
+  run: 4971345118be4cf79920993ace5ef300
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -634,3 +636,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     No code change is expected; if the coder finds one, it names why.
 37. factory: started review as vm.
+38. reviewer: Review, round 0 (the count started over at entry 36). I read the work item and `git diff main...HEAD -- . ':!factory'`. Entry 32 records `check: green` after the coder, and `duplicates: 1 new`, which is the `OpenUrl.__call__` false positive that entry 14 accepts. Nothing under `src/` or `tests/` has changed since entry 32. No tester or coder entry follows the human's instructions in entry 36: the journal goes straight from 36 to this review. So neither of entry 36's two test changes is in the branch.
+
+    Group 1 (acceptance criteria) fails. I went through every criterion and every Interface rule again. Criteria 1 to 9 each still have a test that checks what its name says. Criterion 10 is the only gap in group 1. Because group 1 failed first, I did not review groups 2 to 5 again. Groups 2 and 3 passed in round 1. The two group-4 findings from round 1 are fixed in `src/`, as round 2 confirmed.
+
+    1. `tests/entry/test_refresh_token.py:875-889` (`test_an_unreadable_or_blank_secret_file_exits_2`): criterion 10 has no test. The test has only the rows `missing` and `blank`, so if a non-UTF-8 secret file crashed again with a `UnicodeDecodeError` traceback, no test would notice. Fix: the tester adds the third row as entry 36 answer 1 says. The row is `not-utf-8`: the secret file holds `b"\xff\xfe"`, and the row expects exit 2 and `refresh_token: cannot read <path>` on standard error.
+    2. `tests/adapters/test_oauth_token.py:13-14` and `tests/entry/test_refresh_token.py:17-18`: `HIDDEN` and `ISSUED` are still defined in both modules, a copied constant pair. Entry 36 answer 2 orders the move. At round 0 this is a finding, not a note. Fix: in the same run, under the standing leave to move a shared test helper, the tester moves both constants to `tests/token_support.py` next to `ENDPOINT`. Both modules then import them from there, and every test keeps its name and what it checks.
+
+    Both fixes are test work. Entry 36 expects no code change, so the coder hands to the tester (`tests`) and names these two changes.
+
+    Earlier tests:
+    - `tests/conftest.py`: changed under the standing leave to move a shared test helper. It only adds the `restored_signals` fixture, moved unchanged from `tests/entry/test_run.py`.
+    - `tests/entry/test_run.py`: changed under the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
+    - `tests/test_hosting_search.py`: changed under the human's leave, journal entry 14, answer 1. Only `factory.adapters.oauth_token` may import `urllib.request` (`ALLOWED`). The earlier rows keep their ids and still expect no importer, and the new row `urllib.request-in-a-second-module` shows that a second importer is caught. The test keeps its name. The change stays within the leave.
