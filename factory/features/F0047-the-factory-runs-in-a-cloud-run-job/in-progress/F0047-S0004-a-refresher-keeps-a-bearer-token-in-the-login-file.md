@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T19:14:45.546237Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,13 +125,19 @@ journal:
   kind: started
   at: '2026-10-31T19:14:45.546237Z'
   stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T19:16:29.588495Z'
+  stage: review
+  run: 18e056c219684d749ad04ca6af8c5e2e
 ---
 
 # A refresher keeps a bearer token in the login file
 
 ## Description
 
-A model API behind an OAuth2 client-credentials grant gives out a bearer token that lives one hour (measured on 2026-10-31, `planning/cloud-sandbox/`, P10: `expires_in` 3599, a 1278-character JWT; opencode reading it as the API key ran a real task). The opencode runtime already reads the file named by `FACTORY_API_LOGIN_FILE` at every call and hands its content to the agent as `ANTHROPIC_API_KEY`; the F0046 provider file names that variable as the provider's key. So the factory needs no runtime change, only something that keeps that file fresh. This story adds a command, `python -m factory.entry.refresh_token`, that requests a token from the grant's endpoint with a client id and a client secret read from a file (Secret Manager mounts it), writes the token into the login file atomically, and again every ten minutes (the human, 2026-10-31: a fixed interval, not a rule on the token's life). A container mounts the file when it starts and its login shell reads it once, so a run has at least the token's life less ten minutes: fifty minutes with the measured token, more than one forty-minute stage. A failed request keeps the old file and tries again after a minute. The client secret appears in no log line, no error message and no child's environment. The HTTP goes through the standard library, which honours `https_proxy` and `no_proxy`. Unchanged: the runtimes, the login shell, every setting that exists. Left to later stories: running it (S0006).
+A model API behind an OAuth2 client-credentials grant gives out a bearer token that lives one hour (measured on 2026-10-31, `planning/cloud-sandbox/`, P10: `expires_in` 3599, a 1278-character JWT; opencode reading it as the API key ran a real task). The opencode runtime already reads the file named by `FACTORY_API_LOGIN_FILE` at every call and hands its content to the agent as `ANTHROPIC_API_KEY`; the F0046 provider file names that variable as the provider's key. So the factory needs no runtime change, only something that keeps that file fresh. This story adds a command, `python -m factory.entry.refresh_token`, that requests a token from the grant's endpoint with a client id from a variable and a client secret read from a file (Secret Manager mounts it), writes the token into the login file atomically, and again every ten minutes (the human, 2026-10-31: a fixed interval, not a rule on the token's life). A container mounts the file when it starts and its login shell reads it once, so a run has at least the token's life less ten minutes: fifty minutes with the measured token, more than one forty-minute stage. A failed request keeps the old file and tries again after a minute. The client secret appears in no log line, no error message and no child's environment. The HTTP goes through the standard library, which honours `https_proxy` and `no_proxy`. Unchanged: the runtimes, the login shell, every setting that exists. Left to later stories: running it (S0006).
 
 ## Interface
 
@@ -143,7 +145,7 @@ A model API behind an OAuth2 client-credentials grant gives out a bearer token t
 
 `factory.domain.errors` (domain): `class TokenError(BoundaryError)` with `detail`; the message is `token request failed: <detail>`.
 
-`factory.application.tokens` (application, new): `class TokenSource(ABC)` with `fetch() -> Token`, raising `TokenError`; `class TokenRefresher` with `__init__(source: TokenSource, target: Path)`, `refresh() -> Token` (fetch, then `replace_text(target, token.value)`; `TokenError` propagates, an `OSError` of the write is a `TokenError("cannot write <target>: <error>")`), and `wait_after(token) -> timedelta` (`refresh_wait`).
+`factory.application.tokens` (application, new): `class TokenSource(ABC)` with `fetch() -> Token`, raising `TokenError`; `class TokenRefresher` with `__init__(source: TokenSource, target: Path, write: Callable[[Path, str], None])` (no default; `factory.entry.wiring` passes `replace_text`), `refresh() -> Token` (fetch, then `write(target, token.value)`; `TokenError` propagates, an `OSError` of the write is a `TokenError("cannot write <target>: <error>")`), and `wait_after(token) -> timedelta` (`refresh_wait`).
 
 `factory.adapters.oauth_token` (adapters, new): `class ClientCredentialsTokenSource(TokenSource)` with `__init__(url: str, client_id: str, client_secret: str, scope: str, *, open_url=urllib.request.urlopen, timeout: float = 30.0)`. `fetch` posts `client_id`, `scope`, `client_secret` and `grant_type=client_credentials` form-encoded (`Content-Type: application/x-www-form-urlencoded`) to `url` through `open_url(request, timeout)` used as a context manager, reads the body as JSON and returns `Token(access_token, expires_in)` (`expires_in` as an integer or a numeric string). A `urllib.error.HTTPError` becomes `TokenError("HTTP <code>: <the body's error and the first line of its error_description, at most 200 characters>")`, a `URLError`, `OSError` or `TimeoutError` becomes `TokenError(<its message>)`, a body that is no JSON object or lacks `access_token` or a positive `expires_in` becomes `TokenError("the answer holds no access_token")` or `("the answer holds no expires_in")`. Every detail has the client secret and the token removed (replaced by `***`).
 
@@ -161,8 +163,9 @@ Tests (the tester writes them): `tests/domain/test_tokens.py`, `tests/applicatio
 6. The command: a missing and a blank variable each exit 2 and name it as `refresh_token: <variable> is not set` on standard error (two rows per variable); a missing secret file and a blank one each exit 2 with `refresh_token: cannot read <path>` on standard error; `--once` with a source that answers 3599 s writes the file, prints `token refreshed: valid 3599 s, next in 600 s` (the wait's whole seconds) and exits 0; `--once` with a source that fails prints `refresh_token: token request failed: <detail>` to standard error, leaves the file as it was and exits 1.
 7. The loop (injected wait), rows `SIGTERM` and `SIGINT`: two successes then the signal gives two writes, waits of the refresh interval, exit 0; a failure between two successes keeps the file of the first, prints the error, waits `RETRY_INTERVAL` once and goes on.
 8. Neither standard output, standard error, a raised error nor the environment given to a child process contains the client secret or the token (a test over all of them with a secret `s3cret-value` and a token `tok-abc`).
-9. `make check` stays green.
-10. docs: `docs/operator-guide.md`: a subsection *A bearer token for the model API* with the variables, what the command writes and when (every ten minutes; a run reads the file when its container starts, so the token must live longer than the interval plus the longest stage), that the file is the one `FACTORY_API_LOGIN_FILE` names, the provider file's `api_key_env` that reads it as `ANTHROPIC_API_KEY`, the proxy (set `NO_PROXY` for an internal API host and `https_proxy` for the token endpoint) and that the secret is a file mounted from Secret Manager. `docs/project-guide/agents.md`: *The opencode runtime* names the refresher. `docs/decisions.md`: an entry *A refresher keeps the bearer token fresh*, from the feature's decisions 7 and 8. `README.md`: none.
+9. `ClientCredentialsTokenSource.fetch` on a 200 answer, rows of one test: a body that is not JSON (`<html>`), an `access_token` that is blank, holds a space, or is not a string (`5`) each give `TokenError("the answer holds no access_token")`; a missing `expires_in`, `"soon"`, `true` and `"0"` each give `TokenError("the answer holds no expires_in")`; an `expires_in` of `1` and of `"1"` each give a token that lives 1 s.
+10. `make check` stays green.
+11. docs: `docs/operator-guide.md`: a subsection *A bearer token for the model API* with the variables, what the command writes and when (every ten minutes; a run reads the file when its container starts, so the token must live longer than the interval plus the longest stage), that the file is the one `FACTORY_API_LOGIN_FILE` names, the provider file's `api_key_env` that reads it as `ANTHROPIC_API_KEY`, the proxy (set `NO_PROXY` for an internal API host and `https_proxy` for the token endpoint) and that the secret is a file mounted from Secret Manager. `docs/project-guide/agents.md`: *The opencode runtime* names the refresher. `docs/decisions.md`: an entry *A refresher keeps the bearer token fresh*, from the feature's decisions 7 and 8. `README.md`: none.
 
 ## Smoke test
 
@@ -172,13 +175,14 @@ uv run python - "$d" <<'PY'
 import io, json, sys
 from pathlib import Path
 from factory.adapters.oauth_token import ClientCredentialsTokenSource
+from factory.adapters.atomic_file import replace_text
 from factory.application.tokens import TokenRefresher
 def opener(request, timeout):
     assert b"grant_type=client_credentials" in request.data
     return io.BytesIO(json.dumps({"access_token": "tok-1", "expires_in": 3599}).encode())
 source = ClientCredentialsTokenSource("https://example.invalid/token", "client-1", "s3cret", "api://x/.default", open_url=opener)
 target = Path(sys.argv[1]) / "login"
-refresher = TokenRefresher(source, target)
+refresher = TokenRefresher(source, target, replace_text)
 token = refresher.refresh()
 print(target.read_text(), token.expires_in, refresher.wait_after(token).total_seconds())
 PY
@@ -395,3 +399,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 0 gone
 21. factory: started review as vm.
+22. reviewer: Review round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`. Entry 20 records `check: green` after the coder. Group 1 (acceptance criteria) fails because the Interface's rules for a 200 answer are tested only on their accepted side, so I stopped there. I went through every criterion and every Interface rule. Criteria 1 to 8 each have a parametrized test that tests what it is named after. The gaps all come from one place, so they form one finding.
+
+    1. criterion 9 added: it needs its test. Location: `src/factory/adapters/oauth_token.py:86-94` (`_token_of`) and `:115-122` (`_positive_seconds`). The Interface says `expires_in` is "an integer or a numeric string" and that an answer that "lacks `access_token` or a positive `expires_in`" is refused. Criterion 4 tests only `[]`, a missing `access_token` and `expires_in` 0. These refused sides of what the code builds have no test:
+       - a 200 body that is not JSON
+       - a blank `access_token`, one with a space, and one that is not a string
+       - a missing `expires_in`, a non-numeric string (`"soon"`), a JSON `true` (the `bool` branch at `:116`) and `"0"`
+       - the accepted side of the positive boundary in the adapter (`1` and `"1"`; only 3599 is tested)
+       Pinning these needs no change under `src/`, so I wrote them as criterion 9 (rows of one test) and renumbered the closing criteria to 10 and 11. Fix: the tester adds these rows, as rows of one parametrized test in `tests/adapters/test_oauth_token.py` (either new rows in `test_a_failed_fetch_is_a_token_error_without_the_secret_or_the_token` for the refused cases, or one new test for the whole table).
+
+    Corrections the human assigned to the reviewer (entry 14), and one stale sentence in the Description. None of them is a finding:
+    - description corrected: "with a client id and a client secret read from a file" -> "with a client id from a variable and a client secret read from a file". The Interface reads the id from `FACTORY_TOKEN_CLIENT_ID`.
+    - Interface corrected (entry 9, entry 14): `TokenRefresher.__init__(source: TokenSource, target: Path)`, which wrote through `replace_text(target, token.value)` -> `__init__(source, target, write: Callable[[Path, str], None])`, with no default and `factory.entry.wiring` passing `replace_text`, writing through `write(target, token.value)`.
+    - Smoke test corrected (entry 14): the first snippet now imports `replace_text` from `factory.adapters.atomic_file` and builds `TokenRefresher(source, target, replace_text)`.
+
+    Not reviewed in this round, because group 1 failed first: groups 2 to 5 (architecture, security, quality, hygiene). They come next round.
+
+    Earlier tests:
+    - `tests/conftest.py`: the standing leave to move a shared test helper. It only adds the `restored_signals` fixture moved from `tests/entry/test_run.py`, unchanged.
+    - `tests/entry/test_run.py`: the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used; every test keeps its name and what it checks.
+    - `tests/test_hosting_search.py`: the human's leave, journal entry 14, answer 1. Only `factory.adapters.oauth_token` may import `urllib.request` (`ALLOWED`); the earlier rows keep their ids and still expect no importer; the new row `urllib.request-in-a-second-module` shows a second importer is caught. The test keeps its name. This is within the leave.
