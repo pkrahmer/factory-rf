@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 488
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T23:25:12.833035Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-31T23:25:12.833035Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-31T23:25:40.549890Z'
+  stage: intake
+  run: 4ef04e44d3674c7fb9591d8a13156115
+  blocked: question
 ---
 
 # One script turns a bare job into a running instance
@@ -81,3 +84,20 @@ Expect: `2`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-31 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed, so there are no findings from it):
+
+   1. Interface, `image` step: `--build-arg FACTORY_IMAGE=<ref>` never says what `<ref>` is. Criterion 8 tests the argument without a value, so two coders will read it two ways. Please name the value, for example the base image reference taken from `vm/Dockerfile`, or the same value as `<image>`. I would choose to state it exactly and add it to criterion 8.
+
+   2. Interface, `image` step: "the three `JOB_PODMAN_OPTIONS`" are not named here. Criterion 8 requires the podman call to start with them. Please say where they come from (a shell constant in `vm/job-start.sh`, or S0002's definition, with the file and name) and spell out their three words in the story. I would choose to list the three words in the Interface.
+
+   3. Interface, proxy: "when set, `apt` and every download use it" states a behaviour, but criterion 3 covers only `99proxy`. No criterion says that the `runc` download (`curl`) and the `git clone` and checkout use the proxy, and none covers the precedence or the lowercase `https_proxy` spelling versus `HTTPS_PROXY`. I would add one criterion with rows: `HTTPS_PROXY` set, only `https_proxy` set, and neither. Each row checks that the `curl` and `git` stand-ins see the proxy, or do not see it when none is set.
+
+   4. Interface, defaults: `FACTORY_STAGE_IMAGE` (default `factory-stage:<instance>`) and `FACTORY_JOB_ROOT` (default `/srv/factory/<instance>`) have no criterion. Criterion 10 covers only the derived `FACTORY_*` variables. A given `FACTORY_STAGE_IMAGE` and the default `-t <image>` of criterion 8 are untested, and so is the default root. Please add rows, for example the image name in the `podman build -t` call with and without `FACTORY_STAGE_IMAGE`. A test cannot use the `/srv` default root under `tmp_path`, so say whether that default is meant to be tested at all.
+
+   5. Interface, "untouched" and "stays the operator's": `FACTORY_CONTAINER_ENV`, `FACTORY_CA_BUNDLE` and `FACTORY_IDLE_SHUTDOWN_MINUTES` are stated as left alone, with no criterion. Criterion 10 checks only the variables the script sets. I would add to criterion 10 that these three are absent from `factory-run`'s environment when the input had none, and present with the input's value when it had one.
+
+   6. Interface, `RUNC_VERSION`/`RUNC_SHA256` set together: criterion 5 tests the defaults and the failure. It does not test that a given pair replaces both the URL's version and the checksum fed to `sha256sum -c`. Please add that row.
+
+   7. Interface, "A secret file's content is never printed, and the script passes no secret on a command line": criterion 11 checks files and output only. Is "no secret on a command line" to be tested, with the recorded stand-in arguments not containing `s3cret-token-text`? I would add that to criterion 11.
+
+   8. Failing sides not covered: (a) a `curl` download that fails (stand-in exits non-zero) at the `runc` step; (b) a failing `nft -f` at `metadata`; (c) a failing `apt-get`. The Interface says nothing about what the script does in these cases (stop with which message and exit code, or fall through). Please state the rule, I would choose "stop on the first failing step with exit 1 and `factory-run` never called", and add a row for each.
