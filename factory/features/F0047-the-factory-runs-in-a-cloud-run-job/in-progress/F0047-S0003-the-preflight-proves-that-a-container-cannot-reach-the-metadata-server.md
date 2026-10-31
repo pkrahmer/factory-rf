@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-31T18:03:21.779670Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-31T18:03:21.779670Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-31T18:03:39.517968Z'
+  stage: smoke-test
+  run: bf183eaf450746ebbe97825649183a8e
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -383,3 +385,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
 23. factory: started smoke-test as vm.
+24. smoke-tester: Ran the one command under `## Smoke test` from the repository root, as written.
+
+    Command 1 (`uv run python -c "…metadata_block_item…"`):
+
+    ```
+    Bytecode compiled 4164 files in 56ms
+    True
+    a container reached the metadata server (HTTP 200); reject tcp port 80 to 169.254.169.254 in the job's firewall
+    ```
+
+    Exit status 0. **Met** its `Expect:` line. The output has the two expected lines, `True` and the HTTP 200 sentence word for word. The first line is uv's own bytecode notice, not output from the program.
+
+    Checked against `## Acceptance criteria`: the output contradicts none of them. It agrees with criterion 3: `000` with exit status 7 passes, and `200` fails with the sentence that names HTTP 200. The smoke test does not cover the other criteria (the wiring for `job` and `rootless`, `ContainerError`, the `Preflight.run` stop path, the docs), and nothing it printed contradicts them.
+
+    Findings: none. Nothing was fixed.
