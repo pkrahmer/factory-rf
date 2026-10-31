@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T18:58:38.591628Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-10-31T18:58:18.063306Z'
   stage: doing
   run: feb1a9a237144de5befd931f3e42a090
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:58:38.591628Z'
+  stage: tests
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -319,3 +328,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Still open, not mine to change:
     - The reviewer corrects the Interface's sentence on `TokenRefresher` and the first smoke-test snippet so they pass `replace_text` as the third argument (entry 14).
     - The vulture finding on the `OpenUrl` Protocol's `__call__` goes into the duplicates baseline at approval.
+17. factory: started tests as vm.
