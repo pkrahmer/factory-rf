@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 484
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T18:22:20.245748Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-10-31T18:22:20.245748Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T18:23:09.254795Z'
+  stage: review
+  run: 7b8b41d48791440cafd2fbaab92f4350
 ---
 
 # The job profile stores images with the native overlay
@@ -146,3 +148,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `check`: check: green
    `duplicates`: duplicates: 0 new, 41 known, 0 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` (`src/factory/domain/containers.py`, `tests/adapters/test_podman_runs_job_profile.py`, the new `tests/domain/test_containers_job_options.py` and the new `tests/test_mount_program_search.py`), plus the work item.
+
+   - Acceptance criteria:
+     - Criterion 1: the rootless tests are unchanged in the diff (`test_podman_runs*.py` and `test_the_default_profile_launches_as_the_rootless_one`).
+     - Criterion 2: `test_the_job_options_store_images_with_the_native_overlay` compares the constant with the exact tuple.
+     - Criterion 3: three tests pin the exact argv of a `job` launch, `version` and `image_exists`, with the three words right after the executable: `test_a_job_launch_puts_the_global_options_first...`, `test_a_job_runner_s_queries_carry_the_global_options` and the end-reading test, which now slices by `len(JOB_WORDS)`. For the failing side, `test_a_job_runner_names_no_mount_program` has one row each for launch, version and image-exists.
+     - Criterion 4: `test_no_source_file_names_the_overlay_mount_program` reads every file under `src/`, not only `*.py`. That is right, because `src/factory/contract/*.schema.json` are files under `src/` too. So it is not a copy of `search_support.modules_matching`, which searches only `*.py`.
+     - The coder's `make check` was green (entry 7). The Interface states no other rule or limit.
+   - Architecture: only a domain constant changed. `PodmanRuns` still puts it after the executable (`podman_runs.py:72`), and no layer changed.
+   - Security: no secrets, no markers, no commands built from strings.
+   - Quality: the new comment above `JOB_PODMAN_OPTIONS` (`containers.py:18-21`) says why the remaining overlay word stays and why the mount program went, and it does not name the removed program, as criterion 4 requires. `duplicates` reported 0 new.
+   - Work item hygiene: the Description matches what was built. The coder's entry names the comment choice and what was rejected. The docs criterion still lists the four documents and what each must say.
+
+   Earlier tests:
+   - `tests/adapters/test_podman_runs_job_profile.py`: changed under the story's own leave, which the human wrote into the Interface (`JOB_WORDS` and every expectation built on it hold the three words). Two edits did that: `JOB_WORDS` now holds three words, and the slice `argv[1:5]` became `argv[1 : 1 + len(JOB_WORDS)]`. Beyond that the file only gains `MOUNT_PROGRAM_WORDS`, three helpers and a new test (no leave needed); every earlier test keeps its name and what it checks.
