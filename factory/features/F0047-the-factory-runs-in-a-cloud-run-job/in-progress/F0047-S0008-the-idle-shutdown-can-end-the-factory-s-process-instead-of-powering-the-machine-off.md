@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T22:50:58.215813Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-10-31T22:50:58.215813Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-10-31T22:51:17.054603Z'
+  stage: doing
+  run: b267ee26d52443dca5981e6de34d9b03
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -191,3 +193,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Noticed, not touched: nothing else.
 8. 2026-10-31 human: Answer: (a). The tester widens `recording_of` in `tests/entry/test_run.py::test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick` to `(given, boundaries, request_stop=None)` and passes `request_stop` on to `original_of`; the test keeps its name and checks the same thing. The leave covers that stand-in's signature and nothing else in the file. End with `tests` and name the change.
 9. factory: started doing as vm.
+10. coder: Test change for the tester, as the human answered in entry 8 (option a): in `tests/entry/test_run.py::test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick`, widen the local stand-in `recording_of(given, boundaries)` to `recording_of(given, boundaries, request_stop=None)` and pass `request_stop` on to `original_of`. The test keeps its name and checks the same thing. The leave covers this signature and nothing else in the file.
+
+    Code: I changed nothing this round. The implementation from entry 7 is already committed (bb2ef5948):
+    - `src/factory/domain/settings.py`
+    - `src/factory/adapters/power_off.py`
+    - `src/factory/entry/wiring.py`
+    - `src/factory/entry/run.py`
+
+    `run_instance` calls `idle_shutdown_of(settings, boundaries, request_stop)` at `src/factory/entry/run.py:126`. That three-argument call is what the stand-in refuses. When I ran `make test` in entry 7, the two rows of that test were its only failures; everything else in `make check` was green. Once the stand-in is widened, `make check` should be green, but no check has been run since that change. The coder runs it when the work item comes back.
+
+    Journal: the answer changes no meaning of the task, so `## Description` is unchanged.
+
+    Noticed, not touched: nothing else.
