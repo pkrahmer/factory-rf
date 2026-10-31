@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T15:41:32.139328Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-31T15:41:11.715745Z'
   stage: intake
   run: eb8ad0dc3f124a58a34ea049a75f6652
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-31T15:41:32.139328Z'
+  stage: tests
 ---
 
 # A snapshot adapter that copies a directory
@@ -150,3 +159,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: both commands are runnable (neither runs pytest), and the `Expect:` lines are checkable against printed output.
    - Architecture: settings in domain, the adapter in adapters, the item in application, the wiring in entry. Layers are respected, no new dependency.
    - Scope: within F0047's S0001 scope, nothing from S0002 onward, and nothing in the feature's "Out of scope". `tests/adapters/test_fake_snapshots.py` stays unchanged, so no other story's test is touched.
+7. factory: started tests as vm.
