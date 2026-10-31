@@ -16,6 +16,7 @@ from adapters.container_runtime_support import (
 )
 from agent_login_support import API_LOGIN
 from claude_reply_support import BUDGET_STOP, LOGIN
+from command_words_support import value_after
 from factory.adapters.agent_launch import (
     LOGIN_VARIABLE,
     VERSION_TIME_LIMIT,
@@ -76,10 +77,6 @@ def _runtime(
     )
 
 
-def _after(words: list[str], flag: str) -> str:
-    return words[words.index(flag) + 1]
-
-
 @pytest.mark.parametrize(
     "with_containers",
     [
@@ -125,7 +122,7 @@ def test_a_run_in_a_container_mounts_the_logins_and_instructions_and_completes(
 
     assert (result.end_reason, result.decision, result.entry) == ("completed", "doing", "Done.")
     [call] = fake.calls
-    instructions = Path(_after(call.command, "--append-system-prompt-file"))
+    instructions = Path(value_after(call.command, "--append-system-prompt-file"))
     assert instructions.parent == state
     assert instructions.name.startswith("instructions-")
     executable = str(tmp_path / "bin" / "claude")

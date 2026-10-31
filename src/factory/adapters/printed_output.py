@@ -3,10 +3,7 @@
 import math
 from datetime import timedelta
 
-
-def printed_lines(output: str) -> list[str]:
-    """The non-blank lines of `output`, stripped."""
-    return [line.strip() for line in output.splitlines() if line.strip()]
+from factory.domain.printed_lines import printed_lines
 
 
 def first_printed_line(output: str) -> str | None:

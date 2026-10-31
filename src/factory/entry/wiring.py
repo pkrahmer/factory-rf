@@ -60,6 +60,7 @@ from factory.application.preflight import (
     agent_run_probe_item,
     dataset_item,
     installed_models,
+    metadata_block_item,
     opencode_item,
     snapshots_item,
     stage_image_item,
@@ -74,7 +75,13 @@ from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
 from factory.domain.agent_runs import scrub_environment
 from factory.domain.command_records import CommandRecord
-from factory.domain.containers import WORK_HOME, extra_environment
+from factory.domain.containers import (
+    METADATA_PROBE_COMMAND,
+    WORK,
+    WORK_HOME,
+    ContainerResult,
+    extra_environment,
+)
 from factory.domain.disk import DiskRecord
 from factory.domain.errors import SettingsInvalid
 from factory.domain.events import EventKind
@@ -138,6 +145,8 @@ _DISK_RECORDS_PATH = Path("records", "disk.jsonl")
 _STOP_RECORDS_PATH = Path("records", "stops.jsonl")
 _RESULT_RECORDS_PATH = Path("records", "known-results.jsonl")
 _MISSING = "missing"
+# Room for curl's own five seconds and the container's start.
+_METADATA_PROBE_TIME_LIMIT = timedelta(seconds=30)
 
 _SEGMENT = r"[A-Za-z0-9._-]+"
 # The host and its separator for https, scp-like ssh and ssh URLs; then owner and name.
@@ -513,11 +522,25 @@ def _container_items(settings: InstanceSettings) -> list[Callable[[], PreflightI
     # Built apart from the boundaries', whose snapshots and containers are only interfaces.
     adapters = _container_adapters(settings)
     containers = adapters.containers
-    return [
+    items: list[Callable[[], PreflightItem]] = [
         lambda: tool_version_item("podman", containers.version),
         *adapters.snapshots.items,
         lambda: stage_image_item(adapters.image, containers.image_exists),
     ]
+    # Only the job's network carries a metadata server that hands out the job's token.
+    if settings.container_profile == "job":
+        items.append(lambda: metadata_block_item(lambda: _metadata_probe(containers)))
+    return items
+
+
+def _metadata_probe(containers: PodmanRuns) -> ContainerResult:
+    return containers.run(
+        list(METADATA_PROBE_COMMAND),
+        mounts=[],
+        environment={},
+        time_limit=_METADATA_PROBE_TIME_LIMIT,
+        working_directory=WORK,
+    )
 
 
 def build_tick(

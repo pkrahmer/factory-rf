@@ -24,6 +24,19 @@ JOB_PODMAN_OPTIONS: tuple[str, ...] = (
     "--storage-driver=overlay",
     "--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs",
 )
+# The instance id is the metadata server's smallest answer; `000` means curl could not connect.
+METADATA_PROBE_URL = "http://169.254.169.254/computeMetadata/v1/instance/id"
+METADATA_PROBE_COMMAND: tuple[str, ...] = (
+    "curl",
+    "-sS",
+    "-m",
+    "5",
+    "-o",
+    "/dev/null",
+    "-w",
+    "%{http_code}",
+    METADATA_PROBE_URL,
+)
 
 
 def _must_be_container_path(target: str) -> str:

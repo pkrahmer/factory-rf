@@ -24,12 +24,6 @@ from wiring_support import CONTAINER_ITEMS, CREDENTIAL
 
 
 @pytest.fixture
-def environment(tmp_path: Path) -> dict[str, str]:
-    """The agent runs' environment."""
-    return {"PATH": "/usr/bin", "HOME": str(tmp_path)}
-
-
-@pytest.fixture
 def copy_settings(tmp_path: Path, agent_home: Path, versioned_podman: Podman) -> InstanceSettings:
     """Settings of a copy instance: a workspace and a base that exist in `tmp_path`, no dataset."""
     root = tmp_path.resolve()
@@ -79,11 +73,11 @@ def _item_names(
 def test_without_the_snapshots_setting_the_instance_is_the_zfs_one_of_before(
     local_settings: InstanceSettings,
     boundaries: Boundaries,
-    environment: dict[str, str],
+    run_environment: dict[str, str],
     observe: Callable[[InstanceSettings, Boundaries, dict[str, str]], object],
     expected: object,
 ) -> None:
-    assert observe(local_settings, boundaries, environment) == expected
+    assert observe(local_settings, boundaries, run_environment) == expected
 
 
 def test_a_copy_instance_gets_copy_snapshots_on_its_workspace_and_base(
@@ -141,9 +135,9 @@ def test_a_copy_instance_with_a_base_keeps_the_workspace_and_image_faults(
 
 
 def test_a_copy_instance_checks_its_snapshots_and_neither_zfs_nor_a_dataset(
-    copy_settings: InstanceSettings, boundaries: Boundaries, environment: dict[str, str]
+    copy_settings: InstanceSettings, boundaries: Boundaries, run_environment: dict[str, str]
 ) -> None:
-    names = [check().name for check in machine_extras(boundaries, copy_settings, environment)]
+    names = [check().name for check in machine_extras(boundaries, copy_settings, run_environment)]
 
     assert {"podman", "snapshots", "stage-image", "agent-run-probe"} <= set(names)
     assert not {"zfs", "dataset"} & set(names)

@@ -202,6 +202,12 @@ def environment(image_file: Path, agent_home: Path) -> dict[str, str]:
 
 
 @pytest.fixture
+def run_environment(tmp_path: Path) -> dict[str, str]:
+    """Return the agent runs' environment: a path and a home in `tmp_path`."""
+    return {"PATH": "/usr/bin", "HOME": str(tmp_path)}
+
+
+@pytest.fixture
 def sudo_stand_in(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Put a `sudo` stand-in first on `PATH` that exits 0; return the file it records its words in.
 
