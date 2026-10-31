@@ -26,7 +26,7 @@ The human's rules for every act of the operator. They come from running factory-
 
 ## The log
 
-Every act gets one line in `operator/log/<UTC date>.md` of the project's checkout: `- HH:MM UTC: <what you did and why>`, the time from `date -u +%H:%M`. A choice beyond the decisions is marked **For the morning**. Commit the log with the files of the act, or alone (`operator log: <short>`), with only named files staged; pull before you push.
+Every act gets one line in `.kumpel/log/<UTC date>.md` of the project's checkout: `- HH:MM UTC: <what you did and why>`, the time from `date -u +%H:%M`. A choice beyond the decisions is marked **For the morning**. Commit the log with the files of the act, or alone (`operator log: <short>`), with only named files staged; pull before you push.
 
 ## Safety
 
