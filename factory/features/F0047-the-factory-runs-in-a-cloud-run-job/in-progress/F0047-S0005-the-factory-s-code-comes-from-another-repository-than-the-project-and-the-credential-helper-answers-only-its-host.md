@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T21:17:15.579453Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-10-31T21:17:15.579453Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-10-31T21:25:25.942589Z'
+  stage: tests
+  run: 0f02ef73975d4155be7f9c77acb4b2a8
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -176,3 +178,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    A single run of that file showed the refused rows failing for the right reason (the helper still answers). `make test` has not been run yet: I will run it once the setup tests are written. `make lint` is green. Every module the new tests use imports.
 9. 2026-10-31 human: Answer to question 8: (A). The two parts that come after the secrets wait (criterion 5's equal-or-absent side with the askpass, and criterion 8's `factory.env`) are tested from the script's text, as `tests/test_vm_setup_text.py` already does for the steps after the wait; every part a run can reach stays a run. No change to `setup.sh` for testing, and no namespaces.
 10. factory: started tests as vm.
+11. tester: Wrote the `setup.sh` tests that were still missing. I followed the human's answer (A) in entry 9: anything a run can reach is tested as a run of `run_setup`, and the two parts that come after the secrets wait are tested from the script's text. The helper tests from the previous run are unchanged; I only ran `ruff format` over them.
+
+    Criterion → test:
+    - criterion 1: `tests/test_git_credential_helper.py` (the existing tests, unchanged)
+    - criterion 2: `tests/test_vm_credential_helper_host.py::test_get_answers_only_a_request_for_the_project_repository_s_host`
+    - criterion 3: `tests/test_vm_credential_helper_host.py::test_the_ssh_url_forms_name_their_host`
+    - criterion 4: `tests/test_vm_credential_helper_host.py::test_any_other_operation_prints_nothing_and_succeeds_with_the_url_set`
+    - criterion 5, as runs: `tests/test_vm_setup_code_url.py::test_only_a_different_code_url_is_cloned_without_the_askpass`. Rows: different (one clone, `GIT_TERMINAL_PROMPT=0`, no `GIT_ASKPASS` and no `core.askPass` in the arguments or the environment, the code url after `clone` and the project url not); equal and absent (no clone before the wait).
+    - criterion 5, from the text: `tests/test_vm_setup_code_url.py::test_the_clone_after_the_secrets_wait_carries_the_askpass_and_the_project_url`. After the wait, the checkout step has exactly one `git clone` line with `GIT_ASKPASS="$askpass"`, `core.askPass="$askpass"` and `GIT_TERMINAL_PROMPT=0`, and its source is `$repository_url` or the variable the `--code-url)` branch sets.
+    - criterion 6: `tests/test_vm_setup_code_url.py::test_a_code_repository_that_asks_for_a_credential_fails_the_clone`
+    - criterion 7: `tests/test_vm_setup_code_url.py::test_the_first_pass_stops_at_the_secrets_wait_after_the_code_clone`. Rows: different and absent. Each checks exit 0, that the last line is the wait message, the step order up to `checkout`, and the number of clones.
+    - criterion 8: `tests/test_vm_setup_code_url.py::test_the_environment_file_never_holds_the_code_url` (from the text, per answer A)
+    - criterion 9: `tests/test_vm_setup_code_url.py::test_the_usage_text_names_the_code_url_option`. Rows: `--help` on standard output, and the usage printed on standard error after a wrong argument.
+    - criterion 10: `tests/test_vm_credential_helper_host.py::test_the_url_s_case_user_and_port_do_not_change_its_host`
+
+    How the runs work: stand-ins in `tmp_path/bin` for `id`, `dpkg-query`, `mktemp`, `runuser`, `git`, `grep`, `zpool`, `zfs`, `loginctl`, `stat`, `install`, `cp`, `chmod`, `rm` and `visudo`.
+    - The `mktemp` stand-in puts the staging file in `tmp_path`.
+    - The `runuser` stand-in runs only a command that contains `git` and drops every other one, so nothing is written as factory.
+    - The `git` stand-in records its arguments and environment. In criterion 6's version it fails when no credential is offered.
+    - The runs use `--instance code-url-test`, so they never read a real instance's folder. They do assume `/home/factory/.secrets/hosting-token` does not exist on the machine that runs the tests.
+
+    Files created: `tests/test_vm_setup_code_url.py`, plus `tests/test_vm_credential_helper_host.py` from the previous run. No earlier test file changed.
+
+    `make test`: the new tests fail for the right reason: `setup.sh: unknown word: --code-url`, no `--code-url` branch, and no `--code-url` in the usage text. The previous run showed the helper's refused rows failing because the helper still answers. The absent and equal rows and the after-the-wait text test pass already, which is correct because they describe today's behaviour. Every module the tests use imported; there were no collection errors. `make lint` is green.
+
+    A note for the coder (not a change I made): `tests/test_vm_setup_text.py` takes the first `git clone -q --branch` and the first `git clone` line of the checkout step as the clone that carries the askpass (`ORDERED_COMMANDS`, the `GIT_ASKPASS=` and `GIT_TERMINAL_PROMPT=0` rows, `_clone_variables`). Those existing tests constrain how the code clone before the wait can be written.
+
+    `lint`: lint: green (0.2 s)
+    `test`: FAILED tests/test_vm_setup_code_url.py::test_the_usage_text_names_the_code_url_option[fault] - AssertionError: assert '--code-url' in 'usage: setup.sh --device <path> --repository-url <url> [--inst...
