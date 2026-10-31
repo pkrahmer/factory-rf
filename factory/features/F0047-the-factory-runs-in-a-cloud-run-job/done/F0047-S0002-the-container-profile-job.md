@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-10-31T17:18:23.088699Z'
   stage: smoke-test
   run: ae1abd59ca5d46e69c9cdbb3671482c3
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-10-31T17:19:43.417147Z'
+  stage: approval
 ---
 
 # The container profile job
@@ -474,3 +479,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Against the acceptance criteria: the output agrees with criterion 3 (the four global options before `run`) and criterion 4 (no `--userns=keep-id`). The command did not print the rest of the launch words, so the smoke test does not check the full order in criterion 3; the tests cover that. Nothing in the output contradicts any other criterion. I did not run `make check` (criterion 9) or read the docs (criterion 10) here, because the smoke test does neither; the factory's checks cover them.
 
     Findings: none.
+32. factory: done (pull request merged); cost: 14 runs, 29.4 min, 101 turns, 335085 tokens in (2258032 more from cache), 41352 out, $3.58
