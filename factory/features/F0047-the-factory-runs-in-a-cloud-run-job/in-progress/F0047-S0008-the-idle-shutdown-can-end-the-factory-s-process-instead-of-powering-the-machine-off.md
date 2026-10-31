@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 487
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T22:34:20.215645Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-10-31T22:34:00.002935Z'
   stage: intake
   run: 4db00bd8845f4b288a5435c9653de70a
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-10-31T22:34:20.215645Z'
+  stage: tests
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -93,3 +102,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: both blocks are plain `uv run python -c` snippets and none runs pytest, so the `-q` rule does not apply. `read_settings` exists, and each `Expect:` line gives output that can be compared (`['stop']`; `poweroff exit` plus a message naming the variable and `is neither poweroff nor exit`).
    Architecture: the domain holds the setting, the adapter holds `ProcessExit` as an implementation of the `PowerOff` interface, and the entry layer wires it and passes the event's `set`. This matches the layering in `CLAUDE.md`. No new dependency is added.
    Scope: this is S0008 of F0047, listed in the feature's Scope and in decision 18. It names the earlier idle-shutdown tests that must pass unchanged, so no other story's test is changed.
+4. factory: started tests as vm.
