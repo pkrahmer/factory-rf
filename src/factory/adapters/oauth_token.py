@@ -94,10 +94,14 @@ class ClientCredentialsTokenSource(TokenSource):
 
     def _error(self, detail: str) -> TokenError:
         # A server may echo what it was sent or gave out; neither may reach a log line.
-        for hidden in [self._client_secret, *self._issued]:
-            if hidden:
-                detail = detail.replace(hidden, _MASK)
-        return TokenError(detail)
+        return TokenError(_masked(detail, [self._client_secret, *self._issued]))
+
+
+def _masked(detail: str, hidden: list[str]) -> str:
+    for value in hidden:
+        if value:
+            detail = detail.replace(value, _MASK)
+    return detail
 
 
 def _json_object(body: bytes) -> dict[str, object]:
@@ -130,7 +134,4 @@ def _http_detail(error: urllib.error.HTTPError) -> str:
     if isinstance(description, str) and description.strip():
         parts.append(description.splitlines()[0][:_DESCRIPTION_LIMIT])
     echoed = answer.get("access_token")
-    detail = ": ".join(parts)
-    if isinstance(echoed, str) and echoed:
-        detail = detail.replace(echoed, _MASK)
-    return detail
+    return _masked(": ".join(parts), [echoed] if isinstance(echoed, str) else [])
