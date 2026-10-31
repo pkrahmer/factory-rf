@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 487
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T22:33:39.558909Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-10-31T22:33:39.558909Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-10-31T22:34:00.002935Z'
+  stage: intake
+  run: 4db00bd8845f4b288a5435c9653de70a
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -85,3 +87,9 @@ Expect: two lines, `poweroff exit` and a message that names `FACTORY_IDLE_SHUTDO
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-31 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: concrete modules and signatures (`factory.domain.settings` constant and field, `factory.adapters.power_off.ProcessExit(request_stop)`, `factory.entry.wiring.idle_shutdown_of` with the optional `request_stop`, `factory.entry.run.run_instance` / `run_until_stopped`). I checked them against the code: `idle_shutdown_of` and `run_instance` exist as the story describes, and `power_off.py` holds `SystemctlPowerOff(PowerOff)`. The only behaviours the Interface states are the default, the validation, the `ValueError` and "returns 0", and each has a criterion.
+   Criteria: each can be tested by one test function. Criteria 1 and 7 cover the unchanged default and the `poweroff` side. Criterion 2 covers the setting on both sides (unset, blank, both values, three refused values, `exit` with minutes 0). Criterion 3 covers `ProcessExit`. Criterion 4 covers the wiring in all three branches, including the `ValueError` and minutes 0. Criterion 5 covers the loop, the log line, no tick after the stop, and the stretch restarting. Criterion 6 covers `main` returning 0. Criteria 8 and 9 are the two closing ones.
+   Smoke test: both blocks are plain `uv run python -c` snippets and none runs pytest, so the `-q` rule does not apply. `read_settings` exists, and each `Expect:` line gives output that can be compared (`['stop']`; `poweroff exit` plus a message naming the variable and `is neither poweroff nor exit`).
+   Architecture: the domain holds the setting, the adapter holds `ProcessExit` as an implementation of the `PowerOff` interface, and the entry layer wires it and passes the event's `set`. This matches the layering in `CLAUDE.md`. No new dependency is added.
+   Scope: this is S0008 of F0047, listed in the feature's Scope and in decision 18. It names the earlier idle-shutdown tests that must pass unchanged, so no other story's test is changed.
