@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-10-31T21:02:21.865426Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -445,6 +441,12 @@ journal:
   kind: started
   at: '2026-10-31T21:02:21.865426Z'
   stage: docs
+- number: 79
+  speaker: documenter
+  kind: result
+  at: '2026-10-31T21:06:07.107624Z'
+  stage: docs
+  run: e009c4b86d774b1a9db23dd24b97813b
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1276,3 +1278,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
       - The rows `urllib.request-in-a-second-module` and `http.client-in-a-second-module` show that a second importer is caught.
       - The test keeps its name, and the change stays within the leave.
 78. factory: started docs as vm.
+79. documenter: Docs, round 2. The three earlier documents were still unwritten on the branch, so I wrote them from the story and the diff. I changed documents only, so I did not run `make check`; the factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md`: new subsection *A bearer token for the model API*, after *A company's provider*. It covers the five variables, what the command writes and when (every ten minutes, or half a short life, at least 30 s, retry after a minute), `--once`, and the exit codes and messages. It also covers why a token must live longer than ten minutes plus the longest stage, the link to `FACTORY_API_LOGIN_FILE` and the provider file's `api_key_env`, the proxy variables, and the secret as a mounted file.
+    - `docs/project-guide/agents.md`: *The opencode runtime* gains a paragraph, **The bearer token**. It names the refresher, its modules in the four layers and the import exception for `urllib.request` and `http.client`.
+    - `docs/decisions.md`: new entry *A refresher keeps the bearer token fresh*, from the feature's decisions 7 and 8, with the interval reasoning and the rejected options.
+
+    Cross-read and found current: the operator guide's *The agent's API key*, *Running on opencode* and *Behind a proxy*, and the project guide's opencode login paragraphs. `README.md` needs no change, as criterion 12 says.
+
+    I did not run the examples. The new text has no runnable example. The story's smoke test covers the commands, and I did not run it.
+
+    Findings: none. The code matches the Interface.
+
+    Stale text I did not touch: none seen.
+
+    `check`: check: green
+    `secrets`: secrets: green (2.6 s)
+    `documents`: documents ok

@@ -143,6 +143,8 @@ entry:
 
 Tests use `tests/adapters/opencode_stand_in.py` in `tmp_path`; the real `opencode` is never run.
 
+**The bearer token.** The runtime does not renew a token. For a model API behind a client-credentials grant, `python -m factory.entry.refresh_token` (`factory.entry.refresh_token`) runs beside the factory and keeps the file `FACTORY_API_LOGIN_FILE` names fresh; the runtime reads that file at every call, as it always did. Its parts: `Token` and `refresh_wait` in `factory.domain.tokens` (the wait is ten minutes, or half the token's life when shorter, at least thirty seconds; `TokenError` is in `factory.domain.errors`), `TokenSource` and `TokenRefresher` in `factory.application.tokens` (fetch, then write through `replace_text`), and `ClientCredentialsTokenSource` in `factory.adapters.oauth_token`, the one module that may import `urllib.request` and `http.client` (`tests/test_hosting_search.py`). Every detail has the client secret and the token replaced by `***`. The operator's side: "A bearer token for the model API" in `docs/operator-guide.md`; why: *A refresher keeps the bearer token fresh* in `docs/decisions.md`.
+
 ### Ending the agent's leftover processes
 
 A container ends with its call, and podman's time limit ends it whole, so nothing an agent started outlives the call there. The program that once ended the agent's processes after every call as another user went with F0044-S0003; the kill of a call at its time limit stays (`killed_at_limit`, above).
