@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T20:30:10.351726Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -359,6 +363,11 @@ journal:
   at: '2026-10-31T20:29:49.884868Z'
   stage: doing
   run: 43a2303af8b84746a872d3f13cd27dee
+- number: 64
+  speaker: factory
+  kind: started
+  at: '2026-10-31T20:30:10.351726Z'
+  stage: tests
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1022,3 +1031,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The Interface and criteria 4, 7 and 9 still lack the rules and rows from entry 52. The work item is outside my write paths.
     - `masked` has no test of its own.
     - vulture's `OpenUrl.__call__` finding is the false positive that entry 14 accepts.
+64. factory: started tests as vm.
