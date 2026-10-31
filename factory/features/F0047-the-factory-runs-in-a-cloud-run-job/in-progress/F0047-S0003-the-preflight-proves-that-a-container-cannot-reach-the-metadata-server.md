@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T17:24:17.599492Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-10-31T17:23:57.194376Z'
   stage: intake
   run: 4382554ee5fe488ca2afae75663a2544
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-10-31T17:24:17.599492Z'
+  stage: tests
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -118,3 +127,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: the command is runnable. Its `Expect:` line gives two exact lines, `True` and the HTTP 200 sentence, which the output can be checked against. It runs no pytest, so the `-q` rule does not apply.
    - Architecture: the constants are in domain, the item is in application, and only entry wiring picks the container run. That matches the layering, and the probe goes through `containers.run`, so no new tool is called.
    - Scope: it is inside F0047's scope ("preflight item `metadata-block` for the job profile"). The start script and the rule's installation are left to S0006, as `feature.md` says. It does not touch anything under "Out of scope".
+7. factory: started tests as vm.
