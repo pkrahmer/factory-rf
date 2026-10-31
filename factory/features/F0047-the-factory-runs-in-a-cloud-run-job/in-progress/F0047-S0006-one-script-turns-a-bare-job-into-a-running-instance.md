@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T23:52:49.470712Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-10-31T23:52:29.202596Z'
   stage: doing
   run: 59363041c9cc45fc880639e0e2d986ca
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-10-31T23:52:49.470712Z'
+  stage: tests
 ---
 
 # One script turns a bare job into a running instance
@@ -274,3 +283,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed, not touched:
     - `vm/setup.sh` writes `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS` from the Dockerfile into the instance's environment. The job script does not set them, because the Interface does not list them. If the factory on the host needs them, the job's environment must carry them, or a later story adds them.
     - The `uv` version in the tools step is read from the code checkout's `vm/Dockerfile` (`ARG UV_VERSION`), as `vm/setup.sh` does. With the test stand-ins the checkout is empty, so the version is empty.
+14. factory: started tests as vm.
