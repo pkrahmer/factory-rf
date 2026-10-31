@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-31T17:18:02.977792Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-10-31T17:18:02.977792Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-31T17:18:23.088699Z'
+  stage: smoke-test
+  run: ae1abd59ca5d46e69c9cdbb3671482c3
 ---
 
 # The container profile job
@@ -455,3 +457,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
 30. factory: started smoke-test as vm.
+31. smoke-tester: Ran the one command under `## Smoke test` from the repository root, exactly as written. I fixed nothing.
+
+    Command 1 (`uv run python -c "…PodmanRuns('podman', 'img:1', Path('/work'), profile='job').launch(['true'], …)…"`), exit status 0:
+
+    ```
+    Bytecode compiled 4164 files in 55ms
+    ['podman', '--runtime=runc', '--cgroup-manager=cgroupfs', '--storage-driver=overlay', '--storage-opt=overlay.mount_program=/usr/bin/fuse-overlayfs', 'run']
+    False True
+    ```
+
+    Met its `Expect:` line. The first line uv prints is its own bytecode note on stderr, and the command's two lines are exactly the expected ones:
+    - The executable, then the four `JOB_PODMAN_OPTIONS`, then `run`.
+    - `--userns=keep-id` is absent and `--network=host` is present.
+
+    Against the acceptance criteria: the output agrees with criterion 3 (the four global options before `run`) and criterion 4 (no `--userns=keep-id`). The command did not print the rest of the launch words, so the smoke test does not check the full order in criterion 3; the tests cover that. Nothing in the output contradicts any other criterion. I did not run `make check` (criterion 9) or read the docs (criterion 10) here, because the smoke test does neither; the factory's checks cover them.
+
+    Findings: none.
