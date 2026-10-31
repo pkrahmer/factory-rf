@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T23:19:10.028241Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-10-31T23:19:10.028241Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T23:20:05.866248Z'
+  stage: review
+  run: 4206674c0ff446acb7538a875912dc5e
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -381,3 +383,29 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 1 gone
 23. factory: started review as vm.
+24. reviewer: Reviewer, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`: four files under `src/` (power_off.py, settings.py, run.py, wiring.py), the four new test modules, and the change to tests/entry/test_run.py. I went through groups 1 to 5 and found nothing that sends the work item back.
+
+    Group 1: every criterion has a test, and each test checks what its criterion says.
+    - Criteria 1 and 4 are covered in tests/entry/test_wiring_idle_shutdown_action.py, including the `ValueError` and the case of minutes 0.
+    - Criterion 2 is in tests/domain/test_settings_idle_shutdown_action.py: unset, empty, blank, both accepted values, three refused values and `exit` with minutes 0, all rows of one test.
+    - Criterion 3 is in tests/adapters/test_process_exit.py.
+    - Criteria 5 to 8 are in tests/entry/test_run_idle_exit.py. Criterion 5 tests the one-minute limit on both sides (0:59 runs on, 1:00 stops) and the restart of the stretch after a non-idle tick (1:44 runs on, 1:45 stops).
+    - Criterion 8, added in round 0, now calls `run_until_stopped` itself with its own event. That event's `wait` never sets it, so only `request_stop=event.set` at src/factory/entry/run.py:96-98 can stop the loop. Deleting that argument would make the test fail.
+    - Every rule of the Interface has a test for the side that fails.
+    - The factory's `make check` after the coder was green (entry 22).
+
+    Group 2, architecture: the setting is in the domain. `ProcessExit` is in the adapters and inherits `PowerOff`. The choice of action is made in `factory.entry.wiring`. No import goes upward.
+
+    Group 3, security: no markers, no strings built into shell commands, nothing new reaches a tool.
+
+    Group 4, quality: the setting is read through the existing `_one_of`. The docstrings are present and accurate. The one new item in `make duplicates` is an unused `__call__` reported in src/factory/adapters/oauth_token.py, a file this story does not touch. The same `__call__` shows as gone under the label "method", so it is a known item listed under a different label.
+
+    Group 5, work item hygiene: the journal explains the main choice (a second `PowerOff` implementation, picked in the entry wiring) and what was rejected (a separate interface for stopping the loop). The Description matches what was built. The docs criterion still names what the reader must know.
+
+    no findings
+
+    Earlier tests:
+    - tests/entry/test_run.py: changed under the human's leave in journal entry 8. Only the signature of the `recording_of` stand-in changed: it now takes `request_stop` and passes it on to `original_of`. The test keeps its name and checks the same thing.
+
+    Notes:
+    - tests/entry/test_run_idle_exit.py:55 `instance_settings` copies the `settings` fixture in tests/entry/test_run.py:123. The only differences are that it writes its own token and sets `idle_shutdown_minutes=1`. Moving that fixture to a shared place, under the standing leave, would remove the copy.
