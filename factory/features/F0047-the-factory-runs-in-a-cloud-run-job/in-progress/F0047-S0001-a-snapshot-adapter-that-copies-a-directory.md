@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T16:14:43.777493Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-10-31T16:14:43.777493Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T16:16:07.814522Z'
+  stage: review
+  run: 037b9d18bfe347b993f8a15fef7be69a
 ---
 
 # A snapshot adapter that copies a directory
@@ -361,3 +363,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 0 gone
 19. factory: started review as vm.
+20. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'`: 5 files under `src/` and 4 new test modules, checked against the work item. I read the code and the tests rather than the earlier entries.
+
+    no findings
+
+    - Group 1 (acceptance criteria): every criterion from 1 to 14 has a test that checks what the criterion names. The rows of each rule are rows of one parametrized test. Criterion 13's test reaches `_as_snapshot_error("reset", ...)` through `_clear` on a folder that is a file, and checks that the detail is the operating system's message. Criterion 14 covers the faults that follow once a base is set. The `read_settings` test has no rows for a base inside the checkout or inside the state directory, but the model validator test covers those cases, and both paths go through the same `snapshot_base_fault` (`src/factory/domain/settings.py`). I did not count it as a gap. The factory's `make check` after the coder was green (entries 10 and 18). `make duplicates` reported 0 new.
+    - Group 2 (architecture): the layers hold. The settings rule is in domain, `CopySnapshots` is in adapters, `snapshots_item` is in application and the wiring is in entry. `CopySnapshots` derives from `Snapshots`, and `FakeSnapshots(CopySnapshots)` has nothing but its docstring. `snapshots_item` is the only code in `factory.application` that stats the file system (`Path.is_dir`/`exists`). The Interface sets that signature, and no rule forbids it, so it is not a finding.
+    - Group 3 (security): no markers, no secrets, no commands built from strings. The base is checked when the settings are read and again by the model validator.
+    - Group 4 (quality): the names, docstrings and comments say why. There is no dead code. `_snapshots` follows the pattern of `_agent_runtime` but reads a different variable, so I did not count it as a copied helper.
+    - Group 5 (hygiene): the Description matches what was built. The journal explains the main choice (`_SnapshotAdapters` carries each kind's preflight items) and what was rejected. Docs criterion 16 still describes what the reader needs.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`), and `tests/adapters/test_fake_snapshots.py` is unchanged.
+
+    Notes:
+    1. `tests/adapters/test_copy_snapshots.py` `_tree` and `_reset`: copies of the helpers of the same names in `tests/adapters/test_fake_snapshots.py`. Criterion 9 keeps that file unchanged, so the copy was the choice open to the tester.
+    2. `tests/adapters/test_copy_snapshots.py` `_reset_on` and `_advance_on`: `_reset_on` is the same as `_reset` in the same module. One of them would do.
+    3. Criterion 8's `reset-on-a-file` row stops at `no base at <base>`, not at an `OSError`. The real `OSError` path of `reset` is tested by criterion 13.
