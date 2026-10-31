@@ -1,6 +1,6 @@
 # The stage environment
 
-This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.stage_environment`, `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. The stage protocol calls the stage environment (*The cycle* lists its steps, *The stage environment* the interface). There is one environment, the dataset and the containers: v1.1's `inline` environment and its setting went with F0044-S0008 (*The settings and the wiring*). The wiring also lives in `factory.domain.settings` and `factory.entry.wiring`.
+This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.stage_environment`, `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.copy_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. The stage protocol calls the stage environment (*The cycle* lists its steps, *The stage environment* the interface). There is one environment, the dataset and the containers: v1.1's `inline` environment and its setting went with F0044-S0008 (*The settings and the wiring*). The wiring also lives in `factory.domain.settings` and `factory.entry.wiring`.
 
 ## The cycle
 
@@ -17,7 +17,7 @@ A stage runs in the order below (`planning/v1.2-plan.md`, "The cycle of a stage"
 
 ## The snapshots
 
-`Snapshots` (`factory.application.snapshots`) stands for one dataset and its base snapshot. It is an abstract base class like every interface (see `CLAUDE.md`), so another snapshot tool can implement it later. Its members:
+`Snapshots` (`factory.application.snapshots`) stands for one dataset and its base snapshot. It is an abstract base class like every interface (see `CLAUDE.md`), so another snapshot tool can implement it. There are two real implementations: `ZfsSnapshots` (*The ZFS adapter*) and `CopySnapshots` (*The copy snapshots*); `FACTORY_SNAPSHOTS` chooses (*The settings and the wiring*). Its members:
 
 - `mount_point` (property): the dataset's path on the host. `changed_paths` are relative to it.
 - `reset()`: puts the dataset back to the base.
@@ -41,11 +41,23 @@ A `Mount` has a `source` (an absolute host path), a `target` (a container path) 
 
 `ContainerError(command, detail)` is the interface's `BoundaryError`, with the message `container command <command> failed: <detail>`. `ContainerCall` records one call as it was asked; only the fake uses it.
 
+## The copy snapshots
+
+`CopySnapshots(folder, base)` (`factory.adapters.copy_snapshots`) implements `Snapshots` for a folder on a file system without snapshots, such as a Cloud Run job's. It starts no process and keeps the base as a copy of `folder` at `base`.
+
+- `advance` replaces `base` with a copy of `folder`: folders, files with their bytes and mode, symbolic links as links, never followed.
+- `reset` empties `folder` and copies `base` into it; `folder` itself stays, as a mount point does.
+- `changed_paths` walks both trees and compares mode, bytes and link target; the bytes are read in chunks of at most 1 MiB (`_CHUNK_BYTES`), so memory does not grow with a file's size.
+- An `OSError` of `reset` or `advance` is `SnapshotError("reset" or "advance", <the operating system's message>)`. `changed_paths` turns none (the Interface names only the other two).
+- Without a `base` directory, `reset` and `changed_paths` raise `SnapshotError("reset" or "changed_paths", "no base at <base>")` and `reset` changes nothing. A `base` that is a file counts as no base.
+
+The cost is a full copy per `reset` and `advance` (the operator guide, *Without ZFS*, has the figures).
+
 ## The fakes
 
 Both fakes let the suite and the smoke tests run without `zfs` and `podman`.
 
-`FakeSnapshots(folder, base)` keeps the base as a copy of `folder` at `base`. `advance` replaces `base` with a copy (folders, files with their bytes and mode, symbolic links as links, never followed). `reset` replaces the contents of `folder` with a copy of `base`; `folder` itself stays, as a mount point does. `changed_paths` walks both trees and compares bytes, mode and link target. It starts no process. Without a `base` folder, `reset` and `changed_paths` raise `SnapshotError("reset" or "changed_paths", "no base at <base>")` and `reset` changes nothing.
+`FakeSnapshots(folder, base)` is a subclass of `CopySnapshots` (`factory.adapters.fake_snapshots`) with the same constructor and no code of its own: the suite's fake and the real copy adapter are one implementation, so a rule of the copy is tested by both. Tests: `tests/adapters/test_fake_snapshots.py` (through the fake) and `tests/adapters/test_copy_snapshots.py` (a real tree in `tmp_path`, the chunked read, the operating system's faults).
 
 `FakeContainerRuns(workspace)` plays a container as a child process on the host, through `run_process` (`factory.adapters.process`; the structural test `tests/test_wrapper_search.py` names this module as one that reaches it). It maps container paths to host folders:
 
@@ -310,19 +322,23 @@ An instance names its dataset, workspace and stage image in its environment vari
 |---|---|---|
 | `FACTORY_DATASET` | `dataset` | none |
 | `FACTORY_WORKSPACE` | `workspace` (`Path`) | none |
+| `FACTORY_SNAPSHOTS` | `snapshots` (`"zfs"` or `"copy"`) | `zfs` |
+| `FACTORY_SNAPSHOT_BASE` | `snapshot_base` (`Path`) | none |
 | `FACTORY_STAGE_IMAGE` | `stage_image` | none |
 | `FACTORY_PODMAN` | `podman_executable` | `podman` |
 | `FACTORY_ZFS` | `zfs_executable` | `zfs` |
 
 `read_settings` strips each value and reads a blank one as unset. It raises no fault for a missing dataset, workspace or image. It refuses a relative workspace (`SettingsInvalid(FACTORY_WORKSPACE, "is not an absolute path")`) and then a `checkout` and then a `state_directory` that is the workspace or lies inside it (`Path.is_relative_to`, by path parts): `SettingsInvalid(FACTORY_CHECKOUT, "<checkout> lies inside FACTORY_WORKSPACE")`, or the same for `FACTORY_STATE`.
 
+`FACTORY_SNAPSHOTS` unset or blank is `zfs`; `zfs` and `copy` are accepted and anything else is `SettingsInvalid(FACTORY_SNAPSHOTS, "is neither zfs nor copy")`. `FACTORY_SNAPSHOT_BASE` is read like the other optional paths (blank is `None`, a relative path is refused). `snapshot_base_fault(snapshots, base, workspace, checkout, state_directory)` holds the rule on the base, for `read_settings` (as a `SettingsInvalid` on `FACTORY_SNAPSHOT_BASE`) and for the model validator (a `ValidationError`): with `zfs` a base is `is only used with FACTORY_SNAPSHOTS=copy`; with `copy` a base that is, holds or lies inside the workspace, the checkout or the state directory is `<base> overlaps <workspace|checkout|state>`, because every reset empties the workspace and the base must survive it. A missing base with `copy` is no fault of the settings; the wiring raises it.
+
 One function, `workspace_overlap_fault(workspace, checkout, state_directory)` (`factory.domain.settings`), holds that rule and gives `None` for a `None` workspace. `read_settings` calls it, and so does the model validator of `InstanceSettings`, so a model built directly refuses the same combinations with a `ValidationError` (the validator's message is `<variable>: <fault>`; it is not turned back into a `SettingsInvalid`).
 
-`build_boundaries(settings, token, *, hosting=None)` (`factory.entry.wiring`) refuses an incomplete instance first, before it builds anything and before PyGithub's `get_repo` is called: `_container_adapters` raises `SettingsInvalid(FACTORY_DATASET, "missing")`, then `SettingsInvalid(FACTORY_WORKSPACE, "missing")`, then `SettingsInvalid(FACTORY_STAGE_IMAGE, "missing")`, the first of the three that is `None`. Then it builds:
+`build_boundaries(settings, token, *, hosting=None)` (`factory.entry.wiring`) refuses an incomplete instance first, before it builds anything and before PyGithub's `get_repo` is called: `_container_adapters` raises `SettingsInvalid(FACTORY_DATASET, "missing")`, then `SettingsInvalid(FACTORY_WORKSPACE, "missing")`, then `SettingsInvalid(FACTORY_STAGE_IMAGE, "missing")`, the first of the three that is `None`. With `FACTORY_SNAPSHOTS=copy` the dataset is not read and the first is `SettingsInvalid(FACTORY_SNAPSHOT_BASE, "missing")`, before the workspace and the image. Then it builds:
 
 | Boundary | Built as |
 |---|---|
-| `snapshots`, `containers` | `ZfsSnapshots(dataset, workspace, drop_caches=DROP_CACHES_COMMAND, executable=zfs_executable)` and `PodmanRuns(podman_executable, stage_image, workspace)` |
+| `snapshots`, `containers` | `ZfsSnapshots(dataset, workspace, drop_caches=DROP_CACHES_COMMAND, executable=zfs_executable)` (with `copy`: `CopySnapshots(workspace, snapshot_base)`) and `PodmanRuns(podman_executable, stage_image, workspace)` |
 | `agent_runtime` | the runtime of `FACTORY_AGENT_RUNTIME` given `containers` |
 | `project_commands` | `RecordingProjectCommands` around `ContainerMakeCommands(snapshots, containers, git, checkout=settings.checkout, extra_environment=extra, ca_bundle=settings.ca_bundle)` |
 
@@ -330,18 +346,19 @@ One function, `workspace_overlap_fault(workspace, checkout, state_directory)` (`
 
 `build_boundaries` takes no `which`. It runs no tool: `zfs` and `podman` start only when a stage uses them. `RecordingProjectCommands.inner` is the implementation it records, which the wiring's tests read.
 
-`agent_run_environment(settings, base)` copies `base` and sets `HOME` to `/work/home` (`WORK_HOME_ENVIRONMENT`), on the dataset, whatever the settings; the dict it is given is unchanged. The preflight's items are in *The preflight* below. Tests: `tests/domain/test_settings_stage_environment.py`, `tests/domain/test_settings_one_environment.py`, `tests/entry/test_wiring_stage_environment.py` and `tests/entry/test_wiring_one_environment.py`.
+`agent_run_environment(settings, base)` copies `base` and sets `HOME` to `/work/home` (`WORK_HOME_ENVIRONMENT`), on the dataset, whatever the settings; the dict it is given is unchanged. The preflight's items are in *The preflight* below. Tests of the copy snapshots' settings and wiring: `tests/domain/test_settings_snapshots.py` and `tests/entry/test_wiring_copy_snapshots.py`. Tests: `tests/domain/test_settings_stage_environment.py`, `tests/domain/test_settings_one_environment.py`, `tests/entry/test_wiring_stage_environment.py` and `tests/entry/test_wiring_one_environment.py`.
 
 ## The preflight
 
-The preflight (`factory.application.preflight`; the tick, the stamp and the stops are in `watching.md`) has one list of items. `machine_extras` (`factory.entry.wiring`) gives, in this order: `token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `opencode` under opencode only, `agent-run-probe`. It builds a `ZfsSnapshots` and a `PodmanRuns` of its own through `_container_adapters`, the function `build_boundaries` also calls, because `boundaries.snapshots` and `boundaries.containers` are typed as the interfaces and nothing narrows them. Building them runs no command.
+The preflight (`factory.application.preflight`; the tick, the stamp and the stops are in `watching.md`) has one list of items. `machine_extras` (`factory.entry.wiring`) gives, in this order: `token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `opencode` under opencode only, `agent-run-probe`; with `FACTORY_SNAPSHOTS=copy` the items are `token-file`, `podman`, `snapshots`, `stage-image`, `opencode` under opencode only and `agent-run-probe`. It builds the snapshots (a `ZfsSnapshots` or a `CopySnapshots`) and a `PodmanRuns` of its own through `_container_adapters`, the function `build_boundaries` also calls, because `boundaries.snapshots` and `boundaries.containers` are typed as the interfaces and nothing narrows them. Building them runs no command.
 
-The four items that reach the machine take callables, so `application` knows no adapter:
+The items that reach the machine take callables, so `application` knows no adapter:
 
 | Item | Function | Callable | Fails with |
 |---|---|---|---|
 | `podman`, `zfs` | `tool_version_item(name, version)` | `PodmanRuns.version`, `ZfsSnapshots.version` | `<name> does not answer --version: <error>` on `SnapshotError` or `ContainerError`; passes with the printed line as its detail |
 | `dataset` | `dataset_item(dataset, exists)` | `ZfsSnapshots.dataset_exists` | `the dataset <dataset> does not exist; make it with zfs create, and its base with zfs snapshot <dataset>@base`, or `cannot list the dataset <dataset>: <error>` on `SnapshotError` |
+| `snapshots` (`copy` only) | `snapshots_item(workspace, base)` (`factory.application.preflight`; it reads the file system with `Path.is_dir`) | none | `the workspace <w> is not a directory`, `the base <b> does not exist; make it empty with mkdir, the first advance fills it` or `the base <b> is not a directory`; passes with `workspace <w>, base <b>` |
 | `stage-image` | `stage_image_item(image, exists)` | `PodmanRuns.image_exists` | `the stage image <image> is not built; build it with podman build`, or `cannot look for the stage image <image>: <error>` on `ContainerError` |
 
 `MachineChecks.run` checks `REQUIRED_TOOLS` (`git`, `uv`) and asks for no runtime executable on the host: no `tool:make` (it runs only in the sync and check containers) and no `tool:claude` or `tool:opencode` (the executable is the stage image's; `agent-runtime-version` runs it there and is the check of its presence). There is no `agent-environment` item: the agent's `HOME` is a path inside the container. `opencode_item(settings, agent_models)` checks the aliases only.

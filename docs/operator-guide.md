@@ -79,6 +79,8 @@ One factory instance runs one project and is told what it needs through environm
 | `FACTORY_OPENCODE_MODELS` | no | Comma-separated `<alias>=<provider>/<model>` entries that map the agent files' aliases (`opus`, `sonnet`, `haiku`) to opencode's model ids; spaces around each part are stripped. The provider is the part before the first `/`, so `openrouter/anthropic/claude-opus-5-5` is one model. Unset or blank gives none (`factory.env` sets the three Anthropic ids from `vm/Dockerfile`). An entry without `=`, with an empty alias or with a model that has no `/` or an empty side, and an alias named twice, are refused with `FACTORY_OPENCODE_MODELS` as the variable. |
 | `FACTORY_OPENCODE_PROVIDER_FILE` | no | The absolute path of a JSON file that describes a company's own OpenAI-compatible provider and the small model; the opencode runtime merges it into the configuration of every run. Unset or blank gives none, and the configuration is as without the setting. A relative path is refused with `FACTORY_OPENCODE_PROVIDER_FILE` as the variable and `is not an absolute path`. The file is read at the start of every run, so a fault in it (or a missing file) ends that run with `cannot use the opencode provider file <path>: <reason>` and a new file applies from the next run, without a restart. See "A company's provider". |
 | `FACTORY_DATASET` | yes | The ZFS dataset the stages run on (`tank/factory/vm`). Missing or blank is refused when the instance's boundaries are built, with `FACTORY_DATASET` as the variable and `missing`; `read_settings` itself raises no fault for it. |
+| `FACTORY_SNAPSHOTS` | no | How the dataset's base is kept: `zfs` (the default) or `copy` (see *Without ZFS*). Unset or blank gives `zfs`; anything else (`ZFS`, `btrfs`) is refused by `read_settings` with `FACTORY_SNAPSHOTS` as the variable and `is neither zfs nor copy`. |
+| `FACTORY_SNAPSHOT_BASE` | with `copy` | The absolute directory that holds the base, used only with `FACTORY_SNAPSHOTS=copy`. Unset or blank gives none. A relative path is refused with `is not an absolute path`; with `zfs` a base is refused with `is only used with FACTORY_SNAPSHOTS=copy`; with `copy` a base that is, holds or lies inside the workspace, the checkout or the state directory is refused with `<path> overlaps <workspace\|checkout\|state>`. A missing one with `copy` is refused when the boundaries are built, with `FACTORY_SNAPSHOT_BASE` as the variable and `missing`, before the workspace and the image are looked at. |
 | `FACTORY_WORKSPACE` | yes | The dataset's mount point on the host, an absolute path (`/srv/factory/vm/work`). A relative path is refused by `read_settings` with `FACTORY_WORKSPACE` as the variable and `is not an absolute path`; a missing or blank one when the boundaries are built, with `missing`. |
 | `FACTORY_STAGE_IMAGE` | yes | The image the stage containers run (`factory-stage:1`). Missing or blank is refused when the boundaries are built, with `FACTORY_STAGE_IMAGE` as the variable and `missing`. |
 | `FACTORY_PODMAN` | no | The `podman` executable, one word. Default `podman`; unset or blank gives the default. |
@@ -351,6 +353,22 @@ The layout of `/srv/factory/<instance>`:
 | `factory.local.env` | your own environment file, optional; the script never writes it |
 | `image-id` | the identity of the stage image |
 | `askpass` | the script git asks for the hosting token |
+
+### Without ZFS
+
+A sandbox that has no ZFS, such as a Cloud Run job, keeps the base as a plain copy. Set `FACTORY_SNAPSHOTS=copy` and `FACTORY_SNAPSHOT_BASE` to an absolute directory outside the workspace, the checkout and the state directory. `FACTORY_DATASET` and `FACTORY_ZFS` are then not read.
+
+Make the base directory once, empty; the first stage fills it:
+
+```bash
+mkdir -p /srv/factory/vm/base
+```
+
+Every stage start then does what ZFS does, with copies: `reset` empties the workspace and copies the base into it, `advance` replaces the base with a copy of the workspace, and the list of changes compares the two trees file by file (mode, bytes and link target; bytes in chunks of at most 1 MiB, so a large file is never held whole).
+
+The cost: a reset takes about 1.6 s per GiB, measured on a tree of 20000 files, and the comparison is slower than the 0.2 s that `rsync` measured. In a memory-backed sandbox the workspace and the base are both in memory, so the tree is held twice. A later version may use `rsync`.
+
+The preflight has the item `snapshots` in place of `zfs` and `dataset` (see *The preflight's items*). The default, `zfs`, is unchanged.
 
 ### The stage image
 
@@ -796,7 +814,7 @@ Nothing runs the check by itself, and the factory builds no watchdog: systemd re
 
 ### The preflight's items
 
-The preflight is a list of five items, and of up to twelve with the machine's extras (`token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `opencode` under opencode only, and `agent-run-probe`), in the order of the table. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. The items run only when the image build has changed (see "The stamp and the probe of the main branch").
+The preflight is a list of five items, and of up to twelve with the machine's extras (`token-file`, `podman`, `zfs`, `dataset` (under `FACTORY_SNAPSHOTS=copy`, the one item `snapshots` in their place), `stage-image`, `opencode` under opencode only, and `agent-run-probe`), in the order of the table. Every item runs whatever the others found, so one report names everything that is wrong. A failed report becomes one `preflight_failed` stop with scope `machine`; its detail lists each failed item as `<name>: <detail>`, joined by `; `. The preflight installs nothing: a missing tool is reported and you fix the image. The items run only when the image build has changed (see "The stamp and the probe of the main branch").
 
 | Item | Passes when | If it fails |
 |---|---|---|
@@ -809,6 +827,7 @@ The preflight is a list of five items, and of up to twelve with the machine's ex
 | `podman` | `podman --version` answers; the detail is its first line (`podman version 4.9.3`), which the factory log names once per image build | The detail is `podman does not answer --version: <the error>`. Install `podman` where the factory runs, or correct `FACTORY_PODMAN`. |
 | `zfs` | `zfs --version` answers; the detail is its first line | The detail is `zfs does not answer --version: <the error>`. Install ZFS, or correct `FACTORY_ZFS`. |
 | `dataset` | `zfs list -H -o name <dataset>` names `FACTORY_DATASET` | `the dataset <dataset> does not exist; make it with zfs create, and its base with zfs snapshot <dataset>@base`: do that, once. When `zfs list` itself fails, the detail is `cannot list the dataset <dataset>: <the error>` (for example a permission the factory's user lacks). |
+| `snapshots` | with `FACTORY_SNAPSHOTS=copy` only, in place of `zfs` and `dataset`: the workspace and the base are directories; the detail is `workspace <w>, base <b>` | `the workspace <w> is not a directory`, `the base <b> does not exist; make it empty with mkdir, the first advance fills it` or `the base <b> is not a directory`. |
 | `stage-image` | `podman image exists <FACTORY_STAGE_IMAGE>` answers yes | `the stage image <image> is not built; build it with podman build`. When podman cannot answer, the detail is `cannot look for the stage image <image>: <the error>`. |
 | `agent-run-probe` | one `claude -p` call, or one `opencode run` call under opencode, made as a stage makes it, ends `completed` | See "The probe of the agent run" below. |
 
