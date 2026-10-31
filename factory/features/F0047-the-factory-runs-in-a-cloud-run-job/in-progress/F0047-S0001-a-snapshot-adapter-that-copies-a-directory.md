@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-31T15:40:41.810451Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T15:40:24.131159Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-10-31T15:40:41.810451Z'
   stage: intake
 ---
 
@@ -130,3 +139,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    4. The model validator refuses `snapshots="zfs"` with a `snapshot_base` too, with a `ValidationError`, the same rule as `read_settings`. Add it as a row of criterion 4.
    5. A base that exists but is a file fails with its own sentence, `the base <b> is not a directory`; "does not exist" would mislead the operator. Change the Interface's `snapshots_item` line accordingly and add the row to criterion 10. The same for a workspace that is a file, which already has `is not a directory`.
    6. Yes, a row for `advance` with the operation name `advance`. Make the fault independent of the user the tests run as (a check container may run them as root, where a read-only folder is still writable): a base whose parent path is a regular file, so the copy raises `NotADirectoryError`.
+5. factory: started intake as vm.
