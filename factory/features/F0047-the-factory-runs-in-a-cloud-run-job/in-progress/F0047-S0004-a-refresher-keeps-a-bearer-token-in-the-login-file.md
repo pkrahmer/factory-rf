@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T19:17:36.134192Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   at: '2026-10-31T19:17:15.774973Z'
   stage: doing
   run: 41a9fdc0115f48449b76c02527c8edaf
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-31T19:17:36.134192Z'
+  stage: tests
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -441,3 +450,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The journal changed nothing in the Description in this round. The reviewer added criterion 9 and corrected the Interface and the smoke test themselves.
 
     Still open, not mine to change: vulture's finding on `OpenUrl.__call__` goes into the duplicates baseline at approval (entry 14).
+25. factory: started tests as vm.
