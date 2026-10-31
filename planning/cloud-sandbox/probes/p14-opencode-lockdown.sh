@@ -45,8 +45,14 @@ HOST=$(echo "$BASE" | sed -e 's#^[a-z]*://##' -e 's#/.*##')
 step "metadata block (P2b's rule)"
 cat > /tmp/probe.nft <<'EOF'
 table inet probeblock {
-  chain blockout { type filter hook output priority 0; policy accept; ip daddr 169.254.169.254 tcp dport 80 reject }
-  chain blockfwd { type filter hook forward priority 0; policy accept; ip daddr 169.254.169.254 tcp dport 80 reject }
+  chain blockout {
+    type filter hook output priority 0; policy accept;
+    ip daddr 169.254.169.254 tcp dport 80 reject
+  }
+  chain blockfwd {
+    type filter hook forward priority 0; policy accept;
+    ip daddr 169.254.169.254 tcp dport 80 reject
+  }
 }
 EOF
 run nft -f /tmp/probe.nft
@@ -140,21 +146,24 @@ echo "node image pull:"; $PODMAN pull -q $IMG 2>&1 | grep -v "level=warning" | t
 NP="localhost,127.0.0.1,${PROBE_NO_PROXY:-}"
 LOGP=http://127.0.0.1:3128
 # Every container call goes through the logging proxy, except the API host (no_proxy), as in the factory.
-CRUN="$PODMAN run --rm --http-proxy=false --network=host --cap-drop=all --security-opt=no-new-privileges --pids-limit=512 --memory=3g -v /tmp/oc:/work -e HOME=/work/home -e LLM_KEY -e http_proxy=$LOGP -e https_proxy=$LOGP -e HTTP_PROXY=$LOGP -e HTTPS_PROXY=$LOGP -e no_proxy=$NP -e NO_PROXY=$NP --workdir /work/checkout $IMG"
+# The options and the image are two variables: podman reads every word after the image as the command,
+# so a run's extra `-e` words must come between them (the bug of the first run, 2026-10-31).
+CRUN="$PODMAN run --rm --http-proxy=false --network=host --cap-drop=all --security-opt=no-new-privileges --pids-limit=512 --memory=3g -v /tmp/oc:/work -e HOME=/work/home -e LLM_KEY -e http_proxy=$LOGP -e https_proxy=$LOGP -e HTTP_PROXY=$LOGP -e HTTPS_PROXY=$LOGP -e no_proxy=$NP -e NO_PROXY=$NP --workdir /work/checkout"
 step "C1: install opencode 1.19.3 through the logging proxy (npm)"
-$CRUN sh -c 'npm install --global --prefix /work/npm opencode-ai@1.19.3 2>&1 | tail -2' 2>&1 | grep -v "level=warning" | mask | head -4
-run $CRUN sh -c '/work/npm/bin/opencode --version'
+$CRUN $IMG sh -c 'npm install --global --prefix /work/npm opencode-ai@1.19.3 2>&1 | tail -2' 2>&1 | grep -v "level=warning" | mask | head -4
+run $CRUN $IMG sh -c '/work/npm/bin/opencode --version'
 echo "hosts the install contacted: $(cut -d' ' -f2 /tmp/contacts.log | cut -d: -f1 | sort -u | tr '\n' ' ')"
 
 one_run() {  # $1: label, $2: config file, $3...: extra -e words
   label=$1; cfg=$2; shift 2
   : > /tmp/contacts.log; rm -rf /tmp/oc/home/.local /tmp/oc/home/.cache /tmp/oc/home/.config /tmp/oc/checkout/hello.txt
   s=$(date +%s)
-  timeout 300 $CRUN "$@" -e OPENCODE_CONFIG=/work/state/$cfg sh -c '/work/npm/bin/opencode run --format json --auto --model corp/'"$MODEL"' --agent factory-probe "Create a file named hello.txt containing exactly the word hello. Then say what you did."' > /tmp/$label.out 2>/tmp/$label.err; rc=$?
+  timeout 300 $CRUN "$@" -e OPENCODE_CONFIG=/work/state/$cfg $IMG sh -c '/work/npm/bin/opencode run --format json --auto --model corp/'"$MODEL"' --agent factory-probe "Create a file named hello.txt containing exactly the word hello. Then say what you did."' > /tmp/$label.out 2>/tmp/$label.err; rc=$?
   echo "exit $rc after $(( $(date +%s)-s )) s; events $(wc -l < /tmp/$label.out); hello.txt: $(cat /tmp/oc/checkout/hello.txt 2>/dev/null || echo MISSING)"
   echo "stderr (first lines, masked):"; head -6 /tmp/$label.err | mask | cut -c1-240
-  echo "config complaints in stderr/events: $(grep -i -c -E 'unknown|invalid|unrecognized|enabled_providers' /tmp/$label.err /tmp/$label.out | tr '\n' ' ')"
-  grep -i -E 'unknown|invalid|unrecognized|enabled_providers' /tmp/$label.err /tmp/$label.out | mask | head -4 | cut -c1-240
+  echo "lines about the configuration (opencode's own words on an unknown key, if any):"
+  grep -i -E 'config|enabled_providers|unknown|invalid|unrecognized' /tmp/$label.err /tmp/$label.out | mask | head -6 | cut -c1-240
+  echo "[end of configuration lines]"
   python3 - /tmp/$label.out <<'PY' 2>&1 | mask
 import json,re,sys
 ev=[]
@@ -182,7 +191,7 @@ one_run B locked.json -e OPENCODE_DISABLE_MODELS_FETCH=1 -e OPENCODE_DISABLE_AUT
 step "D: the switches one at a time, start only (opencode --version does not start the app; a 20 s run does)"
 for sw in OPENCODE_DISABLE_MODELS_FETCH OPENCODE_DISABLE_AUTOUPDATE OPENCODE_DISABLE_DEFAULT_PLUGINS; do
   : > /tmp/contacts.log; rm -rf /tmp/oc/home/.local /tmp/oc/home/.cache
-  timeout 60 $CRUN -e $sw=1 -e OPENCODE_CONFIG=/work/state/plain.json sh -c '/work/npm/bin/opencode run --format json --auto --model corp/'"$MODEL"' --agent factory-probe "Say pong."' >/dev/null 2>&1
+  timeout 60 $CRUN -e $sw=1 -e OPENCODE_CONFIG=/work/state/plain.json $IMG sh -c '/work/npm/bin/opencode run --format json --auto --model corp/'"$MODEL"' --agent factory-probe "Say pong."' >/dev/null 2>&1
   sleep 2; echo "$sw=1 alone: $(cut -d' ' -f2 /tmp/contacts.log | cut -d: -f1 | sort -u | tr '\n' ' ')"
 done
 
