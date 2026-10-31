@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T17:54:35.272780Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-10-31T17:54:35.272780Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-10-31T18:00:45.107401Z'
+  stage: doing
+  run: 4e0051d1c8d241198c75dcdeb321eff7
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -282,3 +284,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.6 s)
 17. factory: started doing as vm.
+18. coder: Round 1, after the tester's entry 16. The tester made the test changes for review findings 2 to 4. My only fix, for finding 1, was already in the tree from entry 14. This round I changed no code. I ran `make check` on the tree as it now stands, with the moved shared helpers, and it is green.
+
+    What the story built:
+    - `src/factory/domain/containers.py`: `METADATA_PROBE_URL` and `METADATA_PROBE_COMMAND`.
+    - `src/factory/domain/printed_lines.py`: `printed_lines`, moved down from `factory.adapters.printed_output`, which now imports it. This answers finding 1.
+    - `src/factory/application/preflight.py`: `metadata_block_item`, `_metadata_fault` and `_last_line`. `timed_out` is checked first, then `000` passes, then three digits fail, then "could not tell".
+    - `src/factory/entry/wiring.py`: the item runs with the `job` profile only, after `stage-image`, through `containers.run(list(METADATA_PROBE_COMMAND), mounts=[], environment={}, time_limit=30 s, working_directory=WORK)`.
+
+    Main choice: the item takes a bare `Callable[[], ContainerResult]` and the wiring holds the run's arguments. This is the same pattern as `stage_image_item`. The rejected alternative was handing the `Containers` interface to the application function. That would have put the time limit and the working directory in the application layer.
+
+    Refactor pass: I read the source diff again and found nothing to change.
+
+    The journal changed nothing in the Description.
+
+    Noticed but did not touch:
+    - `_metadata_probe` in the wiring is typed with the concrete `PodmanRuns`, because `_ContainerAdapters.containers` is typed that way already.
+    - In entry 16 the tester reported that `run_words` in `tests/wiring_support.py` finds only a call whose first word is `run`. It therefore misses the `job` profile's calls, where podman's global options come before `run`. Widening it would be a test change for another story.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 41 known, 0 gone
