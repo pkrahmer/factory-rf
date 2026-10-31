@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-31T21:06:27.811584Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -456,6 +452,12 @@ journal:
   kind: started
   at: '2026-10-31T21:06:27.811584Z'
   stage: smoke-test
+- number: 81
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-31T21:07:11.093349Z'
+  stage: smoke-test
+  run: 7f616909d7554322a74b6e1a118068a3
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1306,3 +1308,32 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
 80. factory: started smoke-test as vm.
+81. smoke-tester: Smoke test, round 2. I ran both commands under `## Smoke test` from the repository root, as written and in order. I fixed nothing.
+
+    Command 1 (the refresher with an injected opener, writing into a temporary folder):
+    ```
+    Bytecode compiled 4164 files in 53ms
+    tok-1 3599 600.0
+    ```
+    Met `Expect: one line, tok-1 3599 600.0`. The `Bytecode compiled …` line is uv's own message on standard error when it sets up the environment. The program printed only the expected line.
+
+    Command 2 (`FACTORY_TOKEN_URL= uv run python -m factory.entry.refresh_token --once; echo "exit $?"`):
+    ```
+    Bytecode compiled 4164 files in 60ms
+    refresh_token: FACTORY_TOKEN_URL is not set
+    exit 2
+    ```
+    Met `Expect: two lines, refresh_token: FACTORY_TOKEN_URL is not set and exit 2`. The extra first line is uv's message again, not the command's.
+
+    Acceptance criteria re-read: the smoke test contradicts none of them.
+    - Criterion 3: the body holds `grant_type=client_credentials`, and the token comes back with a life of 3599 s.
+    - Criteria 1 and 5: the wait is 600 s, and the file holds the token with no newline. `read_text` printed `tok-1` directly followed by the next field.
+    - Criterion 6: a blank variable exits 2 and is named on standard error.
+    - Criterion 12: the three documents hold the named sections:
+      - `docs/operator-guide.md:328` *A bearer token for the model API*
+      - `docs/project-guide/agents.md:146` **The bearer token** under *The opencode runtime*
+      - `docs/decisions.md:1264` *A refresher keeps the bearer token fresh*
+
+    Findings: none.
+
+    Open: nothing from this stage. The reviewer's notes in entry 77 (the restored signal handlers and the uncaught `KeyboardInterrupt` have no test) remain notes, not findings.
