@@ -18,7 +18,7 @@ Four of the five jobs; coordinating probes for another session is left out.
 ## Decisions so far (the human, 2026-10-31)
 
 1. **Switches, like opencode's own toggles.** A local settings file, never in the repository, holds one switch per job where a switch makes sense (`merge`, `answer`, `start_next`, `rebuild`); commands turn them on and off (for example `/operator merge off`). The skill reads the file before every act, so a switch takes effect at the next event. With `merge` off the skill runs the checks and writes its verdict on the pull request, and the human merges.
-2. **Home: factory-rf, with subfolders where the tools differ.** `operator/common/` holds the scripts and the rules (plain markdown both tools read); `operator/claude/` and `operator/opencode/` hold only the thin layer each tool needs. Versioned with the factory, so what is improved at home reaches work with a pull. No company value in it; those live in the local settings file.
+2. **Home: factory-rf, with subfolders where the tools differ.** One skill (a `SKILL.md` with its scripts) serves both tools, since the opencode at work reads Claude Code's skills; `operator/claude/` and `operator/opencode/` hold only what differs, the commands. Versioned with the factory, so what is improved at home reaches work with a pull. No company value in it; those live in the local settings file.
 3. **Watching by a wait inside the turn.** After every act the agent calls a wait script as a plain shell command. It blocks until an event (a question as the newest comment, an approval, a health stop, a story archived) or a time limit below the shell tool's own timeout, and prints one line (`event: ...` or `continue: nothing new`). The agent acts or waits again; its turn never ends, so no cron is needed. Each return costs one model call on a cached context; the laptop stays awake and the session open; the human can interrupt at any time.
 
 ## What the skill must carry
@@ -34,6 +34,14 @@ Four of the five jobs; coordinating probes for another session is left out.
 - **The factory's state is in the job's memory.** Status comes from GitHub (labels, comments, the board through the API) and from Cloud Logging, where the factory log arrives line by line (it goes to standard output).
 - **opencode, not Claude Code.** Its capabilities decide the thin layer: see `CAPABILITIES-REQUEST.md`.
 - **A Sonnet-class model, not Opus.** The judgment jobs need their rules written out more explicitly.
+
+## Facts from the opencode at work (`CAPABILITIES-REQUEST.md`, 2026-10-31)
+
+- **One skill serves both tools.** The company's opencode (1.18.34, its own build of the upstream line) loads `SKILL.md` skills with Claude Code's front matter (`name`, `description`), from `.opencode/skills/`, `~/.config/opencode/skills/` and also **`~/.claude/skills/`**, and loads one on demand with its `skill` tool (tried). So the skill itself needs no per-tool copy; per-tool subfolders are needed only for commands, which differ (`.opencode/command/*.md` with `$ARGUMENTS`, `$1`, `$2`, tried with `merge off`).
+- **The wait inside the turn works.** The shell tool's default limit is 120 s, but each call takes a `timeout` in milliseconds: 300 s and 600 s were tried, 40 minutes ran in a probe. Three two-minute waits in a row kept the turn open. Calls made in one message run in parallel, so the wait must be the only call of its message.
+- **Context and compaction.** A context of 1,000,000 tokens, and opencode compacts by itself (the reporting session had been compacted once).
+- **Switches.** A JSON file in `~/.config/factory-operator/`, rewritten by one script that a command calls and read by the skill before every act, works without a restart. Keep its reads and writes behind that one script, so that one permission rule covers them (`external_directory` may ask once).
+- **Reach.** `gh` is logged in to the company's GitHub; `gcloud` reaches the cloud project by impersonation and may read Cloud Logging of jobs and run `gcloud run jobs execute` (tried on the sandbox's throwaway jobs, not yet on the factory's own job). Whether the laptop needs the proxy depends on its network.
 
 ## Open, for the next quiz
 
