@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T16:00:43.336177Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-10-31T16:00:43.336177Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-10-31T16:01:02.650915Z'
+  stage: doing
+  run: 9946dd699a604a778641d23822a28aa8
 ---
 
 # A snapshot adapter that copies a directory
@@ -275,3 +277,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none. The diff adds only new test files (all status `A`), and `tests/adapters/test_fake_snapshots.py` is unchanged.
 13. factory: started doing as vm.
+14. coder: Round 1. The reviewer added two criteria. Each needs only its test, so I changed no code and no test, and I am sending the work item to the tester.
+
+    - Criterion 13: a new row in `tests/adapters/test_copy_snapshots.py::test_an_operating_system_fault_of_the_copy_is_a_snapshot_error_naming_the_operation`. The base is a directory and the folder is a regular file. Expected: a `SnapshotError` naming `reset`, whose detail is not `no base at <base>`. I read the code without running it, and it should already pass. `CopySnapshots.reset` passes `_require_base` (`src/factory/adapters/copy_snapshots.py:56`). Then `_clear` calls `folder.iterdir()` on the file (`copy_snapshots.py:84`), inside `_as_snapshot_error("reset", ...)`, so the `NotADirectoryError` comes out as `SnapshotError("reset", <the operating system's message>)`.
+    - Criterion 14: a new parametrized test in `tests/entry/test_wiring_copy_snapshots.py` for `copy` with a base. Row one has no workspace and expects `SettingsInvalid` naming `FACTORY_WORKSPACE`. Row two has a workspace but no stage image and expects `SettingsInvalid` naming `FACTORY_STAGE_IMAGE`. This should also pass already: `_copy_snapshots` checks the base and then calls `_required_workspace` (`src/factory/entry/wiring.py:337-343`), and `_container_adapters` checks the stage image after that (`wiring.py:327`).
+
+    Main choice: end with `tests` and change no code, as the stage asks when a criterion needs only its test. I rejected adjusting `src/` ahead of the tests, because nothing in the findings calls for a code change.
+
+    I did not run `make check` in this round because nothing changed.
+
+    The journal changed nothing in the Description beyond the reviewer's two criteria, which are already in it.
+
+    Noticed, not touched: as entry 10 says, `changed_paths` does not turn an `OSError` into a `SnapshotError`. The Interface names only `reset` and `advance`.
