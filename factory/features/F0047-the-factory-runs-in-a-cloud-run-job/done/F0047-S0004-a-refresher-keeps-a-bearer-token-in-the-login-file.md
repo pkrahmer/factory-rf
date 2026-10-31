@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -458,6 +458,11 @@ journal:
   at: '2026-10-31T21:07:11.093349Z'
   stage: smoke-test
   run: 7f616909d7554322a74b6e1a118068a3
+- number: 82
+  speaker: factory
+  kind: done
+  at: '2026-10-31T21:08:31.593813Z'
+  stage: approval
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1337,3 +1342,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Findings: none.
 
     Open: nothing from this stage. The reviewer's notes in entry 77 (the restored signal handlers and the uncaught `KeyboardInterrupt` have no test) remain notes, not findings.
+82. factory: done (pull request merged); cost: 36 runs, 93.3 min, 359 turns, 1190839 tokens in (10348579 more from cache), 161113 out, $14.39
