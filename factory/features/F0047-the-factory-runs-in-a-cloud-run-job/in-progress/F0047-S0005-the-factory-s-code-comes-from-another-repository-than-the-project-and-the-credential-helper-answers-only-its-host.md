@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-31T22:29:48.738186Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -256,6 +252,12 @@ journal:
   kind: started
   at: '2026-10-31T22:29:48.738186Z'
   stage: smoke-test
+- number: 45
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-31T22:30:15.148422Z'
+  stage: smoke-test
+  run: f773a5babfd94dd4ae7ed1f0e499e0ff
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -783,3 +785,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
 44. factory: started smoke-test as vm.
+45. smoke-tester: Smoke test, round 2. From the repository root I ran the two commands under `## Smoke test` exactly as written, in order, each in a bash shell. Nothing was fixed or changed. Both temporary directories removed themselves through their `trap`, and nothing is left in `/tmp`.
+
+    Command 1: the helper, asked by the project's host for a credential.
+    ```
+    username=x-access-token
+    password=secret-text
+    ```
+    Expect: two lines, `username=x-access-token` and `password=secret-text`. **Met.** The shell's exit status was 0.
+
+    Command 2: the helper, asked by another host (`github.com`).
+    ```
+    exit 1
+    ```
+    Expect: one line, `exit 1`. **Met.** The helper printed nothing and exited 1.
+
+    Against the acceptance criteria: both outputs agree with criterion 2. The project's host gets the two lines, `host=github.com` gets no output and exit status 1. Neither output contradicts any other criterion. The commands do not exercise `setup.sh` (criteria 5 to 9 and 11) or the other URL forms (criteria 3 and 10), so the smoke test says nothing about them either way.
+
+    Findings: none.
