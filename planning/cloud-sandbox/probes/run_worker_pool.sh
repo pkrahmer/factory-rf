@@ -8,8 +8,9 @@
 # PROBE_CONNECTOR, PROBE_PROXY, PROBE_NO_PROXY, PROBE_MODEL, PROBE_EXTRA_ARGS); nothing is written here.
 # PROBE_WATCH_SECONDS (default 240): how long each phase is watched.
 #
+# Corrected at work 2026-10-31: `gcloud run worker-pools` is GA (no beta), `--instances` replaces `--scaling`, no connector flag.
 # Written at home without a worker pool to try it on (2026-10-31). The gcloud words below are the best
-# knowledge of the time, not tested: before the first run, read `gcloud beta run worker-pools --help`,
+# knowledge of the time, not tested: before the first run, read `gcloud run worker-pools --help`,
 # `... deploy --help` and `... update --help`, and correct the words of `deploy`, the scaling flag and
 # the log filter where they differ. Say in the response what you changed.
 set -u
@@ -23,15 +24,17 @@ impersonate=()
 common=(--project="$PROBE_PROJECT" --region="$region" "${impersonate[@]}")
 
 payload=$(cat "$here/lib.sh" "$here/$script" | gzip -9 | base64 | tr -d '\n')
-deploy=(gcloud beta run worker-pools deploy "$pool" "${common[@]}" --image="$image"
-  --cpu="$cpu" --memory="$memory" --scaling=1
+deploy=(gcloud run worker-pools deploy "$pool" "${common[@]}" --image="$image"
+  --cpu="$cpu" --memory="$memory" --instances=1
   --set-env-vars="^@^PROBE_PROXY=${PROBE_PROXY:-}@PROBE_NO_PROXY=${PROBE_NO_PROXY:-}@PROBE_MODEL=${PROBE_MODEL:-}"
   --command=sh --args="-c,echo $payload | base64 -d | gzip -d > /tmp/probe.sh; exec sh /tmp/probe.sh")
 [ -n "${PROBE_RUN_AS:-}" ] && deploy+=(--service-account="$PROBE_RUN_AS")
 [ -n "${PROBE_EXTRA_ARGS:-}" ] && deploy+=($PROBE_EXTRA_ARGS)
-[ -n "${PROBE_CONNECTOR:-}" ] && deploy+=(--vpc-connector="$PROBE_CONNECTOR" --vpc-egress=all-traffic)
+# Worker pools have no --vpc-connector flag (gcloud 590, 2026-10-31): only Direct VPC egress. PROBE_CONNECTOR is
+# ignored; PROBE_NETWORK and PROBE_SUBNET (both optional) switch Direct VPC egress on.
+[ -n "${PROBE_NETWORK:-}" ] && deploy+=(--network="$PROBE_NETWORK" --subnet="${PROBE_SUBNET:-$PROBE_NETWORK}" --vpc-egress=all-traffic)
 
-cleanup() { gcloud beta run worker-pools delete "$pool" "${common[@]}" --quiet >/dev/null 2>&1; }
+cleanup() { gcloud run worker-pools delete "$pool" "${common[@]}" --quiet >/dev/null 2>&1; }
 trap cleanup EXIT
 
 since=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -49,13 +52,13 @@ logs "$since"
 
 mark=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 echo "== phase 2: scaled to zero at $mark, watched for $watch s"
-gcloud beta run worker-pools update "$pool" "${common[@]}" --scaling=0 2>&1 | tail -2
+gcloud run worker-pools update "$pool" "${common[@]}" --instances=0 2>&1 | tail -2
 sleep "$watch"
 logs "$mark"
 
 mark=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 echo "== phase 3: scaled back to one at $mark, watched for $watch s"
-gcloud beta run worker-pools update "$pool" "${common[@]}" --scaling=1 2>&1 | tail -2
+gcloud run worker-pools update "$pool" "${common[@]}" --instances=1 2>&1 | tail -2
 sleep "$watch"
 logs "$mark"
 echo "== deleting $pool"

@@ -35,4 +35,16 @@ The rules of the earlier probes bind: no company value in any file of this repos
 
 ## Response
 
-(empty)
+*(the session at work, 2026-10-31)*
+
+**Stopped at the deploy: the organisation's policy refused it.** `constraints/run.allowedVPCEgress` was violated for a pool without the VPC-egress annotation. Nothing was created and `gcloud run worker-pools list` shows zero pools afterwards, so there is no sandbox or lifecycle answer yet.
+
+**What I changed in the harness (`run_worker_pool.sh`), after reading the help.**
+- `gcloud beta run worker-pools` became `gcloud run worker-pools`: the command is GA in gcloud 590, the beta component is not installed.
+- `--scaling=N` became `--instances=N` (deploy and both updates). Its help says "positive integer", so `--instances=0` may be refused; not reached.
+- The `--vpc-connector` line is gone: worker pools have no such flag, only Direct VPC egress. `PROBE_CONNECTOR` is now ignored; the new optional `PROBE_NETWORK` and `PROBE_SUBNET` add `--network`, `--subnet` and `--vpc-egress=all-traffic`.
+- The log filter was left as written; it was not reached.
+
+**To go on** someone needs to name the shared VPC network and the subnet for Direct VPC egress (I cannot read the connector's network: `vpcaccess.connectors.get` is denied). Then the same command with `PROBE_NETWORK` and `PROBE_SUBNET` set. The subnet must be /26 or larger, with free addresses; whether the policy accepts the pool then is open.
+
+**Pushed.** `results/p19-worker-pool.txt`, the harness, the section *P19* in `capabilities.md` and this file.

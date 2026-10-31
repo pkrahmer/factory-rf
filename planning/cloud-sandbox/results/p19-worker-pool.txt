@@ -1,0 +1,14 @@
+== deploying probe-worker-pool (docker.io/library/debian:trixie-slim, 2 cpu, 4Gi, one instance)
+DEPLOY FAILED:
+WARNING: This command is using service account impersonation. All API calls will be executed as [sa-developer@<project-id>.iam.gserviceaccount.com].
+WARNING: This command is using service account impersonation. All API calls will be executed as [sa-developer@<project-id>.iam.gserviceaccount.com].
+Deploying container to Cloud Run worker pool [probe-worker-pool] in project [<project-id>] region [us-central1]
+Deploying new worker pool...
+failed
+Deployment failed
+ERROR: (gcloud.run.worker-pools.deploy) 400 Constraint constraints/run.allowedVPCEgress violated for attempting CreateWorkerPool with annotation "run.googleapis.com/vpc-access-egress" set to null. See https://cloud.google.com/resource-manager/docs/organization-policy/org-policy-constraints for more information. [violations {
+  type: "constraints/run.allowedVPCEgress"
+  subject: "orgpolicy:projects/<project-id>"
+  description: "Constraint constraints/run.allowedVPCEgress violated for attempting CreateWorkerPool with annotation \"run.googleapis.com/vpc-access-egress\" set to null. See https://cloud.google.com/resource-manager/docs/organization-policy/org-policy-constraints for more information."
+}
+]
