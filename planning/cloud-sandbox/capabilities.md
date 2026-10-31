@@ -264,3 +264,24 @@ Probe `p14-opencode-lockdown.sh`, result `results/p14-opencode-lockdown.txt` (th
 - **Cost.** The runs reported no cost figure in the saved output (the probe prints none); not measured here.
 - **Verdict against the probe's own VERDICT line.** By its letter S0007 fails (the line says B must list no npm registry), but the one host that is the vendor's, `models.opencode.ai`, is gone in B, the run works, the key is accepted, and the remaining registry traffic is not a vendor host and is not caused by a switch S0007 leaves out; S0007 does what its text says, and the line's "npm registry" condition asks for something the switches cannot give.
 - **Also seen.** The metadata-block rule file loaded this time (exit 0); the token request returned 200.
+
+## P15: the stage image and make check in a job (2026-10-31)
+
+Probe `p15-stage-image-and-check.sh`, result `results/p15-stage-image-and-check.txt`. One job of 8 vCPU and 32 GiB (the CPU count seen was 9), run once, 6 min 58 s in all. The code was a fresh clone of the public factory-rf at the commit of the request; podman 5.4.2 with the S0002 words (`--runtime=runc`, `--cgroup-manager=cgroupfs`, overlay storage with `fuse-overlayfs`); runc 1.5.2 passed the SHA-256 pinned in S0006.
+
+| Step | Result |
+|---|---|
+| The stage image build (`vm/Dockerfile`, `--network=host`) | exit 0 in **169 s**; image size **2,371,193,789 bytes** (2.2 GiB). The Debian packages pinned in `vm/Dockerfile` all resolved today. |
+| Inside the image, as the job's root with every capability dropped | git 2.39.5, GNU Make 4.3, uv 0.9.2, node v18.20.4, Claude Code 2.1.296, opencode 1.19.3, `uid=0(root)` |
+| `snapshot.debian.org` through the proxy | answered 200 |
+| `make sync` (the factory's words, as root) | exit 0 in **8 s**, `sync: green (7.4 s)`; the work folder was 992 MB |
+| `make check` | **exit 2 after 134 s** |
+| Targets | `lint: green (0.4 s)`, `types: green (11.7 s)`, `layers: green (0.3 s)`, `sast: green (5.0 s)`, then `make: *** [Makefile:60: secrets] Error 1` with the line `ERROR: Potential secrets about to be committed to git repo!` |
+| `licenses`, `test` | **not reached**: make stopped at `secrets`. No test ran, so no pytest summary and no `E` lines exist. |
+| Copy snapshots on the synced tree | 1012 MB, 19030 files: `cp -a` 1 s (advance), empty and copy back 2 s (reset), `rsync` of an unchanged tree 1 s |
+| `diff -r` of the two trees | 1 s, exit 2, with 226 "No such file or directory" lines for the same symlinks in both trees (links in the virtual environment and in the uv cache point to paths that exist only inside the image); exit 2 is the dangling links, not a difference between the trees |
+| Memory (MemAvailable, MiB, of 32094) | 31155 at start; 28738 after the image build (Shmem 2725); 27698 after `make check` (Shmem 3737); 26676 after the copies (Shmem 4749); `/` held 4.7 GiB of 32 |
+
+- **What the probe does not show.** Which file `detect-secrets` flagged: the probe prints only a one-line grep of the check log, not the secret hook's `Secret Type` and `Location` lines. On the same commit, run locally with the Makefile's own file filter (every tracked file except `uv.lock`, `.secrets.baseline`, `planning/`, `docs/runs/` and the cost records), the hook exits 0, so the cause is not visible from here. Candidates, none checked: a difference between the job's container and the VM that changes what the hook sees (the checkout was a `cp -a` copy owned by the job's root, git's view of it, the hook's version), or a file that exists only in the job's tree.
+- **What that means for the questions of the request.** The build and the image work, the pinned Debian versions resolve today and the proxy reaches the date-pinned archive; `make sync` works as root. Whether the suite passes as root is **unanswered**, because the tests were never reached.
+- **Verdict against the probe's VERDICT line.** S0006 can build its image at start (exit 0 in 169 s, the longest part of a start), but "the factory's checks run in the job" is not shown: `make check` exited 2 at the `secrets` target before the tests, for a reason the probe's log does not contain.
