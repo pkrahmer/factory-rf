@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T16:51:00.021722Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-31T16:51:00.021722Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-10-31T16:57:16.421459Z'
+  stage: doing
+  run: 8174e729e0b940bf89e9c612f0501386
 ---
 
 # The container profile job
@@ -253,3 +255,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (167.5 s)
 16. factory: started doing as vm.
+17. coder: The tester has changed the test the human asked for in entry 11, so I changed no code this round. The implementation from the earlier round now passes. `make check` is green: `test: green (167.5 s)`, coverage 99.57 %, then `check: green`.
+
+    What I built, in the working tree since entry 10:
+    - `src/factory/domain/settings.py`: `CONTAINER_PROFILE_VARIABLE`, the type `ContainerProfileName = Literal["rootless", "job"]` and the field `InstanceSettings.container_profile = "rootless"`. Its reader `_container_profile` works the way `_snapshots` does: unset or blank gives `rootless`, `job` gives `job`, and anything else raises `SettingsInvalid(FACTORY_CONTAINER_PROFILE, "is neither rootless nor job")`.
+    - `src/factory/domain/containers.py`: `JOB_PODMAN_OPTIONS`, with a comment on why runc and fuse-overlayfs are needed.
+    - `src/factory/adapters/podman_runs.py`: `PodmanRuns(..., profile=)`. `_podman()` returns the executable followed by the profile's global options, and `launch`, `_query` and `_command` all use it, so `version`, `image_exists` and error texts carry the options too. `_isolation_words` gives `--userns=keep-id` for `rootless` and `--http-proxy=false --network=host` for `job`. Mounts, the grace, the reading of results and the `ValueError` checks are shared by both profiles.
+    - `src/factory/entry/wiring.py`: `_container_adapters` passes `settings.container_profile` to `PodmanRuns`.
+
+    Main choice: the profile sets two things in `PodmanRuns`, the global options (picked in `__init__`) and the isolation words; everything else in `launch` is the same code for both profiles. I rejected a separate subclass for the job profile, because it would have to copy `launch`.
+
+    Refactor: I read the whole diff again and there is nothing to change.
+
+    Checked: `InstanceSettings` is not in `factory.domain.contract.CONTRACT`, so no contract schema needs regenerating.
+
+    Noticed but not touched: the module and class docstrings of `podman_runs.py` said "rootless"; I reworded them in an earlier round to cover both profiles. The journal did not change what the task means, so `## Description` stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 41 known, 0 gone
