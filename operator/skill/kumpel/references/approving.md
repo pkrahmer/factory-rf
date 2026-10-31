@@ -16,7 +16,7 @@ Read the code of the story's main change once yourself: the six checks are about
 ## Then
 
 - **All green, switch `merge` on:** `gh pr merge <n> --repo <owner/name> --merge`. Wait until `main` holds the factory's archive commit (`work item <id>: merged, archived`), then log it.
-- **All green, switch `merge` off:** post the verdict as a comment that starts with `Operator: ready to merge.`, the six checks in one line each, and ends with `<!-- operator verdict -->`; tell the human. The wait script stops reporting the approval once your verdict is the newest comment.
+- **All green, switch `merge` off:** post the verdict as a comment that starts with `Kumpel: ready to merge.`, the six checks in one line each, and ends with `<!-- kumpel verdict -->`; tell the human. The wait script stops reporting the approval once your verdict is the newest comment.
 - **A small finding** (a document slip, a false positive for a baseline): merge or recommend merging, then fix it on `main` yourself and log it. Do not send the story back for it.
 - **A real finding:** a comment that names it, for the human.
 

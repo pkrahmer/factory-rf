@@ -4,9 +4,9 @@
 #   settings.sh init <owner/name> <checkout> write a new file with the defaults
 #   settings.sh set <switch> on|off          change one switch (merge, answer, start_next)
 #   settings.sh get <key>                    print one value (repository, checkout, or a switch)
-# The file: ${FACTORY_OPERATOR_SETTINGS:-$HOME/.config/factory-operator/settings.json}.
+# The file: ${KUMPEL_SETTINGS:-$HOME/.config/kumpel/settings.json}.
 set -eu
-file=${FACTORY_OPERATOR_SETTINGS:-$HOME/.config/factory-operator/settings.json}
+file=${KUMPEL_SETTINGS:-$HOME/.config/kumpel/settings.json}
 command=${1:-show}
 
 case "$command" in

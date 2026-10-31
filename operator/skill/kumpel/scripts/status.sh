@@ -15,7 +15,7 @@ while read -r number item stage; do
   case "$kind" in
     question|attempts_cap|round_cap|crash_cap|stall|expiry|error) state="waits: $kind" ;;
     *)
-      if printf '%s\n' "$last" | grep -q '<!-- operator verdict -->'; then state="verdict posted"
+      if printf '%s\n' "$last" | grep -q '<!-- kumpel verdict -->'; then state="verdict posted"
       elif [ "$stage" = "stage:approval" ]; then state="waits: approval"
       else state="working"
       fi ;;
