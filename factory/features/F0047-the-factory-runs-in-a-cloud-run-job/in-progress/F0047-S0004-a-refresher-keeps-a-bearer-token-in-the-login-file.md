@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T20:47:25.998378Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -403,6 +407,11 @@ journal:
   at: '2026-10-31T20:47:03.024145Z'
   stage: doing
   run: 2b37958c5fc442a78fcbe67e5567000a
+- number: 72
+  speaker: factory
+  kind: started
+  at: '2026-10-31T20:47:25.998378Z'
+  stage: tests
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1154,3 +1163,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The `incomplete-read` row computes its expected detail with the same expression as the code.
     - `masked` in `factory.domain.tokens` has no direct test.
     - The names `SECOND` and `SECOND_CLIENT` in `tests/test_hosting_search.py` are unclear.
+72. factory: started tests as vm.
