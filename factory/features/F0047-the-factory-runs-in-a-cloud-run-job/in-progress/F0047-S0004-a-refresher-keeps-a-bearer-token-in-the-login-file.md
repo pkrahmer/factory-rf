@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T19:46:49.974317Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -240,6 +236,12 @@ journal:
   kind: started
   at: '2026-10-31T19:46:49.974317Z'
   stage: tests
+- number: 42
+  speaker: tester
+  kind: result
+  at: '2026-10-31T19:52:56.209002Z'
+  stage: tests
+  run: dceab6132ad242c6b66f27fc0e204574
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -681,3 +683,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The Description is unchanged, because entries 36 and 38 changed tests, not the task's meaning. Still open, not mine: vulture's false positive on `OpenUrl.__call__` goes into the duplicates baseline at approval (entry 14). The two `--once` tests stay as they are (entry 36, answer 3).
 41. factory: started tests as vm.
+42. tester: Test change the human approved (entry 36, answers 1 and 2), as the coder's entry 40 names it. I made both changes in this run and nothing else.
+
+    1. Criterion 10: `tests/entry/test_refresh_token.py::test_an_unreadable_or_blank_secret_file_exits_2` now has three rows instead of two. The parameter is the file's bytes: `None` for `missing` (the file is removed), `b""` for `blank`, and `b"\xff\xfe"` for the new `not-utf-8` row. Each row expects exit 2 and `refresh_token: cannot read <path>` on standard error. The old `present: bool` parameter became `content: bytes | None` so that the three rows fit in one table. The `missing` and `blank` rows check the same things as before.
+    2. Under the standing leave to move a shared test helper, `HIDDEN` and `ISSUED` moved to `tests/token_support.py`, next to `ENDPOINT`. `tests/adapters/test_oauth_token.py` and `tests/entry/test_refresh_token.py` now import both constants from there. No test was renamed and none checks anything different. Earlier test files I changed: `tests/adapters/test_oauth_token.py` (this story's own module, which held one of the copies) and `tests/entry/test_refresh_token.py`.
+
+    The two `--once` tests are unchanged, as entry 36 answer 3 says.
+
+    Mapping: criterion 10 is `tests/entry/test_refresh_token.py::test_an_unreadable_or_blank_secret_file_exits_2[not-utf-8]`. Criteria 1 to 9 keep their tests from earlier entries.
+
+    Files changed: `tests/entry/test_refresh_token.py`, `tests/adapters/test_oauth_token.py`, `tests/token_support.py`. I created no new files, and the test run imported every module.
+
+    `make test` ran once and passed: `test: green (166.0 s)`, total coverage 99.56 %. The new row passes straight away because the code already handled this case (entry 32). `make lint` passed as well.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (163.7 s)

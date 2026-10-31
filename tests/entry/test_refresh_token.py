@@ -12,10 +12,16 @@ from factory.application.tokens import TokenSource
 from factory.domain.errors import TokenError
 from factory.domain.tokens import Token
 from factory.entry.refresh_token import main
-from token_support import ENDPOINT, RecordingOpener, ScriptedTokenSource, answer, http_error
+from token_support import (
+    ENDPOINT,
+    HIDDEN,
+    ISSUED,
+    RecordingOpener,
+    ScriptedTokenSource,
+    answer,
+    http_error,
+)
 
-HIDDEN = "s3cret-value"
-ISSUED = "tok-abc"
 VARIABLES = [
     "FACTORY_TOKEN_URL",
     "FACTORY_TOKEN_SCOPE",
@@ -96,15 +102,23 @@ def test_a_missing_or_blank_variable_exits_2_naming_it(
 
 
 @pytest.mark.parametrize(
-    "present", [pytest.param(False, id="missing"), pytest.param(True, id="blank")]
+    "content",
+    [
+        pytest.param(None, id="missing"),
+        pytest.param(b"", id="blank"),
+        pytest.param(b"\xff\xfe", id="not-utf-8"),
+    ],
 )
 def test_an_unreadable_or_blank_secret_file_exits_2(
-    environ: dict[str, str], secret_file: Path, present: bool, capsys: pytest.CaptureFixture[str]
+    environ: dict[str, str],
+    secret_file: Path,
+    content: bytes | None,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    if present:
-        secret_file.write_text("", encoding="utf-8")
-    else:
+    if content is None:
         secret_file.unlink()
+    else:
+        secret_file.write_bytes(content)
 
     status = main(["--once"], environ, source=scripted(ScriptedTokenSource()), sleep=never_sleep)
 

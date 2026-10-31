@@ -8,10 +8,7 @@ import pytest
 from factory.adapters.oauth_token import ClientCredentialsTokenSource
 from factory.domain.errors import TokenError
 from factory.domain.tokens import Token
-from token_support import ENDPOINT, RecordingOpener, answer, http_error
-
-HIDDEN = "s3cret-value"
-ISSUED = "tok-abc"
+from token_support import ENDPOINT, HIDDEN, ISSUED, RecordingOpener, answer, http_error
 
 
 def source_of(opener: RecordingOpener, secret: str = HIDDEN) -> ClientCredentialsTokenSource:

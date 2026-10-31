@@ -11,6 +11,8 @@ from factory.domain.errors import TokenError
 from factory.domain.tokens import Token
 
 ENDPOINT = "https://login.example.invalid/token"
+HIDDEN = "s3cret-value"
+ISSUED = "tok-abc"
 
 
 class ScriptedTokenSource(TokenSource):
