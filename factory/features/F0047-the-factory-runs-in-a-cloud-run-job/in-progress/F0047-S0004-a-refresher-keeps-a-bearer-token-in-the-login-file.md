@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-31T21:02:21.865426Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -436,6 +440,11 @@ journal:
   at: '2026-10-31T21:01:59.364436Z'
   stage: review
   run: c0b469c76a9c49ef906ea26cd4ed6211
+- number: 78
+  speaker: factory
+  kind: started
+  at: '2026-10-31T21:02:21.865426Z'
+  stage: docs
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1266,3 +1275,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
       - Every earlier row keeps its id and still expects no importer.
       - The rows `urllib.request-in-a-second-module` and `http.client-in-a-second-module` show that a second importer is caught.
       - The test keeps its name, and the change stays within the leave.
+78. factory: started docs as vm.
