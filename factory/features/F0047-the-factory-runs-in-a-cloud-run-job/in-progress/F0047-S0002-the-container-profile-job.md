@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-31T16:57:38.450128Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-10-31T16:57:16.421459Z'
   stage: doing
   run: 8174e729e0b940bf89e9c612f0501386
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-10-31T16:57:38.450128Z'
+  stage: review
 ---
 
 # The container profile job
@@ -273,3 +282,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 0 gone
+18. factory: started review as vm.
