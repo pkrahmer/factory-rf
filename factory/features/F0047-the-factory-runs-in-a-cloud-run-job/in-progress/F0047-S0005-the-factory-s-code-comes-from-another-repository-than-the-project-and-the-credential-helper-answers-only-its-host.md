@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 486
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-10-31T21:10:34.754390Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-10-31T21:10:34.754390Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-10-31T21:10:57.659095Z'
+  stage: intake
+  run: 7617dd7925b947ea9ac12753f37ef99c
+  blocked: question
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -85,3 +88,9 @@ Expect: one line, `exit 1`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-10-31 human: created.
 2. factory: started intake as vm.
+3. intake: 1. The Interface says the host of `FACTORY_REPOSITORY_URL` is taken "lower-cased, user and port removed" from three forms (`https://[user@]host[:port]/...`, `ssh://[user@]host[:port]/...`, `[user@]host:path`). Criteria 2 and 3 cover only these URLs: `https://host/...` (no user, no port), `ssh://git@host:22/...` and `git@host:path`. Nothing tests these clauses: (a) a URL host in upper case (`https://GIT.EXAMPLE.INVALID/o/r.git` answering for `host=git.example.invalid`); (b) the `https://user@host:port/...` form, with user and port together; (c) a `https://` URL with a port only. Two coders could read these differently and both pass. Option: add one criterion that lists these URL rows. I would choose that.
+   2. Criterion 5 says that with a different `--code-url` the clone carries `GIT_TERMINAL_PROMPT=0` and no askpass, and that with an equal url or no option it carries the askpass. The default is stated twice, "absent" and "equal". Criterion 5 tests both ("equal" and "no option"), so this is fine. But the stated rule that the clone with a different `--code-url` happens before the wait for the secrets is tested only through criterion 7's message. I read criterion 7 as enough, so this is not a question.
+   3. The Interface says a request without a `host=` line is refused, but only with `FACTORY_REPOSITORY_URL` set. Criterion 2 tests it only with the variable set to an `https` URL. If you want a criterion for the unset case, which is "as today" and so answers, say so. I would not add one, because criterion 1 covers it.
+   4. The format check passed. The smoke test commands are runnable, and each `Expect:` line can be checked against the output. The architecture and scope are fine: only `vm/` changes, which is inside the coder's write paths, and the story is within feature decision 9.
+
+   Only question 1 blocks acceptance.
