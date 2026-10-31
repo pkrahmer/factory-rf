@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 483
 comments_read: [6546695740]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-10-31T18:03:21.779670Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-10-31T18:02:59.626745Z'
   stage: docs
   run: ceb31ec8d0b44fd986fc6b7af5145f72
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:03:21.779670Z'
+  stage: smoke-test
 ---
 
 # The preflight proves that a container cannot reach the metadata server
@@ -373,3 +382,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 30703d7b4f6f at 2026-10-31T17:57:48Z)
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
+23. factory: started smoke-test as vm.
