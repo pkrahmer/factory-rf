@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 482
 comments_read: [6546068187, 6546231428]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-31T17:16:49.976988Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-10-31T17:16:29.630522Z'
   stage: review
   run: fc797306969d4ff3ae06a5d9e6233b3c
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-10-31T17:16:49.976988Z'
+  stage: docs
 ---
 
 # The container profile job
@@ -415,3 +424,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     - `tests/adapters/test_podman_runs_results.py`: changed under the standing leave to move a shared test helper. Only its local `recorder` fixture and the `podman_runs` import that went with it were removed. Its tests now take `podman_recorder`, keep their names and check the same things.
     - `tests/conftest.py`: changed under the same leave. It only adds the shared `podman_recorder` fixture and the `podman_runs` import it needs.
+28. factory: started docs as vm.
