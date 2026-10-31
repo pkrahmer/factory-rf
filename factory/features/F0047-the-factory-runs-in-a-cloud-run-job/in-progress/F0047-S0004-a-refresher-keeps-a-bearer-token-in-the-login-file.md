@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T19:46:49.974317Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -231,6 +235,11 @@ journal:
   at: '2026-10-31T19:46:29.696720Z'
   stage: doing
   run: b47b1517c6a84a0ea070d0eb06be256e
+- number: 41
+  speaker: factory
+  kind: started
+  at: '2026-10-31T19:46:49.974317Z'
+  stage: tests
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -671,3 +680,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     No code change is needed. The new row should pass as soon as it is written, because `src/factory/entry/refresh_token.py` (`_secret`) has read the secret file through `read_input` since entry 32 and turns `UnreadableInput`, which includes a decode error, into `cannot read <path>`. Built so far, unchanged since entry 32: `src/factory/domain/tokens.py`, `src/factory/domain/errors.py` (`TokenError`), `src/factory/application/tokens.py`, `src/factory/adapters/oauth_token.py`, `src/factory/entry/refresh_token.py` and `src/factory/entry/wiring.py`. The main choice from entry 20 still stands: the adapters are built in `factory.entry.wiring`, not imported directly in `refresh_token.py`, which `tests/entry/test_wiring.py` forbids.
 
     The Description is unchanged, because entries 36 and 38 changed tests, not the task's meaning. Still open, not mine: vulture's false positive on `OpenUrl.__call__` goes into the duplicates baseline at approval (entry 14). The two `--once` tests stay as they are (entry 36, answer 3).
+41. factory: started tests as vm.
