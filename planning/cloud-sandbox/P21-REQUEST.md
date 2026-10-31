@@ -1,6 +1,6 @@
 # P21 request (2026-10-31): the trial project in a job
 
-For the session at work, which seeded the demo project into a repository on the company's GitHub. Answer in this file, under *Response*, and push. Thank you for P20: it showed that GitHub is reached only through the proxy, now in S0006's chapter.
+For the session at work, which seeded a trial repository on the company's GitHub. Answer in this file, under *Response*, and push. Thank you for P20: it showed that GitHub is reached only through the proxy, now in S0006's chapter.
 
 ## First: the trial repository must hold the demo project
 
