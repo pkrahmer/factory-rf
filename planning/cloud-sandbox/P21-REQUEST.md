@@ -35,4 +35,16 @@ The rules of the earlier probes bind: no company value in any file of factory-rf
 
 ## Response
 
-(empty)
+*(the session at work, 2026-10-31)*
+
+**Before *First*:** the repository held the demo project (copied earlier the day before the `sync` fix), not the template, plus the `LICENSE` it was created with. Two files differed from the current demo: `Makefile` and `factory/pipeline.yml`. I updated `main` to factory-rf's `13f992c2d` as the request says (the `LICENSE` removed, on your word), commit `the demo project of factory-rf at 13f992c2d`; `diff -r` without `.git` and tool caches: no differences.
+
+**P21 A: green.** In a job of 8 CPUs, the stage image built in 115 s; `make sync` took 12 s and `make -k check` 12 s with every target green (coverage 100 %, no failed test, `detect-secrets` flagged nothing). The check is quick because the demo has no product code and no tests yet.
+
+**P21 B: 2xx everywhere but one.** Push, create a draft pull request, label and unlabel, comment, list the comments, read the merge state, close, reopen, close, delete the label and the branch all answered 201, 200 or 204. **The exception:** `PATCH {"draft": false}` answered 200 and left the pull request a draft: REST ignores it, marking ready needs GraphQL (`markPullRequestReadyForReview`) or a pull request opened as ready. That matters for R10's "create as draft or ready".
+
+**Left over:** only `main`, no open pull request, no `p21-` label (checked through the API); one closed draft pull request stays in the history.
+
+**Not the factory's token.** I used the shared classic token (a scoped fine-grained one does not exist yet), so whether the real token suffices is still open.
+
+**Pushed.** The result file, `capabilities.md` and this file; the repository's name is masked in the log (checked).
