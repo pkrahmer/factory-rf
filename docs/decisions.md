@@ -1260,3 +1260,14 @@ Date: 2026-10-31 (F0047-S0003; decision 6 of the feature).
 - The probe proves the rule where it matters, from a container, and a timeout proves nothing: `timed_out` fails the item whatever the output was. Any other reading than `000` or three digits fails as "could not tell", never as a pass.
 - The item takes a callable and the wiring holds the run's arguments (30 seconds, no mounts, empty environment), as `stage_image_item` does; the application layer knows no container details.
 - Rejected: checking the rule's text or the firewall's state (it proves the file, not the effect); letting the item pass on a timeout (a hung probe is not a refusal); the item under `rootless` (the VM has no service account, so the server gives no token).
+
+## A refresher keeps the bearer token fresh
+
+Date: 2026-10-31 (F0047-S0004; decisions 7 and 8 of the feature).
+
+- Decision: a separate process, `python -m factory.entry.refresh_token`, requests a token from an OAuth2 client-credentials endpoint and writes it atomically into the file `FACTORY_API_LOGIN_FILE` names. The runtimes already read that file at every call, so none of them changes.
+- Interval: every ten minutes (the human, 2026-10-31), or half the token's life when that is shorter, never under thirty seconds. A container mounts the file when it starts and its login shell reads it once, so a run holds a token at least the token's life less ten minutes old. A half-life rule on a one-hour token would leave thirty minutes to a run that starts just before a refresh, short of a forty-minute stage; the fixed interval leaves fifty.
+- A failed refresh keeps the old file and tries again after a minute; any fault of one refresh counts, so the process does not die while the old token is still valid.
+- The client secret is read from a file that Secret Manager mounts, never from the environment, and appears in no log line, no error message and no child's environment: every detail is masked with `***`. The same holds for the token.
+- The HTTP goes through the standard library (`urllib`), which honours `https_proxy` and `no_proxy`; no dependency is added. `factory.adapters.oauth_token` is the one module allowed to import `urllib.request` and `http.client`.
+- Rejected: a refresh at half the token's life alone (see above); a change in the runtimes to fetch the token themselves (every runtime would need it); the secret in the environment (a child would inherit it).

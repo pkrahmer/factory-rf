@@ -325,6 +325,33 @@ To use the provider, map the aliases to it in `FACTORY_OPENCODE_MODELS`, for exa
 
 A model without prices is costed at 0, so the factory's own budget stop (see "An opencode run's budget") never fires for it. Give `input_cost` and `output_cost` when the budget is to count.
 
+### A bearer token for the model API
+
+A model API behind an OAuth2 client-credentials grant gives out a bearer token that lives about an hour. The opencode runtime reads the file `FACTORY_API_LOGIN_FILE` names at every call and hands its content to the agent as `ANTHROPIC_API_KEY`, so the token only has to be kept fresh in that file. `python -m factory.entry.refresh_token` does that, as a process of its own beside the factory; the runtimes change nothing. Starting it with the instance is the start script's business (see "The machine").
+
+It reads five variables. A missing or blank one prints `refresh_token: <variable> is not set` to standard error and exits 2.
+
+| Variable | Meaning |
+|---|---|
+| `FACTORY_TOKEN_URL` | The grant's token endpoint. |
+| `FACTORY_TOKEN_SCOPE` | The scope to request. |
+| `FACTORY_TOKEN_CLIENT_ID` | The client id. |
+| `FACTORY_TOKEN_CLIENT_SECRET_FILE` | The file that holds the client secret, as UTF-8 text (surrounding whitespace is dropped). Secret Manager mounts it; the secret is never in the environment. A missing, blank or non-UTF-8 file exits 2 with `refresh_token: cannot read <path>`. |
+| `FACTORY_API_LOGIN_FILE` | The file to write: the same one the runtime reads. |
+
+What it does:
+
+- It requests a token, writes it into the login file with nothing else (no newline) and replaces the file atomically, so a reader sees the old token or the new one. It prints `token refreshed: valid <n> s, next in <m> s`.
+- It repeats every ten minutes, or after half the token's life when that is shorter (a token that lives under twenty minutes would expire between two refreshes), and never sooner than thirty seconds.
+- A failed request, or any other fault of one refresh, prints `refresh_token: <the error>`, keeps the old file and tries again after a minute. The client secret and the token are replaced by `***` in every message.
+- `--once` refreshes once and exits 0, or 1 after printing the error. Without it the command runs until `SIGTERM` or `SIGINT` and exits 0.
+
+A container mounts the login file when it starts, and its login shell reads it once. A run therefore holds the token that was in the file at its start, which is at least the token's life less ten minutes old: with a one-hour token, fifty minutes, more than the longest stage. Use a grant whose token lives longer than ten minutes plus your longest stage.
+
+The provider file's `api_key_env` is `ANTHROPIC_API_KEY` (see "A company's provider"), which is the variable the login shell fills from this file.
+
+**The proxy.** The request goes through Python's standard library, which honours `https_proxy` and `no_proxy`. Set `https_proxy` in the refresher's environment when the token endpoint is reached through a proxy, and `NO_PROXY` for an internal API host the agents reach directly.
+
 ## The machine
 
 The machine of v1.2 runs every stage in containers on a dataset. This chapter takes a fresh Ubuntu 24.04 VM to a running instance, and says what the machine is, what it costs and where to look when it misbehaves.

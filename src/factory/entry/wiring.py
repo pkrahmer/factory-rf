@@ -11,6 +11,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
+from factory.adapters.atomic_file import replace_text
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.clock import SleepingWaiter, SystemClock
 from factory.adapters.copy_snapshots import CopySnapshots
@@ -20,6 +21,7 @@ from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import ContainerMakeCommands
+from factory.adapters.oauth_token import ClientCredentialsTokenSource
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.podman_runs import PodmanRuns
@@ -73,6 +75,7 @@ from factory.application.recovery import RecoveryHandler
 from factory.application.snapshots import Snapshots
 from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
+from factory.application.tokens import TokenRefresher, TokenSource
 from factory.domain.agent_runs import scrub_environment
 from factory.domain.command_records import CommandRecord
 from factory.domain.containers import (
@@ -115,7 +118,9 @@ __all__ = [
     "build_handlers",
     "build_preflight",
     "build_tick",
+    "build_token_refresher",
     "build_work_item_reader",
+    "client_credentials_source",
     "git_environment",
     "git_options",
     "handler_factory",
@@ -247,6 +252,16 @@ def health_file(state_directory: Path) -> Path:
 def health_store(state_directory: Path) -> HealthStatusStore:
     """Return the health status file in `state_directory`."""
     return JsonHealthStatusFile(health_file(state_directory))
+
+
+def client_credentials_source(url: str, client_id: str, secret: str, scope: str) -> TokenSource:
+    """Return the token source of the client-credentials grant at `url`."""
+    return ClientCredentialsTokenSource(url, client_id, secret, scope)
+
+
+def build_token_refresher(source: TokenSource, login_file: Path) -> TokenRefresher:
+    """Return the refresher that replaces `login_file` with each token of `source`."""
+    return TokenRefresher(source, login_file, replace_text)
 
 
 def build_boundaries(

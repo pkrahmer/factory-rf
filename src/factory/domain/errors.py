@@ -122,6 +122,17 @@ class AgentRuntimeError(BoundaryError):
         self.detail = detail
 
 
+class TokenError(BoundaryError):
+    """A bearer token could not be requested or written."""
+
+    detail: str
+
+    def __init__(self, detail: str) -> None:
+        """Say why the token request failed."""
+        super().__init__(f"token request failed: {detail}")
+        self.detail = detail
+
+
 class WorkItemFormatError(FactoryError):
     """A work item file cannot be read: its fault and, where known, its path."""
 
