@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 488
 comments_read: [6550566644]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-10-31T23:28:06.145796Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-10-31T23:28:06.145796Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-10-31T23:35:44.905919Z'
+  stage: tests
+  run: d6b6cc6a82ae4ba7b51ac4cc917767e9
+  blocked: question
 ---
 
 # One script turns a bare job into a running instance
@@ -154,3 +157,37 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: shell and Dockerfile under `vm/`, which is in the coder's write paths. No layer is touched. Tests go through `tests/vm_support.py` with stand-ins. The change to `tests/test_stage_image.py` carries the human's leave in the Interface.
    - Scope: within F0047's scope (S0006 line, decisions 10 to 12, 17, 18 and 20). Creating the job is out of scope and the story leaves it out. The Dockerfile pin change is feature decision 17.
 7. factory: started tests as vm.
+8. tester: Question: how should the tests and the script hold runc's published SHA-256?
+
+   Criterion 5 says that by default the script feeds `sha256sum -c` "the checksum of the Interface" (`599f6f94…9488`). Written into `tests/test_vm_job_start.py`, that literal fails `make secrets` ("Hex High Entropy String"). The same will happen in `vm/job-start.sh`, which must hold it as a constant. The two ways past it, a new `.secrets.baseline` entry or a `pragma: allowlist secret`, both need your permission under CLAUDE.md's "Not without asking". The options I see:
+   (a) a `# pragma: allowlist secret` on the one line that holds the checksum, in the test and in `vm/job-start.sh`;
+   (b) a `.secrets.baseline` entry for each of those two lines;
+   (c) keep the test as it is now: the default row checks only that a 64-character lowercase hex value is fed, and the exact value is checked by reading. The `given` row (`RUNC_VERSION=1.4.0`, `RUNC_SHA256="b"*64`) already checks the exact feed.
+   I would choose (a): it is one marker per file, and the published value gets tested exactly. With (a) or (b), the coder needs the same permission for the script. Until you answer, the default row uses the hex-shape check (c).
+
+   What I did: I wrote the tests for every criterion. The new tests fail because `vm/job-start.sh` is missing. In `tests/test_stage_image.py`, the changed tests fail because `vm/Dockerfile` still pins its packages. `make lint` is green. I ran `make test` once and did not run the type check.
+
+   criterion 1: tests/test_vm_job_start.py::test_a_missing_input_stops_the_script_before_any_call
+   criterion 2: tests/test_vm_job_start.py::test_the_steps_run_in_order_and_factory_run_replaces_the_script
+   criterion 3: tests/test_vm_job_start.py::test_apt_goes_through_the_proxy_only_when_one_is_set
+   criterion 4: tests/test_vm_job_start.py::test_the_packages_are_one_install_by_name_alone
+   criterion 5: tests/test_vm_job_start.py::test_runc_is_downloaded_checked_against_its_checksum_and_installed, tests/test_vm_job_start.py::test_runc_without_a_matching_checksum_stops_the_script
+   criterion 6: tests/test_vm_job_start.py::test_the_metadata_address_is_rejected_on_output_and_forward
+   criterion 7: tests/test_vm_job_start.py::test_the_directories_are_made_and_the_code_is_fetched_at_its_ref_without_a_credential, tests/test_vm_job_start.py::test_a_ref_that_does_not_exist_stops_the_script
+   criterion 8: tests/test_vm_job_start.py::test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options, tests/test_vm_job_start.py::test_a_failed_mount_stops_the_script_before_podman
+   criterion 9: tests/test_vm_job_start.py::test_the_refresher_runs_from_the_factory_environment_when_a_token_url_is_set
+   criterion 10: tests/test_vm_job_start.py::test_factory_run_gets_the_derived_settings_where_the_job_gave_none
+   criterion 11: tests/test_vm_job_start.py::test_the_token_is_never_printed_written_or_passed_on_a_command_line
+   criterion 12: tests/test_stage_image.py::test_the_stage_image_has_no_floating_reference (now parametrized: the as-built file, plus rows for a floating base image, Claude Code, opencode, uv and an eighth package), tests/test_stage_image.py::test_each_debian_package_is_installed_by_name_alone
+   criterion 13: tests/test_vm_job_start.py::test_the_proxy_reaches_curl_and_git_under_both_names
+   criterion 14: tests/test_vm_job_start.py::test_the_script_holds_the_job_podman_options_of_the_domain
+   criterion 15: tests/test_vm_job_start.py::test_the_default_root_is_written_once_under_srv_factory
+   criterion 16: tests/test_vm_job_start.py::test_a_failing_step_stops_the_script_before_factory_run
+   criteria 17 and 18: not tests.
+
+   Files created: tests/test_vm_job_start.py.
+   Files changed: tests/vm_support.py (new helpers: `run_job_start`, `JobRun`, `StandInCall`, the stand-in program and the job constants), and tests/test_stage_image.py, an earlier test, under this story's own leave in the Interface. In that file, `test_the_stage_image_has_no_floating_reference` now passes only when every finding is one of the seven package names without a version. I also replaced `test_each_debian_package_is_pinned` with `test_each_debian_package_is_installed_by_name_alone`, because criterion 12 reverses its rule. tests/dockerfile_support.py and tests/test_pins.py are unchanged.
+
+   What the stand-ins expect from the script (the coder should know): curl writes the download to the path after `-o` or `--output`. sha256sum reads the checked line from standard input, or from the files named after `-c`. `python3 -m venv DIR` creates `DIR/bin/{python,python3,pip,uv}`. `uv sync` creates `<root>/factory/.venv/bin/{python,factory-run}`. A git call fails when one of its words contains `no-such-ref`. Every stand-in records its calls in one log, in order. In the refresher rows, factory-run waits on a FIFO until the background refresher has run, so the test does not depend on timing.
+
+   Modules the test run could not import: none. The failures come from the missing `vm/job-start.sh` and the still-pinned `vm/Dockerfile`.

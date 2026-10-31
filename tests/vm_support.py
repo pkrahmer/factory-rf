@@ -1,10 +1,15 @@
 """The machine's setup script and service unit: their paths, the steps and the script's texts."""
 
+import os
 import re
+import sys
 from pathlib import Path
+
+from pydantic import BaseModel, ConfigDict
 
 from dockerfile_support import _uncommented
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from time_limits import ROOMY_LIMIT
 
 ROOT = Path(__file__).parent.parent
 SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
@@ -160,4 +165,162 @@ def writes_path(line: str, path: str) -> bool:
     return path in line and (
         re.search(r"(?<![\w-])(?:install|cp|mv|tee)\s", line) is not None
         or re.search(rf">\s*[\"']?{re.escape(path)}", line) is not None
+    )
+
+
+JOB_START = ROOT / "vm" / "job-start.sh"
+JOB_STAND_INS = (
+    "apt-get",
+    "curl",
+    "sha256sum",
+    "install",
+    "nft",
+    "mount",
+    "git",
+    "python3",
+    "uv",
+    "podman",
+)
+JOB_INSTANCE = "night"
+JOB_CODE_URL = "https://example.invalid/factory.git"
+JOB_CODE_REF = "v9.9.9"
+HIDDEN_TEXT = "s3cret-token-text"
+MISSING_REF = "no-such-ref"
+_STAND_IN = """
+import json, os, sys
+name = {name!r}
+argv = sys.argv[1:]
+checked = ""
+if name == "sha256sum" and "-c" in argv:
+    files = [word for word in argv if not word.startswith("-")]
+    checked = sys.stdin.read() if not files else "".join(open(each).read() for each in files)
+record = {{"name": name, "argv": argv, "env": dict(os.environ), "ppid": os.getppid(),
+          "checked": checked}}
+with open({log!r}, "a", encoding="utf-8") as file:
+    file.write(json.dumps(record) + "\\n")
+if name == "curl":
+    for flag in ("-o", "--output"):
+        if flag in argv:
+            with open(argv[argv.index(flag) + 1], "w", encoding="utf-8") as out:
+                out.write("a downloaded binary\\n")
+if name == "git" and "clone" in argv:
+    os.makedirs(argv[-1], exist_ok=True)
+if name == "git" and any({missing!r} in word for word in argv):
+    sys.exit(1)
+if name == "python3" and argv[:2] == ["-m", "venv"]:
+    os.makedirs(os.path.join(argv[-1], "bin"), exist_ok=True)
+    for each in ("python", "python3", "pip"):
+        os.symlink({tools_stand_in!r}, os.path.join(argv[-1], "bin", each))
+    os.symlink({uv_stand_in!r}, os.path.join(argv[-1], "bin", "uv"))
+if name == "uv" and "sync" in argv:
+    os.makedirs({venv_bin!r}, exist_ok=True)
+    for each, source in (("python", {python_stand_in!r}), ("factory-run", {run_stand_in!r})):
+        os.symlink(source, os.path.join({venv_bin!r}, each))
+if name == "factory-python" and "--once" not in argv and os.path.exists({fifo!r}):
+    open({fifo!r}, "w").close()
+if name == "factory-run" and os.path.exists({fifo!r}):
+    open({fifo!r}).close()
+if name in {failing!r} and (name != "factory-python" or "--once" in argv):
+    sys.exit(1)
+"""
+
+
+class StandInCall(BaseModel):
+    """One call of a stand-in: its name, its arguments, its environment, its parent's pid."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    name: str
+    argv: list[str]
+    env: dict[str, str]
+    ppid: int
+    checked: str
+
+
+class JobRun(BaseModel):
+    """What a run of the job start script left: its result and the stand-ins' calls in order."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    result: ProcessResult
+    calls: list[StandInCall]
+    root: Path
+    prefix: Path
+
+    def named(self, name: str) -> list[StandInCall]:
+        """The calls of the stand-in `name`, oldest first."""
+        return [call for call in self.calls if call.name == name]
+
+
+def _write_stand_in(path: Path, name: str, fields: dict[str, object]) -> Path:
+    path.write_text(
+        f"#!{sys.executable} -B\n" + _STAND_IN.format(name=name, **fields), encoding="utf-8"
+    )
+    path.chmod(0o755)
+    return path
+
+
+def run_job_start(
+    tmp_path: Path,
+    inputs: dict[str, str | None] | None = None,
+    *,
+    failing: frozenset[str] = frozenset(),
+    background: bool = False,
+) -> JobRun:
+    """Run `vm/job-start.sh` with every required input, changed by `inputs` (`None` removes one).
+
+    The stand-ins of `JOB_STAND_INS` lie first on `PATH`; `failing` names those that exit 1
+    (`factory-python` fails only its `--once` call). With `background`, `factory-run` waits
+    until the refresher started without `--once` has run.
+    """
+    root, prefix, stand_ins = tmp_path / "root", tmp_path / "prefix", tmp_path / "stand-ins"
+    for folder in ("etc/apt/apt.conf.d", "usr/local/bin", "var/lib/containers"):
+        (prefix / folder).mkdir(parents=True, exist_ok=True)
+    stand_ins.mkdir()
+    (tmp_path / "home").mkdir()
+    token = tmp_path / "secrets" / "hosting-token"
+    token.parent.mkdir()
+    token.write_text(HIDDEN_TEXT + "\n", encoding="utf-8")
+    fifo = tmp_path / "refresher-started"
+    if background:
+        os.mkfifo(fifo)
+    fields: dict[str, object] = {
+        "log": str(tmp_path / "calls.jsonl"),
+        "missing": MISSING_REF,
+        "failing": sorted(failing),
+        "fifo": str(fifo),
+        "venv_bin": str(root / "factory" / ".venv" / "bin"),
+        "tools_stand_in": str(stand_ins / "tools-python"),
+        "uv_stand_in": str(stand_ins / "uv"),
+        "python_stand_in": str(stand_ins / "factory-python"),
+        "run_stand_in": str(stand_ins / "factory-run"),
+    }
+    for name in (*JOB_STAND_INS, "tools-python", "factory-python", "factory-run"):
+        _write_stand_in(stand_ins / name, name, fields)
+    environment: dict[str, str | None] = {
+        "PATH": f"{stand_ins}:{SYSTEM_PATH}",
+        "HOME": str(tmp_path / "home"),
+        "FACTORY_INSTANCE": JOB_INSTANCE,
+        "FACTORY_REPOSITORY_URL": "https://example.invalid/project.git",
+        "FACTORY_CODE_URL": JOB_CODE_URL,
+        "FACTORY_CODE_REF": JOB_CODE_REF,
+        "FACTORY_TOKEN_FILE": str(token),
+        "FACTORY_JOB_ROOT": str(root),
+        "FACTORY_JOB_PREFIX": str(prefix),
+    } | (inputs or {})
+    result = run_process(
+        ProcessRequest(
+            argv=["sh", str(JOB_START)],
+            cwd=tmp_path,
+            env={name: value for name, value in environment.items() if value is not None},
+            time_limit=ROOMY_LIMIT,
+        )
+    )
+    log = tmp_path / "calls.jsonl"
+    lines = log.read_text(encoding="utf-8").splitlines() if log.exists() else []
+    return JobRun(
+        result=result,
+        calls=[StandInCall.model_validate_json(line) for line in lines],
+        root=root,
+        prefix=prefix,
     )
