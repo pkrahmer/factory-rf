@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-31T21:00:49.716963Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -425,6 +429,11 @@ journal:
   at: '2026-10-31T21:00:29.247783Z'
   stage: doing
   run: 6f27bdde604e4da292e23c4ba5548dad
+- number: 76
+  speaker: factory
+  kind: started
+  at: '2026-10-31T21:00:49.716963Z'
+  stage: review
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -1218,3 +1227,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 0 gone
+76. factory: started review as vm.
