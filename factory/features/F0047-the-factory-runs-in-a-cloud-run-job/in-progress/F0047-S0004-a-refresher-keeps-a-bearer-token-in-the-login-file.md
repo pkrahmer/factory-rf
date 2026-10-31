@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T20:20:55.620370Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -337,6 +341,11 @@ journal:
   at: '2026-10-31T20:20:35.138243Z'
   stage: doing
   run: d16d5cab0f5c42ed9c532cb726e1b404
+- number: 60
+  speaker: factory
+  kind: started
+  at: '2026-10-31T20:20:55.620370Z'
+  stage: tests
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -962,3 +971,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The work item is outside my write paths, so the factory dropped the Interface and criteria edits from entry 56. The Interface paragraphs for `factory.adapters.oauth_token` and `factory.entry.refresh_token`, and criteria 4, 7 and 9, still lack entry 52's rules and rows. Until someone with the work item in their write paths writes them in, entries 52 and 54 hold them.
     - `masked` in `factory.domain.tokens` has no test of its own. The adapter and entry tests cover it.
     - `make check` is red until change 1 is made. The only failure is `tests/test_hosting_search.py::test_no_module_imports_another_route_to_the_hosting_service[http.client]`.
+60. factory: started tests as vm.
