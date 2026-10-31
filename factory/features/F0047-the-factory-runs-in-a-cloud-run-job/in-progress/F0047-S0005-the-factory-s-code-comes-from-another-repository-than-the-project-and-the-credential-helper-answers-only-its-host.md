@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T21:33:40.947994Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T21:33:23.207273Z'
+  stage: doing
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-10-31T21:33:40.947994Z'
   stage: doing
 ---
 
@@ -251,3 +260,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Not done yet: the Description is unchanged, because no journal entry changed the task's meaning.
 14. 2026-10-31 human: Answer: (A). The tester makes both changes in `tests/test_vm_setup_code_url.py`, which is this story's own test file: the brace in `REFUSING_GIT` escaped (`${{GIT_ASKPASS-}}`) or that part kept out of the `.format` call, and `_setup` typed so that mypy accepts it (`tuple[int | None, str, str]`, or returning the `ProcessResult`). What the tests check stays the same. End with `tests`.
+15. factory: started doing as vm.
