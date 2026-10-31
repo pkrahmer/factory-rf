@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 486
-comments_read: []
+comments_read: [6549192607]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 7617dd7925b947ea9ac12753f37ef99c
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-10-31T21:12:15.470309Z'
+  stage: intake
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -94,3 +99,8 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    4. The format check passed. The smoke test commands are runnable, and each `Expect:` line can be checked against the output. The architecture and scope are fine: only `vm/` changes, which is inside the coder's write paths, and the story is within feature decision 9.
 
    Only question 1 blocks acceptance.
+4. 2026-10-31 human: Answers to question 3:
+
+   1. Yes: one new criterion, rows of one test, each answering for `host=git.example.invalid`: `FACTORY_REPOSITORY_URL=https://GIT.EXAMPLE.INVALID/o/r.git` (upper case), `https://user@git.example.invalid:8443/o/r.git` (user and port together), `https://git.example.invalid:8443/o/r.git` (a port only); and one refused row, `https://user@other.example.invalid/o/r.git` against `host=git.example.invalid`.
+   2. Agreed: criterion 7 is enough.
+   3. Agreed: no criterion for the unset case; criterion 1 covers it.
