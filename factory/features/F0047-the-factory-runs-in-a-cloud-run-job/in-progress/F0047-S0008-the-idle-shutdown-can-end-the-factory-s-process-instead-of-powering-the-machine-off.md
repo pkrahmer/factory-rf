@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-31T23:20:26.078508Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -141,6 +145,11 @@ journal:
   at: '2026-10-31T23:20:05.866248Z'
   stage: review
   run: 4206674c0ff446acb7538a875912dc5e
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-10-31T23:20:26.078508Z'
+  stage: docs
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -409,3 +418,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Notes:
     - tests/entry/test_run_idle_exit.py:55 `instance_settings` copies the `settings` fixture in tests/entry/test_run.py:123. The only differences are that it writes its own token and sets `idle_shutdown_minutes=1`. Moving that fixture to a shared place, under the standing leave, would remove the copy.
+25. factory: started docs as vm.
