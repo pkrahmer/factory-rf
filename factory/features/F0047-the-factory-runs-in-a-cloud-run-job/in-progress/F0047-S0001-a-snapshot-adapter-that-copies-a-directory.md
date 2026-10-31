@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 481
 comments_read: [6545517612]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-10-31T16:14:43.777493Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-31T16:14:21.587839Z'
   stage: doing
   run: 79487c6115304c4d9e2e136ffa98b6ff
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-31T16:14:43.777493Z'
+  stage: review
 ---
 
 # A snapshot adapter that copies a directory
@@ -351,3 +360,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 41 known, 0 gone
+19. factory: started review as vm.
