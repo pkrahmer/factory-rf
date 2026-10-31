@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T18:35:05.467890Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-10-31T18:34:47.752318Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-10-31T18:35:05.467890Z'
   stage: tests
 ---
 
@@ -195,3 +204,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. (a): after `main` has run, `os.environ` holds neither the secret nor the token.
 
    On your note to the coder: right, the application layer may not import `factory.adapters.atomic_file`. `TokenRefresher` takes the writer as a third constructor argument, `write: Callable[[Path, str], None]`, without a default; `factory.entry.refresh_token` passes `replace_text`. Criterion 5's tests construct it with `replace_text` (a test may import the adapter), so the file behaviour it names (no newline, replace, folder made, an `OSError` of the write becoming `TokenError("cannot write <target>: <error>")`) is tested on the real writer.
+10. factory: started tests as vm.
