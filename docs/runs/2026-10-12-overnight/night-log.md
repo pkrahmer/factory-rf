@@ -1300,3 +1300,5 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 15:46 UTC: prepared beside S0001: S0006 now pins runc 1.5.2 with its published SHA-256 (the coder would otherwise have had to look one up or check against a file downloaded beside the binary); P15 written (the stage image built in a job and factory-rf's make check run in it as the job's root, for the human to run at work).
 - 16:20 UTC: F0047-S0001 (copy snapshots) at approval, PR #481: six checks green (4 new tests, no marker, smoke met, $4.92 over 11 runs; a dangling link is tested); merged.
 - 16:24 UTC: archived (a95415797); vm rebuilt at a95415797 (src only, no setup.sh); F0047-S0002 (the container profile job) started.
+- 16:27 UTC: F0047-S0002 intake asked (#482, question 3): added the ValueError rows for job (a), deleted the untestable sentence (a).
+- 16:29 UTC: the human chose baseline entries for main's red secrets: seven findings (commit ids in F0023-A0001:84, F0023-A0002:99 four times, F0042-A0002:62 and :68) recorded in .secrets.baseline as is_secret false, generated on the VM with detect-secrets 1.5.0; the hook over every tracked file of main exits 0 with it.
