@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634, 6548523562, 6548636968]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T20:19:58.828919Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -335,6 +331,12 @@ journal:
   kind: started
   at: '2026-10-31T20:19:58.828919Z'
   stage: doing
+- number: 59
+  speaker: coder
+  kind: result
+  at: '2026-10-31T20:20:35.138243Z'
+  stage: doing
+  run: d16d5cab0f5c42ed9c532cb726e1b404
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -946,3 +948,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     The factory left out changes outside the write paths: factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0004-a-refresher-keeps-a-bearer-token-in-the-login-file.md.
 57. 2026-10-31 human: Answer: (a). The leave of entry 14 extends to `http.client` for `factory.adapters.oauth_token` alone, for the same reason: it is the standard library's HTTP under `urllib`, used for the token endpoint, not a route to the hosting service. The tester adds `"http.client": {"factory.adapters.oauth_token"}` to `ALLOWED` and a row showing that a second module importing `http.client` is still caught; every earlier row keeps its id and expectation. End with `tests` and name that change.
 58. factory: started doing as vm.
+59. coder: Round 1, answering entry 57. I changed no code in this run. The code for entries 50, 52 and 54 has been committed since entry 56: `src/factory/adapters/oauth_token.py` (`isdecimal`, `http.client.HTTPException` caught in `fetch`, `_error_body`), `src/factory/entry/refresh_token.py` (`_Refreshes`, which catches any `Exception` besides `TokenError` and prints `refresh_token: <type>: <message>` masked) and `src/factory/domain/tokens.py` (`masked`). Entry 57 chose answer (a), so what is left is test work.
+
+    **For the tester, in one run:**
+    1. `tests/test_hosting_search.py`: add `"http.client": {"factory.adapters.oauth_token"}` to `ALLOWED`, and add a row showing that a second module importing `http.client` is still caught, beside `urllib.request-in-a-second-module`. Every earlier row keeps its id and its expectation. This is the human's leave in entry 57.
+    2. `tests/adapters/test_oauth_token.py::test_a_200_answer_needs_a_token_string_and_a_positive_life` (criterion 9): add the row `expires-in-superscript`, where `"expires_in": "²"` gives `TokenError("the answer holds no expires_in")`.
+    3. `tests/adapters/test_oauth_token.py::test_a_failed_fetch_is_a_token_error_without_the_secret_or_the_token` (criterion 4): add two rows. In the first, the opener raises `http.client.IncompleteRead(b"")`, and the detail is `str(error) or type(error).__name__`. In the second, an `HTTPError` 400 whose body raises `OSError` when read gives `HTTP 400`.
+    4. The loop test of criterion 7 in `tests/entry/test_refresh_token.py`: add a row where a source raises `RuntimeError("boom")` between two successes. It prints `refresh_token: RuntimeError: boom` with the secret and the last token masked, keeps the first file, waits `RETRY_INTERVAL` once and goes on. For this row, `ScriptedTokenSource` in `tests/token_support.py` must accept and raise any `Exception`, not only a `TokenError`.
+
+    **Main choice:** I end with `tests` and leave the test changes to the tester, as entry 57 orders. I rejected keeping `make check` green by any other route (answers b and c of entry 56).
+
+    **Noticed, not touched:**
+    - The work item is outside my write paths, so the factory dropped the Interface and criteria edits from entry 56. The Interface paragraphs for `factory.adapters.oauth_token` and `factory.entry.refresh_token`, and criteria 4, 7 and 9, still lack entry 52's rules and rows. Until someone with the work item in their write paths writes them in, entries 52 and 54 hold them.
+    - `masked` in `factory.domain.tokens` has no test of its own. The adapter and entry tests cover it.
+    - `make check` is red until change 1 is made. The only failure is `tests/test_hosting_search.py::test_no_module_imports_another_route_to_the_hosting_service[http.client]`.
