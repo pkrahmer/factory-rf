@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772, 6549403733, 6549614252]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-10-31T22:28:23.531818Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -236,6 +240,11 @@ journal:
   at: '2026-10-31T22:28:02.916081Z'
   stage: review
   run: e6dcbda9657d42fba9248c142d8ca3dc
+- number: 42
+  speaker: factory
+  kind: started
+  at: '2026-10-31T22:28:23.531818Z'
+  stage: docs
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -735,3 +744,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Notes:
     - `tests/test_vm_setup_code_url.py:122-127`: `_guard` is a second copy of `vm_support.enclosing_if` (`tests/vm_support.py:133`) that also accepts `elif`. Under the standing leave, `enclosing_if` could be extended to cover `elif` instead.
+42. factory: started docs as vm.
