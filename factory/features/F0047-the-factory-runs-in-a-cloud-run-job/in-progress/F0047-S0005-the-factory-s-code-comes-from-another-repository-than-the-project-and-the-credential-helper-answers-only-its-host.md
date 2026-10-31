@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 486
 comments_read: [6549192607, 6549244772]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T21:25:48.407984Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-10-31T21:25:25.942589Z'
   stage: tests
   run: 0f02ef73975d4155be7f9c77acb4b2a8
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-31T21:25:48.407984Z'
+  stage: doing
 ---
 
 # The factory's code comes from another repository than the project, and the credential helper answers only its host
@@ -207,3 +216,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/test_vm_setup_code_url.py::test_the_usage_text_names_the_code_url_option[fault] - AssertionError: assert '--code-url' in 'usage: setup.sh --device <path> --repository-url <url> [--inst...
+12. factory: started doing as vm.
