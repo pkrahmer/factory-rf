@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-10-31T23:25:12.833035Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-10-31T23:25:12.826835Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-10-31T23:25:12.833035Z'
+  stage: intake
+---
+
 # One script turns a bare job into a running instance
 
 ## Description
@@ -52,3 +79,5 @@ Expect: `2`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-10-31 human: created.
+2. factory: started intake as vm.
