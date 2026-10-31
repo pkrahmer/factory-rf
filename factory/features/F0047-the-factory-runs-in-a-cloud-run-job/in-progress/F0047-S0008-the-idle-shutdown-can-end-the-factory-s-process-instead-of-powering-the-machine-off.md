@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 487
 comments_read: [6550196915]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-10-31T23:06:05.494442Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-10-31T23:05:45.234065Z'
   stage: doing
   run: f565e34fc2fa47189e321409d2d357e3
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-10-31T23:06:05.494442Z'
+  stage: tests
 ---
 
 # The idle shutdown can end the factory's process instead of powering the machine off
@@ -308,3 +317,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Journal: the reviewer added criterion 8 to `## Acceptance criteria`. The meaning of the task is unchanged, so I left `## Description` as it is.
 
     Noticed, not touched: the idle shutdown's log line still says `powering the machine off` with `exit`. The Description requires that line to stay as it is.
+19. factory: started tests as vm.
