@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 484
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-10-31T18:24:21.409125Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-10-31T18:24:21.409125Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-10-31T18:24:42.284291Z'
+  stage: smoke-test
+  run: 1b6222512b174bb3b1880ecf79df20c9
 ---
 
 # The job profile stores images with the native overlay
@@ -209,3 +211,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test passed with no findings. I ran both commands from the repository root exactly as written, in order.
+
+    Command 1, the constant:
+    ```
+    Bytecode compiled 4164 files in 60ms
+    ['--runtime=runc', '--cgroup-manager=cgroupfs', '--storage-driver=overlay']
+    ```
+    Met its `Expect:` line. The output has one line, and it is exactly the expected list. The `Bytecode compiled …` line is uv's own startup message on stderr, not the command's output.
+
+    Command 2, the source search:
+    ```
+    exit 1
+    ```
+    Met its `Expect:` line: one line, `exit 1`. grep found no file under `src/` that names `fuse-overlayfs` or `mount_program`.
+
+    Against the acceptance criteria:
+    - Criteria 2 and 4: confirmed directly by commands 1 and 2.
+    - Criteria 1, 3 and 5: the smoke test does not touch them and contradicts none of them.
+    - Criterion 6 (docs): I also looked at the documents, and they agree with it. `docs/operator-guide.md:381` has the storage-root sentence, the numbers (601 s / 182 s and 199 s / 107 s) and the note that the layers count against the job's memory. `docs/decisions.md:1252` has the line that names this change and its reason.
+
+    Findings: none.
+
+    Open: nothing.
