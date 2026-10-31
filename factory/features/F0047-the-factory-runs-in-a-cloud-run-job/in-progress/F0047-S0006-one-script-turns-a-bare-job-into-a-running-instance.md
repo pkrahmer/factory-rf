@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-10-31T23:47:07.970371Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-10-31T23:46:47.847107Z'
   stage: tests
   run: d6608963bfc04ce99f9d33540da2f2d7
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-10-31T23:47:07.970371Z'
+  stage: doing
 ---
 
 # One script turns a bare job into a running instance
@@ -243,3 +252,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/test_vm_job_start.py::test_a_failing_step_stops_the_script_before_factory_run[apt-get-packages] - AssertionError: assert 2 == 1
+12. factory: started doing as vm.
