@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 485
 comments_read: [6547461929, 6547499303, 6547757087, 6548259634]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-10-31T20:00:00.934702Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -262,6 +258,12 @@ journal:
   kind: started
   at: '2026-10-31T20:00:00.934702Z'
   stage: review
+- number: 46
+  speaker: reviewer
+  kind: result
+  at: '2026-10-31T20:01:33.989497Z'
+  stage: review
+  run: 17b6113a846d4b74b578d2df5584596e
 ---
 
 # A refresher keeps a bearer token in the login file
@@ -744,3 +746,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 0 gone
 45. factory: started review as vm.
+46. reviewer: Review, round 1 (the count started over at entry 36). I read the work item and `git diff main...HEAD -- . ':!factory'`. Entry 44 records `check: green` after the coder. It also records `duplicates: 1 new`, which is the `OpenUrl.__call__` false positive that entry 14 accepts.
+
+    - Group 1 (acceptance criteria) passes. Criterion 10 now has its row, `tests/entry/test_refresh_token.py::test_an_unreadable_or_blank_secret_file_exits_2[not-utf-8]`. Criteria 1 to 9 each still have a test that checks what its name says, and every Interface rule has its refused side tested.
+    - `HIDDEN` and `ISSUED` now live only in `tests/token_support.py`.
+    - Group 2 (architecture) passes. The layers are right, `TokenSource` is an ABC that the adapter and the test fake inherit, and the adapters are built only in `factory.entry.wiring`.
+    - Group 3 (security: input validated at the boundary) fails with the two findings below. Both are new; earlier rounds did not catch them. In both, an answer from the token endpoint escapes as a raw exception instead of a `TokenError`. That ends the daemon's loop with a traceback, although the Description says "a failed request keeps the old file and tries again after a minute". I did not review groups 4 and 5.
+
+    1. `src/factory/adapters/oauth_token.py:121` (`_positive_seconds`): `str.isdigit()` is true for digits that `int()` refuses, such as the superscript `"²"`. So `{"access_token": "t", "expires_in": "²"}` raises an uncaught `ValueError` instead of `TokenError("the answer holds no expires_in")`, which breaks the Interface's rule for an `expires_in` that is not a positive integer or numeric string. Fix: test with `isdecimal()`, which accepts exactly the characters `int()` reads, or convert inside `try/except ValueError`. Then add a row `expires-in-superscript` (`"²"` gives the expires_in sentence) to `tests/adapters/test_oauth_token.py::test_a_200_answer_needs_a_token_string_and_a_positive_life`, through the tester. The coder names the row and puts it in criterion 9, since it needs this code change first.
+    2. `src/factory/adapters/oauth_token.py:58-67,129` (`fetch`, `_http_detail`): `fetch` catches only `HTTPError`, `URLError` and `OSError`. `http.client.HTTPException` is not an `OSError`, and `urlopen` passes it through. Examples are `IncompleteRead` from `response.read()` on a body cut short (line 60), and `BadStatusLine` or `LineTooLong` raised while the request is opened. In those cases the exception leaves `fetch` raw, and so does an error from `error.read()` inside the `HTTPError` handler (line 129), which no `try` covers. Fix: also catch `http.client.HTTPException` in `fetch` and turn it into `self._error(str(error) or type(error).__name__)`. Have `_http_detail` treat a body it cannot read (`OSError` or `HTTPException`) as no body, giving `HTTP <code>`. Then add rows to criterion 4's test `test_a_failed_fetch_is_a_token_error_without_the_secret_or_the_token`, through the tester: an `http.client.IncompleteRead(b"")` raised by the opener, and an `HTTPError` whose body raises on read. The coder names them as criterion 4 rows.
+
+    Earlier tests:
+    - `tests/conftest.py`: changed under the standing leave to move a shared test helper. It only adds the `restored_signals` fixture, moved unchanged from `tests/entry/test_run.py`.
+    - `tests/entry/test_run.py`: changed under the standing leave to move a shared test helper. It drops its copy of `restored_signals` and the `Iterator` import that only that copy used. Every test keeps its name and what it checks.
+    - `tests/test_hosting_search.py`: changed under the human's leave, journal entry 14, answer 1. Only `factory.adapters.oauth_token` may import `urllib.request` (`ALLOWED`). The earlier rows keep their ids and still expect no importer, and the new row `urllib.request-in-a-second-module` shows that a second importer is caught. The test keeps its name, and the change stays within the leave.
