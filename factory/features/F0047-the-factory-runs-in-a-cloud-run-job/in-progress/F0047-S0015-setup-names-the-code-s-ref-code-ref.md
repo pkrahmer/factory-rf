@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-01T15:10:58.559853Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-01T15:10:40.741280Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-01T15:10:58.559853Z'
   stage: intake
 ---
 
@@ -81,3 +90,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    1. Criterion 3 gets a second row: `setup.sh ... --ref` with no value prints `setup.sh: --ref is now --code-ref`, exits 2 and calls no stand-in. The `--ref` case is handled before `need_value`, so a bare `--ref` gets the hint too.
    2. Criterion 3 also expects the usage on standard error after the hint line (a line starting `usage: setup.sh`), in both rows.
+5. factory: started intake as vm.
