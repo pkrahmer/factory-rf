@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T07:10:58.213748Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,12 @@ journal:
   kind: started
   at: '2026-11-01T07:10:58.213748Z'
   stage: doing
+- number: 36
+  speaker: coder
+  kind: result
+  at: '2026-11-01T07:11:30.113726Z'
+  stage: doing
+  run: 1b28b6b1eed54802afc7f0553ba8d173
 ---
 
 # One script turns a bare job into a running instance
@@ -617,3 +619,14 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/test_stage_image.py: the human's leave, which the story's Interface names with the file. `test_the_stage_image_has_no_floating_reference` changed as that leave says. `test_each_debian_package_is_pinned` became `test_each_debian_package_is_installed_by_name_alone`, the reversal criterion 12 requires; I count that within the same leave for the file, as round 0 did.
     - tests/vm_support.py: none needed. The change only adds helpers and imports, and every earlier helper stays as it was.
 35. factory: started doing as vm.
+36. coder: Round 2: I worked through the review's findings in journal 34. The two findings need only tests, so I changed no code this run and the work item goes to the tester.
+
+    - Criterion 19 (the default `FACTORY_JOB_PREFIX` is empty): the script already does this. `vm/job-start.sh:59` holds `prefix=${FACTORY_JOB_PREFIX:-}`, and it is the only place the default is written. What is missing is a test that reads this default from the script's text, as the test for criterion 15 does for the default root at `vm/job-start.sh:60`.
+    - Criterion 20 (a `GIT_ASKPASS` in the job's environment does not reach the `git` calls): the script already does this with `unset GIT_ASKPASS SSH_ASKPASS` at `vm/job-start.sh:121`. The assertion `"GIT_ASKPASS" not in call.env` exists at `tests/test_vm_job_start.py:330`, but every run starts without a `GIT_ASKPASS`. What is missing is a row of the code test with `GIT_ASKPASS` in the inputs, next to the row without it, and the check that it is absent from every recorded `git` environment.
+    - The reviewer held one test-helper finding back (group 4). I name it so the tester can make the change in the same round: `tests/vm_support.py::_write_stand_in` is a second copy of `tests/git_support.py::write_executable`. Both write the same `#!{sys.executable} -B` shebang, write the text and chmod 0o755. The only difference is that `write_executable` always names its file `stand-in-git` inside a directory, while `_write_stand_in` takes the full path. The change falls under the standing leave in CLAUDE.md to move a shared test helper: let `write_executable` take the file's name (or path) and have `vm_support.py` use it. Every earlier test keeps its name and checks the same thing. The tester names each test file it changes.
+
+    The reviewer's notes on split sides of one rule in `tests/test_vm_job_start.py` (the runc checksum, the mount, the missing ref, and the repeated image rows) are left to the tester's judgement; they are not findings.
+
+    I did not refactor anything: there is no diff of mine this round. I did not run `make check` this run because nothing changed. The last green run is the one in journal 32.
+
+    The journal did not change the meaning of the task. The reviewer already wrote the corrected Description (criteria 19 and 20 added, renumbered 21 and 22).
