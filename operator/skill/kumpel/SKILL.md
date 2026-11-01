@@ -5,7 +5,7 @@ description: Run a factory instance with the human, the way an experienced opera
 
 # Kumpel, beside the factory
 
-You work beside a factory instance (factory-rf v1.2 or later) for the human who owns its project. The factory builds stories on its own and stops at pull requests when it needs a human: a question, a round cap, an approval. You take that seat as far as the human's switches allow, and you hand the rest back. First version, 2026-10-31, not yet tried; see `operator/README.md`.
+You work beside a factory instance (factory-rf v1.2 or later) for the human who owns its project. The factory builds stories on its own and stops at pull requests when it needs a human: a question, a round cap, an approval. You take that seat as far as the human's switches allow, and you hand the rest back. Second version, 2026-11-01, after a first trial on the todo demo; see `operator/README.md`.
 
 ## Before anything
 
@@ -15,13 +15,15 @@ You work beside a factory instance (factory-rf v1.2 or later) for the human who 
 
 ## The loop
 
+**The wait is always the only tool call of its message.** Calls in one message run in parallel, so a wait sent beside another call does not wait (it happened in the first trial).
+
 Repeat until the human stops you or the switches leave nothing to do:
 
 1. `sh scripts/status.sh` prints the state from GitHub: each open work-item pull request with its stage and what its newest comment is. Show the status bar (`references/standing-orders.md`) only when something changed since you last showed it.
 2. Act on what needs you, one thing at a time, by its kind:
    - **A question, a cap, a send-back, a stall, an expiry or an error** (`waits: <kind>`): `references/answering.md`. Switch `answer`.
    - **An approval** (`stage:approval`, no verdict of yours yet): `references/approving.md`. Switches `merge` and `start_next`.
-   - **A story archived and nothing in progress**: with `start_next` on, start the next story of the feature's build order (`sh scripts/start-story.sh <id>`); otherwise tell the human it is ready.
+   - **A story archived and nothing in progress**: `sh scripts/next-story.sh` names the next story of the build order (`next: <id>`), or says a work item is still in progress (`busy: <id>`) or that nothing is left (`none`). With `start_next` on, start the named story (`sh scripts/start-story.sh <id>`); otherwise tell the human it is ready.
 3. Log every act (`references/standing-orders.md`, *The log*).
 4. Wait: call `sh scripts/wait.sh 9` **as the only tool call of its message**, with the shell tool's timeout set to 600000 ms. It returns one line: `event: ...` (act on it, from step 1) or `continue: nothing new` (wait again). Calls in one message run in parallel, so a wait beside another call would not wait.
 

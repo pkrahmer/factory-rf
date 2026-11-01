@@ -34,4 +34,4 @@ Three stories in about 70 minutes, $7.17, one question, no round back. The facto
 
 ## For the second version
 
-The four skill points above; then the trial at work with opencode against the job (the plan's step 3), where status comes from GitHub and a stop's reason from Cloud Logging.
+Done on 2026-11-01 (the human's choice: by hand now): 1 was fixed during the trial; 2 is now a bold rule at the top of the loop in `SKILL.md`; 3 `approval.sh` prints the smoke test's lines, the findings, the leaves, the journal's last entry and the cost from the pull request (tried on the demo's PR 3); 4 `next-story.sh` names the next story of the build order (tried: `next: F0001-S0004` on the demo, `busy: F0047-S0013` on factory-rf). Still to come: then the trial at work with opencode against the job (the plan's step 3), where status comes from GitHub and a stop's reason from Cloud Logging.
