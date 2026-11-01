@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-01T14:25:26.781179Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-01T14:25:26.781179Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-11-01T14:25:53.516705Z'
+  stage: review
+  run: ed80a82c494847fb9e1c88d3dd085298
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -259,3 +261,20 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 16. factory: started review as vm.
+17. reviewer: no findings
+
+    I read the whole diff against criteria 1 to 7 and the Interface. The round 0 finding (criterion 5, the cause) is closed.
+    - Criterion 1: `tests/adapters/test_agent_launch_state_directory.py::test_make_state_directory_makes_a_missing_folder_keeps_an_existing_one_and_refuses_a_file` has the three rows the criterion names (`missing-with-parent`, `existing-with-a-file`, `a-file`). Each row checks the whole tree under its root afterwards, so the text of `keep.txt` and of the file `state` is checked, and the detail prefix is checked on the failing row.
+    - Criterion 2: `tests/adapters/test_runtime_state_directory_write.py::test_a_run_whose_state_directory_cannot_be_written_fails_before_the_call` has the rows `claude` and `opencode`. It checks the detail prefix, that no call was made, and that the state directory is empty. `read_calls(tmp_path / "bin")` works for both rows because both stand-ins write `calls.jsonl` next to themselves (`tests/adapters/claude_stand_in.py:46`, `tests/adapters/opencode_stand_in.py:58`). The test is skipped as root, and the fixture sets the mode back to 0o755 afterwards. Mode 0o500 lets the `mkdir` succeed and makes the write in `_write_files` fail, which is the branch the Description says had no test.
+    - Criterion 3: `test_a_run_makes_its_missing_state_directory_and_completes` has both rows and checks `state.is_dir()` and `end_reason == "completed"`.
+    - Criterion 4: `incomplete-read` now expects the literal `"IncompleteRead(0 bytes read)"`. `SECOND` and `SECOND_CLIENT` are renamed, and the row ids are unchanged.
+    - Criterion 5: `test_a_refused_state_directory_keeps_the_mkdir_error_as_its_cause` checks that `__cause__` is an `OSError`.
+    - `make check`: green after the coder (entries 7 and 15), and `duplicates: 0 new`.
+    - Architecture: `make_state_directory` sits in `factory.adapters.agent_launch` next to `state_directory_error` (`src/factory/adapters/agent_launch.py:324`). Both `_make_state_directory` copies are gone. Each `run` calls the helper at the same place, before the run files' `try`/`finally` (`claude_runtime.py:365`, `opencode_runtime.py:590`). Nothing else in the runtimes changed.
+    - Security: no suppression markers, no strings built into commands.
+    - Quality: the helper has a docstring and raises `from exc`. `ClaudeCodeRuntime._state_error` now has one caller, `_write_files`. I left it because the Interface says nothing else in either module changes.
+    - Work item hygiene: the Description matches what was built. The journal records the main choice: the helper raises the error itself rather than returning it. The docs criterion (7) still names what the documenter must write in `docs/project-guide/agents.md`.
+
+    Earlier tests:
+    - tests/adapters/test_oauth_token.py: changed under the human's leave given in the story's Interface (2026-11-01). Only the expected detail of the row `incomplete-read` changed.
+    - tests/test_hosting_search.py: changed under the human's leave given in the story's Interface (2026-11-01). Only `SECOND` was renamed (now `ANOTHER_URLLIB_IMPORTER`) and `SECOND_CLIENT` (now `ANOTHER_HTTP_CLIENT_IMPORTER`). Row ids and checks are unchanged.
