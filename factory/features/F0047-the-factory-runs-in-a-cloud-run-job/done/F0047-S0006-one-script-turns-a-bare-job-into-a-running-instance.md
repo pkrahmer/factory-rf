@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -263,6 +263,11 @@ journal:
   at: '2026-11-01T07:30:32.528060Z'
   stage: smoke-test
   run: a0d01498303b460abcbc5679a77acec4
+- number: 47
+  speaker: factory
+  kind: done
+  at: '2026-11-01T07:32:55.783054Z'
+  stage: approval
 ---
 
 # One script turns a bare job into a running instance
@@ -810,3 +815,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Criteria check: I read the acceptance criteria again. Neither output contradicts any of them: criterion 1 (exit 2 and the message, before any other step), criterion 6 (the rule appears twice), and none of the others is touched by these two commands. I did not run `make check` again: this stage changes no files, and the docs stage's gate recorded `check: green` on this tree.
 
     Findings: none.
+47. factory: done (pull request merged); cost: 21 runs, 62.3 min, 221 turns, 828891 tokens in (6329141 more from cache), 134388 out, $9.88
