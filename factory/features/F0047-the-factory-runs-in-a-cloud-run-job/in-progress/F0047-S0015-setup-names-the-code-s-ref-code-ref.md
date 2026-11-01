@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618, 6559846438]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T15:23:26.098769Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-11-01T15:23:05.302205Z'
   stage: tests
   run: bcbfc47ddbec4086bef1506066aaa998
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-01T15:23:26.098769Z'
+  stage: doing
 ---
 
 # Setup names the code's ref --code-ref
@@ -178,3 +187,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/test_vm_setup_text.py::test_the_options_land_in_their_named_variables[code-ref-ref] - assert None
+12. factory: started doing as vm.
