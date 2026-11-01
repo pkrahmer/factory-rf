@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T14:50:42.709818Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-01T14:50:22.034675Z'
   stage: doing
   run: a966809a286149318bb5c505e73a88e2
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-01T14:50:42.709818Z'
+  stage: tests
 ---
 
 # Setup makes a new instance's first base
@@ -192,3 +201,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 14. coder: The review's only finding (entry 12, finding 1) asks for a change to the tests, not to the code. Coders never edit tests, so the tester makes this change. The tester merges `tests/test_vm_setup_first_base.py::test_a_made_dataset_gets_its_first_base_after_its_create_and_quota` and `::test_an_existing_dataset_without_a_base_gets_its_first_base` into one parametrized test. That test asserts one `snapshot` call equal to `[["snapshot", BASE]]` and that `MADE_BASE` appears in the step's lines. It has two rows, one for a dataset that was just made and one for a dataset that already exists, each with an id that names its case. The order checks of criterion 1 stay in their own test on the `made` fixture: against `create` and the quota from the recorded calls, and against `install -d -o factory` from the script's text.
 
     I changed no code. The reviewer found `vm/setup.sh` correct against every criterion, and `make check` was green in round 0 (entry 10). Noticed, not touched: the operator guide still tells the operator to take the base by hand. That is criterion 8, for the docs stage.
+15. factory: started tests as vm.
