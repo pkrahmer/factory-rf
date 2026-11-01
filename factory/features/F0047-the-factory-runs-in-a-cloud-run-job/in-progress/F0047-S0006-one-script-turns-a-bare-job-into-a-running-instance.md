@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-01T07:07:55.473945Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -186,6 +190,11 @@ journal:
   at: '2026-11-01T07:07:34.770105Z'
   stage: doing
   run: 62412db41a2940d9ab2c89017159283b
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-11-01T07:07:55.473945Z'
+  stage: review
 ---
 
 # One script turns a bare job into a running instance
@@ -569,3 +578,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 1 gone
+33. factory: started review as vm.
