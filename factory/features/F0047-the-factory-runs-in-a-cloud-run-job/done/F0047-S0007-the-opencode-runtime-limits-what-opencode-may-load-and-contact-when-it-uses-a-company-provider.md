@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -163,6 +163,11 @@ journal:
   at: '2026-11-01T08:21:20.139884Z'
   stage: smoke-test
   run: 0dada2b3cf664a538bc90630bf8ceb95
+- number: 29
+  speaker: factory
+  kind: done
+  at: '2026-11-01T08:23:43.937039Z'
+  stage: approval
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -431,3 +436,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Acceptance criteria re-read: the smoke test contradicts none of them. Criteria 1 to 6 are covered by the 14 passing lockdown tests. For the docs criterion (8) I checked that the named sections exist: `docs/operator-guide.md` has the paragraph *What opencode may load and contact* (lines 330–331), which covers the allowlist key, the three switches, why they depend on the provider file, and the proxy log or startup probe. `docs/project-guide/agents.md` names the keys and the switches (lines 108–112). `docs/decisions.md` has the entry *opencode loads and contacts only what the company provider needs* (line 1312). I did not run `make check` (criterion 7) because it is the factory's gate.
 
     Findings: none.
+29. factory: done (pull request merged); cost: 13 runs, 25.7 min, 91 turns, 293200 tokens in (1899415 more from cache), 38791 out, $3.19
