@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T13:57:24.850003Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-01T13:57:04.852436Z'
   stage: intake
   run: 2219ab4fc2e24c62923c5962f3f5328e
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-01T13:57:24.850003Z'
+  stage: tests
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -107,3 +116,4 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
    - Smoke test: the first block is runnable. It makes `a/runs`, prints True, then the file case prints True, so two lines as the `Expect:` says. The second block runs pytest without `-q`, and `pyproject.toml` `addopts` already sets `-q`, so `tail -1` gives the summary line with `passed`. Both `Expect:` lines can be checked against the output.
    - Architecture: the helper goes in `factory.adapters.agent_launch`, where CLAUDE.md puts what the runtimes share, and both runtimes already import from that module. This removes a duplicate helper and adds no layer or dependency. The changes to `tests/adapters/test_oauth_token.py` and `tests/test_hosting_search.py` have the human's leave, given in the story.
    - Scope: this is the acceptance-proposed S0013 listed in feature.md, with decision 22's two folded-in notes. The story's Description says the run behaviour, messages and ordering are unchanged. A shared write helper is left to a later story, and nothing is in the feature's Out of scope.
+4. factory: started tests as vm.
