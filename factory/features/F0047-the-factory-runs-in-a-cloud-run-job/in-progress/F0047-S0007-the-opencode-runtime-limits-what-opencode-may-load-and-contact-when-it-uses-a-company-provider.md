@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-01T08:18:49.583149Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-11-01T08:18:49.583149Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-11-01T08:19:32.600680Z'
+  stage: review
+  run: ab819fda771448da88c6cbf2cdfdc289
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -335,3 +337,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 1 gone
 23. factory: started review as vm.
+24. reviewer: Review, round 1: no findings.
+
+    I read the diff (`git diff main...HEAD -- . ':!factory'`) and the work item.
+
+    - Group 1, acceptance criteria. Each criterion has a test in `tests/adapters/test_opencode_runtime_lockdown.py` that checks what it says.
+      - Criterion 1: rows for the host and the container. The environment must match exactly, and the configuration text must equal `json.dumps(request_configuration())`. That also covers `_provider_keys` giving `{}` without a provider file.
+      - Criterion 2: rows for `corp` and `corp-1`. The keys must be exactly the seven named, with no `disabled_providers`.
+      - Criterion 3: host and container rows, each checked as the earlier environment plus the three switches and nothing more. The test also checks that `LOCKDOWN_SWITCHES` is exactly the dict the Interface gives.
+      - Criterion 4: the override rule is tested on both sides (`1` with a provider file, `0` without one) for all three switches.
+      - Criterion 5: the budget resume gets the same environment and the same configuration as the first call.
+      - Criterion 6: a refused file raises `AgentRuntimeError`, the stand-in is never called, and no `opencode-*.json` is written.
+      - Entry 22 records `check: green`.
+    - Group 2, architecture. The change stays inside `factory.adapters.opencode_runtime`, and the domain `provider_configuration` is untouched.
+    - Group 3, security. Nothing to report, and the diff adds no silencing marker.
+    - Group 4, quality. The source change is clean (`src/factory/adapters/opencode_runtime.py:74`, `:313`, `:681`). The switches are added once, in the one `runtime_environment` dict that the host launch, the container launch and the resume all share. The comment above `LOCKDOWN_SWITCHES` says why they depend on the provider file. The three round-0 findings are fixed: `_runtime` is gone in favour of `stand_in_runtime(..., provider_file=, containers=)`, `configuration_text` is shared, and `REQUEST_ENVIRONMENT` is shared. `make duplicates` reports `1 new`, which is in `src/factory/adapters/oauth_token.py:27`, outside this diff.
+    - Group 5, work item. The `## Description` matches what was built, and criterion 8 still describes what the documenter must write.
+
+    Open, not a finding: the Interface's line "The existing opencode runtime tests pass unchanged" has one exception since the human's answer in entry 8. The journal records that answer. My corrections may only touch the Description, so I left the line as it is.
+
+    Earlier tests:
+    - `tests/adapters/test_opencode_runtime_provider.py`. Two leaves cover it:
+      - the human's answer in entry 8 covers the added `"enabled_providers": ["corp"]` expectation in `test_a_provider_file_adds_its_keys_beside_the_existing_ones`;
+      - the standing leave covers moving `_base_configuration` to `request_configuration` and having `_configuration_text` use the shared `configuration_text`. Every test keeps its name and what it checks.
+    - `tests/adapters/opencode_stand_in.py`. The standing leave covers it. This is the shared place that received `request_configuration`, `configuration_text` and the `REQUEST_ENVIRONMENT` constant, which `opencode_request` now uses with the same behaviour. `stand_in_runtime` gained two optional keyword parameters that default to `None`, so every earlier caller gets the same runtime.
