@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T00:13:00.011985Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-01T00:12:38.668181Z'
   stage: doing
   run: 57d298eecd1544ceb341e01ae5bb5c6f
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-01T00:13:00.011985Z'
+  stage: tests
 ---
 
 # One script turns a bare job into a running instance
@@ -399,3 +408,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - The test-quality points the reviewer held back (passing and failing sides written as separate test functions in `tests/test_vm_job_start.py`) are left to the tester and the next review.
 
     The factory left out changes outside the write paths: factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0006-one-script-turns-a-bare-job-into-a-running-instance.md.
+22. factory: started tests as vm.
