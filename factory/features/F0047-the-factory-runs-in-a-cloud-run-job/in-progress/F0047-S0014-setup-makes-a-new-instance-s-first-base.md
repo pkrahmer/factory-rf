@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T14:34:40.477772Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-01T14:34:40.477772Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-01T14:42:04.050054Z'
+  stage: tests
+  run: d19fdbf24b9e4d2db108b3516168f994
 ---
 
 # Setup makes a new instance's first base
@@ -112,3 +114,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the change is confined to `vm/setup.sh` (the coder's write path) and the operator guide; no layer of `src/factory` is touched.
    - Scope: within F0047's scope. S0014 is listed in the feature's stories, and decision 22 of the feature names it. It touches none of the feature's out-of-scope items.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for the step `datasets` taking the first base. They run `vm/setup.sh` for real through `tests/vm_support.py::run_setup`, with stand-ins placed first on `PATH`. The stand-ins are `id`, `mktemp` (which writes into `tmp_path`), `dpkg-query`, `grep`, `zpool`, `loginctl`, `stat`, `install` and `zfs`, and each one records its calls. The stand-in `zfs` answers `list` for `tank/factory` and, depending on the row, for the dataset and for `<dataset>@base`. It answers `get` with lz4/off and the quota, and it can fail on `snapshot`. It also exits 1 on `zfs allow -u`, which ends every run at the step `delegation`, so the script writes nothing outside `tmp_path`.
+
+   Criteria → tests:
+   - criterion 1: tests/test_vm_setup_first_base.py::test_a_made_dataset_gets_its_first_base_after_its_create_and_quota. One `zfs snapshot tank/factory/vm@base`, recorded after the `create` and the `set quota=` calls. The order against ownership is checked from the script's text, as entry 4 answer 4 says: the `install -d -o factory` line comes before `zfs snapshot` in the step. The step's output must name `made the first base …`.
+   - criterion 2: tests/test_vm_setup_first_base.py::test_an_existing_base_is_left_alone_and_the_step_changes_nothing. No `snapshot`, `create` or `set` call and no `install` call; the step's one line is the full `found … and its base` line.
+   - criterion 3: tests/test_vm_setup_first_base.py::test_the_first_base_is_taken_before_the_delegation. The snapshot call comes before the first `zfs allow` call.
+   - criterion 4: tests/test_vm_setup_first_base.py::test_the_step_s_closing_line_ends_with_its_base
+   - criterion 5: tests/test_vm_setup_first_base.py::test_a_failing_snapshot_stops_the_script_before_the_step_s_closing_line
+   - criterion 6: tests/test_vm_setup_first_base.py::test_an_existing_dataset_without_a_base_gets_its_first_base
+   - criteria 7 and 8: none (`make check` and docs).
+
+   Files created: tests/test_vm_setup_first_base.py. No existing test file was changed.
+
+   `make test`: only the 6 new tests fail, each for the right reason. Five find no `snapshot` call. The other one gets `setup: datasets: found … with the quota 30G` without `and its base`. The runs reached the step's closing line, so the stand-ins work. Every module imported, so there are no collection errors. `make lint` is green.
+
+   Open: none. The coder will see that `tests/test_vm_setup_text.py` does not compare the step's closing line today, so the leave to change that exact line is not needed so far.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/test_vm_setup_first_base.py::test_an_existing_dataset_without_a_base_gets_its_first_base - AssertionError: assert [] == [['snapshot',...ory/vm@base']]
