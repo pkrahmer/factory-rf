@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 494
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-01T13:56:45.165562Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-01T13:56:45.165562Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-01T13:57:04.852436Z'
+  stage: intake
+  run: 2219ab4fc2e24c62923c5962f3f5328e
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -99,3 +101,9 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
 
 1. 2026-11-01 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: `agent_launch.make_state_directory(state_directory: Path) -> None` is concrete. It sits next to the existing `state_directory_error` (agent_launch.py:319), and its three rules are stated: a missing directory is made with its parents, an existing one is left alone, and an OSError becomes the detail starting `cannot write the state directory <dir>: `. The runtimes' two `_make_state_directory` methods are removed and `run` calls the helper in their place. The two test notes name their files and the rows or names they change.
+   - Criteria: each is testable by one test function. Criterion 1 has the passing rows (missing parent, existing folder with its file) and the failing row (a file where the folder should be, whose text is kept). Criterion 2 is the failing side for both runtimes: mode 0o500, the stand-in never called, no file left, skipped as root. Criterion 3 is the passing side for both runtimes. Criterion 4 covers both test notes, each under the human's leave. Criterion 5 is `make check` and criterion 6 is `docs:`, last. One small gap, not worth a question: the Interface says the error is raised "from the OSError", and no criterion tests the cause. The detail text is tested, which is what matters.
+   - Smoke test: the first block is runnable. It makes `a/runs`, prints True, then the file case prints True, so two lines as the `Expect:` says. The second block runs pytest without `-q`, and `pyproject.toml` `addopts` already sets `-q`, so `tail -1` gives the summary line with `passed`. Both `Expect:` lines can be checked against the output.
+   - Architecture: the helper goes in `factory.adapters.agent_launch`, where CLAUDE.md puts what the runtimes share, and both runtimes already import from that module. This removes a duplicate helper and adds no layer or dependency. The changes to `tests/adapters/test_oauth_token.py` and `tests/test_hosting_search.py` have the human's leave, given in the story.
+   - Scope: this is the acceptance-proposed S0013 listed in feature.md, with decision 22's two folded-in notes. The story's Description says the run behaviour, messages and ordering are unchanged. A shared write helper is left to a later story, and nothing is in the feature's Out of scope.
