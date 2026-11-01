@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T10:07:31.968088Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-01T10:07:31.968088Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-01T10:13:46.570201Z'
+  stage: tests
+  run: 996d8c0180774e7dbdfde268851a17d7
 ---
 
 # The refresher's remaining rules get their tests
@@ -218,3 +220,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: nothing else.
 14. factory: started tests as vm.
+15. tester: Following the human's answer (a) in entry 11, as the coder's entry 13 names it: in `tests/entry/test_refresh_token_signals.py::test_an_interrupt_or_exit_of_a_refresh_leaves_main_as_raised`, line 108 now reads `assert error.code == 3` instead of `assert raised.value.code == 3`. The line before still asserts `raised.value is error`, so the test checks the same thing. mypy now types `.code` through the `isinstance` narrowing of `error`. Nothing else changed.
+
+    The criterion-to-test mapping is the same as in entry 8:
+    criterion 1: tests/domain/test_tokens_masked.py::test_every_non_empty_hidden_value_is_replaced_by_the_mask
+    criterion 2: tests/entry/test_refresh_token_signals.py::test_main_puts_back_the_signal_handlers_it_found
+    criterion 3: tests/entry/test_refresh_token_signals.py::test_an_interrupt_or_exit_of_a_refresh_leaves_main_as_raised
+
+    Files created: none in this run. The two test files are already on the branch. Changed in this run: tests/entry/test_refresh_token_signals.py, line 108 only.
+    Modules the test run could not import: none.
+
+    Runs, as the human asked:
+    - `make types`: types: green (4.6 s). This was the target that failed before ("BaseException" has no attribute "code").
+    - `make test`: test: green (173.7 s)
+    - `make lint`: lint: green (0.2 s)
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (173.7 s)

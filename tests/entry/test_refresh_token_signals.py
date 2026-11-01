@@ -105,6 +105,6 @@ def test_an_interrupt_or_exit_of_a_refresh_leaves_main_as_raised(
 
     assert raised.value is error
     if isinstance(error, SystemExit):
-        assert raised.value.code == 3
+        assert error.code == 3
     assert login_file.read_text(encoding="utf-8") == "old-token"
     assert "refresh_token:" not in capsys.readouterr().err
