@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 492
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-01T09:47:33.258348Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-01T09:47:33.258348Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-01T09:47:53.013246Z'
+  stage: intake
+  run: 349d685ab1c848c09be4001b8ed29f0e
 ---
 
 # The refresher's remaining rules get their tests
@@ -77,3 +79,9 @@ Expect: one line that holds `passed` and neither `failed` nor `error`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-11-01 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: no `src/` change; it names `factory.domain.tokens.masked` and `factory.entry.refresh_token.main` with signatures that match the code (`src/factory/domain/tokens.py:31`, `refresh_token.py:37`). The behaviours it states are the mask, the empty value, the unchanged message, the handler restore and the exceptions that pass through. The test files and the helpers they use (`tests/token_support.py`, the `restored_signals` fixture in `tests/conftest.py`) exist or are named for the tester to create.
+   Criteria: 1 is four `masked` rows, one test, covering each clause: several values, no occurrence, an empty value, an empty list. 2 has three rows, covering the restore after `--once`, after the loop ended by a signal and after exit 2 (the failing side), and it adds the check that the handler differs while `fetch` runs. 3 has four rows covering `KeyboardInterrupt` and `SystemExit(3)` under `--once` and in the loop, with the login file and standard error asserted. Each criterion is one test function with no open decision. 4 and 5 are the two closing criteria, in order.
+   Smoke test: the pytest command is runnable. The project's pytest config already sets `-q` and the command passes none. The `Expect:` line can be checked against the summary line, which holds `passed` and neither `failed` nor `error`.
+   Architecture: tests only, in `tests/domain/` and `tests/entry/` as the layer mirror requires, using the shared support module and fixture. No layer is crossed.
+   Scope: the story is listed in `feature.md` as S0012. It changes no `src/` module and no S0004 test, and it leaves out the two items that need the human's leave, as `feature.md` and decision 21 say.
