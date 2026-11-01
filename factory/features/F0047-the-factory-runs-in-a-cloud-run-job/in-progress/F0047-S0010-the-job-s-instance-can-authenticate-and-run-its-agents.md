@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 491
 comments_read: [6556021304]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-01T09:42:23.733200Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-01T09:42:03.346645Z'
   stage: docs
   run: d3f23c9647ea4be88dc91d45d37da04d
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-01T09:42:23.733200Z'
+  stage: smoke-test
 ---
 
 # The job's instance can authenticate and run its agents
@@ -272,3 +281,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 4abef89d0f05 at 2026-11-01T09:36:47Z)
     `secrets`: secrets: green (2.8 s)
     `documents`: documents ok
+15. factory: started smoke-test as vm.
