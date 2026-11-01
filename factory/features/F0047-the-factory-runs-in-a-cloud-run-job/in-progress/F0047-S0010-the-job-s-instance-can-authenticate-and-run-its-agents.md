@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 491
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-01T09:12:14.222772Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-01T09:12:14.222772Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-01T09:12:35.742473Z'
+  stage: intake
+  run: a1ff226589e34a8885da7c86b778a854
 ---
 
 # The job's instance can authenticate and run its agents
@@ -93,3 +95,9 @@ Expect: one line, `idle shutdown: idle for 1 minutes, ending the factory's proce
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-11-01 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: concrete. Names the shell line for step `code` (placement after `checkout --detach` at vm/job-start.sh:123, before `tools`), `OpencodeRuntime`'s `mkdir(parents=True, exist_ok=True)` with its OSError mapping, `IdleShutdown.__init__(..., action: str = "powering the machine off")` and the exact log line, and `idle_shutdown_of` passing the exit text (the current code already routes `exit` through `_idle_power`). The leave over the F0020-S0004 row `state-missing` is stated with the human's date.
+   Criteria: each is testable by one test function or one parametrized test. Each rule has both sides: ref missing and install failing (3), a missing directory made and a file in its place refused (5), `exit` and `poweroff` lines (6). Every Interface clause has a criterion: the install call (2), the exactly-two-targets rule (4), the twelve lines unchanged (1), the unchanged `poweroff` default (6). Criterion 7 and 8 are the closing ones.
+   Smoke test: both commands are runnable. Grep: `vm/job-start.sh` has no helper line yet, so the count goes from 0 to 1 with the install line (the comments and messages carry no such path). The Python snippet uses the real constructor and `_power_off`, with `ManualClock` and the two stand-ins, and prints one line that can be compared. Neither runs pytest, so the `-q` rule does not apply.
+   Architecture: the changes sit in the right layers: the `mkdir` in the adapter, the `action` text in application, its choice in the entry wiring, the script under `vm/` (the coder's write path). No new dependency or module.
+   Scope: within the feature's scope (S0010 is listed, refined on 2026-11-01, decision 21). It leaves `vm/setup.sh`, the Claude Code runtime and the idle rule alone. The only change to an earlier test is the one the human's leave names.
