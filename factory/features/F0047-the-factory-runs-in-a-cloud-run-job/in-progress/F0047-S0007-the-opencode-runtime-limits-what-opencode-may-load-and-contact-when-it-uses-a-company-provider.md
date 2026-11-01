@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T08:04:05.620135Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-01T08:04:05.620135Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-01T08:04:22.183421Z'
+  stage: doing
+  run: 6e0de64de6a440a5bd8330c37051e66a
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -256,3 +258,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/adapters/test_opencode_runtime_provider.py`: the standing leave covers moving `_base_configuration` to `request_configuration` in `tests/adapters/opencode_stand_in.py` (same body, every test keeps its name). The human's answer in entry 8 covers the added `"enabled_providers": ["corp"]` expectation in `test_a_provider_file_adds_its_keys_beside_the_existing_ones`.
     - `tests/adapters/opencode_stand_in.py`: covered by the standing leave. It is the shared place that receives the moved `request_configuration`, it only gains that function and its imports, and no existing helper changed.
 17. factory: started doing as vm.
+18. coder: All three review findings (entry 16) are copied test helpers in the new test module, so this round goes to the tester. `CLAUDE.md` gives standing leave to move a shared test helper, and the tester makes that move, not the coder. I changed no code. The source in `src/factory/adapters/opencode_runtime.py` is the same as in entry 14, where `make check` was green.
+
+    The changes for the tester, each covered by the standing leave:
+    1. `tests/adapters/test_opencode_runtime_lockdown.py:36` `_runtime` repeats the body of `stand_in_runtime` in `tests/adapters/opencode_stand_in.py:253`. Give `stand_in_runtime` the keyword parameters `provider_file` and `containers`. Use it in the lockdown module and delete the local copy.
+    2. `tests/adapters/test_opencode_runtime_lockdown.py:56` `_configuration_text` is a copy of `_configuration_text` in `tests/adapters/test_opencode_runtime_provider.py:38`. Move one helper that takes a `StandInCall` into `tests/adapters/opencode_stand_in.py` and use it from both modules. The earlier test file to change is `tests/adapters/test_opencode_runtime_provider.py`. Every test there keeps its name and checks the same thing.
+    3. `tests/adapters/test_opencode_runtime_lockdown.py:33` `HOST_ENVIRONMENT` copies the default environment that `opencode_request` writes inline at `tests/adapters/opencode_stand_in.py:227`. Name that default once as a constant in `tests/adapters/opencode_stand_in.py`, have `opencode_request` use it, and import it in the lockdown module.
+
+    What I built (from earlier rounds, unchanged): `LOCKDOWN_SWITCHES` and `_provider_keys` (now adding `enabled_providers`) in `src/factory/adapters/opencode_runtime.py`. The switches go into the one `runtime_environment` dictionary that the host launch, the container launch and the budget resume share. The alternative I rejected was adding the switches separately in each launch path.
+
+    What the journal changed: after entry 8, the Description's line "The existing opencode runtime tests pass unchanged" is out of date (the reviewer named this too). My write paths do not include the work item, so I have not rewritten it.
+
+    Noticed but not touched: `make duplicates` reports one new entry, a relabel of `__call__` in `src/factory/adapters/oauth_token.py:27`, which is outside this diff.
