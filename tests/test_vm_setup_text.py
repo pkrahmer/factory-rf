@@ -375,7 +375,7 @@ def test_each_default_is_assigned_once_before_the_option_parsing(
         ("instance", "instance"),
         ("pool", "pool"),
         ("quota", "quota"),
-        ("ref", "ref"),
+        ("code-ref", "ref"),
         ("runtime", "runtime"),
         ("image", "image"),
         ("device", "device"),

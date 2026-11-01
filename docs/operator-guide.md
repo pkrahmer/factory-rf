@@ -381,7 +381,7 @@ The layout of `/srv/factory/<instance>`:
 | `work` | the dataset's mount point |
 | `repo` | the factory's own clone of the project, where it fetches, claims and pushes |
 | `state` | the factory log, `health.json` and the records |
-| `factory` | the factory's code, cloned at `--ref`, with its `.venv` |
+| `factory` | the factory's code, cloned at `--code-ref`, with its `.venv` |
 | `tools` | a virtual environment holding `uv` |
 | `factory.env` | the service's environment file, written by the script |
 | `factory.local.env` | your own environment file, optional; the script never writes it |
@@ -518,7 +518,7 @@ sudo sh vm/setup.sh --device /dev/sdb \
 - **`factory.env` holds the project only.** `FACTORY_REPOSITORY_URL` is `--repository-url`; the code url is written nowhere.
 - **The project brings its own files.** The factory reads `factory/pipeline.yml`, `factory/story-form.md` and `factory/feature-form.md` from the project, and optionally `factory/agents/`. Its `Makefile` has the targets `check`, `lint`, `test` and `sync`.
 - **The stage image comes from the code.** `vm/Dockerfile` is the one in the code checkout, not the project's.
-- **An update of the code is a new ref and a rebuild.** Run `vm/setup.sh` again with the new `--ref`, as *The rebuild after a merge* describes. A checkout that exists is not cloned again, so a changed `--code-url` alone changes nothing on a machine that has one.
+- **An update of the code is a new ref and a rebuild.** Run `vm/setup.sh` again with the new `--code-ref`, as *The rebuild after a merge* describes. A checkout that exists is not cloned again, so a changed `--code-url` alone changes nothing on a machine that has one.
 - **The helper answers only the project's host.** With `FACTORY_REPOSITORY_URL` set, `git-credential-factory` gives the token only when git asks for the host of that URL, so the token is never offered to the code repository's host or to any other (see *The hosting-service token*).
 
 ### The script
@@ -537,7 +537,7 @@ sudo sh vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner
 | `--instance <name>` | `vm` | The instance's name; its folder is `/srv/factory/<instance>`. |
 | `--pool <name>` | `tank` | The ZFS pool. |
 | `--quota <size>` | `30G` | The quota of the instance's dataset. |
-| `--ref <git ref>` | `main` | The factory's git ref to check out. |
+| `--code-ref <git ref>` | `main` | The factory's git ref to check out. The old name `--ref` is refused: the script prints `setup.sh: --ref is now --code-ref` and the usage, and exits 2 before any step runs. |
 | `--image <tag>` | `factory-stage:<instance>` | The stage image. |
 | `--runtime claude\|opencode` | `claude` | The agent runtime. |
 | `--sudoers` | off | Reach `zfs` through `sudo` (see below). |
@@ -561,7 +561,7 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 9. `poweroff`: with `--idle-shutdown`, `/etc/sudoers.d/factory-poweroff` (mode `0440`, owner root), which holds the one rule `factory ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff`, written only when its text differs and checked with `visudo -cf`; if `visudo` refuses it, the script removes the file, prints `setup: poweroff: visudo -cf refused /etc/sudoers.d/factory-poweroff; removed it` to standard error and exits 1. Without the option it runs `rm -f` on that file, so a right an earlier run gave is taken back, and the line says `setup: poweroff: not asked; the factory gets no power-off right`. See *The idle shutdown*.
 10. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` (mode `0755`), and `/home/factory/.secrets` (mode `0700`). If `state`, `repo` or `/home/factory/.secrets` is a link, the script prints `setup: folders: ...` to standard error and exits 1 before it makes anything in the step: remove the link and run it again. The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
 11. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
-12. `checkout`: the factory at `--ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
+12. `checkout`: the factory at `--code-ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
 13. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `vm/git-credential-factory` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
 14. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`). With `--idle-shutdown` its last line is `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>`; without the option the file holds no such line, so a run without it takes the setting back.
 15. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
@@ -576,7 +576,7 @@ The checkout of the private repository needs the hosting token. When `/home/fact
 
 The token is written into no file. Git asks the askpass script (`/srv/factory/<instance>/askpass`) for it, and only that script reads the token file; the clone sets `core.askPass` on its own command line, not in any git configuration.
 
-The unit and the credential helper come from the checkout, and root installs them only in the run that made the clone (whose content is the remote's at `--ref`, before the service ever ran) or when the installed file is missing. So a first run that stopped after the clone is completed by the next. A later run that finds the installed file in place but different from the checkout installs nothing and prints one of these two lines to standard error:
+The unit and the credential helper come from the checkout, and root installs them only in the run that made the clone (whose content is the remote's at `--code-ref`, before the service ever ran) or when the installed file is missing. So a first run that stopped after the clone is completed by the next. A later run that finds the installed file in place but different from the checkout installs nothing and prints one of these two lines to standard error:
 
 ```text
 setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed; install it from your own copy of vm/git-credential-factory (operator guide, "The rebuild after a merge")
@@ -709,11 +709,11 @@ This is the machine of the decisions of 2026-10-24: instance `vm`, an `e2-standa
 
    The script is `vm/setup.sh`.
 
-7. On the VM, run the script as root, the first time. The disk is `/dev/disk/by-id/google-factory-data` (`ls -l /dev/disk/by-id/ | grep google` shows it). `--ref` is the tag or branch to run.
+7. On the VM, run the script as root, the first time. The disk is `/dev/disk/by-id/google-factory-data` (`ls -l /dev/disk/by-id/ | grep google` shows it). `--code-ref` is the tag or branch to run.
 
    ```bash
    sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
-     --repository-url https://github.com/pkrahmer/factory-rf.git --ref <the tag or branch to run>
+     --repository-url https://github.com/pkrahmer/factory-rf.git --code-ref <the tag or branch to run>
    ```
 
    It installs the packages and makes the pool, the user `factory`, the datasets, the delegation and the folders. Then it stops with `setup: checkout: waiting for /home/factory/.secrets/hosting-token` and exit status 0: the private repository needs the token (see *The script*, "The two passes"). On a VM that the prototype of `planning/overnight/gcp-runbook-2026-10-24.md` already prepared, the script finds those steps done and reports `found`.
@@ -733,7 +733,7 @@ This is the machine of the decisions of 2026-10-24: instance `vm`, an `e2-standa
 
    ```bash
    sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
-     --repository-url https://github.com/pkrahmer/factory-rf.git --ref <the tag or branch to run>
+     --repository-url https://github.com/pkrahmer/factory-rf.git --code-ref <the tag or branch to run>
    ```
 
 10. Build the stage image as `factory`, from the checkout the script made. `<ref>` labels the image; any text will do.
@@ -887,7 +887,7 @@ On the VM from your own account, run the script and start the instance again:
 
 ```bash
 sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
-  --repository-url https://github.com/pkrahmer/factory-rf.git --ref <the same ref>
+  --repository-url https://github.com/pkrahmer/factory-rf.git --code-ref <the same ref>
 sudo systemctl start factory@vm
 ```
 
