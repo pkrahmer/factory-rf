@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545, 6557892923]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-01T12:35:14.202151Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-11-01T12:35:14.202151Z'
   stage: review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-11-01T12:36:01.531821Z'
+  stage: review
+  run: 5304fe46a84c492aa4bf9acdd0db40f9
 ---
 
 # The refresher's remaining rules get their tests
@@ -186,7 +188,7 @@ S0004's refresher (`python -m factory.entry.refresh_token`) states three rules t
 - A `KeyboardInterrupt` or `SystemExit` of one refresh is not caught.
 - `masked` in `factory.domain.tokens` replaces every non-empty hidden value with `***`. It is tested only through the adapter and the command.
 
-This story writes those tests; the code is expected to pass them as it is. Unchanged: every module under `src/factory/` (a test that fails is a finding for the coder, not a test change), and S0004's tests. Left out: the `incomplete-read` row that computes its expected detail with the code's own expression, and the names `SECOND` and `SECOND_CLIENT` of `tests/test_hosting_search.py`. Both are changes to S0004's tests and need a leave in `feature.md`; refine this story to add them if the human gives it.
+This story writes those tests; the code is expected to pass them as it is. Unchanged: every module under `src/factory/` (a test that fails is a finding for the coder, not a test change). S0004's tests keep their names and what they check; the helpers they share with the new tests (the secret-file, login-file and environ fixtures, `scripted` and `never_sleep`) move to `tests/conftest.py` and `tests/token_support.py` under the standing leave to move a shared test helper. Left out: the `incomplete-read` row that computes its expected detail with the code's own expression, and the names `SECOND` and `SECOND_CLIENT` of `tests/test_hosting_search.py`. Both are changes to S0004's tests and need a leave in `feature.md`; refine this story to add them if the human gives it.
 
 ## Interface
 
@@ -415,3 +417,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 29. factory: started review as vm.
+30. reviewer: no findings
+
+    I reviewed `git diff main...HEAD -- . ':!factory'`: five test files, nothing under `src/`. Round 1 fixes entry 19's finding. `never_sleep` now exists only at `tests/token_support.py:23`, and both modules import it from there. A grep of `tests/` finds one copy each of `never_sleep`, `scripted` and the secret-file, login-file and environ fixtures.
+    Group 1 holds. Criterion 1 is the four exact rows of one parametrized test (`tests/domain/test_tokens_masked.py`). Criterion 2 is three rows of `test_main_puts_back_the_signal_handlers_it_found`. They check the restore of both handlers by identity after `--once`, after the loop ended by `SIGTERM` and after exit 2. The handler during `fetch` is checked only in the loop row, as the human's answer (a) in entry 6 says. I read this against `src/factory/entry/refresh_token.py:57-63,127-137`. Criterion 3 is four rows (two exceptions × `--once`/loop). Each row checks that the exception left as raised, the code 3, the earlier content of the login file and that stderr has no `refresh_token:` line. `never_sleep` makes an exception the loop caught fail the test. The Interface states no numeric limit. The coder's `make check` in entry 28 was green, after the human's journal reword in entry 26.
+    Groups 2 to 5 hold: tests only, in the layer mirror, through the shared support module and fixtures. No marker silences a check, there are no secrets, and there is no dead code.
+
+    description corrected: "Unchanged: every module under `src/factory/` (...), and S0004's tests." -> "Unchanged: every module under `src/factory/` (...). S0004's tests keep their names and what they check; the helpers they share with the new tests (the secret-file, login-file and environ fixtures, `scripted` and `never_sleep`) move to `tests/conftest.py` and `tests/token_support.py` under the standing leave to move a shared test helper." This follows the human's answer in entry 6. I wrote the fixture names in words, as in entry 26, so that detect-secrets does not flag them.
+
+    Earlier tests (item 6):
+    - tests/conftest.py: the standing leave to move a shared test helper, and the human's answer in entry 6. It only adds the secret-file, login-file and environ fixtures moved from tests/entry/test_refresh_token.py; only their docstrings changed.
+    - tests/entry/test_refresh_token.py: the standing leave to move a shared test helper, and the human's answer in entry 6. It drops its copies of the three fixtures, `scripted` and `never_sleep` and imports them from the shared places. Every test keeps its name and what it checks.
+    - tests/token_support.py: the standing leave to move a shared test helper, and the human's answer in entry 6. `scripted` and `never_sleep` moved in with the same bodies, and the module docstring names them.
