@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -114,6 +114,11 @@ journal:
   at: '2026-11-01T15:32:13.582600Z'
   stage: smoke-test
   run: 52598112a6a34ba6b548c836f7903a1a
+- number: 20
+  speaker: factory
+  kind: done
+  at: '2026-11-01T15:34:35.277361Z'
+  stage: approval
 ---
 
 # Setup names the code's ref --code-ref
@@ -310,3 +315,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Criteria 1 and 2 (the clone's `--branch`), the bare `--ref` row of criterion 3, `--help` and criteria 5 and 6 are outside what this command covers. Nothing in the output contradicts them.
 
     Findings: none.
+20. factory: done (pull request merged); cost: 8 runs, 12.6 min, 54 turns, 159650 tokens in (1150993 more from cache), 17322 out, $1.59
