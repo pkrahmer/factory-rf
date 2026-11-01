@@ -1363,3 +1363,6 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 09:09 UTC: F0047-S0010 (the job's instance can authenticate and run its agents) started.
 - 09:18 UTC: F0047-S0010 tester asked (#491): two earlier tests pin the old exit line; answered (a), an EXIT_LINE constant for those two assertions, the poweroff line kept.
 - 09:46 UTC: F0047-S0010 (the job can authenticate and run its agents) at approval, PR #491: six checks green (the leave's two test changes, no marker, smoke met, $2.49 over 7 runs, no round back); merged, archived; vm rebuilt; F0047-S0012 (the refresher's remaining rules get their tests) started.
+- 09:53 UTC: F0047-S0012 tester asked (#492): the handler check under --once; answered (a), the loop row only; and move the copied helpers now under the standing leave, so the review has no copy to count.
+- 10:06 UTC: F0047-S0012 coder asked (#492): a type error in the story's own new test; answered (a), the one-line fix by the tester, make types before ending.
+- 12:23 UTC: the human: a standing leave to reword a journal line the secrets scan flags, on the work item's branch, keeping its meaning, scanned first, logged each time. Used for F0047-S0012 (#492): `secret_file` in two journal places reworded (1b6034367 through the contents API); answered the coder.
