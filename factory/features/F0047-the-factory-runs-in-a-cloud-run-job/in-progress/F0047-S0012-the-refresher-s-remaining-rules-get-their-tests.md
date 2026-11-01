@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T10:14:06.981623Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-01T10:14:06.981623Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-01T10:20:29.713672Z'
+  stage: doing
+  run: 4ee2725fd2fc422b9abab9f31446b79b
 ---
 
 # The refresher's remaining rules get their tests
@@ -247,3 +249,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (173.7 s)
 16. factory: started doing as vm.
+17. coder: Built: nothing. No file under `src/` changed, which is what the story expects: the code already passes every new test. The only diff against `main` outside `factory/` is the tester's work: tests/conftest.py, tests/token_support.py, tests/entry/test_refresh_token.py, tests/domain/test_tokens_masked.py and tests/entry/test_refresh_token_signals.py.
+
+    After the tester's change to line 108 in entry 15, I ran `make check` and it is green: `test: green (173.8 s)`, then `check: green`. In entry 10 `make types` was the one red target, and it now passes.
+
+    Main choice: I left the code as it is. I rejected changing `src/factory/entry/refresh_token.py` so that `--once` installs the signal handlers as well; the human ruled that out in entry 6 (answer (a)).
+
+    Refactor: there is no diff of mine to refactor, so nothing changed.
+
+    Description unchanged. Entries 6 and 11 settle how the tests are written; they do not change what the task means.
+
+    Noticed but not touched: `src/factory/entry/refresh_token.py:136` is the one line of that module that coverage leaves uncovered. It is outside this story's scope.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
