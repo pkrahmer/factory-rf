@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T08:12:00.933740Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-11-01T08:11:40.313727Z'
   stage: tests
   run: b8d1add6cac045c18d994dd30dd70054
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-01T08:12:00.933740Z'
+  stage: doing
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -296,3 +305,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (174.6 s)
+21. factory: started doing as vm.
