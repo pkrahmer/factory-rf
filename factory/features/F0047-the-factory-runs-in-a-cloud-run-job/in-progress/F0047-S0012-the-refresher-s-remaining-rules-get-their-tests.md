@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545, 6557892923]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-01T12:35:14.202151Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-11-01T12:34:53.985795Z'
   stage: doing
   run: e76727bba739408b836236c0d5924c2b
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-01T12:35:14.202151Z'
+  stage: review
 ---
 
 # The refresher's remaining rules get their tests
@@ -405,3 +414,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+29. factory: started review as vm.
