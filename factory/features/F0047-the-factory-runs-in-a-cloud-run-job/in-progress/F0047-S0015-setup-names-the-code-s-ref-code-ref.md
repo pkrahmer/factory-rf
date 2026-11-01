@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T15:11:39.337756Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-01T15:11:17.804302Z'
   stage: intake
   run: 329979172dd54fbb8c2ace541d2fefdc
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-01T15:11:39.337756Z'
+  stage: tests
 ---
 
 # Setup names the code's ref --code-ref
@@ -99,3 +108,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: `sh vm/setup.sh --ref v9; echo "exit $?"` is runnable. It runs no pytest, so there is no `-q` problem. Its Expect line is checkable on the first and last lines.
    - Architecture: a shell script under `vm/`, a path the coder may write. No layer is touched.
    - Scope: within decisions 16 and 22 of F0047 and not in its Out of scope.
+7. factory: started tests as vm.
