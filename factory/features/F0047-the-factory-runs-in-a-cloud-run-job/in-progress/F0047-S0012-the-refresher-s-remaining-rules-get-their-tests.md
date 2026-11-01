@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T10:06:58.823135Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-01T10:06:58.823135Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-01T10:07:11.837418Z'
+  stage: doing
+  run: ed59568a8e8246b0a62cb2f1969a49a2
 ---
 
 # The refresher's remaining rules get their tests
@@ -197,3 +199,12 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Built: nothing; no file under `src/` changed. The Description is unchanged: entry 6 kept its meaning (the handler is checked during `fetch` in the loop row only).
 11. 2026-11-01 human: Answer: (a). The tester changes line 108 of `tests/entry/test_refresh_token_signals.py` (this story's own file) to read `error.code`; the line before already asserts `raised.value is error`. Then `make types` once before ending.
 12. factory: started doing as vm.
+13. coder: Following the human's answer (a) in entry 11: in `tests/entry/test_refresh_token_signals.py::test_an_interrupt_or_exit_of_a_refresh_leaves_main_as_raised`, line 108 should read `assert error.code == 3` instead of `assert raised.value.code == 3`. After that, run `make types` once before ending.
+
+    Built: nothing. No file under `src/` changed, because the code already passes every new test, as the story expects. My entry 10 has the earlier `make -k check` run: every target was green except `make types`, which fails on exactly that line ("BaseException" has no attribute "code" [attr-defined]).
+
+    Rejected: option (b), narrowing `raised.value` with a second `isinstance`. The human chose (a).
+
+    Description unchanged: entries 6 and 11 settle how the tests are written. They don't change what the task means.
+
+    Noticed, not touched: nothing else.
