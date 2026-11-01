@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-01T15:05:05.463633Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-11-01T15:05:05.463633Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-01T15:05:27.613062Z'
+  stage: smoke-test
+  run: cd530a1ca6ab4768a496cbd3276db0d9
 ---
 
 # Setup makes a new instance's first base
@@ -313,3 +315,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
 23. factory: started smoke-test as vm.
+24. smoke-tester: Ran both smoke test commands from the repository root, as written and in order. I fixed nothing.
+
+    1. `grep -c 'zfs snapshot "$dataset@base"' vm/setup.sh`
+    ```
+    1
+    ```
+    Met `Expect: 1`.
+
+    2. `uv run pytest tests/test_vm_setup_first_base.py tests/test_vm_setup.py 2>&1 | tail -1`
+    ```
+    17 passed in 2.63s
+    ```
+    Met the `Expect:` line: one line with `passed`, and neither `failed` nor `error`.
+
+    Read against the acceptance criteria once more. I read `vm/setup.sh` lines 204–220 and `docs/operator-guide.md` (step 5 at line 557, the `dataset` row at line 1034). Nothing contradicts a criterion:
+    - Criteria 1 and 6: in the script, the snapshot check (`zfs list -H -o name -t snapshot "$dataset@base"`) stands on its own after the `create`, the quota and the `install -d -o factory` block. When it finds no base, it runs `zfs snapshot` and `changed "made the first base $dataset@base"`.
+    - Criterion 3: the check comes before the `delegation` step.
+    - Criterion 4: the closing line ends with `and its base`.
+    - Criterion 8: step 5 of the operator guide says the step takes the first base. The `dataset` row still names `zfs snapshot <dataset>@base` for a dataset made by hand, and says an instance made by the script already has both.
+    - Criterion 7 (`make check`): I did not run it in this stage. Entry 18 records it green, and the docs stage reused that passed result (entry 22).
+
+    Findings: none.
