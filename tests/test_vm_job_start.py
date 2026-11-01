@@ -63,6 +63,8 @@ REFRESHER = ["-m", "factory.entry.refresh_token"]
 UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 RULE = "ip daddr 169.254.169.254 tcp dport 80 reject"
 CHAIN = re.compile(r"chain\s+(\w+)\s*\{([^{}]*)\}")
+UNREADABLE = "an unreadable file"
+UV_REQUIREMENT = re.compile(r"^uv(?:[=<>~!].*)?$")
 UNTOUCHED = ["FACTORY_CONTAINER_ENV", "FACTORY_CA_BUNDLE", "FACTORY_IDLE_SHUTDOWN_MINUTES"]
 
 
@@ -133,11 +135,23 @@ def full_run(tmp_path: Path) -> JobRun:
             "job-start: FACTORY_TOKEN_FILE is not a file",
             id="token-file-a-directory",
         ),
+        pytest.param(
+            "FACTORY_TOKEN_FILE",
+            UNREADABLE,
+            "job-start: FACTORY_TOKEN_FILE is not a file",
+            id="token-file-unreadable",
+            marks=pytest.mark.skipif(os.geteuid() == 0, reason="root reads every file"),
+        ),
     ],
 )
 def test_a_missing_input_stops_the_script_before_any_call(
     tmp_path: Path, name: str, value: str | None, message: str
 ) -> None:
+    if value == UNREADABLE:
+        unreadable = tmp_path / "unreadable-token"
+        unreadable.write_text("text\n", encoding="utf-8")
+        unreadable.chmod(0)
+        value = str(unreadable)
     run = run_job_start(tmp_path, {name: value})
 
     assert run.result.exit_status == 2
@@ -501,3 +515,54 @@ def test_a_failing_step_stops_the_script_before_factory_run(
     assert run.result.exit_status == 1
     assert f"job-start: {step}: failed" in run.result.stderr.splitlines()
     assert run.named("factory-run") == []
+
+
+@pytest.mark.parametrize(
+    ("image", "expected"),
+    [
+        ("registry.invalid/stage:1", "registry.invalid/stage:1"),
+        (None, f"factory-stage:{JOB_INSTANCE}"),
+    ],
+    ids=["given", "default"],
+)
+def test_factory_run_gets_the_stage_image_the_image_step_built(
+    tmp_path: Path, image: str | None, expected: str
+) -> None:
+    run = run_job_start(tmp_path, {"FACTORY_STAGE_IMAGE": image})
+    started = run.named("factory-run")
+
+    assert run.result.exit_status == 0, run.result.stderr
+    assert len(started) == 1
+    assert started[0].env.get("FACTORY_STAGE_IMAGE") == expected
+
+
+def test_the_tools_step_installs_uv_in_its_own_environment_and_syncs_the_code(
+    tmp_path: Path,
+) -> None:
+    run = run_job_start(tmp_path)
+    tools = run.root / "tools"
+    venvs = [
+        index
+        for index, call in enumerate(run.calls)
+        if call.name == "python3" and call.argv == ["-m", "venv", str(tools)]
+    ]
+    pips = [
+        index
+        for index, call in enumerate(run.calls)
+        if call.program == str(tools / "bin" / "pip")
+        and "install" in call.argv
+        and any(UV_REQUIREMENT.match(word) for word in call.argv)
+    ]
+    syncs = [
+        (index, call)
+        for index, call in enumerate(run.calls)
+        if call.program == str(tools / "bin" / "uv") and "sync" in call.argv
+    ]
+
+    assert run.result.exit_status == 0, run.result.stderr
+    assert len(venvs) == 1
+    assert len(pips) == 1
+    assert len(syncs) == 1
+    assert syncs[0][1].argv == ["sync", "--frozen", "--no-dev"]
+    assert Path(syncs[0][1].cwd).resolve() == (run.root / "factory").resolve()
+    assert venvs[0] < pips[0] < syncs[0][0] < _first(run, "podman")

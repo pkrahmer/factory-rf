@@ -195,7 +195,7 @@ if name == "sha256sum" and "-c" in argv:
     files = [word for word in argv if not word.startswith("-")]
     checked = sys.stdin.read() if not files else "".join(open(each).read() for each in files)
 record = {{"name": name, "argv": argv, "env": dict(os.environ), "ppid": os.getppid(),
-          "checked": checked}}
+          "checked": checked, "cwd": os.getcwd(), "program": sys.argv[0]}}
 with open({log!r}, "a", encoding="utf-8") as file:
     file.write(json.dumps(record) + "\\n")
 if name == "curl":
@@ -226,7 +226,10 @@ if name in {failing!r} and (name != "factory-python" or "--once" in argv):
 
 
 class StandInCall(BaseModel):
-    """One call of a stand-in: its name, its arguments, its environment, its parent's pid."""
+    """One call of a stand-in: its name, its arguments, its environment, its parent's pid.
+
+    `program` is the path it was called by, `cwd` the directory it ran in.
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -235,6 +238,8 @@ class StandInCall(BaseModel):
     env: dict[str, str]
     ppid: int
     checked: str
+    cwd: str
+    program: str
 
 
 class JobRun(BaseModel):

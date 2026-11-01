@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T00:13:00.011985Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-01T00:13:00.011985Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-01T00:19:32.294229Z'
+  stage: tests
+  run: 9c3193310533474b8254ebbf5590738a
 ---
 
 # One script turns a bare job into a running instance
@@ -409,3 +411,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The factory left out changes outside the write paths: factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0006-one-script-turns-a-bare-job-into-a-running-instance.md.
 22. factory: started tests as vm.
+23. tester: Round 1: added the tests the coder named in journal 21. These cover the reviewer's findings 1, 2 and 4 from journal 19. I changed no other test.
+
+    Criterion → test (new or changed this round):
+    - criterion 1, new row `token-file-unreadable`: tests/test_vm_job_start.py::test_a_missing_input_stops_the_script_before_any_call. The row writes a token file with mode 0 and expects exit 2, `job-start: FACTORY_TOKEN_FILE is not a file`, and no stand-in call. It is skipped when the tests run as root. Here they ran as uid 1001, so the row ran.
+    - criterion 17: tests/test_vm_job_start.py::test_factory_run_gets_the_stage_image_the_image_step_built. Two rows: `given` (the input's value) and `default` (`factory-stage:<instance>`).
+    - criterion 18: tests/test_vm_job_start.py::test_the_tools_step_installs_uv_in_its_own_environment_and_syncs_the_code. It checks `python3 -m venv <root>/tools`, then an `install` of `uv` through `<root>/tools/bin/pip`, then `<root>/tools/bin/uv` with exactly `sync --frozen --no-dev` and `<root>/factory` as its working directory, in that order and all before the first `podman` call.
+
+    For criteria 2 to 16 the mapping is unchanged from journal 11.
+
+    Helper change, in this story's own support module tests/vm_support.py: `StandInCall` gains `cwd` (the stand-in's working directory) and `program` (`sys.argv[0]`, the path it was called by), and the stand-in records both. The new fields are needed because `pip` and the tools `python` are the same stand-in, and the uv sync must be identified by its path. No earlier test file of another story was changed.
+
+    Files created: none. Files changed: tests/test_vm_job_start.py, tests/vm_support.py.
+
+    Modules the test run could not import: none. The implementation already exists, so `make test` is green rather than red. `make lint` is green.
+
+    Open: the factory left out the coder's Description edits in journal 21, because the work item is outside the coder's write paths. Criterion 1 in the work item therefore does not yet name the unreadable-file row, and criterion 5 still reads "the checksum of the Interface" for the default row. The test follows journal 9 there. The tests stage cannot write the work item's Description either.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (166.5 s)
