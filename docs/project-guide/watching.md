@@ -290,7 +290,8 @@ In tests use the `boundaries` fixture in `tests/conftest.py`: the real git wrapp
 The rules of the stretch, in `observe(outcome)`:
 
 - An outcome is idle when `stopped is None`, its event is of kind `idle` and `dispatch == "handled"`. Any other outcome starts a new stretch at `clock.now()` and does nothing else. An iteration that ran no tick calls `observe` not at all.
-- The first stretch starts when the object is made. An idle outcome with `clock.now()` minus the start of at least `limit` (exactly the limit is enough) logs `idle shutdown: idle for <n> minutes, powering the machine off`, calls `power.power_off()` once, and starts a new stretch.
+- The first stretch starts when the object is made. An idle outcome with `clock.now()` minus the start of at least `limit` (exactly the limit is enough) logs `idle shutdown: idle for <n> minutes, <action>`, calls `power.power_off()` once, and starts a new stretch.
+- `<action>` is the constructor's `action` (default `powering the machine off`); `idle_shutdown_of` passes `ending the factory's process` with `exit` and nothing with `poweroff`.
 - A `PowerOffError` is not raised: the log gets `idle shutdown: <error text>; the factory runs on`, and the new stretch starts as after a success.
 - A `limit` of zero or less raises `ValueError`.
 
