@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 489
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T07:42:03.277699Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-11-01T07:42:03.277699Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-11-01T07:45:40.534074Z'
+  stage: doing
+  run: e8f5fe78616041d7a2bb7eb2237aaff5
+  blocked: question
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -121,3 +124,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/adapters/test_opencode_runtime_lockdown.py - ImportError while importing test module '/work/checkout/tests/adapters/test_opencode_runtime_lockdown.py'.
 6. factory: started doing as vm.
+7. coder: I stopped because an earlier test conflicts with the Interface. The code is done and is in the working tree. `make check` is red on that one earlier test only.
+
+   Built, in `src/factory/adapters/opencode_runtime.py` only:
+   - `LOCKDOWN_SWITCHES` holds the three opencode switches, each with the value `1`.
+   - `_provider_keys` now returns `{**provider_configuration(provider), "enabled_providers": [provider.id]}`. The domain `provider_configuration` is unchanged, as the Interface says.
+   - `_process_request` builds `{CONFIG_VARIABLE: ..., **SWITCHES, **lockdown}`. `lockdown` is `LOCKDOWN_SWITCHES` when a provider file is set and `{}` otherwise. The same dictionary goes to `run_launch` and to `container_launch`, so the runtime's values win over the request's and the resume gets the same values.
+
+   All tests in `tests/adapters/test_opencode_runtime_lockdown.py` pass.
+
+   The conflict: `tests/adapters/test_opencode_runtime_provider.py::test_a_provider_file_adds_its_keys_beside_the_existing_ones` (line 62, from F0046-S0001) fails. It expects the configuration to be exactly `{**request_configuration(), **CONFIGURATION}`. The Interface and criterion 2 require the extra key `enabled_providers: ["corp"]` there. The Description also says "The existing opencode runtime tests pass unchanged", which cannot hold together with criterion 2. Failure from the run: `AssertionError: assert {'autoupdate'...low'}}}}, ...} == {'autoupdate'...low'}...` at `tests/adapters/test_opencode_runtime_provider.py:62`.
+
+   Options:
+   (a) The tester adds `"enabled_providers": ["corp"]` to that test's expected dictionary. I would choose this. `CONFIGURATION` in `tests/opencode_provider_support.py` stays as it is, because it is the domain function's output.
+   (b) The tester instead adds the key to `CONFIGURATION`. That would break the domain tests of `provider_configuration`, which the Interface keeps unchanged.
+   (c) Drop the key from the runtime. That goes against criterion 2 and the feature's decision 14.
+
+   I cannot change the test myself (R9), and the coder's `tests` decision needs your answer first. With (a), I will end the next run with `tests` and name that change.
+
+   Refactor: the diff is three small edits, so nothing needed changing.
+
+   Noticed but not touched: nothing else.

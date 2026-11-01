@@ -71,6 +71,12 @@ from factory.domain.provider_limits import ProviderLimit, limit_in_text, named_w
 CONFIG_VARIABLE = "OPENCODE_CONFIG"
 AGENT_PREFIX = "factory-"
 SWITCHES = {"PYTHONDONTWRITEBYTECODE": "1"}
+# Only with a provider file: without it opencode needs its public model list.
+LOCKDOWN_SWITCHES = {
+    "OPENCODE_DISABLE_MODELS_FETCH": "1",
+    "OPENCODE_DISABLE_AUTOUPDATE": "1",
+    "OPENCODE_DISABLE_DEFAULT_PLUGINS": "1",
+}
 OPENCODE_TOOLS = (
     "bash",
     "edit",
@@ -304,7 +310,7 @@ def _provider_keys(provider_file: Path | None) -> dict[str, object]:
         raise AgentRuntimeError(
             f"cannot use the opencode provider file {provider_file}: {exc}"
         ) from exc
-    return provider_configuration(provider)
+    return {**provider_configuration(provider), "enabled_providers": [provider.id]}
 
 
 def _configuration(
@@ -672,7 +678,8 @@ class OpencodeRuntime(AgentRuntime):
         self, request: AgentRunRequest, files: _RunFiles, model: str
     ) -> ProcessRequest:
         argv = self._opencode_argv(request, model)
-        runtime_environment = {CONFIG_VARIABLE: str(files.config), **SWITCHES}
+        lockdown = LOCKDOWN_SWITCHES if self._provider_file is not None else {}
+        runtime_environment = {CONFIG_VARIABLE: str(files.config), **SWITCHES, **lockdown}
         if self._containers is None:
             started = run_launch(request, argv, runtime_environment, time_limit=request.time_limit)
         else:
