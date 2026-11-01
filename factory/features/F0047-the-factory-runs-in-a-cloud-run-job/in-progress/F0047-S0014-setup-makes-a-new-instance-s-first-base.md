@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 495
-comments_read: []
+comments_read: [6559346138]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: c6304173e89b475190dad749c89f528f
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-01T14:33:43.012449Z'
+  stage: intake
 ---
 
 # Setup makes a new instance's first base
@@ -71,3 +76,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. The Interface takes the snapshot whenever `<dataset>@base` is missing, whatever the dataset's origin. Criterion 1 covers only "the dataset is made and has no base". The case of a dataset that already exists (made by hand) without a base has no criterion: a coder could take the base only inside the `zfs create` branch and still pass criteria 1 and 2. I would reword criterion 1 to cover both ("the base is missing, with the dataset just made or already there") or add a second criterion for the existing dataset without a base. I would add the second criterion.
    3. The Interface says the closing line may take the `said` form with the changes "as today". Criterion 4 tests only the ending `and its base`. The change message `made the first base <dataset>@base` appearing in the `said` form is covered by criterion 1 only loosely ("the step's output names..."). I would accept it as written if you confirm that criterion 1 covers it; otherwise add the closing-line form with the change.
    4. Criterion 1 orders the snapshot after create, quota and ownership. Criterion 3 orders it before `delegation`. Both can be tested by the stand-in's call log, but ownership is a `stat`/`install` call and not a `zfs` call. State how the test sees "after ownership" (for example, through the `install` call recorded by the harness, or through the text order in `vm/setup.sh`). I would choose the recorded call order if `run_setup` records `install`, otherwise drop the ownership part from the criterion.
+4. 2026-11-01 human: Answers to question 3:
+
+   1. Yes: add the criterion, a stand-in `zfs` that fails on `snapshot`: the script exits non-zero and the step's closing line is not printed.
+   2. Yes: a second criterion for a dataset that already exists without a base (the base is taken), beside criterion 2 (an existing base: nothing is done).
+   3. Confirmed: criterion 1's "the step's output names `made the first base <dataset>@base`" covers the `said` form with the change; no further criterion.
+   4. The run's recorded `zfs` calls give the order against `create` and the quota; the order against the ownership of the mount point is tested from the script's text (the `zfs snapshot` line comes after the `install -d -o factory` line of the step), as the setup tests already test order from the text.
