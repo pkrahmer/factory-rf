@@ -1286,7 +1286,7 @@ Date: 2026-10-31 (F0047-S0005; decision 9 of the feature).
 
 Date: 2026-10-31 (F0047-S0008; decision 18 of the feature).
 
-- Decision: `FACTORY_IDLE_SHUTDOWN_ACTION` is `poweroff` (default, unchanged) or `exit`. With `exit`, `ProcessExit` calls the stop request of the loop instead of running `systemctl`: the same flag a `SIGTERM` sets, so the scheduler ends after the tick in progress and `factory-run` returns 0, which ends a job's execution. The idle rule, the log line (`powering the machine off`, also with `exit`) and every other setting are unchanged.
+- Decision: `FACTORY_IDLE_SHUTDOWN_ACTION` is `poweroff` (default, unchanged) or `exit`. With `exit`, `ProcessExit` calls the stop request of the loop instead of running `systemctl`: the same flag a `SIGTERM` sets, so the scheduler ends after the tick in progress and `factory-run` returns 0, which ends a job's execution. The idle rule, the log line's words for `exit` changed in S0010 (`ending the factory's process`) and every other setting are unchanged.
 - Why: in a Cloud Run job `sudo` and `systemctl` do not exist, so an idle job would be billed until its task timeout. Ending the command is the job's equivalent of switching a VM off; the schedule or the operator starts it again.
 - The choice is made in the entry wiring, with `ProcessExit` as one more `PowerOff`; the loop's event is passed in as `request_stop`, so `exit` without one is a `ValueError`.
 - Rejected: a separate stop interface in the application layer (`PowerOff` already says what the idle shutdown needs); `exit` for every machine (a VM keeps `poweroff`); waking the job when work arrives (not in this feature).
@@ -1299,6 +1299,7 @@ Date: 2026-11-01 (F0047-S0006; decisions 10 to 12 of the feature).
 - The runc release is the one measured in the job (P3). The script holds its SHA-256 as a constant and checks the download against it; a checksum downloaded beside the binary would check nothing, and `RUNC_VERSION` without `RUNC_SHA256` is refused for the same reason.
 - The code is cloned with no credential, and the versions the preflight compares (`FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION`) are read from the cloned `vm/Dockerfile` the way `vm/setup.sh` reads its pins (the human, 2026-11-01). Podman's storage root is a tmpfs mounted at every start, since the job's root file system cannot carry the kernel's overlay (P16).
 - A restart is a crash for the recovery, charged once, and after `crash_cap` crashes the work item waits for the human (accepted by the human, 2026-10-31). A stop between stages before the nightly restart is a candidate for later.
+- The job installs `vm/git-credential-factory` of its own code ref (S0010, the acceptance F0047-A0001): the factory's git takes its credential only from `/usr/local/bin/git-credential-factory`, and a bare job has none, so no private project could be fetched or pushed. The idle line with `exit` reads `ending the factory's process`, since nothing is powered off.
 - Rejected: a default code ref such as `main`; the runc checksum fetched with the binary; copying `vm/setup.sh`'s `sed` lines into the script (they stay where they are).
 
 ## Debian's packages follow the base image's release

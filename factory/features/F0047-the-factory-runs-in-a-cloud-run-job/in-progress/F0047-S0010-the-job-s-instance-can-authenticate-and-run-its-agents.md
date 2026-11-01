@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 491
 comments_read: [6556021304]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-01T09:41:29.021596Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-01T09:41:29.021596Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-11-01T09:42:03.346645Z'
+  stage: docs
+  run: d3f23c9647ea4be88dc91d45d37da04d
 ---
 
 # The job's instance can authenticate and run its agents
@@ -252,3 +254,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/application/test_idle_shutdown.py: none needed. It only adds a test.
     - tests/vm_support.py: the story's Interface allows the new `failing_install_target` option of `run_job_start`. Earlier callers keep their behaviour because the default is `None`.
 13. factory: started docs as vm.
+14. documenter: Documented the three changes of the story; I found no contradiction between the Interface, the criteria and the code, so there are no findings. I changed only documents, so I did not run `make check`; the factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md`, *On Cloud Run*, *The steps*, step 8 `code`: it names the helper's install (`vm/git-credential-factory` to `/usr/local/bin/git-credential-factory`, mode 0755), the `job-start: code: failed` stop, and what the helper is for (the factory's git, the project's host only, with a pointer to *The hosting-service token*).
+    - `docs/operator-guide.md`, *The idle shutdown*, *In a job*: the log line with `exit` is `…, ending the factory's process`. With `poweroff` it is unchanged.
+    - `docs/project-guide/agents.md`, *The opencode runtime*: it made the old sentence "the state directory must exist (the runtime does not create it)" wrong. It now says the runtime makes its state directory as the Claude Code runtime does. It also says why the `mkdir` runs before the `try`/`finally`: the cleanup would otherwise hide the error. I did not touch the other mention of `/state/runs` in the image.
+    - `docs/project-guide/watching.md`, the `IdleShutdown` rules: the log line takes `<action>`, with the default and what `idle_shutdown_of` passes for each setting.
+    - `docs/decisions.md`: one line in *A bare job becomes an instance at start* (the job installs the helper of its own code ref, because the factory's git has no other credential). I also changed the one sentence in *In a job the idle shutdown ends the process* that said the log line stays `powering the machine off` with `exit`, because it is now false.
+
+    Cross-read and found current: README.md (the docs criterion says none), the table row of `FACTORY_IDLE_SHUTDOWN_ACTION` and the 0-status line in the operator guide, the Cloud Run list of variables and the step list otherwise.
+
+    Not touched: nothing stale that is unrelated to this story.
+
+    I did not run the smoke-test commands; they are the smoke tester's.
+
+    `check`: check: green (not run again: passed on tree 4abef89d0f05 at 2026-11-01T09:36:47Z)
+    `secrets`: secrets: green (2.8 s)
+    `documents`: documents ok
