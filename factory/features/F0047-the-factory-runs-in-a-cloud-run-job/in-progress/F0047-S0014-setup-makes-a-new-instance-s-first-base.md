@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-01T14:48:57.693066Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-01T14:48:57.693066Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-01T14:49:47.976473Z'
+  stage: review
+  run: 99df4a7b75ef4b918a84776a398883a7
 ---
 
 # Setup makes a new instance's first base
@@ -167,3 +169,11 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`: the changes to `vm/setup.sh` and the new `tests/test_vm_setup_first_base.py`. I read them against the criteria and the Interface.
+
+    The script change does what the Interface says. The base check comes after the `create`, the quota and the `install -d -o factory` ownership step, and before the closing line. It runs `zfs list -H -o name -t snapshot "$dataset@base"`, then `zfs snapshot` and `changed "made the first base …"`. The closing line ends with `and its base`. Because the script runs under `set -eu` and the snapshot sits in the body of the `if`, not its condition, a failing snapshot stops the step. Each of criteria 1 to 6 has a test that checks what the criterion says. The rule's failing side, a failing `zfs snapshot`, is tested (criterion 5). The coder's journal entry 10 records `check: green` and `duplicates: 0 new`. The new stand-in rig is not a copy of an existing helper: the rigs in `tests/vm_support.py::run_job_start`, `tests/zfs_support.py` and `tests/test_vm_setup_code_url.py::_stand_ins` differ in what they record and answer. This review is round 0, so a point about the test file's quality still counts as a finding.
+
+    Findings:
+    1. `tests/test_vm_setup_first_base.py::test_a_made_dataset_gets_its_first_base_after_its_create_and_quota` and `::test_an_existing_dataset_without_a_base_gets_its_first_base`. These are two rows of one rule, "a missing base is taken once and named", written as separate test functions that repeat the same two assertions. One asserts that the snapshot calls equal `[["snapshot", BASE]]`, the other that `MADE_BASE` appears in `datasets_lines()`. CLAUDE.md *Tests* says the sides of one rule are rows of one parametrized test. Fix: the tester merges them into one parametrized test with rows for a dataset that was just made and a dataset that already exists, ids naming the case. The order checks of criterion 1 (against `create`, the quota and the `install -d -o factory` text) stay in their own test on the `made` fixture.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` shows only the added test file `tests/test_vm_setup_first_base.py`, and `vm/setup.sh` is not a test.
