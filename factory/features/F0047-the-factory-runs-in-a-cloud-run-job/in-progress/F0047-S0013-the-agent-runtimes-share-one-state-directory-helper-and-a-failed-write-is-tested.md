@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-01T14:26:13.807216Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-01T14:26:13.807216Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-11-01T14:26:33.967292Z'
+  stage: docs
+  run: 6afdd49e4a13483a8c8f5175997b3a93
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -288,3 +290,19 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
     - tests/adapters/test_oauth_token.py: changed under the human's leave given in the story's Interface (2026-11-01). Only the expected detail of the row `incomplete-read` changed.
     - tests/test_hosting_search.py: changed under the human's leave given in the story's Interface (2026-11-01). Only `SECOND` was renamed (now `ANOTHER_URLLIB_IMPORTER`) and `SECOND_CLIENT` (now `ANOTHER_HTTP_CLIENT_IMPORTER`). Row ids and checks are unchanged.
 18. factory: started docs as vm.
+19. documenter: Changed one file, `docs/project-guide/agents.md`, in three places:
+    - The `agent_launch` helper list now describes `make_state_directory`. It makes the folder with its parents, leaves an existing folder and its files alone, and raises `state_directory_error` from the `mkdir`'s `OSError`. Both runtimes call it before they write a run's files.
+    - The Claude Code runtime's line about the files under `state_directory` now names the helper.
+    - The opencode paragraph said the runtime makes its state directory with `_make_state_directory`, a method this story removed. It now names `agent_launch.make_state_directory`. I kept the sentences about the order before the `try` and why.
+
+    Cross-read and found current against the diff: `README.md` and `docs/operator-guide.md`. Neither mentions the removed method, and no behaviour an operator sees changed. I did not touch `docs/decisions.md`; the docs criterion says none, and I did not read it.
+
+    I ran no examples, because I wrote none. I did not run `make check`, because I changed only a document.
+
+    Stale text I saw and did not touch: none. The coder's note stands: `ClaudeCodeRuntime._state_error` now has one caller. That is the coder's code and was left out of scope.
+
+    No findings for the coder. The code matches the Interface and the criteria.
+
+    `check`: check: green (not run again: passed on tree e8f95cf0f330 at 2026-11-01T14:22:11Z)
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok
