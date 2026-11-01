@@ -2,7 +2,6 @@
 
 import os
 import signal
-from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -20,6 +19,8 @@ from token_support import (
     ScriptedTokenSource,
     answer,
     http_error,
+    never_sleep,
+    scripted,
 )
 
 VARIABLES = [
@@ -29,38 +30,6 @@ VARIABLES = [
     "FACTORY_TOKEN_CLIENT_SECRET_FILE",
     "FACTORY_API_LOGIN_FILE",
 ]
-
-
-@pytest.fixture
-def secret_file(tmp_path: Path) -> Path:
-    """The mounted client secret."""
-    path = tmp_path / "secret" / "client-secret"
-    path.parent.mkdir()
-    path.write_text(HIDDEN, encoding="utf-8")
-    return path
-
-
-@pytest.fixture
-def login_file(tmp_path: Path) -> Path:
-    """The login file the command keeps fresh."""
-    return tmp_path / "login" / "api-login"
-
-
-@pytest.fixture
-def environ(secret_file: Path, login_file: Path) -> dict[str, str]:
-    """A complete environment of the command."""
-    return {
-        "FACTORY_TOKEN_URL": ENDPOINT,
-        "FACTORY_TOKEN_SCOPE": "api://x/.default",
-        "FACTORY_TOKEN_CLIENT_ID": "client-1",
-        "FACTORY_TOKEN_CLIENT_SECRET_FILE": str(secret_file),
-        "FACTORY_API_LOGIN_FILE": str(login_file),
-    }
-
-
-def scripted(source: TokenSource) -> Callable[[str, str, str, str], TokenSource]:
-    """A source factory that hands out `source` whatever it is given."""
-    return lambda _url, _client_id, _secret, _scope: source
 
 
 class SignallingSleep:
@@ -78,11 +47,6 @@ class SignallingSleep:
         self.waits.append((self.login_file.read_text(encoding="utf-8"), seconds))
         if len(self.waits) == self.last:
             signal.raise_signal(self.number)
-
-
-def never_sleep(seconds: float) -> None:
-    """A wait the `--once` runs must not reach."""
-    raise AssertionError(f"waited {seconds} s")
 
 
 @pytest.mark.parametrize("value", [pytest.param(None, id="unset"), pytest.param("  ", id="blank")])

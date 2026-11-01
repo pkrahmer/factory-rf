@@ -1,9 +1,10 @@
-"""A token source that answers from a script, and an `open_url` that records its requests."""
+"""A scripted token source, a wait never reached, and an `open_url` that records its requests."""
 
 import io
 import json
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from email.message import Message
 
 from factory.application.tokens import TokenSource
@@ -12,6 +13,16 @@ from factory.domain.tokens import Token
 ENDPOINT = "https://login.example.invalid/token"
 HIDDEN = "s3cret-value"
 ISSUED = "tok-abc"
+
+
+def scripted(source: TokenSource) -> Callable[[str, str, str, str], TokenSource]:
+    """A source factory that hands out `source` whatever it is given."""
+    return lambda _url, _client_id, _secret, _scope: source
+
+
+def never_sleep(seconds: float) -> None:
+    """A wait the run must not reach."""
+    raise AssertionError(f"waited {seconds} s")
 
 
 class ScriptedTokenSource(TokenSource):
