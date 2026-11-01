@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 492
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T09:48:12.901233Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-01T09:47:53.013246Z'
   stage: intake
   run: 349d685ab1c848c09be4001b8ed29f0e
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-01T09:48:12.901233Z'
+  stage: tests
 ---
 
 # The refresher's remaining rules get their tests
@@ -85,3 +94,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: the pytest command is runnable. The project's pytest config already sets `-q` and the command passes none. The `Expect:` line can be checked against the summary line, which holds `passed` and neither `failed` nor `error`.
    Architecture: tests only, in `tests/domain/` and `tests/entry/` as the layer mirror requires, using the shared support module and fixture. No layer is crossed.
    Scope: the story is listed in `feature.md` as S0012. It changes no `src/` module and no S0004 test, and it leaves out the two items that need the human's leave, as `feature.md` and decision 21 say.
+4. factory: started tests as vm.
