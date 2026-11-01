@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-01T07:30:01.114231Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -261,6 +257,12 @@ journal:
   kind: started
   at: '2026-11-01T07:30:01.114231Z'
   stage: smoke-test
+- number: 46
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-01T07:30:32.528060Z'
+  stage: smoke-test
+  run: a0d01498303b460abcbc5679a77acec4
 ---
 
 # One script turns a bare job into a running instance
@@ -784,3 +786,27 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.5 s)
     `documents`: documents ok
 45. factory: started smoke-test as vm.
+46. smoke-tester: Smoke test, round 2. I ran both commands from the repository root exactly as written, in order. Before the first command I checked that none of the five required inputs (`FACTORY_INSTANCE`, `FACTORY_REPOSITORY_URL`, `FACTORY_CODE_URL`, `FACTORY_CODE_REF`, `FACTORY_TOKEN_FILE`) was set in my shell. Otherwise the script would have gone on to the real `apt-get`.
+
+    Command 1:
+    ```bash
+    sh vm/job-start.sh; echo "exit $?"
+    ```
+    ```
+    job-start: FACTORY_INSTANCE is not set
+    exit 2
+    ```
+    Met its `Expect:` line: exactly the two lines `job-start: FACTORY_INSTANCE is not set` and `exit 2`. No step line (`job-start: inputs` or any later step) was printed. The script stopped before anything else ran, as criterion 1 and the Interface say.
+
+    Command 2:
+    ```bash
+    grep -c 'ip daddr 169.254.169.254 tcp dport 80 reject' vm/job-start.sh
+    ```
+    ```
+    2
+    ```
+    Met its `Expect:` line: `2`, one rule each for the chains `blockout` and `blockfwd` (criterion 6).
+
+    Criteria check: I read the acceptance criteria again. Neither output contradicts any of them: criterion 1 (exit 2 and the message, before any other step), criterion 6 (the rule appears twice), and none of the others is touched by these two commands. I did not run `make check` again: this stage changes no files, and the docs stage's gate recorded `check: green` on this tree.
+
+    Findings: none.
