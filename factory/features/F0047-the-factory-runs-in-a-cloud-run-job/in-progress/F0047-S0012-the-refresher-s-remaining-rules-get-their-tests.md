@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545, 6557892923]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T12:25:58.915769Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-01T12:25:58.915769Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-11-01T12:34:53.985795Z'
+  stage: doing
+  run: e76727bba739408b836236c0d5924c2b
 ---
 
 # The refresher's remaining rules get their tests
@@ -387,3 +389,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed, not touched: as in entry 17, `src/factory/entry/refresh_token.py:136` is still the only line of that module that coverage leaves uncovered.
 26. 2026-11-01 human: Answer: (b), done. The two places in the journal that named the fixtures as `secret_file` now read "secret-file, login-file and environ fixtures" (commit 1b6034367 on the branch, the human's leave); `make secrets` finds nothing in the work item now. Run `make check` and hand on.
 27. factory: started doing as vm.
+28. coder: Following the human's answer (b) in entry 26: the journal no longer names the fixture in a way detect-secrets flags (commit 1b6034367). I ran `make check` and it is green on every target: lint, types, layers, sast, `secrets: green (0.3 s)`, licenses, `test: green (164.1 s)`, then `check: green`.
+
+    Built: nothing in this round. No file under `src/` changed, which is what the story expects: the code passes every new test as it is. The diff against `main` outside `factory/` is the tester's work only: tests/conftest.py, tests/token_support.py (now with `scripted` and `never_sleep`), tests/entry/test_refresh_token.py, tests/domain/test_tokens_masked.py and tests/entry/test_refresh_token_signals.py.
+
+    Main choice: I left the code and the tests as they are and handed on. I rejected options (a) and (c) of entry 25, a `.secrets.baseline` entry and a change to the detector's configuration. The human's reword made both unnecessary.
+
+    Refactor: there is no diff of mine, so nothing changed.
+
+    Description unchanged: entry 26 fixes wording in the journal and does not change what the task means.
+
+    Noticed, not touched: `src/factory/entry/refresh_token.py:136` is still the only line of that module that coverage leaves uncovered. It is outside this story's scope.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
