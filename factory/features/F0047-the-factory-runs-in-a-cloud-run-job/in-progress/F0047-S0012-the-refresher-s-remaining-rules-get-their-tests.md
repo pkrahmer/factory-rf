@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T10:22:00.010978Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-01T10:21:39.453746Z'
   stage: review
   run: 5fbae22966b74826bb6fdcfe2ae5ff1d
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-01T10:22:00.010978Z'
+  stage: doing
 ---
 
 # The refresher's remaining rules get their tests
@@ -285,3 +294,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/conftest.py: standing leave to move a shared test helper, and the human's answer in entry 6. Only the `secret_file`, `login_file` and `environ` fixtures were added, moved from `tests/entry/test_refresh_token.py`; only their docstrings changed.
     - tests/entry/test_refresh_token.py: standing leave to move a shared test helper, and the human's answer in entry 6. It drops its copies of the three fixtures and of `scripted` and imports `scripted` from `token_support`. Every test keeps its name and what it checks.
     - tests/token_support.py: standing leave to move a shared test helper, and the human's answer in entry 6. `scripted` was moved in unchanged.
+20. factory: started doing as vm.
