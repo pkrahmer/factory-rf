@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T14:57:00.626663Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-01T14:56:40.258406Z'
   stage: tests
   run: 7b6f666db7c6407c87b31ccfa376bd9d
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-01T14:57:00.626663Z'
+  stage: doing
 ---
 
 # Setup makes a new instance's first base
@@ -221,3 +230,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.7 s)
+17. factory: started doing as vm.
