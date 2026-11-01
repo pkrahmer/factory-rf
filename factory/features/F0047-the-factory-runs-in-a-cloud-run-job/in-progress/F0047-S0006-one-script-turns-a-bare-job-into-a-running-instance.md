@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-01T07:27:48.313742Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -241,6 +245,11 @@ journal:
   at: '2026-11-01T07:27:27.893643Z'
   stage: review
   run: 13f49fdb940c41d49f71572110297ba0
+- number: 43
+  speaker: factory
+  kind: started
+  at: '2026-11-01T07:27:48.313742Z'
+  stage: docs
 ---
 
 # One script turns a bare job into a running instance
@@ -728,3 +737,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Notes (`tests/test_vm_job_start.py`, a file this diff adds):
     - `tests/test_vm_job_start.py:231` and `:277`: the passing and failing sides of the runc checksum rule are two test functions. The same holds for `:360` with `:394` (mount) and `:317` with `:342` (ref).
     - `tests/test_vm_job_start.py:548`, `test_factory_run_gets_the_stage_image_the_image_step_built`: it repeats the given/default image rows of `:360` and could be one more assertion there.
+43. factory: started docs as vm.
