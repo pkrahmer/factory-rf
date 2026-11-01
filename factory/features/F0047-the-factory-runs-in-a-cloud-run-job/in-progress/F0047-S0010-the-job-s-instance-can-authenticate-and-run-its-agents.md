@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 491
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T09:12:55.946974Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-01T09:12:35.742473Z'
   stage: intake
   run: a1ff226589e34a8885da7c86b778a854
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-01T09:12:55.946974Z'
+  stage: tests
 ---
 
 # The job's instance can authenticate and run its agents
@@ -101,3 +110,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Smoke test: both commands are runnable. Grep: `vm/job-start.sh` has no helper line yet, so the count goes from 0 to 1 with the install line (the comments and messages carry no such path). The Python snippet uses the real constructor and `_power_off`, with `ManualClock` and the two stand-ins, and prints one line that can be compared. Neither runs pytest, so the `-q` rule does not apply.
    Architecture: the changes sit in the right layers: the `mkdir` in the adapter, the `action` text in application, its choice in the entry wiring, the script under `vm/` (the coder's write path). No new dependency or module.
    Scope: within the feature's scope (S0010 is listed, refined on 2026-11-01, decision 21). It leaves `vm/setup.sh`, the Claude Code runtime and the idle rule alone. The only change to an earlier test is the one the human's leave names.
+4. factory: started tests as vm.
