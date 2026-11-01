@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 492
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T09:48:12.901233Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,13 @@ journal:
   kind: started
   at: '2026-11-01T09:48:12.901233Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-11-01T09:52:19.141237Z'
+  stage: tests
+  run: 6bb95a218aff45399b5685f4637a063d
+  blocked: question
 ---
 
 # The refresher's remaining rules get their tests
@@ -95,3 +98,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: tests only, in `tests/domain/` and `tests/entry/` as the layer mirror requires, using the shared support module and fixture. No layer is crossed.
    Scope: the story is listed in `feature.md` as S0012. It changes no `src/` module and no S0004 test, and it leaves out the two items that need the human's leave, as `feature.md` and decision 21 say.
 4. factory: started tests as vm.
+5. tester: Question on criterion 2. The Interface says "`main` installs its own `SIGTERM` and `SIGINT` handlers while it runs". Criterion 2 adds "While the source's `fetch` runs, `signal.getsignal(signal.SIGTERM)` is not the test's handler", but does not say which rows that applies to. In the code, `--once` returns before `_stop_on_signal` (`src/factory/entry/refresh_token.py:57-58`). So under `--once`, `fetch` runs under the test's own handler, and the check would fail there. Fixing that means changing `src/factory/`, which this story rules out. In the exit-2 row `fetch` never runs.
+
+   Options:
+   (a) Check the handler during `fetch` only in the loop row. The code passes as it is, and the Interface sentence means "while the loop runs".
+   (b) Check it in the `--once` row too. That test fails, and the story has to allow a `src/` change so that `--once` installs the handlers as well.
+   I would choose (a). The tests in the working tree do (a) now: the `once` and `url-unset` rows don't check the handler during `fetch`. If you choose (b), the next run turns on the `watched` flag of the `once` row in `test_main_puts_back_the_signal_handlers_it_found`, and the story is refined to allow the `src/` change.
+
+   What is done (written, `make test` green, `make lint` green; all pass because the code already exists, as the story expects):
+   criterion 1: tests/domain/test_tokens_masked.py::test_every_non_empty_hidden_value_is_replaced_by_the_mask
+   criterion 2: tests/entry/test_refresh_token_signals.py::test_main_puts_back_the_signal_handlers_it_found
+   criterion 3: tests/entry/test_refresh_token_signals.py::test_an_interrupt_or_exit_of_a_refresh_leaves_main_as_raised
+   Files created: tests/domain/test_tokens_masked.py, tests/entry/test_refresh_token_signals.py. Every module imported, so the test run reported none it could not import.
+
+   Notes:
+   - `ScriptedTokenSource` in `tests/token_support.py` raises only `Exception`, not `KeyboardInterrupt`, so the new module has its own `RaisingSource`.
+   - The new module has its own `environ`, `login_file` and `scripted` helpers instead of moving S0004's from `tests/entry/test_refresh_token.py` under the standing leave. This story says S0004's tests stay unchanged. If you want them in one shared place, that move is a later story's.
