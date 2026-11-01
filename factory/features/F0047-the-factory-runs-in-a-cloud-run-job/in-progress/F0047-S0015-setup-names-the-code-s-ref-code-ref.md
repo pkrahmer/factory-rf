@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 496
 comments_read: [6559768618]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T15:11:39.337756Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-01T15:11:39.337756Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-01T15:16:05.489887Z'
+  stage: tests
+  run: 31ba077969eb497f9454ac552c2042d4
+  blocked: question
 ---
 
 # Setup names the code's ref --code-ref
@@ -109,3 +112,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: a shell script under `vm/`, a path the coder may write. No layer is touched.
    - Scope: within decisions 16 and 22 of F0047 and not in its Out of scope.
 7. factory: started tests as vm.
+8. tester: I wrote the tests for every criterion. Before I hand them to the coder, I need your answer on two points.
+
+   1. An earlier test outside the leave will turn red. In `tests/test_vm_setup_text.py:378`, `test_the_options_land_in_their_named_variables` has the row `("ref", "ref")`. It checks that some line of the form `--ref) ... ref=` exists. Once the arm is `--code-ref)` and `--ref)` only calls `fault`, that row fails. The coder may not edit tests, and your leave covers only `tests/test_vm_setup.py`. The options I see:
+      (a) Extend the leave so the row becomes `("code-ref", "ref")`. The test keeps its name and still checks the same thing, that each option lands in its variable. **This is the one I would choose.**
+      (b) Drop the row, since `tests/test_vm_setup_code_ref.py` already checks that the clone's `--branch` variable is the one the `--code-ref` arm sets.
+      (c) Leave it alone. The coder would then have to keep a `--ref)` arm that assigns `ref=`, which goes against the story.
+
+   2. How I read criterion 1. The clone only runs when `/home/factory/.secrets/hosting-token` exists, and that is a fixed path outside `tmp_path`. So no test can run `setup.sh --code-ref v9` far enough to see `--branch v9`. I test it on the script's text instead, the way S0005's `--code-url` tests do. Each of the two clones (the askpass one without `--code-url`, and the `env -u GIT_ASKPASS` one with a different `--code-url`) must use `--branch "$<variable>"`, where the variable is the one the `--code-ref)` arm sets. Criterion 2 is read the same way: that variable gets `=main` exactly once, before the option parsing. Please confirm this reading, or tell me another one.
+
+   Mapping:
+   - criterion 1: tests/test_vm_setup_code_ref.py::test_the_clone_of_the_code_takes_its_branch_from_the_code_ref (rows without-code-url, different-code-url)
+   - criterion 2: tests/test_vm_setup_code_ref.py::test_without_the_code_ref_the_clone_uses_main
+   - criterion 3: tests/test_vm_setup_code_ref.py::test_the_old_ref_option_is_refused_with_a_hint (rows with-value, without-value). It checks: the first stderr line is the hint, the second starts with `usage: setup.sh`, exit status 2, and nothing new appears under `tmp_path`, which means no recording stand-in was called.
+   - criterion 4: tests/test_vm_setup_code_ref.py::test_the_usage_text_names_the_code_ref_and_not_the_ref (rows help, fault)
+
+   Files:
+   - Created `tests/test_vm_setup_code_ref.py`.
+   - Changed `tests/test_vm_setup.py` under your leave: lines 16 (`OPTIONS`) and 80 (the every-option row) now use `--code-ref` instead of `--ref`. Test names and what they check are unchanged.
+
+   `make test`: the new tests fail for the right reasons. The usage text lacks `--code-ref`, a bare `--ref` gets "needs a value", and `--ref v9` runs on to "run as root". Every test module imports; there is no collection error. `make lint` is green.
