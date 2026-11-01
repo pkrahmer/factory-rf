@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-01T14:34:00.823800Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-01T14:33:43.012449Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-01T14:34:00.823800Z'
   stage: intake
 ---
 
@@ -82,3 +91,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    2. Yes: a second criterion for a dataset that already exists without a base (the base is taken), beside criterion 2 (an existing base: nothing is done).
    3. Confirmed: criterion 1's "the step's output names `made the first base <dataset>@base`" covers the `said` form with the change; no further criterion.
    4. The run's recorded `zfs` calls give the order against `create` and the quota; the order against the ownership of the mount point is tested from the script's text (the `zfs snapshot` line comes after the `install -d -o factory` line of the step), as the setup tests already test order from the text.
+5. factory: started intake as vm.
