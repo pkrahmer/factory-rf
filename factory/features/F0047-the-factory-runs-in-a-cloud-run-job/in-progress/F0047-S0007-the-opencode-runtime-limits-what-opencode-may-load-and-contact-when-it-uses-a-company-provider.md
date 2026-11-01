@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T08:12:00.933740Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-01T08:12:00.933740Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-11-01T08:18:28.971037Z'
+  stage: doing
+  run: 1523aa7440f0432494733a7ae3f124f4
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -306,3 +308,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (174.6 s)
 21. factory: started doing as vm.
+22. coder: Round 1. The tester's helper moves (entry 20) settle the three review findings from entry 16. All three were test-only, so I changed no code in this run. `make check` is green: `test: green (174.8 s)`, coverage 99.56 %, `check: green`.
+
+    What I built (committed in earlier runs, all in `src/factory/adapters/opencode_runtime.py`):
+    - `LOCKDOWN_SWITCHES` holds the three opencode switches, each set to `1`.
+    - `_provider_keys` now adds `enabled_providers: [provider.id]` to the domain's `provider_configuration`. The domain function itself is unchanged.
+    - `_process_request` builds the single `runtime_environment` dictionary as `{CONFIG_VARIABLE: ..., **SWITCHES, **lockdown}`. `lockdown` is `LOCKDOWN_SWITCHES` when a provider file is set and `{}` otherwise.
+
+    Main choice: the switches go in that one dictionary, which the host launch, the container launch and the budget resume all receive. So the values are the same on every path, and the runtime's values override the request's. Rejected: adding the switches separately in each launch path. That would leave two copies to keep in step, and the resume could drift from the first call.
+
+    Refactor: no code changed this round, so there was nothing to refactor.
+
+    What the journal changed: since entry 8, the Description's line "The existing opencode runtime tests pass unchanged" has one exception, the expectation in `tests/adapters/test_opencode_runtime_provider.py::test_a_provider_file_adds_its_keys_beside_the_existing_ones`. My write paths do not include the work item, so I did not rewrite the Description.
+
+    Noticed but not touched: `make duplicates` reported one new finding in entry 14, a relabel of `__call__` in `src/factory/adapters/oauth_token.py:27`. That file is outside this diff.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 1 gone
