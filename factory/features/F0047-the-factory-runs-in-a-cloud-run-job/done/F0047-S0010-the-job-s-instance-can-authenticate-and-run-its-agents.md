@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-11-01T09:42:48.830785Z'
   stage: smoke-test
   run: 273c8bcb49cf4bc0a8c75bebefa7bb5f
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-11-01T09:45:12.212681Z'
+  stage: approval
 ---
 
 # The job's instance can authenticate and run its agents
@@ -306,3 +311,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - 6: the default `action` is still `"powering the machine off"` (`src/factory/application/idle_shutdown.py:21`). `idle_shutdown_of` passes the exit text only for `exit` (`src/factory/entry/wiring.py:591-593`).
 
     Nothing the smoke test showed contradicts a criterion. I did not run `make check`; the factory runs the stage's checks.
+17. factory: done (pull request merged); cost: 7 runs, 20.6 min, 67 turns, 245823 tokens in (1764360 more from cache), 25591 out, $2.49
