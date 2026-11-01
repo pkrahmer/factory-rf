@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-01T08:20:55.428461Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -152,6 +156,11 @@ journal:
   at: '2026-11-01T08:20:35.146122Z'
   stage: docs
   run: 749c6db198214540a1708e5b0ab53ec0
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-01T08:20:55.428461Z'
+  stage: smoke-test
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -390,3 +399,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree f9fde96ff742 at 2026-11-01T08:15:22Z)
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
+27. factory: started smoke-test as vm.
