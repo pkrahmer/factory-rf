@@ -16,6 +16,7 @@ The factory posts on a work item's pull request when it needs the human. Each po
 - A fault in the story's own text that blocks the stage (for example a layer rule the Interface breaks, a smoke test that no longer fits the code): fix it in the answer and say so.
 - A change outside every role's write paths that the stage needs (`pyproject.toml`'s per-file ignores, `.secrets.baseline`, `security/`): make it on `main` yourself, with the reason in the file and the commit, and name it in the answer: the stage merges `origin/main` at its next start.
 - A leave to change an earlier test of another story: give it when the feature's decisions already imply it (for example a structural test that forbids what the feature decided), narrowly (the one module, the one import), with a row that keeps catching everything else.
+- A stage that stops only because `make secrets` flags a line of the work item's own journal (the scan's keyword plugin reading a word like `Secrets:` or a fixture's name as a key): with the human's standing leave, reword that line on the work item's branch yourself, keeping its meaning. Fetch the file through the hosting service's contents API, replace every occurrence, run the secrets scan on the new text first, write it back with a commit that names the leave, log it, then answer "(reworded), go on". Never a baseline entry or a marker for it. Without that leave, it is for the human.
 - Beyond all that: switch `answer` on, your best answer marked **For the morning**; switch `answer` off, wait for the human.
 
 ## How to post
