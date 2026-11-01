@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-01T15:04:17.946665Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-11-01T15:03:57.608126Z'
   stage: review
   run: c59955f7f7624bae8989a6d1bd1249a8
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-01T15:04:17.946665Z'
+  stage: docs
 ---
 
 # Setup makes a new instance's first base
@@ -278,3 +287,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     no findings
 
     Earlier tests: none changed. `git diff --name-status main...HEAD` lists only `A tests/test_vm_setup_first_base.py` among the tests. `tests/test_vm_setup.py` and `tests/test_vm_setup_text.py` are untouched.
+21. factory: started docs as vm.
