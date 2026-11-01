@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-01T14:26:54.964714Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-11-01T14:26:33.967292Z'
   stage: docs
   run: 6afdd49e4a13483a8c8f5175997b3a93
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-01T14:26:54.964714Z'
+  stage: smoke-test
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -306,3 +315,4 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
     `check`: check: green (not run again: passed on tree e8f95cf0f330 at 2026-11-01T14:22:11Z)
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok
+20. factory: started smoke-test as vm.
