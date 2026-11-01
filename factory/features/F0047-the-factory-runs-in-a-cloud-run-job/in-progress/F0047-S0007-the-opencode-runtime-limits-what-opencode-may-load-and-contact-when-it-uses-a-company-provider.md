@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-01T08:19:52.996296Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -141,6 +145,11 @@ journal:
   at: '2026-11-01T08:19:32.600680Z'
   stage: review
   run: ab819fda771448da88c6cbf2cdfdc289
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-11-01T08:19:52.996296Z'
+  stage: docs
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -361,3 +370,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
       - the human's answer in entry 8 covers the added `"enabled_providers": ["corp"]` expectation in `test_a_provider_file_adds_its_keys_beside_the_existing_ones`;
       - the standing leave covers moving `_base_configuration` to `request_configuration` and having `_configuration_text` use the shared `configuration_text`. Every test keeps its name and what it checks.
     - `tests/adapters/opencode_stand_in.py`. The standing leave covers it. This is the shared place that received `request_configuration`, `configuration_text` and the `REQUEST_ENVIRONMENT` constant, which `opencode_request` now uses with the same behaviour. `stand_in_runtime` gained two optional keyword parameters that default to `None`, so every earlier caller gets the same runtime.
+25. factory: started docs as vm.
