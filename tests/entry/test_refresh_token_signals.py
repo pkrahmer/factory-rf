@@ -1,7 +1,6 @@
 """Tests of the refresher's signal handlers and of the exceptions it lets pass."""
 
 import signal
-from collections.abc import Callable
 from pathlib import Path
 from types import FrameType
 
@@ -10,7 +9,7 @@ import pytest
 from factory.application.tokens import TokenSource
 from factory.domain.tokens import Token
 from factory.entry.refresh_token import main
-from token_support import ENDPOINT, HIDDEN, ISSUED
+from token_support import ISSUED, scripted
 
 pytestmark = pytest.mark.usefixtures("restored_signals")
 
@@ -43,34 +42,6 @@ class RaisingSource(TokenSource):
     def fetch(self) -> Token:
         """Raise the exception."""
         raise self.error
-
-
-@pytest.fixture
-def login_file(tmp_path: Path) -> Path:
-    """The login file, holding an earlier token."""
-    path = tmp_path / "login" / "api-login"
-    path.parent.mkdir()
-    path.write_text("old-token", encoding="utf-8")
-    return path
-
-
-@pytest.fixture
-def environ(tmp_path: Path, login_file: Path) -> dict[str, str]:
-    """A complete environment of the command."""
-    secret_file = tmp_path / "client-secret"
-    secret_file.write_text(HIDDEN, encoding="utf-8")
-    return {
-        "FACTORY_TOKEN_URL": ENDPOINT,
-        "FACTORY_TOKEN_SCOPE": "api://x/.default",
-        "FACTORY_TOKEN_CLIENT_ID": "client-1",
-        "FACTORY_TOKEN_CLIENT_SECRET_FILE": str(secret_file),
-        "FACTORY_API_LOGIN_FILE": str(login_file),
-    }
-
-
-def scripted(source: TokenSource) -> Callable[[str, str, str, str], TokenSource]:
-    """A source factory that hands out `source` whatever it is given."""
-    return lambda _url, _client_id, _secret, _scope: source
 
 
 def terminate(seconds: float) -> None:
@@ -126,6 +97,9 @@ def test_an_interrupt_or_exit_of_a_refresh_leaves_main_as_raised(
     error: BaseException,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    login_file.parent.mkdir()
+    login_file.write_text("old-token", encoding="utf-8")
+
     with pytest.raises(type(error)) as raised:
         main(argv, environ, source=scripted(RaisingSource(error)), sleep=never_sleep)
 

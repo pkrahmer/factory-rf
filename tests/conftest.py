@@ -58,6 +58,7 @@ from run_process_recorder import Recorder
 from settings_support import AGENT_HOME
 from stage_run_support import INSTANCE
 from tmp_path_support import reopen
+from token_support import ENDPOINT, HIDDEN
 from vm_support import EXAMPLE_VALUE, setup_code
 from wiring_support import HOSTED_URL, PODMAN_VERSION, with_dataset
 from zfs_support import DATASET, Answer, Zfs, write_zfs
@@ -458,3 +459,30 @@ def restored_signals() -> Iterator[None]:
     yield
     for number, handler in previous.items():
         signal.signal(number, handler)
+
+
+@pytest.fixture
+def secret_file(tmp_path: Path) -> Path:
+    """The mounted client secret of the token refresher."""
+    path = tmp_path / "secret" / "client-secret"
+    path.parent.mkdir()
+    path.write_text(HIDDEN, encoding="utf-8")
+    return path
+
+
+@pytest.fixture
+def login_file(tmp_path: Path) -> Path:
+    """The login file the token refresher keeps fresh."""
+    return tmp_path / "login" / "api-login"
+
+
+@pytest.fixture
+def environ(secret_file: Path, login_file: Path) -> dict[str, str]:
+    """A complete environment of the token refresher."""
+    return {
+        "FACTORY_TOKEN_URL": ENDPOINT,
+        "FACTORY_TOKEN_SCOPE": "api://x/.default",
+        "FACTORY_TOKEN_CLIENT_ID": "client-1",
+        "FACTORY_TOKEN_CLIENT_SECRET_FILE": str(secret_file),
+        "FACTORY_API_LOGIN_FILE": str(login_file),
+    }

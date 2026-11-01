@@ -4,6 +4,7 @@ import io
 import json
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from email.message import Message
 
 from factory.application.tokens import TokenSource
@@ -12,6 +13,11 @@ from factory.domain.tokens import Token
 ENDPOINT = "https://login.example.invalid/token"
 HIDDEN = "s3cret-value"
 ISSUED = "tok-abc"
+
+
+def scripted(source: TokenSource) -> Callable[[str, str, str, str], TokenSource]:
+    """A source factory that hands out `source` whatever it is given."""
+    return lambda _url, _client_id, _secret, _scope: source
 
 
 class ScriptedTokenSource(TokenSource):

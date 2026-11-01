@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T09:53:52.584756Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-01T09:53:52.584756Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-01T10:00:27.763229Z'
+  stage: tests
+  run: 828c251eccf8436db71201c733a6b885
 ---
 
 # The refresher's remaining rules get their tests
@@ -132,3 +134,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    On your second note: move `environ`, `login_file` and `scripted` to a shared place now, under the standing leave to move a shared test helper (`tests/token_support.py`, or `tests/conftest.py` for a fixture), and have `tests/entry/test_refresh_token.py` use them from there. "S0004's tests stay unchanged" means they keep their names and check the same things, which the standing leave keeps; a copy left in two modules is what the reviewer counts as a finding, and it would cost a round.
 7. factory: started tests as vm.
+8. tester: Following the human's answer (a) in entry 6: the handler is checked during `fetch` only in the loop row (`watched` stays False for the `once` and `url-unset` rows). As the human asked, `environ`, `login_file` and `scripted` now live in one shared place under the standing leave to move a shared test helper.
+
+   criterion 1: tests/domain/test_tokens_masked.py::test_every_non_empty_hidden_value_is_replaced_by_the_mask
+   criterion 2: tests/entry/test_refresh_token_signals.py::test_main_puts_back_the_signal_handlers_it_found
+   criterion 3: tests/entry/test_refresh_token_signals.py::test_an_interrupt_or_exit_of_a_refresh_leaves_main_as_raised
+
+   Files created (in the earlier run, already on the branch): tests/domain/test_tokens_masked.py, tests/entry/test_refresh_token_signals.py.
+
+   Shared helpers moved under the standing leave:
+   - The fixtures `secret_file`, `login_file` and `environ` moved from tests/entry/test_refresh_token.py into tests/conftest.py. They are unchanged except for their docstrings, which now name "the token refresher".
+   - `scripted` moved into tests/token_support.py.
+   - Earlier test file changed: tests/entry/test_refresh_token.py. It drops its own copies and imports `scripted` from `token_support`. Every test in it keeps its name and checks the same thing.
+   - tests/entry/test_refresh_token_signals.py drops its copies too. Its old `login_file` fixture pre-wrote "old-token". The exception test now writes that earlier content itself, after creating the shared `login_file`'s parent directory. The `environ` it uses is the shared one, so its secret file is now under `secret/`, as in S0004's tests.
+
+   Test run: `make test` and `make lint` are green. Every test passes because the code under test already exists, as the story expects. Every module imported, so there were no modules the test run could not import. Type check skipped as the stage says.
+
+   `lint`: lint: green (0.2 s)
+   `test`: test: green (173.6 s)
