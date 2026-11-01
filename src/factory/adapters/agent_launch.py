@@ -321,6 +321,14 @@ def state_directory_error(state_directory: Path, error: OSError) -> AgentRuntime
     return AgentRuntimeError(f"cannot write the state directory {state_directory}: {error}")
 
 
+def make_state_directory(state_directory: Path) -> None:
+    """Make `state_directory` with its parents; an `OSError` is `state_directory_error`."""
+    try:
+        state_directory.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise state_directory_error(state_directory, exc) from exc
+
+
 def version_printed(executable: str, *, failed: bool, stdout: str, stderr: str) -> str:
     """The version `<executable> --version` printed: the first word of `stdout`.
 
