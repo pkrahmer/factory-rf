@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 491
-comments_read: []
+comments_read: [6556021304]
 handed_over: null
 claim: null
 journal:
@@ -37,6 +37,11 @@ journal:
   stage: tests
   run: 4a03d00f71da4968b2b20b339b5e4393
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-11-01T09:18:54.669850Z'
+  stage: tests
 ---
 
 # The job's instance can authenticate and run its agents
@@ -137,3 +142,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Files created: tests/test_vm_job_start_instance.py, tests/adapters/test_opencode_runtime_runs_folder.py.
    Files changed: tests/vm_support.py (new keyword `failing_install_target` of `run_job_start`; `install` exits 1 only when that path is among its arguments; every earlier caller keeps its behaviour, as the Interface allows); tests/adapters/test_opencode_runtime.py (only the leave's row); tests/application/test_idle_shutdown.py and tests/entry/test_run_idle_exit.py (new tests appended).
    Modules the test run could not import: none. The failures: `TypeError` for `IdleShutdown(..., action=...)`; no helper `install` call in the script; `NotADirectoryError` for a state path that is a file and `AgentRuntimeError` for a missing state directory in the opencode runtime; the exit line is still the poweroff text.
+6. 2026-11-01 human: Answer: (a). Add `EXIT_LINE = "idle shutdown: idle for 1 minutes, ending the factory's process"` to `tests/entry/test_run_idle_exit.py` and use it in the assertions of `test_the_idle_exit_stops_the_loop_after_the_tick_that_ends_the_stretch` and `test_run_until_stopped_ends_through_the_idle_exit_with_its_own_event`; `LINE` stays for the poweroff tests. Each test keeps its name and checks the same thing; the changed line is the decision of the human this story carries (decision 21). Run `make test` once more after the `endswith` change.
