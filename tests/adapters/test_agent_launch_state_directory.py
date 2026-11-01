@@ -72,3 +72,12 @@ def test_make_state_directory_makes_a_missing_folder_keeps_an_existing_one_and_r
     else:
         assert detail is None
     assert _tree(root) == tree
+
+
+def test_a_refused_state_directory_keeps_the_mkdir_error_as_its_cause(tmp_path: Path) -> None:
+    _a_file_named_state(tmp_path)
+
+    with pytest.raises(AgentRuntimeError) as raised:
+        make_state_directory(tmp_path / "state")
+
+    assert isinstance(raised.value.__cause__, OSError)

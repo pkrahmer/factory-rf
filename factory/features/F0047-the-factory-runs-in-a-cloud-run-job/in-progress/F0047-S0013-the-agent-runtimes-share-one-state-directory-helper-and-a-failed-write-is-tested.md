@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T14:12:47.362649Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-01T14:12:47.362649Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-11-01T14:18:45.072112Z'
+  stage: tests
+  run: 8083ea73f9c34ea0a92a6fd10be31697
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -205,3 +207,17 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
 10. factory: started doing as vm.
 11. coder: The reviewer's latest entry (9) adds criterion 5, and only its test is missing. Criterion 5: the `AgentRuntimeError` that `make_state_directory` raises for `<tmp>/state` that is a file has the `OSError` of the `mkdir` as its `__cause__`. The code already does this with `raise state_directory_error(state_directory, exc) from exc` (`src/factory/adapters/agent_launch.py`). I changed no code. The tester should pin the cause in `tests/adapters/test_agent_launch_state_directory.py`, row `a-file`, for example by checking `isinstance(error.__cause__, OSError)`. The journal does not change the meaning of the task beyond adding that criterion, which the reviewer has already written into the Description.
 12. factory: started tests as vm.
+13. tester: I wrote the test for criterion 5, the one the reviewer added (entry 9), which the coder's entry 11 says needs only its test. No other test changed.
+
+    - criterion 5: tests/adapters/test_agent_launch_state_directory.py::test_a_refused_state_directory_keeps_the_mkdir_error_as_its_cause. It puts a file at `<tmp>/state` with the same setup helper the row `a-file` of criterion 1 uses, calls `make_state_directory(<tmp>/state)` and checks that the `AgentRuntimeError`'s `__cause__` is an `OSError`.
+
+    I made it a test function of its own, not an extra check in the row `a-file`. It is a separate criterion, and the role asks for one test per criterion.
+
+    Earlier mapping, unchanged: criterion 1 → test_make_state_directory_makes_a_missing_folder_keeps_an_existing_one_and_refuses_a_file; criterion 2 → tests/adapters/test_runtime_state_directory_write.py::test_a_run_whose_state_directory_cannot_be_written_fails_before_the_call; criterion 3 → tests/adapters/test_runtime_state_directory_write.py::test_a_run_makes_its_missing_state_directory_and_completes; criterion 4 → the edits under the human's leave to tests/adapters/test_oauth_token.py (row `incomplete-read`) and tests/test_hosting_search.py (renamed constants).
+
+    Files created: none in this run. I added the new function to tests/adapters/test_agent_launch_state_directory.py, which this story's earlier tests stage created.
+
+    Modules the test run could not import: none. The code is already in place, so the new test passes: `make test` is green (164.5 s, coverage 99.58 %) and `make lint` is green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (163.7 s)
