@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T14:04:26.725541Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-01T14:04:26.725541Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-01T14:10:42.446672Z'
+  stage: doing
+  run: 0b3acf7c3be04c1d948578f6fe8def13
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -144,3 +146,13 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/adapters/test_agent_launch_state_directory.py - ImportError while importing test module '/work/checkout/tests/adapters/test_agent_launch_state_directory.py'.
 6. factory: started doing as vm.
+7. coder: I added `make_state_directory(state_directory)` to `src/factory/adapters/agent_launch.py`, next to `state_directory_error`. It calls `mkdir(parents=True, exist_ok=True)`, and an `OSError` raises `state_directory_error(state_directory, exc) from exc`. I removed `_make_state_directory` from `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py`. Each `run` now calls `make_state_directory(self._state_directory)` at the same place, before the run files' `try`/`finally`. Each module also imports the helper. No other code changed. `make check` is green: the new helper tests pass, and so do both rows of the runtime tests for criteria 2 and 3 (the checks ran as uid 1001, so the mode-0o500 rows were not skipped).
+
+   Main choice: the helper takes only the path and raises the error itself, as the Interface states. I rejected having it return the error for the caller to raise (the shape of Claude's `_state_error`), because then both runtimes would repeat the `try`/`except`.
+
+   Refactor pass: I read the diff and found nothing to change.
+
+   Noticed but not touched: `ClaudeCodeRuntime._state_error` (`claude_runtime.py`) now has one caller, `_write_files`. It could be inlined the way `OpencodeRuntime._write_files` calls `state_directory_error` directly, but the Interface says nothing else in either module changes. The remaining coverage gap in `opencode_runtime.py` (line 633, the `_resume` branch with no time left) predates this story and is unrelated. The journal did not change the meaning of the task.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 42 known, 0 gone

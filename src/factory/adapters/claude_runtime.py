@@ -36,6 +36,7 @@ from factory.adapters.agent_launch import (
     login_argv,
     login_paths,
     login_used,
+    make_state_directory,
     read_call_end,
     resume_budget,
     run_environment,
@@ -361,7 +362,7 @@ class ClaudeCodeRuntime(AgentRuntime):
         new_session = str(uuid.uuid4())
         session = request.resume_session or new_session
         files = _RunFiles.of(self._state_directory, new_session)
-        self._make_state_directory()
+        make_state_directory(self._state_directory)
         try:
             self._write_files(request, files)
             arguments = _arguments(request, new_session, files)
@@ -406,12 +407,6 @@ class ClaudeCodeRuntime(AgentRuntime):
             process = self._call(request, files, resumed, left)
             second = _result(request, process, first.session, self._provider_limit)
         return resumed_result(first, second)
-
-    def _make_state_directory(self) -> None:
-        try:
-            self._state_directory.mkdir(parents=True, exist_ok=True)
-        except OSError as exc:
-            raise self._state_error(exc) from exc
 
     def _state_error(self, exc: OSError) -> AgentRuntimeError:
         return state_directory_error(self._state_directory, exc)
