@@ -27,6 +27,11 @@ Tests (the tester writes them):
 
 To make the write fail after the `mkdir` succeeds, the test gives a state directory that exists with mode `0o500`. It is skipped when the test runs with root's file rights, as `tests/application/test_tick_stop_records.py` does. `tests/adapters/test_opencode_runtime.py`, `tests/adapters/test_opencode_runtime_runs_folder.py` and the Claude Code runtime's tests pass unchanged.
 
+Two notes of S0004's review, folded in by the human (2026-11-01), each under the human's leave over the named test and nothing else in its file:
+
+- `tests/adapters/test_oauth_token.py`, the row `incomplete-read`: its expected detail is written out as a literal (what `fetch` gives for `http.client.IncompleteRead(b"")`), not computed with the code's own expression `str(CUT_SHORT) or type(CUT_SHORT).__name__`.
+- `tests/test_hosting_search.py`: `SECOND` and `SECOND_CLIENT` are renamed to names that say what they hold (for example `ANOTHER_URLLIB_IMPORTER` and `ANOTHER_HTTP_CLIENT_IMPORTER`); the rows keep their ids and what they check.
+
 ## Acceptance criteria
 
 1. `make_state_directory`, rows of one test:
@@ -35,8 +40,9 @@ To make the write fail after the `mkdir` succeeds, the test gives a state direct
    - `<tmp>/state` that is a file raises `AgentRuntimeError` whose detail starts `cannot write the state directory <tmp>/state: `, and the file keeps its text.
 2. A run of each runtime (rows `claude` and `opencode` of one test) whose state directory exists with mode `0o500` raises `AgentRuntimeError` whose detail starts `cannot write the state directory <state>: `. The stand-in runtime is never called, and the state directory holds no file afterwards. The rows are skipped with root's file rights.
 3. A run of each runtime (rows `claude` and `opencode`) whose state directory is missing makes it and completes with `end_reason` `completed`, as before.
-4. `make check` stays green.
-5. docs: `docs/project-guide/agents.md`, under the two runtimes: the state directory is made by `agent_launch.make_state_directory`, which both call before they write a run's files. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, because no behaviour an operator sees changes.
+4. The row `incomplete-read` of `tests/adapters/test_oauth_token.py` states its expected detail as a literal; `tests/test_hosting_search.py` holds no name `SECOND` or `SECOND_CLIENT`, and its rows keep their ids.
+5. `make check` stays green.
+6. docs: `docs/project-guide/agents.md`, under the two runtimes: the state directory is made by `agent_launch.make_state_directory`, which both call before they write a run's files. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, because no behaviour an operator sees changes.
 
 ## Smoke test
 
