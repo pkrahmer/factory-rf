@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T07:10:58.213748Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -197,6 +201,11 @@ journal:
   at: '2026-11-01T07:10:37.711884Z'
   stage: review
   run: 244f62c09dd24f109659896280c05d06
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-11-01T07:10:58.213748Z'
+  stage: doing
 ---
 
 # One script turns a bare job into a running instance
@@ -607,3 +616,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     - tests/test_stage_image.py: the human's leave, which the story's Interface names with the file. `test_the_stage_image_has_no_floating_reference` changed as that leave says. `test_each_debian_package_is_pinned` became `test_each_debian_package_is_installed_by_name_alone`, the reversal criterion 12 requires; I count that within the same leave for the file, as round 0 did.
     - tests/vm_support.py: none needed. The change only adds helpers and imports, and every earlier helper stays as it was.
+35. factory: started doing as vm.
