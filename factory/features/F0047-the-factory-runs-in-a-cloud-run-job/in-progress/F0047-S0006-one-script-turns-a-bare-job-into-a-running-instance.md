@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T07:19:20.053163Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -228,6 +224,12 @@ journal:
   kind: started
   at: '2026-11-01T07:19:20.053163Z'
   stage: doing
+- number: 40
+  speaker: coder
+  kind: result
+  at: '2026-11-01T07:25:56.519418Z'
+  stage: doing
+  run: 71f57c35487e45e89beb303343b96676
 ---
 
 # One script turns a bare job into a running instance
@@ -667,3 +669,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (175.2 s)
 39. factory: started doing as vm.
+40. coder: Round 2, after the tester's change in journal 38. I changed no code in this run. The new tests for criterion 19 (`test_the_default_prefix_is_written_once_and_empty`) and criterion 20 (the `job-astra` row with `GIT_ASKPASS` set) pass against the existing script. That script already writes `prefix=${FACTORY_JOB_PREFIX:-}` once and runs `unset GIT_ASKPASS SSH_ASKPASS` before the `git` calls. The tester's move of the stand-in writer to `tests/git_support.py::write_executable` also passes. `make check` is green: test 175.2 s, coverage 99.56 %, `check: green`.
+
+    What I built (unchanged since journal 28):
+    - `vm/job-start.sh`, POSIX sh. The steps run in the Interface's order. It holds the shell constant `JOB_PODMAN_OPTIONS` and its own runc checksum. A derived variable is set only where the job gave none. The pins are read from the cloned `vm/Dockerfile` through one helper, `dockerfile_arg`. The script ends in `exec`.
+    - `vm/Dockerfile`: the seven Debian packages are installed by name alone, with the new comment on line 2.
+
+    Main choice (unchanged): the defaults for `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION` are set in the step `tools`, after the clone, where the `uv` pin is already read. I rejected setting them in the block of derived variables at the top, because nothing is cloned yet at that point.
+
+    Refactor: there is no new diff of mine this round, so there was nothing to change.
+
+    Description: the reviewer already rewrote it in journal 34 (criteria 19 and 20 added). No journal entry since then changes the meaning of the task.
+
+    Noticed, not touched:
+    - When the checkout's Dockerfile has no matching `ARG` line, the variable is exported empty instead of left unset.
+    - `vm/setup.sh` still reads the pins with its own `sed` lines.
+    - The reviewer's notes on split sides of one rule in `tests/test_vm_job_start.py` are left as they are.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 1 gone
