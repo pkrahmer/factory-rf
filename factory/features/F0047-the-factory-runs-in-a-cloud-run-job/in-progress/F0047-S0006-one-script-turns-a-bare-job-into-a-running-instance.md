@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T07:00:50.082751Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-11-01T07:00:50.082751Z'
   stage: doing
+- number: 32
+  speaker: coder
+  kind: result
+  at: '2026-11-01T07:07:34.770105Z'
+  stage: doing
+  run: 62412db41a2940d9ab2c89017159283b
 ---
 
 # One script turns a bare job into a running instance
@@ -548,3 +550,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (173.6 s)
 31. factory: started doing as vm.
+32. coder: Round 1, after the tester's change in journal 30. I changed no code this run. The new row of criterion 10 (`FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION` in `factory-run`'s environment, from the checkout's `vm/Dockerfile` or from the job) passes against the implementation of journal 28 unchanged. `make check` is green: test 175.0 s, coverage 99.56 %, `check: green`.
+
+    What I built (unchanged since journal 28):
+    - `vm/job-start.sh`, POSIX sh. The steps run in the Interface's order. It holds the shell constant `JOB_PODMAN_OPTIONS`, and the runc checksum is the script's own. A derived variable is set only where the job gave none. The pins are read from the cloned `vm/Dockerfile` through one helper, `dockerfile_arg`. The script ends in `exec`.
+    - `vm/Dockerfile`: the seven Debian packages are installed by name alone, and the comment on line 2 is new.
+
+    Main choice: the two version defaults are set in the step `tools`, after `code`, where the script already reads the `uv` pin. The Dockerfile exists only after the clone. I rejected setting them in the block of derived variables at the top, because nothing is cloned there yet. I also rejected copying `vm/setup.sh`'s three `sed` lines.
+
+    Refactor: I read `git diff main -- vm/` again. Nothing needed changing.
+
+    Description: the journal changed the meaning of the task in three places, and the Description does not show them yet. Criterion 1 gains an unreadable-token-file row (journal 21). Criterion 5's default row checks a 64-character lowercase hex value, and the exact checksum is checked by reading (journal 9). Criterion 10 gains the two version variables from the checkout's `vm/Dockerfile` (journal 26). The work item is outside my write paths, and the factory dropped my earlier edit (journal 21), so I did not write the Description. The tests follow the journal.
+
+    Noticed, not touched:
+    - When the checkout's Dockerfile has no such `ARG` line, the variable is exported empty instead of left unset. The `uv` read behaves the same way.
+    - `vm/setup.sh` still reads the pins with its own `sed` lines. Sharing a helper between the two scripts is beyond this story.
+    - The test-quality points the reviewer held back in journal 19 (passing and failing sides as separate test functions in `tests/test_vm_job_start.py`) are for the next review.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 1 gone
