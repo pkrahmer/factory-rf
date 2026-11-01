@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618, 6559846438]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T15:17:06.541693Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-01T15:16:48.840253Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-01T15:17:06.541693Z'
   stage: tests
 ---
 
@@ -141,3 +150,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    1. (a): the leave extends to that one row of `tests/test_vm_setup_text.py::test_the_options_land_in_their_named_variables`, which becomes `("code-ref", "ref")`; the test keeps its name and checks the same thing. Nothing else in that file changes.
    2. Confirmed: criteria 1 and 2 are tested from the script's text, as S0005's `--code-url` tests do (the clone runs only after the secrets wait, which a test cannot reach).
+10. factory: started tests as vm.
