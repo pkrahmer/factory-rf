@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 495
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-01T14:31:04.964527Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-01T14:31:04.964527Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-01T14:31:25.317949Z'
+  stage: intake
+  run: c6304173e89b475190dad749c89f528f
+  blocked: question
 ---
 
 # Setup makes a new instance's first base
@@ -63,3 +66,8 @@ Expect: one line that holds `passed` and neither `failed` nor `error`
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-11-01 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. Questions:
+   1. The Interface says a failing `zfs snapshot` stops the script like any other failing command of the step. No criterion tests that failing side (stand-in `zfs` exits non-zero on `snapshot`: the script exits non-zero and the step's closing line is not printed). I would add it as a criterion before `make check`.
+   2. The Interface takes the snapshot whenever `<dataset>@base` is missing, whatever the dataset's origin. Criterion 1 covers only "the dataset is made and has no base". The case of a dataset that already exists (made by hand) without a base has no criterion: a coder could take the base only inside the `zfs create` branch and still pass criteria 1 and 2. I would reword criterion 1 to cover both ("the base is missing, with the dataset just made or already there") or add a second criterion for the existing dataset without a base. I would add the second criterion.
+   3. The Interface says the closing line may take the `said` form with the changes "as today". Criterion 4 tests only the ending `and its base`. The change message `made the first base <dataset>@base` appearing in the `said` form is covered by criterion 1 only loosely ("the step's output names..."). I would accept it as written if you confirm that criterion 1 covers it; otherwise add the closing-line form with the change.
+   4. Criterion 1 orders the snapshot after create, quota and ownership. Criterion 3 orders it before `delegation`. Both can be tested by the stand-in's call log, but ownership is a `stat`/`install` call and not a `zfs` call. State how the test sees "after ownership" (for example, through the `install` call recorded by the harness, or through the text order in `vm/setup.sh`). I would choose the recorded call order if `run_setup` records `install`, otherwise drop the ownership part from the criterion.
