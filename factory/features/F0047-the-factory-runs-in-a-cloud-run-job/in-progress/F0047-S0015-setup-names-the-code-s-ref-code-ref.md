@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618, 6559846438]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T15:23:26.098769Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-01T15:23:26.098769Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-01T15:29:38.930271Z'
+  stage: doing
+  run: ca6675c767af41a5a7c177b4dae9658a
 ---
 
 # Setup names the code's ref --code-ref
@@ -188,3 +190,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: FAILED tests/test_vm_setup_text.py::test_the_options_land_in_their_named_variables[code-ref-ref] - assert None
 12. factory: started doing as vm.
+13. coder: I renamed `vm/setup.sh`'s option `--ref` to `--code-ref`, which is the only file I changed. `make check` is green: the new tests in `tests/test_vm_setup_code_ref.py` pass, and so do the earlier rows changed under the leave in `tests/test_vm_setup.py` and `tests/test_vm_setup_text.py`.
+
+    - The usage line and the option table now name `--code-ref <git ref>`, with the column alignment kept.
+    - In the option parsing, a `--code-ref)` arm sets the same variable `ref` (default `main`, still set before the parsing). Below it, a `--ref)` arm calls `fault "--ref is now --code-ref"`. `fault` prints the hint and then the usage on standard error and exits 2. This happens before any step runs and before `need_value`, so a bare `--ref` at the end of the line gets the hint too.
+
+    Main choice: the old name has its own arm in the `case` and calls `fault` directly. I rejected catching it in the `*)` arm, because then `--ref` would be handled by the code meant for unknown words, and the reader would not see it was a rename. I kept the variable name `ref` instead of renaming it to `code_ref`, because the Interface says the variable stays the same and `tests/test_vm_setup_text.py` checks that the option lands in `ref`.
+
+    Refactor: I read the diff and found nothing to change.
+
+    Noticed but not touched (the documenter's to do): `docs/operator-guide.md` still names `--ref` at lines 521, 540, 564, 579, 712, 716 and 736. `README.md` does not name it. The mentions in `docs/runs/` belong to the human and are left alone.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone

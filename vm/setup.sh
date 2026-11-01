@@ -8,7 +8,7 @@ set -eu
 
 usage() {
   cat <<'EOF'
-usage: setup.sh --device <path> --repository-url <url> [--code-url <url>] [--instance <name>] [--pool <name>] [--quota <size>] [--ref <git ref>] [--image <tag>] [--runtime claude|opencode] [--sudoers] [--idle-shutdown <minutes>] [--help]
+usage: setup.sh --device <path> --repository-url <url> [--code-url <url>] [--instance <name>] [--pool <name>] [--quota <size>] [--code-ref <git ref>] [--image <tag>] [--runtime claude|opencode] [--sudoers] [--idle-shutdown <minutes>] [--help]
   --device <path>           the disk or file the pool is made on, when it does not exist yet
   --repository-url <url>    the repository the factory works on, and runs from without --code-url
   --code-url <url>          the repository the factory's code comes from, read without a token
@@ -16,7 +16,7 @@ usage: setup.sh --device <path> --repository-url <url> [--code-url <url>] [--ins
   --instance <name>         the instance's name (default vm)
   --pool <name>             the ZFS pool (default tank)
   --quota <size>            the quota of the instance's dataset (default 30G)
-  --ref <git ref>           the factory's git ref to check out (default main)
+  --code-ref <git ref>      the factory's git ref to check out (default main)
   --image <tag>             the stage image (default factory-stage:<instance>)
   --runtime claude|opencode the agent runtime (default claude)
   --sudoers                 reach zfs through sudo where the delegation does not suffice
@@ -72,7 +72,8 @@ while [ $# -gt 0 ]; do
     --instance) need_value "$@"; instance=$2; shift 2 ;;
     --pool) need_value "$@"; pool=$2; shift 2 ;;
     --quota) need_value "$@"; quota=$2; shift 2 ;;
-    --ref) need_value "$@"; ref=$2; shift 2 ;;
+    --code-ref) need_value "$@"; ref=$2; shift 2 ;;
+    --ref) fault "--ref is now --code-ref" ;;
     --image) need_value "$@"; image=$2; shift 2 ;;
     --runtime) need_value "$@"; runtime=$2; shift 2 ;;
     --idle-shutdown) need_value "$@"; need_minutes "$1" "$2"; idle_shutdown=$2; shift 2 ;;
