@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 496
-comments_read: []
+comments_read: [6559768618]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 94b28a8f9fba4ff9bca35bef2e574eab
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-01T15:10:40.741280Z'
+  stage: intake
 ---
 
 # Setup names the code's ref --code-ref
@@ -72,3 +77,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: the command is runnable. It runs no pytest, so there is no `-q` problem. Its Expect line is checkable.
    - Architecture: it is a shell script under `vm/`, a path the coder may write. No layer is touched.
    - Scope: it is within decision 16 and 22, and not in "Out of scope".
+4. 2026-11-01 human: Answers to question 3: both as you propose.
+
+   1. Criterion 3 gets a second row: `setup.sh ... --ref` with no value prints `setup.sh: --ref is now --code-ref`, exits 2 and calls no stand-in. The `--ref` case is handled before `need_value`, so a bare `--ref` gets the hint too.
+   2. Criterion 3 also expects the usage on standard error after the hint line (a line starting `usage: setup.sh`), in both rows.
