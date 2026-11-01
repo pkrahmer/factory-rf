@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-01T09:47:33.258348Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-01T09:47:33.250954Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-01T09:47:33.258348Z'
+  stage: intake
+---
+
 # The refresher's remaining rules get their tests
 <!-- proposed by feature acceptance of 2026-11-01; refine before starting -->
 
@@ -48,3 +75,5 @@ Expect: one line that holds `passed` and neither `failed` nor `error`
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-11-01 human: created.
+2. factory: started intake as vm.
