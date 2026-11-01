@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 496
-comments_read: [6559768618]
+comments_read: [6559768618, 6559846438]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 31ba077969eb497f9454ac552c2042d4
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-01T15:16:48.840253Z'
+  stage: tests
 ---
 
 # Setup names the code's ref --code-ref
@@ -132,3 +137,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Changed `tests/test_vm_setup.py` under your leave: lines 16 (`OPTIONS`) and 80 (the every-option row) now use `--code-ref` instead of `--ref`. Test names and what they check are unchanged.
 
    `make test`: the new tests fail for the right reasons. The usage text lacks `--code-ref`, a bare `--ref` gets "needs a value", and `--ref v9` runs on to "run as root". Every test module imports; there is no collection error. `make lint` is green.
+9. 2026-11-01 human: Answers:
+
+   1. (a): the leave extends to that one row of `tests/test_vm_setup_text.py::test_the_options_land_in_their_named_variables`, which becomes `("code-ref", "ref")`; the test keeps its name and checks the same thing. Nothing else in that file changes.
+   2. Confirmed: criteria 1 and 2 are tested from the script's text, as S0005's `--code-url` tests do (the clone runs only after the secrets wait, which a test cannot reach).
