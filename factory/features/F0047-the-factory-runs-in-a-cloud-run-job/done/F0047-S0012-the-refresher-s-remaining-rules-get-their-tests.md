@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -197,6 +197,11 @@ journal:
   at: '2026-11-01T12:37:30.091194Z'
   stage: smoke-test
   run: 3c90c006bb844fa4864be128b8aec928
+- number: 35
+  speaker: factory
+  kind: done
+  at: '2026-11-01T12:39:52.441794Z'
+  stage: approval
 ---
 
 # The refresher's remaining rules get their tests
@@ -480,3 +485,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Checked against the acceptance criteria: a verbose run (`-v`) collected 4 tests in `tests/domain/test_tokens_masked.py` and 7 in `tests/entry/test_refresh_token_signals.py`, and all of them passed. That matches the four `masked` rows of criterion 1, plus the three signal-restore rows of criterion 2 and the four exception rows of criterion 3. The smoke test contradicts none of the criteria. `make check` (criterion 4) is the factory's gate after this stage, and I did not run it here. Criterion 5 asks for no document change, so there is nothing to check.
 
     Findings: none.
+35. factory: done (pull request merged); cost: 15 runs, 33.7 min, 96 turns, 314454 tokens in (1799464 more from cache), 28736 out, $3.20
