@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T10:22:35.261099Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-01T10:22:14.836508Z'
   stage: doing
   run: c2b05b2d6d1d4fad84573de4d1d9d799
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-01T10:22:35.261099Z'
+  stage: tests
 ---
 
 # The refresher's remaining rules get their tests
@@ -306,3 +315,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Description unchanged: the finding is about where a helper lives. It doesn't change what the task means.
 
     Noticed, not touched: as in entry 17, `src/factory/entry/refresh_token.py:136` is still the module's only line that coverage leaves uncovered. It is outside this story's scope.
+22. factory: started tests as vm.
