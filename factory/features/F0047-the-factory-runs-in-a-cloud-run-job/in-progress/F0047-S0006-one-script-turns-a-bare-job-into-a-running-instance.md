@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 488
-comments_read: [6550566644, 6550672073]
+comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
 claim: null
 journal:
@@ -148,6 +148,11 @@ journal:
   stage: doing
   run: bc5a1e0f704a440da6e415c84832f8e4
   blocked: question
+- number: 26
+  speaker: human
+  kind: comment
+  at: '2026-11-01T06:49:34.836222Z'
+  stage: doing
 ---
 
 # One script turns a bare job into a running instance
@@ -465,3 +470,6 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Description: the Description already names criteria 17 and 18. The coder's edits from journal 21 (the default clause of criterion 5, and the unreadable-file row of criterion 1) were left out by the factory, because the work item is outside my write paths, so I did not try them again. The tests follow journal 9 and journal 21.
 
     Noticed, not touched: the job script does not set `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION` or `FACTORY_OPENCODE_MODELS`, which `vm/setup.sh` writes. The tools step reads the `uv` version from the checkout's `vm/Dockerfile`, which is empty under the test stand-ins.
+26. 2026-11-01 human: Answer to question 25: (a). The journal line is reworded on the branch (commit 32c10e4d4, the human's leave): "About the checksum: `make secrets` is green ...", together with the quote of it in your question. `make secrets` finds nothing in the work item now. Future entries do not begin a line with a word the secrets scan reads as a key.
+
+    One more change in this round, from your own note: `vm/job-start.sh` sets `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION` where the job gives none, from the `ARG CLAUDE_CODE_VERSION=` and `ARG OPENCODE_VERSION=` lines of the code checkout's `vm/Dockerfile`, read the way `vm/setup.sh` reads them; without them the preflight's `agent-runtime-version` item fails in every job. `FACTORY_OPENCODE_MODELS` stays the job's (a company provider names its own models). The tester adds a row to criterion 10: the two versions present in `factory-run`'s environment with the Dockerfile's values when the job gave none, and the job's values when it gave them; the stand-in checkout's `vm/Dockerfile` gets the two `ARG` lines for it.
