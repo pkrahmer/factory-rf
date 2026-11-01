@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618, 6559846438]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-01T15:29:59.446746Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-01T15:29:38.930271Z'
   stage: doing
   run: ca6675c767af41a5a7c177b4dae9658a
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-01T15:29:59.446746Z'
+  stage: review
 ---
 
 # Setup names the code's ref --code-ref
@@ -203,3 +212,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+14. factory: started review as vm.
