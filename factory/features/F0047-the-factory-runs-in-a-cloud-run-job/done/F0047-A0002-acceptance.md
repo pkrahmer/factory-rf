@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-01T12:51:59.588450Z'
   stage: acceptance
   run: 29a18c5ff5384aab984a9aad4747f095
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-01T12:54:21.476960Z'
+  stage: done
 stories: [F0047-S0001, F0047-S0002, F0047-S0003, F0047-S0004, F0047-S0005, F0047-S0006, F0047-S0007, F0047-S0008, F0047-S0009, F0047-S0010, F0047-S0012]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The factory runs in a Cloud Run job
@@ -270,3 +275,4 @@ Of the two new stories, S0010 went through in one pass with one question. S0012 
    8. Cost: $58.20, 167 runs, 394.1 min. S0004 still stands out ($14.39, 36 runs, two round-cap restarts). S0010 cost $2.49 in one pass; S0012 took 15 runs for tests only, over a mypy slip, a copied helper and a secrets-flagged journal line. 23 questions answered (21 `question`, 2 `round_cap`), 9.0 h waited; S0004 needed the human most (6).
 
    The proposed story passes `factory-check-story`. Not done: my temporary folder `/tmp/acc-smoke` (only the smoke script, no secrets) is still there, because the `rm` call was refused.
+3. factory: done (pull request merged); cost: 1 runs, 11.3 min, 62 turns, 145266 tokens in (5376540 more from cache), 39179 out, $3.02
