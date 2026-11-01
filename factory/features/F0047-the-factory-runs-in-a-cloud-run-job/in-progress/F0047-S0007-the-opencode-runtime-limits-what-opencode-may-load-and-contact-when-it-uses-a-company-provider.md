@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 489
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T07:33:57.390775Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-01T07:33:37.174889Z'
   stage: intake
   run: 9490a9afc68e4e189f974a21b6389fdd
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-01T07:33:57.390775Z'
+  stage: tests
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -81,3 +90,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: both commands are runnable. The pytest command passes no `-q`, and `pyproject.toml` `addopts` already sets `-q`, so `tail -1` gives the summary line the `Expect:` checks. The first `Expect:` is an exact line.
    - Architecture: the change stays in the adapters layer (the opencode wrapper), and the domain `provider_configuration` is left as it is. No new dependency and no change to `factory/`.
    - Scope: within feature F0047 (S0007 is listed in its scope, and decisions 13 and 14 match the Description). Nothing in "Out of scope" is touched. The docs criterion names the three documents and says the README gets nothing.
+4. factory: started tests as vm.
