@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 491
 comments_read: [6556021304]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-01T09:40:25.706425Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-01T09:40:25.706425Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-01T09:41:08.467249Z'
+  stage: review
+  run: 8e482822f26448cbabff84f96f362dc8
 ---
 
 # The job's instance can authenticate and run its agents
@@ -218,3 +220,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: no findings
+
+    What I checked:
+    - Criteria 1 to 6. Each has a test, and each test checks what its criterion says:
+      - 1: `tests/test_vm_job_start.py` is not in the diff.
+      - 2: the test pins the helper's one `install` call: its argv, and that it comes after `checkout --detach` and before the first `uv` call.
+      - 3: one parametrized test with the rows no-ref and helper-install-fails. Both rows check no `podman` and no `factory-run`. The no-ref row also checks that no `install` names the helper's target.
+      - 4: exactly `{runc, git-credential-factory}` under `<prefix>/usr/local/bin`.
+      - 5: a missing nested `empty-state/runs` is made and the config file is written inside it; a state path that is a file fails with `cannot write the state directory`.
+      - 6: rows of one test in both the application and the entry tests (given/default, exit/poweroff).
+    - The Interface's failing sides are tested: a failed helper `install`, and a state path that is a file, which raises `FileExistsError` from `mkdir(exist_ok=True)` and maps to `state_directory_error`.
+    - Coder's journal entry 10: `make check` was green after the coder.
+    - Architecture: the `mkdir` is in the adapter, `action` is a plain string in application, and the entry wiring picks it from `idle_shutdown_action`. No new tool call or dependency.
+    - Security: no suppression markers or secrets. The shell line quotes its paths and goes through `failed code`.
+    - Quality: `_make_state_directory` follows the same pattern as `ClaudeCodeRuntime`. It runs before the `try`/`finally` so the cleanup cannot hide the error, as entry 10 explains. The new test helper `_index` in `tests/test_vm_job_start_instance.py` finds a call by identity. `_first` in `tests/test_vm_job_start.py` finds one by name, so `_index` is not a copy of it.
+    - The Description and the docs criterion match what was built.
+
+    Earlier tests:
+    - tests/adapters/test_opencode_runtime.py: the human's leave stated in the Description (the `state-missing` row becomes `state-a-file`). The `else` that writes the file is the least the row needs to make its state path a file.
+    - tests/entry/test_run_idle_exit.py: the human's answer in journal entry 6 (`EXIT_LINE` in the two named tests). The new test is an addition.
+    - tests/application/test_idle_shutdown.py: none needed. It only adds a test.
+    - tests/vm_support.py: the story's Interface allows the new `failing_install_target` option of `run_job_start`. Earlier callers keep their behaviour because the default is `None`.
