@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 492
 comments_read: [6556376362]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T10:00:48.436171Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-01T10:00:48.436171Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-01T10:04:22.624923Z'
+  stage: doing
+  run: e03571afdef14dbfb368d00a38e1454e
+  blocked: question
 ---
 
 # The refresher's remaining rules get their tests
@@ -162,3 +165,19 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.2 s)
    `test`: test: green (173.6 s)
 9. factory: started doing as vm.
+10. coder: Question: one of the tester's new tests fails `make types`. I can't fix this from `src/`, and the coder doesn't edit tests (R9).
+
+    What I found: I changed nothing. As the story expects, the code already passes every new test. `make -k check` is green on lint, layers, sast, secrets, licenses and test (`test: green (174.2 s)`). `make types` is red:
+
+    ```
+    tests/entry/test_refresh_token_signals.py:108: error: "BaseException" has no attribute "code"  [attr-defined]
+    ```
+
+    The cause is in `test_an_interrupt_or_exit_of_a_refresh_leaves_main_as_raised`. It narrows with `isinstance(error, SystemExit)` and then reads `raised.value.code`. mypy narrows `error`, not `raised.value`, which is still typed `BaseException`. The tester's entry 8 says they skipped the type check, so this wasn't caught.
+
+    Options:
+    (a) Leave the test to the tester for a one-line change: line 108 reads `error.code` instead of `raised.value.code`. The line before already asserts `raised.value is error`, so the test checks the same thing. I would choose this.
+    (b) Narrow `raised.value` instead: `assert isinstance(raised.value, SystemExit)` inside the branch, then `raised.value.code == 3`.
+    No `src/` change can make this check green. Choosing (a) or (b) sends the story to the tests stage for exactly that line.
+
+    Built: nothing; no file under `src/` changed. The Description is unchanged: entry 6 kept its meaning (the handler is checked during `fetch` in the loop row only).
