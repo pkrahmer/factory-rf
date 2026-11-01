@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618, 6559846438]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-01T15:31:01.819619Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-01T15:31:01.819619Z'
   stage: docs
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-01T15:31:29.702562Z'
+  stage: docs
+  run: 79c58d328f134c8abf4988d49e80123d
 ---
 
 # Setup names the code's ref --code-ref
@@ -250,3 +252,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/test_vm_setup.py`: the human's leave in the story's Interface. The change is lines 16 and 80, `--ref` to `--code-ref`; the test names and what they check are unchanged.
     - `tests/test_vm_setup_text.py`: the human's answer in journal entry 9. The change is the one row `("ref", "ref")` to `("code-ref", "ref")` of `test_the_options_land_in_their_named_variables`; nothing else in the file changed.
 16. factory: started docs as vm.
+17. documenter: I renamed `--ref` to `--code-ref` in the documents. The diff matches the Interface: the code refuses `--ref` with the hint and exit 2, as the docs now say. I ran no command, because I changed only documents; the factory's checks follow.
+
+    Files changed:
+    - `docs/operator-guide.md`: every `--ref` of the script is now `--code-ref`. That covers the checkout table row (line 384), *The code and the project apart* (521), the option table (540), step 12 of the steps (564), the paragraph on the installed files (579), the GCP steps (712, 716, 736) and *The rebuild after a merge* (890). The option-table row also has the one sentence the criterion asks for: the old name is refused with `setup.sh: --ref is now --code-ref` and the usage, exit 2, before any step runs.
+    - `docs/decisions.md`, *The code and the project apart*: one line that the option is `--code-ref` (decision 16 of the feature), default `main`, and that `--ref` is refused with the hint and exit 2.
+
+    Cross-read and found current:
+    - `README.md`: it does not name `--ref`, so I left it as it is.
+    - A search of `docs/` for `--ref` found no other mention outside `docs/runs/`. That folder is the human's, and I did not touch it.
+
+    Stale text I saw and did not touch: none.
+
+    `check`: check: green (not run again: passed on tree e10113d6e8d0 at 2026-11-01T15:26:42Z)
+    `secrets`: secrets: green (2.1 s)
+    `documents`: documents ok

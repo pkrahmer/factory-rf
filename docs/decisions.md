@@ -1279,6 +1279,7 @@ Date: 2026-10-31 (F0047-S0004; decisions 7 and 8 of the feature).
 Date: 2026-10-31 (F0047-S0005; decision 9 of the feature).
 
 - Decision: `vm/setup.sh` takes `--code-url`, the repository the factory's code and the stage image's `vm/Dockerfile` come from, default `--repository-url`. A different code url is cloned without any credential (`GIT_TERMINAL_PROMPT=0`, no `GIT_ASKPASS`, no `core.askPass`), and a clone that asks for one fails with a message. `FACTORY_REPOSITORY_URL` stays the project. The credential helper answers only a request for the host of `FACTORY_REPOSITORY_URL`.
+- The ref of the code is `--code-ref` (decision 16 of the feature; F0047-S0015), default `main`; the old `--ref` is refused with the hint `setup.sh: --ref is now --code-ref` and exit status 2.
 - Why: a company on its own enterprise host runs the factory's public code from a public repository, which that host allows no fork of; code and project are then two repositories on two hosts, and the project's token must never be offered to the code's host.
 - Rejected: a token for the code repository (the code must be public and readable without one); the helper trusting git to ask for the right host (git asks the helper for whatever host a remote names).
 
