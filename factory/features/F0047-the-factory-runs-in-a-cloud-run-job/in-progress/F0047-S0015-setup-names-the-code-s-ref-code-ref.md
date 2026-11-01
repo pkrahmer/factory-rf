@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618, 6559846438]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-01T15:31:49.981820Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-01T15:31:49.981820Z'
   stage: smoke-test
+- number: 19
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-01T15:32:13.582600Z'
+  stage: smoke-test
+  run: 52598112a6a34ba6b548c836f7903a1a
 ---
 
 # Setup names the code's ref --code-ref
@@ -277,3 +279,34 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
 18. factory: started smoke-test as vm.
+19. smoke-tester: I ran the smoke test exactly as written, from the repository root. There are no findings. I fixed nothing and changed no file.
+
+    Command 1: `sh vm/setup.sh --ref v9; echo "exit $?"`
+
+    ```
+    setup.sh: --ref is now --code-ref
+    usage: setup.sh --device <path> --repository-url <url> [--code-url <url>] [--instance <name>] [--pool <name>] [--quota <size>] [--code-ref <git ref>] [--image <tag>] [--runtime claude|opencode] [--sudoers] [--idle-shutdown <minutes>] [--help]
+      --device <path>           the disk or file the pool is made on, when it does not exist yet
+      --repository-url <url>    the repository the factory works on, and runs from without --code-url
+      --code-url <url>          the repository the factory's code comes from, read without a token
+                                (default the --repository-url)
+      --instance <name>         the instance's name (default vm)
+      --pool <name>             the ZFS pool (default tank)
+      --quota <size>            the quota of the instance's dataset (default 30G)
+      --code-ref <git ref>      the factory's git ref to check out (default main)
+      --image <tag>             the stage image (default factory-stage:<instance>)
+      --runtime claude|opencode the agent runtime (default claude)
+      --sudoers                 reach zfs through sudo where the delegation does not suffice
+      --idle-shutdown <minutes> power the machine off after that many idle minutes (default off)
+      --help                    print this text
+    exit 2
+    ```
+
+    Expect met: the first line is `setup.sh: --ref is now --code-ref`, and the last line is `exit 2`.
+
+    Against the acceptance criteria:
+    - Criterion 3 (the `--ref v9` row): the hint is followed by a line starting `usage: setup.sh`, and the exit status is 2. The script stopped before any step ran: the output reaches no "run as root" check or any other step.
+    - Criterion 4: the usage text names `--code-ref <git ref>` (default `main`) and no `--ref` option.
+    - Criteria 1 and 2 (the clone's `--branch`), the bare `--ref` row of criterion 3, `--help` and criteria 5 and 6 are outside what this command covers. Nothing in the output contradicts them.
+
+    Findings: none.
