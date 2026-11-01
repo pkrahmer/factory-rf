@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-01T00:08:57.582244Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-01T00:08:57.582244Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-01T00:11:34.525216Z'
+  stage: review
+  run: 29842147bf4e4aaa9b3e00c42298774e
 ---
 
 # One script turns a bare job into a running instance
@@ -160,8 +162,10 @@ Tests (the tester writes them): `tests/test_vm_job_start.py`, through `tests/vm_
 14. The words of the shell constant `JOB_PODMAN_OPTIONS` in `vm/job-start.sh` equal `factory.domain.containers.JOB_PODMAN_OPTIONS`.
 15. The default `FACTORY_JOB_ROOT` is `/srv/factory/<instance>`, checked from the script's text, where it is written once.
 16. A failing step stops the script with exit 1, `job-start: <step>: failed` on standard error and no call of `factory-run`: rows for a failing `curl` at `runc`, a failing `nft -f` at `metadata` and a failing `apt-get` at `packages`.
-17. `make check` stays green.
-18. docs: `docs/operator-guide.md`: a chapter *On Cloud Run* with: what the job needs (the size and the numbers measured: copy reset about 1.6 s per GiB, memory-backed root, 16 GiB or more, a task timeout of 24 hours and a nightly re-execution, the proxy and the shared connector (measured in P20: the job cannot resolve `github.com` itself and reaches both git over HTTPS and the REST API only through the proxy; the factory's own git and PyGithub read the job's `https_proxy`, so the job's environment carries it and `NO_PROXY` must not name a GitHub host), secrets mounted as files with `--set-secrets` paths, the environment variables of this script), the order of the script's steps, what a restart costs (the factory's recovery charges one crash for the stage in flight, and after `crash_cap` crashes, two by default, the work item waits for the human's answer, so a story in flight on two nights waits once; the state directory goes with the memory, so the log, `health.json` and the preflight stamp start empty and the preflight runs at every start; the checkout, the base and the image are rebuilt, a few minutes; accepted by the human on 2026-10-31, a stop between stages before the restart is a candidate for later), what does not work (rootless, a bridge network, a pushed image, a second job sharing the disk, `fuse-overlayfs` for podman's storage: three times slower, P15 and P16), that the image layers live in the tmpfs and count against the job's memory, that two executions of one job must never overlap (two would both act as the one instance), so the task timeout is shorter than the schedule's interval (23 hours for a daily schedule), what the timeout does (measured in P18: `SIGTERM` reaches `factory-run` exactly at the timeout with no warning before, the factory ends after the tick in progress, and the platform marks the execution failed with `The configured timeout was reached` even when the exit status is 0, so a nightly timeout is planned and not a fault; the job is created with `--max-retries=0`, or a timeout would start a second execution at once), that an execution whose `factory-run` exits 0 (the idle exit of S0008) ends as succeeded at once, background processes such as the refresher included (P18), that with `FACTORY_IDLE_SHUTDOWN_MINUTES` set the execution ends when idle and the next one starts at the schedule or by `gcloud run jobs execute`, the free-model note (a price of 0 makes `budget_usd` inert, the time limit is the only bound), and the generic `gcloud run jobs create` flags with placeholders. `docs/project-guide/README.md`: the files line names `vm/job-start.sh`. `docs/decisions.md`: an entry *A bare job becomes an instance at start*, from the feature's decisions 10 to 12, and an entry *Debian's packages follow the base image's release*, from decision 17, whose text says that it changes the rule of 2026-10-16 (*Every tool of the machine's image is pinned*) for the operating system's packages. `docs/operator-guide.md`, *The stage image* and *Update the pins*: the seven packages without versions, the base image's digest as what fixes the Debian release, and moving to a new Debian release as a deliberate change of the digest. `README.md`: one sentence that the factory also runs in a job, with the pointer to the chapter.
+17. The environment of `factory-run` holds `FACTORY_STAGE_IMAGE`, the image the step `image` built: the input's value when the job gave one, `factory-stage:<instance>` otherwise (two rows).
+18. The step `tools` calls `python3 -m venv <root>/tools`, installs `uv` with that environment's `pip`, and then runs `<root>/tools/bin/uv sync --frozen --no-dev` with the code checkout `<root>/factory` as its working directory, all before the `podman` call.
+19. `make check` stays green.
+20. docs: `docs/operator-guide.md`: a chapter *On Cloud Run* with: what the job needs (the size and the numbers measured: copy reset about 1.6 s per GiB, memory-backed root, 16 GiB or more, a task timeout of 24 hours and a nightly re-execution, the proxy and the shared connector (measured in P20: the job cannot resolve `github.com` itself and reaches both git over HTTPS and the REST API only through the proxy; the factory's own git and PyGithub read the job's `https_proxy`, so the job's environment carries it and `NO_PROXY` must not name a GitHub host), secrets mounted as files with `--set-secrets` paths, the environment variables of this script), the order of the script's steps, what a restart costs (the factory's recovery charges one crash for the stage in flight, and after `crash_cap` crashes, two by default, the work item waits for the human's answer, so a story in flight on two nights waits once; the state directory goes with the memory, so the log, `health.json` and the preflight stamp start empty and the preflight runs at every start; the checkout, the base and the image are rebuilt, a few minutes; accepted by the human on 2026-10-31, a stop between stages before the restart is a candidate for later), what does not work (rootless, a bridge network, a pushed image, a second job sharing the disk, `fuse-overlayfs` for podman's storage: three times slower, P15 and P16), that the image layers live in the tmpfs and count against the job's memory, that two executions of one job must never overlap (two would both act as the one instance), so the task timeout is shorter than the schedule's interval (23 hours for a daily schedule), what the timeout does (measured in P18: `SIGTERM` reaches `factory-run` exactly at the timeout with no warning before, the factory ends after the tick in progress, and the platform marks the execution failed with `The configured timeout was reached` even when the exit status is 0, so a nightly timeout is planned and not a fault; the job is created with `--max-retries=0`, or a timeout would start a second execution at once), that an execution whose `factory-run` exits 0 (the idle exit of S0008) ends as succeeded at once, background processes such as the refresher included (P18), that with `FACTORY_IDLE_SHUTDOWN_MINUTES` set the execution ends when idle and the next one starts at the schedule or by `gcloud run jobs execute`, the free-model note (a price of 0 makes `budget_usd` inert, the time limit is the only bound), and the generic `gcloud run jobs create` flags with placeholders. `docs/project-guide/README.md`: the files line names `vm/job-start.sh`. `docs/decisions.md`: an entry *A bare job becomes an instance at start*, from the feature's decisions 10 to 12, and an entry *Debian's packages follow the base image's release*, from decision 17, whose text says that it changes the rule of 2026-10-16 (*Every tool of the machine's image is pinned*) for the operating system's packages. `docs/operator-guide.md`, *The stage image* and *Update the pins*: the seven packages without versions, the base image's digest as what fixes the Debian release, and moving to a new Debian release as a deliberate change of the digest. `README.md`: one sentence that the factory also runs in a job, with the pointer to the chapter.
 
 ## Smoke test
 
@@ -347,3 +351,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 1 gone
 18. factory: started review as vm.
+19. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`: `vm/job-start.sh`, `vm/Dockerfile`, `tests/test_vm_job_start.py`, `tests/vm_support.py` and `tests/test_stage_image.py`. Group 1 (acceptance criteria) fails, so this report stops there. I went through every criterion and every rule of the Interface.
+
+    The script follows the Interface. The steps run in its order and print their lines. The input checks exit 2 before any call. The proxy is exported under both names. The checksum is the script's own, and I compared `DEFAULT_RUNC_SHA256` with the Interface's value by reading: they are equal (journal 9). The chains are `blockout` and `blockfwd`. The tmpfs is mounted before `podman`. The clone has no askpass. The script ends in `exec`. The token file is never read. The coder's `make check` was green (journal 17).
+
+    Findings:
+    1. criterion 17 added: it needs its test. `vm/job-start.sh:57` runs `default FACTORY_STAGE_IMAGE "factory-stage:$FACTORY_INSTANCE"` and exports it, so `factory-run` sees the image the step built (`factory.domain.settings` reads `FACTORY_STAGE_IMAGE`). No criterion pins this. Fix: the tester adds two rows, given and default, that check `FACTORY_STAGE_IMAGE` in `factory-run`'s recorded environment.
+    2. criterion 18 added: it needs its test. `vm/job-start.sh:121-125`, the step `tools`, is unpinned. No test checks `python3 -m venv <root>/tools`, the `pip install` of `uv`, or `uv sync --frozen --no-dev` run in `<root>/factory`. The stand-in `uv` writes the environment whatever its arguments, so dropping `--frozen` or `--no-dev`, or running in another directory, stays green. Fix: the tester checks those calls. The stand-in in `tests/vm_support.py` (this story's own helper) also records its working directory.
+    3. Work item, criterion 5. It still says the default row feeds "the checksum of the Interface". The human's answer (journal 9, option (c)) settled that the default row checks a 64-character lowercase hex value and that the exact value is checked by reading. `tests/test_vm_job_start.py::test_runc_is_downloaded_checked_against_its_checksum_and_installed` follows journal 9. The tester's rewrite of the criterion (journal 11) was dropped because the work item is outside the tester's write paths. Fix: the coder rewrites the default clause of criterion 5 to match journal 9, and changes nothing else.
+    4. Story gap, for the human. The Interface says `FACTORY_TOKEN_FILE` must be "a readable file", and `vm/job-start.sh:43` refuses an unreadable one (`! -r`). No criterion covers that failing side: criterion 1 has only a path that is no file. Fix: either add a row to criterion 1 for a file without read permission (it cannot fail as root, so the test must skip there), or drop "readable" from the Interface. I would add the row.
+
+    Earlier tests:
+    - tests/test_stage_image.py: the human's leave, which the story's Interface names with the file. `test_the_stage_image_has_no_floating_reference` is changed as that leave states. The replacement of `test_each_debian_package_is_pinned` by `test_each_debian_package_is_installed_by_name_alone` reverses its rule, as criterion 12 requires; I count it within the story's leave for this file.
+    - tests/vm_support.py: none needed. The change only adds helpers and imports, and every earlier helper stays as it was.
+
+    Not reported because group 1 stops the review: the test-quality points of group 4, for example the passing and failing sides of the checksum, mount and ref rules written as separate test functions in `tests/test_vm_job_start.py`. The next review checks them.
