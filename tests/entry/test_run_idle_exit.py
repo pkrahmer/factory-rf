@@ -23,6 +23,7 @@ from stage_run_support import INSTANCE
 from wiring_support import with_dataset
 
 LINE = "idle shutdown: idle for 1 minutes, powering the machine off"
+EXIT_LINE = "idle shutdown: idle for 1 minutes, ending the factory's process"
 
 # (minutes and seconds after the loop starts at which a tick runs, its outcome)
 Step = tuple[int, int, TickOutcome]
@@ -160,7 +161,7 @@ def test_the_idle_exit_stops_the_loop_after_the_tick_that_ends_the_stretch(
     assert stop.is_set()
     assert tick.runs == runs
     assert not tick.exhausted
-    assert _log(settings).count(LINE) == 1
+    assert _log(settings).count(EXIT_LINE) == 1
 
 
 @pytest.mark.usefixtures("on_the_manual_clock")
@@ -234,7 +235,7 @@ def test_run_until_stopped_ends_through_the_idle_exit_with_its_own_event(
     assert stop.is_set()
     assert tick.runs == 3
     assert not tick.exhausted
-    assert _log(settings).count(LINE) == 1
+    assert _log(settings).count(EXIT_LINE) == 1
 
 
 @pytest.fixture
@@ -273,9 +274,7 @@ def test_a_refused_power_off_does_not_stop_the_loop(
 @pytest.mark.parametrize(
     ("action", "line"),
     [
-        pytest.param(
-            "exit", "idle shutdown: idle for 1 minutes, ending the factory's process", id="exit"
-        ),
+        pytest.param("exit", EXIT_LINE, id="exit"),
         pytest.param("poweroff", LINE, id="poweroff"),
     ],
 )

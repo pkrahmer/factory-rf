@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 491
 comments_read: [6556021304]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T09:19:12.694260Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-01T09:19:12.694260Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-01T09:25:29.142773Z'
+  stage: tests
+  run: bb1c2562fc694066a678ee8b613094a1
 ---
 
 # The job's instance can authenticate and run its agents
@@ -153,3 +155,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Modules the test run could not import: none. The failures: `TypeError` for `IdleShutdown(..., action=...)`; no helper `install` call in the script; `NotADirectoryError` for a state path that is a file and `AgentRuntimeError` for a missing state directory in the opencode runtime; the exit line is still the poweroff text.
 6. 2026-11-01 human: Answer: (a). Add `EXIT_LINE = "idle shutdown: idle for 1 minutes, ending the factory's process"` to `tests/entry/test_run_idle_exit.py` and use it in the assertions of `test_the_idle_exit_stops_the_loop_after_the_tick_that_ends_the_stretch` and `test_run_until_stopped_ends_through_the_idle_exit_with_its_own_event`; `LINE` stays for the poweroff tests. Each test keeps its name and checks the same thing; the changed line is the decision of the human this story carries (decision 21). Run `make test` once more after the `endswith` change.
 7. factory: started tests as vm.
+8. tester: Made the change from the human's answer (a) in `tests/entry/test_run_idle_exit.py`. I added `EXIT_LINE = "idle shutdown: idle for 1 minutes, ending the factory's process"` and used it in the line-count assertions of `test_the_idle_exit_stops_the_loop_after_the_tick_that_ends_the_stretch` and `test_run_until_stopped_ends_through_the_idle_exit_with_its_own_event`. Both tests keep their names and check the same thing. `LINE` still covers the poweroff tests. The `exit` row of the new idle-line test now uses `EXIT_LINE` too. I ran `make test` once, as the answer asked. It was red only for the reasons below, and the `endswith` check on the poweroff row now passes. `make lint` is green.
+
+   Criterion → test:
+   criterion 1: tests/test_vm_job_start.py::test_the_steps_run_in_order_and_factory_run_replaces_the_script (unchanged)
+   criterion 2: tests/test_vm_job_start_instance.py::test_the_code_step_installs_the_checkout_s_helper_between_the_checkout_and_uv
+   criterion 3: tests/test_vm_job_start_instance.py::test_the_code_step_stops_the_script_on_a_missing_ref_or_a_failed_helper_install (rows no-ref, helper-install-fails)
+   criterion 4: tests/test_vm_job_start_instance.py::test_only_runc_and_the_helper_are_installed_under_usr_local_bin
+   criterion 5: tests/adapters/test_opencode_runtime_runs_folder.py::test_a_run_makes_its_missing_state_directory_and_writes_its_configuration_there; tests/adapters/test_opencode_runtime.py::test_a_run_that_cannot_start_names_the_reason[state-a-file] (the old row `state-missing`, changed under the human's leave)
+   criterion 6: tests/application/test_idle_shutdown.py::test_the_idle_line_names_the_action (rows given, default); tests/entry/test_run_idle_exit.py::test_the_idle_line_says_what_the_action_does (rows exit, poweroff)
+
+   Files created (in the earlier run): tests/test_vm_job_start_instance.py, tests/adapters/test_opencode_runtime_runs_folder.py.
+   Earlier test files changed: tests/vm_support.py (the new option `failing_install_target` of `run_job_start`, which the Interface allows); tests/adapters/test_opencode_runtime.py (only the leave's row); tests/entry/test_run_idle_exit.py (`EXIT_LINE` in the two tests, under the human's answer of entry 6, plus the new test); tests/application/test_idle_shutdown.py (new test added).
+
+   Modules the test run could not import: none. Red as intended:
+   - the three `exit` tests in test_run_idle_exit.py, because the code still logs the poweroff text;
+   - `IdleShutdown(action=...)` raises `TypeError`;
+   - the script makes no `install` call for the helper (criteria 2, 3 and 4);
+   - the opencode runtime raises `NotADirectoryError` for a state path that is a file, and `AgentRuntimeError` for a missing state directory.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/adapters/test_opencode_runtime.py::test_a_run_that_cannot_start_names_the_reason[state-a-file] - NotADirectoryError: [Errno 20] Not a directory: '/tmp/pytest-of-factory/pytest-0/popen-...
