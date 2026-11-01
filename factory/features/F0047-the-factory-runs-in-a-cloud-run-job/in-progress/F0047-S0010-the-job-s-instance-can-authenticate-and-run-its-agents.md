@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 491
 comments_read: [6556021304]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-01T09:40:25.706425Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-01T09:40:05.214748Z'
   stage: doing
   run: d4ed25846562424da45e9e626b271dd9
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-01T09:40:25.706425Z'
+  stage: review
 ---
 
 # The job's instance can authenticate and run its agents
@@ -208,3 +217,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+11. factory: started review as vm.
