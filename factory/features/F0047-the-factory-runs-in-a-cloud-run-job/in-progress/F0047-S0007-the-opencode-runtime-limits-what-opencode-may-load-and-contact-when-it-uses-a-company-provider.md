@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T07:48:16.223334Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-01T07:48:16.223334Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-01T07:48:34.762781Z'
+  stage: doing
+  run: 26f56bf6ce874a8f883fc9f558b228f1
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -161,3 +163,10 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Noticed but not touched: nothing else.
 8. 2026-11-01 human: Answer: (a). The tester adds `"enabled_providers": ["corp"]` to the expected dictionary of `tests/adapters/test_opencode_runtime_provider.py::test_a_provider_file_adds_its_keys_beside_the_existing_ones`; `CONFIGURATION` in `tests/opencode_provider_support.py` stays the domain function's output. The leave covers that expectation and nothing else in the file; the Description's "pass unchanged" was written before criterion 2 met that test. End with `tests` and name the change.
 9. factory: started doing as vm.
+10. coder: The human chose (a), so this goes to the tester for one test change. I changed no code in this run. The code from the last run is already committed in `src/factory/adapters/opencode_runtime.py`: `LOCKDOWN_SWITCHES`, the `enabled_providers` key from `_provider_keys`, and the switches added in `runtime_environment` only when a provider file is set.
+
+    The change for the tester: in `tests/adapters/test_opencode_runtime_provider.py::test_a_provider_file_adds_its_keys_beside_the_existing_ones`, add `"enabled_providers": ["corp"]` to the expected dictionary, so it becomes `{**request_configuration(), **CONFIGURATION, "enabled_providers": ["corp"]}`. Leave `CONFIGURATION` in `tests/opencode_provider_support.py` unchanged; it stays the domain function's output.
+
+    What the journal changed: the Description's line "The existing opencode runtime tests pass unchanged" now has this one exception, the expectation above. My write paths do not include the work item, so I have not rewritten the Description.
+
+    `make check` is still red on that one test, as in the last run, until the tester makes the change. Noticed but not touched: nothing else.
