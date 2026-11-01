@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 491
 comments_read: [6556021304]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T09:25:49.562208Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-01T09:25:29.142773Z'
   stage: tests
   run: bb1c2562fc694066a678ee8b613094a1
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-01T09:25:49.562208Z'
+  stage: doing
 ---
 
 # The job's instance can authenticate and run its agents
@@ -176,3 +185,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/adapters/test_opencode_runtime.py::test_a_run_that_cannot_start_names_the_reason[state-a-file] - NotADirectoryError: [Errno 20] Not a directory: '/tmp/pytest-of-factory/pytest-0/popen-...
+9. factory: started doing as vm.
