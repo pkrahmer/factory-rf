@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-01T07:26:16.837185Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -239,6 +235,12 @@ journal:
   kind: started
   at: '2026-11-01T07:26:16.837185Z'
   stage: review
+- number: 42
+  speaker: reviewer
+  kind: result
+  at: '2026-11-01T07:27:27.893643Z'
+  stage: review
+  run: 13f49fdb940c41d49f71572110297ba0
 ---
 
 # One script turns a bare job into a running instance
@@ -698,3 +700,31 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 41 known, 1 gone
 41. factory: started review as vm.
+42. reviewer: Review, round 2. I read the work item, `git diff main...HEAD -- . ':!factory'` (`vm/job-start.sh`, `vm/Dockerfile`, `tests/test_vm_job_start.py`, `tests/vm_support.py`, `tests/git_support.py`, `tests/test_stage_image.py`) and `git diff --name-status main...HEAD`. I checked every criterion and every rule of the Interface again, not only the two added in round 1.
+
+    What holds:
+    - Group 1, acceptance criteria:
+      - Criterion 19: `test_the_default_prefix_is_written_once_and_empty` reads the one `${FACTORY_JOB_PREFIX:-}` default from the script's text and requires it to be empty.
+      - Criterion 20: the `job-askpass` row sets `GIT_ASKPASS`. Next to the `tag` and `commit` rows it checks that `GIT_ASKPASS` is absent from every recorded `git` environment. Removing `unset GIT_ASKPASS` at `vm/job-start.sh:121` would now fail the test.
+      - Every rule of the Interface has its failing side tested: a missing input, an unreadable token file, `RUNC_VERSION` without `RUNC_SHA256`, a checksum mismatch, a failed mount, a missing ref, a failing `--once`, and failing steps at `packages`, `runc` and `metadata`.
+      - The coder's `make check` after the last test change was green (journal 40).
+    - Group 2, architecture: no module under `src/` changes, and no layer is touched.
+    - Group 3, security:
+      - The token file is tested only with `-f`/`-r` and never read.
+      - No secret goes on a command line.
+      - `eval` in `require`/`default` only sees the script's own variable names, and the value is escaped.
+      - The runc checksum is the script's own, with no marker and no baseline entry.
+      - `# shellcheck disable=SC2086` (`vm/job-start.sh:136`) silences no check that `make check` runs, and it gives its reason on the same line.
+    - Group 4, quality: the round-1 held-back point is fixed. `vm_support.py` now uses `git_support.write_executable` instead of its own copy. `make duplicates` shows 1 new finding, but it covers `src/factory` only and this diff changes nothing there, so it is not this story's.
+    - Group 5, work item hygiene: the Description, the Interface and criteria 1 to 22 match what was built. The docs criterion (22) still covers what the reader must know; "the environment variables of this script" includes the two version defaults.
+
+    no findings
+
+    Earlier tests:
+    - tests/test_stage_image.py: the human's leave, named with the file in the story's Interface. `test_the_stage_image_has_no_floating_reference` is now parametrized as criterion 12 says. `test_each_debian_package_is_pinned` became `test_each_debian_package_is_installed_by_name_alone`, the reversal that criterion 12 requires, within the same leave.
+    - tests/git_support.py: the standing leave to move a shared test helper. `write_executable` gains an optional `name` with the old default, so `vm_support.py`'s copy could be dropped. Every earlier caller and test keeps its name and checks the same thing.
+    - tests/vm_support.py: none needed. Against `main` the change only adds helpers and imports, and every earlier helper stays as it was.
+
+    Notes (`tests/test_vm_job_start.py`, a file this diff adds):
+    - `tests/test_vm_job_start.py:231` and `:277`: the passing and failing sides of the runc checksum rule are two test functions. The same holds for `:360` with `:394` (mount) and `:317` with `:342` (ref).
+    - `tests/test_vm_job_start.py:548`, `test_factory_run_gets_the_stage_image_the_image_step_built`: it repeats the given/default image rows of `:360` and could be one more assertion there.
