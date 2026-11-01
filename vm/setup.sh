@@ -212,7 +212,12 @@ if [ "$(stat -c '%U:%G' "$base/work")" != factory:factory ]; then
   install -d -o factory -g factory -m 0755 "$base/work"
   changed "gave $base/work to factory"
 fi
-echo "setup: datasets: $(said "found $pool/factory and $dataset at $base/work with the quota $quota")"
+# Taken while the dataset is still empty and factory's: every rollback restores this owner.
+if ! zfs list -H -o name -t snapshot "$dataset@base" >/dev/null 2>&1; then
+  zfs snapshot "$dataset@base"
+  changed "made the first base $dataset@base"
+fi
+echo "setup: datasets: $(said "found $pool/factory and $dataset at $base/work with the quota $quota and its base")"
 
 # zfs allow lists each user's permissions comma-separated, in an order of its own.
 # Defined here, after the datasets it reads, so the script's text keeps the order of its steps.

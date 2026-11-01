@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T14:42:24.508460Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-01T14:42:24.508460Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-01T14:48:37.502014Z'
+  stage: doing
+  run: 54be69606ef74694ba633b99da6eb67b
 ---
 
 # Setup makes a new instance's first base
@@ -143,3 +145,15 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/test_vm_setup_first_base.py::test_an_existing_dataset_without_a_base_gets_its_first_base - AssertionError: assert [] == [['snapshot',...ory/vm@base']]
 9. factory: started doing as vm.
+10. coder: Built: the step `datasets` in `vm/setup.sh` now takes the first base. It does this after the ownership check of `$base/work` and before the step's closing line. If `zfs list -H -o name -t snapshot "$dataset@base"` finds no snapshot, the step runs `zfs snapshot "$dataset@base"` and records `changed "made the first base $dataset@base"`. The closing line now ends with `and its base`. Under `set -eu`, a failing `zfs snapshot` stops the script before that line. All six tests in `tests/test_vm_setup_first_base.py` pass, `tests/test_vm_setup.py` and `tests/test_vm_setup_text.py` pass unchanged, and `make check` is green.
+
+    Main choice: the base check stands on its own after the dataset, quota and ownership checks, so a dataset that already exists without a base gets one too. The alternative I rejected was to take the snapshot inside the `zfs create` branch. That would skip a dataset made by hand without a base, and the human's answer 2 in entry 4 rules it out. A one-line comment says why the base is taken there: the dataset is still empty and belongs to factory, and every rollback restores that owner.
+
+    Refactor: I read the diff (one `if` block and the changed closing line) and found nothing to change.
+
+    Description: the journal changed nothing in the meaning beyond what intake already wrote into the criteria.
+
+    Noticed, not touched: the operator guide's steps and the `dataset` item's row still tell the operator to take the base by hand. That is criterion 8, for the docs stage.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
