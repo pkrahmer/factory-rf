@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545, 6557892923]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-01T12:37:06.215993Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-11-01T12:37:06.215993Z'
   stage: smoke-test
+- number: 34
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-01T12:37:30.091194Z'
+  stage: smoke-test
+  run: 3c90c006bb844fa4864be128b8aec928
 ---
 
 # The refresher's remaining rules get their tests
@@ -465,3 +467,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok
 33. factory: started smoke-test as vm.
+34. smoke-tester: Ran the smoke test from the repository root, as written. Nothing was fixed or changed.
+
+    Command 1: `uv run pytest tests/domain/test_tokens_masked.py tests/entry/test_refresh_token_signals.py 2>&1 | tail -1`
+
+    ```
+    11 passed in 0.05s
+    ```
+
+    Met its `Expect:` line: the output is one line that contains `passed` and contains neither `failed` nor `error`.
+
+    Checked against the acceptance criteria: a verbose run (`-v`) collected 4 tests in `tests/domain/test_tokens_masked.py` and 7 in `tests/entry/test_refresh_token_signals.py`, and all of them passed. That matches the four `masked` rows of criterion 1, plus the three signal-restore rows of criterion 2 and the four exception rows of criterion 3. The smoke test contradicts none of the criteria. `make check` (criterion 4) is the factory's gate after this stage, and I did not run it here. Criterion 5 asks for no document change, so there is nothing to check.
+
+    Findings: none.
