@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545, 6557892923]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-01T12:36:22.009017Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-11-01T12:36:22.009017Z'
   stage: docs
+- number: 32
+  speaker: documenter
+  kind: result
+  at: '2026-11-01T12:36:45.817572Z'
+  stage: docs
+  run: 3c2430b1306140db97095a568cce18f8
 ---
 
 # The refresher's remaining rules get their tests
@@ -439,3 +441,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/entry/test_refresh_token.py: the standing leave to move a shared test helper, and the human's answer in entry 6. It drops its copies of the three fixtures, `scripted` and `never_sleep` and imports them from the shared places. Every test keeps its name and what it checks.
     - tests/token_support.py: the standing leave to move a shared test helper, and the human's answer in entry 6. `scripted` and `never_sleep` moved in with the same bodies, and the module docstring names them.
 31. factory: started docs as vm.
+32. documenter: Files changed: none. The docs criterion is `none`, and the diff outside `factory/` is tests only (tests/conftest.py, tests/token_support.py, tests/entry/test_refresh_token.py, tests/domain/test_tokens_masked.py, tests/entry/test_refresh_token_signals.py). No file under `src/` changed, so no documented behaviour moved.
+
+    Cross-read and found current:
+    - `docs/operator-guide.md`, "A bearer token for the model API" (lines ~352-353). It says the secret and the token are replaced by `***` in every message, that `--once` refreshes once and exits 0 (or 1 after printing the error), and that without it the command runs until `SIGTERM` or `SIGINT` and exits 0. The new tests pin exactly these rules.
+    - `docs/project-guide/agents.md`, **The bearer token** (line 148). It says every detail has the secret and the token replaced by `***` and names `factory.domain.tokens` and `factory.entry.refresh_token`. Both names are still right.
+    - `README.md` has nothing on the refresher.
+
+    Stale text I noticed: none. The docs do not state that `main` restores the previous signal handlers or that a `KeyboardInterrupt` or `SystemExit` of one refresh is not caught. Neither is wrong, and the docs criterion leaves them out on purpose, so I added nothing.
+
+    No findings for the coder. I did not run `make check`, because I changed no file. The factory's checks run after this stage.
+
+    `check`: check: green (not run again: passed on tree 73e0dd65c6e5 at 2026-11-01T12:31:58Z)
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok
