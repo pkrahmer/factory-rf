@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-01T08:38:27.493193Z'
   stage: acceptance
   run: ca5c228d13514063b7b29456f9eaa3b7
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-01T09:11:53.827348Z'
+  stage: done
 stories: [F0047-S0001, F0047-S0002, F0047-S0003, F0047-S0004, F0047-S0005, F0047-S0006, F0047-S0007, F0047-S0008, F0047-S0009]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The factory runs in a Cloud Run job
@@ -279,3 +284,4 @@ Human interventions: 19 questions answered (17 `question`, 2 `round_cap`), 7.1 h
    8. Cost: $52.51, 145 runs, 339.8 min. S0004 stands out ($14.39, 36 runs, two round-cap restarts: each review found a new fault class at the token endpoint). 19 questions answered (17 `question`, 2 `round_cap`), 7.1 h waited; S0004 needed the human most (6).
 
    Not done: the two temporary folders I made under `/tmp` (copies of the stories' text and the smoke script, no secrets) could not be removed because the `rm` call was refused. The three stories pass `factory.entry.check_story`.
+3. factory: done (pull request merged); cost: 1 runs, 14.0 min, 76 turns, 278431 tokens in (12401339 more from cache), 50592 out, $5.72
