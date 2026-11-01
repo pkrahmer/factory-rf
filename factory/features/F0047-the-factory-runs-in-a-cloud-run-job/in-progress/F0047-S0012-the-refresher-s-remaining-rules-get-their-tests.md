@@ -316,7 +316,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Considered and not counted: `RaisingSource` is not a copy, because `ScriptedTokenSource` takes only `Exception` and cannot raise `KeyboardInterrupt`/`SystemExit`. `terminate` and `WatchingSource` are new shapes that no existing helper covers.
 
     Earlier tests (item 6):
-    - tests/conftest.py: standing leave to move a shared test helper, and the human's answer in entry 6. Only the `secret_file`, `login_file` and `environ` fixtures were added, moved from `tests/entry/test_refresh_token.py`; only their docstrings changed.
+    - tests/conftest.py: standing leave to move a shared test helper, and the human's answer in entry 6. Only the secret-file, login-file and environ fixtures were added, moved from `tests/entry/test_refresh_token.py`; only their docstrings changed.
     - tests/entry/test_refresh_token.py: standing leave to move a shared test helper, and the human's answer in entry 6. It drops its copies of the three fixtures and of `scripted` and imports `scripted` from `token_support`. Every test keeps its name and what it checks.
     - tests/token_support.py: standing leave to move a shared test helper, and the human's answer in entry 6. `scripted` was moved in unchanged.
 20. factory: started doing as vm.
@@ -361,7 +361,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Location:    factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0012-the-refresher-s-remaining-rules-get-their-tests.md:316
     ```
 
-    Line 316 is in the reviewer's entry 19: "- tests/conftest.py: standing leave … Only the `secret_file`, `login_file` and `environ` fixtures were added …". detect-secrets reads the fixture name `secret_file` in that sentence as a secret keyword. My green `make check` in entry 17 ran before entry 19 was written. So this is new, and it comes from the journal, which belongs to the factory. I may not edit the journal (R5), and `CLAUDE.md` forbids a new `.secrets.baseline` entry or a `pragma: allowlist secret` unless I ask first.
+    Line 316 is in the reviewer's entry 19: "- tests/conftest.py: standing leave … Only the secret-file, login-file and environ fixtures were added …". detect-secrets reads the fixture name `secret_file` in that sentence as a secret keyword. My green `make check` in entry 17 ran before entry 19 was written. So this is new, and it comes from the journal, which belongs to the factory. I may not edit the journal (R5), and `CLAUDE.md` forbids a new `.secrets.baseline` entry or a `pragma: allowlist secret` unless I ask first.
 
     Options:
     (a) You add a `.secrets.baseline` entry for this false positive, or give me leave to add it. I would choose this: the journal stays exactly as written, and the finding really is a false positive (a fixture's name, not a value).
