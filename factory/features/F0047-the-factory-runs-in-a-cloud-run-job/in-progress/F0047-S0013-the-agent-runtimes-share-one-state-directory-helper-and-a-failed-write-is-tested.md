@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-01T13:56:45.165562Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-01T13:56:45.159335Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-01T13:56:45.165562Z'
+  stage: intake
+---
+
 # The agent runtimes share one state-directory helper, and a failed write is tested
 <!-- proposed by feature acceptance of 2026-11-01; refine before starting -->
 
@@ -70,3 +97,5 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
 
 ## Journal
 
+1. 2026-11-01 human: created.
+2. factory: started intake as vm.
