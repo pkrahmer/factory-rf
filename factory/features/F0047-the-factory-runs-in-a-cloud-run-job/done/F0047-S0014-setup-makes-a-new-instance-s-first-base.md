@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-11-01T15:05:27.613062Z'
   stage: smoke-test
   run: cd530a1ca6ab4768a496cbd3276db0d9
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-11-01T15:06:47.472957Z'
+  stage: approval
 ---
 
 # Setup makes a new instance's first base
@@ -337,3 +342,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - Criterion 7 (`make check`): I did not run it in this stage. Entry 18 records it green, and the docs stage reused that passed result (entry 22).
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 16.7 min, 68 turns, 225414 tokens in (1364191 more from cache), 24504 out, $2.31
