@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T14:50:08.445188Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-01T14:49:47.976473Z'
   stage: review
   run: 99df4a7b75ef4b918a84776a398883a7
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-01T14:50:08.445188Z'
+  stage: doing
 ---
 
 # Setup makes a new instance's first base
@@ -177,3 +186,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     1. `tests/test_vm_setup_first_base.py::test_a_made_dataset_gets_its_first_base_after_its_create_and_quota` and `::test_an_existing_dataset_without_a_base_gets_its_first_base`. These are two rows of one rule, "a missing base is taken once and named", written as separate test functions that repeat the same two assertions. One asserts that the snapshot calls equal `[["snapshot", BASE]]`, the other that `MADE_BASE` appears in `datasets_lines()`. CLAUDE.md *Tests* says the sides of one rule are rows of one parametrized test. Fix: the tester merges them into one parametrized test with rows for a dataset that was just made and a dataset that already exists, ids naming the case. The order checks of criterion 1 (against `create`, the quota and the `install -d -o factory` text) stay in their own test on the `made` fixture.
 
     Earlier tests: none. `git diff --name-status main...HEAD` shows only the added test file `tests/test_vm_setup_first_base.py`, and `vm/setup.sh` is not a test.
+13. factory: started doing as vm.
