@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T07:11:50.358178Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -208,6 +212,11 @@ journal:
   at: '2026-11-01T07:11:30.113726Z'
   stage: doing
   run: 1b28b6b1eed54802afc7f0553ba8d173
+- number: 37
+  speaker: factory
+  kind: started
+  at: '2026-11-01T07:11:50.358178Z'
+  stage: tests
 ---
 
 # One script turns a bare job into a running instance
@@ -630,3 +639,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     I did not refactor anything: there is no diff of mine this round. I did not run `make check` this run because nothing changed. The last green run is the one in journal 32.
 
     The journal did not change the meaning of the task. The reviewer already wrote the corrected Description (criteria 19 and 20 added, renumbered 21 and 22).
+37. factory: started tests as vm.
