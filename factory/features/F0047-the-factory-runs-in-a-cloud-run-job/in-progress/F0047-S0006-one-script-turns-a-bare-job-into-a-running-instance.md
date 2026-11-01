@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T06:54:02.058255Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-11-01T06:53:40.110078Z'
   stage: doing
   run: 7b2f62c6c2d34869b0dfe0f583c4134e
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-01T06:54:02.058255Z'
+  stage: tests
 ---
 
 # One script turns a bare job into a running instance
@@ -508,3 +517,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Noticed, not touched:
     - When the checkout's Dockerfile has no such `ARG` line, `default` exports the variable empty, not absent. The `uv` read already behaved the same way.
     - `vm/setup.sh` still reads the three pins with its own `sed` lines. Sharing a helper between the two scripts is beyond this story.
+29. factory: started tests as vm.
