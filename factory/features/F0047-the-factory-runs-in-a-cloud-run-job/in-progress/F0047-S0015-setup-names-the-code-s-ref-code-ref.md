@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-01T15:10:58.559853Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-01T15:10:58.559853Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-01T15:11:17.804302Z'
+  stage: intake
+  run: 329979172dd54fbb8c2ace541d2fefdc
 ---
 
 # Setup names the code's ref --code-ref
@@ -58,7 +60,7 @@ Tests (the tester writes them): `tests/test_vm_setup_code_ref.py`. The leave ove
 
 1. `setup.sh --code-ref v9` clones the factory's code with `--branch v9`, rows of one test: without `--code-url` (with the askpass, as today) and with a different `--code-url` (without a credential, as S0005 built).
 2. Without `--code-ref` the clone uses `--branch main`.
-3. `setup.sh ... --ref v9` prints `setup.sh: --ref is now --code-ref` on standard error, exits 2, and calls no stand-in.
+3. `setup.sh ... --ref v9` and `setup.sh ... --ref` (no value, last on the line), rows of one test: each prints `setup.sh: --ref is now --code-ref` on standard error, followed by the usage (a line starting `usage: setup.sh`), exits 2, and calls no stand-in. The `--ref` case is handled before `need_value`.
 4. `setup.sh --help` and the usage text name `--code-ref` and not `--ref`.
 5. `make check` stays green.
 6. docs: `docs/operator-guide.md`: every `--ref` of the script becomes `--code-ref` (the option table, the steps, *The rebuild after a merge*, *The code and the project apart*, the GCP steps), with one sentence that the old name is refused. `docs/decisions.md`, *The code and the project apart*: one line that the option is `--code-ref`, from the feature's decision 16. `README.md`: only if it names `--ref`.
@@ -91,3 +93,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    1. Criterion 3 gets a second row: `setup.sh ... --ref` with no value prints `setup.sh: --ref is now --code-ref`, exits 2 and calls no stand-in. The `--ref` case is handled before `need_value`, so a bare `--ref` gets the hint too.
    2. Criterion 3 also expects the usage on standard error after the hint line (a line starting `usage: setup.sh`), in both rows.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: `vm/setup.sh` names the option `--code-ref` (default `main`), the unchanged variable, the refusal of `--ref` through `fault` with exit 2 before any step, and the test files with the leave over `tests/test_vm_setup.py` (lines 16 and 80). All of it is concrete.
+   - Criteria: each is testable by one test. 1 has two rows (with and without `--code-url`). 2 is the default. 3 now has two rows, `--ref v9` and a bare `--ref`, each with the hint, the usage line and exit 2, and no stand-in called. 4 covers `--help` and the usage text. 5 and 6 are the closing ones. I carried the human's answer (journal entry 4, both points) into criterion 3 and changed nothing else.
+   - Smoke test: `sh vm/setup.sh --ref v9; echo "exit $?"` is runnable. It runs no pytest, so there is no `-q` problem. Its Expect line is checkable on the first and last lines.
+   - Architecture: a shell script under `vm/`, a path the coder may write. No layer is touched.
+   - Scope: within decisions 16 and 22 of F0047 and not in its Out of scope.
