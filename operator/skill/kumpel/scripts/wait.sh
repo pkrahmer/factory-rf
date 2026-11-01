@@ -29,7 +29,9 @@ while [ "$(date +%s)" -lt "$end" ]; do
     echo "event: $archive_now"
     exit 0
   fi
-  if ! printf '%s\n' "$now" | grep -q '^#'; then
+  # Only a pull request that was open and is gone is news: right after a story starts, the
+  # factory needs a tick before it opens one.
+  if printf '%s\n' "$before" | grep -q '^#' && ! printf '%s\n' "$now" | grep -q '^#'; then
     echo "event: no work-item pull request is open"
     exit 0
   fi
