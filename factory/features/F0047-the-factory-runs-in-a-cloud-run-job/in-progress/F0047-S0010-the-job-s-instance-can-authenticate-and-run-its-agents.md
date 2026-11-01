@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 491
 comments_read: [6556021304]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-01T09:42:23.733200Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-01T09:42:23.733200Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-01T09:42:48.830785Z'
+  stage: smoke-test
+  run: 273c8bcb49cf4bc0a8c75bebefa7bb5f
 ---
 
 # The job's instance can authenticate and run its agents
@@ -282,3 +284,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `secrets`: secrets: green (2.8 s)
     `documents`: documents ok
 15. factory: started smoke-test as vm.
+16. smoke-tester: I ran the two smoke-test commands as written, in order, from the repository root. Both met their `Expect:` lines. There are no findings.
+
+    Command 1: `grep -c 'usr/local/bin/git-credential-factory' vm/job-start.sh`
+    ```
+    1
+    ```
+    Met `Expect: 1` (exit status 0).
+
+    Command 2: the `uv run python -c "…"` snippet, which calls `IdleShutdown(..., action='ending the factory\'s process')._power_off()`
+    ```
+    Bytecode compiled 4164 files in 72ms
+    idle shutdown: idle for 1 minutes, ending the factory's process
+    ```
+    Met `Expect: one line, idle shutdown: idle for 1 minutes, ending the factory's process` (exit status 0). The `Bytecode compiled …` line is uv's own status message on stderr, not the program's output. The snippet printed exactly one line, and it is the expected text.
+
+    Criteria read again against what the smoke test showed and against the code it points at:
+    - 2: the helper's install is at `vm/job-start.sh:125`. It comes after `checkout --detach` (line 123) and before `step tools` (line 127), with `-m 0755`, the source `$code/vm/git-credential-factory` and `|| failed code`.
+    - 4: the only other `install` under `$prefix/usr/local/bin` is `runc` (line 93).
+    - 5: `OpencodeRuntime` makes its state directory with `mkdir(parents=True, exist_ok=True)` (`src/factory/adapters/opencode_runtime.py:618`).
+    - 6: the default `action` is still `"powering the machine off"` (`src/factory/application/idle_shutdown.py:21`). `idle_shutdown_of` passes the exit text only for `exit` (`src/factory/entry/wiring.py:591-593`).
+
+    Nothing the smoke test showed contradicts a criterion. I did not run `make check`; the factory runs the stage's checks.
