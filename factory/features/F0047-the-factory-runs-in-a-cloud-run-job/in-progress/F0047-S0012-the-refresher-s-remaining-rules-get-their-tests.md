@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545, 6557892923]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-01T12:37:06.215993Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -186,6 +190,11 @@ journal:
   at: '2026-11-01T12:36:45.817572Z'
   stage: docs
   run: 3c2430b1306140db97095a568cce18f8
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-11-01T12:37:06.215993Z'
+  stage: smoke-test
 ---
 
 # The refresher's remaining rules get their tests
@@ -455,3 +464,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 73e0dd65c6e5 at 2026-11-01T12:31:58Z)
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok
+33. factory: started smoke-test as vm.
