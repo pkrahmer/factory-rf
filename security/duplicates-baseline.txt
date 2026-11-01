@@ -38,4 +38,4 @@ dead-code src/factory/adapters/fake_containers.py: unused class 'FakeContainerRu
 dead-code src/factory/adapters/fake_containers.py: unused property 'calls'
 dead-code src/factory/adapters/fake_snapshots.py: unused class 'FakeSnapshots'
 dead-code src/factory/adapters/make_commands.py: unused class 'MakeProjectCommands'
-dead-code src/factory/adapters/oauth_token.py: unused method '__call__'
+dead-code src/factory/adapters/oauth_token.py: unused function '__call__'
