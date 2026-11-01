@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T07:48:16.223334Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-01T07:47:58.601427Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-01T07:48:16.223334Z'
   stage: doing
 ---
 
@@ -151,3 +160,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    Noticed but not touched: nothing else.
 8. 2026-11-01 human: Answer: (a). The tester adds `"enabled_providers": ["corp"]` to the expected dictionary of `tests/adapters/test_opencode_runtime_provider.py::test_a_provider_file_adds_its_keys_beside_the_existing_ones`; `CONFIGURATION` in `tests/opencode_provider_support.py` stays the domain function's output. The leave covers that expectation and nothing else in the file; the Description's "pass unchanged" was written before criterion 2 met that test. End with `tests` and name the change.
+9. factory: started doing as vm.
