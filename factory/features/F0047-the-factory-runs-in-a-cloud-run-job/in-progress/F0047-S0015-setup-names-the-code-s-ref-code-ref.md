@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 496
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-01T15:09:05.942844Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-01T15:09:05.942844Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-01T15:09:24.907325Z'
+  stage: intake
+  run: 94b28a8f9fba4ff9bca35bef2e574eab
+  blocked: question
 ---
 
 # Setup names the code's ref --code-ref
@@ -58,3 +61,14 @@ Expect: the first line is `setup.sh: --ref is now --code-ref`, and the last line
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-11-01 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. I read the story, feature.md (decision 16 and 22) and vm/setup.sh (usage line 11, `fault` at line 28, `--ref` parsing at line 75). Two findings, so the story cannot move on yet:
+
+   1. The Interface says `--ref` "with or without a value" is refused with the hint, usage and exit 2. Criterion 3 only covers `--ref v9`. Today the parser calls `need_value` before it handles the option, so a bare `--ref` at the end of the line would probably report "needs a value" instead of the hint. Nothing tests that side. Proposed: add a criterion, "`setup.sh ... --ref` with no value prints `setup.sh: --ref is now --code-ref`, exits 2 and calls no stand-in". Better still, make it a second row of criterion 3's test.
+
+   2. The Interface says the hint is followed by the usage on standard error, but no criterion checks the usage. Criterion 4 covers `--help` and the usage text naming `--code-ref` and not `--ref`. It doesn't say the refusal prints the usage. Proposed: criterion 3 also expects the usage text on standard error after the hint line, for example a line starting `usage: setup.sh`.
+
+   The other checks are fine, apart from these two gaps:
+   - Interface: it names `vm/setup.sh`, the `--code-ref` option and its default, the use of `fault`, and the test file and the leave for `tests/test_vm_setup.py`.
+   - Smoke test: the command is runnable. It runs no pytest, so there is no `-q` problem. Its Expect line is checkable.
+   - Architecture: it is a shell script under `vm/`, a path the coder may write. No layer is touched.
+   - Scope: it is within decision 16 and 22, and not in "Out of scope".
