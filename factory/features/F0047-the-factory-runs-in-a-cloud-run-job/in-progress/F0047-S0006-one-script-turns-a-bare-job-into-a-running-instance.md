@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T00:11:54.802332Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-01T00:11:54.802332Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-01T00:12:38.668181Z'
+  stage: doing
+  run: 57d298eecd1544ceb341e01ae5bb5c6f
 ---
 
 # One script turns a bare job into a running instance
@@ -376,3 +378,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Not reported because group 1 stops the review: the test-quality points of group 4, for example the passing and failing sides of the checksum, mount and ref rules written as separate test functions in `tests/test_vm_job_start.py`. The next review checks them.
 20. factory: started doing as vm.
+21. coder: Round 1: I worked through the review's findings (journal 19). Findings 1, 2 and 4 need only tests, so I changed no code and the work item goes to the tester.
+
+    For the tester:
+    - Criterion 17: `FACTORY_STAGE_IMAGE` must be in `factory-run`'s recorded environment. Two rows: the input's value when the job gave one, `factory-stage:<instance>` otherwise.
+    - Criterion 18: the step `tools` must call `python3 -m venv <root>/tools`, install `uv` with that environment's `pip`, then run `<root>/tools/bin/uv sync --frozen --no-dev` with `<root>/factory` as its working directory, all before the `podman` call. To check the working directory, the stand-ins in `tests/vm_support.py` (this story's own helper) must also record it.
+    - Criterion 1, new row: a `FACTORY_TOKEN_FILE` without read permission gives exit 2 and `job-start: FACTORY_TOKEN_FILE is not a file`. The row is skipped when the tests run as root, where every file is readable. `vm/job-start.sh:43` already refuses such a file with that message.
+
+    Finding 4 (reviewer's choice, made without the human): the reviewer asked the human to choose between adding a test row and dropping "readable" from the Interface. I added the row without asking, because CLAUDE.md's rule that every limit the Interface states is tested on both sides already calls for it. I rejected asking the human, because no new rule is needed. I rejected dropping "readable", because the job would then start with a hosting token it cannot read.
+
+    Description (finding 3): I rewrote the default clause of criterion 5 to match journal 9. It now reads "by default a 64-character lowercase hex value, the checksum of the Interface checked by reading (the human, 2026-10-31)". In criterion 1, I added the unreadable-file row above. Nothing else in the Description changed.
+
+    What I built: nothing new this round. `vm/job-start.sh` and `vm/Dockerfile` are unchanged since journal 17. I did not run `make check` this round, because no code or test changed; journal 17's run was green.
+
+    Refactor: I changed no code this round, so there was nothing to refactor.
+
+    Noticed, not touched (the same as journal 17):
+    - The job script does not set `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION` or `FACTORY_OPENCODE_MODELS`, which `vm/setup.sh` writes.
+    - The tools step reads the `uv` version from the code checkout's `vm/Dockerfile`. With the test stand-ins that checkout is empty, so the version is empty there.
+    - The test-quality points the reviewer held back (passing and failing sides written as separate test functions in `tests/test_vm_job_start.py`) are left to the tester and the next review.
+
+    The factory left out changes outside the write paths: factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0006-one-script-turns-a-bare-job-into-a-running-instance.md.
