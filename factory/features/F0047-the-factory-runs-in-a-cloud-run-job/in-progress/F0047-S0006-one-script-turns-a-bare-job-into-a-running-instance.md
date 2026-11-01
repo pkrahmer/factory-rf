@@ -374,7 +374,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Main choice: the required-input checks print nothing before `job-start: inputs`. That way a missing input prints only its own message, as the smoke test's two lines expect. I rejected printing `job-start: inputs` first, because the smoke test would then see three lines.
 
-    Secrets: `make secrets` is green with the runc checksum written as a plain constant. Following the human's answer in journal 9, I added no marker and no baseline entry.
+    About the checksum: `make secrets` is green with the runc checksum written as a plain constant. Following the human's answer in journal 9, I added no marker and no baseline entry.
 
     Description: journal 9 changed how criterion 5's default checksum is tested (it checks a 64-character lowercase hex value, and the exact value is checked by reading). The tester already wrote that into the Description; the task itself is unchanged.
 
@@ -450,7 +450,7 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Secret Type: Secret Keyword
     Location:    factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0006-one-script-turns-a-bare-job-into-a-running-instance.md:374
     ```
-    Line 374 is in my own journal 17 entry, the paragraph that starts with "Secrets: `make secrets` is green with the runc checksum written as a plain constant." detect-secrets' keyword plugin reads `Secrets: <text>` as a key with a value. The journal belongs to the factory, so neither I nor any other stage can change that line. The code is not involved: `vm/job-start.sh` itself is not flagged.
+    Line 374 is in my own journal 17 entry, the paragraph that starts with "About the checksum: `make secrets` is green with the runc checksum written as a plain constant." detect-secrets' keyword plugin reads `Secrets: <text>` as a key with a value. The journal belongs to the factory, so neither I nor any other stage can change that line. The code is not involved: `vm/job-start.sh` itself is not flagged.
 
     The options I see:
     (a) You reword that one journal line in a commit on `work-item/F0047-S0006`, for example "About the checksum: `make secrets` is green ...". No marker and no baseline entry are needed, and it is the smallest change.
