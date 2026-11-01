@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618, 6559846438]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-01T15:31:01.819619Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-01T15:30:40.677581Z'
   stage: review
   run: cd7544c7357145b6b8c11be7804da993
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-01T15:31:01.819619Z'
+  stage: docs
 ---
 
 # Setup names the code's ref --code-ref
@@ -240,3 +249,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     - `tests/test_vm_setup.py`: the human's leave in the story's Interface. The change is lines 16 and 80, `--ref` to `--code-ref`; the test names and what they check are unchanged.
     - `tests/test_vm_setup_text.py`: the human's answer in journal entry 9. The change is the one row `("ref", "ref")` to `("code-ref", "ref")` of `test_the_options_land_in_their_named_variables`; nothing else in the file changed.
+16. factory: started docs as vm.
