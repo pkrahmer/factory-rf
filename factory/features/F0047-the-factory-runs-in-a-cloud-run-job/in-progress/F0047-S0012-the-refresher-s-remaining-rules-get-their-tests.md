@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-01T10:20:50.425933Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-01T10:20:50.425933Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-01T10:21:39.453746Z'
+  stage: review
+  run: 5fbae22966b74826bb6fdcfe2ae5ff1d
 ---
 
 # The refresher's remaining rules get their tests
@@ -273,3 +275,13 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 18. factory: started review as vm.
+19. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`: five test files, nothing under `src/`. Group 1 (acceptance criteria) holds. Criterion 1 is the four exact rows of one parametrized test. Criterion 2 is three rows, and the handler is checked during `fetch` in the loop row only, as the human's answer (a) in entry 6 says. Criterion 3 is four rows (two exceptions × `--once`/loop). Each row checks `raised.value is error`, code 3, the earlier content of the login file and that stderr has no `refresh_token:` line. In the loop rows, `never_sleep` makes a caught exception fail the test, so those rows really test that the exception is not caught. I read the tests against `src/factory/entry/refresh_token.py:57-63,127-137` and `src/factory/domain/tokens.py:31-36`, and they test what each criterion names. The Interface states no numeric limit. In entry 17 the coder's `make check` was green. Group 2 (architecture) and group 3 (security) hold: tests only, with the shared support module and fixtures. Group 4 (quality) fails on one point:
+
+    1. `tests/entry/test_refresh_token_signals.py:53` (`never_sleep`) is a second copy of `never_sleep` at `tests/entry/test_refresh_token.py:51`. The body is the same and only the docstring differs. Fix: under the standing leave, the tester moves `never_sleep` into `tests/token_support.py` beside `scripted`, and both modules import it from there. Every earlier test keeps its name and what it checks.
+
+    Considered and not counted: `RaisingSource` is not a copy, because `ScriptedTokenSource` takes only `Exception` and cannot raise `KeyboardInterrupt`/`SystemExit`. `terminate` and `WatchingSource` are new shapes that no existing helper covers.
+
+    Earlier tests (item 6):
+    - tests/conftest.py: standing leave to move a shared test helper, and the human's answer in entry 6. Only the `secret_file`, `login_file` and `environ` fixtures were added, moved from `tests/entry/test_refresh_token.py`; only their docstrings changed.
+    - tests/entry/test_refresh_token.py: standing leave to move a shared test helper, and the human's answer in entry 6. It drops its copies of the three fixtures and of `scripted` and imports `scripted` from `token_support`. Every test keeps its name and what it checks.
+    - tests/token_support.py: standing leave to move a shared test helper, and the human's answer in entry 6. `scripted` was moved in unchanged.
