@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 492
-comments_read: []
+comments_read: [6556376362]
 handed_over: null
 claim: null
 journal:
@@ -37,6 +37,11 @@ journal:
   stage: tests
   run: 6bb95a218aff45399b5685f4637a063d
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-11-01T09:53:34.708187Z'
+  stage: tests
 ---
 
 # The refresher's remaining rules get their tests
@@ -114,3 +119,6 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Notes:
    - `ScriptedTokenSource` in `tests/token_support.py` raises only `Exception`, not `KeyboardInterrupt`, so the new module has its own `RaisingSource`.
    - The new module has its own `environ`, `login_file` and `scripted` helpers instead of moving S0004's from `tests/entry/test_refresh_token.py` under the standing leave. This story says S0004's tests stay unchanged. If you want them in one shared place, that move is a later story's.
+6. 2026-11-01 human: Answer: (a). The handler is checked during `fetch` in the loop row only; `--once` refreshes once and returns before the loop's handlers are installed, which is what the Interface's sentence means. No `src/` change.
+
+   On your second note: move `environ`, `login_file` and `scripted` to a shared place now, under the standing leave to move a shared test helper (`tests/token_support.py`, or `tests/conftest.py` for a fixture), and have `tests/entry/test_refresh_token.py` use them from there. "S0004's tests stay unchanged" means they keep their names and check the same things, which the standing leave keeps; a copy left in two modules is what the reviewer counts as a finding, and it would cost a round.
