@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T10:14:06.981623Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-01T10:13:46.570201Z'
   stage: tests
   run: 996d8c0180774e7dbdfde268851a17d7
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-01T10:14:06.981623Z'
+  stage: doing
 ---
 
 # The refresher's remaining rules get their tests
@@ -237,3 +246,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (173.7 s)
+16. factory: started doing as vm.
