@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-01T15:53:49.944488Z'
   stage: acceptance
   run: 076815d60f574835a16fbda280158504
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-01T15:55:37.023077Z'
+  stage: done
 stories: [F0047-S0001, F0047-S0002, F0047-S0003, F0047-S0004, F0047-S0005, F0047-S0006, F0047-S0007, F0047-S0008, F0047-S0009, F0047-S0010, F0047-S0012, F0047-S0013, F0047-S0014, F0047-S0015]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The factory runs in a Cloud Run job
@@ -354,3 +359,4 @@ None. Each item of 4 is small, older than this feature, or already decided. The 
    8. Cost: $64.24, 196 runs, 439.1 min. S0004 still stands out ($14.39, 36 runs, two round-cap restarts). S0013 to S0015 cost $6.04 in 29 runs, with one rework round each for S0013 and S0014. 26 questions answered (24 `question`, 2 `round_cap`), 9.1 h waited; the new stories added 3 questions. S0004 needed the human most (6).
 
    Not done: `/tmp/acc3/smoke.py` (the smoke script only, made-up values, no secrets) is still there, because the `rm` was refused.
+3. factory: done (pull request merged); cost: 1 runs, 18.5 min, 58 turns, 156317 tokens in (5660061 more from cache), 39284 out, $3.17
