@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T08:04:05.620135Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-01T08:03:45.262366Z'
   stage: review
   run: d07051594d4747098c69b21f602a69d8
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-01T08:04:05.620135Z'
+  stage: doing
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -246,3 +255,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Earlier tests:
     - `tests/adapters/test_opencode_runtime_provider.py`: the standing leave covers moving `_base_configuration` to `request_configuration` in `tests/adapters/opencode_stand_in.py` (same body, every test keeps its name). The human's answer in entry 8 covers the added `"enabled_providers": ["corp"]` expectation in `test_a_provider_file_adds_its_keys_beside_the_existing_ones`.
     - `tests/adapters/opencode_stand_in.py`: covered by the standing leave. It is the shared place that receives the moved `request_configuration`, it only gains that function and its imports, and no existing helper changed.
+17. factory: started doing as vm.
