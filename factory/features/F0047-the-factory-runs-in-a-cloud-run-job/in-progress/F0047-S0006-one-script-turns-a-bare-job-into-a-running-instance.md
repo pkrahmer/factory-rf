@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T00:19:52.825476Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,13 @@ journal:
   kind: started
   at: '2026-11-01T00:19:52.825476Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: question
+  at: '2026-11-01T00:23:28.522095Z'
+  stage: doing
+  run: bc5a1e0f704a440da6e415c84832f8e4
+  blocked: question
 ---
 
 # One script turns a bare job into a running instance
@@ -440,3 +443,25 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (166.5 s)
 24. factory: started doing as vm.
+25. coder: Question: `make check` is red, and only because of a line in this work item's journal, which I cannot edit (R5). How should that line be cleared?
+
+    `make secrets` fails with:
+    ```
+    Secret Type: Secret Keyword
+    Location:    factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0006-one-script-turns-a-bare-job-into-a-running-instance.md:374
+    ```
+    Line 374 is in my own journal 17 entry, the paragraph that starts with "Secrets: `make secrets` is green with the runc checksum written as a plain constant." detect-secrets' keyword plugin reads `Secrets: <text>` as a key with a value. The journal belongs to the factory, so neither I nor any other stage can change that line. The code is not involved: `vm/job-start.sh` itself is not flagged.
+
+    The options I see:
+    (a) You reword that one journal line in a commit on `work-item/F0047-S0006`, for example "About the checksum: `make secrets` is green ...". No marker and no baseline entry are needed, and it is the smallest change.
+    (b) You add a `pragma: allowlist secret` to that line.
+    (c) You add a `.secrets.baseline` entry for it.
+    I would choose (a). Options (b) and (c) are on CLAUDE.md's "Not without asking" list, and they would keep a false finding on record. Once the line is reworded, the next doing run only needs to run `make check` and hand the work item to review. Future entries will not begin a line with "Secrets:".
+
+    Where I stopped (round 1): the tester's round-1 tests (journal 23) pass against the existing implementation unchanged. Every other part of `make check` is green: lint, types, layers, sast, licenses, and test (coverage 99.56 %, 168.5 s). This round I changed no code, so there was nothing to refactor.
+
+    What I built (unchanged since journal 17): `vm/job-start.sh` (POSIX sh, the steps in the Interface's order, the shell constant `JOB_PODMAN_OPTIONS`, defaults set only where the job gave none, ending in `exec`) and `vm/Dockerfile` (the seven Debian packages without versions, and the new comment on line 2). Main choice: the input checks run silently before `job-start: inputs` is printed, so the smoke test sees exactly two lines. I rejected printing `inputs` first, because the smoke test would then see three lines.
+
+    Description: the Description already names criteria 17 and 18. The coder's edits from journal 21 (the default clause of criterion 5, and the unreadable-file row of criterion 1) were left out by the factory, because the work item is outside my write paths, so I did not try them again. The tests follow journal 9 and journal 21.
+
+    Noticed, not touched: the job script does not set `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION` or `FACTORY_OPENCODE_MODELS`, which `vm/setup.sh` writes. The tools step reads the `uv` version from the checkout's `vm/Dockerfile`, which is empty under the test stand-ins.
