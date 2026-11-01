@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T10:29:26.160445Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,13 @@ journal:
   kind: started
   at: '2026-11-01T10:29:26.160445Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: question
+  at: '2026-11-01T10:33:09.385142Z'
+  stage: doing
+  run: 0d14cd9cae26409ab345a5e8e14eaa2b
+  blocked: question
 ---
 
 # The refresher's remaining rules get their tests
@@ -349,3 +352,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (173.3 s)
 24. factory: started doing as vm.
+25. coder: Question: `make check` is red on `make secrets`. The cause is a line in this work item's journal, not in code or tests, and I can't fix it in this stage.
+
+    What happened: the tester's entry 23 fixed the reviewer's finding. `never_sleep` now exists only in `tests/token_support.py:23`, and both test modules import it from there. With that, `make -k check` passes every target except one: lint, types, layers, sast, licenses and `test: green (173.5 s)` are green. `make secrets` fails:
+
+    ```
+    Secret Type: Secret Keyword
+    Location:    factory/features/F0047-the-factory-runs-in-a-cloud-run-job/in-progress/F0047-S0012-the-refresher-s-remaining-rules-get-their-tests.md:316
+    ```
+
+    Line 316 is in the reviewer's entry 19: "- tests/conftest.py: standing leave … Only the `secret_file`, `login_file` and `environ` fixtures were added …". detect-secrets reads the fixture name `secret_file` in that sentence as a secret keyword. My green `make check` in entry 17 ran before entry 19 was written. So this is new, and it comes from the journal, which belongs to the factory. I may not edit the journal (R5), and `CLAUDE.md` forbids a new `.secrets.baseline` entry or a `pragma: allowlist secret` unless I ask first.
+
+    Options:
+    (a) You add a `.secrets.baseline` entry for this false positive, or give me leave to add it. I would choose this: the journal stays exactly as written, and the finding really is a false positive (a fixture's name, not a value).
+    (b) You reword line 316 of entry 19 in your own commit, for example to "the secret-file, login-file and environ fixtures", so the detector no longer matches.
+    (c) Change the detector's configuration so it skips work-item journals. That is broader than this story, and I would not choose it.
+
+    Built: nothing in this round. No file under `src/` changed, and the code passes every new test as it is. Description unchanged.
+
+    Noticed, not touched: as in entry 17, `src/factory/entry/refresh_token.py:136` is still the only line of that module that coverage leaves uncovered.
