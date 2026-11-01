@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-01T15:09:05.942844Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-01T15:09:05.936881Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-01T15:09:05.942844Z'
+  stage: intake
+---
+
 # Setup names the code's ref --code-ref
 
 ## Description
@@ -29,3 +56,5 @@ Expect: the first line is `setup.sh: --ref is now --code-ref`, and the last line
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-11-01 human: created.
+2. factory: started intake as vm.
