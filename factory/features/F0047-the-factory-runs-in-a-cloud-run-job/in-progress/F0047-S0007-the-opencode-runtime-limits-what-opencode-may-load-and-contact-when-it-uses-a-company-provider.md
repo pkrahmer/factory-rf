@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T07:55:32.594519Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-01T07:55:32.594519Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-01T08:02:00.939912Z'
+  stage: doing
+  run: 515375dd3439490bbc2adb8a5881e6b9
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -206,3 +208,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (175.9 s)
 13. factory: started doing as vm.
+14. coder: `make check` is green: `check: green`, `test: green (175.2 s)`, coverage 99.56 %. The tester's change to the expectation in entry 12 cleared the one red test. I changed no code in this run. The code from the first doing run is already committed, and it is all in `src/factory/adapters/opencode_runtime.py`:
+    - `LOCKDOWN_SWITCHES` holds the three opencode switches (`OPENCODE_DISABLE_MODELS_FETCH`, `OPENCODE_DISABLE_AUTOUPDATE` and `OPENCODE_DISABLE_DEFAULT_PLUGINS`), each with the value `1`. A comment above it says why they apply only with a provider file.
+    - `_provider_keys` returns `{**provider_configuration(provider), "enabled_providers": [provider.id]}`. The domain `provider_configuration` is unchanged.
+    - `_process_request` builds `{CONFIG_VARIABLE: ..., **SWITCHES, **lockdown}`. `lockdown` is `LOCKDOWN_SWITCHES` when a provider file is set and `{}` otherwise.
+
+    Main choice: the switches are added in one place, the single `runtime_environment` dictionary that both `run_launch` and `container_launch` receive. That one place gives the same values on the host, in a container and in the budget resume, and the runtime's values win over the request's. Rejected: adding the switches separately in each launch path. That would have meant two copies to keep in step, and the resume could have drifted from the first call.
+
+    Refactor: I read the diff again (three small edits) and nothing needed changing.
+
+    What the journal changed: entry 8 makes `tests/adapters/test_opencode_runtime_provider.py::test_a_provider_file_adds_its_keys_beside_the_existing_ones` an exception to the Description's line "The existing opencode runtime tests pass unchanged". My write paths do not include the work item, so I have not rewritten the Description.
+
+    Noticed but not touched: nothing.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 1 gone
