@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T00:11:54.802332Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-01T00:11:34.525216Z'
   stage: review
   run: 29842147bf4e4aaa9b3e00c42298774e
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-01T00:11:54.802332Z'
+  stage: doing
 ---
 
 # One script turns a bare job into a running instance
@@ -366,3 +375,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/vm_support.py: none needed. The change only adds helpers and imports, and every earlier helper stays as it was.
 
     Not reported because group 1 stops the review: the test-quality points of group 4, for example the passing and failing sides of the checksum, mount and ref rules written as separate test functions in `tests/test_vm_job_start.py`. The next review checks them.
+20. factory: started doing as vm.
