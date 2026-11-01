@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-10-31T23:59:09.886821Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-10-31T23:59:09.886821Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-01T00:08:37.124790Z'
+  stage: doing
+  run: a9ccba84f9f94d40a5d1432008e06bd5
 ---
 
 # One script turns a bare job into a running instance
@@ -308,3 +310,30 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (166.7 s)
 16. factory: started doing as vm.
+17. coder: `make check` is now green. It was red only in the tester's helper (journal 13). The tester changed `tests/vm_support.py` (journal 15), and the earlier implementation passes unchanged.
+
+    What I built (already in the work tree since journal 13):
+    - `vm/job-start.sh`: new, POSIX `sh`, `set -eu`.
+      - The shell constant `JOB_PODMAN_OPTIONS`, and the runc version and its SHA-256 as constants.
+      - The steps run in the Interface's order. Each prints `job-start: <step>` and stops through `failed <step>` (exit 1). The runc checksum, storage mount and missing code ref keep their own messages.
+      - Inputs are checked silently before `job-start: inputs` is printed, each failure exit 2.
+      - One `default` helper sets the derived variables only where the job gave none.
+      - The proxy is `HTTPS_PROXY`, else `https_proxy`, and is exported under both names.
+      - The token file is only tested for existence and never read.
+      - The script ends in `exec <root>/factory/.venv/bin/factory-run`.
+    - `vm/Dockerfile`: the seven Debian packages lose their versions, and line 2 says what is still pinned. Nothing else changed.
+
+    Refactor, this round: the image name was held twice, as a local `image` and as `FACTORY_STAGE_IMAGE`. Now `default FACTORY_STAGE_IMAGE "factory-stage:$FACTORY_INSTANCE"` sets it once, and the `podman build -t` uses `$FACTORY_STAGE_IMAGE`. Behaviour is the same, and `make check` is green afterwards. Nothing else needed changing.
+
+    Main choice: the required-input checks print nothing before `job-start: inputs`. That way a missing input prints only its own message, as the smoke test's two lines expect. I rejected printing `job-start: inputs` first, because the smoke test would then see three lines.
+
+    Secrets: `make secrets` is green with the runc checksum written as a plain constant. Following the human's answer in journal 9, I added no marker and no baseline entry.
+
+    Description: journal 9 changed how criterion 5's default checksum is tested (it checks a 64-character lowercase hex value, and the exact value is checked by reading). The tester already wrote that into the Description; the task itself is unchanged.
+
+    Noticed, not touched:
+    - `vm/setup.sh` writes `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS` into the instance's environment. The job script does not set them, because the Interface does not list them. If the factory on the host needs them, the job's environment must carry them, or a later story adds them.
+    - The tools step reads the `uv` version from the code checkout's `vm/Dockerfile`, as `vm/setup.sh` does. With the test stand-ins the checkout is empty, so the version is empty there.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 41 known, 1 gone
