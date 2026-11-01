@@ -1308,3 +1308,12 @@ Date: 2026-11-01 (F0047-S0006; decision 17 of the feature; the human, 2026-10-31
 - Why: a job rebuilds the image at every start, and Debian's mirror keeps only a package's current version, so an exact version breaks the build at the next point release. Within one stable release Debian ships only security and serious fixes. The three tools that shape a stage's result have registries that keep every version. A VM's next rebuild takes the current packages of the same release.
 - `tests/test_stage_image.py` allows the findings of an `apt-get install` of exactly those seven names and still fails any other floating reference. A new Debian release is a deliberate change of the digest.
 - Rejected: pinning the packages and refreshing the pins in every release (a broken start in between); dropping the digest (the release would float).
+
+## opencode loads and contacts only what the company provider needs
+
+Date: 2026-11-01 (F0047-S0007; decision 14 of the feature).
+
+- Decision: with a provider file, the per-run configuration gains `enabled_providers` (the file's provider id only; `disabled_providers` is not written) and the call's environment gains `OPENCODE_DISABLE_MODELS_FETCH`, `OPENCODE_DISABLE_AUTOUPDATE` and `OPENCODE_DISABLE_DEFAULT_PLUGINS`, each `1` (`LOCKDOWN_SWITCHES`). Without a provider file nothing changes. The runtime's values override a request's.
+- Why: the factory runs upstream opencode, which has switches for what a company build closes by construction. Measured on 2026-10-31 (opencode 1.19.3, P14): without the switches every run contacts `models.opencode.ai` once; with them it does not, and `OPENCODE_DISABLE_MODELS_FETCH` is the switch that does it. The other two changed nothing observable and stay as upstream's guards. The provider file already defines the models, so no public list is needed; without the file opencode needs it, so the VM path is untouched.
+- `registry.npmjs.org` is still contacted at the start of every run, most likely for the provider's npm package, and no switch removes it. A deployment that must prove no traffic to the vendor reads the proxy's log or runs the startup probe of `planning/cloud-sandbox/`.
+- Rejected: setting the switches without a provider file (opencode would have no model list); an offline model file; a stage image with the provider's package pre-installed (a candidate after the feature, `planning/v1.2-candidates.md`).

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-01T08:19:52.996296Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-11-01T08:19:52.996296Z'
   stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-11-01T08:20:35.146122Z'
+  stage: docs
+  run: 749c6db198214540a1708e5b0ab53ec0
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -371,3 +373,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
       - the standing leave covers moving `_base_configuration` to `request_configuration` and having `_configuration_text` use the shared `configuration_text`. Every test keeps its name and what it checks.
     - `tests/adapters/opencode_stand_in.py`. The standing leave covers it. This is the shared place that received `request_configuration`, `configuration_text` and the `REQUEST_ENVIRONMENT` constant, which `opencode_request` now uses with the same behaviour. `stand_in_runtime` gained two optional keyword parameters that default to `None`, so every earlier caller gets the same runtime.
 25. factory: started docs as vm.
+26. documenter: Docs, round 1: I wrote the documentation criterion 8 asks for. I changed only documents, so I did not run `make check`; the factory's checks after this stage decide. I ran no example, because I wrote none.
+
+    Files changed:
+    - `docs/operator-guide.md`, *A company's provider*: new paragraph *What opencode may load and contact*. It covers `enabled_providers` (and no `disabled_providers`), the three switches, and that the runtime's values override the request's. It says only `OPENCODE_DISABLE_MODELS_FETCH` changes traffic, why all of this depends on the provider file, and that `registry.npmjs.org` is still contacted. It says a deployment that must prove no vendor traffic reads the proxy's log or runs the startup probe of `planning/cloud-sandbox/`.
+    - `docs/project-guide/agents.md`, *The opencode runtime*: I added `enabled_providers` to the per-run configuration keys. I added the switches to the call's environment sentence. I added `_provider_keys` adding the key, and a new paragraph *The lockdown switches* (one `runtime_environment` dict for host, container and resume; the override rule).
+    - `docs/decisions.md`: new entry *opencode loads and contacts only what the company provider needs*, from decision 14, with its rejected alternatives.
+    - `README.md`: none, as the criterion says.
+
+    I checked the diff of `src/factory/adapters/opencode_runtime.py` (`LOCKDOWN_SWITCHES`, `_provider_keys`, `_process_request`). It matches the Interface and what I wrote. I found nothing for the coder.
+
+    Cross-read and found current: the `FACTORY_OPENCODE_PROVIDER_FILE` row of the operator guide's configuration table, the *Running on opencode* section, the container-environment paragraph of `agents.md` (line 30, still true), and the *A company's provider for opencode* decision (the provider-file part is unchanged).
+
+    Stale text not mine to fix: the work item's Interface line "The existing opencode runtime tests pass unchanged" has one exception since the human's answer in entry 8. The reviewer and coder both noted it. The work item is not in my write paths.
+
+    `check`: check: green (not run again: passed on tree f9fde96ff742 at 2026-11-01T08:15:22Z)
+    `secrets`: secrets: green (2.4 s)
+    `documents`: documents ok

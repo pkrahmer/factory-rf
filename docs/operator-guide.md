@@ -327,6 +327,10 @@ To use the provider, map the aliases to it in `FACTORY_OPENCODE_MODELS`, for exa
 
 A model without prices is costed at 0, so the factory's own budget stop (see "An opencode run's budget") never fires for it. Give `input_cost` and `output_cost` when the budget is to count.
 
+**What opencode may load and contact.** With a provider file the runtime also limits what opencode loads. The configuration gains `enabled_providers`, holding only the file's provider id (`["corp"]` for the example), and no `disabled_providers`. The call's environment gains `OPENCODE_DISABLE_MODELS_FETCH=1`, `OPENCODE_DISABLE_AUTOUPDATE=1` and `OPENCODE_DISABLE_DEFAULT_PLUGINS=1`; the runtime's values win over the same names in a request's environment. Of the three, `OPENCODE_DISABLE_MODELS_FETCH` is the one that changes traffic: without it every run contacts opencode's public model catalogue, `models.opencode.ai`, once. The other two stay as upstream's own guards. They depend on the provider file because the file already defines the models; without it opencode needs its public model list, so a run without the file is unchanged, byte for byte.
+
+One contact stays: opencode 1.19.3 asks `registry.npmjs.org` at the start of every run, most likely for the provider's npm package, and no switch removes it. A deployment that must prove that a run sends nothing to the vendor reads the proxy's log, or runs the startup probe in `planning/cloud-sandbox/`.
+
 ### A bearer token for the model API
 
 A model API behind an OAuth2 client-credentials grant gives out a bearer token that lives about an hour. The opencode runtime reads the file `FACTORY_API_LOGIN_FILE` names at every call and hands its content to the agent as `ANTHROPIC_API_KEY`, so the token only has to be kept fresh in that file. `python -m factory.entry.refresh_token` does that, as a process of its own beside the factory; the runtimes change nothing. Starting it with the instance is the start script's business (see "The machine").
