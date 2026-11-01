@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-01T14:34:00.823800Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-01T14:34:00.823800Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-01T14:34:20.242310Z'
+  stage: intake
+  run: 89a9e095d2b947c08a45562a99e74804
 ---
 
 # Setup makes a new instance's first base
@@ -60,8 +62,10 @@ Tests (the tester writes them): `tests/test_vm_setup_first_base.py`, through `te
 2. A run where the base exists calls no `zfs snapshot` and changes nothing in the step.
 3. The `zfs snapshot` call comes before the step `delegation` (the first base is root's, taken before the factory's rights are given).
 4. The step's closing line ends with `and its base`.
-5. `make check` stays green.
-6. docs: `docs/operator-guide.md`, the script's steps: the step `datasets` makes the first base; the `dataset` item's row no longer asks the operator to take the base by hand for an instance made by the script (it still names the command for a dataset made by hand). `docs/decisions.md`: none. `README.md`: none.
+5. A run where the stand-in `zfs` exits non-zero on `snapshot` exits non-zero, and the step's closing line is not printed.
+6. A run where the dataset already exists without a base calls `zfs snapshot <dataset>@base` once and the step's output names `made the first base <dataset>@base`.
+7. `make check` stays green.
+8. docs: `docs/operator-guide.md`, the script's steps: the step `datasets` makes the first base; the `dataset` item's row no longer asks the operator to take the base by hand for an instance made by the script (it still names the command for a dataset made by hand). `docs/decisions.md`: none. `README.md`: none.
 
 ## Smoke test
 
@@ -92,3 +96,9 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    3. Confirmed: criterion 1's "the step's output names `made the first base <dataset>@base`" covers the `said` form with the change; no further criterion.
    4. The run's recorded `zfs` calls give the order against `create` and the quota; the order against the ownership of the mount point is tested from the script's text (the `zfs snapshot` line comes after the `install -d -o factory` line of the step), as the setup tests already test order from the text.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: `vm/setup.sh`, step `datasets`, names the command (`zfs snapshot <dataset>@base`), the check (`zfs list -H -o name -t snapshot`), the change message and the exact closing line; the tests are named (`tests/test_vm_setup_first_base.py` through `tests/vm_support.py::run_setup`). Each stated behaviour has a criterion: the base taken (1, 6), an existing base left alone (2), the closing line (4), the failing `zfs snapshot` (5).
+   - Criteria: each is testable by one test function. Criterion 1's order against `create` and the quota is read from the recorded `zfs` calls. Its order against the ownership of the mount point is read from the script's text (the `zfs snapshot` line after the `install -d -o factory` line), as the human said in journal entry 4, answer 4. Both sides of the base rule are covered (no base: 1, 6; base present: 2), and so is the failing `zfs snapshot` (5). Per entry 4, answers 1 and 2, I added two criteria, 5 (stand-in `zfs` fails on `snapshot`: non-zero exit, no closing line) and 6 (existing dataset without a base gets the base); the closing two are now 7 and 8. Answer 3 confirmed that criterion 1 covers the `said` form with the change, so no more was added.
+   - Smoke test: `grep -c 'zfs snapshot "$dataset@base"' vm/setup.sh` is runnable with `Expect: 1`. The pytest command passes no `-q`, and the `Expect:` (a line with `passed`, neither `failed` nor `error`) can be checked against the output.
+   - Architecture: the change is confined to `vm/setup.sh` (the coder's write path) and the operator guide; no layer of `src/factory` is touched.
+   - Scope: within F0047's scope. S0014 is listed in the feature's stories, and decision 22 of the feature names it. It touches none of the feature's out-of-scope items.
