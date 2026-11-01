@@ -117,18 +117,31 @@ def complete(tmp_path: Path) -> Run:
     return _run(tmp_path, Machine(dataset=True, base=True))
 
 
-def test_a_made_dataset_gets_its_first_base_after_its_create_and_quota(
+@pytest.mark.parametrize(
+    "machine",
+    [
+        pytest.param(
+            Machine(dataset=False, base=False, quota="none", owner="root:root"), id="made"
+        ),
+        pytest.param(Machine(dataset=True, base=False), id="existing"),
+    ],
+)
+def test_a_missing_base_is_taken_once_and_named(tmp_path: Path, machine: Machine) -> None:
+    run = _run(tmp_path, machine)
+
+    assert [argv for argv in run.zfs() if argv[0] == "snapshot"] == [["snapshot", BASE]]
+    assert any(MADE_BASE in line for line in run.datasets_lines()), run.result.stdout
+
+
+def test_a_made_dataset_s_first_base_follows_its_create_quota_and_owner(
     made: Run, code: str
 ) -> None:
     calls = made.zfs()
-    snapshots = [argv for argv in calls if argv[0] == "snapshot"]
+    taken = calls.index(["snapshot", BASE])
 
-    assert snapshots == [["snapshot", BASE]]
-    taken = calls.index(snapshots[0])
     assert calls.index(["create", "-o", f"mountpoint={WORK}", DATASET]) < taken
     assert calls.index(["set", f"quota={QUOTA}", DATASET]) < taken
     assert in_order(step_texts(code)["datasets"], ["install -d -o factory", "zfs snapshot"])
-    assert any(MADE_BASE in line for line in made.datasets_lines()), made.result.stdout
 
 
 def test_an_existing_base_is_left_alone_and_the_step_changes_nothing(complete: Run) -> None:
@@ -162,10 +175,3 @@ def test_a_failing_snapshot_stops_the_script_before_the_step_s_closing_line(
     assert ["snapshot", BASE] in run.zfs()
     assert run.result.exit_status != 0
     assert run.datasets_lines() == []
-
-
-def test_an_existing_dataset_without_a_base_gets_its_first_base(tmp_path: Path) -> None:
-    run = _run(tmp_path, Machine(dataset=True, base=False))
-
-    assert [argv for argv in run.zfs() if argv[0] == "snapshot"] == [["snapshot", BASE]]
-    assert any(MADE_BASE in line for line in run.datasets_lines()), run.result.stdout

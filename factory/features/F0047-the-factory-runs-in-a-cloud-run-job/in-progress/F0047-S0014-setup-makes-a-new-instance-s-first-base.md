@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T14:50:42.709818Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-01T14:50:42.709818Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-01T14:56:40.258406Z'
+  stage: tests
+  run: 7b6f666db7c6407c87b31ccfa376bd9d
 ---
 
 # Setup makes a new instance's first base
@@ -202,3 +204,20 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     I changed no code. The reviewer found `vm/setup.sh` correct against every criterion, and `make check` was green in round 0 (entry 10). Noticed, not touched: the operator guide still tells the operator to take the base by hand. That is criterion 8, for the docs stage.
 15. factory: started tests as vm.
+16. tester: Made the test change from the reviewer's finding 1 (entry 12), which the coder's entry 14 names. The file is this story's own test file, `tests/test_vm_setup_first_base.py`; I changed no other test file.
+
+    Change: I merged `test_a_made_dataset_gets_its_first_base_after_its_create_and_quota` and `test_an_existing_dataset_without_a_base_gets_its_first_base` into one parametrized test, `test_a_missing_base_is_taken_once_and_named`. It asserts that the `zfs` calls hold exactly one snapshot, `[["snapshot", BASE]]`, and that `MADE_BASE` appears in the step's lines. It has two rows: `made` (no dataset, quota `none`, owner `root:root`, the same machine as the `made` fixture) and `existing` (the dataset exists, with no base). Criterion 1's order checks are in their own test, `test_a_made_dataset_s_first_base_follows_its_create_quota_and_owner`, on the `made` fixture: the snapshot comes after `create` and the quota in the recorded calls, and after `install -d -o factory` in the script's text. Nothing that was asserted before was dropped.
+
+    Criteria → tests now:
+    - criterion 1: tests/test_vm_setup_first_base.py::test_a_missing_base_is_taken_once_and_named[made] and ::test_a_made_dataset_s_first_base_follows_its_create_quota_and_owner
+    - criterion 2: tests/test_vm_setup_first_base.py::test_an_existing_base_is_left_alone_and_the_step_changes_nothing
+    - criterion 3: tests/test_vm_setup_first_base.py::test_the_first_base_is_taken_before_the_delegation
+    - criterion 4: tests/test_vm_setup_first_base.py::test_the_step_s_closing_line_ends_with_its_base
+    - criterion 5: tests/test_vm_setup_first_base.py::test_a_failing_snapshot_stops_the_script_before_the_step_s_closing_line
+    - criterion 6: tests/test_vm_setup_first_base.py::test_a_missing_base_is_taken_once_and_named[existing]
+    - criteria 7 and 8: none (`make check` and docs).
+
+    Files changed: tests/test_vm_setup_first_base.py. No files were created. Every module imported. `make test`: green, because the code from entry 10 is already in place. `make lint`: green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (163.7 s)
