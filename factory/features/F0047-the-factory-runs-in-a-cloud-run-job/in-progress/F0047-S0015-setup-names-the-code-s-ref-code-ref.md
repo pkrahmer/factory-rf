@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618, 6559846438]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T15:17:06.541693Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-01T15:17:06.541693Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-01T15:23:05.302205Z'
+  stage: tests
+  run: bcbfc47ddbec4086bef1506066aaa998
 ---
 
 # Setup names the code's ref --code-ref
@@ -151,3 +153,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    1. (a): the leave extends to that one row of `tests/test_vm_setup_text.py::test_the_options_land_in_their_named_variables`, which becomes `("code-ref", "ref")`; the test keeps its name and checks the same thing. Nothing else in that file changes.
    2. Confirmed: criteria 1 and 2 are tested from the script's text, as S0005's `--code-url` tests do (the clone runs only after the secrets wait, which a test cannot reach).
 10. factory: started tests as vm.
+11. tester: I carried out the human's answer in entry 9. The tests from entry 8 are on the branch already (commit 87a7694f4). This run made one change on top of them.
+
+    - **Point 1:** In `tests/test_vm_setup_text.py:378`, the row of `test_the_options_land_in_their_named_variables` changed from `("ref", "ref")` to `("code-ref", "ref")`. The test keeps its name and still checks the same thing, and nothing else in the file changed. The human extended the leave to cover exactly this row in entry 9.
+    - **Point 2:** The human confirmed my reading. Criteria 1 and 2 are tested from the script's text, as S0005's `--code-url` tests are, so the tests stay as they are.
+
+    Mapping:
+    - criterion 1: tests/test_vm_setup_code_ref.py::test_the_clone_of_the_code_takes_its_branch_from_the_code_ref (rows without-code-url, different-code-url)
+    - criterion 2: tests/test_vm_setup_code_ref.py::test_without_the_code_ref_the_clone_uses_main
+    - criterion 3: tests/test_vm_setup_code_ref.py::test_the_old_ref_option_is_refused_with_a_hint (rows with-value, without-value)
+    - criterion 4: tests/test_vm_setup_code_ref.py::test_the_usage_text_names_the_code_ref_and_not_the_ref (rows help, fault)
+
+    Files:
+    - Created `tests/test_vm_setup_code_ref.py` (in the previous run).
+    - Changed `tests/test_vm_setup.py` (lines 16 and 80) under the leave in the Interface.
+    - Changed `tests/test_vm_setup_text.py:378` under the leave the human gave in entry 9.
+
+    Modules the test run could not import: none. There are no collection errors. The new tests and the changed row fail for the right reasons:
+    - A bare `--ref` gets "needs a value" instead of the hint.
+    - The usage text does not name `--code-ref`.
+    - The script has no `--code-ref)` arm that sets `ref=`.
+
+    `make lint` is green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: FAILED tests/test_vm_setup_text.py::test_the_options_land_in_their_named_variables[code-ref-ref] - assert None
