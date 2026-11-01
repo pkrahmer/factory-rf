@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T08:04:42.999254Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-11-01T08:04:22.183421Z'
   stage: doing
   run: 6e0de64de6a440a5bd8330c37051e66a
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-01T08:04:42.999254Z'
+  stage: tests
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -270,3 +279,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     What the journal changed: after entry 8, the Description's line "The existing opencode runtime tests pass unchanged" is out of date (the reviewer named this too). My write paths do not include the work item, so I have not rewritten it.
 
     Noticed but not touched: `make duplicates` reports one new entry, a relabel of `__call__` in `src/factory/adapters/oauth_token.py:27`, which is outside this diff.
+19. factory: started tests as vm.
