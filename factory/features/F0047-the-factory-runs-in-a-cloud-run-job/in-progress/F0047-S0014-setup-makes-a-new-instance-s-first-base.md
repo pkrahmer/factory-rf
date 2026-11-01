@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-01T15:04:17.946665Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-01T15:04:17.946665Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-11-01T15:04:44.910258Z'
+  stage: docs
+  run: 3752b2a622b84a3e98ca8707166cfaf6
 ---
 
 # Setup makes a new instance's first base
@@ -288,3 +290,16 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Earlier tests: none changed. `git diff --name-status main...HEAD` lists only `A tests/test_vm_setup_first_base.py` among the tests. `tests/test_vm_setup.py` and `tests/test_vm_setup_text.py` are untouched.
 21. factory: started docs as vm.
+22. documenter: Docs for S0014, read against `vm/setup.sh` (the step `datasets` takes the first base).
+
+    Changed: `docs/operator-guide.md`, two places.
+    - The script's step 5 (`datasets`) now says it takes the first base `<pool>/factory/<instance>@base`. It takes it after the quota and the ownership of the mount point and before the delegation of step 6. An existing base is never touched, and a dataset that exists without a base gets one.
+    - The preflight's `dataset` row still gives the `zfs create` / `zfs snapshot <dataset>@base` message. It now adds that an instance made by `vm/setup.sh` already has both, and that the message concerns a dataset made by hand.
+
+    Cross-read and found current: README.md (no mention of the base). The operator guide's definition of the dataset and base (line 370), the sudoers paragraph (`zfs snapshot` on `<dataset>@base`), and the `agent-run-probe` text on a missing `@base`. All of these match the script.
+
+    I did not run `make check`, because I changed only documents. No findings for the coder. `docs/decisions.md` and `README.md` need no change, as criterion 8 says. I found no stale text outside this story.
+
+    `check`: check: green (not run again: passed on tree 5f8ee8a1ccbb at 2026-11-01T15:00:10Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok
