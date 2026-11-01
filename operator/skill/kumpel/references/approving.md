@@ -1,6 +1,6 @@
 # Approving a story
 
-A story at `stage:approval` has passed every stage. Gather the facts with `sh scripts/approval.sh <pr> <id>`, then judge the six checks.
+A story at `stage:approval` has passed every stage. Gather the facts with `sh scripts/approval.sh <pr> <id>`, then judge the six checks. It prints what the journal says about the smoke test, the findings and the leaves, the journal's last entry, and the cost from the factory's table on the pull request.
 
 ## The six checks
 
@@ -23,4 +23,4 @@ Read the code of the story's main change once yourself: the six checks are about
 ## After a merge
 
 - When the merge changed the factory's own code and the factory runs from that repository (its self-build), the instance needs the new code: on a VM the operator guide's rebuild, in a job its next execution. A project's merge never needs it.
-- With `start_next` on, start the next story of the feature's build order (`sh scripts/start-story.sh <id>`) once the archive commit is on `main`.
+- With `start_next` on, once the archive commit is on `main`, ask `sh scripts/next-story.sh` and start the story it names (`sh scripts/start-story.sh <id>`).
