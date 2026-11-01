@@ -24,8 +24,8 @@ ALLOWED = {
     "urllib.request": {"factory.adapters.oauth_token"},
     "http.client": {"factory.adapters.oauth_token"},
 }
-SECOND = {"factory.adapters.elsewhere": ast.parse("import urllib.request\n")}
-SECOND_CLIENT = {"factory.adapters.elsewhere": ast.parse("import http.client\n")}
+ANOTHER_URLLIB_IMPORTER = {"factory.adapters.elsewhere": ast.parse("import urllib.request\n")}
+ANOTHER_HTTP_CLIENT_IMPORTER = {"factory.adapters.elsewhere": ast.parse("import http.client\n")}
 
 
 def test_only_the_pygithub_client_imports_github() -> None:
@@ -40,13 +40,13 @@ def test_only_the_pygithub_client_imports_github() -> None:
         *(pytest.param(module, {}, set(), id=module) for module in FORBIDDEN),
         pytest.param(
             "urllib.request",
-            SECOND,
+            ANOTHER_URLLIB_IMPORTER,
             {"factory.adapters.elsewhere"},
             id="urllib.request-in-a-second-module",
         ),
         pytest.param(
             "http.client",
-            SECOND_CLIENT,
+            ANOTHER_HTTP_CLIENT_IMPORTER,
             {"factory.adapters.elsewhere"},
             id="http.client-in-a-second-module",
         ),

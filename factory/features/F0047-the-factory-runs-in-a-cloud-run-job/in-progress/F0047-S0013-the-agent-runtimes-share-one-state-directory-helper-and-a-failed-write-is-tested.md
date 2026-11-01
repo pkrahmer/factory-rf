@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T13:57:24.850003Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-01T13:57:24.850003Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-01T14:04:03.975813Z'
+  stage: tests
+  run: 1952c2b98fa74ca782b8a7de160bba52
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -117,3 +119,18 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
    - Architecture: the helper goes in `factory.adapters.agent_launch`, where CLAUDE.md puts what the runtimes share, and both runtimes already import from that module. This removes a duplicate helper and adds no layer or dependency. The changes to `tests/adapters/test_oauth_token.py` and `tests/test_hosting_search.py` have the human's leave, given in the story.
    - Scope: this is the acceptance-proposed S0013 listed in feature.md, with decision 22's two folded-in notes. The story's Description says the run behaviour, messages and ordering are unchanged. A shared write helper is left to a later story, and nothing is in the feature's Out of scope.
 4. factory: started tests as vm.
+5. tester: Wrote tests for criteria 1–4, plus the two test changes the human allowed in the Interface.
+
+   - criterion 1: tests/adapters/test_agent_launch_state_directory.py::test_make_state_directory_makes_a_missing_folder_keeps_an_existing_one_and_refuses_a_file (rows `missing-with-parent`, `existing-with-a-file`, `a-file`; each row checks the whole tree under its root afterwards, so `keep.txt` and the file `state` keep their text)
+   - criterion 2: tests/adapters/test_runtime_state_directory_write.py::test_a_run_whose_state_directory_cannot_be_written_fails_before_the_call (rows `claude`, `opencode`; state made with mode 0o500 by the fixture `read_only_state`, which restores 0o755 afterwards; skipped when `os.geteuid() == 0`, as tests/application/test_tick_stop_records.py does; checks the detail prefix, that the stand-in recorded no call, and that the state directory is empty)
+   - criterion 3: tests/adapters/test_runtime_state_directory_write.py::test_a_run_makes_its_missing_state_directory_and_completes (rows `claude`, `opencode`)
+   - criterion 4: tests/adapters/test_oauth_token.py row `incomplete-read` now expects the literal "IncompleteRead(0 bytes read)" (what `str(http.client.IncompleteRead(b""))` gives). In tests/test_hosting_search.py, `SECOND` became `ANOTHER_URLLIB_IMPORTER` and `SECOND_CLIENT` became `ANOTHER_HTTP_CLIENT_IMPORTER`. Row ids and checks are unchanged. Both changes are under the human's leave in the Interface (2026-11-01), and nothing else in those files changed.
+
+   Files created: tests/adapters/test_agent_launch_state_directory.py, tests/adapters/test_runtime_state_directory_write.py. Earlier test files changed: tests/adapters/test_oauth_token.py and tests/test_hosting_search.py, as listed under criterion 4.
+
+   Module the test run could not import: tests/adapters/test_agent_launch_state_directory.py fails with an ImportError, because `make_state_directory` does not exist yet in `factory.adapters.agent_launch`. The runtime tests (criteria 2 and 3) import only names that already exist. They describe behaviour the runtimes' own `_make_state_directory` and `_write_files` already have, so they are expected to pass both before and after the refactor. They are the regression guard for moving `mkdir` into the helper, not red tests.
+
+   The Interface also says the error is raised "from the OSError". No criterion asks for that, so it is not tested (intake noted the same). `make lint` is green.
+
+   `lint`: lint: green (0.2 s)
+   `test`: ERROR tests/adapters/test_agent_launch_state_directory.py - ImportError while importing test module '/work/checkout/tests/adapters/test_agent_launch_state_directory.py'.

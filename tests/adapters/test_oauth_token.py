@@ -104,7 +104,7 @@ CUT_SHORT = http.client.IncompleteRead(b"")
         pytest.param(urllib.error.URLError("no route"), "no route", id="url-error"),
         pytest.param(OSError("boom"), "boom", id="os-error"),
         pytest.param(TimeoutError("timed out"), "timed out", id="timeout"),
-        pytest.param(CUT_SHORT, str(CUT_SHORT) or type(CUT_SHORT).__name__, id="incomplete-read"),
+        pytest.param(CUT_SHORT, "IncompleteRead(0 bytes read)", id="incomplete-read"),
         pytest.param(unreadable_http_error(400), "HTTP 400", id="http-error-body-unreadable"),
         pytest.param(answer([]), "the answer holds no access_token", id="body-not-an-object"),
         pytest.param(
