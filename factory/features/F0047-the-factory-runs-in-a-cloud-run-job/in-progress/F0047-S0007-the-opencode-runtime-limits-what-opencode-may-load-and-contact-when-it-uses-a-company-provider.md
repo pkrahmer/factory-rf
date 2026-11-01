@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 489
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T07:42:03.277699Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-01T07:41:40.868710Z'
   stage: tests
   run: 5741642678d945dfb60980cdc8060f30
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-01T07:42:03.277699Z'
+  stage: doing
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -111,3 +120,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.2 s)
    `test`: ERROR tests/adapters/test_opencode_runtime_lockdown.py - ImportError while importing test module '/work/checkout/tests/adapters/test_opencode_runtime_lockdown.py'.
+6. factory: started doing as vm.
