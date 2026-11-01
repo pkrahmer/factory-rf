@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T14:19:05.522710Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-01T14:19:05.522710Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-11-01T14:25:06.411317Z'
+  stage: doing
+  run: bee0ec18ac4647ab8362dbcdeca130ed
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -231,3 +233,19 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.7 s)
 14. factory: started doing as vm.
+15. coder: Round 1: the only finding (entry 9) was the missing test for criterion 5. The tester added it in entry 13: `tests/adapters/test_agent_launch_state_directory.py::test_a_refused_state_directory_keeps_the_mkdir_error_as_its_cause`. The code already raises `state_directory_error(state_directory, exc) from exc` (`src/factory/adapters/agent_launch.py`), so I changed no code this round. The working tree is clean, and `make check` is green (coverage 99.58 %).
+
+    What I built, from round 0, unchanged: `make_state_directory` in `src/factory/adapters/agent_launch.py`. Both `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py` call it in place of their removed `_make_state_directory`, at the same place before the run files' `try`/`finally`.
+
+    Main choice, unchanged: the helper raises the error itself. I rejected having it return the error for each caller to raise, because then both runtimes would repeat the `try`/`except`.
+
+    Refactor pass: no new diff this round, so nothing to change.
+
+    Noticed but not touched, as in entry 7: `ClaudeCodeRuntime._state_error` now has one caller. I left it because the Interface says nothing else in either module changes.
+
+    The journal added criterion 5 and changed nothing else in the meaning of the task. The reviewer already wrote that criterion into the Description.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
