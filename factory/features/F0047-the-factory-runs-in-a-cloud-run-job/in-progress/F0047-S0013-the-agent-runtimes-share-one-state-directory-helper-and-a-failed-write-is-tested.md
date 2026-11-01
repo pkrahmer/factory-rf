@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T14:12:11.680624Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-01T14:12:11.680624Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-11-01T14:12:27.132809Z'
+  stage: doing
+  run: 226c6258f5714ff289a29a86547f8389
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -192,3 +194,4 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
    - tests/adapters/test_oauth_token.py: the human's leave, named in the story's Interface (2026-11-01). Only the row `incomplete-read` changed: its expected detail is now the literal `"IncompleteRead(0 bytes read)"`.
    - tests/test_hosting_search.py: the human's leave, named in the story's Interface (2026-11-01). Only `SECOND` was renamed (now `ANOTHER_URLLIB_IMPORTER`) and `SECOND_CLIENT` (now `ANOTHER_HTTP_CLIENT_IMPORTER`). Row ids and checks are unchanged.
 10. factory: started doing as vm.
+11. coder: The reviewer's latest entry (9) adds criterion 5, and only its test is missing. Criterion 5: the `AgentRuntimeError` that `make_state_directory` raises for `<tmp>/state` that is a file has the `OSError` of the `mkdir` as its `__cause__`. The code already does this with `raise state_directory_error(state_directory, exc) from exc` (`src/factory/adapters/agent_launch.py`). I changed no code. The tester should pin the cause in `tests/adapters/test_agent_launch_state_directory.py`, row `a-file`, for example by checking `isinstance(error.__cause__, OSError)`. The journal does not change the meaning of the task beyond adding that criterion, which the reviewer has already written into the Description.
