@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T14:34:40.477772Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-01T14:34:20.242310Z'
   stage: intake
   run: 89a9e095d2b947c08a45562a99e74804
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-01T14:34:40.477772Z'
+  stage: tests
 ---
 
 # Setup makes a new instance's first base
@@ -102,3 +111,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Smoke test: `grep -c 'zfs snapshot "$dataset@base"' vm/setup.sh` is runnable with `Expect: 1`. The pytest command passes no `-q`, and the `Expect:` (a line with `passed`, neither `failed` nor `error`) can be checked against the output.
    - Architecture: the change is confined to `vm/setup.sh` (the coder's write path) and the operator guide; no layer of `src/factory` is touched.
    - Scope: within F0047's scope. S0014 is listed in the feature's stories, and decision 22 of the feature names it. It touches none of the feature's out-of-scope items.
+7. factory: started tests as vm.
