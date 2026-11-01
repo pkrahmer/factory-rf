@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-01T15:03:26.826763Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-01T15:03:26.826763Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-01T15:03:57.608126Z'
+  stage: review
+  run: c59955f7f7624bae8989a6d1bd1249a8
 ---
 
 # Setup makes a new instance's first base
@@ -257,3 +259,22 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 19. factory: started review as vm.
+20. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (the change to `vm/setup.sh` and the new `tests/test_vm_setup_first_base.py`) against the work item's criteria and Interface. This is round 1.
+
+    What I checked:
+    - `vm/setup.sh`, step `datasets`. The base check comes after the `create`, the quota and the `install -d -o factory` ownership block, and before the closing line. If `zfs list -H -o name -t snapshot "$dataset@base"` finds nothing, the step runs `zfs snapshot "$dataset@base"` and then `changed "made the first base $dataset@base"`. The closing line ends with `and its base`. The snapshot sits in the body of the `if`, not its condition, so under `set -eu` a failing snapshot stops the step before the closing line. An existing base is left alone. This matches the Interface and the Description.
+    - Each criterion's test:
+      - Criteria 1 and 6: `test_a_missing_base_is_taken_once_and_named[made|existing]`. It checks for exactly one `["snapshot", BASE]` call and that the change message is printed.
+      - Criterion 1's order: `test_a_made_dataset_s_first_base_follows_its_create_quota_and_owner`. The recorded calls give the order against `create` and the quota. The script's text gives the order against the ownership, as the human said in entry 4, answer 4.
+      - Criterion 2: `test_an_existing_base_is_left_alone_and_the_step_changes_nothing`. No snapshot, create, set or install call, and the step prints only the full `FOUND` line.
+      - Criterion 3: `test_the_first_base_is_taken_before_the_delegation`.
+      - Criterion 4: `test_the_step_s_closing_line_ends_with_its_base`.
+      - Criterion 5: `test_a_failing_snapshot_stops_the_script_before_the_step_s_closing_line`.
+    - The Interface states one failing side, the failing `zfs snapshot`, and criterion 5 tests it. The Interface states no numeric limit.
+    - Round 0's finding (two test functions for one rule) is fixed: they are now one parametrized test.
+    - The coder's entry 18 records `check: green` and `duplicates: 0 new`.
+    - The Description matches what was built. Criterion 8 (docs) still says what the operator guide must say.
+
+    no findings
+
+    Earlier tests: none changed. `git diff --name-status main...HEAD` lists only `A tests/test_vm_setup_first_base.py` among the tests. `tests/test_vm_setup.py` and `tests/test_vm_setup_text.py` are untouched.
