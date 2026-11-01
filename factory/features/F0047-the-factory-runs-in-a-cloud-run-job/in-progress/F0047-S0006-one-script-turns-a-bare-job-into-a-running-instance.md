@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-01T07:27:48.313742Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -250,6 +246,12 @@ journal:
   kind: started
   at: '2026-11-01T07:27:48.313742Z'
   stage: docs
+- number: 44
+  speaker: documenter
+  kind: result
+  at: '2026-11-01T07:29:40.394135Z'
+  stage: docs
+  run: 78a80d84b0e04dbc84c0c9622fbab090
 ---
 
 # One script turns a bare job into a running instance
@@ -738,3 +740,37 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - `tests/test_vm_job_start.py:231` and `:277`: the passing and failing sides of the runc checksum rule are two test functions. The same holds for `:360` with `:394` (mount) and `:317` with `:342` (ref).
     - `tests/test_vm_job_start.py:548`, `test_factory_run_gets_the_stage_image_the_image_step_built`: it repeats the given/default image rows of `:360` and could be one more assertion there.
 43. factory: started docs as vm.
+44. documenter: Docs, round 2. Earlier rounds had written no documents, so I wrote them all this round from the docs criterion (22), the Interface, `vm/job-start.sh` and the diff `git diff main...HEAD -- . ':!factory' ':!docs' ':!README.md'`. I changed only documents, so I did not run `make check`. `uv run python -m factory.entry.check_documents` prints `documents ok`.
+
+    Files changed:
+    - `docs/operator-guide.md`:
+      - New chapter *On Cloud Run*, placed after *The machine* and added to the table of contents. It covers:
+        - what the job needs (size, task timeout, no retries, the proxy, secrets as files, what does not work);
+        - a table of the job's environment and of the variables the script derives;
+        - the twelve steps and their messages and exit statuses;
+        - what a restart costs;
+        - how an execution ends;
+        - the free-model note;
+        - a `gcloud run jobs create` template.
+      - *The stage image* and *Update the pins*: the seven Debian packages are now installed by name alone, with the base image's digest fixing the release. The `apt-cache policy` bullet is removed.
+    - `docs/decisions.md`: two new entries, *A bare job becomes an instance at start* and *Debian's packages follow the base image's release*. The second says it changes the rule of 2026-10-16 for the operating system's packages.
+    - `docs/project-guide/README.md`: the `vm_support.py` line now names `vm/job-start.sh`, `JOB_START`, `JOB_STAND_INS` and `run_job_start`, and says the stand-ins are written through `git_support.write_executable`.
+    - `README.md`: one sentence that the factory also runs in a Cloud Run job, with a pointer to the chapter.
+
+    Limits of what I verified:
+    - I could not run the `gcloud run jobs create` template, so the chapter labels it a template and not a recorded run.
+    - Decisions 10 to 12 and 17 of `feature.md` were outside my reading. I wrote the entries from the story's Description, Interface, criteria and journal. The reviewer or the human should check them against the feature's wording.
+    - I took the measured numbers (P3, P15, P16, P18, P20, 1.6 s per GiB) from the criterion's text. I did not check them against `planning/`.
+
+    Cross-read and found current:
+    - `docs/operator-guide.md`: *The job profile*, *The metadata server in a job*, *Without ZFS*, *The idle shutdown* (*In a job*), *A restart during a stage* and *The crash cap* all match the script. The crash cap default of 2 is confirmed there.
+    - `docs/project-guide/stage-environment.md`: the lines on `CopySnapshots` and the profile `job`.
+
+    Stale text I saw and left, because it is not mine to fix:
+    - The decision *Every tool of the machine's image is pinned* (2026-10-16) is not annotated. The new entry says it changes that rule. It is also already marked as replaced by the v1.2 machine, and it still speaks of "the eight Debian tools".
+
+    No findings for the coder: the script follows the Interface, and the code and docs agree.
+
+    `check`: check: green (not run again: passed on tree d2d18474612c at 2026-11-01T07:22:50Z)
+    `secrets`: secrets: green (2.5 s)
+    `documents`: documents ok

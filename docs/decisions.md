@@ -1288,3 +1288,23 @@ Date: 2026-10-31 (F0047-S0008; decision 18 of the feature).
 - Why: in a Cloud Run job `sudo` and `systemctl` do not exist, so an idle job would be billed until its task timeout. Ending the command is the job's equivalent of switching a VM off; the schedule or the operator starts it again.
 - The choice is made in the entry wiring, with `ProcessExit` as one more `PowerOff`; the loop's event is passed in as `request_stop`, so `exit` without one is a `ValueError`.
 - Rejected: a separate stop interface in the application layer (`PowerOff` already says what the idle shutdown needs); `exit` for every machine (a VM keeps `poweroff`); waking the job when work arrives (not in this feature).
+
+## A bare job becomes an instance at start
+
+Date: 2026-11-01 (F0047-S0006; decisions 10 to 12 of the feature).
+
+- Decision: `vm/job-start.sh` is the command of a Cloud Run job. It installs, clones the code and builds the stage image at every start, and ends in `exec factory-run`. The job's environment is the instance's configuration; the script sets a derived variable only where the job gave none. `FACTORY_CODE_REF` is required and has no default (the human, 2026-10-31), so nothing pushed to the code repository's `main` reaches a job unseen; the operator moves the tag or commit deliberately.
+- The runc release is the one measured in the job (P3). The script holds its SHA-256 as a constant and checks the download against it; a checksum downloaded beside the binary would check nothing, and `RUNC_VERSION` without `RUNC_SHA256` is refused for the same reason.
+- The code is cloned with no credential, and the versions the preflight compares (`FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION`) are read from the cloned `vm/Dockerfile` the way `vm/setup.sh` reads its pins (the human, 2026-11-01). Podman's storage root is a tmpfs mounted at every start, since the job's root file system cannot carry the kernel's overlay (P16).
+- A restart is a crash for the recovery, charged once, and after `crash_cap` crashes the work item waits for the human (accepted by the human, 2026-10-31). A stop between stages before the nightly restart is a candidate for later.
+- Rejected: a default code ref such as `main`; the runc checksum fetched with the binary; copying `vm/setup.sh`'s `sed` lines into the script (they stay where they are).
+
+## Debian's packages follow the base image's release
+
+Date: 2026-11-01 (F0047-S0006; decision 17 of the feature; the human, 2026-10-31).
+
+- Decision: the stage image's seven Debian packages (`git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs`, `npm`) are installed by name, without versions. The base image stays pinned by its digest, which fixes the Debian release, and `uv`, Claude Code and opencode keep their exact versions.
+- This changes the rule of 2026-10-16 (*Every tool of the machine's image is pinned*) for the operating system's packages, and only for them.
+- Why: a job rebuilds the image at every start, and Debian's mirror keeps only a package's current version, so an exact version breaks the build at the next point release. Within one stable release Debian ships only security and serious fixes. The three tools that shape a stage's result have registries that keep every version. A VM's next rebuild takes the current packages of the same release.
+- `tests/test_stage_image.py` allows the findings of an `apt-get install` of exactly those seven names and still fails any other floating reference. A new Debian release is a deliberate change of the digest.
+- Rejected: pinning the packages and refreshing the pins in every release (a broken start in between); dropping the digest (the release would float).

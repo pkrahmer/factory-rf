@@ -9,6 +9,7 @@ The guide for the person who runs the factory this repository implements: how to
 - "The project's make targets"
 - "The agent runtime"
 - "The machine"
+- "On Cloud Run"
 - "The preflight and the health check"
 - "The factory log and the health status file"
 - "The stops"
@@ -465,7 +466,7 @@ Every container of a v1.2 stage (the sync, the agent, the checks) starts from on
 
 It holds:
 
-- the pinned base image, and Debian's `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs` and `npm`, each at an exact version;
+- the pinned base image, and Debian's `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs` and `npm`, at the versions the base image's Debian release ships;
 - `uv`, Claude Code and opencode at exact versions, with the runtimes' environment: `DISABLE_AUTOUPDATER`, `UV_LINK_MODE`, `PYTHONDONTWRITEBYTECODE`, the two version records `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION`, and the opencode model ids `FACTORY_OPENCODE_MODELS`;
 - the agent files (`claude/agents` and `claude/settings.json`) at `/etc/factory/claude`, read-only.
 
@@ -481,14 +482,15 @@ podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> <the checkout>
 
 `--build-arg FACTORY_IMAGE=<ref>` sets the label `factory.image`; it defaults to `unlabelled`. The label is not the identity of the image. The settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, and you renew that file after every build. `vm/setup.sh` makes the file with a fresh uuid when it is missing or empty (see *The script*). Nothing in `make check` builds the image.
 
-`vm/Dockerfile` pins seven Debian packages: `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs` and `npm`. Nothing in it floats: the base image is named with its digest, and `uv`, Claude Code, opencode and the packages have exact versions. A pin is changed in `vm/Dockerfile` alone and checked with `uv run pytest tests/test_stage_image.py`, which reports any reference that floats (a `FROM` without a digest, an `apt-get install` package without `=version`, `latest`, a download piped into a shell) and checks that each pin has its form.
+`vm/Dockerfile` installs seven Debian packages by name alone: `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs` and `npm`. Debian's mirror keeps only a package's current version, so an exact version stops building at the next point release, and a job rebuilds the image at every start. The base image's digest fixes the Debian release instead, and within one stable release Debian ships only security and serious fixes. Everything that shapes a result is still pinned: the base image is named with its digest, and `uv`, Claude Code and opencode have exact versions. A pin is changed in `vm/Dockerfile` alone and checked with `uv run pytest tests/test_stage_image.py`, which reports any reference that floats (a `FROM` without a digest, `latest`, a download piped into a shell, an `apt-get install` of anything but those seven names) and checks that each pin has its form.
+
+A VM's next rebuild takes the current packages of the same release.
 
 #### Update the pins
 
-Debian's mirrors keep only a package's current version, so a pinned version that a security or point update replaces stops building: read the new versions with `apt-cache policy <package>` in the new base image and update the digest and the pins together. Edit the line in `vm/Dockerfile`, then run the test:
+The Debian packages carry no version, so a security or point update needs no edit. Moving to a new Debian release is a deliberate change of the base image's digest. Edit the line in `vm/Dockerfile`, then run the test:
 
 - Base image: `podman pull <image>`, then take the digest from `podman inspect --format '{{index .RepoDigests 0}}'` and put it after `@sha256:` in the `BASE_IMAGE` default.
-- Debian package: in the base image, `apt-cache policy <package>` shows the version; write it as `name=version`.
 - `uv`: the `UV_VERSION` default. Claude Code: the `CLAUDE_CODE_VERSION` default (three numbers). Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, with its auto-update off (`DISABLE_AUTOUPDATER=1`); the version is in the environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it.
 - opencode: the `OPENCODE_VERSION` default and the `FACTORY_OPENCODE_MODELS` value. Check the model ids with `opencode models anthropic`.
 
@@ -886,6 +888,96 @@ sudo systemctl start factory@vm
 ```
 
 `vm/setup.sh` is idempotent, so run it after every merge: it carries a changed pin of `vm/Dockerfile` into the environment file, updates `uv` and the factory's virtual environment, and reports the rest found. It does not replace an installed `/etc/systemd/system/factory@.service` or `/usr/local/bin/git-credential-factory` that differs from the checkout: it prints that the file differs and leaves it. When a merge changed `vm/factory.service` or `vm/git-credential-factory`, install it from your own copy with the commands of *The two passes* before you run the script.
+
+## On Cloud Run
+
+A Cloud Run job runs the factory without a VM. The job starts bare: the root file system is memory, nothing is installed and nothing persists, so every start installs the tools, clones the code and builds the stage image again. `vm/job-start.sh` is the job's command. It is a POSIX `sh` script that turns a bare `debian:trixie-slim` into a running instance and ends in `exec factory-run`. Creating the job, its secrets and its schedule is yours; this chapter says what to give it. The pieces it uses are described under *The job profile*, *The metadata server in a job*, *Without ZFS* and *The idle shutdown*.
+
+### What the job needs
+
+- **Size.** Eight vCPUs and 16 GiB of memory at least. The root file system is memory, and so is the tmpfs that holds the image layers (see *The job profile*): the checkout, the base copy, the workspace and the image all count against the job's memory. The base is a plain copy (see *Without ZFS*), so the tree is held twice; a reset takes about 1.6 s per GiB.
+- **A start takes a few minutes**, measured on 2026-10-31: the install, the clone and the image build.
+- **The task timeout** is 24 hours at most, and the job is executed again every night. Two executions of one job must never overlap, because both would act as the one instance. Set the timeout shorter than the schedule's interval: 23 hours for a daily schedule.
+- **No retries:** create the job with `--max-retries=0`, or a timeout would start a second execution at once.
+- **The network.** The job cannot resolve `github.com` itself. Git over HTTPS and the REST API are reached only through the proxy of the shared connector (measured in P20). The factory's own git and PyGithub read the job's `https_proxy`, so the job's environment carries it. `NO_PROXY` must not name a GitHub host.
+- **Secrets are files.** Mount them with `--set-secrets` at a path (`--set-secrets=/secrets/token=<secret>:latest`) and name the path in the environment.
+- **The service account's token stays out of reach.** The script loads the rule that rejects TCP port 80 to `169.254.169.254` (see *The metadata server in a job*).
+
+What does not work in a job: rootless containers, a bridge network, a pushed image (there is no registry the factory can push to; the job builds the image at each start), a second job that shares the disk, and `fuse-overlayfs` for Podman's storage (three times slower, measured in P15 and P16).
+
+### The environment
+
+The job's environment is the instance's configuration. The script reads these variables and stops with `job-start: <name> is not set` and status 2 when a required one is missing, before anything else runs.
+
+| Variable | |
+| --- | --- |
+| `FACTORY_INSTANCE` | required: the instance's name |
+| `FACTORY_REPOSITORY_URL` | required: the project |
+| `FACTORY_CODE_URL` | required: the repository the factory's code and `vm/Dockerfile` come from; cloned without a credential (see *The code and the project apart*) |
+| `FACTORY_CODE_REF` | required: a tag or a commit of the code repository. There is no default, so nothing pushed to its `main` reaches a job unseen: you move the ref deliberately. |
+| `FACTORY_TOKEN_FILE` | required: the path of the file that holds the hosting token; a file the script can read, else `job-start: FACTORY_TOKEN_FILE is not a file`, status 2. The script never prints it. |
+| `HTTPS_PROXY` or `https_proxy` | optional: when set, `apt` and every download use it; the script exports both spellings to every later step |
+| `FACTORY_JOB_ROOT` | optional, default `/srv/factory/<instance>`: the folder of everything below |
+| `FACTORY_STAGE_IMAGE` | optional, default `factory-stage:<instance>` |
+| `RUNC_VERSION`, `RUNC_SHA256` | optional, default `1.5.2` and its checksum, both constants of the script. Give both or neither: `RUNC_VERSION` without `RUNC_SHA256` stops with `job-start: RUNC_SHA256 is not set`, status 2, because a version without its checksum would not be checked. |
+| `FACTORY_TOKEN_URL` and its companions | optional: when set, the token refresher runs (see *A bearer token for the model API*) |
+| `FACTORY_IDLE_SHUTDOWN_MINUTES` | optional, yours: unset means no idle shutdown (see below) |
+| `FACTORY_JOB_PREFIX` | for the script's tests: put in front of `/etc`, `/usr/local/bin` and `/var/lib/containers`. Leave it unset. |
+
+Beside these the job carries the settings of any instance (the hosting token's companions, the agent runtime's login, `FACTORY_CONTAINER_ENV`, `FACTORY_CA_BUNDLE`, `FACTORY_OPENCODE_MODELS`); the script never changes those.
+
+The script sets the following only where the job gave no value: `FACTORY_SNAPSHOTS=copy`, `FACTORY_SNAPSHOT_BASE`, `FACTORY_WORKSPACE`, `FACTORY_CHECKOUT`, `FACTORY_STATE`, `FACTORY_CLAUDE_HOME` and `FACTORY_IMAGE_ID_FILE` (all under `<root>`), `FACTORY_CONTAINER_PROFILE=job`, `FACTORY_AGENT_RUNTIME=opencode` and `FACTORY_IDLE_SHUTDOWN_ACTION=exit`. It also sets `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION` from the `ARG` lines `CLAUDE_CODE_VERSION=` and `OPENCODE_VERSION=` of the cloned `vm/Dockerfile`, which the preflight's item `agent-runtime-version` compares with the stage image.
+
+### The steps
+
+The script prints `job-start: <step>` on standard output at each step, in this order:
+
+1. `inputs`: the checks above and the derived variables.
+2. `proxy`: with a proxy set, writes `/etc/apt/apt.conf.d/99proxy`.
+3. `packages`: `apt-get update`, then one `apt-get install` of `podman`, `uidmap`, `nftables`, `git`, `make`, `curl`, `ca-certificates`, `rsync`, `python3` and `python3-venv`, at the versions of the Debian release.
+4. `runc`: downloads `runc.amd64` of the release, checks it with `sha256sum -c` against the script's own checksum, and installs it as `/usr/local/bin/runc`. A mismatch stops with `job-start: runc: checksum does not match`, status 1. A checksum downloaded beside the binary would check nothing, so there is none.
+5. `metadata`: loads the `nft` rule of *The metadata server in a job* from `<root>/metadata-block.nft`.
+6. `directories`: the workspace, the empty base, the checkout and the state.
+7. `storage`: mounts a tmpfs at `/var/lib/containers`, Podman's storage root, so that images use the kernel's overlay. A failed mount stops with `job-start: storage: cannot mount a tmpfs at <path>`, status 1.
+8. `code`: clones `FACTORY_CODE_URL` and checks out `FACTORY_CODE_REF`, with no credential and no prompt. A ref that does not exist stops with `job-start: code: no ref <ref> in <url>`, status 1.
+9. `tools`: a virtual environment `<root>/tools` with `uv` at the version of `vm/Dockerfile`, then `uv sync --frozen --no-dev` in the code checkout.
+10. `image`: builds the stage image from the checkout's `vm/Dockerfile` with the job's Podman options (the three words of *The job profile*) and writes a new uuid to the image-id file.
+11. `token`: when `FACTORY_TOKEN_URL` is set, runs the refresher once and waits for it, which must succeed, then starts it in the background.
+12. `start`: `exec factory-run` of the code checkout's environment.
+
+Any other failing step stops the script with `job-start: <step>: failed` on standard error and status 1, and `factory-run` is not started. The job's log has the last step printed.
+
+### Starts, restarts and the end of an execution
+
+A start or a restart costs a few minutes, because the checkout, the base and the image are rebuilt. The state directory goes with the memory, so the factory log, `health.json` and the preflight stamp start empty, and the preflight runs at every start.
+
+A restart during a stage is a crash for the factory (see *A restart during a stage*): recovery charges one crash for the stage in flight, and after `crash_cap` crashes (two by default) the work item waits for your answer. A story in flight on two nights therefore waits once. A stop between stages before the nightly restart is a candidate for later and does not exist yet.
+
+How an execution ends:
+
+- **At the timeout** the platform sends `SIGTERM` to `factory-run` with no warning before it (measured in P18). The factory ends after the tick in progress, and the platform marks the execution failed with `The configured timeout was reached`, even when the exit status is 0. A nightly timeout is planned and not a fault.
+- **When `factory-run` exits with status 0** the execution ends as succeeded at once, background processes such as the refresher included (P18). With `FACTORY_IDLE_SHUTDOWN_MINUTES` set, the factory exits this way when idle (the script sets `FACTORY_IDLE_SHUTDOWN_ACTION=exit`; see *The idle shutdown*). The next execution starts at the schedule, or when you run `gcloud run jobs execute <job>`.
+
+### A free model
+
+When the model costs nothing, a price of 0 makes `budget_usd` inert. The time limit of the stage is then the only bound on a run.
+
+### Creating the job
+
+The command below is a template, not a recorded run: the placeholders are yours, and the script must reach the bare image somehow. The probes of `planning/cloud-sandbox/` ship it inside the job's arguments, compressed and base64-coded.
+
+```bash
+gcloud run jobs create <job> \
+  --image=<a debian:trixie-slim reachable from the project> \
+  --cpu=8 --memory=16Gi \
+  --task-timeout=23h --max-retries=0 \
+  --vpc-connector=<the shared connector> --vpc-egress=all-traffic \
+  --set-secrets=/secrets/hosting-token=<secret>:latest \
+  --set-env-vars=FACTORY_INSTANCE=<instance>,FACTORY_REPOSITORY_URL=<project url>,FACTORY_CODE_URL=<code url>,FACTORY_CODE_REF=<tag or commit>,FACTORY_TOKEN_FILE=/secrets/hosting-token,https_proxy=<proxy url> \
+  --command=sh --args="-c,<the script's text, however you ship it>"
+```
+
+Add the remaining settings of your instance to `--set-env-vars`.
 
 ## The preflight and the health check
 
