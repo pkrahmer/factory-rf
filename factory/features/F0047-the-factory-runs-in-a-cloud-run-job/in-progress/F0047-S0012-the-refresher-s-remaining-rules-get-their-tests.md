@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T10:22:00.010978Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-01T10:22:00.010978Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-01T10:22:14.836508Z'
+  stage: doing
+  run: c2b05b2d6d1d4fad84573de4d1d9d799
 ---
 
 # The refresher's remaining rules get their tests
@@ -295,3 +297,12 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/entry/test_refresh_token.py: standing leave to move a shared test helper, and the human's answer in entry 6. It drops its copies of the three fixtures and of `scripted` and imports `scripted` from `token_support`. Every test keeps its name and what it checks.
     - tests/token_support.py: standing leave to move a shared test helper, and the human's answer in entry 6. `scripted` was moved in unchanged.
 20. factory: started doing as vm.
+21. coder: This round fixes the reviewer's finding in entry 19, which is about tests only. Move `never_sleep` into `tests/token_support.py` beside `scripted`, under the standing leave to move a shared test helper. Then delete its two copies, `tests/entry/test_refresh_token_signals.py:53` and `tests/entry/test_refresh_token.py:51`, and have both modules import it from `token_support`. Every earlier test keeps its name and checks the same thing. I confirmed the two copies have the same body (`raise AssertionError(f"waited {seconds} s")`); only the docstrings differ. The shared copy needs a docstring that fits both modules, for example "A wait the run must not reach."
+
+    Built: nothing. No file under `src/` changed, and this finding doesn't need one. The code already passes every new test, and entry 17's `make check` was green.
+
+    Main choice: I end with `tests` and don't touch the test files myself. The finding is a copied test helper, and `CLAUDE.md` gives the tester, never the coder, a standing leave to move one. I rejected a `question`, because that leave covers this move without asking the human.
+
+    Description unchanged: the finding is about where a helper lives. It doesn't change what the task means.
+
+    Noticed, not touched: as in entry 17, `src/factory/entry/refresh_token.py:136` is still the module's only line that coverage leaves uncovered. It is outside this story's scope.
