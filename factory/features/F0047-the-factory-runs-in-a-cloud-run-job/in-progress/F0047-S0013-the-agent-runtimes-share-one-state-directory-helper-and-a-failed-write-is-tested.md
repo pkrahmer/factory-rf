@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-01T14:11:03.025772Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-01T14:11:03.025772Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-01T14:11:51.113182Z'
+  stage: review
+  run: 089d8b2ca26544fa9c26606ce145359e
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -101,8 +103,9 @@ Two notes of S0004's review, folded in by the human (2026-11-01), each under the
 2. A run of each runtime (rows `claude` and `opencode` of one test) whose state directory exists with mode `0o500` raises `AgentRuntimeError` whose detail starts `cannot write the state directory <state>: `. The stand-in runtime is never called, and the state directory holds no file afterwards. The rows are skipped with root's file rights.
 3. A run of each runtime (rows `claude` and `opencode`) whose state directory is missing makes it and completes with `end_reason` `completed`, as before.
 4. The row `incomplete-read` of `tests/adapters/test_oauth_token.py` states its expected detail as a literal; `tests/test_hosting_search.py` holds no name `SECOND` or `SECOND_CLIENT`, and its rows keep their ids.
-5. `make check` stays green.
-6. docs: `docs/project-guide/agents.md`, under the two runtimes: the state directory is made by `agent_launch.make_state_directory`, which both call before they write a run's files. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, because no behaviour an operator sees changes.
+5. The `AgentRuntimeError` that `make_state_directory` raises for `<tmp>/state` that is a file (criterion 1) has the `OSError` of the `mkdir` as its `__cause__`.
+6. `make check` stays green.
+7. docs: `docs/project-guide/agents.md`, under the two runtimes: the state directory is made by `agent_launch.make_state_directory`, which both call before they write a run's files. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none, because no behaviour an operator sees changes.
 
 ## Smoke test
 
@@ -166,3 +169,16 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
    `check`: check: green
    `duplicates`: duplicates: 0 new, 42 known, 0 gone
 8. factory: started review as vm.
+9. reviewer: 1. criterion 5 added: it needs its test. The Interface says `make_state_directory` raises `state_directory_error` "from the `OSError`", and the code does this with `raise ... from exc` (`src/factory/adapters/agent_launch.py:329`). No criterion or test covered it, and intake (entry 3) and the tester (entry 5) both named the gap. The new criterion 5 says the `AgentRuntimeError` for `<tmp>/state` that is a file has the `mkdir`'s `OSError` as its `__cause__`. Criteria 6 (`make check`) and 7 (`docs:`) were renumbered. Fix: the tester pins the cause in `tests/adapters/test_agent_launch_state_directory.py`, for example by checking `isinstance(error.__cause__, OSError)` in the row `a-file`. No change under `src/` is needed.
+
+   Checked and found sound:
+   - Criteria 1 to 4 each have a test that checks what the criterion says. Criterion 2 works for both runtimes because both stand-ins record their calls in `calls.jsonl` beside them, so `read_calls(tmp_path / "bin")` covers the `opencode` row too. Mode `0o500` lets the `mkdir` succeed and makes `_write_files` fail, which is the uncovered branch the Description names. The root skip matches `tests/application/test_tick_stop_records.py:47`.
+   - Architecture: the helper is in `agent_launch`, as `CLAUDE.md` asks for code the runtimes share. Both duplicate `_make_state_directory` methods are removed, and each runtime calls the helper at the same place, before the run files' `try`.
+   - Security: no suppression marker was added.
+   - `ClaudeCodeRuntime._state_error` now has one caller. I left it, because the Interface says nothing else in either module changes.
+   - The local `_tree` in the new helper test is not a copy of `tests/take_support.py:tree`, which also records file modes, and those modes depend on the umask.
+   - The journal records `check: green` and `duplicates: 0 new`.
+
+   Earlier tests:
+   - tests/adapters/test_oauth_token.py: the human's leave, named in the story's Interface (2026-11-01). Only the row `incomplete-read` changed: its expected detail is now the literal `"IncompleteRead(0 bytes read)"`.
+   - tests/test_hosting_search.py: the human's leave, named in the story's Interface (2026-11-01). Only `SECOND` was renamed (now `ANOTHER_URLLIB_IMPORTER`) and `SECOND_CLIENT` (now `ANOTHER_HTTP_CLIENT_IMPORTER`). Row ids and checks are unchanged.
