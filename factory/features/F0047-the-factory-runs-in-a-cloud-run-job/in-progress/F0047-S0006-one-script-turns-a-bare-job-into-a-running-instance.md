@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-01T07:30:01.114231Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -252,6 +256,11 @@ journal:
   at: '2026-11-01T07:29:40.394135Z'
   stage: docs
   run: 78a80d84b0e04dbc84c0c9622fbab090
+- number: 45
+  speaker: factory
+  kind: started
+  at: '2026-11-01T07:30:01.114231Z'
+  stage: smoke-test
 ---
 
 # One script turns a bare job into a running instance
@@ -774,3 +783,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree d2d18474612c at 2026-11-01T07:22:50Z)
     `secrets`: secrets: green (2.5 s)
     `documents`: documents ok
+45. factory: started smoke-test as vm.
