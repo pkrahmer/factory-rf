@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T14:12:11.680624Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-01T14:11:51.113182Z'
   stage: review
   run: 089d8b2ca26544fa9c26606ce145359e
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-01T14:12:11.680624Z'
+  stage: doing
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -182,3 +191,4 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
    Earlier tests:
    - tests/adapters/test_oauth_token.py: the human's leave, named in the story's Interface (2026-11-01). Only the row `incomplete-read` changed: its expected detail is now the literal `"IncompleteRead(0 bytes read)"`.
    - tests/test_hosting_search.py: the human's leave, named in the story's Interface (2026-11-01). Only `SECOND` was renamed (now `ANOTHER_URLLIB_IMPORTER`) and `SECOND_CLIENT` (now `ANOTHER_HTTP_CLIENT_IMPORTER`). Row ids and checks are unchanged.
+10. factory: started doing as vm.
