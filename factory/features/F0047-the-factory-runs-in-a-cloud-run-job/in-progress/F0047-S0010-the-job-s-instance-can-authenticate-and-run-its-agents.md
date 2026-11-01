@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 491
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T09:12:55.946974Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,13 @@ journal:
   kind: started
   at: '2026-11-01T09:12:55.946974Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-11-01T09:17:39.309797Z'
+  stage: tests
+  run: 4a03d00f71da4968b2b20b339b5e4393
+  blocked: question
 ---
 
 # The job's instance can authenticate and run its agents
@@ -111,3 +114,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Architecture: the changes sit in the right layers: the `mkdir` in the adapter, the `action` text in application, its choice in the entry wiring, the script under `vm/` (the coder's write path). No new dependency or module.
    Scope: within the feature's scope (S0010 is listed, refined on 2026-11-01, decision 21). It leaves `vm/setup.sh`, the Claude Code runtime and the idle rule alone. The only change to an earlier test is the one the human's leave names.
 4. factory: started tests as vm.
+5. tester: Question: two earlier tests pin the old idle line for `exit`, and the story gives no leave to change them.
+
+   In `tests/entry/test_run_idle_exit.py`, `LINE` is `"idle shutdown: idle for 1 minutes, powering the machine off"`. `test_the_idle_exit_stops_the_loop_after_the_tick_that_ends_the_stretch` and `test_run_until_stopped_ends_through_the_idle_exit_with_its_own_event` both run with `idle_shutdown_action="exit"` and assert `_log(settings).count(LINE) == 1`. Criterion 6 makes the `exit` line `…, ending the factory's process`, so once the code is in, both tests fail. The leave in the Description covers only the `state-missing` row of `tests/adapters/test_opencode_runtime.py`.
+
+   Options:
+   (a) Leave to add `EXIT_LINE = "idle shutdown: idle for 1 minutes, ending the factory's process"` to that file and use it in the assertions of those two tests. `LINE` stays for `test_a_refused_power_off_does_not_stop_the_loop` (poweroff) and for the new poweroff row. Each test keeps its name and checks the same thing.
+   (b) Drop the line count from those two tests.
+   (c) Something else.
+   I would choose (a).
+
+   Where I stopped: all tests for the criteria are written, `make lint` is green, and the one `make test` run failed for the right reasons. The only exception was the new entry test's poweroff row: log lines carry a timestamp, so I changed that check to `endswith` and have not run the tests again.
+
+   Criterion → test:
+   criterion 1: tests/test_vm_job_start.py::test_the_steps_run_in_order_and_factory_run_replaces_the_script (unchanged)
+   criterion 2: tests/test_vm_job_start_instance.py::test_the_code_step_installs_the_checkout_s_helper_between_the_checkout_and_uv
+   criterion 3: tests/test_vm_job_start_instance.py::test_the_code_step_stops_the_script_on_a_missing_ref_or_a_failed_helper_install (rows no-ref, helper-install-fails)
+   criterion 4: tests/test_vm_job_start_instance.py::test_only_runc_and_the_helper_are_installed_under_usr_local_bin
+   criterion 5: tests/adapters/test_opencode_runtime_runs_folder.py::test_a_run_makes_its_missing_state_directory_and_writes_its_configuration_there; tests/adapters/test_opencode_runtime.py::test_a_run_that_cannot_start_names_the_reason[state-a-file] (the row `state-missing` changed under the human's leave: the state path is now a file, and the id is renamed to match)
+   criterion 6: tests/application/test_idle_shutdown.py::test_the_idle_line_names_the_action (rows given, default); tests/entry/test_run_idle_exit.py::test_the_idle_line_says_what_the_action_does (rows exit, poweroff)
+
+   Files created: tests/test_vm_job_start_instance.py, tests/adapters/test_opencode_runtime_runs_folder.py.
+   Files changed: tests/vm_support.py (new keyword `failing_install_target` of `run_job_start`; `install` exits 1 only when that path is among its arguments; every earlier caller keeps its behaviour, as the Interface allows); tests/adapters/test_opencode_runtime.py (only the leave's row); tests/application/test_idle_shutdown.py and tests/entry/test_run_idle_exit.py (new tests appended).
+   Modules the test run could not import: none. The failures: `TypeError` for `IdleShutdown(..., action=...)`; no helper `install` call in the script; `NotADirectoryError` for a state path that is a file and `AgentRuntimeError` for a missing state directory in the opencode runtime; the exit line is still the poweroff text.

@@ -267,3 +267,32 @@ def test_a_refused_power_off_does_not_stop_the_loop(
     log = _log(settings)
     assert LINE in log
     assert "the factory runs on" in log
+
+
+@pytest.mark.usefixtures("on_the_manual_clock", "refusing_sudo")
+@pytest.mark.parametrize(
+    ("action", "line"),
+    [
+        pytest.param(
+            "exit", "idle shutdown: idle for 1 minutes, ending the factory's process", id="exit"
+        ),
+        pytest.param("poweroff", LINE, id="poweroff"),
+    ],
+)
+def test_the_idle_line_says_what_the_action_does(
+    instance_settings: InstanceSettings,
+    hosting: FakeHostingService,
+    clock: ManualClock,
+    *,
+    monkeypatch: pytest.MonkeyPatch,
+    action: str,
+    line: str,
+) -> None:
+    settings = instance_settings.model_copy(update={"idle_shutdown_action": action})
+    tick = _scripted(clock, [(1, 0, IDLE), (1, 30, IDLE)], monkeypatch)
+
+    _run(settings, tick, hosting)
+
+    idle_lines = [each for each in _log(settings).splitlines() if "idle shutdown: idle" in each]
+    assert len(idle_lines) == 1
+    assert idle_lines[0].endswith(line)

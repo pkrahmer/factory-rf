@@ -96,3 +96,31 @@ def test_the_idle_limit_is_at_least_one_minute(
         return
     with pytest.raises(ValueError, match=r".+"):
         IdleShutdown(limit, clock, CountingPower(), RecordingLog())
+
+
+@pytest.mark.parametrize(
+    ("action", "line"),
+    [
+        pytest.param(
+            "ending the factory's process",
+            "idle shutdown: idle for 1 minutes, ending the factory's process",
+            id="given",
+        ),
+        pytest.param(
+            None, "idle shutdown: idle for 1 minutes, powering the machine off", id="default"
+        ),
+    ],
+)
+def test_the_idle_line_names_the_action(clock: ManualClock, action: str | None, line: str) -> None:
+    made = clock.now()
+    log = RecordingLog()
+    shutdown = (
+        IdleShutdown(timedelta(minutes=1), clock, CountingPower(), log)
+        if action is None
+        else IdleShutdown(timedelta(minutes=1), clock, CountingPower(), log, action=action)
+    )
+
+    _at(clock, made, 1, 0)
+    shutdown.observe(IDLE)
+
+    assert [each for each in log.lines if each.startswith(PREFIX)] == [line]

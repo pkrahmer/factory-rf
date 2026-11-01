@@ -278,7 +278,7 @@ def test_a_version_that_cannot_be_read_names_the_reason(
     ("executable_exists", "state_exists", "detail"),
     [
         pytest.param(False, True, "cannot start {executable}: ", id="executable-missing"),
-        pytest.param(True, False, "cannot write the state directory {state}: ", id="state-missing"),
+        pytest.param(True, False, "cannot write the state directory {state}: ", id="state-a-file"),
     ],
 )
 def test_a_run_that_cannot_start_names_the_reason(
@@ -290,6 +290,8 @@ def test_a_run_that_cannot_start_names_the_reason(
     state = tmp_path / "state"
     if state_exists:
         state.mkdir()
+    else:
+        state.write_text("a file where the folder should be\n", encoding="utf-8")
     runtime = OpencodeRuntime(str(executable), state, models=MODELS)
 
     with pytest.raises(AgentRuntimeError) as raised:

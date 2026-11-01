@@ -226,6 +226,8 @@ if name == "factory-run" and os.path.exists({fifo!r}):
     open({fifo!r}).close()
 if name in {failing!r} and (name != "factory-python" or "--once" in argv):
     sys.exit(1)
+if name == "install" and {failing_target!r} is not None and {failing_target!r} in argv:
+    sys.exit(1)
 """
 
 
@@ -267,12 +269,14 @@ def run_job_start(
     *,
     failing: frozenset[str] = frozenset(),
     background: bool = False,
+    failing_install_target: Path | None = None,
 ) -> JobRun:
     """Run `vm/job-start.sh` with every required input, changed by `inputs` (`None` removes one).
 
     The stand-ins of `JOB_STAND_INS` lie first on `PATH`; `failing` names those that exit 1
     (`factory-python` fails only its `--once` call). With `background`, `factory-run` waits
-    until the refresher started without `--once` has run.
+    until the refresher started without `--once` has run. With `failing_install_target`,
+    `install` exits 1 only when that path is one of its arguments.
     """
     root, prefix, stand_ins = tmp_path / "root", tmp_path / "prefix", tmp_path / "stand-ins"
     for folder in ("etc/apt/apt.conf.d", "usr/local/bin", "var/lib/containers"):
@@ -293,6 +297,7 @@ def run_job_start(
             f"ARG OPENCODE_VERSION={JOB_OPENCODE_VERSION}\n"
         ),
         "failing": sorted(failing),
+        "failing_target": None if failing_install_target is None else str(failing_install_target),
         "fifo": str(fifo),
         "venv_bin": str(root / "factory" / ".venv" / "bin"),
         "tools_stand_in": str(stand_ins / "tools-python"),
