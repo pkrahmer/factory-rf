@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T06:54:02.058255Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-11-01T06:54:02.058255Z'
   stage: tests
+- number: 30
+  speaker: tester
+  kind: result
+  at: '2026-11-01T07:00:29.666757Z'
+  stage: tests
+  run: 316663e01dd2495abd0d22e654956d03
 ---
 
 # One script turns a bare job into a running instance
@@ -518,3 +520,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - When the checkout's Dockerfile has no such `ARG` line, `default` exports the variable empty, not absent. The `uv` read already behaved the same way.
     - `vm/setup.sh` still reads the three pins with its own `sed` lines. Sharing a helper between the two scripts is beyond this story.
 29. factory: started tests as vm.
+30. tester: Round 1: I made the test change from the human's answer in journal 26, as the coder named it in journal 28. I added nothing else.
+
+    What changed:
+    - criterion 10, tests/test_vm_job_start.py::test_factory_run_gets_the_derived_settings_where_the_job_gave_none. The test keeps its two rows. In the `derived` row, `factory-run`'s environment must now hold `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION` with the values of the `ARG CLAUDE_CODE_VERSION=` and `ARG OPENCODE_VERSION=` lines in the stand-in checkout's `vm/Dockerfile`. In the `given` row, the job gives `1.2.3` and `4.5.6`, and those values must win. I made the change in the test's `_derived` and `_given` helpers.
+    - tests/vm_support.py: the stand-in `git clone` now writes `<code>/vm/Dockerfile` with the two `ARG` lines, from the new constants `JOB_CLAUDE_VERSION` (`9.8.7`) and `JOB_OPENCODE_VERSION` (`6.5.4`). Before, it only made the directory.
+
+    For every other criterion the mapping is unchanged from journals 11 and 23.
+
+    Files created: none. Files changed: tests/test_vm_job_start.py and tests/vm_support.py, both this story's own. I changed no test of another story.
+
+    Modules the test run could not import: none. The coder's implementation already exists, so `make test` is green (coverage 99.56 %, 174.6 s). `make lint` is green.
+
+    Rejected: a separate test function for the versions. The sides of this rule are the `derived` and `given` rows the test already has.
+
+    Still open from journal 23: the coder's Description edits to criteria 1 and 5 were left out by the factory. Criterion 10's Description also does not yet name the two version variables. The tests stage cannot write the Description.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (173.6 s)

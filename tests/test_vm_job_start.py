@@ -10,9 +10,11 @@ from dockerfile_support import _uncommented
 from factory.domain.containers import JOB_PODMAN_OPTIONS
 from vm_support import (
     HIDDEN_TEXT,
+    JOB_CLAUDE_VERSION,
     JOB_CODE_REF,
     JOB_CODE_URL,
     JOB_INSTANCE,
+    JOB_OPENCODE_VERSION,
     JOB_START,
     MISSING_REF,
     JobRun,
@@ -80,6 +82,8 @@ def _derived(root: Path) -> dict[str, str]:
         "FACTORY_CONTAINER_PROFILE": "job",
         "FACTORY_AGENT_RUNTIME": "opencode",
         "FACTORY_IDLE_SHUTDOWN_ACTION": "exit",
+        "FACTORY_CLAUDE_VERSION": JOB_CLAUDE_VERSION,
+        "FACTORY_OPENCODE_VERSION": JOB_OPENCODE_VERSION,
     }
 
 
@@ -96,6 +100,8 @@ def _given(tmp_path: Path) -> dict[str, str]:
         "FACTORY_CONTAINER_PROFILE": "vm",
         "FACTORY_AGENT_RUNTIME": "claude",
         "FACTORY_IDLE_SHUTDOWN_ACTION": "poweroff",
+        "FACTORY_CLAUDE_VERSION": "1.2.3",
+        "FACTORY_OPENCODE_VERSION": "4.5.6",
         "FACTORY_CONTAINER_ENV": "ONE=1",
         "FACTORY_CA_BUNDLE": f"{given}/ca.pem",
         "FACTORY_IDLE_SHUTDOWN_MINUTES": "30",

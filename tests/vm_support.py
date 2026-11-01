@@ -186,6 +186,8 @@ JOB_CODE_URL = "https://example.invalid/factory.git"
 JOB_CODE_REF = "v9.9.9"
 HIDDEN_TEXT = "s3cret-token-text"
 MISSING_REF = "no-such-ref"
+JOB_CLAUDE_VERSION = "9.8.7"
+JOB_OPENCODE_VERSION = "6.5.4"
 _STAND_IN = """
 import json, os, sys
 name = {name!r}
@@ -204,7 +206,9 @@ if name == "curl":
             with open(argv[argv.index(flag) + 1], "w", encoding="utf-8") as out:
                 out.write("a downloaded binary\\n")
 if name == "git" and "clone" in argv:
-    os.makedirs(argv[-1], exist_ok=True)
+    os.makedirs(os.path.join(argv[-1], "vm"), exist_ok=True)
+    with open(os.path.join(argv[-1], "vm", "Dockerfile"), "w", encoding="utf-8") as out:
+        out.write({dockerfile!r})
 if name == "git" and any({missing!r} in word for word in argv):
     sys.exit(1)
 if name == "python3" and argv[:2] == ["-m", "venv"]:
@@ -292,6 +296,10 @@ def run_job_start(
     fields: dict[str, object] = {
         "log": str(tmp_path / "calls.jsonl"),
         "missing": MISSING_REF,
+        "dockerfile": (
+            f"ARG CLAUDE_CODE_VERSION={JOB_CLAUDE_VERSION}\n"
+            f"ARG OPENCODE_VERSION={JOB_OPENCODE_VERSION}\n"
+        ),
         "failing": sorted(failing),
         "fifo": str(fifo),
         "venv_bin": str(root / "factory" / ".venv" / "bin"),
