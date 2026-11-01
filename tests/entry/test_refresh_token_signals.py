@@ -9,7 +9,7 @@ import pytest
 from factory.application.tokens import TokenSource
 from factory.domain.tokens import Token
 from factory.entry.refresh_token import main
-from token_support import ISSUED, scripted
+from token_support import ISSUED, never_sleep, scripted
 
 pytestmark = pytest.mark.usefixtures("restored_signals")
 
@@ -48,11 +48,6 @@ def terminate(seconds: float) -> None:
     """A wait that ends the loop by raising `SIGTERM`."""
     del seconds
     signal.raise_signal(signal.SIGTERM)
-
-
-def never_sleep(seconds: float) -> None:
-    """A wait the run must not reach."""
-    raise AssertionError(f"waited {seconds} s")
 
 
 @pytest.mark.parametrize(

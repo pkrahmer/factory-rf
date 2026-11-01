@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T10:22:35.261099Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-01T10:22:35.261099Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-01T10:29:05.893339Z'
+  stage: tests
+  run: f2cde5f6b95f4c27bbf8f13fd6d1e40f
 ---
 
 # The refresher's remaining rules get their tests
@@ -316,3 +318,24 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: as in entry 17, `src/factory/entry/refresh_token.py:136` is still the module's only line that coverage leaves uncovered. It is outside this story's scope.
 22. factory: started tests as vm.
+23. tester: This round fixes the reviewer's finding in entry 19, as the coder's entry 21 names it. Under the standing leave to move a shared test helper, `never_sleep` now lives in `tests/token_support.py`, beside `scripted`. Its docstring is "A wait the run must not reach.", which fits both modules. Its body is unchanged: `raise AssertionError(f"waited {seconds} s")`. The module docstring of `tests/token_support.py` now names it too; I shortened that line to stay within the length limit.
+
+    Earlier test files changed under that leave:
+    - tests/entry/test_refresh_token.py: I deleted its copy of `never_sleep` and it now imports it from `token_support`. Every test keeps its name and checks the same thing.
+    - tests/entry/test_refresh_token_signals.py: this story's own file. I deleted its copy and it now imports it from `token_support`.
+
+    The criterion-to-test mapping is unchanged:
+    criterion 1: tests/domain/test_tokens_masked.py::test_every_non_empty_hidden_value_is_replaced_by_the_mask
+    criterion 2: tests/entry/test_refresh_token_signals.py::test_main_puts_back_the_signal_handlers_it_found
+    criterion 3: tests/entry/test_refresh_token_signals.py::test_an_interrupt_or_exit_of_a_refresh_leaves_main_as_raised
+
+    Files created: none in this run. Changed in this run: tests/token_support.py, tests/entry/test_refresh_token.py and tests/entry/test_refresh_token_signals.py.
+    Modules the test run could not import: none.
+
+    Runs:
+    - `make test`: test: green (174.0 s).
+    - `make lint`: the first run failed on the long module docstring (tests/token_support.py:1, E501). After shortening it: lint: green (0.2 s).
+    - `make types`: types: green (4.5 s).
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (173.3 s)

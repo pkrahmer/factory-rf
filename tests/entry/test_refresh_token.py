@@ -19,6 +19,7 @@ from token_support import (
     ScriptedTokenSource,
     answer,
     http_error,
+    never_sleep,
     scripted,
 )
 
@@ -46,11 +47,6 @@ class SignallingSleep:
         self.waits.append((self.login_file.read_text(encoding="utf-8"), seconds))
         if len(self.waits) == self.last:
             signal.raise_signal(self.number)
-
-
-def never_sleep(seconds: float) -> None:
-    """A wait the `--once` runs must not reach."""
-    raise AssertionError(f"waited {seconds} s")
 
 
 @pytest.mark.parametrize("value", [pytest.param(None, id="unset"), pytest.param("  ", id="blank")])
