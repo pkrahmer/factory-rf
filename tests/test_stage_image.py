@@ -96,8 +96,46 @@ def _run_commands(arguments: str) -> list[Command]:
     return [command for pipeline in _pipelines(arguments) for command in pipeline]
 
 
-def test_the_stage_image_has_no_floating_reference(stage_dockerfile: str) -> None:
-    assert floating_references(stage_dockerfile) == []
+# The Debian packages follow the base image's release, which its digest fixes (docs/decisions.md).
+RELEASE_PACKAGES = sorted(f"apt package {package}" for package in STAGE_PACKAGES)
+
+
+@pytest.mark.parametrize(
+    ("change", "pinned"),
+    [
+        pytest.param(lambda text: text, True, id="as-built"),
+        pytest.param(
+            lambda text: re.sub(r"@sha256:[0-9a-f]{64}", "", text), False, id="floating-base"
+        ),
+        pytest.param(
+            lambda text: re.sub(r"CLAUDE_CODE_VERSION=\S+", "CLAUDE_CODE_VERSION=2.1", text),
+            False,
+            id="claude-code",
+        ),
+        pytest.param(
+            lambda text: re.sub(r"OPENCODE_VERSION=\S+", "OPENCODE_VERSION=1.19", text),
+            False,
+            id="opencode",
+        ),
+        pytest.param(lambda text: text.replace("uv==${UV_VERSION}", "uv"), False, id="uv"),
+        pytest.param(
+            lambda text: text.replace(
+                "--no-install-recommends ", "--no-install-recommends wget ", 1
+            ),
+            False,
+            id="eighth-package",
+        ),
+    ],
+)
+def test_the_stage_image_has_no_floating_reference(
+    stage_dockerfile: str, change: Callable[[str], str], pinned: bool
+) -> None:
+    findings = floating_references(change(stage_dockerfile))
+    others = [finding for finding in findings if finding not in RELEASE_PACKAGES]
+
+    assert (others == []) == pinned
+    if pinned:
+        assert sorted(findings) == RELEASE_PACKAGES
 
 
 def test_the_one_base_image_is_the_pinned_build_argument(
@@ -163,16 +201,16 @@ def test_each_pin_of_the_stage_image_has_its_form(
 
 
 @pytest.mark.parametrize("package", STAGE_PACKAGES)
-def test_each_debian_package_is_pinned(stage_dockerfile: str, package: str) -> None:
+def test_each_debian_package_is_installed_by_name_alone(
+    stage_dockerfile: str, package: str
+) -> None:
     stage = [
         each
         for each in _apt_packages(_commands(stage_dockerfile))
         if each.partition("=")[0] == package
     ]
-    version = stage[0].partition("=")[2] if len(stage) == 1 else ""
 
-    assert len(stage) == 1
-    assert version not in {"", "*"}
+    assert stage == [package]
 
 
 def test_the_one_apt_install_is_the_tools_without_recommends(
