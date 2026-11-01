@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 492
-comments_read: [6556376362]
+comments_read: [6556376362, 6556503545]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: e03571afdef14dbfb368d00a38e1454e
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-01T10:06:40.933170Z'
+  stage: doing
 ---
 
 # The refresher's remaining rules get their tests
@@ -181,3 +186,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     No `src/` change can make this check green. Choosing (a) or (b) sends the story to the tests stage for exactly that line.
 
     Built: nothing; no file under `src/` changed. The Description is unchanged: entry 6 kept its meaning (the handler is checked during `fetch` in the loop row only).
+11. 2026-11-01 human: Answer: (a). The tester changes line 108 of `tests/entry/test_refresh_token_signals.py` (this story's own file) to read `error.code`; the line before already asserts `raised.value is error`. Then `make types` once before ending.
