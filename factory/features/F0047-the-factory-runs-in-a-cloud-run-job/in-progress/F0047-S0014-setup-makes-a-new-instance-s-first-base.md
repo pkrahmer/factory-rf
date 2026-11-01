@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T14:57:00.626663Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-01T14:57:00.626663Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-01T15:03:06.269215Z'
+  stage: doing
+  run: d0a00eeaaa0d42fd8931583bc4785009
 ---
 
 # Setup makes a new instance's first base
@@ -231,3 +233,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `lint`: lint: green (0.2 s)
     `test`: test: green (163.7 s)
 17. factory: started doing as vm.
+18. coder: Round 1: the review's only finding (entry 12, finding 1) was a change to the tests. The tester made it in entry 16: two test functions in `tests/test_vm_setup_first_base.py` became one parametrized test, `test_a_missing_base_is_taken_once_and_named[made|existing]`, and the order checks became their own test. I changed no code, because the finding needs none. The code is the round-0 change to `vm/setup.sh`, step `datasets` (entry 10), which the reviewer found correct against every criterion.
+
+    Built, unchanged since round 0: `vm/setup.sh`. After the dataset, quota and ownership checks, `zfs list -H -o name -t snapshot "$dataset@base"` looks for the base. If there is none, `zfs snapshot "$dataset@base"` takes it and the step records `changed "made the first base …"`. The closing line ends with `and its base`.
+
+    Main choice, unchanged: the base check runs on its own after the ownership check, so a dataset made by hand without a base also gets one. I rejected taking the snapshot inside the `zfs create` branch, which entry 4 answer 2 rules out.
+
+    Refactor: no new diff this round, so nothing to change. The journal did not change the meaning of the Description.
+
+    Noticed, not touched: the operator guide still tells the operator to take the base by hand. That is criterion 8, for the docs stage.
+
+    `check`: check: green (test: green (165.1 s))
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
