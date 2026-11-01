@@ -7,8 +7,14 @@ from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
-from adapters.claude_stand_in import STEPS, Step
-from factory.adapters.opencode_runtime import OpencodeRuntime
+from adapters.claude_stand_in import STEPS, StandInCall, Step
+from factory.adapters.opencode_runtime import (
+    CONFIG_VARIABLE,
+    OPENCODE_TOOLS,
+    OpencodeRuntime,
+    result_instructions,
+)
+from factory.application.containers import ContainerRuns
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.kill_points import KillPoints
 from factory.domain.provider_limits import ProviderLimit
@@ -26,6 +32,8 @@ TOKENS: Mapping[str, object] = {
 WAIT_SECONDS = 30
 BOUND_SECONDS = 20
 RESUME_ENTRY = "Stopped at the budget."
+# The environment `opencode_request` gives a request unless the test names its own.
+REQUEST_ENVIRONMENT: Mapping[str, str] = {"HOME": "/home/agent", "LANG": "C.UTF-8"}
 
 # Records its arguments, environment, directory and the text of the file `OPENCODE_CONFIG`
 # names in the shape of `claude_stand_in.StandInCall`, and that file's mode beside it.
@@ -226,10 +234,31 @@ def opencode_request(
         allowed_decisions=["doing", "question"],
         time_limit=time_limit,
         working_directory=work,
-        environment={"HOME": "/home/agent", "LANG": "C.UTF-8"}
-        if environment is None
-        else dict(environment),
+        environment=dict(REQUEST_ENVIRONMENT if environment is None else environment),
     )
+
+
+def request_configuration() -> dict[str, object]:
+    """The configuration a run of `opencode_request`'s defaults gets without a provider file."""
+    instructions = result_instructions(["doing", "question"])
+    return {
+        "autoupdate": False,
+        "share": "disabled",
+        "snapshot": False,
+        "agent": {
+            "factory-coder": {
+                "mode": "primary",
+                "prompt": f"Write the code.\n\n{instructions}",
+                "tools": {name: name in ("read", "bash") for name in OPENCODE_TOOLS},
+                "permission": {"edit": "allow", "bash": {"*": "allow"}},
+            }
+        },
+    }
+
+
+def configuration_text(call: StandInCall) -> str:
+    """The text of the configuration file the stand-in's `call` was given."""
+    return call.files[call.environment[CONFIG_VARIABLE]]
 
 
 def stand_in_runtime(  # noqa: PLR0913 - one parameter per setting a test varies
@@ -240,6 +269,8 @@ def stand_in_runtime(  # noqa: PLR0913 - one parameter per setting a test varies
     kill_points: KillPoints | None = None,
     provider_limit: ProviderLimit | None = None,
     stderr_first: str | None = None,
+    provider_file: Path | None = None,
+    containers: ContainerRuns | None = None,
 ) -> OpencodeRuntime:
     """A runtime that calls the stand-in in `tmp_path / "bin"`, playing `steps`.
 
@@ -258,6 +289,8 @@ def stand_in_runtime(  # noqa: PLR0913 - one parameter per setting a test varies
         models=MODELS,
         settings_file=settings_file,
         provider_limit=provider_limit,
+        provider_file=provider_file,
+        containers=containers,
     )
 
 

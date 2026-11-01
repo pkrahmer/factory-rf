@@ -7,13 +7,15 @@ from pathlib import Path
 import pytest
 
 from adapters.claude_stand_in import Step, read_calls
-from adapters.opencode_stand_in import MODELS, REPLY_EVENTS, opencode_request, write_opencode
-from factory.adapters.opencode_runtime import (
-    CONFIG_VARIABLE,
-    OPENCODE_TOOLS,
-    OpencodeRuntime,
-    result_instructions,
+from adapters.opencode_stand_in import (
+    MODELS,
+    REPLY_EVENTS,
+    configuration_text,
+    opencode_request,
+    request_configuration,
+    write_opencode,
 )
+from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.domain.errors import AgentRuntimeError
 from opencode_provider_support import CONFIGURATION, write_provider
 
@@ -34,26 +36,9 @@ def _runtime(
     return OpencodeRuntime(executable, state, models=models, provider_file=provider_file)
 
 
-def _base_configuration() -> dict[str, object]:
-    instructions = result_instructions(["doing", "question"])
-    return {
-        "autoupdate": False,
-        "share": "disabled",
-        "snapshot": False,
-        "agent": {
-            "factory-coder": {
-                "mode": "primary",
-                "prompt": f"Write the code.\n\n{instructions}",
-                "tools": {name: name in ("read", "bash") for name in OPENCODE_TOOLS},
-                "permission": {"edit": "allow", "bash": {"*": "allow"}},
-            }
-        },
-    }
-
-
 def _configuration_text(tmp_path: Path) -> str:
     [call] = read_calls(tmp_path / "bin")
-    return call.files[call.environment[CONFIG_VARIABLE]]
+    return configuration_text(call)
 
 
 @pytest.mark.parametrize(
@@ -67,7 +52,7 @@ def test_without_a_provider_file_the_configuration_is_as_before(
 
     runtime.run(opencode_request(tmp_path / "work"))
 
-    assert _configuration_text(tmp_path) == json.dumps(_base_configuration())
+    assert _configuration_text(tmp_path) == json.dumps(request_configuration())
 
 
 def test_a_provider_file_adds_its_keys_beside_the_existing_ones(tmp_path: Path) -> None:
@@ -76,8 +61,9 @@ def test_a_provider_file_adds_its_keys_beside_the_existing_ones(tmp_path: Path) 
     runtime.run(opencode_request(tmp_path / "work"))
 
     assert json.loads(_configuration_text(tmp_path)) == {
-        **_base_configuration(),
+        **request_configuration(),
         **CONFIGURATION,
+        "enabled_providers": ["corp"],
     }
 
 
