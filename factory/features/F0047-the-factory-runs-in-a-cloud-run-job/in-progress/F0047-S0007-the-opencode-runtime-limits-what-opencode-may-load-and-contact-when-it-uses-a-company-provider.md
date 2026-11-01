@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 489
-comments_read: []
+comments_read: [6555129644]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: e8f5fe78616041d7a2bb7eb2237aaff5
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-11-01T07:47:58.601427Z'
+  stage: doing
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -145,3 +150,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    Refactor: the diff is three small edits, so nothing needed changing.
 
    Noticed but not touched: nothing else.
+8. 2026-11-01 human: Answer: (a). The tester adds `"enabled_providers": ["corp"]` to the expected dictionary of `tests/adapters/test_opencode_runtime_provider.py::test_a_provider_file_adds_its_keys_beside_the_existing_ones`; `CONFIGURATION` in `tests/opencode_provider_support.py` stays the domain function's output. The leave covers that expectation and nothing else in the file; the Description's "pass unchanged" was written before criterion 2 met that test. End with `tests` and name the change.
