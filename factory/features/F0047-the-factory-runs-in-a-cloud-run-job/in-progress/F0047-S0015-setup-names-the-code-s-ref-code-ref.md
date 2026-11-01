@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618, 6559846438]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-01T15:29:59.446746Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-01T15:29:59.446746Z'
   stage: review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-01T15:30:40.677581Z'
+  stage: review
+  run: cd7544c7357145b6b8c11be7804da993
 ---
 
 # Setup names the code's ref --code-ref
@@ -213,3 +215,28 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 14. factory: started review as vm.
+15. reviewer: no findings
+
+    I reviewed `git diff main...HEAD -- . ':!factory'`, which changes `vm/setup.sh`, `tests/test_vm_setup_code_ref.py`, `tests/test_vm_setup.py` and `tests/test_vm_setup_text.py`, together with the work item.
+
+    - Acceptance criteria:
+      - Criterion 1: `test_the_clone_of_the_code_takes_its_branch_from_the_code_ref` has two rows, without-code-url and different-code-url. Each row checks that its one clone line (`vm/setup.sh:373` and `:377`) takes `--branch "$ref"`, and that `ref` is the variable the `--code-ref)` arm sets. The test reads the script's text, as the human confirmed in entry 9.
+      - Criterion 2: `test_without_the_code_ref_the_clone_uses_main` checks that `ref=main` (`vm/setup.sh:59`) is assigned once, before the `case` that parses the options.
+      - Criterion 3: `test_the_old_ref_option_is_refused_with_a_hint` has two rows, with-value and without-value. Each row checks that the first line on standard error is the hint and the second starts with `usage: setup.sh`, that the exit status is 2, and that no new path appears under `tmp_path`, so no stand-in ran. In the code, `--ref) fault "--ref is now --code-ref"` (`vm/setup.sh:76`) never calls `need_value`. `fault` (`:28`) prints `setup.sh: <message>` and then the usage, both on standard error, and exits 2. A bare `--ref` therefore gets the hint too.
+      - Criterion 4: `test_the_usage_text_names_the_code_ref_and_not_the_ref` has two rows, help and fault. The regex in `OLD_OPTION` does not match inside `--repository-url`.
+      - Every Interface rule has its refused side tested: `--ref` with a value and without one. The Interface states no numeric limit. `--code-ref` without a value is still covered by the earlier `OPTIONS` table in `tests/test_vm_setup.py`, which now names `--code-ref`.
+      - The factory's `make check` after the coder was green (journal entry 13).
+    - Architecture: only a shell script under `vm/` changed. No layer is touched.
+    - Security: no new markers and no secrets. The script stops in `fault` before any step runs.
+    - Quality:
+      - The new `case` arm is minimal, and the usage-table columns stay aligned.
+      - The new test module uses `vm_support` (`run_setup`, `entries`, `step_texts`, `REQUIRED`, `SYSTEM_PATH`) and the shared `code` fixture.
+      - Its `sh` stand-ins are written by hand. Other vm setup tests (`tests/test_vm_setup.py`, `tests/test_vm_setup_code_url.py`) do the same, so this is not a copy of a shared helper. `write_executable` in `tests/git_support.py` writes Python stand-ins, which is a different thing.
+    - Work item hygiene:
+      - The coder's entry 13 names the main choice: its own `--ref)` arm rather than the `*)` arm, and keeping the variable `ref`. It also says what was rejected.
+      - The Description matches what was built.
+      - The docs criterion (6) still names what the documenter must change. The coder listed the operator-guide lines that still say `--ref`.
+
+    Earlier tests:
+    - `tests/test_vm_setup.py`: the human's leave in the story's Interface. The change is lines 16 and 80, `--ref` to `--code-ref`; the test names and what they check are unchanged.
+    - `tests/test_vm_setup_text.py`: the human's answer in journal entry 9. The change is the one row `("ref", "ref")` to `("code-ref", "ref")` of `test_the_options_land_in_their_named_variables`; nothing else in the file changed.
