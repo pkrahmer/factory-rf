@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 496
 comments_read: [6559768618, 6559846438]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-01T15:31:49.981820Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-01T15:31:29.702562Z'
   stage: docs
   run: 79c58d328f134c8abf4988d49e80123d
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-01T15:31:49.981820Z'
+  stage: smoke-test
 ---
 
 # Setup names the code's ref --code-ref
@@ -267,3 +276,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree e10113d6e8d0 at 2026-11-01T15:26:42Z)
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
+18. factory: started smoke-test as vm.
