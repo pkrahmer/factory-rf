@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-01T14:11:03.025772Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-01T14:10:42.446672Z'
   stage: doing
   run: 0b3acf7c3be04c1d948578f6fe8def13
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-01T14:11:03.025772Z'
+  stage: review
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -156,3 +165,4 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 42 known, 0 gone
+8. factory: started review as vm.
