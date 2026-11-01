@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T07:48:55.362010Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-01T07:48:34.762781Z'
   stage: doing
   run: 26f56bf6ce874a8f883fc9f558b228f1
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-01T07:48:55.362010Z'
+  stage: tests
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -170,3 +179,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     What the journal changed: the Description's line "The existing opencode runtime tests pass unchanged" now has this one exception, the expectation above. My write paths do not include the work item, so I have not rewritten the Description.
 
     `make check` is still red on that one test, as in the last run, until the tester makes the change. Noticed but not touched: nothing else.
+11. factory: started tests as vm.
