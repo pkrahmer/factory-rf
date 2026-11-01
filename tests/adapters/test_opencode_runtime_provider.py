@@ -62,6 +62,7 @@ def test_a_provider_file_adds_its_keys_beside_the_existing_ones(tmp_path: Path) 
     assert json.loads(_configuration_text(tmp_path)) == {
         **request_configuration(),
         **CONFIGURATION,
+        "enabled_providers": ["corp"],
     }
 
 

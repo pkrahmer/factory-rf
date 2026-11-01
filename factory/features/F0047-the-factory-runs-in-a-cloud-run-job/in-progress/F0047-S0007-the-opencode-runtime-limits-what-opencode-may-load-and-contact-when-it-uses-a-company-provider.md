@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 489
 comments_read: [6555129644]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T07:48:55.362010Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-01T07:48:55.362010Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-11-01T07:55:12.284295Z'
+  stage: tests
+  run: 1be3666fb34642d1bfc52e06a30c5841
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -180,3 +182,17 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     `make check` is still red on that one test, as in the last run, until the tester makes the change. Noticed but not touched: nothing else.
 11. factory: started tests as vm.
+12. tester: I made the one test change that the human approved in entry 8 and that the coder named in entry 10. Nothing else changed.
+
+    - The change: in `tests/adapters/test_opencode_runtime_provider.py::test_a_provider_file_adds_its_keys_beside_the_existing_ones`, the expected dictionary gets `"enabled_providers": ["corp"]`. It is now `{**request_configuration(), **CONFIGURATION, "enabled_providers": ["corp"]}`.
+    - Why: criterion 2 and the Interface add `enabled_providers` to the configuration whenever a provider file is set. The old expectation did not allow for that key.
+    - Left as it was: `CONFIGURATION` in `tests/opencode_provider_support.py` is unchanged and stays the domain function's output. The rest of the file is untouched, as the human's leave allows.
+
+    Criterion mapping: unchanged from entry 5. This run created no files. The earlier test file I changed is `tests/adapters/test_opencode_runtime_provider.py`, and the human's answer in entry 8 is the leave for it.
+
+    `make test` passed: `test: green (175.5 s)`, coverage 99.56 %. Every module imported.
+
+    Open: the Description still says "The existing opencode runtime tests pass unchanged". Entry 8 makes this test the one exception. I did not rewrite that line in this run, because this mode allows only the named test change.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (175.9 s)
