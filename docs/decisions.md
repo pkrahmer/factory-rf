@@ -288,6 +288,8 @@ Date: 2026-10-16 (F0010-S0006; R29; the human, 2026-10-14). The Dockerfile pins 
 
 Replaced by the machine of v1.2 (`vm/`), F0044-S0010.
 
+- Superseded in part by "Debian's packages follow the base image's release": the Debian packages of the stage image now follow the base image's release; the base image's digest, `uv`, Claude Code and opencode keep their pins.
+
 ## `/state` is read-only for the agent; `/state/runs` is readable by it
 
 Date: 2026-10-16 (F0010-S0006; the human, 2026-10-14). `/state` is `0755` owned by `factory`: the agent can read the health file, the log and the stamp, and cannot rewrite them, so an agent cannot hide a stop or forge the preflight stamp. The files the agent must read for its run go to `/state/runs` (`2750`, group `factory-work`), which the agent can read and not write. Rejected: making `/state` group-writable (the agent could alter the factory's own status) and giving the agent no access (it could not read its run's input).
