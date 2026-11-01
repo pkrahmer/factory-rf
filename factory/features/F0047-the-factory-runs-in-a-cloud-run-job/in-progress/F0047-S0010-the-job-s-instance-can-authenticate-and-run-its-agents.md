@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 491
 comments_read: [6556021304]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T09:25:49.562208Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-01T09:25:49.562208Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-01T09:40:05.214748Z'
+  stage: doing
+  run: d4ed25846562424da45e9e626b271dd9
 ---
 
 # The job's instance can authenticate and run its agents
@@ -186,3 +188,23 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/adapters/test_opencode_runtime.py::test_a_run_that_cannot_start_names_the_reason[state-a-file] - NotADirectoryError: [Errno 20] Not a directory: '/tmp/pytest-of-factory/pytest-0/popen-...
 9. factory: started doing as vm.
+10. coder: Made the failing tests pass. I changed no tests. `make check` is green (`test: green (187.8 s)`, `check: green`).
+
+    What I built:
+    - `vm/job-start.sh`: step `code` now runs `install -m 0755 "$code/vm/git-credential-factory" "$prefix/usr/local/bin/git-credential-factory" || failed code`. It comes right after the `checkout --detach` line and before step `tools`. A one-line comment above it says why (the factory's git has no other credential). The smoke grep counts `1`.
+    - `src/factory/adapters/opencode_runtime.py`: new `_make_state_directory`, which does `mkdir(parents=True, exist_ok=True)` and turns an `OSError` into `state_directory_error`, the same pattern as `ClaudeCodeRuntime._make_state_directory`. `run` calls it before the `try`/`finally` that writes and removes the run's files.
+    - `src/factory/application/idle_shutdown.py`: `IdleShutdown.__init__` takes `action: str = "powering the machine off"`, and the log line uses it.
+    - `src/factory/entry/wiring.py`: `idle_shutdown_of` passes `action="ending the factory's process"` with `exit`, and nothing with `poweroff`.
+
+    Main choice: the directory is made before the `try`/`finally`, not inside `_write_files`. I tried it inside first. When the state path is a file, the `finally`'s `files.remove()` then fails on `unlink` with `NotADirectoryError`, which hides the `AgentRuntimeError` (the `state-a-file` row failed this way). Before the `try` there are no run files to clean up yet, and the order matches the Claude Code runtime.
+
+    Rejected: building the idle shutdown in the wiring with `functools.partial` and an optional `action`. Two explicit `IdleShutdown(...)` calls read more plainly.
+
+    Refactor pass: I read the diff. Besides the `partial` change above, I only reworded a docstring line that was too long. Nothing else needed changing.
+
+    Noticed, not touched:
+    - The `OSError` branch of `OpencodeRuntime._write_files` (`opencode_runtime.py:625-626`) is no longer covered. The test row that reached it now fails earlier, at the `mkdir`. The branch can still happen (permissions, a full disk), so I kept it. Overall coverage is still 99.5 %.
+    - I did not run `make duplicates`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone

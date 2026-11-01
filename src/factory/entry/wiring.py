@@ -586,12 +586,13 @@ def idle_shutdown_of(
     """
     if settings.idle_shutdown_minutes == 0:
         return None
-    return IdleShutdown(
-        timedelta(minutes=settings.idle_shutdown_minutes),
-        boundaries.clock,
-        _idle_power(settings, request_stop),
-        boundaries.log,
-    )
+    limit = timedelta(minutes=settings.idle_shutdown_minutes)
+    power = _idle_power(settings, request_stop)
+    if settings.idle_shutdown_action == "exit":
+        return IdleShutdown(
+            limit, boundaries.clock, power, boundaries.log, action="ending the factory's process"
+        )
+    return IdleShutdown(limit, boundaries.clock, power, boundaries.log)
 
 
 def _idle_power(settings: InstanceSettings, request_stop: Callable[[], None] | None) -> PowerOff:

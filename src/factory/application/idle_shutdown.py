@@ -12,14 +12,25 @@ _PREFIX = "idle shutdown: "
 class IdleShutdown:
     """Powers the machine off right after an idle tick that ends an idle stretch of `limit`."""
 
-    def __init__(self, limit: timedelta, clock: Clock, power: PowerOff, log: FactoryLog) -> None:
-        """Count from now; a `limit` of zero or less raises `ValueError`."""
+    def __init__(
+        self,
+        limit: timedelta,
+        clock: Clock,
+        power: PowerOff,
+        log: FactoryLog,
+        action: str = "powering the machine off",
+    ) -> None:
+        """Count from now; a `limit` of zero or less raises `ValueError`.
+
+        The power-off's log line names `action`.
+        """
         if limit <= timedelta(0):
             raise ValueError(f"the idle limit must be positive, not {limit}")
         self._limit = limit
         self._clock = clock
         self._power = power
         self._log = log
+        self._action = action
         self._stretch_start = clock.now()
 
     @property
@@ -44,7 +55,7 @@ class IdleShutdown:
 
     def _power_off(self) -> None:
         minutes = int(self._limit.total_seconds() // 60)
-        self._log.line(f"{_PREFIX}idle for {minutes} minutes, powering the machine off")
+        self._log.line(f"{_PREFIX}idle for {minutes} minutes, {self._action}")
         try:
             self._power.power_off()
         except PowerOffError as error:

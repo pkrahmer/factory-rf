@@ -586,6 +586,7 @@ class OpencodeRuntime(AgentRuntime):
             request, _bash_permission(self._settings_file), _provider_keys(self._provider_file)
         )
         files = _RunFiles.of(self._state_directory, str(uuid.uuid4()))
+        self._make_state_directory()
         try:
             self._write_files(files, configuration)
             result = self._call(request, files, model, request.agent.budget_usd)
@@ -611,6 +612,12 @@ class OpencodeRuntime(AgentRuntime):
             stdout=process.stdout,
             stderr=process.stderr,
         )
+
+    def _make_state_directory(self) -> None:
+        try:
+            self._state_directory.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise state_directory_error(self._state_directory, exc) from exc
 
     def _write_files(self, files: _RunFiles, configuration: str) -> None:
         try:

@@ -121,6 +121,8 @@ step code
 unset GIT_ASKPASS SSH_ASKPASS
 GIT_TERMINAL_PROMPT=0 git clone --no-checkout "$FACTORY_CODE_URL" "$code" || failed code
 GIT_TERMINAL_PROMPT=0 git -C "$code" checkout --detach "$FACTORY_CODE_REF" || stop 1 "code: no ref $FACTORY_CODE_REF in $FACTORY_CODE_URL"
+# The factory's git takes its credential from this helper alone.
+install -m 0755 "$code/vm/git-credential-factory" "$prefix/usr/local/bin/git-credential-factory" || failed code
 
 step tools
 tools=$root/tools
