@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545, 6557892923]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-01T12:36:22.009017Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-11-01T12:36:01.531821Z'
   stage: review
   run: 5304fe46a84c492aa4bf9acdd0db40f9
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-11-01T12:36:22.009017Z'
+  stage: docs
 ---
 
 # The refresher's remaining rules get their tests
@@ -429,3 +438,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/conftest.py: the standing leave to move a shared test helper, and the human's answer in entry 6. It only adds the secret-file, login-file and environ fixtures moved from tests/entry/test_refresh_token.py; only their docstrings changed.
     - tests/entry/test_refresh_token.py: the standing leave to move a shared test helper, and the human's answer in entry 6. It drops its copies of the three fixtures, `scripted` and `never_sleep` and imports them from the shared places. Every test keeps its name and what it checks.
     - tests/token_support.py: the standing leave to move a shared test helper, and the human's answer in entry 6. `scripted` and `never_sleep` moved in with the same bodies, and the module docstring names them.
+31. factory: started docs as vm.
