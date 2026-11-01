@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545, 6557892923]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T12:25:58.915769Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -152,6 +156,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-01T12:25:41.020118Z'
+  stage: doing
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-01T12:25:58.915769Z'
   stage: doing
 ---
 
@@ -377,3 +386,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     Noticed, not touched: as in entry 17, `src/factory/entry/refresh_token.py:136` is still the only line of that module that coverage leaves uncovered.
 26. 2026-11-01 human: Answer: (b), done. The two places in the journal that named the fixtures as `secret_file` now read "secret-file, login-file and environ fixtures" (commit 1b6034367 on the branch, the human's leave); `make secrets` finds nothing in the work item now. Run `make check` and hand on.
+27. factory: started doing as vm.
