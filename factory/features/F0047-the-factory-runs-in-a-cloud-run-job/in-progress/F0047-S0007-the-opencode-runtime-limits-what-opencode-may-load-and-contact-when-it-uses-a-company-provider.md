@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 489
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-01T07:33:16.157018Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-01T07:33:16.157018Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-01T07:33:37.174889Z'
+  stage: intake
+  run: 9490a9afc68e4e189f974a21b6389fdd
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -73,3 +75,9 @@ Expect: a final pytest line that says `passed` and does not say `failed` or `err
 Empty in the backlog. The factory writes entry 1 when the story starts.
 1. 2026-11-01 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names `factory.adapters.opencode_runtime` with `LOCKDOWN_SWITCHES` (exact dict), `_provider_keys` (it exists at opencode_runtime.py:298, and `SWITCHES` at line 73 and `runtime_environment` at line 675 are the places to extend) and the exact `runtime_environment` for both the provider-file and no-file cases. The override order (the runtime's switches come last) is stated.
+   - Criteria: each fits one test function. Criterion 1 is the unchanged default. Criterion 2 covers `enabled_providers` for two ids (`corp`, `corp-1`) and the absent `disabled_providers`. Criterion 3 covers the environment on the host and in a container. Criterion 4 covers both sides of the override (`1` with a file, `0` without one). Criterion 5 covers the resume. Criterion 6 covers the refused file, with no file written. Criterion 4 names only `OPENCODE_DISABLE_MODELS_FETCH`; the Interface rule covers all three switches, so the tester should parametrize that row over `LOCKDOWN_SWITCHES`.
+   - Smoke test: both commands are runnable. The pytest command passes no `-q`, and `pyproject.toml` `addopts` already sets `-q`, so `tail -1` gives the summary line the `Expect:` checks. The first `Expect:` is an exact line.
+   - Architecture: the change stays in the adapters layer (the opencode wrapper), and the domain `provider_configuration` is left as it is. No new dependency and no change to `factory/`.
+   - Scope: within feature F0047 (S0007 is listed in its scope, and decisions 13 and 14 match the Description). Nothing in "Out of scope" is touched. The docs criterion names the three documents and says the README gets nothing.
