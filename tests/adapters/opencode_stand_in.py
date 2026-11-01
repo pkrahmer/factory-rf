@@ -8,7 +8,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from adapters.claude_stand_in import STEPS, Step
-from factory.adapters.opencode_runtime import OpencodeRuntime
+from factory.adapters.opencode_runtime import OPENCODE_TOOLS, OpencodeRuntime, result_instructions
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.kill_points import KillPoints
 from factory.domain.provider_limits import ProviderLimit
@@ -230,6 +230,24 @@ def opencode_request(
         if environment is None
         else dict(environment),
     )
+
+
+def request_configuration() -> dict[str, object]:
+    """The configuration a run of `opencode_request`'s defaults gets without a provider file."""
+    instructions = result_instructions(["doing", "question"])
+    return {
+        "autoupdate": False,
+        "share": "disabled",
+        "snapshot": False,
+        "agent": {
+            "factory-coder": {
+                "mode": "primary",
+                "prompt": f"Write the code.\n\n{instructions}",
+                "tools": {name: name in ("read", "bash") for name in OPENCODE_TOOLS},
+                "permission": {"edit": "allow", "bash": {"*": "allow"}},
+            }
+        },
+    }
 
 
 def stand_in_runtime(  # noqa: PLR0913 - one parameter per setting a test varies

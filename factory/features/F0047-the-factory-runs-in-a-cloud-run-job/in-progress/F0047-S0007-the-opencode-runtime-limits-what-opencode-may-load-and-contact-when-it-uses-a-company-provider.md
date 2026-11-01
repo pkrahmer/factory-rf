@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 489
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T07:33:57.390775Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-01T07:33:57.390775Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-01T07:41:40.868710Z'
+  stage: tests
+  run: 5741642678d945dfb60980cdc8060f30
 ---
 
 # The opencode runtime limits what opencode may load and contact when it uses a company provider
@@ -91,3 +93,21 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
    - Architecture: the change stays in the adapters layer (the opencode wrapper), and the domain `provider_configuration` is left as it is. No new dependency and no change to `factory/`.
    - Scope: within feature F0047 (S0007 is listed in its scope, and decisions 13 and 14 match the Description). Nothing in "Out of scope" is touched. The docs criterion names the three documents and says the README gets nothing.
 4. factory: started tests as vm.
+5. tester: Wrote the tests for the lockdown of the opencode runtime. They go through `tests/adapters/opencode_stand_in.py` and its stand-in, which records the environment and the configuration file of each call.
+
+   - criterion 1: tests/adapters/test_opencode_runtime_lockdown.py::test_without_a_provider_file_the_configuration_and_environment_are_as_before (rows `host` and `container`: the exact environment as before, without the three switches, and the configuration text equal to `json.dumps(request_configuration())`, so no `enabled_providers`)
+   - criterion 2: tests/adapters/test_opencode_runtime_lockdown.py::test_a_provider_file_enables_only_its_own_provider (rows `corp` and `corp-1`: `enabled_providers == [id]`, the keys exactly the seven named, no `disabled_providers`)
+   - criterion 3: tests/adapters/test_opencode_runtime_lockdown.py::test_a_provider_file_adds_the_lockdown_switches_to_the_call_s_environment (rows `host`, which reads the stand-in's environment without `LC_CTYPE`, and `container`, which reads the fake launch's environment, i.e. the `--env` words; the environment must be exactly the earlier one plus the three switches; it also checks that `LOCKDOWN_SWITCHES` equals the dict the Interface gives)
+   - criterion 4: tests/adapters/test_opencode_runtime_lockdown.py::test_a_request_s_lockdown_switch_is_overridden_only_with_a_provider_file (parametrized over all three switches, as intake suggested from the Interface's override rule, times with and without a provider file: the value is `1` with the file and `0` without it)
+   - criterion 5: tests/adapters/test_opencode_runtime_lockdown.py::test_a_budget_resume_carries_the_first_call_s_switches_and_configuration (`over_budget()` then `RESUME_REPLY`: both calls get the same environment, with the switches, and the same configuration text with `enabled_providers`)
+   - criterion 6: tests/adapters/test_opencode_runtime_lockdown.py::test_a_refused_provider_file_fails_before_any_file_is_written (a provider file with an unknown key gives `AgentRuntimeError`; no stand-in call and no `opencode-*.json` in the state folder)
+   - criteria 7 and 8: no test (`make check` is the factory's gate; docs belong to the docs stage).
+
+   Files: created `tests/adapters/test_opencode_runtime_lockdown.py`. Under the standing leave to move a shared test helper, I moved `_base_configuration` out of `tests/adapters/test_opencode_runtime_provider.py` into `tests/adapters/opencode_stand_in.py` as `request_configuration()`. I changed the earlier test file `tests/adapters/test_opencode_runtime_provider.py` to use it from there: its imports changed, and every test keeps its name and checks the same thing.
+
+   `make test`: the new module could not be imported (ImportError). `factory.adapters.opencode_runtime` exists, but `LOCKDOWN_SWITCHES` does not yet. That is the expected red. `make lint` is green. I skipped the type check, as this stage says.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.2 s)
+   `test`: ERROR tests/adapters/test_opencode_runtime_lockdown.py - ImportError while importing test module '/work/checkout/tests/adapters/test_opencode_runtime_lockdown.py'.
