@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-11-01T14:27:21.783760Z'
   stage: smoke-test
   run: 8aece8f72471470c89ee201698d9e365
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-11-01T14:29:43.761899Z'
+  stage: approval
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -340,3 +345,4 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
     - Criterion 4: a grep finds no `SECOND` or `SECOND_CLIENT` in `tests/test_hosting_search.py`.
     - Criterion 7 (docs): `docs/project-guide/agents.md` names `agent_launch.make_state_directory` in the helper list (line 43), for the Claude Code runtime (line 64) and for the opencode runtime (line 114). No `_make_state_directory` is left in `src` or `docs`.
     - Criterion 6 (`make check`): I did not run it in this stage. The factory's own check after the stage is the gate for it.
+22. factory: done (pull request merged); cost: 10 runs, 15.6 min, 61 turns, 215878 tokens in (1134704 more from cache), 20915 out, $2.14
