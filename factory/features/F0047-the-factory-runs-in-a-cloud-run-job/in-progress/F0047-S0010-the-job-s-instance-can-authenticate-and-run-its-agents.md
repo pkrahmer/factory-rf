@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-01T09:12:14.222772Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-01T09:12:14.215994Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-01T09:12:14.222772Z'
+  stage: intake
+---
+
 # The job's instance can authenticate and run its agents
 
 ## Description
@@ -64,3 +91,5 @@ Expect: one line, `idle shutdown: idle for 1 minutes, ending the factory's proce
 ## Journal
 
 Empty in the backlog. The factory writes entry 1 when the story starts.
+1. 2026-11-01 human: created.
+2. factory: started intake as vm.
