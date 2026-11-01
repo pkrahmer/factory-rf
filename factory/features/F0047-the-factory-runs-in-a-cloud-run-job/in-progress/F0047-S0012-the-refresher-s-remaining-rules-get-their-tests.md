@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 492
 comments_read: [6556376362, 6556503545]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-01T10:07:31.968088Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-01T10:07:11.837418Z'
   stage: doing
   run: ed59568a8e8246b0a62cb2f1969a49a2
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-01T10:07:31.968088Z'
+  stage: tests
 ---
 
 # The refresher's remaining rules get their tests
@@ -208,3 +217,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     Description unchanged: entries 6 and 11 settle how the tests are written. They don't change what the task means.
 
     Noticed, not touched: nothing else.
+14. factory: started tests as vm.
