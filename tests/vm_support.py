@@ -2,13 +2,13 @@
 
 import os
 import re
-import sys
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
 from dockerfile_support import _uncommented
 from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from git_support import write_executable
 from time_limits import ROOMY_LIMIT
 
 ROOT = Path(__file__).parent.parent
@@ -261,14 +261,6 @@ class JobRun(BaseModel):
         return [call for call in self.calls if call.name == name]
 
 
-def _write_stand_in(path: Path, name: str, fields: dict[str, object]) -> Path:
-    path.write_text(
-        f"#!{sys.executable} -B\n" + _STAND_IN.format(name=name, **fields), encoding="utf-8"
-    )
-    path.chmod(0o755)
-    return path
-
-
 def run_job_start(
     tmp_path: Path,
     inputs: dict[str, str | None] | None = None,
@@ -309,7 +301,7 @@ def run_job_start(
         "run_stand_in": str(stand_ins / "factory-run"),
     }
     for name in (*JOB_STAND_INS, "tools-python", "factory-python", "factory-run"):
-        _write_stand_in(stand_ins / name, name, fields)
+        write_executable(stand_ins, _STAND_IN.format(name=name, **fields), name)
     defaults: dict[str, str | None] = {
         "PATH": f"{stand_ins}:{SYSTEM_PATH}",
         "HOME": str(tmp_path / "home"),

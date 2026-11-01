@@ -306,11 +306,18 @@ def test_the_metadata_address_is_rejected_on_output_and_forward(tmp_path: Path) 
     assert [argv for argv in loads if "-f" in argv and argv[argv.index("-f") + 1] == str(rules)]
 
 
-@pytest.mark.parametrize("ref", [JOB_CODE_REF, "a" * 40], ids=["tag", "commit"])
+@pytest.mark.parametrize(
+    ("ref", "askpass"),
+    [
+        pytest.param(JOB_CODE_REF, None, id="tag"),
+        pytest.param("a" * 40, None, id="commit"),
+        pytest.param(JOB_CODE_REF, "/usr/local/bin/askpass-helper", id="job-askpass"),
+    ],
+)
 def test_the_directories_are_made_and_the_code_is_fetched_at_its_ref_without_a_credential(
-    tmp_path: Path, ref: str
+    tmp_path: Path, ref: str, askpass: str | None
 ) -> None:
-    run = run_job_start(tmp_path, {"FACTORY_CODE_REF": ref})
+    run = run_job_start(tmp_path, {"FACTORY_CODE_REF": ref, "GIT_ASKPASS": askpass})
     code = str(run.root / "factory")
     clones = [call for call in run.named("git") if "clone" in call.argv]
     checkouts = [call for call in run.named("git") if "checkout" in call.argv]
@@ -507,6 +514,13 @@ def test_the_default_root_is_written_once_under_srv_factory() -> None:
     assert len(lines) == 1
     assert "FACTORY_JOB_ROOT" in lines[0]
     assert re.search(r"/srv/factory/\$\{?\w+\}?", lines[0])
+
+
+def test_the_default_prefix_is_written_once_and_empty() -> None:
+    code = _uncommented(JOB_START.read_text(encoding="utf-8"))
+    defaults = re.findall(r"\$\{FACTORY_JOB_PREFIX:?[-=]([^}]*)\}", code)
+
+    assert defaults == [""]
 
 
 @pytest.mark.parametrize(

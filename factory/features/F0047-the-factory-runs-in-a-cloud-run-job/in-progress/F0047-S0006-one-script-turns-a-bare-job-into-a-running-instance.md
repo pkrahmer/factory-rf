@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-01T07:11:50.358178Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -217,6 +213,12 @@ journal:
   kind: started
   at: '2026-11-01T07:11:50.358178Z'
   stage: tests
+- number: 38
+  speaker: tester
+  kind: result
+  at: '2026-11-01T07:18:58.955303Z'
+  stage: tests
+  run: a290db851e7245d08ca8ee5d7aab5a26
 ---
 
 # One script turns a bare job into a running instance
@@ -640,3 +642,18 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     The journal did not change the meaning of the task. The reviewer already wrote the corrected Description (criteria 19 and 20 added, renumbered 21 and 22).
 37. factory: started tests as vm.
+38. tester: Round 2: I wrote the tests for criteria 19 and 20, which the reviewer added in journal 34 and the coder named in journal 36. I also moved the duplicated stand-in writer under the standing leave in CLAUDE.md. I changed nothing else.
+
+    - criterion 19: tests/test_vm_job_start.py::test_the_default_prefix_is_written_once_and_empty. It reads the script's uncommented text. There must be exactly one `${FACTORY_JOB_PREFIX:-…}` or `${FACTORY_JOB_PREFIX-…}` default, and its value must be empty.
+    - criterion 20: tests/test_vm_job_start.py::test_the_directories_are_made_and_the_code_is_fetched_at_its_ref_without_a_credential. It gains the row `job-astra` (`GIT_ASKPASS=/usr/local/bin/askpass-helper` in the job's environment) beside the rows `tag` and `commit`, which run without it. Every row already checks that `GIT_ASKPASS` is absent from every recorded `git` environment. The parameter list is now `("ref", "askpass")`, and the test keeps its name.
+
+    Helper move (the standing leave to move a shared test helper; the reviewer's held-back group-4 finding): `tests/vm_support.py::_write_stand_in` was a copy of `tests/git_support.py::write_executable`. I removed it. `write_executable` gains an optional `name` parameter, default `"stand-in-git"`, so every earlier caller behaves as before. `run_job_start` now calls `write_executable(stand_ins, …, name)`. Earlier test files I changed: `tests/git_support.py` (the new optional parameter and its docstring) and `tests/vm_support.py` (the copy removed, the import added, the unused `sys` import dropped). Every earlier test keeps its name and checks the same thing.
+
+    Left alone: the reviewer's notes in journal 34 about splitting the sides of one rule into separate functions (the runc checksum, the mount, the missing ref, the repeated image rows). They are notes, not findings, and this run is limited to the named change.
+
+    Files created: none. Files changed: tests/test_vm_job_start.py, tests/vm_support.py, tests/git_support.py.
+
+    `make test`: the implementation already exists (`vm/job-start.sh:59` holds `prefix=${FACTORY_JOB_PREFIX:-}` and `vm/job-start.sh:121` holds the `unset GIT_ASKPASS`), so the new tests pass and are not red. Its last line: `test: green (174.3 s)`, coverage 99.56 %. Every module imported. `make lint`: green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (175.2 s)

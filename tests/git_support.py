@@ -163,9 +163,9 @@ def copy_remote(template: Path, root: Path) -> Path:
     return root / "remote.git"
 
 
-def write_executable(directory: Path, body: str) -> Path:
-    """Write a Python script with `body` that runs as an executable and return its path."""
-    path = directory / "stand-in-git"
+def write_executable(directory: Path, body: str, name: str = "stand-in-git") -> Path:
+    """Write a Python script `name` with `body` that runs as an executable and return its path."""
+    path = directory / name
     path.write_text(f"#!{sys.executable} -B\n{body}\n", encoding="utf-8")
     path.chmod(0o755)
     return path
