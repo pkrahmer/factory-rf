@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 494
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-01T14:26:54.964714Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-11-01T14:26:54.964714Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-01T14:27:21.783760Z'
+  stage: smoke-test
+  run: 8aece8f72471470c89ee201698d9e365
 ---
 
 # The agent runtimes share one state-directory helper, and a failed write is tested
@@ -316,3 +318,25 @@ Expect: one line that contains `passed` and contains neither `failed` nor `error
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok
 20. factory: started smoke-test as vm.
+21. smoke-tester: I ran both smoke-test commands from the repository root, exactly as written and in order. I ran them as uid 1001, so the mode-0o500 rows of criterion 2 ran and were not skipped. No findings.
+
+    Command 1 (the `make_state_directory` script on a temporary directory):
+    ```
+    Bytecode compiled 4164 files in 63ms
+    True
+    True
+    ```
+    The command exited with 0. It met its `Expect:` line: the script printed two lines, `True` and `True`. The first line is not the script's: it is uv's own note about compiling bytecode.
+
+    Command 2 (`uv run pytest tests/adapters/test_agent_launch_state_directory.py tests/adapters/test_runtime_state_directory_write.py 2>&1 | tail -1`):
+    ```
+    8 passed in 0.07s
+    ```
+    It met its `Expect:` line: one line that contains `passed` and contains neither `failed` nor `error`.
+
+    Read against the acceptance criteria, the smoke test contradicts none of them:
+    - Criterion 1: the run shows a missing folder made with its parent, and a file in the folder's place refused with the detail prefix `cannot write the state directory <tmp>/state: `.
+    - Criteria 1, 2, 3 and 5: their tests are among the 8 that passed.
+    - Criterion 4: a grep finds no `SECOND` or `SECOND_CLIENT` in `tests/test_hosting_search.py`.
+    - Criterion 7 (docs): `docs/project-guide/agents.md` names `agent_launch.make_state_directory` in the helper list (line 43), for the Claude Code runtime (line 64) and for the opencode runtime (line 114). No `_make_state_directory` is left in `src` or `docs`.
+    - Criterion 6 (`make check`): I did not run it in this stage. The factory's own check after the stage is the gate for it.
