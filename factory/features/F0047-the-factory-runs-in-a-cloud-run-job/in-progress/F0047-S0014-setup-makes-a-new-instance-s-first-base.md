@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-01T14:42:24.508460Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-01T14:42:04.050054Z'
   stage: tests
   run: d19fdbf24b9e4d2db108b3516168f994
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-01T14:42:24.508460Z'
+  stage: doing
 ---
 
 # Setup makes a new instance's first base
@@ -133,3 +142,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/test_vm_setup_first_base.py::test_an_existing_dataset_without_a_base_gets_its_first_base - AssertionError: assert [] == [['snapshot',...ory/vm@base']]
+9. factory: started doing as vm.
