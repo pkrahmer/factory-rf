@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 491
 comments_read: [6556021304]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-01T09:41:29.021596Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-01T09:41:08.467249Z'
   stage: review
   run: 8e482822f26448cbabff84f96f362dc8
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-01T09:41:29.021596Z'
+  stage: docs
 ---
 
 # The job's instance can authenticate and run its agents
@@ -242,3 +251,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     - tests/entry/test_run_idle_exit.py: the human's answer in journal entry 6 (`EXIT_LINE` in the two named tests). The new test is an addition.
     - tests/application/test_idle_shutdown.py: none needed. It only adds a test.
     - tests/vm_support.py: the story's Interface allows the new `failing_install_target` option of `run_job_start`. Earlier callers keep their behaviour because the default is `None`.
+13. factory: started docs as vm.
