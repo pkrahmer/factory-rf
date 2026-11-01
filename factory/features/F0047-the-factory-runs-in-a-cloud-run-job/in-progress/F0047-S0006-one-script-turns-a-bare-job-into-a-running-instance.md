@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 488
 comments_read: [6550566644, 6550672073, 6554604465]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-01T06:49:52.859428Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-01T06:49:52.859428Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-11-01T06:53:40.110078Z'
+  stage: doing
+  run: 7b2f62c6c2d34869b0dfe0f583c4134e
 ---
 
 # One script turns a bare job into a running instance
@@ -483,3 +485,26 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
 
     One more change in this round, from your own note: `vm/job-start.sh` sets `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION` where the job gives none, from the `ARG CLAUDE_CODE_VERSION=` and `ARG OPENCODE_VERSION=` lines of the code checkout's `vm/Dockerfile`, read the way `vm/setup.sh` reads them; without them the preflight's `agent-runtime-version` item fails in every job. `FACTORY_OPENCODE_MODELS` stays the job's (a company provider names its own models). The tester adds a row to criterion 10: the two versions present in `factory-run`'s environment with the Dockerfile's values when the job gave none, and the job's values when it gave them; the stand-in checkout's `vm/Dockerfile` gets the two `ARG` lines for it.
 27. factory: started doing as vm.
+28. coder: Round 1, after the human's answer in journal 26. The secrets line is reworded on the branch, so `make secrets` is green again. I made the one code change the answer asks for and nothing else. The answer also asks for a new test row, so the work item goes to the tester before review.
+
+    For the tester (journal 26), criterion 10 gets a new row. Without the two variables in the job's input, `factory-run`'s recorded environment holds `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION` with the values of `ARG CLAUDE_CODE_VERSION=` and `ARG OPENCODE_VERSION=` from the stand-in checkout's `vm/Dockerfile`. When the job gives them, it holds the job's values. For this, the stand-in checkout's `vm/Dockerfile` in `tests/vm_support.py` (the stand-in `git` or `uv` that fills `<root>/factory`) needs those two `ARG` lines.
+
+    What I built: `vm/job-start.sh`.
+    - A new function `dockerfile_arg NAME` prints the value of `ARG NAME=` from `$code/vm/Dockerfile`. It prints nothing when the file or the line is missing.
+    - The step `tools` now reads `uv_version` through `dockerfile_arg`. It used to read it with its own inline `sed`.
+    - The step `tools` then runs `default FACTORY_CLAUDE_VERSION "$(dockerfile_arg CLAUDE_CODE_VERSION)"` and the same for `FACTORY_OPENCODE_VERSION`. So the job's own values win, and the variables are exported for `factory-run`.
+    - `FACTORY_OPENCODE_MODELS` stays the job's, as the answer says.
+
+    `make check` is green: test 174.8 s, coverage 99.56 %, `check: green`. The existing tests pass unchanged.
+
+    Main choice: the two defaults are set in the step `tools`, after `code`, with the other derived variables staying near the top. The Dockerfile exists only after the clone, and `tools` is where the script already reads the `uv` pin. I rejected two alternatives:
+    - Setting them in the block of derived variables near the top: the checkout is not cloned yet there, so there is nothing to read.
+    - Copying `vm/setup.sh`'s two `sed` lines: one helper shared with the `uv` read is better than three copies of the same `sed`.
+
+    Refactor: the shared `dockerfile_arg` above replaces the old inline `uv` read. Nothing else needed changing.
+
+    Description: journal 26 adds a row to criterion 10, and journal 21 changes criteria 1 and 5. These Description edits are not made: the work item is outside my write paths, and the factory dropped my earlier attempt (journal 21).
+
+    Noticed, not touched:
+    - When the checkout's Dockerfile has no such `ARG` line, `default` exports the variable empty, not absent. The `uv` read already behaved the same way.
+    - `vm/setup.sh` still reads the three pins with its own `sed` lines. Sharing a helper between the two scripts is beyond this story.

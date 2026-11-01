@@ -37,6 +37,11 @@ default() {
   export "$1"
 }
 
+# The pins live in the code checkout's stage image, read the way vm/setup.sh reads them.
+dockerfile_arg() {
+  sed -n "s/^ARG $1=//p" "$code/vm/Dockerfile" 2>/dev/null || true
+}
+
 for name in FACTORY_INSTANCE FACTORY_REPOSITORY_URL FACTORY_CODE_URL FACTORY_CODE_REF FACTORY_TOKEN_FILE; do
   require "$name"
 done
@@ -119,7 +124,10 @@ GIT_TERMINAL_PROMPT=0 git -C "$code" checkout --detach "$FACTORY_CODE_REF" || st
 
 step tools
 tools=$root/tools
-uv_version=$(sed -n 's/^ARG UV_VERSION=//p' "$code/vm/Dockerfile" 2>/dev/null) || uv_version=
+uv_version=$(dockerfile_arg UV_VERSION)
+# The preflight compares the stage image's agent runtime with these versions.
+default FACTORY_CLAUDE_VERSION "$(dockerfile_arg CLAUDE_CODE_VERSION)"
+default FACTORY_OPENCODE_VERSION "$(dockerfile_arg OPENCODE_VERSION)"
 python3 -m venv "$tools" || failed tools
 "$tools/bin/pip" install -q "uv==$uv_version" || failed tools
 (cd "$code" && "$tools/bin/uv" sync --frozen --no-dev) || failed tools
