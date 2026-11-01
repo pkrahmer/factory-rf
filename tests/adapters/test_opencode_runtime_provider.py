@@ -10,11 +10,12 @@ from adapters.claude_stand_in import Step, read_calls
 from adapters.opencode_stand_in import (
     MODELS,
     REPLY_EVENTS,
+    configuration_text,
     opencode_request,
     request_configuration,
     write_opencode,
 )
-from factory.adapters.opencode_runtime import CONFIG_VARIABLE, OpencodeRuntime
+from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.domain.errors import AgentRuntimeError
 from opencode_provider_support import CONFIGURATION, write_provider
 
@@ -37,7 +38,7 @@ def _runtime(
 
 def _configuration_text(tmp_path: Path) -> str:
     [call] = read_calls(tmp_path / "bin")
-    return call.files[call.environment[CONFIG_VARIABLE]]
+    return configuration_text(call)
 
 
 @pytest.mark.parametrize(
