@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 495
 comments_read: [6559346138]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-01T15:05:05.463633Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-11-01T15:04:44.910258Z'
   stage: docs
   run: 3752b2a622b84a3e98ca8707166cfaf6
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-01T15:05:05.463633Z'
+  stage: smoke-test
 ---
 
 # Setup makes a new instance's first base
@@ -303,3 +312,4 @@ Empty in the backlog. The factory writes entry 1 when the story starts.
     `check`: check: green (not run again: passed on tree 5f8ee8a1ccbb at 2026-11-01T15:00:10Z)
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
+23. factory: started smoke-test as vm.
