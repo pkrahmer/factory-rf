@@ -2,16 +2,12 @@
 stage: docs
 blocked: null
 round: 2
-attempts: 1
+attempts: 2
 crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-02T22:17:06.297289Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -223,6 +219,13 @@ journal:
   kind: started
   at: '2026-11-02T22:17:06.297289Z'
   stage: docs
+- number: 39
+  speaker: factory
+  kind: stall
+  at: '2026-11-02T22:17:11.409593Z'
+  stage: docs
+  run: e8d0ba58a6084ab58bd39fec9c6d7695
+  reason: died
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -619,3 +622,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
 36. factory: started docs as vm.
 37. factory: Stage docs stalled (attempt 1 of 2): the agent run died without a result
 38. factory: started docs as vm.
+39. factory: Stage docs stalled (attempt 2 of 2): the agent run died without a result
