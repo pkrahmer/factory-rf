@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870, 6586194468]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-02T19:31:19.702931Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -197,6 +201,11 @@ journal:
   at: '2026-11-02T19:30:58.427883Z'
   stage: doing
   run: fb1305f91a3d4d7aa217e676755ae49c
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:31:19.702931Z'
+  stage: review
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -625,3 +634,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+35. factory: started review as vm.
