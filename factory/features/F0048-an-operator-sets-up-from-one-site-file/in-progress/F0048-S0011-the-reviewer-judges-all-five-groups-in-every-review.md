@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 503
 comments_read: [6586887222]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-02T19:59:11.012095Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-02T19:59:11.012095Z'
   stage: docs
+- number: 18
+  speaker: documenter
+  kind: result
+  at: '2026-11-02T19:59:35.382930Z'
+  stage: docs
+  run: 955b852ba00b4d32a6abe0275a787fa6
 ---
 
 # The reviewer judges all five groups in every review
@@ -234,3 +236,18 @@ Expect: two lines, `1` and `0`.
     Earlier tests:
     - tests/test_claude_agent_texts.py: changed under the human's leave in journal entry 8. Only the anchor in `ROLE_AND_STAGE_ANCHORS["reviewer"]` changed, to `Item 6 is part of every review.`, and nothing else in the file.
 17. factory: started docs as vm.
+18. documenter: I wrote the two documents the docs criterion names. I ran no `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/project-guide/agents.md` (line 258): the reviewer's checklist line now says the reviewer goes through all of groups 1 to 5 in every review, also when an earlier group fails, and reports every finding in one entry. Item 6 is always part of the review. It no longer says the reviewer stops at the first failing group.
+    - `docs/decisions.md`: a new entry at the end, *The reviewer judges all five groups in every review*, dated 2026-11-02. It gives the decision, the reason (a round per group, and three round caps in F0048) and the test that pins it. It also says what stays unchanged.
+
+    Cross-read and found current: `README.md`, `docs/operator-guide.md` and the rest of `docs/project-guide/`. A grep for "first failing", "whichever group" and "stops at the first" found nothing stale there. The criterion also says `README.md` and the other documents get nothing.
+
+    Stale text I saw and did not touch: `docs/decisions.md:587` is the 2026-10-18 entry *The reviewer names every earlier test the diff changes*. It still says "whichever group failed". I left it as the history of that day, and the new entry says it replaces that wording. The other grep hits (`docs/operator-guide.md:1438` and `docs/project-guide/stage-environment.md:240`) are about checks and a script, so they are unrelated to this story.
+
+    Findings: none. The diff matches the Interface and the criteria.
+
+    `check`: check: green (not run again: passed on tree 3c9fdc6e474e at 2026-11-02T19:56:26Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
