@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T22:07:03.005304Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-02T22:06:56.358951Z'
   stage: review
   run: e3336bcab36441db8d7043ef7863e1ce
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-02T22:07:03.005304Z'
+  stage: doing
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -478,3 +487,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     Notes:
     - `tests/test_operator_merge_reset.py:16-21`: `SCRIPTS`, `REPOSITORY`, `PREFIX`, `API_URL` and `ACCESS_COMMAND` copy the constants of `tests/test_operator_skill_scripts.py:15-20`. They could move to `tests/operator_support.py` under the standing leave.
     - `tests/test_operator_merge_reset.py:126-142`: `Machine.requests` repeats the URL parsing of `Operator.urls` in `tests/test_operator_skill_scripts.py:83-95`, and the `machine` fixture repeats the folder setup of the `operator` fixture there.
+28. factory: started doing as vm.
