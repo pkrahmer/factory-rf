@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311, 6584737120]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T18:23:08.313737Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-02T18:22:47.568648Z'
   stage: review
   run: 1bf33543ec68488daf356aa552f168df
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-02T18:23:08.313737Z'
+  stage: doing
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -311,3 +320,4 @@ Expect: one line, `0`.
     Earlier tests:
     - `tests/test_operator_hosting.py`: the standing leave to move a shared test helper. `CURL_STAND_IN` and `hosting_env` moved to `tests/operator_support.py`; every test keeps its name and checks the same thing.
     - `tests/operator_support.py`: the same standing leave, together with the Interface's "shared through `tests/operator_support.py`". It received the moved helpers. The stand-in's one addition, `STAND_IN_CURL_ROUTES`, does nothing when that variable is unset, so the earlier tests are unaffected.
+16. factory: started doing as vm.
