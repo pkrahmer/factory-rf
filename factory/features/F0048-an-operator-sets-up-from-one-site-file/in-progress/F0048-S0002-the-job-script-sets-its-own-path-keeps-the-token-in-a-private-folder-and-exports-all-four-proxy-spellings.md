@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T16:28:11.454339Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-02T16:28:11.454339Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-02T16:30:06.029465Z'
+  stage: tests
+  run: d28fb466ff55410d9466210cb6030d16
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -181,3 +183,24 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
    Files created: `tests/test_vm_job_start_environment.py`. No earlier test file was changed. Every module imported, with no collection errors. My one run (`uv run pytest -q` on the new file) ended red as intended: the copy, `PATH` and proxy tests fail on wrong results, since the script does not do these yet. `make lint` is green. I renamed two constants (`GIVEN_CONTENT`, `OLD_CONTENT`) because ruff's S105 rule flagged the names as hardcoded passwords. Once you answer, the next run makes the agreed change to the helper (if you choose (a) or (b)) and ends with `doing`.
 9. 2026-11-02 human: (a), granted: add `token.parent.chmod(0o700)` in `run_job_start` of `tests/vm_support.py` after the token folder is made, so the earlier runs keep the no-copy path; every earlier test keeps its name and check. Name the helper change in your entry.
 10. factory: started tests as vm.
+11. tester: I made the helper change the human approved in entry 9. In `run_job_start` of `tests/vm_support.py`, the line `token.parent.chmod(0o700)` now follows the `mkdir()` of the default token folder. Earlier job-start runs therefore keep the no-copy path, so `tests/test_vm_job_start.py::test_the_token_is_never_printed_written_or_passed_on_a_command_line` still finds no token text under the root once the copy is implemented. Every earlier test keeps its name and its check. The only earlier test file changed is `tests/vm_support.py`, as the human approved (not under the standing leave).
+
+    The tests for the criteria were written and committed in the previous run and are unchanged:
+    criterion 1: tests/test_vm_job_start_environment.py::test_factory_run_starts_with_the_tools_folder_first_on_the_path
+    criterion 2: tests/test_vm_job_start_environment.py::test_the_image_build_starts_with_the_tools_folder_first_on_the_path
+    criterion 3: tests/test_vm_job_start_environment.py::test_a_token_is_copied_into_a_private_folder_only_when_its_folder_is_not_private (row 0755)
+    criterion 4: same test, row 0700 (not copied) and rows 0750 and 0705 (copied)
+    criterion 5: tests/test_vm_job_start_environment.py::test_the_token_s_text_is_never_printed_when_it_is_copied
+    criterion 6: tests/test_vm_job_start_environment.py::test_a_failing_copy_stops_the_script_before_factory_run
+    criterion 7: tests/test_vm_job_start_environment.py::test_a_missing_token_file_stops_the_script_as_before
+    criterion 8: tests/test_vm_job_start_environment.py::test_a_given_proxy_reaches_the_image_build_under_all_four_names (seven rows)
+    criterion 9: tests/test_vm_job_start_environment.py::test_without_a_proxy_no_stand_in_sees_one_and_apt_is_not_configured
+    criterion 10: tests/test_vm_job_start.py::test_the_steps_run_in_order_and_factory_run_replaces_the_script, existing and unchanged
+    criterion 11: tests/test_vm_job_start_environment.py::test_a_second_run_makes_an_existing_secrets_folder_private_and_replaces_the_old_token
+
+    Files: `tests/test_vm_job_start_environment.py` was created in the previous run; `tests/vm_support.py` was changed in this one. Every module imported; there were no collection errors.
+
+    I made one run, `uv run pytest -q` on the new file and `tests/test_vm_job_start.py`. It ended red as intended: the new `PATH`, copy and proxy tests fail on wrong results, because `vm/job-start.sh` does not do those things yet. The failures it printed were all from the new file. `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
+    `test`: FAILED tests/test_vm_job_start_environment.py::test_a_second_run_makes_an_existing_secrets_folder_private_and_replaces_the_old_token - AssertionError: assert 493 == 448
