@@ -1,6 +1,6 @@
 ---
 stage: docs
-blocked: null
+blocked: attempts_cap
 round: 2
 attempts: 2
 crashes: 0
@@ -226,6 +226,12 @@ journal:
   stage: docs
   run: e8d0ba58a6084ab58bd39fec9c6d7695
   reason: died
+- number: 40
+  speaker: factory
+  kind: question
+  at: '2026-11-02T22:17:34.036970Z'
+  stage: docs
+  blocked: attempts_cap
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -623,3 +629,6 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
 37. factory: Stage docs stalled (attempt 1 of 2): the agent run died without a result
 38. factory: started docs as vm.
 39. factory: Stage docs stalled (attempt 2 of 2): the agent run died without a result
+40. factory: Stage docs stalled 2 times. The last time: Stage docs stalled (attempt 2 of 2): the agent run died without a result
+
+    Comment anything to retry: the attempts go back to 0 and the stage runs again. Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
