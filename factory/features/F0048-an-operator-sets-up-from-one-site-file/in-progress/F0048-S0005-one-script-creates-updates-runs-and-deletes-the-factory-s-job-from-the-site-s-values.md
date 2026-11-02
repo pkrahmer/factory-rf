@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T19:06:50.025864Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-11-02T19:06:29.092741Z'
   stage: review
   run: 11a710072dd9482bb2f67a1205f29578
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:06:50.025864Z'
+  stage: doing
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -394,3 +403,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     - `tests/test_operator_job.py:595`: the refused side of `execute`'s and `delete`'s required keys (`test_execute_and_delete_name_a_missing_job`) is a separate function. The side where they work is a row of `test_missing_site_keys_are_named_in_one_line` at `:286`. These could be rows of one parametrized test.
 
     Earlier tests: none. `git diff --name-status main...HEAD` shows the only test file, `tests/test_operator_job.py`, as added (`A`). No test file that `main` holds is changed, renamed or deleted.
+21. factory: started doing as vm.
