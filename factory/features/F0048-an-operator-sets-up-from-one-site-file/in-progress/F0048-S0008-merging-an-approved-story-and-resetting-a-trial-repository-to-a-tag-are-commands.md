@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T22:09:37.418467Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-02T22:09:37.418467Z'
   stage: tests
+- number: 31
+  speaker: tester
+  kind: result
+  at: '2026-11-02T22:10:57.828078Z'
+  stage: tests
+  run: 598b96ee482741f48553f3c4be1540e1
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -521,3 +523,17 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     - `tests/test_operator_merge_reset.py` repeats the constants `SCRIPTS`, `REPOSITORY`, `PREFIX`, `API_URL` and `ACCESS_COMMAND` from `tests/test_operator_skill_scripts.py`.
     - It also repeats that file's URL parsing (`Machine.requests` against `Operator.urls`) and its folder setup (the `machine` fixture against the `operator` fixture).
 30. factory: started tests as vm.
+31. tester: Test change for the coder's entry 29. The reviewer widened criterion 12 and added criterion 14 in entry 27. Both needed only their tests, and I wrote them in `tests/test_operator_merge_reset.py`. No other test in the file changed.
+
+    - criterion 12: tests/test_operator_merge_reset.py::test_a_failing_read_stops_the_reset_before_any_change. I added a fourth row, `tag-ref`: the tag's own `GET /git/ref/tags/starting-point` is answered 500. Every row now also checks that no `reset-to-tag.sh: no tag starting-point` line is printed. The other checks are unchanged: the line `hosting: GET /repos/owner/repo<route>: 500 Server Error`, exit 1, and no change request.
+    - criterion 14: tests/test_operator_merge_reset.py::test_a_failing_read_of_the_merge_is_reported. This is a new parametrized test with two rows, run with `KUMPEL_POLL_SECONDS=0` and `KUMPEL_ARCHIVE_WAIT=60`:
+      - `pull-request`: `GET /pulls/5` is answered 500. The test checks the hosting line with the full path, exit 1, no `PUT` and no `GET /commits?per_page=20`.
+      - `first-poll`: the first `GET /commits?per_page=20` is answered 500 and the second carries the archive commit. The test checks the hosting line with the full path, a poll, `merged #5` then `archived F0001-S0001` in that order, and exit 0.
+
+    Files changed: tests/test_operator_merge_reset.py. Besides the two tests above, the constant `BROKEN` moved up to the merge section, because the new test's rows use it at decoration time. No new files. No earlier story's test changed.
+
+    Rejected: the shared-helper move that the reviewer listed as notes in entry 27 (the constants, the URL parsing and the folder setup that copy `tests/test_operator_skill_scripts.py`). Entry 29 named it as "noticed, not touched", not as the change to make, so I left it alone. It is still open as an optional move under the standing leave.
+
+    Run: `uv run pytest -q tests/test_operator_merge_reset.py` passed all 39 tests. The new rows pass straight away rather than failing first, because the code already does what both criteria say (entries 27 and 29). The test runner imported every module. `make lint` is green.
+
+    `lint`: lint: green (0.1 s)

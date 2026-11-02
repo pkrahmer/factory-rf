@@ -206,6 +206,7 @@ def merge_answers(
 
 
 MERGE_FAST = {"KUMPEL_POLL_SECONDS": "0", "KUMPEL_ARCHIVE_WAIT": "60"}
+BROKEN: list[tuple[int, object]] = [(500, {"message": "Server Error"})]
 
 
 def test_an_approved_pull_request_is_merged_and_its_archive_awaited(machine: Machine) -> None:
@@ -293,6 +294,40 @@ def test_the_merge_waits_for_the_archive_commit(
     result = machine.run("merge.sh", "5", ITEM, KUMPEL_POLL_SECONDS="0", KUMPEL_ARCHIVE_WAIT=wait)
     assert result.exit_status == exit_status, result.stderr
     assert in_order("\n".join(printed(result)), ["merged #5", line])
+
+
+@pytest.mark.parametrize(
+    ("failing_read", "answers", "exit_status", "polled"),
+    [
+        pytest.param("GET /pulls/5", [*BROKEN], 1, False, id="pull-request"),
+        pytest.param(
+            "GET /commits?per_page=20",
+            [*BROKEN, (200, commit_list(ARCHIVE, "earlier work"))],
+            0,
+            True,
+            id="first-poll",
+        ),
+    ],
+)
+def test_a_failing_read_of_the_merge_is_reported(
+    *,
+    machine: Machine,
+    failing_read: str,
+    answers: list[tuple[int, object]],
+    exit_status: int,
+    polled: bool,
+) -> None:
+    machine.answer({**merge_answers(), failing_read: answers})
+    result = machine.run("merge.sh", "5", ITEM, **MERGE_FAST)
+    assert result.exit_status == exit_status, result.stderr
+    route = failing_read.split(" ", 1)[1]
+    assert f"hosting: GET {PREFIX}{route}: 500 Server Error" in printed(result)
+    routes = [request.route for request in machine.requests()]
+    assert ("/commits?per_page=20" in routes) is polled
+    if polled:
+        assert in_order("\n".join(printed(result)), ["merged #5", f"archived {ITEM}"])
+    else:
+        assert [request for request in machine.requests() if request.method == "PUT"] == []
 
 
 # reset-to-tag.sh
@@ -490,15 +525,13 @@ def test_a_reset_with_nothing_to_close_or_delete_only_moves_main(machine: Machin
     assert printed(result) == [f"moved main to {SHORT}"]
 
 
-BROKEN: list[tuple[int, object]] = [(500, {"message": "Server Error"})]
-
-
 @pytest.mark.parametrize(
     "read",
     [
         pytest.param("GET /pulls?state=open&per_page=100", id="open-pull-requests"),
         pytest.param("GET /git/matching-refs/heads/work-item/", id="work-item-refs"),
         pytest.param(f"GET /git/tags/{TAG_OBJECT}", id="annotated-tag"),
+        pytest.param(f"GET /git/ref/tags/{TAG}", id="tag-ref"),
     ],
 )
 def test_a_failing_read_stops_the_reset_before_any_change(machine: Machine, read: str) -> None:
@@ -507,6 +540,7 @@ def test_a_failing_read_stops_the_reset_before_any_change(machine: Machine, read
     assert result.exit_status == 1
     route = read.split(" ", 1)[1]
     assert f"hosting: GET {PREFIX}{route}: 500 Server Error" in printed(result)
+    assert f"reset-to-tag.sh: no tag {TAG}" not in printed(result)
     assert machine.changes() == []
 
 
