@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T18:55:46.598535Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-02T18:55:46.598535Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T18:57:10.300239Z'
+  stage: review
+  run: d5273bcacae64d91a5cd9754070925b8
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -122,8 +124,13 @@ Tests: `tests/test_operator_job.py`, a stand-in `gcloud` that records its argume
 11. `execute` with a row of `running count 1`, with a row of count 2, and with several rows of which only a later one is running (rows), prints the overlap message with the execution's name, exits 1 and runs no `execute`; with rows of `0` and empty counts it runs `execute --async`, prints the name the stand-in answers, writes it to `last-execution` under `XDG_STATE_HOME` (a test sets it), and exits 0.
 12. `delete` without `--yes` prints the message of the Interface, exits 1 and runs no `delete`; with `--yes` it runs it with `--quiet`.
 13. A failing `gcloud` (text on standard error) shows that text and the command exits with its status: rows for `create`, `update`, `execute` (the list call and the execute call) and `delete`, one of them with status 3, the others 1.
-14. `make check` stays green.
-15. docs: `docs/operator-guide.md`, *Creating the job*: the template call is replaced by `job.sh create` with the keys it reads (a table that points to the site file's table), the order of a first start (`site check`, `job.sh create`, `job.sh execute`), the overlap rule and the deletion rule, and says that the job's wrapper only writes the provider file and hands over; `README.md` and the other documents: none.
+14. `execute` and `delete --yes` with `SITE_JOB` unset (the project and the region set) print one `site: missing SITE_JOB in <path>` line, run no `gcloud` and exit 2 (a row for each).
+15. `execute` with `XDG_STATE_HOME` unset writes the execution's name to `$HOME/.local/state/kumpel/last-execution` (a test points `HOME` into `tmp_path`).
+16. No command, a command `job.sh` does not know, and an argument its command does not take (`create --yes`, `update --force`, `execute --dry-run`, `delete --dry-run`) print `usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes]` on standard error, run no `gcloud` and exit 2 (rows).
+17. When `vm/job-start.sh` at `SITE_CODE_REF` holds the line `JOB_START_SH_END`, `create` prints `job: vm/job-start.sh holds the line JOB_START_SH_END; the wrapper cannot carry it` on standard error, runs no `gcloud` and exits 1 (a test commits such a line and tags it).
+18. A failing `describe` with text on standard error: `update` shows that text before its `does not exist; use create` line; `create` shows none of it and goes on to create (two rows).
+19. `make check` stays green.
+20. docs: `docs/operator-guide.md`, *Creating the job*: the template call is replaced by `job.sh create` with the keys it reads (a table that points to the site file's table), the order of a first start (`site check`, `job.sh create`, `job.sh execute`), the overlap rule and the deletion rule, and says that the job's wrapper only writes the provider file and hands over; `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -250,3 +257,14 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: I reviewed `operator/job/job.sh` and `tests/test_operator_job.py` against criteria 1 to 13 and every rule of the Interface. Each of those criteria has a test that checks what it is named after, and the factory's `make check` after the coder was green (entry 10). Group 1 still fails. The script builds behaviour, and one stated default, that no criterion names, and an Interface rule has no criterion for its failing side. Pinning each of them needs no change under `src/`, so I added the criteria myself. Old criteria 14 and 15 are now 19 and 20.
+
+    1. criterion 14 added: it needs its test. `operator/job/job.sh:37-40` (`require_job`): the Interface says `execute` and `delete` need the project, the region and the job's name. Criterion 3 only tests the side where these commands work. The refused side has no criterion: a missing `SITE_JOB` gives the missing-keys line and exit 2, with no `gcloud`. This is a gap in the story, not in the tests. Fix: the tester adds rows for `execute` and `delete --yes`.
+    2. criterion 15 added: it needs its test. `operator/job/job.sh:231`: the Interface states a fallback for `last-execution`, `$HOME/.local/state` when `XDG_STATE_HOME` is unset. Criterion 11 only covers the case where `XDG_STATE_HOME` is set, so the fallback is never tested. This is a gap in the story. Fix: a test with `XDG_STATE_HOME` unset and `HOME` in `tmp_path`.
+    3. criterion 16 added: it needs its test. `operator/job/job.sh:19-22,178-182,219,237-241,250-258`: the `usage` line with exit 2 fires for no command, an unknown command or an argument the command does not take. No criterion names this. Fix: rows for each case.
+    4. criterion 17 added: it needs its test. `operator/job/job.sh:124-127`: the script refuses a `vm/job-start.sh` that contains the heredoc's end line `JOB_START_SH_END`, with a `job:` message and exit 1. No criterion names this. Fix: a test that commits and tags such a line.
+    5. criterion 18 added: it needs its test. `operator/job/job.sh:171,195`: when `describe` fails, `update` shows its standard error and `create` hides it. No criterion names either side. Fix: two rows, with the stand-in's `describe` writing text to standard error.
+
+    I stopped at group 1, as the checklist says; groups 2 to 5 get their turn in the next review. I made no change to the Description. It still matches what was built.
+
+    Earlier tests: none. The diff only adds `tests/test_operator_job.py` and changes, renames or deletes no test file that `main` holds.
