@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 503
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T19:46:05.614939Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-11-02T19:46:05.614939Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-11-02T19:46:59.176272Z'
+  stage: doing
+  run: ce9750e3d2304707816bb6af9b3ef057
+  blocked: question
 ---
 
 # The reviewer judges all five groups in every review
@@ -102,3 +105,21 @@ Expect: two lines, `1` and `0`.
    `lint`: lint: green (0.1 s)
    `test`: FAILED tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged - AssertionError: assert 0 == 1
 6. factory: started doing as vm.
+7. coder: Question: an earlier test conflicts with the Interface's sentence.
+
+   The fix is a single sentence in `claude/agents/reviewer.md`, line 53. I made the replacement exactly as the Interface words it. With it, the three reviewer tests in `tests/test_claude_agent_texts_review_groups.py` passed. But one earlier test from another story then failed: `tests/test_claude_agent_texts.py::test_role_and_stage_sections_carry_the_texts_of_the_role[reviewer]`:
+
+   ```
+   E       AssertionError: assert ['Item 6 is p...roup failed.'] == []
+   E         Left contains one more item: 'Item 6 is part of every review, whichever group failed.'
+   ```
+
+   The cause is that `ROLE_AND_STAGE_ANCHORS["reviewer"]` (`tests/test_claude_agent_texts.py:120`) requires the anchor `Item 6 is part of every review, whichever group failed.` The Interface's sentence ends `Item 6 is part of every review.`, so the anchor is gone. The story names `test_the_reviewer_no_longer_stops_before_the_earlier_tests` as the one earlier test that passes unchanged. It says nothing about this one, and I may not change it. I put `reviewer.md` back to its old line, so this stage leaves no change in the working tree.
+
+   Options:
+   (a) The tester changes the anchor at `tests/test_claude_agent_texts.py:120` to `Item 6 is part of every review.`, with your leave, and the Interface sentence stays word for word. The anchor still pins item 6 being in every review, and the new sentence says that without "whichever group failed", because no group stops the review any more. **I would choose this.**
+   (b) The Interface sentence keeps the old ending: `... do not pad the report. Item 6 is part of every review, whichever group failed.` That changes criterion 1. The constants in `tests/test_claude_agent_texts_review_groups.py` would then need the tester to change them too.
+
+   If you answer (a), I end the next doing run with `tests`, naming that anchor change. Then I make the one-line change to `reviewer.md` once the tester has made it.
+
+   Noticed, not touched: `docs/project-guide/agents.md:258` and `docs/decisions.md:587` still describe "whichever group failed" and "it stops at the first failing group". Criterion 5 already gives these to the documenter.
