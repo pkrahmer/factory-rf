@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T16:52:50.749217Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-02T16:52:50.742613Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:52:50.749217Z'
+  stage: intake
+---
+
 # A hosting client in shell takes its token from a command the site names
 
 ## Description
@@ -60,3 +87,6 @@ FACTORY_SITE="$d/site.env" sh -c '. operator/lib/site.sh; . operator/lib/hosting
 Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOKEN_CMD in the site file`; the word `SECRETWORD` is in neither.
 
 ## Journal
+
+1. 2026-11-02 human: created.
+2. factory: started intake as vm.
