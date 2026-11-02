@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-02T20:44:22.662233Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -191,6 +195,11 @@ journal:
   at: '2026-11-02T20:44:02.054322Z'
   stage: docs
   run: 6105d78b7e9343948e5e32ac5f367c2f
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:44:22.662233Z'
+  stage: smoke-test
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -617,3 +626,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     `check`: check: green (not run again: passed on tree 7d449b5b5bb4 at 2026-11-02T20:39:00Z)
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
+34. factory: started smoke-test as vm.
