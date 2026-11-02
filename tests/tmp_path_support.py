@@ -7,8 +7,13 @@ from pathlib import Path
 _FILE_BITS = stat.S_IRUSR | stat.S_IWUSR
 
 
+def file_mode(path: Path) -> int:
+    """Return the permission bits of `path` itself, not of what a symbolic link points to."""
+    return stat.S_IMODE(path.lstat().st_mode)
+
+
 def _add(path: Path, bits: int) -> None:
-    mode = stat.S_IMODE(path.lstat().st_mode)
+    mode = file_mode(path)
     if mode & bits != bits:
         path.chmod(mode | bits)
 

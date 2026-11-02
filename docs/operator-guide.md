@@ -983,7 +983,7 @@ A Cloud Run job runs the factory without a VM. The job starts bare: the root fil
 - **The task timeout** is 24 hours at most, and the job is executed again every night. Two executions of one job must never overlap, because both would act as the one instance. Set the timeout shorter than the schedule's interval: 23 hours for a daily schedule.
 - **No retries:** create the job with `--max-retries=0`, or a timeout would start a second execution at once.
 - **The network.** The job cannot resolve `github.com` itself. Git over HTTPS and the REST API are reached only through the proxy of the shared connector (measured in P20). The factory's own git and PyGithub read the job's `https_proxy`, so the job's environment carries it. `NO_PROXY` must not name a GitHub host.
-- **Secrets are files.** Mount them with `--set-secrets` at a path (`--set-secrets=/secrets/token=<secret>:latest`) and name the path in the environment. The hosting token's folder is checked by the preflight's `token-file` item, as on a VM: it must belong to the factory's user (root in a job) and carry no permission bit for group or others. When it does not, the item fails with `the folder <folder> belongs to uid <n>, not to <m>` or `the folder <folder> has mode <mode>; make it 0700`, and the job stops at its preflight; see *The hosting-service token*. Whether a Cloud Run secret mount meets the rule has not been measured.
+- **Secrets are files.** Mount them with `--set-secrets` at a path (`--set-secrets=/secrets/token=<secret>:latest`) and name the path in the environment. The preflight's `token-file` item wants the hosting token's folder private, as on a VM: owned by the factory's user (root in a job) with no permission bit for group or others. A mounted secret's folder is read-only at mode `0555`, so give the mounted path as it is: when the token's folder is not private, the script copies the token to `<root>/secrets/hosting-token` (folder `0700`, file `0600`), points `FACTORY_TOKEN_FILE` at the copy and prints `job-start: token-file: copied to <root>/secrets`. A folder that is already private is used as it is, and nothing is copied. The original is not changed, and the token's text is never printed. If the copy fails, the script stops with `job-start: token-file: failed`, status 1.
 - **The service account's token stays out of reach.** The script loads the rule that rejects TCP port 80 to `169.254.169.254` (see *The metadata server in a job*).
 
 What does not work in a job: rootless containers, a bridge network, a pushed image (there is no registry the factory can push to; the job builds the image at each start), a second job that shares the disk, and `fuse-overlayfs` for Podman's storage (three times slower, measured in P15 and P16).
@@ -998,8 +998,8 @@ The job's environment is the instance's configuration. The script reads these va
 | `FACTORY_REPOSITORY_URL` | required: the project |
 | `FACTORY_CODE_URL` | required: the repository the factory's code and `vm/Dockerfile` come from; cloned without a credential (see *The code and the project apart*) |
 | `FACTORY_CODE_REF` | required: a tag or a commit of the code repository. There is no default, so nothing pushed to its `main` reaches a job unseen: you move the ref deliberately. |
-| `FACTORY_TOKEN_FILE` | required: the path of the file that holds the hosting token; a file the script can read, else `job-start: FACTORY_TOKEN_FILE is not a file`, status 2. The script never prints it. |
-| `HTTPS_PROXY` or `https_proxy` | optional: when set, `apt` and every download use it; the script exports both spellings to every later step |
+| `FACTORY_TOKEN_FILE` | required: the path of the file that holds the hosting token; a file the script can read, else `job-start: FACTORY_TOKEN_FILE is not a file`, status 2. If its folder is not private, the script copies it into `<root>/secrets` and uses the copy (see *Secrets are files*). The script never prints it. |
+| `HTTPS_PROXY` or `https_proxy` | optional: when set (`HTTPS_PROXY` wins when both are given and not empty), `apt` and every download use it. The script exports all four spellings, `HTTPS_PROXY`, `https_proxy`, `HTTP_PROXY` and `http_proxy`, to every later step, because the stage image's package manager fetches over plain HTTP. An `HTTP_PROXY` or `http_proxy` the job sets to a value that is not empty keeps its own value. |
 | `FACTORY_JOB_ROOT` | optional, default `/srv/factory/<instance>`: the folder of everything below |
 | `FACTORY_STAGE_IMAGE` | optional, default `factory-stage:<instance>` |
 | `RUNC_VERSION`, `RUNC_SHA256` | optional, default `1.5.2` and its checksum, both constants of the script. Give both or neither: `RUNC_VERSION` without `RUNC_SHA256` stops with `job-start: RUNC_SHA256 is not set`, status 2, because a version without its checksum would not be checked. |
@@ -1015,8 +1015,8 @@ The script sets the following only where the job gave no value: `FACTORY_SNAPSHO
 
 The script prints `job-start: <step>` on standard output at each step, in this order:
 
-1. `inputs`: the checks above and the derived variables.
-2. `proxy`: with a proxy set, writes `/etc/apt/apt.conf.d/99proxy`.
+1. `inputs`: the checks above and the derived variables; the copy of a token whose folder is not private; then `PATH` becomes `<root>/tools/bin` followed by the `PATH` the script was started with, so the preflight finds `uv` and the factory's commands that the `tools` step builds there.
+2. `proxy`: with a proxy set, exports the four spellings and writes `/etc/apt/apt.conf.d/99proxy`.
 3. `packages`: `apt-get update`, then one `apt-get install` of `podman`, `uidmap`, `nftables`, `git`, `make`, `curl`, `ca-certificates`, `rsync`, `python3` and `python3-venv`, at the versions of the Debian release.
 4. `runc`: downloads `runc.amd64` of the release, checks it with `sha256sum -c` against the script's own checksum, and installs it as `/usr/local/bin/runc`. A mismatch stops with `job-start: runc: checksum does not match`, status 1. A checksum downloaded beside the binary would check nothing, so there is none.
 5. `metadata`: loads the `nft` rule of *The metadata server in a job* from `<root>/metadata-block.nft`.

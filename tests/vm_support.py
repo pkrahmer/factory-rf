@@ -285,6 +285,7 @@ def run_job_start(
     (tmp_path / "home").mkdir()
     token = tmp_path / "secrets" / "hosting-token"
     token.parent.mkdir()
+    token.parent.chmod(0o700)
     token.write_text(HIDDEN_TEXT + "\n", encoding="utf-8")
     fifo = tmp_path / "refresher-started"
     if background:
