@@ -29,7 +29,7 @@ roles:
   acceptance-reviewer: {write_paths: ["{work_item}", "{feature}/backlog/*"], time_limit: 40, lease_duration: 60}
 stages:
   intake: {role: intake, next: [tests]}
-  tests: {role: tester, next: [doing], checks: [lint], reports: [test]}     # the new tests are red on purpose
+  tests: {role: tester, next: [doing], checks: [lint]}     # the new tests are red on purpose; no make test after it (the human, 2026-11-02)
   doing: {role: coder, next: [review, tests], checks: [check], reports: [duplicates]}
   review: {role: reviewer, next: [docs, doing], round_cap: 2}
   docs: {role: documenter, next: [smoke-test, doing], checks: [check, secrets, documents], round_cap: 2}
