@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 504
 comments_read: [6587261348]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T20:18:53.526540Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-02T20:18:53.526540Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T20:20:51.562510Z'
+  stage: review
+  run: 18a354a5c4a947ebb882269be0039272
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -116,8 +118,9 @@ Tests: `tests/test_operator_sanitise.py`, running the command as a child process
 14. A last line without a newline gets one in the output; an empty input gives an empty output.
 15. A rules-file fault stops `check` with status 2, the same message as the filter's (path and line number), and no report of any file.
 16. `SITE_SANITISE_RULES` in the environment wins over the one in the site file; a relative path in it is relative to the site file's folder.
-17. `make check` stays green.
-18. docs: `docs/operator-guide.md`, in the site file's part: a section *Sanitising what leaves the machine* (the rules file's place and format, the built-in rules, `check`, and that the rules file is the site's and never goes into a repository); `README.md` and the other documents: none.
+17. A wrong call or a missing site file stops the command with status 2 and nothing on standard output, as rows of one parametrized test: an argument other than `check` and `check` without a file each print the usage line `usage: sanitise < raw > clean | sanitise check FILE...` to standard error; a missing site file prints the site's own message `site: no site file at <path>; run: site init` to standard error.
+18. `make check` stays green.
+19. docs: `docs/operator-guide.md`, in the site file's part: a section *Sanitising what leaves the machine* (the rules file's place and format, the built-in rules, `check`, and that the rules file is the site's and never goes into a repository); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -225,3 +228,31 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: 1. criterion 18 added: it needs its test. It is new criterion 17 in `## Acceptance criteria`; the closing two are renumbered 18 and 19. `operator/bin/sanitise:12-15,147-152` exits 2 in two cases no criterion names. One is a wrong call (an argument other than `check`, or `check` without a file): it prints the usage line. The other is a missing site file (`site_load || exit 2`): it prints the site's own message. Fix: the tester adds one parametrized test with a row for each case: status 2, the message on standard error, nothing on standard output.
+    2. `tests/test_operator_sanitise.py:76-77` and `:298-305` (criteria 1 and 12): the Interface's size limits are tested only on the accepted side.
+       - JWT: the Interface says each part after `eyJ` has at least 10 characters. The only refused row, `eyJabc.def`, has no third part, so it passes whatever the limit is.
+       - Tokens: no row tests `ghp_` or `github_pat_` at 19 versus 20 characters, and there is no short `github_pat_` row.
+       - `check`: no near-token row shows that `check` stays clean.
+       This is also a gap in the story: criterion 1 names only `ghp_short` and `eyJabc.def`. Fix: add these rows to the criterion 1 table, and the last one to the criterion 12 table:
+       - a three-part JWT with a 9-character part, unchanged;
+       - the same JWT with a 10-character part, replaced;
+       - `ghp_` and `github_pat_` with 19 characters, unchanged;
+       - `ghp_` and `github_pat_` with 20 characters, replaced;
+       - a near-token line, reported `sanitise: clean`.
+    3. `operator/bin/sanitise:62,88`: the `=>` replacement goes to `re.sub` as a template without any check.
+       - A replacement escape such as `\t` becomes a tab, not the "literal text" the Interface promises.
+       - A bad escape (`\d`) or a group the pattern lacks (`\2` with one group) fails only while filtering: a Python traceback on standard error and status 1, instead of `sanitise: <path>:<line>: <reason>` and status 2. Under S0007 that loses the job's log, and the traceback leaks the script's internals.
+       This is also a gap in the story: the Interface states no failing side for a replacement. Fix:
+       - check each replacement against its pattern when the rules are read, and refuse a bad one as a rules-file fault (status 2, path and line), in the filter and in `check`;
+       - the coder asks the human to add this fault to the Interface, with a row in the fault tests of criteria 5 and 15;
+       - either make the replacement truly literal apart from `\1`-style groups, or reword "literal text" in the Interface as a Python replacement template.
+
+    Earlier tests: none. `tests/test_operator_sanitise.py` is the only test file in the diff, and it is new (status A).
+
+    Groups 2 to 5 have no further findings:
+    - The script lies under `operator/` and touches nothing under `src/`.
+    - The Python program is a constant, run with `python3 -I -c`, and gets its values through argv.
+    - No silencing marker.
+    - No copied helper: `run_script` and `operator_environment` are reused from `tests/operator_support.py`.
+    - The Description matches what was built, and the docs criterion still holds.
+    - The journal states the main choice: Python inline in the script, rather than `operator/lib/sanitise.py`. One small correction: the precedents it cites, `status.sh` and `job.sh`, use `python3 -c` without `-I`.
