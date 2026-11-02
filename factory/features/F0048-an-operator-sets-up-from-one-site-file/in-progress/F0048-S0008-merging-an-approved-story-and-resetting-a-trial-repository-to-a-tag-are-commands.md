@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 506
 comments_read: [6588966186]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T21:33:21.144109Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-02T21:33:21.144109Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-02T21:37:28.344607Z'
+  stage: tests
+  run: e87058f2e51d4a3981077b0dd8fb60c7
+  blocked: question
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -129,3 +132,33 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
 
    Edits carried in from journal entry 4 (the human's answer): the sentence naming the pull request listing in the Interface, the three rows of criterion 5, and the rows of criterion 9. I changed nothing else, and the Description is unchanged.
 7. factory: started tests as vm.
+8. tester: Tests are written, but I had to interpret two criteria, so I'm asking before handing on.
+
+   **Question 1: criterion 3's message and the Interface disagree.** The Interface says `merge.sh` makes its API calls through `hosting_repo_api` and prints the message of `hosting_api`. For `PUT /pulls/5/merge` that message is `hosting: PUT /repos/owner/repo/pulls/5/merge: 405 Pull Request is not mergeable`, because `hosting_repo_api` passes the full `/repos/<repository>` path. Criterion 3 quotes `hosting: PUT /pulls/5/merge: 405 Pull Request is not mergeable`. The options:
+   - (a) The message keeps the full path, as `hosting_api` prints it, and criterion 3 is reworded to match. The same holds for the messages of criterion 9.
+   - (b) The scripts print the short path, which means they do not pass on `hosting_api`'s own message.
+   - (c) The test accepts either form.
+
+   I would choose (a). The tests currently assert (a): `tests/test_operator_merge_reset.py::test_a_merge_the_host_refuses_stops_without_polling` and the three rows of `test_a_failing_call_stops_the_reset_there`.
+
+   **Question 2: the wait for criterion 4's second row.** Criterion 4 puts `KUMPEL_POLL_SECONDS=0` and `KUMPEL_ARCHIVE_WAIT=0` on both rows. With a wait of 0, a third poll can never happen. My reading: the "no archive commit … after 0 s" row uses `KUMPEL_ARCHIVE_WAIT=0`. The "archive subject in the third poll's answer" row uses `KUMPEL_POLL_SECONDS=0` with `KUMPEL_ARCHIVE_WAIT=60`. The other merge tests also run with `KUMPEL_POLL_SECONDS=0` and `KUMPEL_ARCHIVE_WAIT=60`, so they finish quickly. I'd keep that. The other option is that a wait of 0 still allows a fixed number of polls, which the Interface does not state.
+
+   Mapping (all in `tests/test_operator_merge_reset.py`):
+   - criterion 1: `test_an_approved_pull_request_is_merged_and_its_archive_awaited`
+   - criterion 2: `test_a_pull_request_that_is_not_ready_for_the_merge_is_refused` (rows closed, draft, not-at-approval, another-work-item)
+   - criterion 3: `test_a_merge_the_host_refuses_stops_without_polling`
+   - criterion 4: `test_the_merge_waits_for_the_archive_commit` (rows no-archive-commit, archive-commit-in-the-third-poll)
+   - criterion 5: `test_a_repository_the_site_does_not_name_as_resettable_is_not_reset` (rows another-resettable-repository, no-resettable-repository, no-repository)
+   - criterion 6: `test_without_yes_the_reset_prints_its_plan_and_changes_nothing`
+   - criterion 7: `test_a_tag_that_does_not_exist_changes_nothing` and `test_the_tag_is_followed_to_its_commit` (rows annotated, lightweight)
+   - criterion 8: `test_with_yes_the_reset_closes_deletes_and_moves_in_this_order`
+   - criterion 9: `test_a_failing_call_stops_the_reset_there` (rows close, third-delete, move-of-main)
+   - criterion 10: `test_a_reset_with_nothing_to_close_or_delete_only_moves_main`
+   - criterion 11: `test_no_change_touches_another_ref_or_a_tag` (one row per run of the merge and reset rows that sends requests)
+   - criteria 12 and 13: no test (`make check`, docs).
+
+   Files created: `tests/test_operator_merge_reset.py`. No other test file changed.
+
+   The stand-in: S0003's `CURL_STAND_IN` (from `tests/operator_support.py`) answers only by URL, with 200 or 404. These criteria need answers per method, per call number and with any status. So I put a small router named `curl` in front of it, inside the test module. The router reads the request from curl's configuration and picks the status and body for that call's method, path and call number. It then runs S0003's stand-in unchanged as `recording-curl`, which records every request. I checked the router by hand: `hosting_repo_api` through it gives the expected bodies, the 422 and 404 messages, and the recorded method, route and body.
+
+   Not importable: none. Both scripts are missing (`operator/skill/kumpel/scripts/merge.sh`, `reset-to-tag.sh`), so every test fails with `sh: cannot open …`. `make lint` is green. I did not run the type check, as this stage says.
