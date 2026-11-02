@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 502
 comments_read: [6585290870, 6586194468]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T19:31:19.702931Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,13 @@ journal:
   kind: started
   at: '2026-11-02T19:31:19.702931Z'
   stage: review
+- number: 36
+  speaker: reviewer
+  kind: question
+  at: '2026-11-02T19:32:51.831994Z'
+  stage: review
+  run: d2517e1766fc4b04aee76bdb8adfe0f0
+  blocked: question
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -635,3 +638,32 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 35. factory: started review as vm.
+36. reviewer: Round 1 review, after the tester's entry 32 and the coder's entry 34. I judged all five groups in one pass, as entry 26 asks. I read `operator/job/job.sh`, `tests/test_operator_job.py`, the changes to `tests/recording_stand_in_support.py` and `tests/test_operator_hosting.py`, and the work item. I also read `operator/lib/site.sh`'s function list and the parts of `docs/operator-guide.md` that bear on finding 1.
+
+    - **Group 1 (acceptance criteria) passes.** Criteria 1 to 21 each have a test that checks what the criterion says.
+      - Criteria 19 to 21 are pinned by `test_an_instance_name_holds_only_letters_digits_dots_underscores_and_dashes`, `test_a_value_of_the_env_list_holds_no_at_sign` and `test_a_price_is_digits_with_at_most_one_dot`, with the rows the criteria list. The accepted prices are read back from the `provider.json` the wrapper writes.
+      - Both sides of every Interface rule are tested: running count 0 or empty against 1 and 2, missing keys (with the `SITE_JOB` rows now in `test_missing_site_keys_are_named_in_one_line`), the job's state, an unknown ref, `--yes`, the usage line, a failing `gcloud`, and `describe`'s text.
+      - The factory's `make check` after the coder was green (entry 34).
+    - **Group 2 (architecture) passes.** Nothing under `src/` changes. The script is under `operator/`, and the tests are at the `tests/` root.
+    - **Group 3 (security) passes.**
+      - `check_instance`, `check_env_values` and `check_costs` (`operator/job/job.sh:51-83`) run before the wrapper is built and before any `gcloud` call.
+      - `provider.json` is one `json.dumps` line inside a quoted heredoc. The start script sits in a quoted heredoc that the `JOB_START_SH_END` check guards.
+      - The secrets reach the job only as mounts, and the diff adds no suppression markers.
+    - **Group 4 (quality) passes.** The names say what things are, each function does one thing, and the comments say why. The copied `calls` reader is gone: `read_records` in `tests/recording_stand_in_support.py` is the one shared reader.
+    - **Group 5 (work item hygiene) fails on one point, and no stage I can send it to may fix it.**
+
+    Findings:
+    1. Work item, criterion 23 (docs): the docs criterion does not mention the three refusals of criteria 19 to 21. The documenter writes from that criterion, so the operator guide would stay wrong. `docs/operator-guide.md:107` says `git@host:owner/name(.git)` and `ssh://git@host/...` are accepted repository URLs. The guide's site table at `:955-956` gives `SITE_INSTANCE` and `SITE_REPOSITORY_URL` no limits. Yet `job.sh create` refuses an SSH `SITE_REPOSITORY_URL`, an instance name outside `[A-Za-z0-9._-]`, and a price that is not a plain number. Fix: criterion 23 also says that *Creating the job* names these three refusals next to the key table, and that an SSH repository URL cannot be used for a job (use the `https://` form).
+
+    Entry 28 already raised this, and entries 30 and 34 left it for the review. My role lets me add criteria for behaviour and rewrite a stale Description, and change "nothing else in the work item". The coder and the tester cannot write the work item either. Sending the story back with `doing` would just loop, so I am asking instead.
+
+    Question: how should criterion 23 get the three refusals?
+    - (a) I (the next review) amend criterion 23 with the wording in finding 1 and, with no other finding, pass the story to docs.
+    - (b) You edit criterion 23 yourself on the branch.
+    - (c) Leave criterion 23 as it is. The documenter takes the refusals from the Description, which already names them (entry 24's correction).
+
+    I would choose (a).
+
+    Earlier tests:
+    - `tests/test_operator_hosting.py`: changed under the standing leave to move a shared test helper. Its copied JSON-lines reader inside `calls` now calls the shared `read_records`. `calls` keeps its name and callers, and every test keeps its name and what it checks. The tester's entry 32 names the file.
+    - `tests/recording_stand_in_support.py`: a support module, changed under the same standing leave. It gains the shared `read_records`, and `recorded_calls` now uses it and returns the same thing.
