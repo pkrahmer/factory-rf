@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T22:09:37.418467Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-11-02T22:09:13.803453Z'
   stage: doing
   run: 4d190f4491eb439c800c711502064803
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-02T22:09:37.418467Z'
+  stage: tests
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -511,3 +520,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     Noticed, not touched: the reviewer's notes in entry 27, which are test-side copies for the tester under the standing leave:
     - `tests/test_operator_merge_reset.py` repeats the constants `SCRIPTS`, `REPOSITORY`, `PREFIX`, `API_URL` and `ACCESS_COMMAND` from `tests/test_operator_skill_scripts.py`.
     - It also repeats that file's URL parsing (`Machine.requests` against `Operator.urls`) and its folder setup (the `machine` fixture against the `operator` fixture).
+30. factory: started tests as vm.
