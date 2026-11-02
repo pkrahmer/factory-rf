@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T16:54:58.505369Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T16:54:38.671003Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:54:58.505369Z'
   stage: intake
 ---
 
@@ -111,3 +120,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
 
    Checked and fine: the architecture (shell library under `operator/lib/`, reading the site through S0001's loader, no change to existing scripts), the scope (inside F0048's "A hosting client in shell"; nothing in its Out of scope), and the smoke tests (runnable; both `Expect:` lines are checkable; the pytest `-q` rule does not apply).
 4. 2026-11-02 human: Yes to all eight, as you propose: 1 both header lines in criterion 4; 2 a newline row in criterion 6; 3 no file left in the temporary folder, success and failure; 4 `hosting_api` and `hosting_repo_api` return 4 with the token message and do not run `curl` (add it to the Interface and a criterion); 5 `SITE_TOKEN_CMD=` falls back to `gh`, a row of criterion 2; 6 the self-load criterion; 7 one row per stream; 8 the 301 message and a 500 body over 100 characters with a newline.
+5. factory: started intake as vm.
