@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311, 6584737120]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T18:23:08.313737Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-02T18:23:08.313737Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-02T18:23:29.308923Z'
+  stage: doing
+  run: 1d3b140a217d4f218cb5f52010719510
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -321,3 +323,27 @@ Expect: one line, `0`.
     - `tests/test_operator_hosting.py`: the standing leave to move a shared test helper. `CURL_STAND_IN` and `hosting_env` moved to `tests/operator_support.py`; every test keeps its name and checks the same thing.
     - `tests/operator_support.py`: the same standing leave, together with the Interface's "shared through `tests/operator_support.py`". It received the moved helpers. The stand-in's one addition, `STAND_IN_CURL_ROUTES`, does nothing when that variable is unset, so the earlier tests are unaffected.
 16. factory: started doing as vm.
+17. coder: Round 1: I changed no code. All four review findings (entry 15) are changes to tests, and the scripts already behave as each finding asks, so this goes to the tester:
+
+    1. `tests/test_operator_skill_scripts.py::test_the_newest_comment_decides_the_state` needs one more row. Put `<!-- kumpel verdict -->` as the fourth line from the end, at `stage:doing`; the expected state is `working`. `status.sh` reads only `tail -n 3` of the newest comment.
+    2. In `tests/test_operator_skill_scripts.py::test_settings_init_needs_no_arguments_when_the_site_gives_both`, assert that the whole written file equals the three switches (`data == written`). Today the test compares only the expected keys.
+    3. The same test needs a row where the site gives `SITE_REPOSITORY` without `SITE_CHECKOUT`. The expected result is exit 2 and `usage: settings.sh init <owner/name> <checkout>` on standard error. `settings.sh` falls back to the usage line when `site_gives_both` fails.
+    4. The new criterion 17 needs its test, with two rows:
+       - No site file at `FACTORY_SITE`: `settings.sh get repository` prints the JSON file's repository and exits 0.
+       - A site file with a faulty line: the same result, and the site file's message is on standard error.
+       `settings.sh` loads the site file only when it exists and continues past a faulty one (`site_load || :`).
+
+    Built (unchanged since entry 13, already committed on the branch):
+    - `operator/skill/kumpel/scripts/settings.sh`
+    - `operator/skill/kumpel/scripts/status.sh`
+    - `operator/skill/kumpel/scripts/approval.sh`
+    - `operator/skill/kumpel/scripts/start-story.sh`
+    - `operator/skill/kumpel/scripts/next-story.sh`
+
+    Main choice: the scripts parse JSON with inline `python3`, which `settings.sh` already needed. I rejected `jq` because it is not installed here and the operator would need one more tool.
+
+    Journal: entry 15 added criterion 17, and the Description already carries it, so I did not rewrite `## Description`.
+
+    Noticed, not touched:
+    - In `status.sh`, when `hosting_repo_api` fails inside the `newest_comment` pipeline, the hosting client's message is followed by a Python JSON error.
+    - `operator/README.md` and `docs/operator-guide.md` belong to the docs stage (criterion 19).
