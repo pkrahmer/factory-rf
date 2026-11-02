@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T17:01:21.079833Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-02T17:01:21.079833Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-02T17:06:10.251061Z'
+  stage: doing
+  run: 6c31637749d84515a2d5cfea3597cb0d
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -205,3 +207,31 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
    `lint`: lint: green (0.1 s)
    `test`: FAILED tests/test_operator_hosting.py::test_the_library_loads_the_site_itself - AssertionError: assert (2, '') == (0, 'tok123\n')
 9. factory: started doing as vm.
+10. coder: Built `operator/lib/hosting.sh`, a new POSIX `sh` library. No other file changed. It has four public functions: `hosting_token`, `hosting_api`, `hosting_repo_api` and `hosting_git`. Its private helpers are:
+    - `_hosting_token_source` runs `sh -c "$SITE_TOKEN_CMD"`, else `gh auth token`, else fails.
+    - `_hosting_no_token` prints the one failure message.
+    - `_hosting_curl_config` builds curl's configuration on standard input.
+    - `_hosting_quote` writes curl's quoted form: sed escapes the backslash and the quote, awk joins lines with a literal `\n`.
+    - `_hosting_error_message` takes the JSON `message`, else the first 100 characters on one line.
+
+    Trimming reuses `_site_trim_leading` and `_site_trim_trailing` from `site.sh` rather than adding a second copy. At sourcing time, if the environment holds no `SITE_` variable, the library calls `site_load || :`. A failed load has already printed its reason, and `gh` can still be the token source, so a missing site file does not stop a `set -e` script.
+
+    Main choice: `hosting_api` captures the body with a sentinel (`$(... | curl ...; echo .)`, then strips the `.`). This keeps the body's trailing newlines exactly and holds back the body on a failing status. The status goes to the `mktemp` file through `write-out = "%output{file}%{http_code}"` and is read back, and the file is removed right after. An empty status or `000` means "no answer". I rejected writing the body to a second temporary file with `output =`: it would add a file to clean up, and the Interface says the body goes to standard output.
+
+    Other choices:
+    - The token reaches curl only through `printf`, which is a shell builtin, so it appears in no process's arguments.
+    - git gets it through `GIT_CONFIG_*` assignments placed before the `git` command.
+    - When `hosting_repo_api` lacks `SITE_REPOSITORY` and the token also fails, it checks the repository first and returns 2. The Interface leaves this order open.
+    - With an empty body, the error message has no trailing space after the status.
+
+    Refactor pass: I read the new file as a reviewer would, and nothing needed changing.
+
+    Checks: `make check` is green. The new test file and `tests/test_operator_site.py` pass. My one run of both smoke-test blocks together with `make check` was denied permission, and I did not retry them. Tests cover the same behaviour: criteria 14 and 3.
+
+    Noticed, not touched:
+    - `%output{}` in `--write-out` needs curl 8.3 or later. An older curl on an operator's machine would not write the status file, and every call would come back as "no answer". The operator guide's token section (the docs criterion) may want to say this.
+    - The JSON message is found with a sed pattern, not a JSON parser. A body holding several `"message"` keys gives the last one.
+    - The journal changed nothing in the Description; the human's answers went into the Interface and the criteria at intake.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
