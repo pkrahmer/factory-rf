@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T21:20:25.104280Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-02T21:20:25.104280Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-02T21:24:05.609639Z'
+  stage: doing
+  run: 8f4e1ace1f6940b988260af3c53c609a
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -439,3 +441,17 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
     `lint`: lint: green (0.1 s)
     `test`: test: green (80.1 s)
 24. factory: started doing as vm.
+25. coder: Round 1, after the tester's changes (entry 23). The review findings that needed code (1, 5 and 6 of journal 19) were already fixed in `operator/job/job.sh` in entry 21. The tester's entry 23 has made the four test changes: the no-execution row with a saved file, the row with empty lines inside the 200-line window, the shared `tests/operator_job_support.py`, and the merged pairs. Nothing was left for code, so I changed no file in this run. The working tree was clean at the start and still is.
+
+    `make check` passed in the foreground: `check: green`, coverage 99.58 %, `test: green (80.3 s)`. So the new rows pass against the code from entry 21.
+
+    What I built is unchanged from entry 21, all in `operator/job/job.sh`: the `log` and `status` commands, `gcloud_read`, `no_execution`, and `create_or_update` now uses `make_work`. The main decision stands: `gcloud_call` adds `--region` only to `run` calls, because `gcloud logging read` refuses the flag. I rejected a second call wrapper for logging, which would mean keeping the project and impersonation flags the same in two places.
+
+    Refactor pass: no new diff in this run, so nothing to change.
+
+    What the journal changed: nothing since entry 21. The reviewer had already rewritten the Description's usage sentence.
+
+    Noticed, not touched: I tried to run both smoke-test blocks, but the sandbox refused the command, so they are still not run.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
