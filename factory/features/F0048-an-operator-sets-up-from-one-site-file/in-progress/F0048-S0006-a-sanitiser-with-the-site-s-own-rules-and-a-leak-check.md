@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T20:36:58.918474Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-02T20:36:36.112349Z'
   stage: tests
   run: 0700ca86002a461fb497e6f335b2e2bd
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:36:58.918474Z'
+  stage: doing
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -513,3 +522,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
 
     `lint`: lint: green (0.1 s)
     `test`: test: green (79.3 s)
+28. factory: started doing as vm.
