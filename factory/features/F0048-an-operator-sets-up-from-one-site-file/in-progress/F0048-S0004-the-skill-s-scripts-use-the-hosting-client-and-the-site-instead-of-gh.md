@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T17:50:35.816820Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-02T17:50:14.833731Z'
   stage: intake
   run: d2d896714b8447b689cba697f768faca
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:50:35.816820Z'
+  stage: tests
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -140,3 +149,4 @@ Expect: one line, `0`.
    - Architecture: shell scripts under `operator/` use the shell libraries of S0001 and S0003. Nothing is added under `src/factory/`. The write paths cover `operator/*`.
    - Scope: within F0048 scope (the skill's scripts use the client and the site). It touches no "Out of scope" item and no test of another story.
    Open point for the tester: today's `settings.sh get` with no settings file raises a Python error and prints no message of its own. So criterion 7 requires only a non-zero exit for `get repository` when nothing is set, and the exact text only for `show`.
+7. factory: started tests as vm.
