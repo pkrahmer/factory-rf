@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-02T16:49:39.733858Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -157,6 +161,11 @@ journal:
   at: '2026-11-02T16:49:18.922529Z'
   stage: docs
   run: 58ed0c71fd10497e8dedd7e70510521f
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:49:39.733858Z'
+  stage: smoke-test
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -418,3 +427,4 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
     `check`: check: green (not run again: passed on tree 89cb77e40df4 at 2026-11-02T16:45:33Z)
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
+28. factory: started smoke-test as vm.
