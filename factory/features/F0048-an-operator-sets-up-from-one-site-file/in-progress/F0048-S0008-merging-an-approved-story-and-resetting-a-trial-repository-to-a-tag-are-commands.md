@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T21:54:23.506307Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-02T21:54:23.506307Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T21:56:41.572848Z'
+  stage: review
+  run: 3d3a5b04e8be424885ebcb00f5e11305
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -136,17 +138,19 @@ Tests: `tests/test_operator_merge_reset.py` with the `curl` stand-in of S0003's 
 
 1. `merge.sh 5 F0001-S0001` for an open, ready pull request labelled `stage:approval` with the head `work-item/F0001-S0001` sends one `PUT /pulls/5/merge` with the body `{"merge_method":"merge"}`, prints `merged #5`, polls, and with the archive commit in the answer prints `archived F0001-S0001` and exits 0.
 2. The refusals, as rows of one parametrized test: a closed pull request, a draft, one without the `stage:approval` label, and one whose head is another work item each print their message, exit 1 and send no `PUT`.
-3. A merge the host refuses (405 with `{"message":"Pull Request is not mergeable"}`) prints `hosting: PUT /pulls/5/merge: 405 Pull Request is not mergeable`, exits 1 and does not poll.
-4. The archive wait, with `KUMPEL_POLL_SECONDS=0` and `KUMPEL_ARCHIVE_WAIT=0`: a commit list without the archive subject prints the `no archive commit` line with `after 0 s` and exits 1; the archive subject in the third poll's answer gives `archived` (the stand-in answers per call number).
+3. A merge the host refuses (405 with `{"message":"Pull Request is not mergeable"}`) prints `hosting: PUT /repos/<repository>/pulls/5/merge: 405 Pull Request is not mergeable` (the full path, as `hosting_api` prints it), exits 1 and does not poll.
+4. The archive wait, with `KUMPEL_POLL_SECONDS=0`: a commit list without the archive subject, with `KUMPEL_ARCHIVE_WAIT=0`, prints the `no archive commit` line with `after 0 s` and exits 1; the archive subject in the third poll's answer, with `KUMPEL_ARCHIVE_WAIT=60`, gives `archived` (the stand-in answers per call number).
 5. `reset-to-tag.sh` with `SITE_REPOSITORY` and `SITE_RESET_REPOSITORY` different, with `SITE_RESET_REPOSITORY` unset, or with `SITE_REPOSITORY` unset, sends no request that changes anything and exits as the Interface says (three rows).
 6. Without `--yes` it sends only `GET` requests, prints the plan with the counts of the fixture (two open work-item pull requests and a third that is not a work item, three `work-item/` branches) and exits 1.
 7. A tag that does not exist (404) exits 1 with `reset-to-tag.sh: no tag <tag>` and sends no change; an annotated tag is followed to its commit, a lightweight one is used directly (two rows, the commit of the move is the same).
 8. With `--yes` the requests that change come in the order of the Interface: a `PATCH` closing each work-item pull request (and none for the other), a `DELETE` for each `work-item/` ref, and a `PATCH` of `/git/refs/heads/main` with `{"sha":"<commit>","force":true}` last; the printed lines are `closed #<n>`, `deleted <branch>` and `moved main to <7 characters>`.
-9. A failing call stops the script, as rows of one parametrized test: a close `PATCH`, the third `DELETE` and the move of `main` answered 422 each print the message of `hosting_api`, exit 1 and send none of the later requests (after a failing close, no further close, no `DELETE` and no move; after the third `DELETE`, no later `DELETE` and no move; after a failing move, nothing).
+9. A failing call stops the script, as rows of one parametrized test: a close `PATCH`, the third `DELETE` and the move of `main` answered 422 each print the message of `hosting_api` (with the full `/repos/<repository>/...` path), exit 1 and send none of the later requests (after a failing close, no further close, no `DELETE` and no move; after the third `DELETE`, no later `DELETE` and no move; after a failing move, nothing).
 10. A reset that finds nothing to close or delete still moves `main` and prints only the `moved` line.
 11. No request touches a ref other than `heads/work-item/*` and `heads/main` and no tag (a test over every request of the rows above).
-12. `make check` stays green.
-13. docs: `operator/skill/kumpel/references/approving.md` (the *Then* part names `merge.sh`), `operator/README.md` (the scripts table) and `docs/operator-guide.md` (a section *Repeating a trial*: the starting-point tag, `reset-to-tag.sh`, the three conditions, that a force-push cannot be undone); `README.md` and the other documents: none.
+12. A failing read stops the reset before any change, as rows of one parametrized test: the list of open pull requests, the list of `work-item/` refs and the annotated tag's `GET /git/tags/<sha>` answered 500 each print the message of `hosting_api` (with the full path), exit 1 and send no change.
+13. A wrong command line prints the script's `usage:` line on standard error, exits 2 and sends no request, as rows of one parametrized test: `merge.sh` with one argument and with three, `reset-to-tag.sh` with none, with a second argument other than `--yes` (`--yse`) and with three.
+14. `make check` stays green.
+15. docs: `operator/skill/kumpel/references/approving.md` (the *Then* part names `merge.sh`), `operator/README.md` (the scripts table) and `docs/operator-guide.md` (a section *Repeating a trial*: the starting-point tag, `reset-to-tag.sh`, the three conditions, that a force-push cannot be undone); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -326,3 +330,29 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 18. factory: started review as vm.
+19. reviewer: Findings:
+
+    1. `operator/skill/kumpel/scripts/reset-to-tag.sh:108`, `:114` and `:120`, and `operator/skill/kumpel/scripts/merge.sh:35`: each pipes `hosting_repo_api` straight into `python3`. When a GET fails, `hosting_api`'s message is printed and then a Python `JSONDecodeError` traceback, because Python parses an empty answer. The coder noted this in entries 13 and 17 but did not fix it. In `merge.sh` the traceback comes again on every failing poll. Fix: assign the answer first with `|| exit 1` (in `tag_commit`, `|| return 1`; in `archived`, `|| return 1`) and parse it after, as `merge.sh:42-43` already does for the pull request.
+    2. Criterion 12 added: it needs its test. A failing read (the list of open pull requests, the list of `work-item/` refs, the annotated tag's `GET /git/tags/<sha>`) prints `hosting_api`'s message, exits 1 and sends no change. The Interface's rule "a failing call stops the script there with its message and exit 1" had no criterion for its GET side; intake named this gap in entries 3 and 6. The code already does this (except for the traceback in finding 1), so no change under `src/` is needed. Once finding 1 is fixed, the test can also check that the message is the last line printed.
+    3. Criterion 13 added: it needs its test. Both scripts have a usage line with exit 2 (`merge.sh:9`, `reset-to-tag.sh:66-70`), and no criterion covered it. `reset-to-tag.sh <tag> --yse` falling to usage instead of running matters for a force-push. The sibling scripts' tests already test their usage (`tests/test_operator_job.py`, `tests/test_operator_site.py`). The code already does this.
+
+    Description corrected (all three settled by the human's answer in entry 9; the tester's rewrite in entry 11 was dropped because it was outside the tester's write paths):
+    - criterion 3: `hosting: PUT /pulls/5/merge: 405 …` -> `hosting: PUT /repos/<repository>/pulls/5/merge: 405 …` (the full path, as `hosting_api` prints it).
+    - criterion 4: `KUMPEL_ARCHIVE_WAIT=0` for both rows -> `KUMPEL_ARCHIVE_WAIT=0` for the no-archive row and `KUMPEL_ARCHIVE_WAIT=60` for the third-poll row.
+    - criterion 9: "the message of `hosting_api`" -> the same, "with the full `/repos/<repository>/...` path".
+    - The closing criteria are renumbered 12 -> 14 (`make check`) and 13 -> 15 (docs).
+
+    Checked and passing:
+    - Criteria 1 to 11 each have a test in `tests/test_operator_merge_reset.py` that checks what the criterion says. Refusals (2), the repository conditions (5) and the failing writes (9) are rows of one parametrized test each.
+    - The annotated tag's row shows the tag was followed, because the moved sha differs from the tag object's.
+    - The factory's `make check` after the coder was green (entry 17); duplicates: 0 new.
+    - Architecture: no change under `src/`, and the scripts use the S0001 site loader and the S0003 `hosting_repo_api`.
+    - Security: no secrets, no silencing markers, and the token stays out of argument lists through `hosting.sh`.
+
+    Considered and not reported:
+    - `merge.sh` does not check that `<pr>` is a number. The sibling `approval.sh` does not either, and the open/draft/label/head guards apply to whatever the GET returned.
+    - The wait can run past `KUMPEL_ARCHIVE_WAIT` by one pause. No test can pin that without sleeps.
+
+    Earlier tests: none. Every test file in the diff is new (`A tests/test_operator_merge_reset.py`).
+
+    Notes: none (round 0).
