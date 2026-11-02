@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T15:59:47.287224Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -234,6 +230,13 @@ journal:
   kind: started
   at: '2026-11-02T15:59:47.287224Z'
   stage: doing
+- number: 41
+  speaker: coder
+  kind: question
+  at: '2026-11-02T16:03:34.140944Z'
+  stage: doing
+  run: ebc63b235647446f942824257f5e36fe
+  blocked: question
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -679,3 +682,16 @@ Expect: one line, `$(echo ran)`.
     `lint`: lint: green (0.2 s)
     `test`: test: green (168.6 s)
 40. factory: started doing as vm.
+41. coder: Round 1, after the tester's entry 39. I changed no code. The new rows for criteria 26 and 27 and the changed `all-set` row of criterion 9 all pass against `operator/lib/site.sh` and `operator/bin/site` as they stand. I ran `make check` in the foreground on the tester's committed tree: `test: green (170.3 s)`, `check: green`, total coverage 99.58 %. I did no refactor pass, because I have no diff.
+
+    I stopped before handing on to review because of the one open point: reviewer finding 4 from entry 35, which I said in entry 37 I would put to you. Only you can change the docs criterion.
+
+    **Question:** `operator/README.md` has a *What is here* table that lists the paths under `operator/`. After this story it lacks `bin/site`, `lib/site.sh` and `site.env.example`. But criterion 29 says "`README.md` and the other documents: none", so the documenter may not add them. Which should it be?
+    - (a) Criterion 29 also names `operator/README.md`'s *What is here* table, with one row each for `bin/site` (the command: `path`, `init`, `show`, `get`), `lib/site.sh` (the loader every operator script sources) and `site.env.example` (every key with a made-up value). **This is my choice.** The table exists to list every path a reader needs, and the documenter writes it in the docs stage.
+    - (b) Criterion 29 stays as it is, and the table waits for a later story of this feature.
+
+    With (a), I rewrite criterion 29 in the Description, change no code and end with `review`. With (b), I just end with `review`.
+
+    Description: nothing in the journal since entry 33 has changed the meaning of the task.
+
+    Noticed, not touched: the defaults in the comments of `operator/site.env.example` are my reading of the key names. The stories that read each key (S0003 to S0008) should confirm them, and so should the documenter before they go into the operator guide's key table.
