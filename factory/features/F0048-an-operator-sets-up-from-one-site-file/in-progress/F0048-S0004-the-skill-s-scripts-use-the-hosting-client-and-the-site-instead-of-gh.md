@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 501
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T17:46:40.258739Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-02T17:46:40.258739Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-02T17:47:03.117753Z'
+  stage: intake
+  run: 4ba55cfcfc5742ff8c277fcc544b1932
+  blocked: question
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -93,3 +96,14 @@ Expect: one line, `0`.
 
 1. 2026-11-02 human: created.
 2. factory: started intake as vm.
+3. intake: 1. The Interface says `settings.sh show` prints the repository and the checkout "from whichever source answers", but no criterion tests it. Only the smoke test runs `show`. Please add a criterion, for example `show` with the site's values and a JSON file holding others prints the site's. I would add it as a row of criterion 7.
+   2. Criterion 7 says "the message of today" when neither source is set. Criterion 8 says "the usage line" for `init` without arguments. Neither text is in the story, so a test cannot check them. Please give both texts verbatim in the criteria. I would copy them from the current `settings.sh`.
+   3. Criterion 2 leaves the precedence of the states to "the rules it has now". The test needs these cases decided:
+      - a comment that carries both a factory marker and `<!-- kumpel verdict -->`;
+      - a marker comment at `stage:approval`;
+      - a verdict comment at `stage:approval`;
+      - a marker whose kind is not one of the seven.
+      Please state the order in the Interface, or add a row for each case. I would choose: marker kind first, then verdict, then approval or working. An unknown kind would fall through to the next rule.
+   4. `approval.sh` prints "the journal sections" and runs `hosting_git fetch -q`, but no criterion covers either. Criterion 6 names only tests changed, Expect lines and new markers. Please add a criterion for the journal sections (names and content), and one that the git sections read the fetched branch, not a stale local one.
+   5. Criterion 5 says the cost comes from "the first 100" comments, but no case has the cost table beyond comment 100. Please add one: either that the request carries `per_page=100`, or that a table beyond the first 100 is not found. The Interface also fixes `per_page=50` for the pull requests and `per_page=20` for the commits. Only the page-25 URL is checked (criterion 3). Please add a criterion that the stand-in sees these query strings, or drop the numbers from the Interface.
+   6. Criterion 9 says `start-story.sh` and `next-story.sh` call `hosting_git pull -q --no-rebase`, and the first also calls `hosting_git push -q`. No criterion checks that the pull goes through `hosting_git`. Criterion 9 only checks the pushed commit. Please add one that the token reaches git through `GIT_CONFIG_*` for the pull as well, or say that the two scripts' calls are untested by design.
