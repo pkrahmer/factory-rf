@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T17:08:48.884344Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-02T17:08:48.884344Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-02T17:09:07.084569Z'
+  stage: doing
+  run: 79b5816ba2354c5eb40d7097b9207d3e
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -275,3 +277,16 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     Earlier tests:
     - tests/operator_support.py: no leave needed. The change only adds `HOSTING_LIBRARY` and `run_hosting` and leaves every existing helper as it was. The story's Interface also asks for this helper to be extended.
 13. factory: started doing as vm.
+14. coder: Round 1: every finding in the reviewer's entry 12 is a test change, so I changed no code. The reviewer reports that `operator/lib/hosting.sh` already handles the three new criteria; I did not run them myself, since their tests do not exist yet. For the tester:
+
+    - criterion 15: add rows to `test_the_status_decides_the_result_of_the_api_call` in tests/test_operator_hosting.py:
+      - 299 returns 0 and prints the body.
+      - 199 and 300, each with the body `{"message":"Edge"}`, return 22 with `hosting: GET /user: 199 Edge` and `hosting: GET /user: 300 Edge`.
+    - criterion 16: a test that `hosting_git config --get no.such.key` returns 1, as git does.
+    - criterion 17: make `test_the_library_loads_the_site_itself` parametrized. Add a row with `SITE_TOKEN_CMD` already in the environment and `FACTORY_SITE` naming a file that does not exist; it expects the token on standard output and an empty standard error.
+    - Finding 4, criterion 12: `test_the_api_call_leaves_no_temporary_file` should also check that the call ran. It should assert the exit status (0 for the 200 row, 22 for the 404 row) and exactly one recorded `curl` call.
+
+    What I built: nothing this round. The library from round 0 is unchanged.
+    Main choice: no code change, because the findings only need tests. Rejected: changing the code ahead of the tests, since nothing in it has to change.
+    The journal changed nothing in the Description this round: the reviewer already corrected "unset" to "unset or empty".
+    Noticed, not touched: the round-0 notes still stand. `%output{}` in `--write-out` needs curl 8.3 or later; the docs criterion may want to say so. And the JSON `message` is found with sed, not a JSON parser.
