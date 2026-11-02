@@ -10,6 +10,8 @@ set -eu
 here=$(cd "$(dirname "$0")" && pwd -P)
 . "$here/../../../lib/site.sh"
 . "$here/../../../lib/hosting.sh"
+SITE_REPOSITORY=$(sh "$here/settings.sh" get repository)
+export SITE_REPOSITORY
 pr=$1 item=$2
 poll=${KUMPEL_POLL_SECONDS:-15}
 wait=${KUMPEL_ARCHIVE_WAIT:-300}

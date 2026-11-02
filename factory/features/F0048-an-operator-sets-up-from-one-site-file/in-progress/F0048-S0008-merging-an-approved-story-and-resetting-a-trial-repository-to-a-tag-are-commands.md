@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T22:07:03.005304Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-02T22:07:03.005304Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-11-02T22:09:13.803453Z'
+  stage: doing
+  run: 4d190f4491eb439c800c711502064803
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -488,3 +490,24 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     - `tests/test_operator_merge_reset.py:16-21`: `SCRIPTS`, `REPOSITORY`, `PREFIX`, `API_URL` and `ACCESS_COMMAND` copy the constants of `tests/test_operator_skill_scripts.py:15-20`. They could move to `tests/operator_support.py` under the standing leave.
     - `tests/test_operator_merge_reset.py:126-142`: `Machine.requests` repeats the URL parsing of `Operator.urls` in `tests/test_operator_skill_scripts.py:83-95`, and the `machine` fixture repeats the folder setup of the `operator` fixture there.
 28. factory: started doing as vm.
+29. coder: I fixed review finding 1 in code. Findings 2 and 3 need only their tests, so I'm handing back to the tester.
+
+    Finding 1 is fixed. `operator/skill/kumpel/scripts/merge.sh` now sets and exports `SITE_REPOSITORY=$(sh "$here/settings.sh" get repository)` right after it sources the site and hosting libraries, as `approval.sh` and `status.sh` do. The merge now takes the site's repository first and falls back to the skill's settings file. Before, it stopped with `site: missing SITE_REPOSITORY` when the site named no repository. `reset-to-tag.sh` is unchanged: its Interface requires `SITE_REPOSITORY` itself, and comparing it with `SITE_RESET_REPOSITORY` is the guard that keeps the factory's own repository from being reset.
+
+    Main choice: reuse `settings.sh get repository` as the sibling scripts do. I rejected reading the settings file inside `merge.sh`, because that would be a second copy of `settings.sh`'s fallback.
+
+    Tests needed. The code already does both, so no code change:
+    - Criterion 12, new fourth row: the tag's own `GET /git/ref/tags/<tag>` answered 500. It prints the `hosting_api` message with the full `/repos/<repository>/...` path, prints no `no tag` line, exits 1 and sends no change. This is a fourth row of `test_a_failing_read_stops_the_reset_before_any_change`.
+    - Criterion 14: one parametrized test for `merge.sh`'s failing reads, with two rows:
+      - `GET /pulls/5` answered 500 prints the hosting message, exits 1 and sends no `PUT` and no poll.
+      - The first poll answered 500 and the archive commit in the second, with `KUMPEL_POLL_SECONDS=0` and `KUMPEL_ARCHIVE_WAIT=60`, prints that message and ends with `archived F0001-S0001` and exit 0.
+
+    `make check` is green after the change: `test: green (81.1 s)`, coverage 99.58 %, `check: green`.
+
+    Refactor: I read the one-line change; nothing more to change.
+
+    What the journal changed: the reviewer widened criterion 12 and added criterion 14 in entry 27, already in the Description. I rewrote nothing.
+
+    Noticed, not touched: the reviewer's notes in entry 27, which are test-side copies for the tester under the standing leave:
+    - `tests/test_operator_merge_reset.py` repeats the constants `SCRIPTS`, `REPOSITORY`, `PREFIX`, `API_URL` and `ACCESS_COMMAND` from `tests/test_operator_skill_scripts.py`.
+    - It also repeats that file's URL parsing (`Machine.requests` against `Operator.urls`) and its folder setup (the `machine` fixture against the `operator` fixture).
