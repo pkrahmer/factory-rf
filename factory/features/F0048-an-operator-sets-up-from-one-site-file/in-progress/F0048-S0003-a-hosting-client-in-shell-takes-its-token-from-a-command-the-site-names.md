@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T17:22:54.749885Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-11-02T17:22:54.749885Z'
   stage: doing
+- number: 26
+  speaker: coder
+  kind: result
+  at: '2026-11-02T17:26:30.060483Z'
+  stage: doing
+  run: bc88da61a4d540ba834fc31017025b0b
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -470,3 +472,30 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     `lint`: lint: green (0.1 s)
     `test`: test: green (79.7 s)
 25. factory: started doing as vm.
+26. coder: Round 2, after tester entry 24. I changed no code this round. `operator/lib/hosting.sh`, with the fixes from coder entry 22 for reviewer entry 20's findings 1 and 2, already passes the new test `test_the_repository_call_passes_its_body_on` (criterion 18). `hosting_repo_api` passes BODY on through `"$@"`. The working tree had no changes when I started, and I left it that way.
+
+    What I built: nothing new. The story's whole change outside `factory/` and `tests/` is `operator/lib/hosting.sh`.
+
+    Main choice: leave the library as it is. Every finding of entry 20 is now covered: findings 1 and 2 by the code (entry 22), finding 3 by the tester's test. The alternative I rejected was more changes ahead of any finding. The test's note on `CURL_ARGUMENTS + [str(arguments)]` is for the tester, and the tester left it alone (entry 24).
+
+    Checks:
+    - `make check`: check: green.
+    - I also ran it against the real curl on this VM, 7.88.1 (Debian 12), which entry 22 could not do. That is the version finding 1 was about.
+      - Against a closed local port, `hosting_api GET /user` returns 22 with `hosting: GET /user: no answer`.
+      - Against a local `python3 -m http.server`, `GET /user` prints the file's body `{"ok":1}` and returns 0.
+      - `GET /none` returns 22 with `hosting: GET /none: 404 <first 100 characters of the HTML body on one line>`.
+      - So the `%{stderr}%{http_code}` write-out works with curl 7.x.
+
+    Refactor pass: I read the diff against main again. Nothing needed changing.
+
+    The journal changed nothing in the Description this round.
+
+    Noticed, not touched:
+    - On a failed transfer, curl's own error text goes to the status file and is thrown away. The Interface's message is only `no answer`.
+    - The sourcing-time guard checks `env`, so it sees exported `SITE_` values only.
+    - For the documenter: the lowest curl version is 7.63, for `%{stderr}` in `--write-out`.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
