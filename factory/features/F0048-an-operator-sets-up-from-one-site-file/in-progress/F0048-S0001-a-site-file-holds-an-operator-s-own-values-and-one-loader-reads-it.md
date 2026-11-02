@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T14:36:36.012272Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-02T14:36:15.112672Z'
   stage: intake
   run: 63ffc82feb864f459b70b4a35ca8ed39
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-02T14:36:36.012272Z'
+  stage: tests
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -166,3 +175,4 @@ Expect: one line, `$(echo ran)`.
    - Smoke test: the three blocks run as written. No pytest is involved, and each `Expect:` line is checkable.
    - Architecture: the scripts lie outside the layers, as the Interface says. `operator/*` is already in the coder's write paths, as the feature asks. The tests go in `tests/test_operator_support.py`'s sibling `tests/test_operator_site.py` with the helper in `tests/operator_support.py`, which `CLAUDE.md` allows.
    - Scope: within the feature's S0001 scope. It adds no `site check` and changes no existing script or test.
+7. factory: started tests as vm.
