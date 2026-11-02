@@ -40,6 +40,7 @@ The build order; start one at a time, the next when the one before is archived i
 - S0006: A sanitiser with the site's own rules and a leak check
 - S0007: The job's log and state are read and sanitised by one command
 - S0008: Merging an approved story and resetting a trial repository to a tag are commands
+- S0013: The factory does not pause after a tick that found activity
 - S0012: Kumpel signs everything it does
 - S0009: One command says whether a machine is ready, and the guide says how to get there
 - S0010: In a job a machine stop that stands for ten minutes ends the factory's process
@@ -66,3 +67,4 @@ One, before S0001: in `factory/pipeline.yml` the coder's write paths gain `"oper
 14. **Tests of the scripts use the real `git`** (`CLAUDE.md` *Tests*); what `hosting_git` gives git is read back through `git config` and git's own trace, not through a stand-in (the master's review, 2026-11-02; S0003, S0004).
 15. **The reviewer judges all five groups in every review (S0011, built right after S0005).** Stopping at the first failing group cost a round per group; S0001, S0003 and S0005 reached the round cap that way, and S0005 settled in one review once it judged all groups. Only the checklist's opening sentence changes (the human, 2026-11-02).
 16. **Kumpel signs everything it does (S0012, built after S0008, which brings `merge.sh`).** The skill acts with the human's token, so GitHub and the journal cannot tell its acts from the human's. A visible signature line and a marker on every comment, Kumpel as the start commit's author and a merge message say who acted, with no second account and no change to the factory, which copies the comment's text into the journal. A separate account for the factory at home is the human's own step, outside this feature (the human, 2026-11-02).
+17. **The factory does not pause after a tick that found activity (S0013, built right after S0008).** A story hands over between its stages about twenty times, and the 15-second pause after each cost about five minutes per story, a tenth of its time, while the next tick had work. The idle pauses and the back-off after errors stay (the human, 2026-11-02).
