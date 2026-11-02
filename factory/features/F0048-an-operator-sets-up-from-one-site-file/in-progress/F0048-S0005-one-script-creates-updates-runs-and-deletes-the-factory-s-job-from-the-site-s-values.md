@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 502
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T18:38:48.513425Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-02T18:38:48.513425Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-02T18:39:17.283592Z'
+  stage: intake
+  run: 5671c82e0460495a9d2f569dfbd6030a
+  blocked: question
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -100,3 +103,9 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
 
 1. 2026-11-02 human: created.
 2. factory: started intake as vm.
+3. intake: 1. `update` has no success criterion. The Interface says it runs `describe` and then `gcloud run jobs update` with the same settings as `create`. Criterion 1 covers only `create`, and criterion 9 covers only the refusal. Should criterion 1 gain an `update` row (describe succeeds, `update` runs with the same arguments, exit 0)? I would choose yes.
+   2. Criterion 3 says "a row for each of the three commands", but the Interface names four commands. It is also unclear what the rows are. The first half covers `create` with missing keys. The second half says `execute` works with only the project, region and job set. Which three commands get rows? What does a `delete` row with only those three keys expect, given that it needs `--yes`? What does an `update` row with missing keys expect? I would choose: `create` and `update` fail with the missing-keys line and exit 2; `execute` and `delete --yes` work with only the three keys.
+   3. The `execute` rule says "a running count of 1 or more", but criterion 11 tests only a count of 1. The Interface also gives no way to tell a count of 2 from a count of 1. Should a row with count 2 be added, and a row with several lines where only a later one is running? I would choose yes.
+   4. Failure paths with no criterion. Criterion 13 has a row only for `create`, but the Interface says any failing `gcloud` shows its standard error and exits with that status. Which rows are expected for `update`, `execute` (the list call and the execute call), and `delete`? Should the test use an exit status other than 1, since the Interface says "exits with its status"? I would choose rows for all four commands, with status 3 on one of them.
+   5. `--dry-run` is stated for both `create` and `update`, but criterion 10 does not say which command it runs. It also does not say whether the unknown-ref refusal in the Interface ("`--dry-run` takes the text the same way") is tested with `--dry-run`. Should criterion 10 have rows for `create` and `update`, and criterion 7 a row for an unknown ref with `--dry-run` (status 1, the message, no `gcloud`)? I would choose yes.
+   6. Criterion 12 tests only the case where `delete` has no `--yes`. The Interface says `delete` and `execute` need only the project, region and job name. Does criterion 3 cover that for `delete` (see question 2)? Should `delete` get the project, region and impersonation checks of criterion 2? I would choose yes, with `delete` and `execute` added to the rows of criterion 2.
