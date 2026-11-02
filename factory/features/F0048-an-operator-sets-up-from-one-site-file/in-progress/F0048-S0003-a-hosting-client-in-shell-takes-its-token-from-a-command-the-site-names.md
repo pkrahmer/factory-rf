@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T17:17:46.583436Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-02T17:17:46.583436Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-11-02T17:20:17.757924Z'
+  stage: doing
+  run: 9d5b3076a3f1414aacafffaee45bbd5d
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -409,3 +411,26 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     Notes:
     - tests/test_operator_hosting.py `test_the_api_call_gives_curl_the_token_on_standard_input_only`: `CURL_ARGUMENTS + [str(arguments)]` also searches the test's own constant, which can never hold the token. Searching `arguments` alone says the same thing.
 21. factory: started doing as vm.
+22. coder: Round 2. I fixed reviewer entry 20's two code findings in `operator/lib/hosting.sh`. Finding 3 needs only a test, so I'm handing that to the tester.
+
+    - Finding 1 (curl 7.x). curl's configuration now asks for `write-out = "%{stderr}%{http_code}"`, which curl 7.63 and later understand. Before, it used `%output{}`, which needs curl 8.3. `hosting_api` sends curl's standard error to the same `mktemp` status file as before, which it still removes afterwards. A new helper, `_hosting_last_three`, reads the last three characters of that file as the status. Anything `--show-error` wrote ahead of the status is ignored, and a text shorter than three characters counts as "no answer", the same as `000`.
+    - Finding 2 (first `message`). `_hosting_error_message` now cuts the flattened body up to its first `"message"` key with a parameter expansion, and only then matches the value. So GitHub's 422 answers give the top-level `Validation Failed`, not a nested error's message.
+    - Finding 3 (criterion 18), for the tester: add a test, or a row of `test_the_repository_call_puts_the_site_repository_in_the_path` in tests/test_operator_hosting.py. With `SITE_REPOSITORY=owner/repo`, `hosting_repo_api POST /pulls '{"a":"b"}'` must put `url = "https://api.github.com/repos/owner/repo/pulls"`, `request = "POST"` and `data = "{\"a\":\"b\"}"` on the curl stand-in's standard input. The code already passes BODY on (`hosting_api "$_hosting_method" "$_hosting_path" "$@"`), so it needs no change.
+
+    Main choice: send curl's stderr to the status file and take the last three characters. I rejected writing the status to stdout after the body and cutting it off there, because the Interface keeps the body alone on standard output and the status in a temporary file.
+
+    Checks:
+    - `make check` is green, and the existing tests pass with the new write-out. The curl stand-in already handles `%{stderr}`.
+    - I have not checked the fix against the real curl. My one run with curl 7.88.1 on this VM (against an unreachable local port, plus a nested-`message` body) was refused permission, and I did not retry. The smoke tests would show it.
+
+    Refactor pass: I read the diff again, as a reviewer would. Nothing needed changing.
+
+    The journal changed nothing in the Description this round. Entry 20 added criterion 18, and the reviewer had already written it into the work item.
+
+    Noticed, not touched:
+    - On a failed transfer, curl's own error text goes into the status file and is thrown away with it. The Interface's message is just `no answer`, so the cause is not shown.
+    - A non-JSON body with no `"message"` key that starts with `:"...` would be read as a message. This is not realistic, so I left it.
+    - The reviewer's note on `CURL_ARGUMENTS + [str(arguments)]` in `test_the_api_call_gives_curl_the_token_on_standard_input_only` is about the tests, so it is the tester's to change.
+    - For the documenter: the lowest curl version is now 7.63.
+
+    `check`: check: green

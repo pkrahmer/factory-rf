@@ -26,10 +26,11 @@ hosting_api() {
   _hosting_bearer=$(hosting_token) || return 4
   _hosting_status_file=$(mktemp) || return 22
   # The sentinel keeps the body's trailing newlines, which the substitution would strip.
-  _hosting_body=$(_hosting_curl_config "$@" | curl --silent --show-error --max-time 40 --config -
+  _hosting_body=$(_hosting_curl_config "$@" |
+    curl --silent --show-error --max-time 40 --config - 2>"$_hosting_status_file"
     echo .)
   _hosting_body=${_hosting_body%.}
-  _hosting_status=$(cat "$_hosting_status_file")
+  _hosting_status=$(_hosting_last_three "$(cat "$_hosting_status_file")")
   rm -f "$_hosting_status_file"
   case $_hosting_status in
     2[0-9][0-9])
@@ -91,7 +92,8 @@ _hosting_curl_config() {
   printf 'header = "Authorization: Bearer %s"\n' "$_hosting_bearer"
   printf 'header = "Accept: application/vnd.github+json"\n'
   printf 'header = "X-GitHub-Api-Version: 2022-11-28"\n'
-  printf 'write-out = "%%output{%s}%%{http_code}"\n' "$(_hosting_quote "$_hosting_status_file")"
+  # %{stderr} is known from curl 7.63 on; %output{} would need 8.3, newer than Debian 12's.
+  printf 'write-out = "%%{stderr}%%{http_code}"\n'
   if [ "$#" -ge 3 ]; then
     printf 'data = "%s"\n' "$(_hosting_quote "$3")"
   fi
@@ -103,11 +105,18 @@ _hosting_quote() {
     awk 'NR > 1 { printf "%s", "\\n" } { printf "%s", $0 }'
 }
 
+# curl's own error text precedes the status on its standard error; the status is the last three
+# characters, and a shorter text is no status.
+_hosting_last_three() {
+  printf '%s' "${1#"${1%???}"}"
+}
+
 # The JSON message of the body when it has one, else its first 100 characters on one line.
+# The body's own message is the first key of that name; nested errors may carry more of them.
 _hosting_error_message() {
   _hosting_flat=$(printf '%s' "$1" | tr '\r\n' '  ')
-  _hosting_json=$(printf '%s\n' "$_hosting_flat" |
-    sed -n -E 's/.*"message"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*/\1/p')
+  _hosting_json=$(printf '%s\n' "${_hosting_flat#*\"message\"}" |
+    sed -n -E 's/^[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*/\1/p')
   if [ -n "$_hosting_json" ]; then
     printf '%s' "$_hosting_json"
   else
