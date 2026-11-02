@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T21:42:10.532906Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-02T21:42:10.532906Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-02T21:44:03.251234Z'
+  stage: tests
+  run: d86787a902184022909ef2d0a0c006dd
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -178,3 +180,30 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
    Not importable: none. Both scripts are missing (`operator/skill/kumpel/scripts/merge.sh`, `reset-to-tag.sh`), so every test fails with `sh: cannot open …`. `make lint` is green. I did not run the type check, as this stage says.
 9. 2026-11-02 human: Both as you propose. 1: (a), the message keeps the full path as `hosting_api` prints it; criterion 3 and the messages of criterion 9 are read with the full `/repos/<repository>/...` path. 2: your reading; the no-archive row runs with `KUMPEL_ARCHIVE_WAIT=0`, the third-poll row with `KUMPEL_POLL_SECONDS=0` and `KUMPEL_ARCHIVE_WAIT=60`, and the other merge tests keep 0 and 60. The router in front of S0003's stand-in is fine.
 10. factory: started tests as vm.
+11. tester: The human's answer in entry 9 confirmed both of my readings. The test file from the earlier tests run already asserts them: messages with the full `/repos/<repository>/...` path, and the archive-wait rows at 0 s and 60 s. So I did not change any test. I rewrote the Description so it says what the answer decided:
+    - Criterion 3 now quotes `hosting: PUT /repos/<repository>/pulls/5/merge: 405 …`.
+    - Criterion 9 now says its messages carry the full path.
+    - Criterion 4 now gives `KUMPEL_ARCHIVE_WAIT=0` for the no-archive row and `KUMPEL_ARCHIVE_WAIT=60` for the third-poll row.
+
+    Mapping (all in `tests/test_operator_merge_reset.py`):
+    - criterion 1: `test_an_approved_pull_request_is_merged_and_its_archive_awaited`
+    - criterion 2: `test_a_pull_request_that_is_not_ready_for_the_merge_is_refused` (rows: closed, draft, not-at-approval, another-work-item)
+    - criterion 3: `test_a_merge_the_host_refuses_stops_without_polling`
+    - criterion 4: `test_the_merge_waits_for_the_archive_commit` (rows: no-archive-commit, archive-commit-in-the-third-poll)
+    - criterion 5: `test_a_repository_the_site_does_not_name_as_resettable_is_not_reset` (rows: another-resettable-repository, no-resettable-repository, no-repository)
+    - criterion 6: `test_without_yes_the_reset_prints_its_plan_and_changes_nothing`
+    - criterion 7: `test_a_tag_that_does_not_exist_changes_nothing` and `test_the_tag_is_followed_to_its_commit` (rows: annotated, lightweight)
+    - criterion 8: `test_with_yes_the_reset_closes_deletes_and_moves_in_this_order`
+    - criterion 9: `test_a_failing_call_stops_the_reset_there` (rows: close, third-delete, move-of-main)
+    - criterion 10: `test_a_reset_with_nothing_to_close_or_delete_only_moves_main`
+    - criterion 11: `test_no_change_touches_another_ref_or_a_tag` (rows run-1 to run-8)
+    - criteria 12 and 13: no test (`make check`, docs)
+
+    Files: `tests/test_operator_merge_reset.py`, created in the earlier tests run and unchanged in this one. No other test file changed. The `curl` router inside the test module, which runs in front of S0003's stand-in, has the human's approval.
+
+    Not importable: none. Every test fails on purpose because `operator/skill/kumpel/scripts/merge.sh` and `reset-to-tag.sh` do not exist yet. I ran `uv run pytest -q tests/test_operator_merge_reset.py` once: all rows fail. `make lint` is green. I skipped the type check, as this stage says.
+
+    The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0008-merging-an-approved-story-and-resetting-a-trial-repository-to-a-tag-are-commands.md.
+
+    `lint`: lint: green (0.1 s)
+    `test`: FAILED tests/test_suite_held_once.py::test_each_shared_helper_and_constant_is_held_once[vm-setup-helpers] - AssertionError: in_order
