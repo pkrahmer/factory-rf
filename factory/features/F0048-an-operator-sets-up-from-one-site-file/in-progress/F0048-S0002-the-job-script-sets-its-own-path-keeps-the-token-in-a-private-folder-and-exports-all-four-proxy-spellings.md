@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 499
-comments_read: []
+comments_read: [6582236900]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: f866530a38794b1ea39e8aa27ed0cdc1
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-02T16:22:46.098830Z'
+  stage: intake
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -97,3 +102,8 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
    4. Interface: "A failing `mkdir`, `cp` or `chmod`" stops with `job-start: token-file: failed`. Criterion 6 covers only `mkdir` (a file named `<root>/secrets`). Is a test of `cp` and `chmod` failing wanted, or is one row enough? I would choose one row.
 
    5. Criterion 3 says the copy has mode 0600 and `<root>/secrets` has mode 0700, but the Interface does not say what happens when `<root>/secrets` already exists with another mode, for example on a restart in the same instance. Does `mkdir -p` plus `chmod 0700` apply, or is it an error? I would choose `mkdir -p` followed by `chmod 0700`, and a criterion for a second run.
+4. 2026-11-02 human: 1. Confirmed: `HTTPS_PROXY` when it is not empty, else `https_proxy`. Add both rows as you propose (`HTTPS_PROXY=` empty with `https_proxy=P` gives P everywhere; `HTTPS_PROXY=A` with `https_proxy=B` gives A everywhere).
+   2. Yes, add the row (`https_proxy=P`, `HTTP_PROXY=Q`: `HTTP_PROXY` stays Q, `http_proxy` is P). A plain-HTTP variable that is set but empty counts as not set and gets P; add that as one more row.
+   3. The ownership clause stays in the Interface and is untested by design: a test as a normal user cannot make a folder another user owns, and no stand-in for `stat` or `id`. Only the mode bits are tested; say so in one sentence under the Interface.
+   4. One row is enough.
+   5. `mkdir -p` followed by `chmod 0700`, and the copy replaces an existing `hosting-token` (mode 0600 again). Add a criterion for a second run: `<root>/secrets` already there with mode 0755 and an old token in it gives mode 0700 and the new token.
