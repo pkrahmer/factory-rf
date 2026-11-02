@@ -9,6 +9,7 @@ The guide for the person who runs the factory this repository implements: how to
 - "The project's make targets"
 - "The agent runtime"
 - "The machine"
+- "The site file"
 - "On Cloud Run"
 - "The preflight and the health check"
 - "The factory log and the health status file"
@@ -892,6 +893,84 @@ sudo systemctl start factory@vm
 ```
 
 `vm/setup.sh` is idempotent, so run it after every merge: it carries a changed pin of `vm/Dockerfile` into the environment file, updates `uv` and the factory's virtual environment, and reports the rest found. It does not replace an installed `/etc/systemd/system/factory@.service` or `/usr/local/bin/git-credential-factory` that differs from the checkout: it prints that the file differs and leaves it. When a merge changed `vm/factory.service` or `vm/git-credential-factory`, install it from your own copy with the commands of *The two passes* before you run the script.
+
+## The site file
+
+The values that belong to one site (a project, a region, a proxy, the names of secrets, two repositories, a token command) live in one plain file, `site.env`, and one loader, `operator/lib/site.sh`, reads it for every operator script. The file is where company values go, so it lies outside every repository. No script reads it yet for a job or for the hosting service; the stories to come make each key live, and until then the file and the `site` command are all there is.
+
+### Its place
+
+The path is `$FACTORY_SITE` when that is set and not empty, else `$XDG_CONFIG_HOME/kumpel/site.env`, else `$HOME/.config/kumpel/site.env` (the folder the skill's `settings.json` already uses). `site path` prints it.
+
+The loader refuses a file that lies inside a git work tree (status 3), and `site init` refuses to write one there. Keep the file in your own configuration folder, never in a checkout.
+
+### The format
+
+The file is a list of lines, each blank, a comment (the first non-blank character is `#`) or `SITE_NAME=value`:
+
+- `NAME` is capitals, digits and `_`, at least one character. A space before the `=` is a fault; a space after it belongs to the value.
+- The value is everything after the first `=`, with trailing whitespace removed. One pair of single or double quotes around the whole value is removed and keeps the whitespace inside; a quote that is not matched stays.
+- A value is stored literally: `$`, a backtick, `;` and `\` mean nothing, and the file is never executed. `SITE_A=$(touch x)` is the text `$(touch x)`.
+- A variable that is already set in the environment, even to the empty string, keeps its value. Of a key that appears twice, the first line wins.
+- A line of another kind, or a key that is not `SITE_` followed by a name, is a fault: nothing is exported from the file, the message `site: <path>:<line>: ...` goes to standard error, and the status is 2.
+
+### The `site` command
+
+Run it as `sh operator/bin/site`:
+
+| Command | What it does |
+|---|---|
+| `site path` | prints the path |
+| `site init` | makes the folder and writes `operator/site.env.example` to the path, mode 0600; it never overwrites (status 1) |
+| `site show` | one line `SITE_X=set` or `SITE_X=unset` for each key of the example, in its order; a key set to the empty string is `unset`; never a value |
+| `site get SITE_X` | prints the value; when it is unset or empty, `site: SITE_X is not set` and status 1 |
+
+`show` and `get` load the file first and pass on the loader's failure: status 1 for a missing file (`run: site init`), 2 for a fault, 3 for a file in a git work tree. Any other command line prints `usage: site path | init | show | get SITE_X` and exits 2. `site init` prints `site: wrote <path>; edit it, then run: site check`; `site check` does not exist yet.
+
+```bash
+export FACTORY_SITE="$HOME/.config/kumpel/site.env"
+sh operator/bin/site init
+sh operator/bin/site show | head -3
+sh operator/bin/site get SITE_REPOSITORY
+```
+
+### The keys
+
+`operator/site.env.example` holds every key with a comment and a made-up value; it is the first place to look. The table gives the same by the use that reads it. The defaults are those of the example's comments and are confirmed as the stories that read each key land.
+
+| Key | Meaning | Default |
+|---|---|---|
+| `SITE_REPOSITORY` | the factory's repository, `owner/repo` | required |
+| `SITE_CHECKOUT` | the local checkout of that repository | required |
+| `SITE_API_URL` | the hosting service's API | GitHub's public API |
+| `SITE_TOKEN_CMD` | the command that prints a hosting-service token | `gh auth token` |
+| `SITE_PROXY` | the proxy for the job and its tools | no proxy |
+| `SITE_NO_PROXY` | hosts reached without the proxy, comma-separated | none |
+| `SITE_PROJECT` | the cloud project of the job | required for a job |
+| `SITE_REGION` | the cloud region of the job | required for a job |
+| `SITE_IMPERSONATE` | the service account the operator's cloud commands impersonate | your own login |
+| `SITE_RUN_AS` | the service account the job runs as | required for a job |
+| `SITE_CONNECTOR` | the network connector the job's traffic leaves through | required for a job |
+| `SITE_JOB` | the name of the job | required for a job |
+| `SITE_INSTANCE` | the instance's name in the job | the job's name |
+| `SITE_REPOSITORY_URL` | the clone URL of the factory's repository | required for a job |
+| `SITE_CODE_URL` | the clone URL of the factory's own code | required for a job |
+| `SITE_CODE_REF` | the branch or tag of the code the job runs | `main` |
+| `SITE_HOSTING_SECRET` | the secret that holds the hosting-service token | required for a job |
+| `SITE_MODEL_SECRET` | the secret that holds the model provider's key | required for a job |
+| `SITE_MODEL_BASE_URL` | the model provider's API | the provider's public API |
+| `SITE_MODEL` | the model the agents run on | required for a job |
+| `SITE_MODEL_INPUT_COST` | price per million input tokens, in dollars | no cost record |
+| `SITE_MODEL_OUTPUT_COST` | price per million output tokens, in dollars | no cost record |
+| `SITE_LOGIN_URL` | the login service that issues the provider's tokens | no login |
+| `SITE_LOGIN_SCOPE` | the scope asked of the login service | none |
+| `SITE_LOGIN_CLIENT_ID` | the client id given to the login service | none |
+| `SITE_CPU` | the job's CPUs | 4 |
+| `SITE_MEMORY` | the job's memory | 16Gi |
+| `SITE_TIMEOUT` | the job's task timeout | 24h |
+| `SITE_IDLE_MINUTES` | idle minutes after which the job ends itself | 30 |
+| `SITE_RESET_REPOSITORY` | the repository a trial resets, `owner/repo` | none |
+| `SITE_SANITISE_RULES` | the file of rules that sanitise what leaves the site | none |
 
 ## On Cloud Run
 

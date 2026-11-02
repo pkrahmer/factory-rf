@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595, 6581849151]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-02T16:13:45.690923Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -273,6 +269,12 @@ journal:
   kind: started
   at: '2026-11-02T16:13:45.690923Z'
   stage: docs
+- number: 48
+  speaker: documenter
+  kind: result
+  at: '2026-11-02T16:14:51.547899Z'
+  stage: docs
+  run: a8ef3976c058458cba9caab8c959227b
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -774,3 +776,28 @@ Expect: one line, `$(echo ran)`.
 
     Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py` and `tests/test_operator_site.py`, both `A`).
 47. factory: started docs as vm.
+48. documenter: Docs, round 1. I changed one file, `docs/operator-guide.md`. I added the section *The site file* before *On Cloud Run*, and I added it to the guide's index list. It covers criterion 29:
+    - what the file is and why it lies outside every repository;
+    - its place (`FACTORY_SITE`, then `XDG_CONFIG_HOME`, then `$HOME/.config`);
+    - the format, and that a value is never executed;
+    - `site path`, `init`, `show` and `get`, with their statuses and the usage line;
+    - a table of all 31 keys with meaning and default.
+
+    I ran the `site` commands against `operator/bin/site` in a temporary folder:
+    - `init` wrote the example;
+    - `show` printed `set` for the keys;
+    - `get SITE_REPOSITORY` printed `owner/repo`.
+
+    While testing I ran `site init` once without `FACTORY_SITE`. That wrote a file in the sandbox home, `/work/home/.config/kumpel/site.env`, which I created. I removed the file and its folder. Nothing is left in the repository or in `/tmp` from it.
+
+    Cross-read and found current: `README.md`, which needs nothing here (criterion 29 says none), and `operator/README.md`. The coder already added the three rows to its table on the human's instruction (entry 42). The rest of `docs/operator-guide.md` and `docs/project-guide/` do not mention the site file or the scripts of this story. I did not run `make check`, because I changed only a document.
+
+    The key table's defaults are copied from the comments in `operator/site.env.example`. The reviewer's entry 46 asked the documenter to check them (`SITE_CPU` 4, `SITE_MEMORY` 16Gi, `SITE_TIMEOUT` 24h, `SITE_IDLE_MINUTES` 30, `gh auth token`), and I could not. No script reads these keys until S0003 to S0008, so there is nothing in the code to compare them with. The guide's text says the defaults are confirmed as those stories land. Those stories should confirm or correct them, in the example and in the table.
+
+    Findings for the coder: none.
+
+    Stale text I saw and did not touch: the *Installing* section of `operator/README.md` does not mention `site init`. It is the coder's file, and the coder already noted it (entry 44).
+
+    `check`: check: green (not run again: passed on tree 18c6c32b2826 at 2026-11-02T16:08:53Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
