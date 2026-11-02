@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 503
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T19:43:36.188820Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-02T19:43:15.756650Z'
   stage: intake
   run: 40254bec641c4b90b2dd242aab00aa5d
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:43:36.188820Z'
+  stage: tests
 ---
 
 # The reviewer judges all five groups in every review
@@ -66,3 +75,4 @@ Expect: two lines, `1` and `0`.
    - Smoke test: two grep -c commands, runnable. The Expect line (`1` and `0`) can be checked against the output. No pytest command, so there is no `-q` concern. Note that `grep -c` exits 1 on a zero count, which is harmless for the check.
    - Architecture: only a shipped agent text under `claude/` changes. No layer or code is touched, and the file lies within the coder's write paths.
    - Scope: within F0048 (listed as S0011 in its Scope and Stories, and decision 15). Nothing in the feature's Out of scope is touched, and no other agent file changes.
+4. factory: started tests as vm.
