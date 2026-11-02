@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T16:40:56.214244Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-11-02T16:40:35.219675Z'
   stage: review
   run: 47dbff94d7424241b09fee1b6375ca31
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:40:56.214244Z'
+  stage: doing
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -276,3 +285,4 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
 
     Earlier tests:
     - tests/vm_support.py: changed under the human's leave, journal entry 9 (`token.parent.chmod(0o700)` in `run_job_start`, only that line).
+18. factory: started doing as vm.
