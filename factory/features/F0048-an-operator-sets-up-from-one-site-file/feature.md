@@ -17,6 +17,7 @@ Running the factory in a Cloud Run job, and driving it as the human in the loop,
 - `site check`, the one command that says whether a machine is ready, and the operator guide's chapter on setting a machine up (S0009).
 - In a job, a machine stop that stands for ten minutes ends the factory's process with status 1 (S0010).
 - The shipped reviewer judges all five groups of its checklist in every review (S0011, added during the build).
+- Kumpel signs its comments, its start commits and its merges, and posts only through `comment.sh` (S0012, added during the build).
 
 ## Out of scope
 
@@ -39,6 +40,7 @@ The build order; start one at a time, the next when the one before is archived i
 - S0006: A sanitiser with the site's own rules and a leak check
 - S0007: The job's log and state are read and sanitised by one command
 - S0008: Merging an approved story and resetting a trial repository to a tag are commands
+- S0012: Kumpel signs everything it does
 - S0009: One command says whether a machine is ready, and the guide says how to get there
 - S0010: In a job a machine stop that stands for ten minutes ends the factory's process
 
@@ -63,3 +65,4 @@ One, before S0001: in `factory/pipeline.yml` the coder's write paths gain `"oper
 13. **In a job a machine stop that stands for ten minutes ends the process with status 1.** A job's machine cannot be fixed in place, and a stop that holds it costs its CPUs until the task timeout and shows the execution as running; ending it shows the failure where the operator looks. A VM keeps waiting for the fix. Ten minutes, fixed, leave room for a preflight item that passes on a later tick (the human, 2026-11-02; S0010).
 14. **Tests of the scripts use the real `git`** (`CLAUDE.md` *Tests*); what `hosting_git` gives git is read back through `git config` and git's own trace, not through a stand-in (the master's review, 2026-11-02; S0003, S0004).
 15. **The reviewer judges all five groups in every review (S0011, built right after S0005).** Stopping at the first failing group cost a round per group; S0001, S0003 and S0005 reached the round cap that way, and S0005 settled in one review once it judged all groups. Only the checklist's opening sentence changes (the human, 2026-11-02).
+16. **Kumpel signs everything it does (S0012, built after S0008, which brings `merge.sh`).** The skill acts with the human's token, so GitHub and the journal cannot tell its acts from the human's. A visible signature line and a marker on every comment, Kumpel as the start commit's author and a merge message say who acted, with no second account and no change to the factory, which copies the comment's text into the journal. A separate account for the factory at home is the human's own step, outside this feature (the human, 2026-11-02).
