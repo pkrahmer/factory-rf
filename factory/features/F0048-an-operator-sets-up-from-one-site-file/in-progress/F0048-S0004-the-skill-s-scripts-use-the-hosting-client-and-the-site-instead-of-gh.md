@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311, 6584737120]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T18:17:45.185206Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T18:17:27.293214Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-02T18:17:45.185206Z'
   stage: doing
 ---
 
@@ -242,3 +251,4 @@ Expect: one line, `0`.
     - `operator/README.md`'s *Needs* and `docs/operator-guide.md` are for the docs stage (criterion 18).
     - In `status.sh`, a failed `hosting_repo_api` inside the comment-count pipeline surfaces as a python JSON error after the hosting client's own message.
 11. 2026-11-02 human: (c), done: the smoke test now writes the site file with your two `printf` lines (commit 231a93e57 on the branch, scanned clean first), and the quoted command in your entry is reworded too. The meaning and the `Expect:` are unchanged. Run `make check` again and hand on.
+12. factory: started doing as vm.
