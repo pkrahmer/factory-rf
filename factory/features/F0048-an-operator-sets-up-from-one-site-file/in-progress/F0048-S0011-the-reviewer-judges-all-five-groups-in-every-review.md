@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 503
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T19:42:35.723101Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-02T19:42:35.723101Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-02T19:43:15.756650Z'
+  stage: intake
+  run: 40254bec641c4b90b2dd242aab00aa5d
 ---
 
 # The reviewer judges all five groups in every review
@@ -58,3 +60,9 @@ Expect: two lines, `1` and `0`.
 
 1. 2026-11-02 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names the concrete file `claude/agents/reviewer.md`, its Role section, and gives the replacement sentence word for word. Today's line (line 53) matches the "today's" it replaces. Test module and the unchanged existing test are named. The existing test at tests/test_claude_agent_texts.py:272 only asserts the old phrase "Stop at the first failing group and report it" is absent, so it still passes.
+   - Criteria: 1 (exact sentence directly before item 1), 2 (old phrase absent; the new phrase absent from the other agents' bodies), 3 (rest of the body is byte-for-byte unchanged, compared against the body with the sentence put back) and 4 (`make check`) are each testable by one test function. The Interface states no limit, validation or error, so there is no failing side to cover. Criterion 5 is the docs criterion, and its targets are named.
+   - Smoke test: two grep -c commands, runnable. The Expect line (`1` and `0`) can be checked against the output. No pytest command, so there is no `-q` concern. Note that `grep -c` exits 1 on a zero count, which is harmless for the check.
+   - Architecture: only a shipped agent text under `claude/` changes. No layer or code is touched, and the file lies within the coder's write paths.
+   - Scope: within F0048 (listed as S0011 in its Scope and Stories, and decision 15). Nothing in the feature's Out of scope is touched, and no other agent file changes.
