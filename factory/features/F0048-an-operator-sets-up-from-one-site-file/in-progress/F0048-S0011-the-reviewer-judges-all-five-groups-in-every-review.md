@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 503
 comments_read: [6586887222]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T19:51:42.098680Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T19:51:24.074413Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:51:42.098680Z'
   stage: doing
 ---
 
@@ -129,3 +138,4 @@ Expect: two lines, `1` and `0`.
 
    Noticed, not touched: `docs/project-guide/agents.md:258` and `docs/decisions.md:587` still describe "whichever group failed" and "it stops at the first failing group". Criterion 5 already gives these to the documenter.
 8. 2026-11-02 human: (a), granted: the tester changes the anchor of `ROLE_AND_STAGE_ANCHORS["reviewer"]` at `tests/test_claude_agent_texts.py:120` to `Item 6 is part of every review.` and nothing else in that file; the Interface's sentence stays word for word. End with `tests` naming that change, then make the one-line change to `reviewer.md`.
+9. factory: started doing as vm.
