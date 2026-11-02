@@ -1,5 +1,6 @@
 #!/bin/sh
-# The factory's Cloud Run job, from the site's values: create, update, execute and delete it.
+# The factory's Cloud Run job, from the site's values: create, update, execute and delete it,
+# and read an execution's log and the job's status.
 #   job.sh create  [--dry-run]   create the job; refused when it exists
 #   job.sh update  [--dry-run]   update the job with the same settings; refused when it is missing
 #   job.sh execute               start an execution; refused while one runs; print its name
@@ -213,6 +214,11 @@ job_exists() {
   gcloud_call run jobs describe "$SITE_JOB" >/dev/null 2>"$work/describe.err"
 }
 
+make_work() {
+  work=$(mktemp -d) || exit 1
+  trap 'rm -rf "$work"' EXIT
+}
+
 create_or_update() {
   verb=$1
   shift
@@ -227,8 +233,7 @@ create_or_update() {
   check_env_values
   check_costs
   check_code_ref
-  work=$(mktemp -d) || exit 1
-  trap 'rm -rf "$work"' EXIT
+  make_work
   write_wrapper
   if [ "$dry_run" = no ]; then
     if job_exists; then
@@ -299,11 +304,6 @@ delete() {
   gcloud_call run jobs delete "$SITE_JOB" --quiet
 }
 
-make_work() {
-  work=$(mktemp -d) || exit 1
-  trap 'rm -rf "$work"' EXIT
-}
-
 # gcloud's own error is the operator's only clue, so its first line is shown, never dropped.
 gcloud_read() {
   label=$1
@@ -312,6 +312,10 @@ gcloud_read() {
     echo "job: gcloud $label failed: $(head -n 1 "$work/gcloud.err")" >&2
     return 1
   fi
+}
+
+no_execution() {
+  echo "job: no execution of $SITE_JOB found" >&2
 }
 
 # The option names it, else the one execute started last, else the job's newest.
@@ -324,7 +328,7 @@ chosen_execution() {
     newest=$(gcloud_read "run jobs executions list" run jobs executions list "--job=$SITE_JOB" \
       --limit=1 "--format=value(metadata.name)") || return 1
     if [ -z "$newest" ]; then
-      echo "job: no execution of $SITE_JOB found" >&2
+      no_execution
       return 1
     fi
     printf '%s\n' "$newest"
@@ -441,7 +445,12 @@ status() {
   make_work
   gcloud_read "run jobs executions list" run jobs executions list "--job=$SITE_JOB" --limit=5 \
     --format=json >"$work/executions.json" || exit 1
-  python3 -I -c "$execution_program" <"$work/executions.json" || exit 1
+  executions=$(python3 -I -c "$execution_program" <"$work/executions.json") || exit 1
+  if [ -z "$executions" ]; then
+    no_execution
+    exit 1
+  fi
+  printf '%s\n' "$executions"
   name=$(chosen_execution "") || exit 1
   read_log "$name"
   stop=$(tail -n 200 "$work/log" | stop_line)

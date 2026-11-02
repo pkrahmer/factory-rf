@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T21:15:01.242422Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-02T21:15:01.242422Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-02T21:17:07.455171Z'
+  stage: doing
+  run: 2263c8cc4bda46b1abded5e51ed50d1b
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -371,3 +373,23 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
     Earlier tests:
     - `tests/test_operator_job.py`: changed under the human's leave, journal 11. Only the `USAGE` constant changed, to the new usage line; no test was renamed and none checks something else.
 20. factory: started doing as vm.
+21. coder: Round 1. I fixed the review's three code findings (1, 5 and 6 of journal 19), all in `operator/job/job.sh`. Its other findings and the test row for finding 1 are changes to tests, so they go to the tester. `make check` is green: `check: green`, 99.58 % coverage.
+
+    Code changes in `operator/job/job.sh`:
+    - Finding 1: `status()` now keeps the formatted execution lines. When `executions list` returns an empty list, it prints `job: no execution of <job> found` and exits 1 before it looks for an execution, so a saved `last-execution` no longer hides that there are no executions. The message now lives in one helper, `no_execution`, which `chosen_execution` uses too.
+    - Finding 5: `create_or_update` calls `make_work`, which I moved above it, in place of its own copy of `mktemp` and `trap`.
+    - Finding 6: the purpose line now also names reading an execution's log and the job's status.
+
+    Main decision: I check for "no executions" on the output of the formatting program (no line at all) rather than parsing the JSON a second time in shell. I rejected a separate exit code from the Python program for an empty list because it mixes "nothing found" with a real failure of the program.
+
+    Test changes for the tester, as journal 19 names them:
+    1. `tests/test_operator_job_log.py`, `test_status_shows_a_missing_execution_and_gcloud_failures`: add a row with `world.save_execution(...)` and an empty executions list. Expected: `job: no execution of <job> found` and exit 1 (finding 1).
+    2. `test_status_looks_for_the_stop_in_the_last_200_lines`: add a row with empty lines after the stop line, so the stop line is the 200th non-empty line from the end but would fall past 200 if empty lines counted. Expected: `factory: stopped: …` (finding 2).
+    3. Under the standing leave, move `words`, `JOB`, `IMPERSONATE` and the three-key `BARE` site values from `tests/test_operator_job.py` and `tests/test_operator_job_log.py` into one shared support module under `tests/`, and import them from there in both modules (finding 3).
+    4. Merge `test_only_the_stop_form_counts_as_a_stop` into `test_status_shows_the_factory_s_stop` as a row. Merge `test_quiet_that_leaves_no_line_prints_nothing` and `test_an_empty_answer_says_the_log_is_late` into one parametrized test (finding 4).
+
+    What the journal changed: the reviewer already updated the Description's usage sentence. Nothing else changed in meaning.
+
+    Refactor pass: in my own diff, the no-execution message was written twice, so I moved it into `no_execution`. Nothing else to change.
+
+    Noticed, not touched: I didn't run the smoke-test blocks.
