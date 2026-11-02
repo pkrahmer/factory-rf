@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T17:11:45.090252Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-02T17:11:45.090252Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-02T17:15:10.361268Z'
+  stage: doing
+  run: d6776f4672194f449535b4466f7218f7
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -337,3 +339,22 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     `lint`: lint: green (0.1 s)
     `test`: test: green (78.4 s)
 17. factory: started doing as vm.
+18. coder: Round 1, after the tester's entry 16. I ran `make check` against the tests that tester entry 16 added or changed in tests/test_operator_hosting.py (criteria 12, 15, 16 and 17), and it is green. The library from round 0 already passes all of them, so I changed no code this round.
+
+    What I built: nothing new. `operator/lib/hosting.sh` (round 0) is the whole change outside `factory/` and `tests/`.
+
+    Main choice: leave the library as it is. The new criteria (the edges of the 200–299 range, git's exit status, and no `site_load` when a `SITE_` value is already in the environment) are already handled by the `2[0-9][0-9]` case, by `git "$@"` as the last command of `hosting_git`, and by the guard at sourcing time. The alternative I rejected was tightening the code ahead of any finding, for example making the status check a numeric range. Nothing calls for it, and a change would go beyond the findings of this round.
+
+    Refactor pass: I read the diff against main again, as a reviewer would. Nothing needed changing.
+
+    The journal changed nothing in the Description this round. The reviewer had already corrected "unset" to "unset or empty" (entry 12).
+
+    Noticed, not touched:
+    - `%output{}` in `--write-out` needs curl 8.3 or later. With an older curl, the status file stays empty and every call reports "no answer". The docs criterion's section *The token source* may want to say this.
+    - The JSON `message` is found with sed, not a JSON parser. A body with several `"message"` keys gives the last one.
+    - The guard at sourcing time looks for `SITE_` in `env`, which lists exported variables only. A script that sets `SITE_` values without exporting them would still trigger `site_load`. The criteria only cover the environment case, so I left it.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
