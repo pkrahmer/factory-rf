@@ -58,8 +58,9 @@ MARKS = ("TOKENMARK", "SECRETMARK")
 MARKED_ENV = dict(zip(("GITHUB_TOKEN", "ANTHROPIC_API_KEY"), MARKS, strict=True))
 
 # A stand-in for gcloud: it records its arguments; `describe` exits with STAND_IN_DESCRIBE
-# (1, not found, by default), `executions list` prints STAND_IN_EXECUTIONS, `execute` prints
-# STAND_IN_EXECUTION; the verb STAND_IN_FAIL fails with STAND_IN_FAIL_STATUS and a text.
+# (1, not found, by default) after writing STAND_IN_DESCRIBE_TEXT to standard error,
+# `executions list` prints STAND_IN_EXECUTIONS, `execute` prints STAND_IN_EXECUTION;
+# the verb STAND_IN_FAIL fails with STAND_IN_FAIL_STATUS and a text.
 GCLOUD_STAND_IN = r"""
 import json, os, sys
 
@@ -72,6 +73,7 @@ if verb == os.environ.get("STAND_IN_FAIL"):
     sys.stderr.write("ERROR: (gcloud) FAILTEXT\n")
     sys.exit(int(os.environ.get("STAND_IN_FAIL_STATUS", "1")))
 if verb == "describe":
+    sys.stderr.write(os.environ.get("STAND_IN_DESCRIBE_TEXT", ""))
     sys.exit(int(os.environ.get("STAND_IN_DESCRIBE", "1")))
 if verb == "executions list":
     sys.stdout.write(os.environ.get("STAND_IN_EXECUTIONS", ""))
@@ -172,7 +174,10 @@ def records(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def run_job(tmp_path: Path, repository: Path, records: Path) -> RunJob:
-    """Run `job.sh` of `repository` with `words`, a site file of `values` and extra variables."""
+    """Run `job.sh` of `repository` with `words`, a site file of `values` and extra variables.
+
+    The names in `unset` are left out of the environment.
+    """
     bin_folder = tmp_path / "bin"
     bin_folder.mkdir()
     write_executable(bin_folder, GCLOUD_STAND_IN, name="gcloud")
@@ -180,7 +185,9 @@ def run_job(tmp_path: Path, repository: Path, records: Path) -> RunJob:
     site_folder.mkdir()
     site_file = site_folder / "site.env"
 
-    def run(job_words: list[str], values: dict[str, str], **extra: str) -> ProcessResult:
+    def run(
+        job_words: list[str], values: dict[str, str], *, unset: tuple[str, ...] = (), **extra: str
+    ) -> ProcessResult:
         site_file.write_text(
             "".join(f"{key}={value}\n" for key, value in values.items()), encoding="utf-8"
         )
@@ -193,6 +200,8 @@ def run_job(tmp_path: Path, repository: Path, records: Path) -> RunJob:
             STAND_IN_RECORD=str(records),
             **extra,
         )
+        for name in unset:
+            del env[name]
         return run_script(
             [str(repository / "operator" / "job" / "job.sh"), *job_words], tmp_path, env
         )
@@ -577,3 +586,88 @@ def test_a_failing_gcloud_shows_its_error_and_its_status(
     )
     assert "ERROR: (gcloud) FAILTEXT" in result.stderr
     assert result.exit_status == status
+
+
+@pytest.mark.parametrize(
+    "job_words",
+    [pytest.param(["execute"], id="execute"), pytest.param(["delete", "--yes"], id="delete")],
+)
+def test_execute_and_delete_name_a_missing_job(
+    tmp_path: Path, run_job: RunJob, records: Path, job_words: list[str]
+) -> None:
+    values = {key: value for key, value in BARE.items() if key != "SITE_JOB"}
+    result = run_job(job_words, values, STAND_IN_EXECUTION="exec-new")
+    assert result.stderr.splitlines() == [f"site: missing SITE_JOB in {site_path(tmp_path)}"]
+    assert result.exit_status == 2
+    assert calls(records) == []
+
+
+def test_execute_saves_the_name_under_home_without_xdg_state_home(
+    tmp_path: Path, run_job: RunJob
+) -> None:
+    result = run_job(["execute"], BARE, unset=("XDG_STATE_HOME",), STAND_IN_EXECUTION="exec-new")
+    assert result.exit_status == 0, result.stderr
+    saved = tmp_path / "home" / ".local" / "state" / "kumpel" / "last-execution"
+    assert saved.read_text(encoding="utf-8").strip() == "exec-new"
+
+
+USAGE = "usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes]"
+
+
+@pytest.mark.parametrize(
+    "job_words",
+    [
+        pytest.param([], id="no-command"),
+        pytest.param(["unknown"], id="unknown-command"),
+        pytest.param(["create", "--yes"], id="create-yes"),
+        pytest.param(["update", "--force"], id="update-force"),
+        pytest.param(["execute", "--dry-run"], id="execute-dry-run"),
+        pytest.param(["delete", "--dry-run"], id="delete-dry-run"),
+    ],
+)
+def test_a_wrong_command_line_prints_the_usage(
+    run_job: RunJob, records: Path, job_words: list[str]
+) -> None:
+    result = run_job(job_words, SITE, STAND_IN_DESCRIBE="0", STAND_IN_EXECUTION="exec-new")
+    assert USAGE in result.stderr.splitlines()
+    assert result.exit_status == 2
+    assert calls(records) == []
+
+
+def test_a_start_script_holding_the_wrappers_end_line_is_refused(
+    run_job: RunJob, records: Path, repository: Path
+) -> None:
+    start = repository / "vm" / "job-start.sh"
+    start.write_text(start.read_text(encoding="utf-8") + "JOB_START_SH_END\n", encoding="utf-8")
+    commit_all(repository, "a start script holding the end line")
+    run_git(repository, "tag", "t2")
+    result = run_job(["create"], {**SITE, "SITE_CODE_REF": "t2"})
+    message = "job: vm/job-start.sh holds the line JOB_START_SH_END; the wrapper cannot carry it"
+    assert message in result.stderr.splitlines()
+    assert result.exit_status == 1
+    assert calls(records) == []
+
+
+DESCRIBE_TEXT = "ERROR: (gcloud) DESCRIBETEXT"
+
+
+@pytest.mark.parametrize("verb", ["update", "create"])
+def test_a_failing_describe_is_shown_by_update_and_hidden_by_create(
+    run_job: RunJob, records: Path, verb: str
+) -> None:
+    result = run_job(
+        [verb], SITE, STAND_IN_DESCRIBE="1", STAND_IN_DESCRIBE_TEXT=DESCRIBE_TEXT + "\n"
+    )
+    verbs = [words(call)[2] for call in calls(records)]
+    if verb == "update":
+        message = f"job: {JOB} does not exist; use create"
+        assert DESCRIBE_TEXT in result.stderr
+        assert message in result.stdout + result.stderr
+        if message in result.stderr:
+            assert result.stderr.index(DESCRIBE_TEXT) < result.stderr.index(message)
+        assert result.exit_status == 1
+        assert verbs == ["describe"]
+    else:
+        assert DESCRIBE_TEXT not in result.stdout + result.stderr
+        assert result.exit_status == 0, result.stderr
+        assert verbs == ["describe", "create"]

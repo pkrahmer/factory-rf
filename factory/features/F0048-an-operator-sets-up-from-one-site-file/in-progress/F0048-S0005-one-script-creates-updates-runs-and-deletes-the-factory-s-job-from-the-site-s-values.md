@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T18:58:17.201208Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-02T18:58:17.201208Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-02T19:01:04.523432Z'
+  stage: tests
+  run: 8840e06c1bba474683ee0a6eb839b691
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -307,3 +309,27 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     - A site value that contains `@` would break the `^@^` env list.
     - A cost value that is not a number stops `create` with Python's traceback instead of a `job:` message.
 15. factory: started tests as vm.
+16. tester: I wrote the tests for the five criteria the reviewer added (14 to 18), as the coder's entry 14 asked. All of them are in `tests/test_operator_job.py`, the test file this story already had. I created no new file and changed no test from another story.
+
+    Criterion → test:
+    - criterion 14: tests/test_operator_job.py::test_execute_and_delete_name_a_missing_job (rows `execute` and `delete`)
+    - criterion 15: tests/test_operator_job.py::test_execute_saves_the_name_under_home_without_xdg_state_home
+    - criterion 16: tests/test_operator_job.py::test_a_wrong_command_line_prints_the_usage (rows: no command, unknown command, `create --yes`, `update --force`, `execute --dry-run`, `delete --dry-run`)
+    - criterion 17: tests/test_operator_job.py::test_a_start_script_holding_the_wrappers_end_line_is_refused (it commits the line `JOB_START_SH_END` and tags the commit `t2`)
+    - criterion 18: tests/test_operator_job.py::test_a_failing_describe_is_shown_by_update_and_hidden_by_create (rows `update` and `create`)
+
+    What I changed so these tests could be written:
+    - **The `gcloud` stand-in.** On `describe` it now first writes `STAND_IN_DESCRIBE_TEXT` to standard error. The variable is empty by default, so the earlier tests see the same behaviour as before.
+    - **The `run_job` fixture.** It takes a new keyword, `unset`, which leaves the named variables out of the environment. The criterion 15 test uses it to run without `XDG_STATE_HOME`.
+
+    How criterion 18 is checked:
+    - The describe text must be on standard error, because the Interface says a failing `gcloud`'s standard error is shown.
+    - The Interface names no stream for the `does not exist; use create` message, so the test accepts it on either stream, as the criterion 9 test does.
+    - The order (describe text first, then the message) is checked only when both are on standard error, because an order across two streams cannot be read.
+
+    Test run: `uv run pytest -q tests/test_operator_job.py` printed only dots; all 51 tests pass. They are not red because `operator/job/job.sh` already does what criteria 14 to 18 describe, as the coder said in entry 14. After that run I only re-wrapped a comment. `make lint` is green.
+
+    Modules the test runner could not import: none.
+
+    `lint`: lint: green (0.1 s)
+    `test`: test: green (80.8 s)
