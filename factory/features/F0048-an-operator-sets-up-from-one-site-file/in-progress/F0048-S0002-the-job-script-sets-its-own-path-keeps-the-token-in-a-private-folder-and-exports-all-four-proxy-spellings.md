@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T16:40:56.214244Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-02T16:40:56.214244Z'
   stage: doing
+- number: 19
+  speaker: coder
+  kind: result
+  at: '2026-11-02T16:41:09.062150Z'
+  stage: doing
+  run: 8cf95e6f6f8a4962bf038762c6561911
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -286,3 +288,8 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
     Earlier tests:
     - tests/vm_support.py: changed under the human's leave, journal entry 9 (`token.parent.chmod(0o700)` in `run_job_start`, only that line).
 18. factory: started doing as vm.
+19. coder: I changed no code. The reviewer's only finding (entry 17, finding 1) is a copied test helper, so it is a change to tests. `CLAUDE.md` *Tests* gives the standing leave to move a shared test helper, so the tester makes this change.
+
+    The move: `_mode` in `tests/test_vm_job_start_environment.py:15` is a second copy of `_mode` in `tests/test_tmp_path_reopening.py:52`. It should go once into one shared support module under `tests/`. That can be the existing `tests/tmp_path_support.py` or a new `*_support.py`, keeping the `stat.S_IMODE(path.lstat().st_mode)` form. Both modules then import it from there. The earlier test file to change is `tests/test_tmp_path_reopening.py`, and every test in it keeps its name and its check.
+
+    `vm/job-start.sh` stays as it was after entry 15. The journal changed nothing in the Description.
