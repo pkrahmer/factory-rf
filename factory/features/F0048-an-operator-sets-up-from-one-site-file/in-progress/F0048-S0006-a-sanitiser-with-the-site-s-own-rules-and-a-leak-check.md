@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T20:33:11.902725Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-02T20:33:11.902725Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-02T20:33:43.715171Z'
+  stage: doing
+  run: 130eea06e6414c70abb03ad956156942
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -463,3 +465,27 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     Notes:
     - `tests/test_operator_sanitise.py:338` `test_check_leaves_near_tokens_clean` is the refused side of the rule that `test_check_reports_every_built_in` (`:318`) tests. It could be rows of that one parametrized test (expected output `sanitise: clean`, status 0) instead of a separate function.
 24. factory: started doing as vm.
+25. coder: Round 2. I changed no code and no other file. The review in entry 23 left four findings, and each one is a test change against criteria that the reviewer already wrote into the work item. Following the stage rule, I end with `tests` and name them for the tester. All four are in `tests/test_operator_sanitise.py`:
+
+    1. Criteria 5 and 15, in the shared `FAULTS` table used by `test_rules_file_fault_stops_the_filter` and `test_rules_file_fault_stops_the_check_before_any_file`:
+       - The `missing-group` row should check the whole line `sanitise: <path>:3: replacement names group 2, the pattern has 1`, not only the prefix.
+       - Add a row for `(\d+)-x => \10`, which must give `replacement names group 10, the pattern has 1`.
+    2. Criterion 2, in `test_site_rule_replaces_every_occurrence_and_keeps_groups`: add one row for each of these, each with its own rules file:
+       - `CORP.EXAMPLE.INVALID` stays unchanged under the host rule;
+       - `  spaced   =>   S  ` turns `spaced` into `S`;
+       - `first => one => two` turns `first` into `one => two`;
+       - `zero => x\0y` gives `x\0y`;
+       - `(a)(b)(c)(d)(e)(f)(g)(h)(i)(j) => \100` turns `abcdefghij` into `j0`;
+       - `(a)|(b) => [\1\2]` turns `b` into `[b]`.
+    3. Criterion 1, in `test_built_in_rules_replace_escapes_jwts_and_tokens`: add a JWT whose third part has 9 characters (unchanged) and one whose third part has 10 (replaced). Criterion 12: add the JWT with the 9-character third part to the near-token rows. Following the reviewer's note on entry 23, the near-token rows may become rows of `test_check_reports_every_built_in` (expected output `sanitise: clean`, status 0) instead of the separate `test_check_leaves_near_tokens_clean`.
+    4. Criterion 10, in `test_check_reports_once_per_line_and_rule`: add a line `alpha alpha`, reported once, and a line holding both a `ghp_` and a `github_pat_` token, reported `builtin-3` once.
+
+    I ran these cases by hand against the current `operator/bin/sanitise`, and each gave the result the criteria expect, so the new rows should pass with no code change:
+    - every row of finding 2 gave the expected output with status 0;
+    - the 9-character and 10-character third-part JWTs were left unchanged and replaced, respectively;
+    - `\10` gave the full group-10 message with status 2;
+    - `check` reported `alpha alpha` once as rule 1, and the line with both tokens once as `builtin-3`.
+
+    What the journal changed: entries 15 and 23 changed the meaning of the task, and the reviewer has already written that change into the Interface and the criteria. I did not rewrite the Description, because the work item is outside my write paths.
+
+    Noticed but not touched: the reviewer's side note in entry 12 is still open. The precedents I cited earlier, `status.sh` and `job.sh`, run `python3 -c` without `-I`.
