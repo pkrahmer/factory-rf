@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T17:57:07.996169Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-02T17:56:47.153594Z'
   stage: tests
   run: f43b1b78a114462dbfe375139ebf7eb1
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:57:07.996169Z'
+  stage: doing
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -190,3 +199,4 @@ Expect: one line, `0`.
 
    `lint`: lint: green (0.1 s)
    `test`: FAILED tests/test_operator_skill_scripts.py::test_no_script_calls_gh - AssertionError: assert ['approval.sh...status.sh:25'] == []
+9. factory: started doing as vm.
