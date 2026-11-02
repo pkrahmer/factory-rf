@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T16:23:04.242056Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T16:22:46.098830Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:23:04.242056Z'
   stage: intake
 ---
 
@@ -107,3 +116,4 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
    3. The ownership clause stays in the Interface and is untested by design: a test as a normal user cannot make a folder another user owns, and no stand-in for `stat` or `id`. Only the mode bits are tested; say so in one sentence under the Interface.
    4. One row is enough.
    5. `mkdir -p` followed by `chmod 0700`, and the copy replaces an existing `hosting-token` (mode 0600 again). Add a criterion for a second run: `<root>/secrets` already there with mode 0755 and an old token in it gives mode 0700 and the new token.
+5. factory: started intake as vm.
