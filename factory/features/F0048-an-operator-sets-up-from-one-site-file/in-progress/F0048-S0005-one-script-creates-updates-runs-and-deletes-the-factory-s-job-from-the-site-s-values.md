@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870, 6586194468]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T19:27:23.298168Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-11-02T19:27:23.298168Z'
   stage: doing
+- number: 34
+  speaker: coder
+  kind: result
+  at: '2026-11-02T19:30:58.427883Z'
+  stage: doing
+  run: fb1305f91a3d4d7aa217e676755ae49c
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -608,3 +610,18 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     `lint`: lint: green (0.1 s)
     `test`: test: green (79.5 s)
 33. factory: started doing as vm.
+34. coder: Round 1, after the tester's entry 32. I changed no code and the working tree is clean. The tester's new tests for criteria 19 to 21, the merged missing-key rows (criteria 3 and 14) and the shared `read_records` reader in `tests/recording_stand_in_support.py` all pass against `operator/job/job.sh` as round 2 left it. Its `check_instance`, `check_env_values` and `check_costs` (`operator/job/job.sh:51-83`) already do what those criteria describe. I ran `make check` on the committed state: it ended `test: green (81.6 s)` and `check: green`.
+
+    What I built in this round: nothing. The paths stay as before: `operator/job/job.sh`.
+
+    Main choice: hand forward to review without touching the script. Findings 1 to 3 of entry 28 were changes to tests, and the tester has made them. I rejected a refactor of `job.sh`: the reviewer found nothing in its code in entry 28, and this round asks only for the findings.
+
+    Noticed, not touched: entry 28's finding 4 is still open. Criterion 23 (docs) should name the three refusals that `create` and `update` make:
+    - an instance name outside letters, digits, `.`, `_` and `-`;
+    - an `@` in a value of the env list, for example an SSH URL `git@host:org/work.git`;
+    - a price that is not a plain number.
+
+    The coder does not write the work item's criteria, so I left `## Description` and the criteria unchanged; entry 28 says the next review applies that wording. No journal entry changed the meaning of the task beyond criteria 19 to 21, which are already in the work item.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
