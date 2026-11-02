@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T19:05:06.652966Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-02T19:05:06.652966Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T19:06:29.092741Z'
+  stage: review
+  run: 11a710072dd9482bb2f67a1205f29578
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -373,3 +375,22 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 19. factory: started review as vm.
+20. reviewer: Round 1. I reviewed `operator/job/job.sh` and `tests/test_operator_job.py` against criteria 1 to 18 and every rule of the Interface, and read `operator/lib/site.sh`, which the script sources.
+
+    Group 1 (acceptance criteria) passes. Each criterion has a test that checks what the criterion says, and the tests also cover the failing side of every rule the Interface states. That includes both sides of the "running count of 1 or more" limit (0 and empty, and 1 and 2), and the refusals for missing keys, a job in the wrong state, an unknown ref, `delete` without `--yes`, the usage line and a failing `gcloud`. The factory's `make check` after the coder was green (entry 18).
+
+    Group 2 (architecture) passes. Nothing under `src/factory` changes, and the test lives at the `tests/` root as a module outside the layers.
+
+    Group 3 (security) fails. The script pastes site values unchecked into text that the job runs or parses. `operator/lib/site.sh` is built so that the site file is "read and never executed".
+
+    Findings:
+    1. `operator/job/job.sh:121,129-130` (`write_wrapper`): `$root` (`/srv/factory/$SITE_INSTANCE`) goes unquoted into the shell text the job runs (`mkdir -p $root`, `cat >$root/provider.json`). An instance value with a space, `;` or `$(…)` breaks the wrapper or runs its own commands in the job, where the secrets are mounted. That is shell built from strings, with no check at the boundary. Fix: refuse a `SITE_INSTANCE` outside a safe set (for example `[A-Za-z0-9._-]`) with a `job:` message, exit 1 and no `gcloud` call, before the wrapper is built. Add a criterion with rows for an accepted and a refused value so the tester can pin it.
+    2. `operator/job/job.sh:54-78` (`env_list`): a site value that contains `@` splits the `^@^` list into extra entries. A real example is an SSH repository URL such as `git@host:org/work.git`, or a URL with user info. The job then gets a broken value plus an extra variable, which could even set `PATH`, which the Interface forbids. The coder noted this in entries 10 and 14 and left it open. Fix: refuse any value that goes into the env list and contains `@`, naming the key in a `job:` message, with exit 1 and no `gcloud` call (or pick a delimiter and refuse values that contain it). Add a criterion with a refused row and an accepted row.
+    3. `operator/job/job.sh:88-90` (`provider_json`): a non-numeric `SITE_MODEL_INPUT_COST` or `SITE_MODEL_OUTPUT_COST` stops `create` with Python's traceback, which leaks internals instead of giving a `job:` message. `nan` or `inf` gets through as `NaN` or `Infinity`, which is not valid JSON in the provider file. Fix: check that each cost is a finite non-negative number before building the wrapper, and refuse otherwise with `job: <KEY> is not a number`, exit 1 and no `gcloud` call. Add a criterion with rows for `abc`, `nan` and a valid value.
+
+    These three need a code change, so I did not add the criteria myself. I stopped at group 3 as the checklist says; groups 4 and 5 come in the next review. I made no change to the Description.
+
+    Notes:
+    - `tests/test_operator_job.py:595`: the refused side of `execute`'s and `delete`'s required keys (`test_execute_and_delete_name_a_missing_job`) is a separate function. The side where they work is a row of `test_missing_site_keys_are_named_in_one_line` at `:286`. These could be rows of one parametrized test.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` shows the only test file, `tests/test_operator_job.py`, as added (`A`). No test file that `main` holds is changed, renamed or deleted.
