@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-02T20:42:40.245426Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -180,6 +184,11 @@ journal:
   at: '2026-11-02T20:42:18.909452Z'
   stage: review
   run: 585afb36ffd9402195159f830b537915
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:42:40.245426Z'
+  stage: docs
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -587,3 +596,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
 
     Notes:
     - `tests/test_operator_sanitise.py:47` `write_file` writes one file, and `tests/git_support.py:111` `write_files` writes a dict of files. The new test could use the shared helper with a one-entry dict instead of keeping its own.
+32. factory: started docs as vm.
