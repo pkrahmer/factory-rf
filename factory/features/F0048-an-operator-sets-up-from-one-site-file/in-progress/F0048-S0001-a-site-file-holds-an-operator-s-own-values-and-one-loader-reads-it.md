@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T15:33:01.400104Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-02T15:32:40.598829Z'
   stage: review
   run: 15ba05a2ec1e4ed2950da73e6ef2b724
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-02T15:33:01.400104Z'
+  stage: doing
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -451,3 +460,4 @@ Expect: one line, `$(echo ran)`.
     For the coder: the code already does what criteria 22 to 25 say; end with `tests` and name criteria 23 to 25 (22's test exists).
 
     Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py`, `tests/test_operator_site.py`, both `A`).
+24. factory: started doing as vm.
