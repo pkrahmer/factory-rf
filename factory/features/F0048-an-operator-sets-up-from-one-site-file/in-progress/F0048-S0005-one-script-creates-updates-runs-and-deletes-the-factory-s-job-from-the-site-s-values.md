@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 502
-comments_read: [6585290870]
+comments_read: [6585290870, 6586194468]
 handed_over: null
 claim: null
 journal:
@@ -148,6 +148,11 @@ journal:
   stage: review
   run: 814fc4b4f82b4b7b843580ed6ab74efe
   blocked: round_cap
+- number: 26
+  speaker: human
+  kind: comment
+  at: '2026-11-02T19:20:08.267557Z'
+  stage: review
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -479,3 +484,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
 
     Earlier tests: none. `git diff --name-status main...HEAD` lists `tests/test_operator_job.py` as added (`A`). No test file that `main` holds is changed, renamed or deleted.
 25. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+26. 2026-11-02 human: Go on. Criteria 19 to 21 are right (they pin round 2's three security fixes): the coder ends with `tests` naming them, the tester writes the three tests. In the next review, judge all five groups in one pass, so every remaining finding comes at once. A further missing side that the code already handles and that needs only a test row is a note, not a reason to send the story back.
