@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870, 6586194468]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T19:23:38.917398Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-11-02T19:23:17.627745Z'
   stage: doing
   run: 37c6582cc42d4440a71056e13e3cc574
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:23:38.917398Z'
+  stage: tests
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -548,3 +557,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     - a price that is not a plain number.
 
     Entry 28 says the next review or intake applies that wording. I left `## Description` and the criteria unchanged, since entry 28 changed no part of the task's meaning that the coder writes.
+31. factory: started tests as vm.
