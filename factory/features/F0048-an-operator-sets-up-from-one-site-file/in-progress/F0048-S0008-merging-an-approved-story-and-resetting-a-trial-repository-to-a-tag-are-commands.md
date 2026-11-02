@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T21:44:25.441962Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-11-02T21:44:03.251234Z'
   stage: tests
   run: d86787a902184022909ef2d0a0c006dd
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:44:25.441962Z'
+  stage: doing
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -207,3 +216,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
 
     `lint`: lint: green (0.1 s)
     `test`: FAILED tests/test_suite_held_once.py::test_each_shared_helper_and_constant_is_held_once[vm-setup-helpers] - AssertionError: in_order
+12. factory: started doing as vm.
