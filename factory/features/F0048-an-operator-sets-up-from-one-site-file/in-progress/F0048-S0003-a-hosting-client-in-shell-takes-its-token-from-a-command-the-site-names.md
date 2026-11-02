@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 500
-comments_read: []
+comments_read: [6582972884]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 7f1bb66938064c6390c3fa0f615b66f5
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-02T16:54:38.671003Z'
+  stage: intake
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -105,3 +110,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
    8. Criterion 7, status 301: it says "returns 22" but not the message. Should the row also require `hosting: GET /user: 301 <the body's first 100 characters>`? Also, should the 500 row use a body longer than 100 characters with a newline in it, so that both the cut and the one-line rule are tested? I would choose yes to both.
 
    Checked and fine: the architecture (shell library under `operator/lib/`, reading the site through S0001's loader, no change to existing scripts), the scope (inside F0048's "A hosting client in shell"; nothing in its Out of scope), and the smoke tests (runnable; both `Expect:` lines are checkable; the pytest `-q` rule does not apply).
+4. 2026-11-02 human: Yes to all eight, as you propose: 1 both header lines in criterion 4; 2 a newline row in criterion 6; 3 no file left in the temporary folder, success and failure; 4 `hosting_api` and `hosting_repo_api` return 4 with the token message and do not run `curl` (add it to the Interface and a criterion); 5 `SITE_TOKEN_CMD=` falls back to `gh`, a row of criterion 2; 6 the self-load criterion; 7 one row per stream; 8 the 301 message and a 500 body over 100 characters with a newline.
