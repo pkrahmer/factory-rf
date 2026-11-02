@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 503
 comments_read: [6586887222]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T19:52:25.363367Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-02T19:52:04.194522Z'
   stage: doing
   run: 79e8942a1601483eab5e763f35cfc5f5
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:52:25.363367Z'
+  stage: tests
 ---
 
 # The reviewer judges all five groups in every review
@@ -150,3 +159,4 @@ Expect: two lines, `1` and `0`.
     The journal changes nothing about the meaning of the task: the Interface's sentence stays word for word, so the Description stays as it is.
 
     Noticed, not touched: `docs/project-guide/agents.md:258` and `docs/decisions.md:587` still say "whichever group failed" and "it stops at the first failing group". Criterion 5 gives both to the documenter.
+11. factory: started tests as vm.
