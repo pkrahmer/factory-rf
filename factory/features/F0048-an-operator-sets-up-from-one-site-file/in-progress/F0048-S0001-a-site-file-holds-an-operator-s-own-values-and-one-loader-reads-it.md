@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T15:30:37.936186Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-02T15:30:37.936186Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T15:32:40.598829Z'
+  stage: review
+  run: 15ba05a2ec1e4ed2950da73e6ef2b724
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -153,7 +155,7 @@ site_require NAME...  # exit 0, or 2 naming every NAME that is unset or empty
 ```
 
 - `site_path` prints `$FACTORY_SITE` when it is set and not empty, else `$XDG_CONFIG_HOME/kumpel/site.env` when `XDG_CONFIG_HOME` is set and not empty, else `$HOME/.config/kumpel/site.env` (the folder the skill's `settings.json` already uses: one folder for the machine's own values, feature decision 11).
-- The file's lines are blank, a comment (first non-blank character `#`), or `SITE_NAME=value`. `NAME` is capitals, digits and `_`, at least one character; there is no space around the `=`. The value is everything after the first `=`, with trailing whitespace removed; one pair of single or double quotes around the whole value is removed and keeps the whitespace inside. A quote that is not matched stays in the value.
+- The file's lines are blank, a comment (first non-blank character `#`), or `SITE_NAME=value`. `NAME` is capitals, digits and `_`, at least one character. A space before the `=` is a fault (`not a KEY=value line`); a space after it belongs to the value. The value is everything after the first `=`, with only trailing whitespace removed; one pair of single or double quotes around the whole value is removed and keeps the whitespace inside. A quote that is not matched stays in the value.
 - A value is stored literally: `$`, a backtick, `;` and `\` have no meaning, and nothing in the file is ever executed.
 - A line that is none of the three kinds, or whose key is not `SITE_` followed by the name, is a fault: `site_load` exports nothing from the file, prints `site: <path>:<line>: not a KEY=value line` or `site: <path>:<line>: <key> is not a SITE_ key` to standard error and returns 2.
 - A variable that is already set in the environment keeps its value (the file does not override it); a variable the file sets is exported.
@@ -205,8 +207,12 @@ Tests: `tests/test_operator_site.py` (the scripts are outside the layers), runni
 19. A key that appears twice keeps its first value, as a variable already set does: the lines `SITE_A=first` and `SITE_A=second` export `SITE_A` as `first`.
 20. `site_require` also takes names without the `SITE_` prefix, as the Interface's `site_require A B` shows: with `SITE_A` and `SITE_B` unset, `site_require A B` prints `site: missing SITE_A, SITE_B in <path>` and returns 2.
 21. `site path` prints the path of the Interface's order (the one `site_path` prints) and a newline, and exits 0.
-22. `make check` stays green.
-23. docs: `docs/operator-guide.md` gets a section *The site file* (what it is, its place and `FACTORY_SITE`, the format and that it is never executed, the rule that it lies outside every repository, `site init`, `show` and `get`, and the keys by the use that reads them as far as the stories to come make them known: a table of key, meaning, default); `README.md` and the other documents: none.
+22. A space before the `=` is a fault and one after it belongs to the value, as rows of one parametrized test: `SITE_A =1` exports nothing, prints `site: <path>:1: not a KEY=value line` and returns 2; `SITE_A= 1` exports ` 1` and returns 0.
+23. The message of each faulty line kind, as rows of one parametrized test: `site_a=1` (lower case) and `SITE_A = 1` give `site: <path>:<line>: not a KEY=value line`; `SITE_=1` gives `site: <path>:<line>: SITE_ is not a SITE_ key` (a key that is a name but not `SITE_` followed by one).
+24. A variable set to the empty string in the environment counts as already set and keeps its value: with `SITE_A=` exported and the line `SITE_A=file`, `SITE_A` stays empty and `site_load` returns 0.
+25. A known command with a word too many prints the usage line to standard error, nothing to standard output, and exits 2, as rows of one parametrized test: `site path x`, `site init x`, `site show x` and `site get SITE_A x`.
+26. `make check` stays green.
+27. docs: `docs/operator-guide.md` gets a section *The site file* (what it is, its place and `FACTORY_SITE`, the format and that it is never executed, the rule that it lies outside every repository, `site init`, `show` and `get`, and the keys by the use that reads them as far as the stories to come make them known: a table of key, meaning, default); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -433,3 +439,15 @@ Expect: one line, `$(echo ran)`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 22. factory: started review as vm.
+23. reviewer: Review, round 1. Group 1 (acceptance criteria) fails. The tests for criteria 1 to 21 match their criteria and pass; the coder's `make check` (entry 21) was green. Four behaviours that `operator/lib/site.sh` and `operator/bin/site` already build have no criterion and no test. I added them as criteria 23 to 25 and 24's empty-value case, before the closing two, which are now 26 (`make check`) and 27 (docs). Each needs only a test, no change under `operator/`. I stopped at group 1, so groups 2 to 5 were not judged.
+
+    description corrected: Interface, line format: "there is no space around the `=`. The value is everything after the first `=`, with trailing whitespace removed" -> "A space before the `=` is a fault (`not a KEY=value line`); a space after it belongs to the value. The value is everything after the first `=`, with only trailing whitespace removed" (the human's answer, entry 15; the factory dropped the coder's and the tester's edits).
+    description corrected: criteria: no criterion for the human's space rule -> new criterion 22 (`SITE_A =1` is a fault with status 2; `SITE_A= 1` exports ` 1`), as entry 15 asked. Its test already exists: `tests/test_operator_site.py::test_a_space_before_the_equals_sign_is_a_fault_and_one_after_it_is_the_value`.
+
+    1. criterion 23 added: it needs its test. `operator/lib/site.sh:94-101` picks the message for each faulty line kind: `site_a=1` and `SITE_A = 1` get `not a KEY=value line`, and `SITE_=1` gets `SITE_ is not a SITE_ key`. `tests/test_operator_site.py:238-239` checks only the `site: <path>:2: ` prefix for those three rows. Fix: the tester pins the full message for each row; extending the rows of `test_a_faulty_line_exports_nothing_and_returns_2` will do.
+    2. criterion 24 added: it needs its test. `_site_export` (`operator/lib/site.sh:117`, `${1+set}`) treats a variable set to the empty string in the environment as already set, so the file's value is ignored. This is the Interface's literal "already set", but it is the opposite of how `site_path`, `site_require`, `show` and `get` treat an empty value, and only a non-empty value is tested (criterion 6). Fix: a test with `SITE_A=` exported and the line `SITE_A=file`; a row of criterion 6's test will do. If the human would rather have an empty value count as unset, that is a question, not a test change.
+    3. criterion 25 added: it needs its test. `operator/bin/site:213-217` refuses a known command with an extra word (`[ $# -eq 1 ] || usage`, and `[ $# -eq 2 ]` for `get`). This is the failing side of the Interface's "any other command prints the usage", and criterion 13's four rows do not cover it. Fix: rows `path x`, `init x`, `show x` and `get SITE_A x`; adding them to `test_a_malformed_command_prints_the_usage_and_exits_2` will do.
+
+    For the coder: the code already does what criteria 22 to 25 say; end with `tests` and name criteria 23 to 25 (22's test exists).
+
+    Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py`, `tests/test_operator_site.py`, both `A`).
