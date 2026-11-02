@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T15:15:57.150500Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-02T15:15:57.150500Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-02T15:16:27.845115Z'
+  stage: doing
+  run: 85963d92a50048f78716dc4a8ea44cd9
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -329,3 +331,20 @@ Expect: one line, `$(echo ran)`.
     Noticed, not touched: nothing new beyond my entry 10. The example's defaults are still my reading of the key names, and `operator/README.md` does not mention `site`.
 15. 2026-11-02 human: (a), as you propose: a space before the `=` is a fault (`not a KEY=value line`), and a space after it belongs to the value (the value is everything after the first `=`, only trailing whitespace removed). Add the criterion with the two rows `SITE_A =1` and `SITE_A= 1`, and make the Interface sentence explicit.
 16. factory: started doing as vm.
+17. coder: Round 1, after the human's answer in entry 15. I changed no code. `_site_parse_line` in `operator/lib/site.sh` already does what option (a) says: `SITE_A =1` is refused with `not a KEY=value line`, and `SITE_A= 1` loads as ` 1`.
+
+    The work item now says what the answer decided:
+    - The Interface sentence about the line format is explicit. A space before the `=` is a fault (`not a KEY=value line`), and a space after it belongs to the value. The value is everything after the first `=`, with only trailing whitespace removed.
+    - New criterion 22 has two rows of one parametrized test. `SITE_A =1` is a fault: nothing is exported and the status is 2. `SITE_A= 1` exports ` 1` and returns 0.
+    - The closing two criteria are now 23 (`make check`) and 24 (docs).
+    The Description's meaning did not change.
+
+    For the tester: tests are still needed for criteria 17 to 21 (added by the reviewer in entry 12) and for the new criterion 22, all in `tests/test_operator_site.py`. The code already meets each of them, as entry 14 explains.
+
+    I did not run `make check` this round, because nothing it reads changed.
+
+    Rejected: changing `_site_parse_line` to refuse a leading space in the value (option b). The human chose (a).
+
+    Noticed, not touched: the example's defaults are still my reading of the key names, and `operator/README.md` does not mention `site`.
+
+    The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0001-a-site-file-holds-an-operator-s-own-values-and-one-loader-reads-it.md.
