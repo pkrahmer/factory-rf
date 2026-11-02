@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T17:01:21.079833Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-02T17:00:59.958628Z'
   stage: tests
   run: f8a12314b51a47bface3831fba2ffe6f
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:01:21.079833Z'
+  stage: doing
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -195,3 +204,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
 
    `lint`: lint: green (0.1 s)
    `test`: FAILED tests/test_operator_hosting.py::test_the_library_loads_the_site_itself - AssertionError: assert (2, '') == (0, 'tok123\n')
+9. factory: started doing as vm.
