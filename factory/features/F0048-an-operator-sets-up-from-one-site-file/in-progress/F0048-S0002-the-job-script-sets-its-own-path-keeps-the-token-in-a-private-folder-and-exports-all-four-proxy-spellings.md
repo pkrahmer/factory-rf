@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T16:41:30.255582Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-11-02T16:41:09.062150Z'
   stage: doing
   run: 8cf95e6f6f8a4962bf038762c6561911
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:41:30.255582Z'
+  stage: tests
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -293,3 +302,4 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
     The move: `_mode` in `tests/test_vm_job_start_environment.py:15` is a second copy of `_mode` in `tests/test_tmp_path_reopening.py:52`. It should go once into one shared support module under `tests/`. That can be the existing `tests/tmp_path_support.py` or a new `*_support.py`, keeping the `stat.S_IMODE(path.lstat().st_mode)` form. Both modules then import it from there. The earlier test file to change is `tests/test_tmp_path_reopening.py`, and every test in it keeps its name and its check.
 
     `vm/job-start.sh` stays as it was after entry 15. The journal changed nothing in the Description.
+20. factory: started tests as vm.
