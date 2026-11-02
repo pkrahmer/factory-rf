@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T16:55:44.170118Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-02T16:55:44.170118Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-02T17:00:59.958628Z'
+  stage: tests
+  run: f8a12314b51a47bface3831fba2ffe6f
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -152,3 +154,44 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
    - Architecture: a shell library under `operator/lib/` that reads the site through S0001's loader. It changes no existing script and matches `feature.md` decisions 3, 4, 5 and 14.
    - Scope: inside F0048's "A hosting client in shell" and nothing in its Out of scope. No test of another story is changed. The `Description` is unchanged because the meaning of the task did not change.
 7. factory: started tests as vm.
+8. tester: Tests written for criteria 1–14. They fail because `operator/lib/hosting.sh` does not exist yet.
+
+   Criterion → test (all in tests/test_operator_hosting.py):
+   - criterion 1: test_the_token_is_the_first_line_of_the_command_trimmed
+   - criterion 2: test_without_a_token_command_the_token_comes_from_gh. Rows: unset, empty and set; the `set` row checks that `gh` is not called.
+   - criterion 3: test_a_failing_token_source_stops_without_repeating_its_output. Rows: LEAKMARK on stdout, LEAKMARK on stderr, prints nothing, blank lines only, no command and no `gh`.
+   - criterion 4: test_the_api_call_gives_curl_the_token_on_standard_input_only
+   - criterion 5: test_the_site_api_url_replaces_the_default. Rows: without and with a trailing `/`.
+   - criterion 6: test_a_body_is_passed_quoted_in_the_configuration. Rows: quote, no body, newline.
+   - criterion 7: test_the_status_decides_the_result_of_the_api_call. Rows: 200, 201, 204, 301, 404, 500, curl exits 7.
+   - criterion 8: test_the_repository_call_puts_the_site_repository_in_the_path. Rows: set and unset.
+   - criterion 9: test_git_gets_the_token_through_its_environment. It uses the real git.
+   - criterion 10: test_git_does_not_run_without_a_token
+   - criterion 11: test_the_token_is_neither_left_in_a_file_nor_printed
+   - criterion 12: test_the_api_call_leaves_no_temporary_file. Rows: 200 and 404; `TMPDIR` points to a folder in tmp_path.
+   - criterion 13: test_the_api_call_does_not_run_curl_without_a_token. Rows: hosting_api and hosting_repo_api.
+   - criterion 14: test_the_library_loads_the_site_itself
+
+   Files:
+   - Created: tests/test_operator_hosting.py.
+   - Extended: tests/operator_support.py, the helper the Interface says to extend. It gets `HOSTING_LIBRARY` and `run_hosting(code, cwd, env, *, load=True)`. That function sources site.sh, runs `site_load` unless `load=False`, sources hosting.sh, then runs `code`. No earlier test changed.
+
+   Stand-ins:
+   - `curl` (Python, through git_support.write_executable) records its argv and stdin as JSON lines.
+   - It reads its configuration the way curl does: url, request, header, data, output, and write-out with `%{http_code}`, `%output{file}`, `%{stdout}` and `%{stderr}`.
+   - It answers with the status, body and exit set in its environment. When it exits non-zero it writes `000` as the status, as real curl does, and prints nothing on stderr.
+   - `gh` records its calls and prints `ghtok` for `auth token`.
+   - Each test's `PATH` leaves out every system folder that holds a `gh`.
+
+   Choices that do not decide anything the criteria leave open:
+   - The tests never type the token. The command `printf 'tok%s\n' 123` prints `tok123`, so the token's text is in no file the test writes. The search in criterion 11 skips only the stand-ins' record folder, which holds curl's stdin.
+   - The 500 body is `x`*60, a newline, `y`*39, then `Z`*20. The test checks four things: the message is one line, it starts with the 60 `x`, it holds the 39 `y`, and it has no `Z`. It does not decide what replaces the newline.
+
+   Test run: one run of `uv run pytest -q` on the new file and tests/test_operator_site.py. The hosting tests failed because hosting.sh is missing; sourcing it fails in `sh`. Afterwards I only renamed constants and made parameters keyword-only, to satisfy ruff's S105/S106 and PLR0917, so the tests check the same things.
+
+   Could not import: no Python module is missing. The missing module under test is the shell library operator/lib/hosting.sh.
+
+   `make lint` is green.
+
+   `lint`: lint: green (0.1 s)
+   `test`: FAILED tests/test_operator_hosting.py::test_the_library_loads_the_site_itself - AssertionError: assert (2, '') == (0, 'tok123\n')
