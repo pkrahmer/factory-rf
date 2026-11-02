@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T15:23:45.800219Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-02T15:23:45.800219Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-02T15:30:16.545687Z'
+  stage: doing
+  run: b08ebc5cb3b24e01a46f34e2f6fe282b
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -394,3 +396,30 @@ Expect: one line, `$(echo ran)`.
     `lint`: lint: green (0.2 s)
     `test`: test: green (168.4 s)
 20. factory: started doing as vm.
+21. coder: Round 1, after the tester's entry 19. I changed no code this round. The new tests for criteria 17 to 21 and for the human's line-format rule (entry 15) all pass against the code from entry 10, as entries 14 and 17 said they would. I ran `make check` once in the foreground on the committed tree with nothing changed, and it is green (`test: green (170.6 s)`, `check: green`, total coverage 99.58 %).
+
+    What the code is, unchanged since entry 10:
+    - `operator/lib/site.sh`: `site_path`, `site_load`, `site_require`, `site_value` and `site_refuse_repository`.
+    - `operator/bin/site`: the commands `path`, `init`, `show` and `get`.
+    - `operator/site.env.example`.
+
+    Main choice, unchanged: `site_load` reads the file in two passes. The first pass checks every line. The second exports, and only a clean file gets it, so a faulty file exports nothing. Rejected: collecting the pairs during one pass and exporting at the end, because POSIX sh would need a list joined by a delimiter, and that breaks on values that contain the delimiter.
+
+    Each new test maps to code that was already there:
+    - criterion 17: `read -r` and `printf '%s'` keep a `\` as text.
+    - criterion 18: `_site_is_name` accepts digits and `_`.
+    - criterion 19: `_site_export` keeps the first value of a key that appears twice.
+    - criterion 20: `site_require` adds `SITE_` to a bare name.
+    - criterion 21: `site path` calls `site_path`.
+    - the space rule: `_site_parse_line` refuses `SITE_A =1` with `not a KEY=value line` and loads `SITE_A= 1` as ` 1`.
+
+    Refactor pass: none needed, because this round has no diff of mine.
+
+    Description: the human's answer in entry 15 changed the meaning of the task in two ways. The Interface sentence must say plainly that a space before the `=` is a fault and a space after it belongs to the value. And a new criterion must hold the rows `SITE_A =1` and `SITE_A= 1`, before the closing two. The factory dropped both earlier attempts to write this (coder entry 17, tester entry 19), because the work item is outside the coder's and the tester's write paths. The committed Description therefore still ends with 22 (`make check`) and 23 (docs), and it still lacks that criterion and the explicit sentence. I could not write it either. Whoever may write the Description (the reviewer, or the human) should add both as entry 15 words them. The test `test_a_space_before_the_equals_sign_is_a_fault_and_one_after_it_is_the_value` already follows entry 15.
+
+    Noticed, not touched:
+    - The defaults written in the example's comments are still my reading of the key names. The stories that read each key should correct them.
+    - `operator/README.md` does not mention `operator/bin/site`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
