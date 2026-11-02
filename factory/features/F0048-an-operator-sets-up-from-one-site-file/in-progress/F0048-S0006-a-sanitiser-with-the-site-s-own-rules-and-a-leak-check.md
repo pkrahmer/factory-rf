@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T20:10:34.304319Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-02T20:10:13.545245Z'
   stage: intake
   run: a229b72d539e4b05923d31a1ac71e056
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:10:34.304319Z'
+  stage: tests
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -137,3 +146,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
    - Smoke test: both commands are runnable, and neither runs pytest. Each `Expect:` line is checkable against the output (two lines each).
    - Architecture: a shell script under `operator/bin/` with `python3`, as `feature.md` scopes it. It touches nothing in `src/factory`. The rules file lies beside the site file, outside any repository.
    - Scope: within S0006 of F0048. The story adds no use of the sanitiser (that is S0007), and nothing falls under "Out of scope".
+7. factory: started tests as vm.
