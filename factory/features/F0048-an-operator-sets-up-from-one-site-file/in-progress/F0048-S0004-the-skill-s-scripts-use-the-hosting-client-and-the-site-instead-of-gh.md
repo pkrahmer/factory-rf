@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311, 6584737120]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T18:30:05.829138Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-02T18:30:05.829138Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T18:31:35.685252Z'
+  stage: review
+  run: b52fb4c7655848b69e6f7fe8c290742c
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -423,3 +425,26 @@ Expect: one line, `0`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 22. factory: started review as vm.
+23. reviewer: Round 1 review. I read the work item, `git diff main...HEAD -- . ':!factory'` and its name-status, and `operator/lib/site.sh` and `operator/lib/hosting.sh` (S0001 and S0003) to check what the scripts call. The diff covers the five scripts under `operator/skill/kumpel/scripts/`, `tests/operator_support.py`, `tests/test_operator_hosting.py` and the new `tests/test_operator_skill_scripts.py`.
+
+    no findings
+
+    What I checked:
+    - **The four findings of entry 15 are fixed in `tests/test_operator_skill_scripts.py`:**
+      - The `verdict-fourth-from-the-end` row tests the outside side of the "last three lines" limit.
+      - `data == written` pins "writes only the switches".
+      - The `site-gives-only-the-repository` row gives exit 2 and the usage line.
+      - `test_settings_answer_from_the_json_file_without_a_usable_site_file` tests criterion 17 with two rows.
+    - **Group 1:** I went through criteria 1 to 17 and every rule of the Interface again. Each has a test that checks what it names, and every refused side has a row: no label, an unknown kind, no archive, no cost table, nothing set, `init` without the site's two values, an unknown id, no token. The pull through `hosting_git` is untested by design (journal 4.6). Journal entry 21 records `check: green` after the coder.
+    - **Groups 2 and 3:** nothing under `src/` changed. The scripts reach the host only through `hosting_repo_api` and `hosting_git`. No `gh` is left, no marker silences a check, and the diff has no secrets.
+    - **Group 4:** the comments explain why, not what. The JSON is parsed with inline `python3`, which the scripts already needed (`jq` was rejected).
+    - **Group 5:** the Description matches what was built. The docs criterion (19) still names what the reader must know.
+
+    Notes:
+    1. `tests/test_operator_skill_scripts.py:make_bare_remote` is a second copy of `tests/git_support.py:make_remote`, with a `files` parameter added and the seed returned. It could become a parameter of the shared helper.
+    2. `tests/test_operator_skill_scripts.py::test_settings_init_needs_no_arguments_when_the_site_gives_both` checks the `settings written:` line only when arguments are given, so the `site-gives-both` row leaves its standard output unchecked.
+    3. `tests/test_operator_skill_scripts.py::test_settings_answer_the_repository_and_checkout_from_the_site_first` fills in the expected `show` text inside the test when `status == 1 and stdout is None`. A row value would read more plainly.
+
+    Earlier tests:
+    - `tests/test_operator_hosting.py`: changed under the standing leave to move a shared test helper. `CURL_STAND_IN` and `hosting_env` moved to `tests/operator_support.py`, and the file now imports them from there. Every test keeps its name and checks the same thing.
+    - `tests/operator_support.py`: received the moved helpers under the same standing leave, together with the Interface's "shared through `tests/operator_support.py`". The stand-in's one addition, `STAND_IN_CURL_ROUTES`, does nothing when that variable is unset, so the earlier tests are unaffected.
