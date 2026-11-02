@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T19:14:24.049500Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,13 +135,26 @@ journal:
   kind: started
   at: '2026-11-02T19:14:24.049500Z'
   stage: review
+- number: 24
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T19:15:43.251679Z'
+  stage: review
+  run: 814fc4b4f82b4b7b843580ed6ab74efe
+- number: 25
+  speaker: factory
+  kind: question
+  at: '2026-11-02T19:15:43.251679Z'
+  stage: review
+  run: 814fc4b4f82b4b7b843580ed6ab74efe
+  blocked: round_cap
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
 
 ## Description
 
-Creating the job that runs the factory took a long `gcloud run jobs create` call with thirty settings, a wrapper of shell text shipped base64-coded in its arguments, and care about quoting, the env delimiter, the proxy spellings and the secret mounts; the session of 2026-11-02 kept it in a script of its own and got it wrong once with a failed `sed`. This story puts that into `operator/job/job.sh` with four commands, `create`, `update`, `execute` and `delete`, all from the site file's values (S0001): the job's own settings, the project and region, the two secrets, the model API's addresses and prices, the proxy. The job's wrapper is small now that the script handles its own `PATH` and the token's folder (S0002): it writes the provider file and the start script into the job and hands over to the script. The command never guesses a project, a region or a job's name, refuses to create a job that exists, refuses to execute while an execution of the job runs (the platform's role at one site could not cancel one), and asks for `--yes` before deleting. Reading the job's log and state is the next story (S0007).
+Creating the job that runs the factory took a long `gcloud run jobs create` call with thirty settings, a wrapper of shell text shipped base64-coded in its arguments, and care about quoting, the env delimiter, the proxy spellings and the secret mounts; the session of 2026-11-02 kept it in a script of its own and got it wrong once with a failed `sed`. This story puts that into `operator/job/job.sh` with four commands, `create`, `update`, `execute` and `delete`, all from the site file's values (S0001): the job's own settings, the project and region, the two secrets, the model API's addresses and prices, the proxy. The job's wrapper is small now that the script handles its own `PATH` and the token's folder (S0002): it writes the provider file and the start script into the job and hands over to the script. The command never guesses a project, a region or a job's name, refuses to create a job that exists, refuses to execute while an execution of the job runs (the platform's role at one site could not cancel one), and asks for `--yes` before deleting. Before it builds the job's call, `create` and `update` refuse a site value that would break it: an instance name with a character other than a letter, a digit, `.`, `_` or `-` (it becomes a path in the shell text the job runs), an `@` in a value of the env list (its delimiter), and a price that is not a plain number. Reading the job's log and state is the next story (S0007).
 
 ## Interface
 
@@ -193,8 +202,11 @@ Tests: `tests/test_operator_job.py`, a stand-in `gcloud` that records its argume
 16. No command, a command `job.sh` does not know, and an argument its command does not take (`create --yes`, `update --force`, `execute --dry-run`, `delete --dry-run`) print `usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes]` on standard error, run no `gcloud` and exit 2 (rows).
 17. When `vm/job-start.sh` at `SITE_CODE_REF` holds the line `JOB_START_SH_END`, `create` prints `job: vm/job-start.sh holds the line JOB_START_SH_END; the wrapper cannot carry it` on standard error, runs no `gcloud` and exits 1 (a test commits such a line and tags it).
 18. A failing `describe` with text on standard error: `update` shows that text before its `does not exist; use create` line; `create` shows none of it and goes on to create (two rows).
-19. `make check` stays green.
-20. docs: `docs/operator-guide.md`, *Creating the job*: the template call is replaced by `job.sh create` with the keys it reads (a table that points to the site file's table), the order of a first start (`site check`, `job.sh create`, `job.sh execute`), the overlap rule and the deletion rule, and says that the job's wrapper only writes the provider file and hands over; `README.md` and the other documents: none.
+19. A `SITE_INSTANCE` with a character other than an ASCII letter, a digit, `.`, `_` or `-` makes `create` print `job: SITE_INSTANCE may hold only letters, digits, '.', '_' and '-'` on standard error, run no `gcloud` and exit 1; rows of one parametrized test: `a;rm`, `a b`, `$(x)`, `a/b`, `a@b` and `inst-ä` refused, `update` and `create --dry-run` with `a;rm` refused, and `Inst-1.b_c` accepted (the call runs, exit 0).
+20. A value with `@` in any of `SITE_REPOSITORY_URL`, `SITE_CODE_URL`, `SITE_CODE_REF`, `SITE_PROXY`, `SITE_NO_PROXY`, `SITE_MODEL`, `SITE_LOGIN_URL`, `SITE_LOGIN_SCOPE`, `SITE_LOGIN_CLIENT_ID` and `SITE_IDLE_MINUTES` makes `create` print `job: <KEY> holds '@', the delimiter of the job's env list` on standard error, run no `gcloud` and exit 1; rows of one parametrized test: one per key (`SITE_REPOSITORY_URL=git@host:org/work.git` among them), `update` and `create --dry-run` with that URL refused, and the same keys without `@` accepted (the call runs, exit 0).
+21. A `SITE_MODEL_INPUT_COST` or `SITE_MODEL_OUTPUT_COST` that is not digits with at most one `.` makes `create` print `job: <KEY> is not a number` on standard error, run no `gcloud` and exit 1; rows of one parametrized test: `abc`, `nan`, `inf`, `-1`, `1e3`, `1.2.3` and `.` refused (each key at least once), `update` and `create --dry-run` with `abc` refused, and `0`, `3`, `15.5`, `.5` and `1.` accepted, each written into `provider.json` as that number.
+22. `make check` stays green.
+23. docs: `docs/operator-guide.md`, *Creating the job*: the template call is replaced by `job.sh create` with the keys it reads (a table that points to the site file's table), the order of a first start (`site check`, `job.sh create`, `job.sh execute`), the overlap rule and the deletion rule, and says that the job's wrapper only writes the provider file and hands over; `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -441,3 +453,29 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 23. factory: started review as vm.
+24. reviewer: Round 2. I reviewed the diff (`operator/job/job.sh` and `tests/test_operator_job.py`) against the work item and read `operator/lib/site.sh`, which the script sources.
+
+    The coder fixed the three security findings from entry 20 in round 2 by adding `check_instance`, `check_env_values` and `check_costs` to `job.sh`. These are refusals with a `job:` message, status 1 and no `gcloud` call. No criterion names them and no test runs them. `tests/test_operator_job.py` has no test that sets a bad `SITE_INSTANCE`, an `@` in a value of the env list, or a cost that is not a number. The coder's entry 22 says this too: a broken key list stayed green under `make check`. So group 1 (acceptance criteria) fails again. Pinning these refusals needs no change under `src/`, so I added the criteria myself. The old closing criteria 19 and 20 are now 22 and 23. I checked each row against the `case` patterns in `job.sh`, so every row is expected to pass against the current code.
+
+    1. `operator/job/job.sh:51-58` (`check_instance`): criterion 19 added: it needs its test. It is one parametrized test with these rows:
+       - refused: `a;rm`, `a b`, `$(x)`, `a/b`, `a@b` and `inst-ä`;
+       - refused for `update` and for `create --dry-run`;
+       - accepted: `Inst-1.b_c`.
+    2. `operator/job/job.sh:61-71` (`check_env_values`): criterion 20 added: it needs its test. It is one parametrized test with these rows:
+       - refused: one row for each of the ten keys the function checks, `SITE_REPOSITORY_URL=git@host:org/work.git` among them;
+       - refused for `update` and for `create --dry-run`;
+       - accepted: the same keys without `@`.
+    3. `operator/job/job.sh:74-83` (`check_costs`): criterion 21 added: it needs its test. It is one parametrized test that covers both sides of the "digits with at most one `.`" rule:
+       - refused: `abc`, `nan`, `inf`, `-1`, `1e3`, `1.2.3` and `.`, each key at least once;
+       - refused for `update` and for `create --dry-run`;
+       - accepted: `0`, `3`, `15.5`, `.5` and `1.`, each written into `provider.json` as that number.
+
+    description corrected: it did not mention the value checks -> it now says that `create` and `update` refuse a site value that would break the job's call: an instance name with a character outside letters, digits, `.`, `_` and `-`, an `@` in a value of the env list, and a price that is not a plain number. Entries 20 and 22 settle this.
+
+    I left the Interface unchanged; the three new criteria give the messages it would have stated. I stopped at group 1, as the checklist says, so groups 2 to 5 were not reviewed this round.
+
+    Notes:
+    - `tests/test_operator_job.py:595`: entry 20's note still stands. `test_execute_and_delete_name_a_missing_job` could be rows of `test_missing_site_keys_are_named_in_one_line` (`:286`).
+
+    Earlier tests: none. `git diff --name-status main...HEAD` lists `tests/test_operator_job.py` as added (`A`). No test file that `main` holds is changed, renamed or deleted.
+25. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
