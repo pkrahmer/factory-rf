@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T15:16:48.738015Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-02T15:16:27.845115Z'
   stage: doing
   run: 85963d92a50048f78716dc4a8ea44cd9
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-02T15:16:48.738015Z'
+  stage: tests
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -348,3 +357,4 @@ Expect: one line, `$(echo ran)`.
     Noticed, not touched: the example's defaults are still my reading of the key names, and `operator/README.md` does not mention `site`.
 
     The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0001-a-site-file-holds-an-operator-s-own-values-and-one-loader-reads-it.md.
+18. factory: started tests as vm.
