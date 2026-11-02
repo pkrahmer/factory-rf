@@ -490,6 +490,26 @@ def test_a_reset_with_nothing_to_close_or_delete_only_moves_main(machine: Machin
     assert printed(result) == [f"moved main to {SHORT}"]
 
 
+BROKEN: list[tuple[int, object]] = [(500, {"message": "Server Error"})]
+
+
+@pytest.mark.parametrize(
+    "read",
+    [
+        pytest.param("GET /pulls?state=open&per_page=100", id="open-pull-requests"),
+        pytest.param("GET /git/matching-refs/heads/work-item/", id="work-item-refs"),
+        pytest.param(f"GET /git/tags/{TAG_OBJECT}", id="annotated-tag"),
+    ],
+)
+def test_a_failing_read_stops_the_reset_before_any_change(machine: Machine, read: str) -> None:
+    machine.answer({**reset_answers(annotated=True), read: BROKEN})
+    result = machine.run("reset-to-tag.sh", TAG, "--yes")
+    assert result.exit_status == 1
+    route = read.split(" ", 1)[1]
+    assert f"hosting: GET {PREFIX}{route}: 500 Server Error" in printed(result)
+    assert machine.changes() == []
+
+
 @dataclass(frozen=True)
 class Run:
     """One run of a script with its answers and its arguments, on the fixture's site."""
@@ -536,3 +556,23 @@ def test_no_change_touches_another_ref_or_a_tag(
         assert "/tags" not in request.route, request
     closed = {request.route for request in machine.changes() if request.method == "PATCH"}
     assert "/pulls/9" not in closed
+
+
+@pytest.mark.parametrize(
+    ("script", "arguments"),
+    [
+        pytest.param("merge.sh", ("5",), id="merge-one-argument"),
+        pytest.param("merge.sh", ("5", ITEM, "extra"), id="merge-three-arguments"),
+        pytest.param("reset-to-tag.sh", (), id="reset-no-argument"),
+        pytest.param("reset-to-tag.sh", (TAG, "--yse"), id="reset-misspelt-yes"),
+        pytest.param("reset-to-tag.sh", (TAG, "--yes", "extra"), id="reset-three-arguments"),
+    ],
+)
+def test_a_wrong_command_line_prints_the_usage_and_sends_nothing(
+    machine: Machine, script: str, arguments: tuple[str, ...]
+) -> None:
+    machine.answer({**merge_answers(), **reset_answers()})
+    result = machine.run(script, *arguments, **MERGE_FAST)
+    assert result.exit_status == 2
+    assert any(line.startswith(f"usage: {script} ") for line in result.stderr.splitlines())
+    assert machine.requests() == []

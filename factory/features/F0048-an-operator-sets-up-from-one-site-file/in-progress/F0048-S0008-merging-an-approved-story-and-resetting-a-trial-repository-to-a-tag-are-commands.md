@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T21:59:47.136582Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-02T21:59:47.136582Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-02T22:00:36.199064Z'
+  stage: tests
+  run: 657c162f8069477a81e6f7f8c509b8fa
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -397,3 +399,15 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
 
     Noticed, not touched: none.
 22. factory: started tests as vm.
+23. tester: Test change for the coder's entry 21. Criteria 12 and 13, which the reviewer added in entry 19, needed only their tests. I wrote both in `tests/test_operator_merge_reset.py` and changed no existing test in it.
+
+    - criterion 12: tests/test_operator_merge_reset.py::test_a_failing_read_stops_the_reset_before_any_change. This is one parametrized test with three rows: `open-pull-requests`, `work-item-refs` and `annotated-tag`. In each row one read is answered 500 `Server Error`, and the reset runs with `--yes` against the annotated-tag fixture. Each row checks three things: the printed line `hosting: GET /repos/owner/repo<route>: 500 Server Error` (the full path, with the query where there is one), exit 1, and no change request.
+    - criterion 13: tests/test_operator_merge_reset.py::test_a_wrong_command_line_prints_the_usage_and_sends_nothing. This is one parametrized test with five rows: `merge.sh` with one argument and with three, and `reset-to-tag.sh` with none, with `<tag> --yse` and with three. Each row checks a standard-error line that starts with `usage: <script> `, exit 2, and no recorded request.
+
+    Rejected: checking that the hosting message is the last line printed, which the reviewer suggested. Criterion 12 only says the message is printed, so the test checks only that.
+
+    Files changed: tests/test_operator_merge_reset.py (two tests and one constant, `BROKEN`, added). No new files. No earlier story's test changed.
+
+    Run: `uv run pytest -q tests/test_operator_merge_reset.py` passed all 36 tests. The new tests pass straight away rather than failing first, because the code already did what both criteria ask (entries 19 and 21). The test runner imported every module. `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
