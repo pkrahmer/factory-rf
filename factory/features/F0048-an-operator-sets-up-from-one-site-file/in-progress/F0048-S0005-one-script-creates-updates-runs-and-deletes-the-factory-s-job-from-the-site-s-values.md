@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T19:01:25.605438Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-02T19:01:25.605438Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-02T19:04:45.563066Z'
+  stage: doing
+  run: 5b9f8ebac76748a0953c283d11769e2e
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -343,3 +345,21 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     `lint`: lint: green (0.1 s)
     `test`: test: green (80.8 s)
 17. factory: started doing as vm.
+18. coder: Round 1: the tester's entry 16 added tests for criteria 14 to 18 in `tests/test_operator_job.py`. All of them pass against `operator/job/job.sh` as entry 10 left it, so I changed no code and the working tree has no changes. I ran `make check` on the committed state and it ended `test: green (80.2 s)` and `check: green`.
+
+    What I built: nothing new this round. The code is `operator/job/job.sh` from entry 10. Criterion 14 is met by `require_job`, 15 by the `${XDG_STATE_HOME:-$HOME/.local/state}` fallback, 16 by the `usage` checks, 17 by the refusal of the `JOB_START_SH_END` line, and 18 by `update` showing `describe`'s standard error while `create` hides it.
+
+    Main choice: I left the script alone because the new tests are green. The alternative I rejected was reworking `job.sh` during this round. That would have gone beyond the findings, which asked only for tests.
+
+    Refactor: no new diff this round, so nothing to change.
+
+    Description: the journal did not change what the task means. The criteria the reviewer added already appear in the description, so I made no rewrite.
+
+    Noticed, not touched (still open from entry 10):
+    - A site value that contains `@` would break the `^@^` env list.
+    - A cost value that is not a number stops `create` with Python's traceback, not a `job:` message.
+
+    The docs criterion (20) is left for the docs stage.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
