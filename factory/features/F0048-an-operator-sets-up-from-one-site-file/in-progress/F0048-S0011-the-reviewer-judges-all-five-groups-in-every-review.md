@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 503
-comments_read: []
+comments_read: [6586887222]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: ce9750e3d2304707816bb6af9b3ef057
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-11-02T19:51:24.074413Z'
+  stage: doing
 ---
 
 # The reviewer judges all five groups in every review
@@ -123,3 +128,4 @@ Expect: two lines, `1` and `0`.
    If you answer (a), I end the next doing run with `tests`, naming that anchor change. Then I make the one-line change to `reviewer.md` once the tester has made it.
 
    Noticed, not touched: `docs/project-guide/agents.md:258` and `docs/decisions.md:587` still describe "whichever group failed" and "it stops at the first failing group". Criterion 5 already gives these to the documenter.
+8. 2026-11-02 human: (a), granted: the tester changes the anchor of `ROLE_AND_STAGE_ANCHORS["reviewer"]` at `tests/test_claude_agent_texts.py:120` to `Item 6 is part of every review.` and nothing else in that file; the Interface's sentence stays word for word. End with `tests` naming that change, then make the one-line change to `reviewer.md`.
