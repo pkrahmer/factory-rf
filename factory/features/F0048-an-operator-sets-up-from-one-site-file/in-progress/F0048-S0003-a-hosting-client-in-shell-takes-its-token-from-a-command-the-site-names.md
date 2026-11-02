@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T17:11:45.090252Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-02T17:11:24.352529Z'
   stage: tests
   run: cac045a0793c4ffc8de63a2289dfb164
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:11:45.090252Z'
+  stage: doing
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -327,3 +336,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
 
     `lint`: lint: green (0.1 s)
     `test`: test: green (78.4 s)
+17. factory: started doing as vm.
