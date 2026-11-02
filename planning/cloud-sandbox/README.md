@@ -21,6 +21,7 @@ environment-specific value from environment variables, and the stored results ar
 | `recommendations.md` | The ranked setups (platform, isolation, snapshots), the per-step design with the ephemeral-disk sharing facts and a probability estimate, and a suggested order of work. |
 | `offline-planning.md` | The numbers to plan with, a decision guide, the list of what was NOT tested, and how to re-run a probe when the platform changes. |
 | `results/` | The raw, sanitised output of every probe run (`p1` to `p13`; `p14`, the opencode lockdown probe for F0047-S0007; `p15`, the stage image and `make check` in a job for F0047-S0006; `p16`, the test suite with the native overlay, which led to F0047-S0009). Quote these, do not trust summaries over them. |
+| `TRIAL-2-F0001-IN-A-JOB.md`, `results/trial-f0001-in-a-job.txt` | The first whole feature built by the factory in a job (2026-11-02): what ran, the cost, the defects found in the job profile, how to repeat it. |
 | `probes/` | The scripts: `run_probe.sh` (create a throwaway job, run it once, print its log, delete it), `lib.sh` and one script per question. |
 
 ## The short version

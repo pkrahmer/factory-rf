@@ -1,0 +1,31 @@
+# F0001 (todo service) built by the factory in a Cloud Run job, 2026-11-02. Sanitised run record, written by the human-in-the-loop session.
+# Times are UTC. <repo> is the trial repository on the company's code host (private), <project-id> the sandbox project.
+
+job: 8 vCPU, 32 GiB, gen2, VPC connector with all-traffic egress, task timeout 4 h, no retries, idle shutdown 60 min,
+     debian:trixie-slim as the image, vm/job-start.sh of factory-rf as the command (shipped gzip+base64 in the job's arguments)
+code: factory-rf at commit ca9604391 (F0047 closed), model: one Claude Sonnet model for all three aliases through the company's proxy,
+     prices in the provider file (2 / 10 dollars per million tokens in / out)
+execution: 08:38:11 start; job-start steps to "start" at about 08:41 (image build included); first claim 1 minute after the first start commit
+
+story / work item        start   approval  minutes  runs  cost USD  notes
+F0001-S0001 domain model 08:41   09:08     27       6     1.59      first stage waited for the image build and preflight (about 3 min)
+F0001-S0002 service      09:10   09:26     16       6     0.94
+F0001-S0003 HTTP API     09:28   10:08     40       10    2.20      one review round back to doing (09:55); a shared test helper moved under the standing leave
+F0001-S0004 SQLite       10:09   10:36     27       6     1.46      a repository row added to the contract test, as feature decision 15 says
+F0001-A0001 acceptance   10:37   10:46     9        -     0.53      accepted, 0 proposed stories
+total                    08:41   10:46     2 h 05   -     6.72      28 story runs (88.9 agent minutes by the acceptance's count); human questions: 0
+
+human acts (all through the hosting API or git, as the bot user of the sandbox): 5 start commits, 5 merges with a merge commit, 0 comments.
+the factory archived each merged work item on main within 30 seconds of the merge.
+
+factory log, whole run: no stop, no warning, no crash, no stall, no lease problem, no provider-limit event.
+per stage the stage environment (copy snapshots) cost about 9 s: reset 1.8-2.0 s, sync 0.8-1.0 s, advance 1.8-2.1 s, take 4.4-4.7 s.
+disk at the acceptance: 2.0 GB used under the instance's root, 31.6 GB free.
+token refresher: "valid 3599 s, next in 600 s", every 10 minutes for the whole run, no failure.
+idle shutdown: armed at 60 minutes after the last work (see the end of this record for what happened).
+
+end state of the trial repository's main: the demo project, F0001 with its four stories and the acceptance in done/, F0002 and F0003 untouched in backlog/.
+the tag "starting-point" still marks the state before the run.
+
+end of the run: 11:47:09 "idle shutdown: idle for 60 minutes, ending the factory's process", exit 0, the execution ended as succeeded (3 h 09 min in all, 1 h of it idle).
+the job was then deleted by the human's order; the project holds no job of the trial.
