@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311, 6584737120]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-02T18:30:05.829138Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-02T18:29:45.037295Z'
   stage: doing
   run: cce2c20a8afd4476a0a6bdc24cdba970
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-02T18:30:05.829138Z'
+  stage: review
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -413,3 +422,4 @@ Expect: one line, `0`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+22. factory: started review as vm.
