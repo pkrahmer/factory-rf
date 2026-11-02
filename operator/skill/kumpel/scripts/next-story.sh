@@ -8,10 +8,12 @@
 # order the feature's text sets.
 #   next-story.sh
 set -eu
-here=$(cd "$(dirname "$0")" && pwd)
+here=$(cd "$(dirname "$0")" && pwd -P)
+. "$here/../../../lib/site.sh"
+. "$here/../../../lib/hosting.sh"
 cd "$(sh "$here/settings.sh" get checkout)"
 git checkout -q main
-git pull -q --no-rebase
+hosting_git pull -q --no-rebase
 for path in factory/features/*/in-progress/*.md; do
   [ -f "$path" ] || continue
   echo "busy: $(basename "$path" | cut -d- -f1-2)"
