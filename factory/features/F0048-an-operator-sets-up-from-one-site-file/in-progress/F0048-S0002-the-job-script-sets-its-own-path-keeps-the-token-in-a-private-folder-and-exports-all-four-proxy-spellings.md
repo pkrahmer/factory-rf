@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T16:23:50.781477Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-02T16:23:29.255773Z'
   stage: intake
   run: 6c6170e248fe41449e59831ad3e4e4d7
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:23:50.781477Z'
+  stage: tests
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -128,3 +137,4 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
    - Smoke test: the three commands are runnable. Each `Expect:` is checkable, and none runs pytest.
    - Architecture: a shell script under `vm/`, tests under `tests/` with `tests/vm_support.py` stand-ins. This is consistent with `CLAUDE.md`, and the coder's write paths include `vm/*`.
    - Scope: within feature F0048's S0002 scope (PATH, private token copy, four proxy spellings), and not in its Out of scope. No earlier test changes.
+7. factory: started tests as vm.
