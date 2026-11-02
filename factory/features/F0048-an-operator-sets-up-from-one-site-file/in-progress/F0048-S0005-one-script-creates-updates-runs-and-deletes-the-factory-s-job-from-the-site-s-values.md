@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870, 6586194468]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T19:22:27.739444Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-11-02T19:22:06.814800Z'
   stage: review
   run: 0da05b40f4794f14ad1fd21b06bfd087
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:22:27.739444Z'
+  stage: doing
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -522,3 +531,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
        Fix: criterion 23 also names these three refusals next to the key table. The coder and the tester cannot write the work item, so the next review (or intake) applies this wording.
 
     Earlier tests: none. `git diff --name-status main...HEAD` lists the only test file, `tests/test_operator_job.py`, as added (`A`), and no test file that `main` holds is changed, renamed or deleted.
+29. factory: started doing as vm.
