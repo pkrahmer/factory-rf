@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T21:15:01.242422Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-02T21:14:40.547706Z'
   stage: review
   run: 4225ae1233dd4db886ea3a73b460d91d
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:15:01.242422Z'
+  stage: doing
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -361,3 +370,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
 
     Earlier tests:
     - `tests/test_operator_job.py`: changed under the human's leave, journal 11. Only the `USAGE` constant changed, to the new usage line; no test was renamed and none checks something else.
+20. factory: started doing as vm.
