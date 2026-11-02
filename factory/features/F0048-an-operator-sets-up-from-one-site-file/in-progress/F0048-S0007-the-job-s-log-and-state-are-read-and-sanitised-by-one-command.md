@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T20:50:14.796694Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-02T20:50:14.796694Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-02T20:50:37.438270Z'
+  stage: intake
+  run: 9e1ebd00a8d74424b1b3ca0f907f76e6
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -64,6 +66,8 @@ job.sh status                                  # the latest executions, and the 
 - `status` lists the five newest executions (`gcloud run jobs executions list --job=$SITE_JOB --limit=5 --format=json`), newest first, one line each: `<name> <state> started <HH:MM>` with ` ended <HH:MM>` for a finished one and, for a failed one, `: <the message of its first failed condition>`; `<state>` is `running` when the running count is 1 or more, `succeeded` when the succeeded count is 1 or more, `failed` when the failed count is 1 or more, else `waiting`. Times are in UTC.
 - After the list, for the execution `log` would read, `status` prints `factory: stopped: <the newest log line that contains " stop ", sanitised>` when the last 200 log lines hold a line of the factory's stop form `stop <kind> <reason>: <detail>` and no later line shows the factory running again (a later `preflight:` item line counts as running), else `factory: no stop in the last 200 lines`.
 
+- `status` reads the log with the same arguments as `log` and keeps its last 200 non-empty lines; only the stop form counts. `--quiet` that leaves no line prints nothing and exits 0. An invalid `N` or an unknown option prints `job.sh`'s usage line on standard error and exits 2; a missing `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB` gives `site_require`'s message and exit 2. (Journal 4.)
+
 Tests: `tests/test_operator_job_log.py`, the `gcloud` stand-in of S0005's tests answering `logging read` with a fixture and `executions list` with JSON, the site and the rules file in `tmp_path`.
 
 ## Acceptance criteria
@@ -72,15 +76,23 @@ Tests: `tests/test_operator_job_log.py`, the `gcloud` stand-in of S0005's tests 
 2. The choice of the execution, as rows of one parametrized test: `--execution` wins over the state file, the state file wins over the newest execution, and with none of the three the command prints `job: no execution of <job> found` and exits 1.
 3. `log 3` prints the last three lines of ten; `log` prints at most 60; `log 0` prints nothing and exits 0.
 4. The lines pass through the sanitiser: a fixture line holding a site pattern is printed with its replacement, a line holding a token is printed with `***TOKEN***`; with no rules file the built-ins apply and the sanitiser's warning is on standard error once.
-5. `--quiet` drops each kind of line of the Interface (a row for each of the twelve prefixes and one for `token refreshed:`) and keeps a line that only contains a prefix in its middle; without `--quiet` all are kept.
+5. `--quiet` drops each kind of line of the Interface (a row for each of the eleven prefixes and one for `token refreshed:`) and keeps a line that only contains a prefix in its middle; without `--quiet` all are kept.
 6. A failing `gcloud logging read` (exit 1, `ERROR: (gcloud.logging.read) PERMISSION_DENIED` on standard error) prints `job: gcloud logging read failed: ERROR: (gcloud.logging.read) PERMISSION_DENIED` to standard error, prints nothing to standard output and exits 1.
 7. An empty answer prints the `no log lines yet` message and exits 0.
 8. `status` prints the newest five of six executions, newest first, with the right state for each of `running`, `succeeded`, `failed` and `waiting` (a fixture row for each) and the time of its start in UTC; a finished one has ` ended <HH:MM>`; a failed one ends with `: <message>` from its condition.
 9. `status` prints `factory: stopped: <line>` for a log whose last lines hold `stop machine preflight_failed: tool:uv: uv is not on the PATH` and nothing after it, with the line sanitised; it prints `factory: no stop in the last 200 lines` when the log holds no such line, and when a `preflight:` line follows the stop line (two rows).
 10. `status` with no executions prints `job: no execution of <job> found` and exits 1; its `gcloud` failures are shown as in criterion 6 (with `gcloud run jobs executions list failed`).
 11. `log` and `status` read `last-execution` from `XDG_STATE_HOME` as S0005 writes it (a test writes the file with the S0005 command's own function).
-12. `make check` stays green.
-13. docs: `docs/operator-guide.md`, in the job part: *Watching the job* (`log` and its options, that the log is late, `status`, how to read `factory: stopped`, that the commands sanitise); `README.md` and the other documents: none.
+12. Empty lines in the answer are not printed, and `log N` counts only the non-empty lines (a fixture with empty lines between).
+13. With the site's impersonation value set, `log` and `status` pass the impersonation flag to every `gcloud` call (`logging read` and `executions list`).
+14. With `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB` missing, `log` and `status` print `site_require`'s message and exit 2 (one row per command).
+15. `status` gives `running` for an execution with running 1 and failed 1.
+16. `status` reads the log with the same arguments as `log` and keeps its last 200 non-empty lines: a stop line that is the 200th from the end is found, one that is the 201st gives `factory: no stop in the last 200 lines` (two rows).
+17. Only the stop form `stop <kind> <reason>: <detail>` counts: a line that only contains ` stop ` (`job: stop requested by user`) gives `factory: no stop in the last 200 lines`.
+18. `--quiet` that leaves no line prints nothing and exits 0, without the `no log lines yet` message.
+19. An invalid `N` (not a number, negative) and an unknown option each print `job.sh`'s usage line on standard error and exit 2 (a row each).
+20. `make check` stays green.
+21. docs: `docs/operator-guide.md`, in the job part: *Watching the job* (`log` and its options, that the log is late, `status`, how to read `factory: stopped`, that the commands sanitise); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -134,3 +146,9 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
    7. `--quiet` that leaves no line prints nothing and exits 0; the `no log lines yet` message is only for an empty answer from `gcloud`. A row.
    8. An invalid `N` or an unknown option prints `job.sh`'s usage line on standard error and exits 2, as its other commands do. A row each.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: `operator/job/job.sh` `log [N] [--execution NAME] [--quiet]` and `status` are concrete: exact gcloud arguments, formats, messages and exit codes. Journal 4's answers are now in the Interface (one added bullet).
+   - Criteria: each is testable by one parametrized test. Carried in from journal 4 (the human's edit, not mine): criterion 5 now says eleven prefixes. New criteria 12 to 19 cover empty lines, impersonation, missing SITE_ values, state precedence, the 200-line edge on both sides, the stop form only, `--quiet` leaving nothing, and invalid N or option (exit 2). `make check` and `docs:` are now 20 and 21. Every rule has its failing side.
+   - Smoke test: both blocks are runnable with a stand-in gcloud on PATH. Each has an `Expect:` line that can be checked against the output. No pytest command is involved.
+   - Architecture: shell under `operator/job/`, using S0005's state file and S0006's sanitiser. It touches no layer of `src/factory`. Tests are at the `tests/` root, as the story names.
+   - Scope: within feature scope (S0007 `job.sh log` and `status`). Nothing from "Out of scope" is touched.
