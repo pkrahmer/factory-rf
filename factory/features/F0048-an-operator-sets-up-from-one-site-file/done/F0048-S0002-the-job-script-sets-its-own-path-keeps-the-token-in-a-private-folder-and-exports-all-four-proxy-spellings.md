@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -168,6 +168,11 @@ journal:
   at: '2026-11-02T16:50:04.951060Z'
   stage: smoke-test
   run: a06a69db53644fff880e149581783971
+- number: 30
+  speaker: factory
+  kind: done
+  at: '2026-11-02T16:52:29.500495Z'
+  stage: approval
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -456,3 +461,4 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
     For the `docs:` criterion I read `docs/operator-guide.md`. It covers what the criterion asks for: the `FACTORY_TOKEN_FILE` row (line 1001), the proxy row with the four spellings and the plain-HTTP reason (line 1002), and *The steps* naming the `PATH` (line 1018). The smoke test exercises none of this behaviour; the stand-in tests do.
 
     Findings: none.
+30. factory: done (pull request merged); cost: 12 runs, 10.7 min, 80 turns, 271703 tokens in (1596634 more from cache), 38288 out, $2.88
