@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 503
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T19:43:36.188820Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-02T19:43:36.188820Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-02T19:45:44.904229Z'
+  stage: tests
+  run: 8c1fe8c2a8874077a16f5a2ce99f0e08
 ---
 
 # The reviewer judges all five groups in every review
@@ -76,3 +78,17 @@ Expect: two lines, `1` and `0`.
    - Architecture: only a shipped agent text under `claude/` changes. No layer or code is touched, and the file lies within the coder's write paths.
    - Scope: within F0048 (listed as S0011 in its Scope and Stories, and decision 15). Nothing in the feature's Out of scope is touched, and no other agent file changes.
 4. factory: started tests as vm.
+5. tester: I wrote the tests for criteria 1 to 3. They follow the pattern of `tests/test_claude_agent_texts.py` and use `agent_body` from `tests/shipped_agents.py`.
+   - criterion 1: tests/test_claude_agent_texts_review_groups.py::test_the_checklist_sentence_asks_for_all_five_groups_right_before_item_one. It checks that the Interface's sentence, word for word, comes directly before `1. **Acceptance criteria**`, separated by one blank line.
+   - criterion 2: tests/test_claude_agent_texts_review_groups.py::test_the_reviewer_no_longer_says_stop_at_the_first_failing_group checks the reviewer. tests/test_claude_agent_texts_review_groups.py::test_no_other_agent_asks_for_all_five_groups is parametrized over every other shipped agent.
+   - criterion 3: tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged. The new sentence must occur exactly once. The test then puts today's sentence back in its place and compares a CRC-32 of the result with the CRC-32 of the reviewer's body on the branch as it stands, which is still main's body before this story.
+   - criterion 4 (`make check`) and criterion 5 (docs) have no test of their own.
+
+   Rejected: a SHA-256 hex digest for criterion 3. `make secrets` flags it as a high-entropy string, and I would not add a `pragma: allowlist secret` or a baseline entry without asking. A CRC-32 stored as an integer still catches any accidental change to the bytes and keeps `make secrets` green. I also rejected reading `main` through git in the test, because that comparison would break once this story is merged.
+
+   Files created: tests/test_claude_agent_texts_review_groups.py. I changed no earlier test file.
+
+   Run: `uv run pytest -q tests/test_claude_agent_texts_review_groups.py`. Every module imported. The three reviewer tests fail on their assertions because the reviewer still has the old sentence. The other-agent rows pass, since they guard against something that does not exist yet. `make lint` and `make secrets` are green.
+
+   `lint`: lint: green (0.1 s)
+   `test`: FAILED tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged - AssertionError: assert 0 == 1
