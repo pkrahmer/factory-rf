@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T15:53:07.643816Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -201,6 +197,12 @@ journal:
   kind: started
   at: '2026-11-02T15:53:07.643816Z'
   stage: review
+- number: 35
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T15:54:36.465178Z'
+  stage: review
+  run: 00b90595de924038b244a83d145bc663
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -592,3 +594,19 @@ Expect: one line, `$(echo ran)`.
 32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 33. 2026-11-02 human: Go on. The coder ends with `tests` naming criteria 26 and 27; the tester adds the two rows the reviewer named (`XDG_CONFIG_HOME` empty, `get SITE_`). In the next review, judge all five groups in one pass, not only group 1, so that every remaining finding comes at once. A further missing side of a limit that the code already builds and that needs only a test row is a note, not a reason to send the story back.
 34. factory: started review as vm.
+35. reviewer: Review, round 0 (after the human's answer in entry 33). As the human asked, I judged all five groups in one pass. I read `operator/lib/site.sh`, `operator/bin/site`, `operator/site.env.example`, `tests/operator_support.py` and `tests/test_operator_site.py` against the Interface and criteria 1 to 29. Criteria 1 to 25 have matching tests, and the coder's `make check` was green (entry 29).
+
+    Group 1 fails because two criteria still have no test. Entry 33 asked the coder to end with `tests` and the tester to add the two rows. The journal goes straight from entry 33 to this review (entry 34), so neither the coder nor the tester ran, and the test file is unchanged.
+
+    Groups 2 and 3 pass:
+    - Architecture: the scripts lie outside the layers. The tests reach processes only through `factory.adapters.process.run_process` and git through `git_support.run_git`.
+    - Security: `eval` only ever sees a name that `_site_is_name` has checked, plus `\$2` or `\${NAME}` references, never a value's text. There are no secrets: the example's hosts are `example.invalid`, `localhost` or `192.0.2.10`. No marker silences a check.
+
+    Group 4: nothing under `operator/`. Group 5 has one point about the docs criterion (finding 4).
+
+    1. `tests/test_operator_site.py:137-163` (`test_the_site_path_follows_factory_site_then_xdg_then_home`): criterion 26 has no test. No row has `FACTORY_SITE` unset and `XDG_CONFIG_HOME` empty. Fix: the coder ends with `tests` naming criterion 26. The tester adds the row `pytest.param({"XDG_CONFIG_HOME": ""}, "home/.config/kumpel/site.env", id="empty-xdg-config-home")`. The test's `absolute` mapping already keeps `""` empty.
+    2. `tests/test_operator_site.py:461-483` (`test_a_malformed_command_prints_the_usage_and_exits_2`): criterion 27 has no test. No row runs `site get SITE_`. Fix: in the same `tests` hand-off, the tester adds the row `pytest.param(["get", "SITE_"], id="get-prefix-without-name")`.
+    3. `tests/test_operator_site.py:355` (row `all-set` of `test_require_names_every_unset_or_empty_name_in_the_order_given`): criterion 9 says "with `SITE_A` and `SITE_B` set", but the row passes `SITE_A SITE_D`, and `SITE_B` is never set in that test. Fix: set `SITE_B` in the row's environment and pass `SITE_A SITE_B`. The `unset-and-empty` and `order-given` rows need `SITE_B` unset, so the variable could be set per row through a parameter. It goes in the same `tests` hand-off.
+    4. Criterion 29 (docs), `operator/README.md` *What is here*: the table lists every path under `operator/` that a reader needs. After this story it lacks `bin/site`, `lib/site.sh` and `site.env.example`, yet criterion 29 says "the other documents: none". The coder has flagged this in entries 10, 14, 17, 21, 25 and 29, and nobody acted. Fix: criterion 29 also names `operator/README.md`'s table, with one row each for `bin/site`, `lib/site.sh` and `site.env.example`. No journal entry settles this, so I did not edit the criterion myself. The coder puts it to the human beside the `tests` hand-off; the human's answer then lets the criterion change.
+
+    Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py` and `tests/test_operator_site.py`, both `A`).
