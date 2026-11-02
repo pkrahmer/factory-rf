@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T17:20:38.862284Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-11-02T17:20:17.757924Z'
   stage: doing
   run: 9d5b3076a3f1414aacafffaee45bbd5d
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:20:38.862284Z'
+  stage: tests
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -434,3 +443,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     - For the documenter: the lowest curl version is now 7.63.
 
     `check`: check: green
+23. factory: started tests as vm.
