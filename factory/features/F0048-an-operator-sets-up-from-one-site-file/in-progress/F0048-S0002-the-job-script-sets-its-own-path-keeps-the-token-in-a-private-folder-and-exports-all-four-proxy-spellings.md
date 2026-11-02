@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T16:47:23.595988Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -144,6 +140,12 @@ journal:
   kind: started
   at: '2026-11-02T16:47:23.595988Z'
   stage: review
+- number: 25
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T16:48:05.542172Z'
+  stage: review
+  run: 7dfb0b3190e54dbfbbe9ce33470b17aa
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -356,3 +358,36 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 24. factory: started review as vm.
+25. reviewer: Round 1 review. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. The diff changes `vm/job-start.sh` (+16), adds `tests/test_vm_job_start_environment.py` and changes `tests/tmp_path_support.py`, `tests/test_tmp_path_reopening.py` and `tests/vm_support.py`. I did not run `make check`: the journal records it green after the coder (entry 23).
+
+    Acceptance criteria: each of criteria 1 to 11 has a test, and each test checks what its criterion says.
+    - **Criteria 1 and 2:** the tests compare the whole `PATH` of the `factory-run` and `podman build` stand-ins with `<root>/tools/bin` followed by the starting `PATH`, in order.
+    - **Criteria 3 and 4:** one parametrized test. The 0755, 0750 and 0705 rows are copied: the copy is the token file, the folder is 0700, the file is 0600, the original keeps its text and mode, and the line is printed. The 0700 row is not copied: the token file is as given, there is no `<root>/secrets` and no `token-file` line.
+    - **Criteria 5, 6, 7, 9 and 11:** each has its own test, and each checks the status and output its criterion states.
+    - **Criterion 8:** the seven rows are one parametrized test.
+    - **Criterion 10:** the existing step-order test, unchanged.
+
+    The ownership clause and a failing `cp` or `chmod` stay untested by the human's word (entry 4). The helper builds the environment from scratch, so no proxy from the host's environment can reach the no-proxy test.
+
+    The script matches the Interface:
+    - One `find -maxdepth 0 -user "$(id -u)" ! -perm /077` decides whether the folder is private.
+    - `mkdir -p` and `chmod 0700` make the folder, then `cp` and `chmod 0600` make the copy. Each of the four ends in `|| failed token-file`.
+    - `FACTORY_TOKEN_FILE` is exported as the copy, and the `copied to` line is printed with `printf`.
+    - `PATH="$root/tools/bin:$PATH"` is exported after `inputs`.
+    - `HTTP_PROXY` and `http_proxy` are filled through the existing `default` helper, which keeps a value the job set that is not empty and fills one that is empty.
+    - The apt file and every step's name and order are unchanged.
+
+    Architecture: no `src/` change. The script stays under `vm/` and the tests under `tests/`.
+
+    Security: no secret, and no command built from a string. The token's text reaches no output. The diff adds no marker that silences a check.
+
+    Quality: the comments say why. Round 0's finding is fixed: there is one `file_mode` in `tests/tmp_path_support.py`, and `_add` there uses it too.
+
+    Work item: the Description matches what was built, and criterion 13 (`docs:`) still says what the documenter must write.
+
+    no findings
+
+    Earlier tests:
+    - `tests/vm_support.py`: changed under the human's leave in journal entry 9 (`token.parent.chmod(0o700)` in `run_job_start`, only that line).
+    - `tests/test_tmp_path_reopening.py`: changed under the standing leave to move a shared test helper. Its `_mode` was replaced by `file_mode` from `tmp_path_support`, and every test keeps its name and its check.
+    - `tests/tmp_path_support.py`: the shared place, changed under the same standing leave. It gains `file_mode`, and `_add` uses it in place of the same expression.
