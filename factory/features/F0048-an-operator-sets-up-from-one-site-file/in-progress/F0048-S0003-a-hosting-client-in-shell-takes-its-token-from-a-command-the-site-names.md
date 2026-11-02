@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T16:55:44.170118Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-02T16:55:23.148204Z'
   stage: intake
   run: 5bd3ebb98b154e40adc56c04a847b242
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:55:44.170118Z'
+  stage: tests
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -142,3 +151,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
    - Smoke test: both blocks run as written and neither runs pytest. The `Expect:` lines (`abc`; `exit 4` plus the message, with no `SECRETWORD`) can be checked against the output.
    - Architecture: a shell library under `operator/lib/` that reads the site through S0001's loader. It changes no existing script and matches `feature.md` decisions 3, 4, 5 and 14.
    - Scope: inside F0048's "A hosting client in shell" and nothing in its Out of scope. No test of another story is changed. The `Description` is unchanged because the meaning of the task did not change.
+7. factory: started tests as vm.
