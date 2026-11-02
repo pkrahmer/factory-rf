@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T16:43:49.854097Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -133,6 +129,12 @@ journal:
   kind: started
   at: '2026-11-02T16:43:49.854097Z'
   stage: doing
+- number: 23
+  speaker: coder
+  kind: result
+  at: '2026-11-02T16:47:02.526009Z'
+  stage: doing
+  run: 554ced8e0b8b45ebbc5158c4bccec89c
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -327,3 +329,20 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
     `lint`: lint: green (0.1 s)
     `test`: test: green (75.1 s)
 22. factory: started doing as vm.
+23. coder: Round 1. I changed no code. The reviewer's only finding (entry 17, finding 1) was the copied `_mode` test helper. The tester has fixed it under the standing leave (entry 21): it is now `file_mode` in `tests/tmp_path_support.py`, used by `tests/test_tmp_path_reopening.py` and `tests/test_vm_job_start_environment.py`. Nothing in the code was left to change for this round.
+
+    What I built is unchanged since entry 15, and all of it is in `vm/job-start.sh`:
+    - **Token copy.** If the token's folder is not private (checked with one `find -maxdepth 0 -user "$(id -u)" ! -perm /077`), the script runs `mkdir -p` and `chmod 0700` on `<root>/secrets`, then `cp` and `chmod 0600` on the copy. Each of those commands stops with `job-start: token-file: failed` if it fails.
+    - **PATH.** After `inputs` the script exports `PATH="$root/tools/bin:$PATH"`.
+    - **Proxy.** `HTTP_PROXY` and `http_proxy` are filled through the existing `default` helper.
+
+    Main choice: one `find` expression tests both owner and mode. I rejected `stat -c '%u %a'` plus octal arithmetic in sh, which would be longer and makes the setgid and sticky digits awkward to parse.
+
+    Refactor pass: I found nothing to change. The working tree holds no uncommitted changes, and `make check` is green on the committed state (`check: green`, test: green 78.4 s).
+
+    The journal changed nothing in the Description.
+
+    Noticed, not touched: when the copy replaces an old `hosting-token`, the file keeps its old mode for a moment between `cp` and `chmod 0600`. This is harmless because the folder is already 0700.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
