@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T16:39:05.444119Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-02T16:39:05.444119Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T16:40:35.219675Z'
+  stage: review
+  run: 47dbff94d7424241b09fee1b6375ca31
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -256,3 +258,21 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 16. factory: started review as vm.
+17. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (vm/job-start.sh +16, tests/vm_support.py +1, new tests/test_vm_job_start_environment.py) against the work item. I did not run `make check`: the journal records it green after the coder (entry 15).
+
+    Acceptance criteria: criteria 1 to 11 each have a test that checks what the criterion says. The token test has rows 0755, 0750, 0705 (copied) and 0700 (not copied). The proxy test has the seven rows as one parametrized test. Criterion 11 has the second-run test and criterion 6 the failing copy. The ownership clause and a failing `cp` or `chmod` are untested by the human's word (entry 4).
+
+    The script matches the Interface:
+    - the folder's privacy is tested with one `find -maxdepth 0 -user "$(id -u)" ! -perm /077`;
+    - `mkdir -p` + `chmod 0700`, `cp`, `chmod 0600`, each `|| failed token-file`;
+    - `PATH="$root/tools/bin:$PATH"` is exported after `inputs`;
+    - `default HTTP_PROXY` / `default http_proxy` keep a non-empty value the job set and fill an empty one;
+    - the apt file is unchanged.
+
+    Architecture holds: a shell script under vm/ and no src/ change. Security is fine: no token in any output, no command built from a string, no silencing marker.
+
+    Findings:
+    1. tests/test_vm_job_start_environment.py:15: `_mode` is a second copy of the helper `_mode` in tests/test_tmp_path_reopening.py:52 (`stat.S_IMODE(path.lstat().st_mode)`; the new copy differs only in using `stat`). Fix: the tester moves it once into a shared module under tests/ (for example tests/tmp_path_support.py, or a new `*_support.py`) and both modules import it. Under the standing leave, test_tmp_path_reopening.py keeps its test names and checks. The `lstat` form serves the new tests too, since the token folder and the copy are not symbolic links.
+
+    Earlier tests:
+    - tests/vm_support.py: changed under the human's leave, journal entry 9 (`token.parent.chmod(0o700)` in `run_job_start`, only that line).
