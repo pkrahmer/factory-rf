@@ -1,17 +1,13 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
-crashes: 1
+crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T16:34:56.584717Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-02T16:34:56.584717Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-11-02T16:38:44.009132Z'
+  stage: doing
+  run: 77b28f577c1840fd915159af68a31201
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -226,3 +228,21 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
 12. factory: started doing as vm.
 13. factory: crash 1: the run of stage doing ended without a result. Its work is discarded back to commit 70d62a4b979f9f2ddc4eba0f8801ad597644be92.
 14. factory: started doing as vm.
+15. coder: I built all three changes in `vm/job-start.sh`. No other file changed. `make check` is green, and the new `tests/test_vm_job_start_environment.py` and the existing `tests/test_vm_job_start.py` both pass.
+
+    - **Token copy.** It sits in the `inputs` step, after `root` is derived. The script checks whether the token's folder is private with `find "$token_folder" -maxdepth 0 -user "$(id -u)" ! -perm /077`, which prints nothing unless the folder is owned by the running user and has no bit for group or others. If it is not private, the script runs `mkdir -p` and `chmod 0700` on `<root>/secrets`, copies the token there as `hosting-token`, and runs `chmod 0600` on the copy. Each of these four commands ends in `|| failed token-file`, which stops with `job-start: token-file: failed`, status 1. The script then exports `FACTORY_TOKEN_FILE` as the copy and prints `job-start: token-file: copied to <root>/secrets` with `printf`. I used `printf` rather than `step` so the line does not read as a step of its own.
+    - **PATH.** After the `inputs` step the script exports `PATH="$root/tools/bin:$PATH"`.
+    - **Proxy.** In the `proxy` step, besides the two HTTPS names, `HTTP_PROXY` and `http_proxy` are set through the existing `default` helper. It keeps a value the job gave that is not empty, fills in one that is unset or empty, and exports the name. The `apt` file is unchanged.
+
+    Main choice: I tested ownership and mode in one `find` expression. I rejected `stat -c '%u %a'` compared with `id -u` plus octal arithmetic in sh. That would take more lines, and setgid/sticky digits would make `%a` awkward to parse.
+
+    I copied with `cp` and `chmod`, not `install -m`, because `install` is one of the test stand-ins and would not really copy the file. That is also a sound reason in the real script: the steps call `install` only for binaries.
+
+    Refactor pass: I read the diff, which is 16 added lines, and found nothing to change.
+
+    The journal changed nothing in the Description. The human's answers were already folded in at intake, and the helper change in `tests/vm_support.py` from entries 9 and 11 is the tester's.
+
+    Noticed, not touched: between `cp` and `chmod 0600`, a replaced old `hosting-token` keeps its old mode for a moment. That is harmless because the folder is already 0700.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone

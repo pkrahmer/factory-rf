@@ -70,11 +70,27 @@ default FACTORY_IMAGE_ID_FILE "$root/image-id"
 default FACTORY_CONTAINER_PROFILE job
 default FACTORY_AGENT_RUNTIME opencode
 default FACTORY_IDLE_SHUTDOWN_ACTION exit
+# The preflight wants the token's folder private, and a mounted secret's folder never is.
+token_folder=$(dirname "$FACTORY_TOKEN_FILE")
+if [ -z "$(find "$token_folder" -maxdepth 0 -user "$(id -u)" ! -perm /077)" ]; then
+  secrets=$root/secrets
+  mkdir -p "$secrets" || failed token-file
+  chmod 0700 "$secrets" || failed token-file
+  cp "$FACTORY_TOKEN_FILE" "$secrets/hosting-token" || failed token-file
+  chmod 0600 "$secrets/hosting-token" || failed token-file
+  export FACTORY_TOKEN_FILE="$secrets/hosting-token"
+  printf 'job-start: token-file: copied to %s\n' "$secrets"
+fi
+# The tools step builds uv and the factory's own commands here; the preflight looks for them.
+export PATH="$root/tools/bin:$PATH"
 
 step proxy
 proxy=${HTTPS_PROXY:-${https_proxy:-}}
 if [ -n "$proxy" ]; then
   export HTTPS_PROXY="$proxy" https_proxy="$proxy"
+  # The stage image's package manager fetches over plain HTTP.
+  default HTTP_PROXY "$proxy"
+  default http_proxy "$proxy"
   cat >"$prefix/etc/apt/apt.conf.d/99proxy" <<EOF || failed proxy
 Acquire::http::Proxy "$proxy";
 Acquire::https::Proxy "$proxy";
