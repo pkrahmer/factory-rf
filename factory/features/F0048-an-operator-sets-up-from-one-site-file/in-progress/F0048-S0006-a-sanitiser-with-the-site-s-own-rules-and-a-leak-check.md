@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T20:09:43.743123Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-02T20:09:43.743123Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-02T20:10:13.545245Z'
+  stage: intake
+  run: a229b72d539e4b05923d31a1ac71e056
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -57,11 +59,11 @@ sanitise                    # standard input to standard output, rules applied
 sanitise check FILE...      # exit 0 and "sanitise: clean", or 1 naming file:line, or 3
 ```
 
-- The rules file is `$SITE_SANITISE_RULES`, else `sanitise.rules` in the folder of the site file. Its lines are blank, a comment (`#`), `PATTERN => REPLACEMENT` (the pattern a Python regular expression, applied with `re.sub`, case sensitive; the replacement literal text with `\1`-style groups allowed), `drop: PATTERN` (a line that matches is removed), or `leak: PATTERN` (a pattern that the check reports and the filter leaves alone). The first ` => ` of a line splits it; leading and trailing whitespace of both parts is removed. A line of another kind, or a pattern that is not a valid regular expression, stops the command with `sanitise: <path>:<line>: <reason>` and status 2.
+- The rules file is `$SITE_SANITISE_RULES`, else `sanitise.rules` in the folder of the site file. Its lines are blank, a comment (`#`), `PATTERN => REPLACEMENT` (the pattern a Python regular expression, applied with `re.sub`, case sensitive; the replacement literal text with `\1`-style groups allowed), `drop: PATTERN` (a line that matches is removed), or `leak: PATTERN` (a pattern that the check reports and the filter leaves alone). The first ` => ` of a line splits it; leading and trailing whitespace of both parts is removed. A line of another kind, a pattern that is empty (on any of the three kinds), or a pattern that is not a valid regular expression, stops the command with `sanitise: <path>:<line>: <reason>` and status 2; `check` stops the same way, with the same message and status, before it reads any file. The rules are numbered 1-based in file order, counting only rule lines (`=>`, `drop:`, `leak:`), never blank or comment lines.
 - The built-in rules, applied before the site's, in this order: remove ANSI escape sequences (`\x1b\[[0-9;]*[A-Za-z]`); replace `eyJ` followed by two further dot-separated base64url parts (each at least 10 characters) with `***JWT***`; replace `gh[pousr]_[A-Za-z0-9]{20,}` and `github_pat_[A-Za-z0-9_]{20,}` with `***TOKEN***`.
 - A filter without a rules file prints `sanitise: no rules file at <path>; only the built-in rules apply` to standard error once and goes on. `check` without one prints `sanitise: no rules file at <path>; nothing to check against` and returns 3.
-- `check` reads each file and, for every line, tests the built-in token patterns (before replacement) and every site pattern (each rule's left side and each `leak:` pattern). For each line that matches it prints `<file>:<line>: <n>` to standard output, `<n>` the number of the rule in the order of the file (a built-in is `builtin-1`, `builtin-2`, `builtin-3`), once per line and rule. It never prints a matched text. When nothing matched it prints `sanitise: clean` and returns 0; else 1. A missing file returns 2 with `sanitise: <file>: no such file`.
-- The filter keeps the order of the lines, applies the rules line by line, and ends every line with a newline.
+- `check` reads each file and, for every line, tests the built-in token patterns (before replacement) and every site pattern (each rule's left side, each `drop:` pattern and each `leak:` pattern; all three built-ins, `builtin-3` for both the `gh[pousr]_` and the `github_pat_` form). For each line that matches it prints `<file>:<line>: <n>` to standard output, `<n>` the number of the rule in the order of the file (a built-in is `builtin-1`, `builtin-2`, `builtin-3`), once per line and rule. It never prints a matched text. When nothing matched it prints `sanitise: clean` and returns 0; else 1. `check` makes sure every named file exists before it reads any: a missing file returns 2 with `sanitise: <file>: no such file` and nothing else on standard output.
+- The filter keeps the order of the lines, applies the rules line by line, and ends every line with a newline (a last line without one gets one; an empty input gives an empty output).
 
 Tests: `tests/test_operator_sanitise.py`, running the command as a child process with a site file and a rules file in `tmp_path`.
 
@@ -71,15 +73,20 @@ Tests: `tests/test_operator_sanitise.py`, running the command as a child process
 2. A site rule `corp\.example\.invalid => <company-host>` replaces every occurrence in a line; a rule with a group (`(\d+)-secret => \1-x`) keeps the group.
 3. `drop:` removes the matching line from the output and keeps the other lines in their order; a `leak:` pattern does not change the filter's output.
 4. The order: the built-ins are applied first, then the site's rules in the file's order, so that a site rule sees the text the built-ins left.
-5. Faults of the rules file stop the filter with status 2 and nothing on standard output, as rows of one parametrized test: a line `no arrow here`, a pattern `[unclosed`, a `drop:` with an empty pattern; each message names the path and the line number.
+5. Faults of the rules file stop the filter with status 2 and nothing on standard output, as rows of one parametrized test: a line `no arrow here`, a pattern `[unclosed`, an empty pattern in each kind (`=> x`, `drop:`, `leak:`); each message names the path and the line number.
 6. A missing rules file: the filter prints its warning to standard error once, applies the built-ins, and exits 0; `check` prints its message, runs no check and exits 3.
 7. `SITE_SANITISE_RULES` in the site file (or the environment) names another rules file and wins over the default; a relative path is relative to the site file's folder.
 8. `check` on a file with the line `host corp.example.invalid` (the rule of criterion 2) at line 3 prints `<file>:3: 1` and exits 1; on a file with a token at line 2 prints `<file>:2: builtin-3`; the printed lines contain neither the matched host nor the token.
-9. `check` on a clean file prints `sanitise: clean` and exits 0; on two files, one clean and one not, it reports the one and exits 1; on a missing file it exits 2 with its message and does not read the others.
+9. `check` on a clean file prints `sanitise: clean` and exits 0; on two files, one clean and one not, it reports the one and exits 1; on a leaking file followed by a missing one it prints only `sanitise: <file>: no such file` (no report of the first) and exits 2.
 10. A line that matches two rules is reported once for each rule; a rule that matches two lines is reported for both lines.
 11. A sanitised output passes `check` against the same rules whenever the replacements do not themselves match a pattern (a test: a mixed input filtered, then checked: `sanitise: clean`).
-12. `make check` stays green.
-13. docs: `docs/operator-guide.md`, in the site file's part: a section *Sanitising what leaves the machine* (the rules file's place and format, the built-in rules, `check`, and that the rules file is the site's and never goes into a repository); `README.md` and the other documents: none.
+12. `check` tests every built-in, as rows of one parametrized test: a line with an escape sequence is reported `builtin-1`, a JWT `builtin-2`, a `ghp_` token and a `github_pat_` token each `builtin-3`.
+13. Rule numbers in `check` count only rule lines: a rules file of a comment, a blank line, a `=>` rule, a comment, a blank line and a `drop:` rule reports a line matching the `drop:` pattern as `<file>:<line>: 2`; a `leak:` pattern is reported by number too.
+14. A last line without a newline gets one in the output; an empty input gives an empty output.
+15. A rules-file fault stops `check` with status 2, the same message as the filter's (path and line number), and no report of any file.
+16. `SITE_SANITISE_RULES` in the environment wins over the one in the site file; a relative path in it is relative to the site file's folder.
+17. `make check` stays green.
+18. docs: `docs/operator-guide.md`, in the site file's part: a section *Sanitising what leaves the machine* (the rules file's place and format, the built-in rules, `check`, and that the rules file is the site's and never goes into a repository); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -124,3 +131,9 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
    5. `check` makes sure every named file exists before it reads any: a missing file prints only its message, nothing else, and status 2. State it and test it with the missing file second.
    6. Yes, both rows: the environment's `SITE_SANITISE_RULES` wins over the site file's, and a relative path is relative to the site file's folder.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answers (journal entry 4) carried into the story. I did not add anything of my own.
+   - Interface: `operator/bin/sanitise` with its two forms. Written in from entry 4: the rule numbering (1-based, only `=>`, `drop:` and `leak:` lines), `drop:` patterns checked, all three built-ins checked (both forms of `builtin-3`), an empty pattern as a fault for all three kinds, a rules-file fault stopping `check` with status 2 and the same message, `check` testing that every named file exists before it reads any, and the trailing newline and empty-input behaviour.
+   - Criteria: each is testable by one parametrized test or function. Every rule has its failing side. Criterion 5 gained the empty `=>` and `leak:` patterns. Criterion 9 now has the missing file second and prints only its message. New criteria 12 to 16 cover the built-ins in `check`, the numbering past comment and blank lines, the trailing newline, the rules-file fault in `check`, and the environment overriding the site file plus the relative path. The two closing criteria are now 17 and 18, still last.
+   - Smoke test: both commands are runnable, and neither runs pytest. Each `Expect:` line is checkable against the output (two lines each).
+   - Architecture: a shell script under `operator/bin/` with `python3`, as `feature.md` scopes it. It touches nothing in `src/factory`. The rules file lies beside the site file, outside any repository.
+   - Scope: within S0006 of F0048. The story adds no use of the sanitiser (that is S0007), and nothing falls under "Out of scope".
