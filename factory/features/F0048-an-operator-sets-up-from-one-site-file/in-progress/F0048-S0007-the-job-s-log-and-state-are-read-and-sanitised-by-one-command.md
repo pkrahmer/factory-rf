@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T21:05:56.095063Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-02T21:05:56.095063Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-02T21:06:15.184078Z'
+  stage: doing
+  run: 583b17a6ee7741adaec221e18f292004
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -258,3 +260,14 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
 11. 2026-11-02 human: (a), granted: the tester changes line 418's test to pass `STAND_IN_FAIL` and `STAND_IN_FAIL_TEXT` as parameter columns and named keyword arguments, as you describe.
     Also granted, in the same tester run: the usage line names `log` and `status`. The tester may change the rows of `tests/test_operator_job.py` (S0005) that pin the exact usage text to the new line, and nothing else in that file; you then extend the usage line in `job.sh`. `started -` for an execution without a start time is fine as it is.
 12. factory: started doing as vm.
+13. coder: The human's answer (journal 11) calls for two test changes before I can finish. I changed no code in this run.
+
+    The changes for the tester:
+    1. `tests/test_operator_job_log.py`, `test_status_shows_a_missing_execution_and_gcloud_failures` (line 418): make `STAND_IN_FAIL` and `STAND_IN_FAIL_TEXT` parameter columns (an empty string means "no failure") and pass them to `world.run(...)` as named keyword arguments, not `**extra`. This clears the `arg-type` error in `make types`.
+    2. `tests/test_operator_job.py` (S0005): change only the rows that pin the exact usage text, to the new line `usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes] | log [N] [--execution NAME] [--quiet] | status`. Change nothing else in that file.
+
+    After that, I extend `usage()` in `operator/job/job.sh` to the same line and run `make check`. I don't extend it now: until the S0005 rows change, it would break them.
+
+    Already built in the working tree (previous run, journal 10): `operator/job/job.sh` with `log` and `status`. Its main decision stays as it was: `gcloud_call` adds `--region` only to `run` calls. The alternative I rejected was a second call wrapper for logging.
+
+    The journal changed the meaning of the task in one place: the usage line now names `log` and `status`. My write paths don't include the work item, so `## Description` is unchanged. `started -` for an execution with no start time stays, as the human accepted it.
