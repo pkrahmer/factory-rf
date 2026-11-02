@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T22:04:51.057107Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-02T22:04:51.057107Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T22:06:56.358951Z'
+  stage: review
+  run: e3336bcab36441db8d7043ef7863e1ce
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -189,10 +191,11 @@ Tests: `tests/test_operator_merge_reset.py` with the `curl` stand-in of S0003's 
 9. A failing call stops the script, as rows of one parametrized test: a close `PATCH`, the third `DELETE` and the move of `main` answered 422 each print the message of `hosting_api` (with the full `/repos/<repository>/...` path), exit 1 and send none of the later requests (after a failing close, no further close, no `DELETE` and no move; after the third `DELETE`, no later `DELETE` and no move; after a failing move, nothing).
 10. A reset that finds nothing to close or delete still moves `main` and prints only the `moved` line.
 11. No request touches a ref other than `heads/work-item/*` and `heads/main` and no tag (a test over every request of the rows above).
-12. A failing read stops the reset before any change, as rows of one parametrized test: the list of open pull requests, the list of `work-item/` refs and the annotated tag's `GET /git/tags/<sha>` answered 500 each print the message of `hosting_api` (with the full path), exit 1 and send no change.
+12. A failing read stops the reset before any change, as rows of one parametrized test: the list of open pull requests, the list of `work-item/` refs, the annotated tag's `GET /git/tags/<sha>` and the tag's own `GET /git/ref/tags/<tag>` answered 500 each print the message of `hosting_api` (with the full path), exit 1 and send no change; only a 404 of the tag's lookup prints `no tag <tag>` (criterion 7), so the 500 row prints no `no tag` line.
 13. A wrong command line prints the script's `usage:` line on standard error, exits 2 and sends no request, as rows of one parametrized test: `merge.sh` with one argument and with three, `reset-to-tag.sh` with none, with a second argument other than `--yes` (`--yse`) and with three.
-14. `make check` stays green.
-15. docs: `operator/skill/kumpel/references/approving.md` (the *Then* part names `merge.sh`), `operator/README.md` (the scripts table) and `docs/operator-guide.md` (a section *Repeating a trial*: the starting-point tag, `reset-to-tag.sh`, the three conditions, that a force-push cannot be undone); `README.md` and the other documents: none.
+14. A failing read of `merge.sh`, as rows of one parametrized test: `GET /pulls/5` answered 500 prints the message of `hosting_api` (with the full path), exits 1 and sends no `PUT` and no poll; the first poll answered 500 and the archive commit in the second, with `KUMPEL_POLL_SECONDS=0` and `KUMPEL_ARCHIVE_WAIT=60`, prints that message, goes on waiting and ends with `archived F0001-S0001` and exit 0.
+15. `make check` stays green.
+16. docs: `operator/skill/kumpel/references/approving.md` (the *Then* part names `merge.sh`), `operator/README.md` (the scripts table) and `docs/operator-guide.md` (a section *Repeating a trial*: the starting-point tag, `reset-to-tag.sh`, the three conditions, that a force-push cannot be undone); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -449,3 +452,29 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 26. factory: started review as vm.
+27. reviewer: Findings:
+
+    1. `operator/skill/kumpel/scripts/merge.sh:11-13`: the merge reads the repository only from `SITE_REPOSITORY`, through `hosting_repo_api`'s `site_require`. The sibling API scripts take it from `settings.sh get repository` (`approval.sh:13-14`, `status.sh:11-12`), and that call returns the site's value first and falls back to the skill's settings file (`settings.sh:63-69`, `:2-3`). So an operator whose site gives no repository can run `status.sh` and `approval.sh` but not `merge.sh`, which stops with `site: missing SITE_REPOSITORY`. Entry 13 gives the reason "so they work with no settings file", but that is wrong: `settings.sh get` answers from the site without reading the file. Fix: set and export `SITE_REPOSITORY=$(sh "$here/settings.sh" get repository)` as `approval.sh:13-14` does. This is `merge.sh` only; `reset-to-tag.sh` keeps `SITE_REPOSITORY` as its Interface requires. The tests' site already names the repository, so no test change is needed.
+    2. Criterion 12 widened, and the new row needs its test. A 500 from the tag's own `GET /git/ref/tags/<tag>` prints `hosting_api`'s message and not `no tag <tag>`, exits 1 and sends no change. This is the coder's second choice (entry 13), built in `reset-to-tag.sh:36-46` (`grep -q ': 404'`), and no criterion names it. Fix: a fourth row of `test_a_failing_read_stops_the_reset_before_any_change` that answers the tag lookup 500 and asserts the hosting line, that no `no tag` line is printed, exit 1 and no change. No code change.
+    3. Criterion 14 added, and it needs its test. `merge.sh`'s failing reads have no criterion. A failing `GET /pulls/<pr>` (`merge.sh:43`, `|| exit 1`) must print the hosting message, exit 1 and send no `PUT`, and nothing pins that it sends no `PUT`. A failing poll (`merge.sh:35`, `|| return 1`, from entry 21's fix) keeps the wait going, and nothing pins that either. Fix: one parametrized test with these two rows, as criterion 14 says. No code change.
+
+    Work item: I edited criterion 12 and added criterion 14 before the two closing criteria, which are now 15 (`make check`) and 16 (docs). The Description, the Interface and the other criteria are unchanged.
+
+    Checked and passing:
+    - Criteria 1 to 13 each have a test in `tests/test_operator_merge_reset.py` that checks what the criterion says. The refusals (2), the repository conditions (5), the failing writes (9), the failing reads (12) and the usage lines (13) are rows of one parametrized test each.
+    - The archive wait is tested on both sides, at 0 s and at 60 s with the archive commit in the third answer.
+    - The factory's `make check` after the coder is green (entry 25), and duplicates shows 0 new.
+    - Entry 21's fix holds: every API answer is stored with `|| exit 1` or `|| return 1` before Python parses it.
+    - Architecture: nothing under `src/` changed. The scripts use the S0001 site loader and the S0003 `hosting_repo_api`.
+    - Security: no secrets and no silencing markers. The token stays out of argument lists through `hosting.sh`. `--yes` is matched exactly, and `--yse` gives the usage line (criterion 13).
+    - Hygiene: the journal explains the main choices (the clock ends the wait; only a 404 counts as a missing tag; the read is kept separate from the parse instead of using `pipefail`). The Description matches what was built, and docs criterion 16 still names the three documents.
+
+    Considered and not reported:
+    - The usage line is written twice in `reset-to-tag.sh:10-11`. It is two short lines, and the coder considered it in entry 17.
+    - The tag and `<pr>` go into the URL unchecked. Both are the operator's own arguments, and a strange path only ever reaches a GET.
+
+    Earlier tests: none. The only test file in the diff is new (`A tests/test_operator_merge_reset.py`).
+
+    Notes:
+    - `tests/test_operator_merge_reset.py:16-21`: `SCRIPTS`, `REPOSITORY`, `PREFIX`, `API_URL` and `ACCESS_COMMAND` copy the constants of `tests/test_operator_skill_scripts.py:15-20`. They could move to `tests/operator_support.py` under the standing leave.
+    - `tests/test_operator_merge_reset.py:126-142`: `Machine.requests` repeats the URL parsing of `Operator.urls` in `tests/test_operator_skill_scripts.py:83-95`, and the `machine` fixture repeats the folder setup of the `operator` fixture there.
