@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 498
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T13:59:55.903371Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-02T13:59:55.903371Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-02T14:00:26.870091Z'
+  stage: intake
+  run: 39b8ba91cb804b94abdf8b4d47be9552
+  blocked: question
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -119,3 +122,17 @@ Expect: one line, `$(echo ran)`.
 
 1. 2026-11-02 human: created.
 2. factory: started intake as vm.
+3. intake: Format check: passed. Three questions; everything else I checked is fine (see the end).
+
+   1. `site show` and `site get SITE_X` call `site_load`, which can return 1 (missing file), 2 (faulty file) or 3 (file in a git work tree). The Interface does not say what these two commands do then, and no criterion tests it. Do they print `site_load`'s message to standard error and exit with its status? I would choose yes. I would add one criterion with rows for the three failing loads, for `show` and for `get`: the message of the Interface on standard error, nothing on standard output, and the status 1, 2 or 3. As written, two coders could read this two ways and both would pass the tests.
+
+   2. `site get` with no name, or with a name that does not start with `SITE_` (for example `site get HOME`), is not specified. Should it print the usage line and exit 2, like any other malformed command? I would choose yes, and add the case as rows to criterion 13. Without this, `site get HOME` could print the value of an unrelated environment variable.
+
+   3. `site path` and `site init` do not load the file, but `site init` may write inside a git work tree, and the loader will refuse that file later. Should `init` refuse a path inside a git work tree (message and exit status to be named, for example the loader's message and 3), or write it and leave the refusal to the loader? I would choose to refuse, because the example is the company's values-to-be. If you choose refuse, it needs a criterion with both sides: in a work tree it refuses and writes nothing, outside it writes.
+
+   Checked and fine:
+   - Interface: it names concrete files and functions. All 31 keys are counted and in order, and the smoke test positions 1, 7, 8 and 9 match REPOSITORY, PROJECT, REGION and IMPERSONATE.
+   - Criteria: otherwise each is testable by one test, and the rules have both sides (the faulty-line kinds, env wins, missing file, git work tree or not, empty or unset, init twice).
+   - Smoke test: the three blocks run as written. No pytest is involved, and each `Expect:` line is checkable.
+   - Architecture: the scripts lie outside the layers, which the Interface says. `operator/*` is already in the coder's write paths in `factory/pipeline.yml`, as the feature asks.
+   - Scope: the story stays within the feature's S0001 scope (site file, loader, example, `path`, `init`, `show` and `get`). It adds no `site check`, and no existing script or test changes.
