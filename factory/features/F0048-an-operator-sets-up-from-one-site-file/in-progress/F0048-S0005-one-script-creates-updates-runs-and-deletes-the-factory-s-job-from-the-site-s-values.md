@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870, 6586194468, 6586555390]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-02T19:35:09.016427Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -234,6 +230,12 @@ journal:
   kind: started
   at: '2026-11-02T19:35:09.016427Z'
   stage: docs
+- number: 41
+  speaker: documenter
+  kind: result
+  at: '2026-11-02T19:36:14.856167Z'
+  stage: docs
+  run: 4b8f536d576e49dd8eb834b360c1de94
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -717,3 +719,24 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     - `tests/test_operator_hosting.py`: changed under the standing leave to move a shared test helper. `calls` keeps its name and callers and now returns `read_records(records / f"{name}.jsonl")`. Every test keeps its name and what it checks (tester's entry 32).
     - `tests/recording_stand_in_support.py`: support module, changed under the same leave. It gains the shared `read_records`, and `recorded_calls` now uses it and returns the same thing.
 40. factory: started docs as vm.
+41. documenter: Docs round after the review's pass and the human's answer (a) on criterion 23. I found no code finding: `operator/job/job.sh` matches the Interface and the criteria on every point I read it for (the `check_instance`, `check_env_values` and `check_costs` refusals, `--dry-run`, the overlap check, `--yes`).
+
+    Changed:
+    - `docs/operator-guide.md`, *Creating the job*: the template `gcloud` call is replaced by `job.sh create|update|execute|delete`.
+      - A table lists the keys each command reads, pointing to *The keys* for their meaning.
+      - Beside the table are the three refusals (instance name characters, `@` in an env-list value, a price that is not a plain number) and the consequence that a job needs the `https://` form of the repository URL.
+      - The section also covers the wrapper (writes the provider file and hands over, takes `vm/job-start.sh` from `SITE_CODE_REF`, the unknown-ref and `JOB_START_SH_END` stops), `--dry-run`, the exists/missing rules and the first-start order. That order is `site check`, `create`, `execute`; `site check` does not exist yet and the text says so, with `site show` as the stand-in. It also covers the overlap rule and the deletion rule.
+    - `docs/operator-guide.md`, *The site file* intro: it said no script reads the file for a job. It now names `job.sh`.
+    - `docs/operator-guide.md`, *The keys* table: defaults made true to `job.sh`. CPU 8, memory 32Gi, timeout 14400 seconds, idle minutes 60 and prices `0`. `SITE_INSTANCE`, `SITE_CODE_REF`, `SITE_MODEL_BASE_URL`, `SITE_PROXY`, `SITE_NO_PROXY` and the three login keys are now "required for a job".
+
+    Cross-read and found current: `README.md` (criterion says none), and the rest of `docs/operator-guide.md` (*What the job needs*, *The environment*, *The steps* against `vm/job-start.sh` behaviour as the diff touches it).
+
+    Not run: I did not run `job.sh` examples; the guide's shell block lists the four commands only, and the story's smoke test covers them. No `make check`, since I changed only a document.
+
+    Stale, not mine to fix:
+    - `operator/site.env.example` is not mine to write, and its comments may still give the older defaults (4 CPUs, 16Gi, 24h, 30 minutes). I did not read it through. The guide's table now follows `job.sh`.
+    - *What the job needs* and *Creating the job* are consistent, but *What the job needs* still says "Eight vCPUs and 16 GiB at least" and a 23h timeout, while `job.sh`'s defaults are 32Gi and 14400 s. These are advice, not defaults, so I left them.
+
+    `check`: check: green (not run again: passed on tree cf3269b0adfa at 2026-11-02T19:29:24Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
