@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T15:15:57.150500Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T15:15:38.614873Z'
+  stage: doing
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-02T15:15:57.150500Z'
   stage: doing
 ---
 
@@ -319,3 +328,4 @@ Expect: one line, `$(echo ran)`.
 
     Noticed, not touched: nothing new beyond my entry 10. The example's defaults are still my reading of the key names, and `operator/README.md` does not mention `site`.
 15. 2026-11-02 human: (a), as you propose: a space before the `=` is a fault (`not a KEY=value line`), and a space after it belongs to the value (the value is everything after the first `=`, only trailing whitespace removed). Add the criterion with the two rows `SITE_A =1` and `SITE_A= 1`, and make the Interface sentence explicit.
+16. factory: started doing as vm.
