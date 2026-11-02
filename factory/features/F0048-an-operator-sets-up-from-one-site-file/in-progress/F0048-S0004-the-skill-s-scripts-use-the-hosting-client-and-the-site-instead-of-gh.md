@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311, 6584737120]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T18:23:50.525095Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-02T18:23:50.525095Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-11-02T18:26:00.164435Z'
+  stage: tests
+  run: bcf56fcb34ac425f8052d0c0932b2d47
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -357,3 +359,22 @@ Expect: one line, `0`.
     - In `status.sh`, when `hosting_repo_api` fails inside the `newest_comment` pipeline, the hosting client's message is followed by a Python JSON error.
     - `operator/README.md` and `docs/operator-guide.md` belong to the docs stage (criterion 19).
 18. factory: started tests as vm.
+19. tester: Made the four test changes that the review (entry 15) found and the coder's entry 17 named. All of them are in `tests/test_operator_skill_scripts.py`, which this story's tests stage wrote, so no other story's test changed.
+
+    1. `test_the_newest_comment_decides_the_state` has a new row, `verdict-fourth-from-the-end`. At `stage:doing`, the comment has `<!-- kumpel verdict -->` as the fourth line from the end, and the expected state is `working`. This tests the outside side of criterion 2's "last three lines".
+    2. `test_settings_init_needs_no_arguments_when_the_site_gives_both` now asserts that the whole written file equals the expected data (`data == written`), not only the expected keys. This tests the Interface's "writes only the switches".
+    3. The same test has a new row, `site-gives-only-the-repository`. The site gives `SITE_REPOSITORY` without `SITE_CHECKOUT`, and the expected result is exit 2 with the usage line on standard error. To allow this row, the `site` parameter changed from a bool to the dict of site values. The test name and the other rows' checks are unchanged.
+    4. Criterion 17 now has a test: `tests/test_operator_skill_scripts.py::test_settings_answer_from_the_json_file_without_a_usable_site_file`. It has two rows:
+       - `no-site-file`: there is no file at `FACTORY_SITE`.
+       - `faulty-site-file`: the site file is the one line `not a pair`.
+       In both rows, `get repository` must print the JSON file's `json/repo` and exit 0. In the faulty row, standard error must also hold `site: <site file>:1: not a KEY=value line`.
+
+    Criterion → test, for the changes:
+    - criterion 2: tests/test_operator_skill_scripts.py::test_the_newest_comment_decides_the_state
+    - criterion 8: tests/test_operator_skill_scripts.py::test_settings_init_needs_no_arguments_when_the_site_gives_both
+    - criterion 17: tests/test_operator_skill_scripts.py::test_settings_answer_from_the_json_file_without_a_usable_site_file
+
+    Files: I created none and changed `tests/test_operator_skill_scripts.py`. The scripts already exist, so the test run had no module it could not import. The one run, `uv run pytest -q tests/test_operator_skill_scripts.py`, passed every test, the new rows included. `make lint` is green.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (81.2 s)

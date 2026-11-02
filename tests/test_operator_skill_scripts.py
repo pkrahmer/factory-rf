@@ -246,6 +246,12 @@ VERDICT = "Verdict: approve.\n\n<!-- kumpel verdict -->"
             )
         ),
         pytest.param("stage:doing", [VERDICT], "verdict posted", id="verdict"),
+        pytest.param(
+            "stage:doing",
+            ["Verdict: approve.\n<!-- kumpel verdict -->\none\ntwo\nthree"],
+            "working",
+            id="verdict-fourth-from-the-end",
+        ),
         pytest.param("stage:doing", [], "working", id="no-comments"),
         pytest.param("stage:approval", [], "waits: approval", id="no-comments-at-approval"),
         pytest.param(
@@ -520,9 +526,16 @@ def test_settings_answer_the_repository_and_checkout_from_the_site_first(
 @pytest.mark.parametrize(
     ("site", "arguments", "status", "stderr", "written"),
     [
-        pytest.param(True, [], 0, "", {"switches": DEFAULT_SWITCHES}, id="site-gives-both"),
         pytest.param(
-            False,
+            {"SITE_REPOSITORY": REPOSITORY, "SITE_CHECKOUT": SITE_CHECKOUT},
+            [],
+            0,
+            "",
+            {"switches": DEFAULT_SWITCHES},
+            id="site-gives-both",
+        ),
+        pytest.param(
+            {},
             [],
             2,
             "usage: settings.sh init <owner/name> <checkout>\n",
@@ -530,7 +543,15 @@ def test_settings_answer_the_repository_and_checkout_from_the_site_first(
             id="site-gives-neither",
         ),
         pytest.param(
-            False,
+            {"SITE_REPOSITORY": REPOSITORY},
+            [],
+            2,
+            "usage: settings.sh init <owner/name> <checkout>\n",
+            None,
+            id="site-gives-only-the-repository",
+        ),
+        pytest.param(
+            {},
             [REPOSITORY, "/path"],
             0,
             "",
@@ -542,21 +563,36 @@ def test_settings_answer_the_repository_and_checkout_from_the_site_first(
 def test_settings_init_needs_no_arguments_when_the_site_gives_both(
     *,
     operator: Operator,
-    site: bool,
+    site: dict[str, str],
     arguments: list[str],
     status: int,
     stderr: str,
     written: dict[str, object] | None,
 ) -> None:
-    values = {"SITE_REPOSITORY": REPOSITORY, "SITE_CHECKOUT": SITE_CHECKOUT} if site else {}
-    operator.write_site(SITE_API_URL=API_URL, SITE_TOKEN_CMD=ACCESS_COMMAND, **values)
+    operator.write_site(SITE_API_URL=API_URL, SITE_TOKEN_CMD=ACCESS_COMMAND, **site)
     result = operator.run("settings.sh", "init", *arguments)
     assert (result.exit_status, result.stderr) == (status, stderr)
     if written is not None:
         data = json.loads(operator.settings_file.read_text(encoding="utf-8"))
-        assert {key: data.get(key) for key in written} == written
+        assert data == written
     if arguments:
         assert result.stdout == f"settings written: {operator.settings_file}\n"
+
+
+@pytest.mark.parametrize("faulty", [False, True], ids=["no-site-file", "faulty-site-file"])
+def test_settings_answer_from_the_json_file_without_a_usable_site_file(
+    operator: Operator, faulty: bool
+) -> None:
+    operator.settings_file.parent.mkdir(parents=True)
+    operator.settings_file.write_text(json.dumps(JSON_SETTINGS), encoding="utf-8")
+    if faulty:
+        operator.site_file.write_text("not a pair\n", encoding="utf-8")
+    else:
+        operator.site_file.unlink()
+    result = operator.run("settings.sh", "get", "repository")
+    assert (result.exit_status, result.stdout) == (0, "json/repo\n"), result.stderr
+    if faulty:
+        assert f"site: {operator.site_file}:1: not a KEY=value line" in result.stderr.splitlines()
 
 
 STARTING_FILES = {
