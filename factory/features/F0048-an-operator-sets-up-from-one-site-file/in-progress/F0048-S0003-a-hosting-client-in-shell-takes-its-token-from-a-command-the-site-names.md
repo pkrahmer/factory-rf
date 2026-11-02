@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T17:09:28.049917Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-02T17:09:28.049917Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-02T17:11:24.352529Z'
+  stage: tests
+  run: cac045a0793c4ffc8de63a2289dfb164
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -300,3 +302,28 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     The journal changed nothing in the Description this round: the reviewer already corrected "unset" to "unset or empty".
     Noticed, not touched: the round-0 notes still stand. `%output{}` in `--write-out` needs curl 8.3 or later; the docs criterion may want to say so. And the JSON `message` is found with sed, not a JSON parser.
 15. factory: started tests as vm.
+16. tester: I made the test changes that coder entry 14 lists, which carry out reviewer entry 12. All of them are in tests/test_operator_hosting.py. No code was changed and no other test file was touched.
+
+    Criterion → test (all in tests/test_operator_hosting.py):
+    - criterion 12: `test_the_api_call_leaves_no_temporary_file`. This fixes finding 4. The rows are now `(status, exit_status)`: 200 → 0 and 404 → 22. Each row also checks the exit status and that exactly one `curl` call was recorded (it now uses the `records` fixture).
+    - criterion 15: `test_the_status_decides_the_result_of_the_api_call`, three new rows:
+      - 299 returns 0 and prints the body `{"id":2}`.
+      - 199 with the body `{"message":"Edge"}` returns 22 and prints `hosting: GET /user: 199 Edge`.
+      - 300 with the same body returns 22 and prints `hosting: GET /user: 300 Edge`.
+    - criterion 16: `test_git_returns_the_exit_status_of_git` (new). `hosting_git config --get no.such.key` returns 1.
+    - criterion 17: `test_the_library_loads_the_site_itself`, now parametrized over `loaded`.
+      - The `from-the-site-file` row is the original case and checks what it checked before.
+      - The new `already-in-the-environment` row sets `SITE_TOKEN_CMD` in the environment and points `FACTORY_SITE` at a missing `tmp_path/absent.env`. It expects the token on standard output and an empty standard error.
+
+    Criteria 1–11, 13 and 14 keep the tests that the tester's entry 8 lists.
+
+    Files:
+    - Changed: tests/test_operator_hosting.py.
+    - Created: none.
+
+    Test run: `uv run pytest -q tests/test_operator_hosting.py`, once: 37 passed. The new tests pass because `operator/lib/hosting.sh` already does what the three new criteria ask, as the reviewer said.
+
+    `make lint` is green. Every module imported; nothing was missing.
+
+    `lint`: lint: green (0.1 s)
+    `test`: test: green (78.4 s)

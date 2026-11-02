@@ -352,6 +352,13 @@ def first_hundred_on_one_line(stderr: str) -> bool:
         pytest.param("200", '{"login":"someone"}\n', "0", 0, '{"login":"someone"}\n', "", id="200"),
         pytest.param("201", '{"id":1}\n', "0", 0, '{"id":1}\n', "", id="201"),
         pytest.param("204", "", "0", 0, "", "", id="204"),
+        pytest.param("299", '{"id":2}\n', "0", 0, '{"id":2}\n', "", id="299"),
+        pytest.param(
+            "199", '{"message":"Edge"}', "0", 22, "", "hosting: GET /user: 199 Edge\n", id="199"
+        ),
+        pytest.param(
+            "300", '{"message":"Edge"}', "0", 22, "", "hosting: GET /user: 300 Edge\n", id="300"
+        ),
         pytest.param(
             "301",
             "Moved Permanently",
@@ -463,6 +470,15 @@ def test_git_gets_the_token_through_its_environment(
     assert not any(ACCESS in line or ACCESS_BASE64 in line for line in built_in)
 
 
+def test_git_returns_the_exit_status_of_git(
+    tmp_path: Path, make_env: Callable[..., dict[str, str]]
+) -> None:
+    result = run_hosting(
+        "hosting_git config --get no.such.key", tmp_path, make_env(source=ACCESS_COMMAND)
+    )
+    assert result.exit_status == 1, result.stderr
+
+
 def test_git_does_not_run_without_a_token(
     tmp_path: Path, make_env: Callable[..., dict[str, str]]
 ) -> None:
@@ -500,14 +516,22 @@ def test_the_token_is_neither_left_in_a_file_nor_printed(
     assert left == []
 
 
-@pytest.mark.parametrize("status", ["200", "404"])
+@pytest.mark.parametrize(("status", "exit_status"), [("200", 0), ("404", 22)])
 def test_the_api_call_leaves_no_temporary_file(
-    tmp_path: Path, make_env: Callable[..., dict[str, str]], temporary: Path, status: str
+    *,
+    tmp_path: Path,
+    make_env: Callable[..., dict[str, str]],
+    temporary: Path,
+    records: Path,
+    status: str,
+    exit_status: int,
 ) -> None:
     (temporary / "before").write_text("there before\n", encoding="utf-8")
     before = sorted(temporary.rglob("*"))
     env = make_env(source=ACCESS_COMMAND, STAND_IN_CURL_STATUS=status)
-    run_hosting("hosting_api GET /user", tmp_path, env)
+    result = run_hosting("hosting_api GET /user", tmp_path, env)
+    assert result.exit_status == exit_status, result.stderr
+    assert len(calls(records, "curl")) == 1
     assert sorted(temporary.rglob("*")) == before
 
 
@@ -527,9 +551,23 @@ def test_the_api_call_does_not_run_curl_without_a_token(
     assert calls(records, "curl") == []
 
 
+@pytest.mark.parametrize(
+    "loaded",
+    [
+        pytest.param(False, id="from-the-site-file"),
+        pytest.param(True, id="already-in-the-environment"),
+    ],
+)
 def test_the_library_loads_the_site_itself(
-    tmp_path: Path, make_env: Callable[..., dict[str, str]], site_file: Path
+    tmp_path: Path, make_env: Callable[..., dict[str, str]], site_file: Path, loaded: bool
 ) -> None:
-    site_file.write_text(f"SITE_TOKEN_CMD={ACCESS_COMMAND}\n", encoding="utf-8")
-    result = run_hosting("hosting_token", tmp_path, make_env(), load=False)
+    if loaded:
+        # A `SITE_` value in the environment, and no site file a load could read.
+        env = make_env(source=ACCESS_COMMAND, FACTORY_SITE=str(tmp_path / "absent.env"))
+    else:
+        site_file.write_text(f"SITE_TOKEN_CMD={ACCESS_COMMAND}\n", encoding="utf-8")
+        env = make_env()
+    result = run_hosting("hosting_token", tmp_path, env, load=False)
     assert (result.exit_status, result.stdout) == (0, f"{ACCESS}\n")
+    if loaded:
+        assert result.stderr == ""
