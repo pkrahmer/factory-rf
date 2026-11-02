@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T16:43:49.854097Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -124,6 +128,11 @@ journal:
   at: '2026-11-02T16:43:28.864250Z'
   stage: tests
   run: beba9797f40947aa809f89951da3cc1d
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:43:49.854097Z'
+  stage: doing
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -317,3 +326,4 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
 
     `lint`: lint: green (0.1 s)
     `test`: test: green (75.1 s)
+22. factory: started doing as vm.
