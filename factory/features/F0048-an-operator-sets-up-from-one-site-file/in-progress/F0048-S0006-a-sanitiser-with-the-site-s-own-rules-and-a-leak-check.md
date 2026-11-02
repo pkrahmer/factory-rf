@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T20:23:53.692552Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-02T20:23:53.692552Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-11-02T20:26:11.710266Z'
+  stage: tests
+  run: 147aa77b13454612b0999f6bf14236fe
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -342,3 +344,38 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
 
     Still open: the reviewer's side note in entry 12. The precedents I cited, `status.sh` and `job.sh`, use `python3 -c` without `-I`. I left it as it is.
 18. factory: started tests as vm.
+19. tester: Round 1. I made the test change the coder named in entry 17, following the human's answer in entry 15 (option A). The only file changed is `tests/test_operator_sanitise.py`, and I created no files. Every earlier test keeps its name.
+
+    1. Criterion 17 (wrong call or missing site file): `tests/test_operator_sanitise.py::test_wrong_call_or_missing_site_file_stops_the_command`. It is new, with three rows:
+       - `other-argument`
+       - `check-without-file`
+       - `missing-site-file` (`FACTORY_SITE` names an absent file)
+
+       Every row checks status 2 and empty standard output. On standard error it checks for the line `usage: sanitise < raw > clean | sanitise check FILE...` in the first two rows, and `site: no site file at <path>; run: site init` in the third.
+
+    2. Size limits from finding 2 of entry 12:
+       - **Criterion 1:** `::test_built_in_rules_replace_escapes_jwts_and_tokens` gains six rows. `jwt-part-of-9` (`eyJabcdefghij.abcdefghi.abcdefghij2`) stays unchanged, and `jwt-part-of-10` becomes `***JWT***`. `ghp-of-19` and `github-pat-of-19` stay unchanged, and `ghp-of-20` and `github-pat-of-20` become `***TOKEN***`.
+       - **Criterion 12:** `::test_check_leaves_near_tokens_clean` is new and sits beside `test_check_reports_every_built_in`. It has three rows (the 9-character JWT, `ghp_`+19 and `github_pat_`+19), and each must give `sanitise: clean` and status 0.
+
+    3. The new fault, `(\d+)-x => \2` on line 3:
+       - **Criterion 5:** the shared `FAULTS` table gains a `missing-group` row, used by `::test_rules_file_fault_stops_the_filter`.
+       - **Criterion 15:** the same row runs in `::test_rules_file_fault_stops_the_check_before_any_file`.
+
+       Both tests check the prefix `sanitise: <path>:3: `, as the coder asked. They do not check the reason text `replacement names group 2, the pattern has 1`.
+
+    4. The literal-backslash half of the answer (criterion 2, from entry 15): `::test_site_rule_replaces_every_occurrence_and_keeps_groups` gains a row, `other-backslash-literal`. The rules file gets a third rule, `tab => x\ty`, and the line `a tab` must give the literal `a x\ty`.
+
+    One run, `uv run pytest -q tests/test_operator_sanitise.py`, gave three failures, all of the expected kind (wrong results, not import errors):
+    - `[other-backslash-literal]`: the output has a real tab instead of the literal `\t`.
+    - The two `[missing-group]` rows: status 1 instead of 2.
+
+    The size-limit rows, the near-token rows and the criterion 17 rows already pass against the current script.
+
+    `make lint`: green. No module failed to import.
+
+    Open, for the next review:
+    - The Interface sentence ("literal text with `\1`-style groups allowed") and criteria 5 and 15 do not yet state the human's rule from entry 15.
+    - The reviewer's side note about `python3 -I` in the cited precedents is still open.
+
+    `lint`: lint: green (0.1 s)
+    `test`: FAILED tests/test_operator_sanitise.py::test_rules_file_fault_stops_the_check_before_any_file[missing-group] - AssertionError: assert 1 == 2

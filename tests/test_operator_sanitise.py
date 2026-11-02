@@ -15,6 +15,9 @@ ESCAPED = "\x1b[31mred\x1b[0m"
 JWT = "eyJabcdefghij.abcdefghij1.abcdefghij2"
 CLASSIC_TOKEN = "ghp_" + "a" * 30
 FINE_GRAINED_TOKEN = "github_pat_" + "a" * 30
+SHORT_PART_JWT = "eyJabcdefghij.abcdefghi.abcdefghij2"
+TEN_PART_JWT = "eyJabcdefghij.abcdefghij.abcdefghij2"
+USAGE = "usage: sanitise < raw > clean | sanitise check FILE..."
 
 
 @pytest.fixture
@@ -75,6 +78,12 @@ def reports(result: ProcessResult) -> list[str]:
         pytest.param(f"key {FINE_GRAINED_TOKEN} end", "key ***TOKEN*** end", id="github-pat-token"),
         pytest.param("ghp_short", "ghp_short", id="short-ghp"),
         pytest.param("eyJabc.def", "eyJabc.def", id="short-jwt"),
+        pytest.param(SHORT_PART_JWT, SHORT_PART_JWT, id="jwt-part-of-9"),
+        pytest.param(TEN_PART_JWT, "***JWT***", id="jwt-part-of-10"),
+        pytest.param("ghp_" + "a" * 19, "ghp_" + "a" * 19, id="ghp-of-19"),
+        pytest.param("ghp_" + "a" * 20, "***TOKEN***", id="ghp-of-20"),
+        pytest.param("github_pat_" + "a" * 19, "github_pat_" + "a" * 19, id="github-pat-of-19"),
+        pytest.param("github_pat_" + "a" * 20, "***TOKEN***", id="github-pat-of-20"),
     ],
 )
 def test_built_in_rules_replace_escapes_jwts_and_tokens(
@@ -97,12 +106,13 @@ def test_built_in_rules_replace_escapes_jwts_and_tokens(
             id="every-occurrence",
         ),
         pytest.param("id 42-secret", "id 42-x", id="group"),
+        pytest.param("a tab", r"a x\ty", id="other-backslash-literal"),
     ],
 )
 def test_site_rule_replaces_every_occurrence_and_keeps_groups(
     tmp_path: Path, site_folder: Path, site_env: dict[str, str], line: str, expected: str
 ) -> None:
-    write_rules(site_folder, HOST_RULE, GROUP_RULE)
+    write_rules(site_folder, HOST_RULE, GROUP_RULE, r"tab => x\ty")
 
     result = run_filter(tmp_path, site_env, f"{line}\n")
 
@@ -138,6 +148,7 @@ FAULTS = [
     pytest.param("=> x", id="empty-replace-pattern"),
     pytest.param("drop:", id="empty-drop-pattern"),
     pytest.param("leak:", id="empty-leak-pattern"),
+    pytest.param(r"(\d+)-x => \2", id="missing-group"),
 ]
 
 
@@ -316,6 +327,26 @@ def test_check_reports_every_built_in(
     assert reports(result) == [f"{leaking}:1: {rule}"]
 
 
+@pytest.mark.parametrize(
+    "line",
+    [
+        pytest.param(f"auth {SHORT_PART_JWT}", id="jwt-part-of-9"),
+        pytest.param("key ghp_" + "a" * 19, id="ghp-of-19"),
+        pytest.param("key github_pat_" + "a" * 19, id="github-pat-of-19"),
+    ],
+)
+def test_check_leaves_near_tokens_clean(
+    tmp_path: Path, site_folder: Path, site_env: dict[str, str], line: str
+) -> None:
+    write_rules(site_folder, UNRELATED_RULE)
+    near = write_file(tmp_path, "near.txt", f"{line}\n")
+
+    result = run_check(tmp_path, site_env, near)
+
+    assert result.exit_status == 0
+    assert result.stdout.splitlines() == ["sanitise: clean"]
+
+
 def test_check_numbers_only_rule_lines(
     tmp_path: Path, site_folder: Path, site_env: dict[str, str]
 ) -> None:
@@ -389,3 +420,38 @@ def test_environment_rules_file_wins_over_the_site_file(
 
     assert result.exit_status == 0
     assert result.stdout == "environment\n"
+
+
+@pytest.mark.parametrize(
+    ("arguments", "site_exists", "expected"),
+    [
+        pytest.param(["frobnicate"], True, "usage", id="other-argument"),
+        pytest.param(["check"], True, "usage", id="check-without-file"),
+        pytest.param([], False, "site", id="missing-site-file"),
+    ],
+)
+def test_wrong_call_or_missing_site_file_stops_the_command(
+    tmp_path: Path,
+    site_folder: Path,
+    site_env: dict[str, str],
+    *,
+    arguments: list[str],
+    site_exists: bool,
+    expected: str,
+) -> None:
+    write_rules(site_folder, UNRELATED_RULE)
+    absent = tmp_path / "absent" / "site.env"
+    env = site_env if site_exists else {**site_env, "FACTORY_SITE": str(absent)}
+    source = write_file(tmp_path, "input.txt", "plain\n")
+
+    result = run_script(
+        ["-c", 'command="$1"; source="$2"; shift 2; sh "$command" "$@" < "$source"', "sanitise"]
+        + [str(SANITISE_COMMAND), str(source), *arguments],
+        tmp_path,
+        env,
+    )
+
+    message = USAGE if expected == "usage" else f"site: no site file at {absent}; run: site init"
+    assert result.exit_status == 2
+    assert result.stdout == ""
+    assert message in result.stderr.splitlines()
