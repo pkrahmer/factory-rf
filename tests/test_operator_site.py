@@ -158,6 +158,62 @@ def test_a_value_is_never_interpreted(
     assert not (site_file.parent / "MARK").exists()
 
 
+def test_a_backslash_in_a_value_has_no_meaning(
+    tmp_path: Path, site_file: Path, site_env: dict[str, str]
+) -> None:
+    site_file.write_text("SITE_A=a\\nb\\\\c\n", encoding="utf-8")
+
+    result = load_site(tmp_path, site_env)
+
+    assert result.exit_status == 0, result.stderr
+    assert exported(result.stdout) == {"SITE_A": r"a\nb\\c"}
+
+
+def test_a_key_name_may_hold_digits_and_underscores(
+    tmp_path: Path, site_file: Path, site_env: dict[str, str]
+) -> None:
+    site_file.write_text("SITE_A_1=x\n", encoding="utf-8")
+
+    result = load_site(tmp_path, site_env)
+
+    assert result.exit_status == 0, result.stderr
+    assert exported(result.stdout) == {"SITE_A_1": "x"}
+
+
+def test_a_key_that_appears_twice_keeps_its_first_value(
+    tmp_path: Path, site_file: Path, site_env: dict[str, str]
+) -> None:
+    site_file.write_text("SITE_A=first\nSITE_A=second\n", encoding="utf-8")
+
+    result = load_site(tmp_path, site_env)
+
+    assert result.exit_status == 0, result.stderr
+    assert exported(result.stdout) == {"SITE_A": "first"}
+
+
+@pytest.mark.parametrize(
+    ("line", "value"),
+    [
+        pytest.param("SITE_A =1", None, id="space-before-equals"),
+        pytest.param("SITE_A= 1", " 1", id="space-after-equals"),
+    ],
+)
+def test_a_space_before_the_equals_sign_is_a_fault_and_one_after_it_is_the_value(
+    tmp_path: Path, site_file: Path, site_env: dict[str, str], line: str, value: str | None
+) -> None:
+    site_file.write_text(f"{line}\n", encoding="utf-8")
+
+    result = load_site(tmp_path, site_env)
+
+    if value is None:
+        assert result.exit_status == 2
+        assert exported(result.stdout) == {}
+        assert result.stderr.splitlines() == [f"site: {site_file}:1: not a KEY=value line"]
+    else:
+        assert result.exit_status == 0, result.stderr
+        assert exported(result.stdout) == {"SITE_A": value}
+
+
 @pytest.mark.parametrize(
     ("line", "message"),
     [
@@ -255,6 +311,26 @@ def test_require_names_every_unset_or_empty_name_in_the_order_given(
         assert result.stderr == ""
     else:
         assert result.stderr.splitlines() == [f"site: missing {missing} in {site_file}"]
+
+
+def test_require_adds_the_site_prefix_to_a_bare_name(
+    tmp_path: Path, site_file: Path, site_env: dict[str, str]
+) -> None:
+    result = run_library("site_require A B\n", tmp_path, site_env)
+
+    assert result.exit_status == 2
+    assert result.stdout == ""
+    assert result.stderr.splitlines() == [f"site: missing SITE_A, SITE_B in {site_file}"]
+
+
+def test_the_path_command_prints_the_site_path(
+    tmp_path: Path, site_file: Path, site_env: dict[str, str]
+) -> None:
+    result = run_site(["path"], tmp_path, site_env)
+
+    assert result.exit_status == 0, result.stderr
+    assert result.stdout == f"{site_file}\n"
+    assert result.stdout == run_library("site_path\n", tmp_path, site_env).stdout
 
 
 def test_show_says_set_or_unset_for_every_key_of_the_example_and_no_value(

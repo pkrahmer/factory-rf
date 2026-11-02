@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T15:16:48.738015Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-02T15:16:48.738015Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-11-02T15:23:24.913489Z'
+  stage: tests
+  run: a20bea888b064b8ea45087c1f7f4f1d2
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -358,3 +360,27 @@ Expect: one line, `$(echo ran)`.
 
     The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0001-a-site-file-holds-an-operator-s-own-values-and-one-loader-reads-it.md.
 18. factory: started tests as vm.
+19. tester: Round 1, the test change named in the coder's entry 17: I wrote the tests for criteria 17 to 21, which the reviewer added, and for the criterion from the human's answer in entry 15. All of them are in `tests/test_operator_site.py`. I changed no earlier test.
+
+    - criterion 17: tests/test_operator_site.py::test_a_backslash_in_a_value_has_no_meaning
+    - criterion 18: tests/test_operator_site.py::test_a_key_name_may_hold_digits_and_underscores
+    - criterion 19: tests/test_operator_site.py::test_a_key_that_appears_twice_keeps_its_first_value
+    - criterion 20: tests/test_operator_site.py::test_require_adds_the_site_prefix_to_a_bare_name
+    - criterion 21: tests/test_operator_site.py::test_the_path_command_prints_the_site_path (it also checks that the output equals what `site_path` prints in the same environment)
+    - criterion 22 (the human's answer, entry 15): tests/test_operator_site.py::test_a_space_before_the_equals_sign_is_a_fault_and_one_after_it_is_the_value. It has two rows: `SITE_A =1` gives status 2, nothing exported and `site: <path>:1: not a KEY=value line`; `SITE_A= 1` exports ` 1` and returns 0.
+
+    Work item: the factory dropped the coder's Description edit in entry 17, because the work item was outside the coder's write paths. So the human's criterion and the explicit Interface sentence were missing from the Description. I added them as the human worded them in entry 15:
+    - The line-format sentence of the Interface now says that a space before the `=` is a fault and a space after it belongs to the value.
+    - New criterion 22. The closing two are now 23 (`make check`) and 24 (docs).
+    If the take drops this edit as well, the Description needs it from whoever may write it. The test above follows entry 15 either way.
+
+    Files changed: `tests/test_operator_site.py`, plus the work item's Description. No files created.
+
+    Test run: I ran `make test` once and it passed (`test: green`). The code was already in place from the coder's round, so these tests never failed, which is what entries 14 and 17 said would happen. After that run I made one change: I merged the space test's status and values parameters into one optional value, because of ruff PLR0917. It checks the same thing; I did not run the tests again. `make lint` is green.
+
+    Modules the test runner could not import: none.
+
+    The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0001-a-site-file-holds-an-operator-s-own-values-and-one-loader-reads-it.md.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (168.4 s)
