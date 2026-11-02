@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-02T16:48:26.587671Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -146,6 +150,11 @@ journal:
   at: '2026-11-02T16:48:05.542172Z'
   stage: review
   run: 7dfb0b3190e54dbfbbe9ce33470b17aa
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:48:26.587671Z'
+  stage: docs
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -391,3 +400,4 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
     - `tests/vm_support.py`: changed under the human's leave in journal entry 9 (`token.parent.chmod(0o700)` in `run_job_start`, only that line).
     - `tests/test_tmp_path_reopening.py`: changed under the standing leave to move a shared test helper. Its `_mode` was replaced by `file_mode` from `tmp_path_support`, and every test keeps its name and its check.
     - `tests/tmp_path_support.py`: the shared place, changed under the same standing leave. It gains `file_mode`, and `_add` uses it in place of the same expression.
+26. factory: started docs as vm.
