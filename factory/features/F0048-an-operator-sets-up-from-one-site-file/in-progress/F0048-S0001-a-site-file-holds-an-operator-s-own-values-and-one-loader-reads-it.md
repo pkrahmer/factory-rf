@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595, 6581849151]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-02T16:13:45.690923Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -264,6 +268,11 @@ journal:
   at: '2026-11-02T16:13:24.902485Z'
   stage: review
   run: 48382e9ed5fb4c268bf0c8c449ffdf75
+- number: 47
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:13:45.690923Z'
+  stage: docs
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -764,3 +773,4 @@ Expect: one line, `$(echo ran)`.
     - Open, for the documenter (not a finding): the defaults in the comments of `operator/site.env.example` (for example `SITE_CPU` 4, `SITE_TIMEOUT` 24h, `gh auth token`) are the coder's reading of the key names (entry 10). Check them before they go into the operator guide's key table.
 
     Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py` and `tests/test_operator_site.py`, both `A`).
+47. factory: started docs as vm.
