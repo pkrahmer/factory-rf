@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T17:17:46.583436Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-11-02T17:17:25.782778Z'
   stage: review
   run: 581c62d6bf5545b7b6cea24ba831cdba
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:17:46.583436Z'
+  stage: doing
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -399,3 +408,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
 
     Notes:
     - tests/test_operator_hosting.py `test_the_api_call_gives_curl_the_token_on_standard_input_only`: `CURL_ARGUMENTS + [str(arguments)]` also searches the test's own constant, which can never hold the token. Searching `arguments` alone says the same thing.
+21. factory: started doing as vm.
