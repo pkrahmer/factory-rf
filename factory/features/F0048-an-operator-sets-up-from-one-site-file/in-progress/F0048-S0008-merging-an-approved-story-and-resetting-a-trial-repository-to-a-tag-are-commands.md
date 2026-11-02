@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 506
-comments_read: []
+comments_read: [6588966186]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 6a60427a8c3941cc9174c185c0ccf7f1
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-02T21:32:13.472005Z'
+  stage: intake
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -92,3 +97,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
    Findings of the format check: none (it passed).
 
    The other checks are fine. `merge.sh` has a criterion for each message and for both sides of the wait. The smoke tests are runnable and their `Expect:` lines are checkable. The scripts sit in the skill's `operator/` folder, as the feature's scope says.
+4. 2026-11-02 human: All three as you propose: 1 `GET /pulls?state=open&per_page=100`, without paging, said in one sentence; 2 criterion 5 gets the three rows; 3 criterion 9 gets rows for a failing close, delete and move, each with the later requests not sent.
