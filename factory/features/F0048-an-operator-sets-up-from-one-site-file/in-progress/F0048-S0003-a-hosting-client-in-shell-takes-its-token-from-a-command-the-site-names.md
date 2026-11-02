@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 500
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T16:52:50.749217Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-02T16:52:50.749217Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-02T16:53:21.312678Z'
+  stage: intake
+  run: 7f1bb66938064c6390c3fa0f615b66f5
+  blocked: question
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -90,3 +93,15 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
 
 1. 2026-11-02 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed; no findings from it). The Interface states behaviour and rules that no criterion tests, and one case it leaves open:
+
+   1. Headers: the Interface sends `Accept: application/vnd.github+json` and `X-GitHub-Api-Version: 2022-11-28`, but criterion 4 only checks the `Authorization` header line. Should criterion 4 (or a new one) require both header lines on the stand-in's standard input? I would choose yes.
+   2. Body escaping: the Interface says a newline in BODY is written `\n`. Criterion 6 covers only the backslash and the double quote. Should a new criterion check a body that holds a newline (`data = "a\nb"` on one line)? I would choose yes.
+   3. Temporary file: the Interface says the `--write-out` status file is removed by `hosting_api`. No criterion checks this. Should one require that no new file remains in the temporary folder after the call, for success and failure alike? I would choose yes.
+   4. Token failure in `hosting_api`: the Interface gives `hosting_api` exit 0 or 22 only, and no criterion covers a failing token source. What should `hosting_api` and `hosting_repo_api` return then? I would choose 4 with the token message, `curl` not run, plus a criterion for it.
+   5. Empty `SITE_TOKEN_CMD`: the Interface says the command runs when `SITE_TOKEN_CMD` is "set and not empty", else `gh`. Criterion 2 covers only the unset case. Should a row cover `SITE_TOKEN_CMD=` (set, empty) falling back to `gh`? I would choose yes, as a row of criterion 2.
+   6. Loading: the Interface says `hosting.sh` calls `site_load` itself when `SITE_` values are not loaded. No criterion tests it. Should one require that, sourced without a prior `site_load` and with `FACTORY_SITE` naming a file holding `SITE_TOKEN_CMD`, `hosting_token` prints that command's token? I would choose yes.
+   7. Criterion 3, row 1: it does not say whether `LEAKMARK` is printed on the command's standard output or its standard error. The Interface discards stderr, so the row should use both. I would choose one row for each stream.
+   8. Criterion 7, status 301: it says "returns 22" but not the message. Should the row also require `hosting: GET /user: 301 <the body's first 100 characters>`? Also, should the 500 row use a body longer than 100 characters with a newline in it, so that both the cut and the one-line rule are tested? I would choose yes to both.
+
+   Checked and fine: the architecture (shell library under `operator/lib/`, reading the site through S0001's loader, no change to existing scripts), the scope (inside F0048's "A hosting client in shell"; nothing in its Out of scope), and the smoke tests (runnable; both `Expect:` lines are checkable; the pytest `-q` rule does not apply).
