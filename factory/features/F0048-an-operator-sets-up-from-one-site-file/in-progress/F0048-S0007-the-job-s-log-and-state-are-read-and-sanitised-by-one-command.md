@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T21:05:56.095063Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T21:05:38.184858Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:05:56.095063Z'
   stage: doing
 ---
 
@@ -248,3 +257,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
     - Refactor pass: I removed a redundant `head -n 1`; nothing else to change.
 11. 2026-11-02 human: (a), granted: the tester changes line 418's test to pass `STAND_IN_FAIL` and `STAND_IN_FAIL_TEXT` as parameter columns and named keyword arguments, as you describe.
     Also granted, in the same tester run: the usage line names `log` and `status`. The tester may change the rows of `tests/test_operator_job.py` (S0005) that pin the exact usage text to the new line, and nothing else in that file; you then extend the usage line in `job.sh`. `started -` for an execution without a start time is fine as it is.
+12. factory: started doing as vm.
