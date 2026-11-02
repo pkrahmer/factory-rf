@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T20:10:34.304319Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-02T20:10:34.304319Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-02T20:13:51.241620Z'
+  stage: tests
+  run: 4e9af38edc36406b8962510ba0c6aec9
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -147,3 +149,34 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
    - Architecture: a shell script under `operator/bin/` with `python3`, as `feature.md` scopes it. It touches nothing in `src/factory`. The rules file lies beside the site file, outside any repository.
    - Scope: within S0006 of F0048. The story adds no use of the sanitiser (that is S0007), and nothing falls under "Out of scope".
 7. factory: started tests as vm.
+8. tester: Wrote the tests for `operator/bin/sanitise`. Each one runs the command as a child through `sh`, using `run_script` from `tests/operator_support.py`. The site file and the rules file sit in a folder under `tmp_path`, and `FACTORY_SITE` names the site file. The filter gets its standard input from a file through `sh -c`, because `ProcessRequest` has no stdin.
+
+   - criterion 1: tests/test_operator_sanitise.py::test_built_in_rules_replace_escapes_jwts_and_tokens (rows: escape-sequence, jwt, ghp-token, github-pat-token, short-ghp, short-jwt)
+   - criterion 2: tests/test_operator_sanitise.py::test_site_rule_replaces_every_occurrence_and_keeps_groups
+   - criterion 3: tests/test_operator_sanitise.py::test_drop_removes_lines_and_leak_leaves_the_output_alone
+   - criterion 4: tests/test_operator_sanitise.py::test_site_rules_see_the_text_the_built_ins_left_in_file_order
+   - criterion 5: tests/test_operator_sanitise.py::test_rules_file_fault_stops_the_filter (rows: no-kind, invalid-pattern, and an empty pattern for `=>`, `drop:` and `leak:`; the fault is on line 3)
+   - criterion 6: tests/test_operator_sanitise.py::test_missing_rules_file_warns_once_in_the_filter_and_stops_the_check
+   - criterion 7: tests/test_operator_sanitise.py::test_named_rules_file_wins_over_the_default (rows: site-file-absolute, site-file-relative, environment-absolute)
+   - criterion 8: tests/test_operator_sanitise.py::test_check_names_file_line_and_rule_but_never_the_text
+   - criterion 9: tests/test_operator_sanitise.py::test_check_reports_clean_files_leaking_files_and_missing_files
+   - criterion 10: tests/test_operator_sanitise.py::test_check_reports_once_per_line_and_rule
+   - criterion 11: tests/test_operator_sanitise.py::test_sanitised_output_passes_the_check
+   - criterion 12: tests/test_operator_sanitise.py::test_check_reports_every_built_in
+   - criterion 13: tests/test_operator_sanitise.py::test_check_numbers_only_rule_lines
+   - criterion 14: tests/test_operator_sanitise.py::test_filter_ends_every_line_with_a_newline
+   - criterion 15: tests/test_operator_sanitise.py::test_rules_file_fault_stops_the_check_before_any_file (same fault rows as criterion 5)
+   - criterion 16: tests/test_operator_sanitise.py::test_environment_rules_file_wins_over_the_site_file (rows: absolute, relative-to-site-folder)
+   - criteria 17 and 18: not tests; they belong to `make check` and the docs stage.
+
+   Some points the Interface does not settle, so the tests leave them open:
+   - The Interface says which stream carries `check`'s messages only where it requires "nothing on standard output" or "nothing else". So for a missing rules file, a missing file and a rules-file fault in `check`, the tests look for the message in standard output and standard error together.
+   - The filter's fault message is checked on standard error, since standard output must be empty.
+   - The `<reason>` part of a fault message is not checked. Only the prefix `sanitise: <path>:<line>: ` is.
+
+   Files created: `tests/test_operator_sanitise.py`. No earlier test file changed.
+
+   Not importable or missing: `operator/bin/sanitise` does not exist yet, so the tests in the one run (`uv run pytest -q tests/test_operator_sanitise.py`) fail at run time, not at import. `make lint` is green.
+
+   `lint`: lint: green (0.1 s)
+   `test`: FAILED tests/test_operator_sanitise.py::test_environment_rules_file_wins_over_the_site_file[relative-to-site-folder] - AssertionError: assert 2 == 0
