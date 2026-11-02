@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 499
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T16:17:59.624853Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-02T16:17:59.624853Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-02T16:18:21.287346Z'
+  stage: intake
+  run: f866530a38794b1ea39e8aa27ed0cdc1
+  blocked: question
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -83,3 +86,14 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
 
 1. 2026-11-02 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (format check passed; the Interface, smoke test, architecture and scope are otherwise fine):
+
+   1. Interface, proxy step: "the first of the two that is not empty, as now" has no criterion for the case where both `HTTPS_PROXY` and `https_proxy` are set to different values, or where the first is set but empty. Criterion 8 has three rows and none of them covers it. I would add a row: `HTTPS_PROXY=` (empty) with `https_proxy=P` gives P everywhere, and `HTTPS_PROXY=A` with `https_proxy=B` gives A everywhere (with the existing precedence). Please confirm the precedence and add the criterion.
+
+   2. Interface, proxy step: the exception "a `HTTP_PROXY` or `http_proxy` the job set itself keeps its own value" is tested only for `http_proxy=Q`. The `HTTP_PROXY=Q` side has no criterion. I would add a row with `https_proxy=P` and `HTTP_PROXY=Q`, where `HTTP_PROXY` stays Q and `http_proxy` is P. Is that right? Also, what happens when one is set and empty: is it kept empty or overwritten?
+
+   3. Interface, token step: the condition "folder not owned by the user running the script" has no criterion. Criterion 4 covers only the permission-bit side. Either add a criterion (which a non-root test can only do with a stand-in `stat` or `id`, so please say how) or state that only the mode bits are tested and the ownership clause is untested by design.
+
+   4. Interface: "A failing `mkdir`, `cp` or `chmod`" stops with `job-start: token-file: failed`. Criterion 6 covers only `mkdir` (a file named `<root>/secrets`). Is a test of `cp` and `chmod` failing wanted, or is one row enough? I would choose one row.
+
+   5. Criterion 3 says the copy has mode 0600 and `<root>/secrets` has mode 0700, but the Interface does not say what happens when `<root>/secrets` already exists with another mode, for example on a restart in the same instance. Does `mkdir -p` plus `chmod 0700` apply, or is it an error? I would choose `mkdir -p` followed by `chmod 0700`, and a criterion for a second run.
