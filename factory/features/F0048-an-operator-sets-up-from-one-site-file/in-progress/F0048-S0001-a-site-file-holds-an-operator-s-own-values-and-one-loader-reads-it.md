@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T15:55:48.906068Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -223,6 +219,12 @@ journal:
   kind: started
   at: '2026-11-02T15:55:48.906068Z'
   stage: tests
+- number: 39
+  speaker: tester
+  kind: result
+  at: '2026-11-02T15:59:26.177680Z'
+  stage: tests
+  run: 066a8f5963994277b6cca7ff40df4967
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -648,3 +650,22 @@ Expect: one line, `$(echo ran)`.
 
     Noticed, not touched: the defaults in the comments of `operator/site.env.example` are my reading of the key names. The stories that read each key (S0003 to S0008) should confirm them, and so should the documenter before they go into the operator guide's key table.
 38. factory: started tests as vm.
+39. tester: Tests, round 1. I made the test change named in the coder's entry 37, which carries out the human's answer in entry 33 and reviewer findings 1 to 3 from entry 35. Every change is in `tests/test_operator_site.py`. This story wrote that file, so no other story's test changed.
+
+    - criterion 26: `tests/test_operator_site.py::test_the_site_path_follows_factory_site_then_xdg_then_home`. New row `empty-xdg-config-home`: `FACTORY_SITE` unset and `XDG_CONFIG_HOME` set to `""`, expecting `home/.config/kumpel/site.env`.
+    - criterion 27: `tests/test_operator_site.py::test_a_malformed_command_prints_the_usage_and_exits_2`. New row `get-prefix-without-name`: `["get", "SITE_"]`.
+    - criterion 9 (reviewer finding 3): `tests/test_operator_site.py::test_require_names_every_unset_or_empty_name_in_the_order_given`.
+      - The rows now have a `set_b` parameter. The `all-set` row sets `SITE_B=b` and requires `SITE_A SITE_B`, as the criterion says. The `unset-and-empty` and `order-given` rows leave `SITE_B` unset.
+      - `SITE_D` is no longer needed, so I removed it.
+      - The extra parameter made ruff report `PLR0917` (6 positional arguments). I made the row parameters keyword-only (`*,`), as `tests/entry/test_wiring_acceptance.py` and others already do.
+
+    Files created: none. Files changed: `tests/test_operator_site.py`.
+
+    Test run: `uv run pytest -q tests/test_operator_site.py` passed every test. I ran it a second time after fixing the lint finding, and it passed again. The rows pass because `operator/` already does what criteria 26 and 27 say (coder, entry 37), so they never failed. `make lint` is green.
+
+    Modules the test run could not import: none.
+
+    Still open (not mine): reviewer finding 4, which is about criterion 29 and the *What is here* table in `operator/README.md`. The coder will put it to the human.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (168.6 s)

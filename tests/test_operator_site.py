@@ -89,6 +89,9 @@ def site_env(tmp_path: Path, site_file: Path) -> dict[str, str]:
             "xdg/kumpel/site.env",
             id="empty-factory-site",
         ),
+        pytest.param(
+            {"XDG_CONFIG_HOME": ""}, "home/.config/kumpel/site.env", id="empty-xdg-config-home"
+        ),
     ],
 )
 def test_the_site_path_follows_factory_site_then_xdg_then_home(
@@ -290,21 +293,25 @@ def test_a_site_file_in_a_git_work_tree_is_refused(
 
 
 @pytest.mark.parametrize(
-    ("names", "missing"),
+    ("set_b", "names", "missing"),
     [
-        pytest.param("SITE_A SITE_D", None, id="all-set"),
-        pytest.param("SITE_A SITE_B SITE_C", "SITE_B, SITE_C", id="unset-and-empty"),
-        pytest.param("SITE_C SITE_A SITE_B", "SITE_C, SITE_B", id="order-given"),
+        pytest.param(True, "SITE_A SITE_B", None, id="all-set"),
+        pytest.param(False, "SITE_A SITE_B SITE_C", "SITE_B, SITE_C", id="unset-and-empty"),
+        pytest.param(False, "SITE_C SITE_A SITE_B", "SITE_C, SITE_B", id="order-given"),
     ],
 )
 def test_require_names_every_unset_or_empty_name_in_the_order_given(
     tmp_path: Path,
     site_file: Path,
     site_env: dict[str, str],
+    *,
+    set_b: bool,
     names: str,
     missing: str | None,
 ) -> None:
-    env = {**site_env, "SITE_A": "a", "SITE_C": "", "SITE_D": "d"}
+    env = {**site_env, "SITE_A": "a", "SITE_C": ""}
+    if set_b:
+        env["SITE_B"] = "b"
 
     result = run_library(f"site_require {names}\n", tmp_path, env)
 
@@ -405,6 +412,7 @@ def test_init_writes_the_example_once_with_mode_0600(tmp_path: Path) -> None:
         pytest.param(["frobnicate"], id="unknown-command"),
         pytest.param(["get"], id="get-without-name"),
         pytest.param(["get", "HOME"], id="get-not-a-site-key"),
+        pytest.param(["get", "SITE_"], id="get-prefix-without-name"),
         pytest.param(["path", "x"], id="path-with-a-word-too-many"),
         pytest.param(["init", "x"], id="init-with-a-word-too-many"),
         pytest.param(["show", "x"], id="show-with-a-word-too-many"),
