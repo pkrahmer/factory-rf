@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-02T20:18:53.526540Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-02T20:18:32.728722Z'
   stage: doing
   run: e280ad32b241486c861b1e98c959b188
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:18:53.526540Z'
+  stage: review
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -215,3 +224,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+11. factory: started review as vm.
