@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311, 6584737120]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T18:23:50.525095Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-02T18:23:29.308923Z'
   stage: doing
   run: 1d3b140a217d4f218cb5f52010719510
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-02T18:23:50.525095Z'
+  stage: tests
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -347,3 +356,4 @@ Expect: one line, `0`.
     Noticed, not touched:
     - In `status.sh`, when `hosting_repo_api` fails inside the `newest_comment` pipeline, the hosting client's message is followed by a Python JSON error.
     - `operator/README.md` and `docs/operator-guide.md` belong to the docs stage (criterion 19).
+18. factory: started tests as vm.
