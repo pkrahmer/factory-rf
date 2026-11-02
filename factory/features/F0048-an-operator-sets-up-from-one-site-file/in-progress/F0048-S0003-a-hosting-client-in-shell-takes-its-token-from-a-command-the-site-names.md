@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-02T17:42:22.077500Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -230,6 +234,11 @@ journal:
   at: '2026-11-02T17:42:01.014256Z'
   stage: review
   run: acbba859402f4037a47bbfe57c4162be
+- number: 41
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:42:22.077500Z'
+  stage: docs
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -738,3 +747,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     Notes:
     - tests/test_operator_hosting.py:442 `test_the_repository_call_puts_the_site_repository_in_the_path`: the `missing` column always equals `url_line is None`, so one of the two columns would do.
     - tests/test_operator_hosting.py:220 `test_the_token_is_the_first_line_of_the_command_trimmed`: carried over from entry 32. The success side of "the command's standard error is discarded" has no row. The code handles it (`operator/lib/hosting.sh:12`, `2>/dev/null`).
+41. factory: started docs as vm.
