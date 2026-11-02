@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 498
-comments_read: [6579796948]
+comments_read: [6579796948, 6580704685]
 handed_over: null
 claim: null
 journal:
@@ -87,6 +87,11 @@ journal:
   stage: doing
   run: c7e0caa46edf4dab8b9a0e9975d50254
   blocked: question
+- number: 15
+  speaker: human
+  kind: comment
+  at: '2026-11-02T15:15:38.614873Z'
+  stage: doing
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -313,3 +318,4 @@ Expect: one line, `$(echo ran)`.
     I would choose (a). It is the literal reading of the Interface, the fault is reported where the key is malformed, and an operator who wants a leading space can still write one. Whichever you choose, one criterion goes before the closing two (they become 23 and 24). It covers `SITE_A =1` and `SITE_A= 1` as rows of one parametrized test, and the Interface sentence is made explicit.
 
     Noticed, not touched: nothing new beyond my entry 10. The example's defaults are still my reading of the key names, and `operator/README.md` does not mention `site`.
+15. 2026-11-02 human: (a), as you propose: a space before the `=` is a fault (`not a KEY=value line`), and a space after it belongs to the value (the value is everything after the first `=`, only trailing whitespace removed). Add the criterion with the two rows `SITE_A =1` and `SITE_A= 1`, and make the Interface sentence explicit.
