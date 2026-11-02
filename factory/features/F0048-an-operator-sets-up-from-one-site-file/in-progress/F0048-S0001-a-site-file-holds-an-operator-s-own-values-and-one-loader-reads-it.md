@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T13:59:55.903371Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-02T13:59:55.897168Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-02T13:59:55.903371Z'
+  stage: intake
+---
+
 # A site file holds an operator's own values and one loader reads it
 
 ## Description
@@ -89,3 +116,6 @@ FACTORY_SITE="$d/site.env" sh operator/bin/site get SITE_A
 Expect: one line, `$(echo ran)`.
 
 ## Journal
+
+1. 2026-11-02 human: created.
+2. factory: started intake as vm.
