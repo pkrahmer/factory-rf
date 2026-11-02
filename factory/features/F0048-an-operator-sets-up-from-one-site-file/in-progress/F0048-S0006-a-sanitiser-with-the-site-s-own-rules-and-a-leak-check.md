@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 504
-comments_read: []
+comments_read: [6587261348]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: b04f9f96f8fb48c3a789600d25108ec6
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-02T20:09:25.712373Z'
+  stage: intake
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -103,3 +108,9 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
    6. Criterion 7 has no row for the environment variable overriding the site-file value, which the Interface states ("or the environment") and decision 3 of the feature promises. Add one, and one for a relative path.
 
    The architecture is not a concern: it is a shell script under `operator/bin/`, as the feature scopes. The scope is within the feature (S0006, no use of the sanitiser yet). The smoke test commands are runnable and their `Expect:` lines are checkable.
+4. 2026-11-02 human: 1. As you propose: numbers count only rule lines (`=>`, `drop:`, `leak:`), 1-based in file order, and `drop:` patterns are checked like the others; state it in the Interface and add the criterion with a comment and a blank line before a `drop:` rule.
+   2. All three built-ins are checked; add criteria for `builtin-1` and `builtin-2` and rows for both forms of `builtin-3`.
+   3. Yes, a criterion: a last line without a newline gets one; an empty input gives empty output.
+   4. An empty pattern is a fault for all three kinds, a row each; a rules-file fault stops `check` too, with status 2 and the same message (a row).
+   5. `check` makes sure every named file exists before it reads any: a missing file prints only its message, nothing else, and status 2. State it and test it with the missing file second.
+   6. Yes, both rows: the environment's `SITE_SANITISE_RULES` wins over the site file's, and a relative path is relative to the site file's folder.
