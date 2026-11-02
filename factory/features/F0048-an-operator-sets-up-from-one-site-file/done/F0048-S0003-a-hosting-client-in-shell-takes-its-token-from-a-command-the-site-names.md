@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -252,6 +252,11 @@ journal:
   at: '2026-11-02T17:43:53.982377Z'
   stage: smoke-test
   run: b1ce5bbb2660462cabc965032fc583b0
+- number: 45
+  speaker: factory
+  kind: done
+  at: '2026-11-02T17:46:19.067305Z'
+  stage: approval
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -801,3 +806,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     Checked against the acceptance criteria: the runs agree with criterion 1 (only the first line is taken and its surrounding whitespace removed), criterion 3 (return 4, nothing on stdout, exactly the Interface's message, and the command's output is not repeated) and criterion 14 (with no `site_load` called first, the library reads `SITE_TOKEN_CMD` from the file `FACTORY_SITE` names). The smoke test contradicts no other criterion; it does not exercise `hosting_api`, `hosting_git` or the docs criterion.
 
     Findings: none. Nothing is open.
+45. factory: done (pull request merged); cost: 20 runs, 28.2 min, 167 turns, 634348 tokens in (4477926 more from cache), 113759 out, $7.92
