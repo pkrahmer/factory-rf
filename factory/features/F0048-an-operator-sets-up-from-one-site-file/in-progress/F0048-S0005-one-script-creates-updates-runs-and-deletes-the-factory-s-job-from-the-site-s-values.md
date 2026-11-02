@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T18:43:59.334581Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-02T18:43:59.334581Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-02T18:44:18.717249Z'
+  stage: intake
+  run: 74738f812f4f49b9964fc3436bedc7fe
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -76,19 +78,19 @@ Tests: `tests/test_operator_job.py`, a stand-in `gcloud` that records its argume
 
 ## Acceptance criteria
 
-1. With the required keys set, `create` runs `gcloud` once for `describe` and once for `create`, the second with the arguments of the Interface in an order a test may fix (it fixes the set, and the order of `--set-env-vars`'s entries), and exits 0.
-2. Every call carries the project and the region; with `SITE_IMPERSONATE` set every call also carries `--impersonate-service-account=<it>`, and without it no call does (two rows).
-3. Missing keys: with `SITE_REGION` and `SITE_CODE_REF` unset, `create` prints one `site: missing SITE_REGION, SITE_CODE_REF in <path>` line, runs no `gcloud` and exits 2; `execute` with only the project, the region and the job set works (a row for each of the three commands).
+1. With the required keys set, `create` runs `gcloud` once for `describe` and once for `create`, the second with the arguments of the Interface in an order a test may fix (it fixes the set, and the order of `--set-env-vars`'s entries), and exits 0; `update` with `describe` succeeding runs `describe` and `update` with the same arguments except the verb and exits 0 (a second row).
+2. Every call carries the project and the region; with `SITE_IMPERSONATE` set every call also carries `--impersonate-service-account=<it>`, and without it no call does (two rows); `delete --yes` and `execute` carry them too (a row for each).
+3. Missing keys: with `SITE_REGION` and `SITE_CODE_REF` unset, `create` prints one `site: missing SITE_REGION, SITE_CODE_REF in <path>` line, runs no `gcloud` and exits 2; `update` with the same keys unset gives the same line and exit 2; `execute` and `delete --yes` with only the project, the region and the job set work (a row for each of the four commands).
 4. The defaults and the overrides, as rows of one parametrized test: no `SITE_CPU`, `SITE_MEMORY`, `SITE_TIMEOUT` and `SITE_IDLE_MINUTES` give `--cpu=8`, `--memory=32Gi`, `--task-timeout=14400` and `FACTORY_IDLE_SHUTDOWN_MINUTES=60`; set values replace them.
 5. The env list: it starts with `^@^`, its entries are separated by `@`, it holds every name of the Interface with the site's values (a value containing a comma is intact), it holds the four proxy spellings with the proxy's value and both `NO_PROXY` spellings, it holds no `PATH` entry, and it contains none of the texts `TOKENMARK` and `SECRETMARK` that a test puts into the stand-in's environment and into a token command.
 6. The secrets are mounts only: `--set-secrets` is exactly the two mounts of the Interface with the site's secret names, and no argument of any call contains the content of a secret.
-7. The wrapper: decoding the base64 text of `--args` and un-gzipping it gives a script that contains `mkdir -p /srv/factory/<instance>`, writes `provider.json` and `/tmp/job-start.sh`, ends in `exec sh /tmp/job-start.sh`, and holds the text of `vm/job-start.sh` at `SITE_CODE_REF` byte for byte, not the working tree's (a test copies `operator/` and `vm/` into a real git repository in `tmp_path`, commits, tags `t1`, then changes `vm/job-start.sh` in the working tree, and finds the tagged text in the wrapper); it contains no `chmod`, no `cp` and no `PATH=`. A `SITE_CODE_REF` the repository does not know gives the message of the Interface, status 1, and no `gcloud` call.
+7. The wrapper: decoding the base64 text of `--args` and un-gzipping it gives a script that contains `mkdir -p /srv/factory/<instance>`, writes `provider.json` and `/tmp/job-start.sh`, ends in `exec sh /tmp/job-start.sh`, and holds the text of `vm/job-start.sh` at `SITE_CODE_REF` byte for byte, not the working tree's (a test copies `operator/` and `vm/` into a real git repository in `tmp_path`, commits, tags `t1`, then changes `vm/job-start.sh` in the working tree, and finds the tagged text in the wrapper); it contains no `chmod`, no `cp` and no `PATH=`. A `SITE_CODE_REF` the repository does not know gives the message of the Interface, status 1, and no `gcloud` call, for `create`, `update` and `create --dry-run` (rows).
 8. `provider.json` as the script writes it is accepted by `read_provider`, and the provider it returns has the id `site`, the base URL and the model of the site, `input_cost` and `output_cost` as numbers (`0` when unset), and `small_model` `site/<model>`; a model name or a URL with a double quote in it still gives valid JSON.
 9. `create` for a job that exists (the `describe` stand-in exits 0) prints `job: <job> exists; use update` to standard error, exits 1 and runs no `create`; `update` for a job that does not exist prints `job: <job> does not exist; use create`, exits 1 and runs no `update` (two rows).
-10. `--dry-run` runs no `gcloud` at all, prints the call one argument per line with the wrapper replaced by `<wrapper: N bytes>`, and exits 0; the printed text contains the job's name and no base64 text longer than 100 characters.
-11. `execute` with a row of `running count 1` prints the overlap message with the execution's name, exits 1 and runs no `execute`; with rows of `0` and empty counts it runs `execute --async`, prints the name the stand-in answers, writes it to `last-execution` under `XDG_STATE_HOME` (a test sets it), and exits 0.
+10. `--dry-run`, for `create` and for `update` (rows), runs no `gcloud` at all, prints the call one argument per line with the wrapper replaced by `<wrapper: N bytes>`, and exits 0; the printed text contains the job's name and no base64 text longer than 100 characters.
+11. `execute` with a row of `running count 1`, with a row of count 2, and with several rows of which only a later one is running (rows), prints the overlap message with the execution's name, exits 1 and runs no `execute`; with rows of `0` and empty counts it runs `execute --async`, prints the name the stand-in answers, writes it to `last-execution` under `XDG_STATE_HOME` (a test sets it), and exits 0.
 12. `delete` without `--yes` prints the message of the Interface, exits 1 and runs no `delete`; with `--yes` it runs it with `--quiet`.
-13. A failing `gcloud` (exit 1 with text on standard error) shows that text and the command exits 1 (a row for `create`).
+13. A failing `gcloud` (text on standard error) shows that text and the command exits with its status: rows for `create`, `update`, `execute` (the list call and the execute call) and `delete`, one of them with status 3, the others 1.
 14. `make check` stays green.
 15. docs: `docs/operator-guide.md`, *Creating the job*: the template call is replaced by `job.sh create` with the keys it reads (a table that points to the site file's table), the order of a first start (`site check`, `job.sh create`, `job.sh execute`), the overlap rule and the deletion rule, and says that the job's wrapper only writes the provider file and hands over; `README.md` and the other documents: none.
 
@@ -125,3 +127,17 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
    6. Criterion 12 tests only the case where `delete` has no `--yes`. The Interface says `delete` and `execute` need only the project, region and job name. Does criterion 3 cover that for `delete` (see question 2)? Should `delete` get the project, region and impersonation checks of criterion 2? I would choose yes, with `delete` and `execute` added to the rows of criterion 2.
 4. 2026-11-02 human: Yes to all six, as you propose: 1 an `update` row in criterion 1; 2 `create` and `update` fail with the missing-keys line and exit 2, `execute` and `delete --yes` work with only the project, the region and the job; 3 a row with count 2 and one where only a later line is running; 4 failure rows for all four commands, one of them with status 3; 5 `--dry-run` rows for `create` and `update`, and the unknown-ref row with `--dry-run`; 6 `delete` and `execute` join the rows of criterion 2.
 5. factory: started intake as vm.
+6. intake: accepted. I carried the human's answer (journal entry 4, "yes to all six") into the criteria, with no other change.
+   - Interface: `operator/job/job.sh` names concrete commands, keys, defaults, messages, exit statuses and the `gcloud` call. The Interface comments (the `^@^` delimiter, the wrapper, `provider.json`, the `last-execution` path) each have a criterion.
+   - Criteria: each is testable by one test function or one parametrized test. Edits from entry 4:
+     - 1: an `update` row.
+     - 2: `delete --yes` and `execute` join the rows.
+     - 3: `update` with missing keys gives the same line and exit 2; `execute` and `delete --yes` work with only the project, the region and the job (four rows).
+     - 7: the unknown ref is tested for `create`, `update` and `create --dry-run`.
+     - 10: `--dry-run` rows for `create` and `update`.
+     - 11: rows with a running count of 2 and with only a later row running.
+     - 13: failure rows for all four commands, with status 3 on one.
+     Every rule has its failing side covered: missing keys, an existing or missing job, an unknown ref, an overlapping execution, `delete` without `--yes`, and a failing `gcloud`.
+   - Smoke test: both commands are runnable. Neither runs pytest, so the `-q` rule does not apply. Each `Expect:` line is checkable: the three lines `exec-1`, `exit 0`, `exec-1`, and the exact missing-keys line with `exit 2`.
+   - Architecture: shell under `operator/`, which the coder's write paths cover per the feature's change. Tests are at `tests/test_operator_job.py` with stand-ins, and no code under `src/factory/` changes.
+   - Scope: the story lies within the feature's S0005 scope, and `job.sh log` and `job.sh status` (S0007) stay out.
