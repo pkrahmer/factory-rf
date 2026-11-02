@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 504
-comments_read: [6587261348]
+comments_read: [6587261348, 6587570081]
 handed_over: null
 claim: null
 journal:
@@ -87,6 +87,11 @@ journal:
   stage: doing
   run: c41d5d4dfdd9454a9627b190124b53aa
   blocked: question
+- number: 15
+  speaker: human
+  kind: comment
+  at: '2026-11-02T20:22:57.233222Z'
+  stage: doing
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -291,3 +296,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     I will then implement the code once those tests fail.
 
     I did not touch the reviewer's side note: the cited precedents `status.sh` and `job.sh` run `python3 -c` without `-I`, while `sanitise` uses `-I`.
+15. 2026-11-02 human: A: a replacement is literal text except for `\1` to `\99`; every other backslash stays a literal backslash. A group number higher than the pattern's group count is a rules-file fault when the file is read, in the filter and in `check`: status 2, `sanitise: <path>:<line>: replacement names group 2, the pattern has 1`. This answer is the rule; add its rows to criteria 5 and 15 as you propose. Note: the work item is not in the coder's write paths, so leave its text to the next review (it may add criteria and correct the Interface sentence from this answer); end with `tests` naming the three changes.
