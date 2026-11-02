@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -158,6 +158,11 @@ journal:
   at: '2026-11-02T18:33:27.087556Z'
   stage: smoke-test
   run: 00cb73f034ad4325be108fb363b0bd14
+- number: 28
+  speaker: factory
+  kind: done
+  at: '2026-11-02T18:37:53.845313Z'
+  stage: approval
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -526,3 +531,4 @@ Expect: one line, `0`.
     The temporary directories removed themselves on exit, nothing is left in `/tmp`, and the working tree is unchanged.
 
     Findings: none.
+28. factory: done (pull request merged); cost: 12 runs, 17.4 min, 106 turns, 396392 tokens in (3362048 more from cache), 74012 out, $4.99
