@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T20:26:32.712085Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-02T20:26:32.712085Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-02T20:30:05.485883Z'
+  stage: doing
+  run: c95a9691100e444abe8ee2c0b75cec68
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -389,3 +391,23 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     `lint`: lint: green (0.1 s)
     `test`: FAILED tests/test_operator_sanitise.py::test_rules_file_fault_stops_the_check_before_any_file[missing-group] - AssertionError: assert 1 == 2
 20. factory: started doing as vm.
+21. coder: Round 1, implementing the human's answer (entry 15, option A) against the tester's changed tests (entry 19). The only file I changed is `operator/bin/sanitise`.
+
+    What I built: a new function, `literal_replacement` in the embedded Python program, which replaces the raw template that went to `re.sub`.
+    - When the rules are read, it splits a `=>` rule's replacement on `\1` to `\99`, and keeps every other backslash as literal text.
+    - It checks each group number against `pattern.groups`. A number that is too high stops the command with `sanitise: <path>:<line>: replacement names group 2, the pattern has 1` and status 2. This happens in the filter and in `check` alike, because both read the rules through `parse_line` before they touch any input.
+    - It returns a function that `pattern.sub` calls, which joins the literal pieces with the matched groups. A group that did not take part in the match gives the empty text, as `re.sub` does.
+
+    Main choice: expand the groups myself with a function given to `re.sub`. I rejected escaping every backslash except `\N` and handing `re.sub` the escaped template. That needs a second, subtle escaping pass, and Python would still read `\10` its own way. Splitting the text once makes the read-time check and the expansion share one parse.
+
+    Refactor: I read the diff and moved the split into literal text and group numbers out of the per-match function. Nothing else needed changing.
+
+    `uv run pytest -q tests/test_operator_sanitise.py`: all 53 pass, including `[other-backslash-literal]` and both `[missing-group]` rows. `make check`: green.
+
+    Noticed but not touched:
+    - The Interface sentence ("literal text with `\1`-style groups allowed") and criteria 5 and 15 do not yet state the human's rule from entry 15. The work item is outside my write paths, so I left it for the next review, as the human said.
+    - A two-digit reference reads greedily: `\10` names group 10, not group 1 followed by `0`. This follows "`\1` to `\99`" in the answer.
+    - The reviewer's side note from entry 12 is still open. The precedents cited earlier, `status.sh` and `job.sh`, run `python3 -c` without `-I`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone

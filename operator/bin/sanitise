@@ -59,7 +59,23 @@ def parse_line(line, path, number):
     left, arrow, right = f" {text} ".partition(" => ")
     if not arrow:
         fail(f"{path}:{number}: not a rule, a comment or a blank line", 2)
-    return ("replace", compile_pattern(left.strip(), path, number), right.strip())
+    pattern = compile_pattern(left.strip(), path, number)
+    return ("replace", pattern, literal_replacement(pattern, right.strip(), path, number))
+
+
+def literal_replacement(pattern, text, path, number):
+    # Only \1 to \99 name a group; every other backslash is the literal text the site wrote.
+    parts = re.split(r"\\([1-9][0-9]?)", text)
+    texts, groups = parts[0::2], [int(part) for part in parts[1::2]]
+    for group in groups:
+        if group > pattern.groups:
+            fail(f"{path}:{number}: replacement names group {group}, the pattern has {pattern.groups}", 2)
+
+    def replace(match):
+        found = [match.group(group) or "" for group in groups] + [""]
+        return "".join(literal + value for literal, value in zip(texts, found))
+
+    return replace
 
 
 def read_rules(path):
