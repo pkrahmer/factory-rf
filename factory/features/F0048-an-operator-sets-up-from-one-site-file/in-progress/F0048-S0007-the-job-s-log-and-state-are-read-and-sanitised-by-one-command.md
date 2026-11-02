@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T21:17:28.326265Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-02T21:17:07.455171Z'
   stage: doing
   run: 2263c8cc4bda46b1abded5e51ed50d1b
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:17:28.326265Z'
+  stage: tests
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -393,3 +402,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
     Refactor pass: in my own diff, the no-execution message was written twice, so I moved it into `no_execution`. Nothing else to change.
 
     Noticed, not touched: I didn't run the smoke-test blocks.
+22. factory: started tests as vm.
