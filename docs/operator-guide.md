@@ -1145,13 +1145,15 @@ When the model costs nothing, a price of 0 makes `budget_usd` inert. The time li
 
 ### Creating the job
 
-`operator/job/job.sh` creates, updates, starts and deletes the job from the site file's values (*The site file*). It never guesses a project, a region or a job's name: every `gcloud` call carries `--project` and `--region` from the file, and `--impersonate-service-account` when `SITE_IMPERSONATE` is set.
+`operator/job/job.sh` creates, updates, starts and deletes the job from the site file's values (*The site file*). It never guesses a project, a region or a job's name: every `gcloud` call carries `--project` from the file, every `gcloud run` call `--region` too (Cloud Logging has no region, so `logging read` does not take it), and `--impersonate-service-account` when `SITE_IMPERSONATE` is set.
 
 ```bash
 sh operator/job/job.sh create [--dry-run]
 sh operator/job/job.sh update [--dry-run]
 sh operator/job/job.sh execute
 sh operator/job/job.sh delete [--yes]
+sh operator/job/job.sh log [N] [--execution NAME] [--quiet]
+sh operator/job/job.sh status
 ```
 
 `create` and `update` build one `gcloud run jobs` call with the settings of *What the job needs*: the image `docker.io/library/debian:trixie-slim`, `--execution-environment=gen2`, `--max-retries=0`, `--vpc-egress=all-traffic`, the two secrets as mounts (`/secrets/hosting-token` and `/secrets-llm/client-secret`, never their values) and the job's environment, which carries the proxy in its four spellings and sets no `PATH`. They read these keys; the meaning and the format of each are in the table of *The keys*:
@@ -1160,7 +1162,7 @@ sh operator/job/job.sh delete [--yes]
 |---|---|
 | `create`, `update` (required) | `SITE_PROJECT`, `SITE_REGION`, `SITE_RUN_AS`, `SITE_CONNECTOR`, `SITE_PROXY`, `SITE_NO_PROXY`, `SITE_JOB`, `SITE_INSTANCE`, `SITE_REPOSITORY_URL`, `SITE_CODE_URL`, `SITE_CODE_REF`, `SITE_HOSTING_SECRET`, `SITE_MODEL_SECRET`, `SITE_MODEL_BASE_URL`, `SITE_MODEL`, `SITE_LOGIN_URL`, `SITE_LOGIN_SCOPE`, `SITE_LOGIN_CLIENT_ID` |
 | `create`, `update` (optional) | `SITE_IMPERSONATE` (none), `SITE_CPU` (`8`), `SITE_MEMORY` (`32Gi`), `SITE_TIMEOUT` (`14400`, seconds), `SITE_IDLE_MINUTES` (`60`), `SITE_MODEL_INPUT_COST` and `SITE_MODEL_OUTPUT_COST` (`0`) |
-| `execute`, `delete` | `SITE_PROJECT`, `SITE_REGION`, `SITE_JOB` |
+| `execute`, `delete`, `log`, `status` | `SITE_PROJECT`, `SITE_REGION`, `SITE_JOB` (and `SITE_IMPERSONATE` when set) |
 
 Missing required keys are all named in one line, `site: missing <keys> in <path>`, with status 2 and no `gcloud` call.
 
@@ -1183,6 +1185,32 @@ A first start goes in this order:
 3. `sh operator/job/job.sh execute`.
 
 `execute` starts an execution with `gcloud run jobs execute --async`, prints the execution's name and writes it to `${XDG_STATE_HOME:-$HOME/.local/state}/kumpel/last-execution`. It lists the job's executions first and, when one is running, refuses with `job: an execution of <job> is still running: <name>; two executions of one instance must not overlap` and status 1: the platform's role at a site may not cancel an execution, so the check comes before the start. `delete` without `--yes` prints `job: would delete <job> and stop its running execution; run again with --yes` and exits 1; with `--yes` it deletes the job without asking.
+
+### Watching the job
+
+Cloud Logging is how you see a job, and it has three habits that cost time: it arrives one to two minutes late, a failed query looks like an empty log unless the error is shown, and the factory's lines are mixed with the package manager's. Two commands of `job.sh` deal with that. Both need `SITE_PROJECT`, `SITE_REGION` and `SITE_JOB`, pass `--impersonate-service-account` when `SITE_IMPERSONATE` is set, and show a failing `gcloud` instead of swallowing it: `job: gcloud <what> failed: <first line of its standard error>` on standard error, status 1.
+
+```bash
+sh operator/job/job.sh log [N] [--execution NAME] [--quiet]
+sh operator/job/job.sh status
+```
+
+**`log`** prints the last `N` lines (default 60) of one execution as `HH:MM:SS`, a tab and the text, in time order. Empty lines are dropped before they are counted, so `log 0` prints nothing. It reads the execution named by `--execution`, else the one in `last-execution` (written by `execute`), else the job's newest; with none it prints `job: no execution of <job> found` and exits 1. It reads at most 4000 lines of the last two days. `--quiet` also drops the package manager's noise: lines that start (after the time) with `Selecting `, `Preparing to unpack`, `Unpacking `, `Setting up `, `Get:`, `Fetched `, `Processing triggers`, `debconf:`, `Copying blob`, `Copying config` or `Writing manifest`, and lines that contain `token refreshed:`. When the answer is empty, `log` prints `job: no log lines yet; Cloud Logging arrives one to two minutes late` on standard error and exits 0: wait and ask again. A `--quiet` that leaves nothing prints nothing.
+
+**`status`** prints the job's five newest executions, newest first, one line each:
+
+```text
+<name> <state> started <HH:MM> [ended <HH:MM>][: <message>]
+```
+
+The times are UTC. The state is `running` when the platform counts one or more running tasks, else `succeeded`, else `failed`, else `waiting`. A failed execution ends with the message of its first failed condition, the platform's own words for why. With no executions, `status` prints `job: no execution of <job> found` and exits 1.
+
+Then it reads the log of the execution `log` would read (its last 200 non-empty lines) and prints one line about the factory:
+
+- `factory: stopped: <line>`: the log holds a line of the factory's stop form, `stop <kind> <reason>: <detail>` (see *The stops*), and no `preflight:` line after it, which would show the factory running again. The line is the newest such stop. Read it as the stops are read, for instance `stop machine preflight_failed: tool:uv: uv is not on the PATH`.
+- `factory: no stop in the last 200 lines`: nothing of that form, or the factory started again after it. A line that only contains the word `stop` (`job: stop requested by user`) does not count. A stop older than 200 lines is not seen; ask `log` for more.
+
+`log` passes every line, and `status` the stop line it prints, through `operator/bin/sanitise` (*Sanitising what leaves the machine*), so the site's names and tokens are replaced. Without a rules file the built-in rules apply and the sanitiser's warning appears once on standard error. A wrong call (`N` not a number or negative, an unknown option) prints the usage line, which names every command, on standard error and exits 2.
 
 ## The preflight and the health check
 

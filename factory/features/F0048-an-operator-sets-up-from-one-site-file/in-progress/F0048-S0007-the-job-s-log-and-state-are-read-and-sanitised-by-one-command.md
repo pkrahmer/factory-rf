@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-02T21:25:52.955836Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-02T21:25:52.955836Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-11-02T21:26:54.487065Z'
+  stage: docs
+  run: 3065d0c2eff149228ce3d369edf509ae
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -496,3 +498,19 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
     Notes:
     - `tests/test_operator_job_log.py:398-402` and `:526-530`: the same assertion on the last line (stopped or `NO_STOP`) is written twice. A small helper in the module would hold it once.
 28. factory: started docs as vm.
+29. documenter: Docs for round 1. I changed only `docs/operator-guide.md` (documents only, so I did not run `make check`; the factory's checks decide).
+
+    Changes in `docs/operator-guide.md`:
+    - New section *Watching the job*, after *Creating the job* and under *On Cloud Run*. It covers `log` and its options (the choice of execution, the default of 60 lines, the 4000-line and two-day read, the eleven `--quiet` prefixes and `token refreshed:`, the `no log lines yet` message and why the log is late). It also covers `status` (the line format, UTC, how the state is chosen, the platform's message for a failed execution), how to read `factory: stopped` and `factory: no stop in the last 200 lines`, sanitising, the shown `gcloud` failures, and the usage exit 2.
+    - *Creating the job*: the sentence "every `gcloud` call carries `--project` and `--region`" was wrong after this story, because `gcloud logging read` refuses `--region`. It now says `--region` goes only to `gcloud run` calls. I added `log` and `status` to the command block and to the keys table (`SITE_PROJECT`, `SITE_REGION`, `SITE_JOB`, plus `SITE_IMPERSONATE` when set).
+    - *The site file*: the pointer to `job.sh` now also names *Watching the job*.
+
+    I ran the first smoke-test block against a `gcloud` stand-in. It printed the two expected lines with a tab, and the `Setting up` line was dropped. I did not run the second block or `status` by hand; the tests cover them.
+
+    Cross-read and found current: `README.md` (no mention of `job.sh`; the criterion says none), the *Sanitising what leaves the machine* section, and the `execute`/`last-execution` paragraph. I read the diff of `operator/job/job.sh` against the Interface and found no mismatch, so no finding for the coder. I read the code only for what the docs state, and I did not run `status` against a real execution list.
+
+    Stale text I did not touch: nothing found. A note for the next reader of the guide: *The site file* still says "the stories to come make the other keys live", which is the feature's own plan and stays true until its last story.
+
+    `check`: check: green (not run again: passed on tree c12ba0cd0863 at 2026-11-02T21:22:33Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
