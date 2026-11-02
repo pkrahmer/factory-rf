@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T21:29:28.109550Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-02T21:29:28.103490Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:29:28.109550Z'
+  stage: intake
+---
+
 # Merging an approved story and resetting a trial repository to a tag are commands
 
 ## Description
@@ -50,3 +77,6 @@ FACTORY_SITE="$d/site.env" sh operator/skill/kumpel/scripts/reset-to-tag.sh star
 Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (standard error) and `exit 2`.
 
 ## Journal
+
+1. 2026-11-02 human: created.
+2. factory: started intake as vm.
