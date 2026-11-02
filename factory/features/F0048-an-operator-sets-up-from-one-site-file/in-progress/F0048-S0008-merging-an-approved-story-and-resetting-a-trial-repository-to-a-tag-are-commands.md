@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-02T22:17:06.297289Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -214,6 +218,11 @@ journal:
   stage: docs
   run: 61338e80eddd4854893e63a6f99409a7
   reason: died
+- number: 38
+  speaker: factory
+  kind: started
+  at: '2026-11-02T22:17:06.297289Z'
+  stage: docs
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -609,3 +618,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     - `tests/test_operator_merge_reset.py:126-167`: `Machine.requests` repeats the URL parsing of `Operator.urls` in `tests/test_operator_skill_scripts.py`. The `machine` fixture repeats the folder setup of the `operator` fixture there.
 36. factory: started docs as vm.
 37. factory: Stage docs stalled (attempt 1 of 2): the agent run died without a result
+38. factory: started docs as vm.
