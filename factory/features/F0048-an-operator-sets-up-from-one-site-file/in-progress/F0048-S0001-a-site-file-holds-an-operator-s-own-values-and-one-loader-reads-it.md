@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595, 6581849151]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-02T16:15:12.970450Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -275,6 +279,11 @@ journal:
   at: '2026-11-02T16:14:51.547899Z'
   stage: docs
   run: a8ef3976c058458cba9caab8c959227b
+- number: 49
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:15:12.970450Z'
+  stage: smoke-test
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -801,3 +810,4 @@ Expect: one line, `$(echo ran)`.
     `check`: check: green (not run again: passed on tree 18c6c32b2826 at 2026-11-02T16:08:53Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+49. factory: started smoke-test as vm.
