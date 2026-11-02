@@ -13,6 +13,9 @@ Kumpel is the product; kumpel-factory, this repository, is one of its components
 | `skill/kumpel/scripts/` | `settings.sh` (the switches), `status.sh` (the state from GitHub), `wait.sh` (wait for the next event), `approval.sh` (the six checks' facts), `next-story.sh` (the next story of the build order), `start-story.sh` |
 | `opencode/command/kumpel.md` | the command `/kumpel [<switch> on|off]` for opencode |
 | `claude/commands/kumpel.md` | the same command for Claude Code |
+| `bin/site` | the command for the site file: `path`, `init`, `show`, `get` |
+| `lib/site.sh` | the loader every operator script sources: `site_path`, `site_load`, `site_require` |
+| `site.env.example` | every key of the site file, each with a comment and a made-up value |
 
 ## Installing (for the trial)
 
