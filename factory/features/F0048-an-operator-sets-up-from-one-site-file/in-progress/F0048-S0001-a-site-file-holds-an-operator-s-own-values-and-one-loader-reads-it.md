@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T14:35:52.476184Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,13 +36,19 @@ journal:
   kind: started
   at: '2026-11-02T14:35:52.476184Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-02T14:36:15.112672Z'
+  stage: intake
+  run: 63ffc82feb864f459b70b4a35ca8ed39
 ---
 
 # A site file holds an operator's own values and one loader reads it
 
 ## Description
 
-Everything an operator needs to run the factory in a job and to drive it is a value that belongs to one site: a project, a region, a proxy, the names of secrets, two repositories, a token command. This story gives those values one home, a plain file `site.env` outside every repository, and one loader that every later script uses. The file is a list of `SITE_NAME=value` lines that is only ever read, never executed; its place is `$FACTORY_SITE`, else the operator's configuration folder; the loader refuses a file that lies inside a git repository, because the file is where company values go. The story adds `operator/site.env.example` (every key with a made-up value and a comment), the loader `operator/lib/site.sh`, and the command `operator/bin/site` with `path`, `init`, `show` and `get`. It does not read the file for any job or hosting purpose (S0003 to S0008 do), does not add `site check` (S0009), and changes no existing script.
+Everything an operator needs to run the factory in a job and to drive it is a value that belongs to one site: a project, a region, a proxy, the names of secrets, two repositories, a token command. This story gives those values one home, a plain file `site.env` outside every repository, and one loader that every later script uses. The file is a list of `SITE_NAME=value` lines that is only ever read, never executed; its place is `$FACTORY_SITE`, else the operator's configuration folder; the loader refuses a file that lies inside a git repository, and `site init` refuses to write one there, because the file is where company values go. The story adds `operator/site.env.example` (every key with a made-up value and a comment), the loader `operator/lib/site.sh`, and the command `operator/bin/site` with `path`, `init`, `show` and `get`. It does not read the file for any job or hosting purpose (S0003 to S0008 do), does not add `site check` (S0009), and changes no existing script.
 
 ## Interface
 
@@ -78,7 +80,9 @@ site get SITE_X       # prints the value
 - `site show` loads the site and prints, in the example's order, `SITE_X=set` or `SITE_X=unset` for every key the example names; a key set to the empty string is `unset`. It never prints a value.
 - `site get SITE_X` prints the value and a newline; when it is unset or empty it prints `site: SITE_X is not set` to standard error and exits 1.
 - `site init` makes the file's folder, copies the example to the path with mode 0600 and prints `site: wrote <path>; edit it, then run: site check`; when the file exists it prints `site: <path> exists; not overwritten` to standard error and exits 1.
-- Any other command prints `usage: site path | init | show | get SITE_X` to standard error and exits 2.
+- `site show` and `site get` print `site_load`'s message to standard error, nothing to standard output, and exit with its status (1, 2 or 3).
+- `site init` for a path inside a git work tree (same test as the loader's) prints `site: <path> lies in a git repository; keep the site file outside every repository` to standard error, writes nothing (no folder, no file) and exits 3.
+- Any other command, `site get` with no name and `site get` with a name that does not start with `SITE_` included, prints `usage: site path | init | show | get SITE_X` to standard error and exits 2.
 
 `operator/site.env.example`: the keys below, in this order, each with a comment line of one or two sentences directly above it that says what it is, whether it is required and its default, and a made-up value (a URL uses `example.invalid`, a repository `owner/repo`, a path `/path/to/...`). Later stories add keys at the end; none changes the first thirty-one.
 
@@ -100,10 +104,12 @@ Tests: `tests/test_operator_site.py` (the scripts are outside the layers), runni
 10. `site show` prints one line per key of `operator/site.env.example` in its order, `set` for a key with a non-empty value and `unset` for an absent key and for a key set to the empty string; a value that contains the text `SECRETMARK` never appears in its output.
 11. `site get SITE_A` prints the value and exits 0 for a set key; for an unset key and for an empty one it prints `site: SITE_A is not set` to standard error, nothing to standard output, and exits 1.
 12. `site init` into a folder that does not exist makes the folder, writes a file equal to the example with mode 0600 and prints the line of the Interface; a second `site init` leaves the file byte for byte as it was, prints `site: <path> exists; not overwritten` and exits 1.
-13. `site` with no argument and with `frobnicate` print the usage line to standard error and exit 2 (two rows).
+13. `site` with no argument, with `frobnicate`, with `get` and no name, and with `get HOME` print the usage line to standard error, nothing to standard output, and exit 2 (four rows).
 14. The example file: it loads without a fault; every `SITE_` key line has a comment line directly above it; its keys, in order, begin with the thirty-one of the Interface; no value contains a string that is not made up (a test over its text: every `://` is followed by a host that ends in `example.invalid`, `localhost` or an IP address of `192.0.2.`).
-15. `make check` stays green.
-16. docs: `docs/operator-guide.md` gets a section *The site file* (what it is, its place and `FACTORY_SITE`, the format and that it is never executed, the rule that it lies outside every repository, `site init`, `show` and `get`, and the keys by the use that reads them as far as the stories to come make them known: a table of key, meaning, default); `README.md` and the other documents: none.
+15. `site show` and `site get SITE_A` with a failing load, as rows of one parametrized test (two commands by three loads): a missing file (status 1), a faulty file (status 2) and a file in a git work tree (status 3) print the loader's message of the Interface to standard error, nothing to standard output, and exit with that status.
+16. `site init` for a path inside a git work tree prints the message of the Interface to standard error, creates neither the folder nor the file, and exits 3; for the same path outside a work tree it writes the file (the two sides as rows of one parametrized test).
+17. `make check` stays green.
+18. docs: `docs/operator-guide.md` gets a section *The site file* (what it is, its place and `FACTORY_SITE`, the format and that it is never executed, the rule that it lies outside every repository, `site init`, `show` and `get`, and the keys by the use that reads them as far as the stories to come make them known: a table of key, meaning, default); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -154,3 +160,9 @@ Expect: one line, `$(echo ran)`.
    2. Yes: `site get` with no name, or with a name that does not start with `SITE_`, prints the usage line and exits 2; add the cases as rows of criterion 13.
    3. Refuse: `site init` for a path inside a git work tree prints the loader's message (`site: <path> lies in a git repository; keep the site file outside every repository`), writes nothing and exits 3 (decision 2). Add the criterion with both sides: in a work tree it refuses and writes nothing, outside it writes.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: concrete files and functions (`operator/lib/site.sh`: `site_path`, `site_load`, `site_require`; `operator/bin/site`: `path`, `init`, `show`, `get`). All 31 keys are named in order, and the smoke test's positions 1, 7, 8 and 9 match REPOSITORY, PROJECT, REGION and IMPERSONATE. I carried in the human's answers (journal entry 4) and wrote exactly those: `show` and `get` print the loader's message to stderr and exit with its status; `get` with no name or a non-`SITE_` name gives the usage line and exit 2; `init` in a git work tree prints the loader's message, writes nothing and exits 3. I also added half a clause to the Description (init refuses in a work tree).
+   - Criteria: each is testable by one test function, and each rule has both sides. Criterion 13 now has four rows (the two new usage cases from answer 2). New criterion 15 covers show and get against the three failing loads (answer 1). New criterion 16 covers init inside and outside a work tree (answer 3). They stand before the closing two, which are now 17 (`make check`) and 18 (docs).
+   - Smoke test: the three blocks run as written. No pytest is involved, and each `Expect:` line is checkable.
+   - Architecture: the scripts lie outside the layers, as the Interface says. `operator/*` is already in the coder's write paths, as the feature asks. The tests go in `tests/test_operator_support.py`'s sibling `tests/test_operator_site.py` with the helper in `tests/operator_support.py`, which `CLAUDE.md` allows.
+   - Scope: within the feature's S0001 scope. It adds no `site check` and changes no existing script or test.
