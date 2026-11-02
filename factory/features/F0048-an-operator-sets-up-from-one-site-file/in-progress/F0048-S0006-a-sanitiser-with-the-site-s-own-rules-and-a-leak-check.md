@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T20:30:26.560832Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-02T20:30:26.560832Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T20:32:51.228059Z'
+  stage: review
+  run: 0074ec284f954ff2a76e2d6e5db1e398
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -151,7 +153,7 @@ sanitise                    # standard input to standard output, rules applied
 sanitise check FILE...      # exit 0 and "sanitise: clean", or 1 naming file:line, or 3
 ```
 
-- The rules file is `$SITE_SANITISE_RULES`, else `sanitise.rules` in the folder of the site file. Its lines are blank, a comment (`#`), `PATTERN => REPLACEMENT` (the pattern a Python regular expression, applied with `re.sub`, case sensitive; the replacement literal text with `\1`-style groups allowed), `drop: PATTERN` (a line that matches is removed), or `leak: PATTERN` (a pattern that the check reports and the filter leaves alone). The first ` => ` of a line splits it; leading and trailing whitespace of both parts is removed. A line of another kind, a pattern that is empty (on any of the three kinds), or a pattern that is not a valid regular expression, stops the command with `sanitise: <path>:<line>: <reason>` and status 2; `check` stops the same way, with the same message and status, before it reads any file. The rules are numbered 1-based in file order, counting only rule lines (`=>`, `drop:`, `leak:`), never blank or comment lines.
+- The rules file is `$SITE_SANITISE_RULES`, else `sanitise.rules` in the folder of the site file. Its lines are blank, a comment (`#`), `PATTERN => REPLACEMENT` (the pattern a Python regular expression, applied with `re.sub`, case sensitive; the replacement literal text except for `\1` to `\99`, each naming that group of the pattern (two digits read as one number; a group that took no part in the match gives empty text); every other backslash stays a literal backslash), `drop: PATTERN` (a line that matches is removed), or `leak: PATTERN` (a pattern that the check reports and the filter leaves alone). The first ` => ` of a line splits it; leading and trailing whitespace of both parts is removed. A line of another kind, a pattern that is empty (on any of the three kinds), a pattern that is not a valid regular expression, or a replacement that names a group higher than the pattern's group count (reason `replacement names group 2, the pattern has 1`), stops the command with `sanitise: <path>:<line>: <reason>` and status 2; `check` stops the same way, with the same message and status, before it reads any file. The rules are numbered 1-based in file order, counting only rule lines (`=>`, `drop:`, `leak:`), never blank or comment lines.
 - The built-in rules, applied before the site's, in this order: remove ANSI escape sequences (`\x1b\[[0-9;]*[A-Za-z]`); replace `eyJ` followed by two further dot-separated base64url parts (each at least 10 characters) with `***JWT***`; replace `gh[pousr]_[A-Za-z0-9]{20,}` and `github_pat_[A-Za-z0-9_]{20,}` with `***TOKEN***`.
 - A filter without a rules file prints `sanitise: no rules file at <path>; only the built-in rules apply` to standard error once and goes on. `check` without one prints `sanitise: no rules file at <path>; nothing to check against` and returns 3.
 - `check` reads each file and, for every line, tests the built-in token patterns (before replacement) and every site pattern (each rule's left side, each `drop:` pattern and each `leak:` pattern; all three built-ins, `builtin-3` for both the `gh[pousr]_` and the `github_pat_` form). For each line that matches it prints `<file>:<line>: <n>` to standard output, `<n>` the number of the rule in the order of the file (a built-in is `builtin-1`, `builtin-2`, `builtin-3`), once per line and rule. It never prints a matched text. When nothing matched it prints `sanitise: clean` and returns 0; else 1. `check` makes sure every named file exists before it reads any: a missing file returns 2 with `sanitise: <file>: no such file` and nothing else on standard output.
@@ -161,21 +163,21 @@ Tests: `tests/test_operator_sanitise.py`, running the command as a child process
 
 ## Acceptance criteria
 
-1. The built-in rules, as rows of one parametrized test over one input line each: a line with an escape sequence `\x1b[31mred\x1b[0m` becomes `red`; a line holding a three-part JWT (made of `eyJabcdefghij.abcdefghij1.abcdefghij2`) has it replaced by `***JWT***`; `ghp_` followed by 30 letters and `github_pat_` followed by 30 letters each become `***TOKEN***`; a text that only starts like a token (`ghp_short`, `eyJabc.def`) is unchanged.
-2. A site rule `corp\.example\.invalid => <company-host>` replaces every occurrence in a line; a rule with a group (`(\d+)-secret => \1-x`) keeps the group.
+1. The built-in rules, as rows of one parametrized test over one input line each: a line with an escape sequence `\x1b[31mred\x1b[0m` becomes `red`; a line holding a three-part JWT (made of `eyJabcdefghij.abcdefghij1.abcdefghij2`) has it replaced by `***JWT***`; `ghp_` followed by 30 letters and `github_pat_` followed by 30 letters each become `***TOKEN***`; a text that only starts like a token (`ghp_short`, `eyJabc.def`) is unchanged; the size limits on both sides: a JWT whose second part has 9 characters, and one whose third part has 9, is unchanged, and each with that part at 10 is replaced; `ghp_` and `github_pat_` followed by 19 characters are unchanged, and by 20 replaced.
+2. A site rule `corp\.example\.invalid => <company-host>` replaces every occurrence in a line; a rule with a group (`(\d+)-secret => \1-x`) keeps the group. As rows of one parametrized test of the filter: the match is case sensitive (`CORP.EXAMPLE.INVALID` is unchanged by the host rule); a rule `  spaced   =>   S  ` turns `spaced` into `S` (both parts trimmed); a rule `first => one => two` turns `first` into `one => two` (the first ` => ` splits); in the replacement, a backslash other than `\1` to `\99` stays literal (`tab => x\ty` gives `x\ty`, `zero => x\0y` gives `x\0y`), two digits are one group number (`(a)(b)(c)(d)(e)(f)(g)(h)(i)(j) => \100` turns `abcdefghij` into `j0`), and a group that took no part in the match gives empty text (`(a)|(b) => [\1\2]` turns `b` into `[b]`).
 3. `drop:` removes the matching line from the output and keeps the other lines in their order; a `leak:` pattern does not change the filter's output.
 4. The order: the built-ins are applied first, then the site's rules in the file's order, so that a site rule sees the text the built-ins left.
-5. Faults of the rules file stop the filter with status 2 and nothing on standard output, as rows of one parametrized test: a line `no arrow here`, a pattern `[unclosed`, an empty pattern in each kind (`=> x`, `drop:`, `leak:`); each message names the path and the line number.
+5. Faults of the rules file stop the filter with status 2 and nothing on standard output, as rows of one parametrized test: a line `no arrow here`, a pattern `[unclosed`, an empty pattern in each kind (`=> x`, `drop:`, `leak:`), a replacement naming a group the pattern lacks (`(\d+)-x => \2`, with the message `sanitise: <path>:<line>: replacement names group 2, the pattern has 1`, and `(\d+)-x => \10`, with `replacement names group 10, the pattern has 1`); each message names the path and the line number.
 6. A missing rules file: the filter prints its warning to standard error once, applies the built-ins, and exits 0; `check` prints its message, runs no check and exits 3.
 7. `SITE_SANITISE_RULES` in the site file (or the environment) names another rules file and wins over the default; a relative path is relative to the site file's folder.
 8. `check` on a file with the line `host corp.example.invalid` (the rule of criterion 2) at line 3 prints `<file>:3: 1` and exits 1; on a file with a token at line 2 prints `<file>:2: builtin-3`; the printed lines contain neither the matched host nor the token.
 9. `check` on a clean file prints `sanitise: clean` and exits 0; on two files, one clean and one not, it reports the one and exits 1; on a leaking file followed by a missing one it prints only `sanitise: <file>: no such file` (no report of the first) and exits 2.
-10. A line that matches two rules is reported once for each rule; a rule that matches two lines is reported for both lines.
+10. A line that matches two rules is reported once for each rule; a rule that matches two lines is reported for both lines; a line that matches one rule twice (`alpha alpha`) is reported once, and a line holding both a `ghp_` and a `github_pat_` token is reported `builtin-3` once.
 11. A sanitised output passes `check` against the same rules whenever the replacements do not themselves match a pattern (a test: a mixed input filtered, then checked: `sanitise: clean`).
-12. `check` tests every built-in, as rows of one parametrized test: a line with an escape sequence is reported `builtin-1`, a JWT `builtin-2`, a `ghp_` token and a `github_pat_` token each `builtin-3`.
+12. `check` tests every built-in, as rows of one parametrized test: a line with an escape sequence is reported `builtin-1`, a JWT `builtin-2`, a `ghp_` token and a `github_pat_` token each `builtin-3`; a line holding only a near-token (a JWT with a 9-character part, `ghp_` or `github_pat_` with 19 characters) gives `sanitise: clean`.
 13. Rule numbers in `check` count only rule lines: a rules file of a comment, a blank line, a `=>` rule, a comment, a blank line and a `drop:` rule reports a line matching the `drop:` pattern as `<file>:<line>: 2`; a `leak:` pattern is reported by number too.
 14. A last line without a newline gets one in the output; an empty input gives an empty output.
-15. A rules-file fault stops `check` with status 2, the same message as the filter's (path and line number), and no report of any file.
+15. A rules-file fault stops `check` with status 2, the same message as the filter's (path and line number), and no report of any file, over the same fault rows as criterion 5 (the group rows included, with their messages).
 16. `SITE_SANITISE_RULES` in the environment wins over the one in the site file; a relative path in it is relative to the site file's folder.
 17. A wrong call or a missing site file stops the command with status 2 and nothing on standard output, as rows of one parametrized test: an argument other than `check` and `check` without a file each print the usage line `usage: sanitise < raw > clean | sanitise check FILE...` to standard error; a missing site file prints the site's own message `site: no site file at <path>; run: site init` to standard error.
 18. `make check` stays green.
@@ -421,3 +423,33 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 22. factory: started review as vm.
+23. reviewer: Round 1 review of `operator/bin/sanitise` and `tests/test_operator_sanitise.py`, read against the work item. `make check` after the coder was green (entry 21).
+
+    Work item corrected under the human's leave in entry 15, which says the review may "add criteria and correct the Interface sentence from this answer":
+    - Interface: the replacement was "literal text with `\1`-style groups allowed". It now says "literal text except for `\1` to `\99` …; every other backslash stays a literal backslash". The fault list gains "a replacement that names a group higher than the pattern's group count (reason `replacement names group 2, the pattern has 1`)". It also states two behaviours the code already has: two digits are read as one group number, and a group that took no part in the match gives empty text.
+    - Criteria 5 and 15 gain the group-fault rows with their messages. Criteria 1, 2, 10 and 12 gain the rows named below. All are test changes; nothing under `operator/` or `src/` needs to change.
+
+    Findings (all group 1; the tester writes the tests, the code already behaves as stated):
+    1. `tests/test_operator_sanitise.py:151,165,393` (criteria 5 and 15): the `missing-group` row checks only the prefix `sanitise: <path>:3: `, but entry 15 fixes the whole message. Fix: assert the full line `sanitise: <path>:3: replacement names group 2, the pattern has 1`. Also add a row `(\d+)-x => \10` with `replacement names group 10, the pattern has 1`, which pins the two-digit reading. Both rows run in both fault tests.
+    2. `tests/test_operator_sanitise.py:100-120` (criterion 2): Interface rules with no test of their failing or other side:
+       - "case sensitive": `CORP.EXAMPLE.INVALID` must stay unchanged;
+       - whitespace of both parts trimmed: `  spaced   =>   S  ` gives `S`;
+       - "the first ` => ` splits": `first => one => two` gives `one => two`;
+       - the low edge of `\1`–`\99`: `zero => x\0y` gives `x\0y`;
+       - the high edge: `(a)(b)(c)(d)(e)(f)(g)(h)(i)(j) => \100` turns `abcdefghij` into `j0`;
+       - a group that took no part in the match: `(a)|(b) => [\1\2]` turns `b` into `[b]`.
+
+       Fix: add these rows to the criterion 2 test, each row with its own rules file, since `(a)|(b)` would rewrite the other rows' lines.
+    3. `tests/test_operator_sanitise.py:81-82` (criterion 1): the Interface says "each" of the two JWT parts has at least 10 characters, but only the second part's limit is tested; the third part has 11 characters in every row. Fix: add a 9-character third part (unchanged) and a 10-character third part (replaced). Add the 9-character third part to the near-token rows of criterion 12 (`:333-335`) too.
+    4. `tests/test_operator_sanitise.py:273-282` (criterion 10): the Interface's "once per line and rule" is not tested for a line that matches one rule twice. Fix: add a line `alpha alpha`, reported once, and a line holding both a `ghp_` and a `github_pat_` token, reported `builtin-3` once.
+
+    Groups 2 to 5 have no findings:
+    - Architecture: a script under `operator/`, nothing under `src/`.
+    - Security: the Python program is a constant run with `python3 -I -c`, and its values arrive through argv. There is no silencing marker, no traceback path is left for a bad replacement, and a report never prints the matched text.
+    - Quality: the built-in patterns appear nowhere else in `operator/`, `src/` or `docs/`. `site_path` and `site_load` are reused from `operator/lib/site.sh`.
+    - Work item hygiene: the journal states the main choice and what was rejected (entries 10 and 21). The Description matches what was built, and the docs criterion (19) still holds.
+
+    Earlier tests: none. `tests/test_operator_sanitise.py` is the only test file in the diff, and it is new (status A).
+
+    Notes:
+    - `tests/test_operator_sanitise.py:338` `test_check_leaves_near_tokens_clean` is the refused side of the rule that `test_check_reports_every_built_in` (`:318`) tests. It could be rows of that one parametrized test (expected output `sanitise: clean`, status 0) instead of a separate function.
