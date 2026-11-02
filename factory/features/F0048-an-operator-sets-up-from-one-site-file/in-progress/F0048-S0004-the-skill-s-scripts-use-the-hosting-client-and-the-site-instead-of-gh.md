@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 501
-comments_read: []
+comments_read: [6584170311]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 4ba55cfcfc5742ff8c277fcc544b1932
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-02T17:49:24.474902Z'
+  stage: intake
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -107,3 +112,9 @@ Expect: one line, `0`.
    4. `approval.sh` prints "the journal sections" and runs `hosting_git fetch -q`, but no criterion covers either. Criterion 6 names only tests changed, Expect lines and new markers. Please add a criterion for the journal sections (names and content), and one that the git sections read the fetched branch, not a stale local one.
    5. Criterion 5 says the cost comes from "the first 100" comments, but no case has the cost table beyond comment 100. Please add one: either that the request carries `per_page=100`, or that a table beyond the first 100 is not found. The Interface also fixes `per_page=50` for the pull requests and `per_page=20` for the commits. Only the page-25 URL is checked (criterion 3). Please add a criterion that the stand-in sees these query strings, or drop the numbers from the Interface.
    6. Criterion 9 says `start-story.sh` and `next-story.sh` call `hosting_git pull -q --no-rebase`, and the first also calls `hosting_git push -q`. No criterion checks that the pull goes through `hosting_git`. Criterion 9 only checks the pushed commit. Please add one that the token reaches git through `GIT_CONFIG_*` for the pull as well, or say that the two scripts' calls are untested by design.
+4. 2026-11-02 human: 1. Yes, a row of criterion 7 for `show` (the site's values win over the JSON file's).
+   2. Yes, copy both texts verbatim from today's `settings.sh` into criteria 7 and 8.
+   3. The order of today's `status.sh`: a factory marker of one of the seven kinds first (whatever else the comment holds), then the verdict marker, then `waits: approval` at `stage:approval`, else `working`. An unknown kind falls through to the next rule. Add a row for each of your four cases.
+   4. Yes to the journal sections: one criterion that the section headers appear and that a journal line holding `Met` or `Findings` appears under them (names and content as today's script prints them). The fetch: one criterion that the git sections read the branch as it is on the bare remote after a commit the local clone has not seen.
+   5. Add one criterion that the stand-in sees the query strings `state=open&per_page=50`, `per_page=20` for the commits and `per_page=100` for the comments; no case beyond 100 comments.
+   6. Untested by design: the pull and the push go to a local bare remote, where the header does no work, and S0003 tests what `hosting_git` gives git. Criterion 9 checks the pushed commit, which is enough.
