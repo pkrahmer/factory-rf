@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T21:17:28.326265Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-02T21:17:28.326265Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-02T21:20:04.552815Z'
+  stage: tests
+  run: 90fda224ee2d430783a43e3482f3760e
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -403,3 +405,27 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
 
     Noticed, not touched: I didn't run the smoke-test blocks.
 22. factory: started tests as vm.
+23. tester: I made the four test changes that the coder's entry 21 names, from the review's findings in journal 19. I changed nothing else.
+
+    1. `tests/test_operator_job_log.py::test_status_shows_a_missing_execution_and_gcloud_failures` (finding 1): new `saved` column and new row `no-execution-saved-file`. It calls `world.save_execution("e-saved")`, gives an empty executions list, and expects exit 1 and `job: no execution of factory-job found`. The other rows have `saved=False` and check what they checked before.
+    2. `test_status_looks_for_the_stop_in_the_last_200_lines` (finding 2): the `after` column now holds the lines that follow the stop line, not a count. The two old rows keep their ids and cases (199 and 200 filler lines). New row `200th-non-empty-with-empty-lines`: `[FILLER, ""] * 199` after the stop line, which expects `factory: stopped: …`. The stop line is the 200th non-empty line from the end, but it would be the 399th line if empty lines counted.
+    3. Shared helpers moved under the standing leave in `CLAUDE.md` *Tests* (finding 3). `JOB`, `IMPERSONATE`, `BARE` (the three site keys, same values) and `words` now live in the new `tests/operator_job_support.py`. Both `tests/test_operator_job_log.py` and `tests/test_operator_job.py` import them from there, and their own copies are gone.
+       - Earlier test file changed: `tests/test_operator_job.py` (S0005). Only its definitions of `JOB`, `IMPERSONATE`, `BARE` and `words` were removed, and one import was added. No test was renamed, and every test checks the same thing.
+    4. Merged pairs (finding 4):
+       - `test_only_the_stop_form_counts_as_a_stop` is now the `not-the-stop-form` row of `test_status_shows_the_factory_s_stop`.
+       - `test_an_empty_answer_says_the_log_is_late` and `test_quiet_that_leaves_no_line_prints_nothing` are now one test, `test_only_an_empty_answer_says_the_log_is_late`, with the rows `empty-answer` and `quiet-leaves-no-line`. Both rows make the same assertions as before.
+
+    Changed mapping, one line each:
+    - criterion 10 (no execution): `tests/test_operator_job_log.py::test_status_shows_a_missing_execution_and_gcloud_failures`
+    - criterion 16 (last 200 non-empty lines): `tests/test_operator_job_log.py::test_status_looks_for_the_stop_in_the_last_200_lines`
+    - stop form only: `tests/test_operator_job_log.py::test_status_shows_the_factory_s_stop`
+    - `no log lines yet` only for an empty answer: `tests/test_operator_job_log.py::test_only_an_empty_answer_says_the_log_is_late`
+
+    All other criteria keep the tests that entry 15 and the earlier tester entries name.
+
+    One run of `uv run pytest -q tests/test_operator_job_log.py tests/test_operator_job.py`: every test passed. That includes the new rows, since the coder already changed `job.sh` in entry 21. `make lint` is green. I skipped the type check, as this stage's instructions say.
+
+    Files created: `tests/operator_job_support.py`. Files changed: `tests/test_operator_job_log.py`, `tests/test_operator_job.py`. No module failed to import.
+
+    `lint`: lint: green (0.1 s)
+    `test`: test: green (80.1 s)

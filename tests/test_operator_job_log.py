@@ -9,13 +9,11 @@ import pytest
 
 from factory.adapters.process import ProcessResult
 from git_support import write_executable
+from operator_job_support import BARE, IMPERSONATE, JOB, words
 from operator_support import ROOT, operator_environment, run_script
 from recording_stand_in_support import read_records
 
 JOB_SCRIPT = ROOT / "operator" / "job" / "job.sh"
-JOB = "factory-job"
-BARE = {"SITE_PROJECT": "p1", "SITE_REGION": "europe-west3", "SITE_JOB": JOB}
-IMPERSONATE = "deployer@p1.iam.gserviceaccount.com"
 LOG_FORMAT = '--format=value(timestamp.date("%H:%M:%S"),textPayload)'
 LOG_FLAGS = {"--order=asc", "--limit=4000", "--freshness=2d", LOG_FORMAT}
 RULE = r"corp\.example\.invalid => <company-host>"
@@ -150,11 +148,6 @@ def world(tmp_path: Path) -> JobWorld:
     site_folder.mkdir()
     (site_folder / "sanitise.rules").write_text(f"{RULE}\n{TOOL_RULE}\n", encoding="utf-8")
     return JobWorld(tmp_path, bin_folder, site_folder / "site.env", tmp_path / "gcloud.jsonl")
-
-
-def words(call: list[str]) -> list[str]:
-    """The words of a call that are no flag, in order."""
-    return [word for word in call if not word.startswith("-")]
 
 
 def log_filter(name: str) -> str:
@@ -311,10 +304,23 @@ def test_a_failing_logging_read_is_shown(world: JobWorld) -> None:
     )
 
 
-def test_an_empty_answer_says_the_log_is_late(world: JobWorld) -> None:
-    result = world.run(["log", "--execution", "e1"], log=[])
+@pytest.mark.parametrize(
+    ("options", "lines", "late"),
+    [
+        pytest.param([], [], True, id="empty-answer"),
+        pytest.param(["--quiet"], NOISE, False, id="quiet-leaves-no-line"),
+    ],
+)
+def test_only_an_empty_answer_says_the_log_is_late(
+    world: JobWorld, options: list[str], lines: list[str], *, late: bool
+) -> None:
+    result = world.run(["log", "--execution", "e1", *options], log=lines)
     assert result.exit_status == 0, result.stderr
-    assert NO_LINES in (result.stdout + result.stderr).splitlines()
+    if late:
+        assert NO_LINES in (result.stdout + result.stderr).splitlines()
+    else:
+        assert result.stdout == ""
+        assert NO_LINES not in result.stderr
 
 
 FAILED_MESSAGE = "Task factory-job-e4-task0 failed: the container exited with code 1."
@@ -377,6 +383,11 @@ PREFLIGHT_LINE = "10:00:05\t2026-11-02T10:00:05Z preflight: tool:uv: found"
         pytest.param(["10:00:01\tjob-start: inputs", STOP_LINE], True, id="stopped"),
         pytest.param(["10:00:01\tjob-start: inputs", "10:00:02\tfactory: tick"], False, id="none"),
         pytest.param([STOP_LINE, PREFLIGHT_LINE], False, id="preflight-after-stop"),
+        pytest.param(
+            ["10:00:01\tjob-start: inputs", "10:00:02\tjob: stop requested by user"],
+            False,
+            id="not-the-stop-form",
+        ),
     ],
 )
 def test_status_shows_the_factory_s_stop(
@@ -392,27 +403,34 @@ def test_status_shows_the_factory_s_stop(
 
 
 @pytest.mark.parametrize(
-    ("fail", "fail_text", "message"),
+    ("fail", "fail_text", "message", "saved"),
     [
-        pytest.param("", "", f"job: no execution of {JOB} found", id="no-execution"),
+        pytest.param("", "", f"job: no execution of {JOB} found", False, id="no-execution"),
+        pytest.param(
+            "", "", f"job: no execution of {JOB} found", True, id="no-execution-saved-file"
+        ),
         pytest.param(
             "executions list",
             "ERROR: (gcloud.run.jobs.executions.list) PERMISSION_DENIED\nsecond line\n",
             "job: gcloud run jobs executions list failed: "
             "ERROR: (gcloud.run.jobs.executions.list) PERMISSION_DENIED",
+            False,
             id="executions-list-fails",
         ),
         pytest.param(
             "logging read",
             "ERROR: (gcloud.logging.read) PERMISSION_DENIED\nsecond line\n",
             "job: gcloud logging read failed: ERROR: (gcloud.logging.read) PERMISSION_DENIED",
+            False,
             id="logging-read-fails",
         ),
     ],
 )
 def test_status_shows_a_missing_execution_and_gcloud_failures(
-    world: JobWorld, fail: str, fail_text: str, message: str
+    world: JobWorld, fail: str, fail_text: str, message: str, *, saved: bool
 ) -> None:
+    if saved:
+        world.save_execution("e-saved")
     executions = [execution("e1", runningCount=1)] if fail else []
     result = world.run(
         ["status"],
@@ -489,14 +507,15 @@ def test_status_names_running_before_failed(world: JobWorld) -> None:
 @pytest.mark.parametrize(
     ("after", "stopped"),
     [
-        pytest.param(199, True, id="200th-from-the-end"),
-        pytest.param(200, False, id="201st-from-the-end"),
+        pytest.param([FILLER] * 199, True, id="200th-from-the-end"),
+        pytest.param([FILLER] * 200, False, id="201st-from-the-end"),
+        pytest.param([FILLER, ""] * 199, True, id="200th-non-empty-with-empty-lines"),
     ],
 )
 def test_status_looks_for_the_stop_in_the_last_200_lines(
-    world: JobWorld, after: int, *, stopped: bool
+    world: JobWorld, after: list[str], *, stopped: bool
 ) -> None:
-    lines = ["10:00:01\tjob-start: inputs", STOP_LINE, *[FILLER] * after]
+    lines = ["10:00:01\tjob-start: inputs", STOP_LINE, *after]
     world.save_execution("e1")
     executions = [execution("e1", runningCount=1)]
     result = world.run(["status"], log=lines, executions=executions)
@@ -509,19 +528,6 @@ def test_status_looks_for_the_stop_in_the_last_200_lines(
         assert last.endswith(STOP_SANITISED), result.stdout
     else:
         assert last == NO_STOP, result.stdout
-
-
-def test_only_the_stop_form_counts_as_a_stop(world: JobWorld) -> None:
-    lines = ["10:00:01\tjob-start: inputs", "10:00:02\tjob: stop requested by user"]
-    result = world.run(["status"], log=lines, executions=[execution("e1", runningCount=1)])
-    assert result.stdout.splitlines()[-1] == NO_STOP, result.stdout
-
-
-def test_quiet_that_leaves_no_line_prints_nothing(world: JobWorld) -> None:
-    result = world.run(["log", "--execution", "e1", "--quiet"], log=NOISE)
-    assert result.exit_status == 0, result.stderr
-    assert result.stdout == ""
-    assert NO_LINES not in result.stderr
 
 
 @pytest.mark.parametrize(
