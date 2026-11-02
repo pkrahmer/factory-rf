@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T17:26:50.767884Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -161,6 +157,19 @@ journal:
   kind: started
   at: '2026-11-02T17:26:50.767884Z'
   stage: review
+- number: 28
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T17:28:29.842313Z'
+  stage: review
+  run: 3685cf537ff848909fee2b2973b18289
+- number: 29
+  speaker: factory
+  kind: question
+  at: '2026-11-02T17:28:29.842313Z'
+  stage: review
+  run: 3685cf537ff848909fee2b2973b18289
+  blocked: round_cap
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -211,8 +220,10 @@ Tests: `tests/test_operator_hosting.py`, with stand-ins for `curl` and `gh` on t
 16. `hosting_git` returns git's exit status when git fails: `hosting_git config --get no.such.key` (a key no configuration holds) returns 1, as git does.
 17. Sourced without a prior `site_load`, with a `SITE_` value already in the environment (`SITE_TOKEN_CMD` naming the token command) and `FACTORY_SITE` naming a file that does not exist, the library does not call `site_load`: `hosting_token` prints the token and standard error is empty (no `site: no site file` message). A row of criterion 14's test.
 18. `hosting_repo_api POST /pulls '{"a":"b"}'` with `SITE_REPOSITORY=owner/repo` passes its BODY on to the API call: the `curl` stand-in's standard input holds the URL `url = "https://api.github.com/repos/owner/repo/pulls"`, `request = "POST"` and the line `data = "{\"a\":\"b\"}"`.
-19. `make check` stays green.
-20. docs: `docs/operator-guide.md` gets a section *The token source* in the site file's part (the three ways to give a token, the command's rules, that the token is never in an argument list and why, `SITE_API_URL`); `README.md` and the other documents: none.
+19. A body whose own `message` comes before a nested one picks the body's own: status 422 with the body `{"message":"Validation Failed","errors":[{"message":"A pull request already exists"}]}` returns 22 with `hosting: GET /user: 422 Validation Failed`. A row of criterion 7's test.
+20. A `curl` that fails writes its own error text on its standard error before the write-out, as `--show-error` makes it do: a `curl` that exits 7 after writing `curl: (7) Failed to connect to api.github.com port 443` there returns 22 with exactly `hosting: GET /user: no answer` on standard error. A row of criterion 7's test, with the stand-in writing that text.
+21. `make check` stays green.
+22. docs: `docs/operator-guide.md` gets a section *The token source* in the site file's part (the three ways to give a token, the command's rules, that the token is never in an argument list and why, `SITE_API_URL`); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -509,3 +520,31 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 27. factory: started review as vm.
+28. reviewer: Review, round 2. Group 1 (acceptance criteria and the Interface) fails.
+
+    I checked every criterion (1–18) and every Interface rule against `operator/lib/hosting.sh` and `tests/test_operator_hosting.py`. Each criterion has a test that checks what it says. Criterion 18 now has its test, `test_the_repository_call_passes_its_body_on`. The coder's `make check` was green (entry 26). Coder entry 26 also checked the curl 7.x fix by hand against the real curl 7.88.1.
+
+    Two gaps remain: the two code fixes from round 1 (coder entry 22) are not pinned by any test. Undoing either fix would leave every test green. Both behaviours are already in the code, so I added the criteria myself.
+
+    1. Criterion 19 added; it needs its test. The fix is at `operator/lib/hosting.sh:118`: `_hosting_error_message` cuts the body at its first `"message"` key. Criterion 7's rows all hold a single `message`, so the old greedy match, which took the last key, would still pass. Fix: add a row to `test_the_status_decides_the_result_of_the_api_call`:
+       - status 422
+       - body `{"message":"Validation Failed","errors":[{"message":"A pull request already exists"}]}`
+       - expect exit 22 and `hosting: GET /user: 422 Validation Failed`.
+    2. Criterion 20 added; it needs its test. The fix is at `operator/lib/hosting.sh:33` and `:110`: `_hosting_last_three` reads the status from the end of curl's standard error. That is because a real curl run with `--show-error` writes its own error text there before the write-out. `CURL_STAND_IN` in `tests/test_operator_hosting.py` writes only `000` when it fails. So a version that compared the whole file with `000` would pass criterion 7's `curl-fails` row and still fail against the real curl. Fix:
+       - Let the stand-in write an error text from its environment, for example `STAND_IN_CURL_ERROR`, on its standard error before the write-out.
+       - Add a row to `test_the_status_decides_the_result_of_the_api_call`: curl exits 7 after writing `curl: (7) Failed to connect to api.github.com port 443`, and the expected standard error is exactly `hosting: GET /user: no answer`.
+
+    Closing criteria renumbered: `make check` is now 21 and `docs:` is 22.
+
+    Things I looked at and set aside:
+    - `hosting_api` returns 0 when curl fails mid-body after a 2xx status (exit 18, 28 or 56). The Interface defines a curl failure as "no status", so the code follows the Interface. This is not a finding.
+    - The curl stand-in in `tests/vm_support.py` is a stand-in for downloads, not the one this story's test file copies. This is not a copy.
+
+    Groups 2–5 were not reviewed because group 1 failed.
+
+    Earlier tests:
+    - `tests/operator_support.py`: none needed. The change only adds `HOSTING_LIBRARY` and `run_hosting`, and every helper the file already held stays as it was.
+
+    Notes:
+    - `tests/test_operator_hosting.py:285`: `CURL_ARGUMENTS + [str(arguments)]` also searches the test's own constant. Searching `arguments` alone says the same thing. This was carried over from round 1.
+29. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
