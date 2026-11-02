@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 503
 comments_read: [6586887222]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T19:52:25.363367Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-02T19:52:25.363367Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-11-02T19:54:05.396239Z'
+  stage: tests
+  run: bfa5834fd05a4d0b96eec75a7b277576
 ---
 
 # The reviewer judges all five groups in every review
@@ -160,3 +162,17 @@ Expect: two lines, `1` and `0`.
 
     Noticed, not touched: `docs/project-guide/agents.md:258` and `docs/decisions.md:587` still say "whichever group failed" and "it stops at the first failing group". Criterion 5 gives both to the documenter.
 11. factory: started tests as vm.
+12. tester: I made the test change the human granted in entry 8 and the coder named in entry 10. In `tests/test_claude_agent_texts.py:120`, the anchor in `ROLE_AND_STAGE_ANCHORS["reviewer"]` changed from `Item 6 is part of every review, whichever group failed.` to `Item 6 is part of every review.`. I changed nothing else in that file and no other file. The reason is that the Interface's sentence ends with `Item 6 is part of every review.`, so the old anchor could not hold once the sentence is in place.
+
+    The criterion mapping is unchanged from entry 5:
+    - criterion 1: tests/test_claude_agent_texts_review_groups.py::test_the_checklist_sentence_asks_for_all_five_groups_right_before_item_one
+    - criterion 2: tests/test_claude_agent_texts_review_groups.py::test_the_reviewer_no_longer_says_stop_at_the_first_failing_group and tests/test_claude_agent_texts_review_groups.py::test_no_other_agent_asks_for_all_five_groups
+    - criterion 3: tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged
+    - criteria 4 and 5: no test of their own
+
+    Files changed: tests/test_claude_agent_texts.py (only the one anchor, under the human's leave in entry 8). Files created: none.
+
+    Run: `uv run pytest -q tests/test_claude_agent_texts.py tests/test_claude_agent_texts_review_groups.py`. Every module imported. Four tests fail on their assertions, as expected, because `claude/agents/reviewer.md` still has the old sentence: `test_role_and_stage_sections_carry_the_texts_of_the_role[reviewer]` and the three reviewer tests in the new module. All four should pass once the coder replaces line 53 with the Interface's sentence. `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
+    `test`: FAILED tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged - AssertionError: assert 0 == 1

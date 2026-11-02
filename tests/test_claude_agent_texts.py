@@ -117,7 +117,7 @@ ROLE_AND_STAGE_ANCHORS = {
     "reviewer": [
         "You review a diff against a work item.",
         "You do not edit code, and you do not write any",
-        "Item 6 is part of every review, whichever group failed.",
+        "Item 6 is part of every review.",
         "6. **Earlier tests**: every test file that `main` already holds",
     ],
     "documenter": [
