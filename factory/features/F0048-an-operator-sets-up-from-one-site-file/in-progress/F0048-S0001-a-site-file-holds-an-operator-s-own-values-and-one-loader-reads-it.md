@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595, 6581849151]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-02T16:12:15.319275Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -253,6 +257,11 @@ journal:
   at: '2026-11-02T16:11:54.253961Z'
   stage: doing
   run: 221610915b8c41b98c70ad4501478a4b
+- number: 45
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:12:15.319275Z'
+  stage: review
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -732,3 +741,4 @@ Expect: one line, `$(echo ran)`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+45. factory: started review as vm.
