@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-02T21:27:15.524143Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-11-02T21:26:54.487065Z'
   stage: docs
   run: 3065d0c2eff149228ce3d369edf509ae
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:27:15.524143Z'
+  stage: smoke-test
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -514,3 +523,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
     `check`: check: green (not run again: passed on tree c12ba0cd0863 at 2026-11-02T21:22:33Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+30. factory: started smoke-test as vm.
