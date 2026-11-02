@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-02T17:43:24.689690Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -250,6 +246,12 @@ journal:
   kind: started
   at: '2026-11-02T17:43:24.689690Z'
   stage: smoke-test
+- number: 44
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-02T17:43:53.982377Z'
+  stage: smoke-test
+  run: b1ce5bbb2660462cabc965032fc583b0
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -777,3 +779,25 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 43. factory: started smoke-test as vm.
+44. smoke-tester: Smoke test, round 1. I ran both commands under `## Smoke test` exactly as written, in order, from the repository root. Each block ran in its own `bash` so that its `trap` fired when the block ended. Neither command starts a server. I fixed nothing, the working tree is unchanged (`git status --short` prints nothing), and nothing is left in `/tmp`.
+
+    Command 1 (a site file with `SITE_TOKEN_CMD=printf "  abc  "`, then `hosting_token` after sourcing `site.sh` and `hosting.sh`):
+
+    ```
+    abc
+    ```
+
+    `od -c` shows the output is exactly `a b c \n`: the surrounding spaces are removed and one newline follows. It meets `Expect: one line, abc`.
+
+    Command 2 (a site file with `SITE_TOKEN_CMD=echo SECRETWORD; exit 1`, then `hosting_token` with stderr sent to a file, followed by `echo "exit $?"` and `cat` of that file):
+
+    ```
+    exit 4
+    hosting: the token command failed; see SITE_TOKEN_CMD in the site file
+    ```
+
+    It meets its `Expect:` line: two lines, `exit 4` and the Interface's message, and `SECRETWORD` is in neither. The command's output does not reach stdout either; the only stdout line is the `exit 4` from `echo`.
+
+    Checked against the acceptance criteria: the runs agree with criterion 1 (only the first line is taken and its surrounding whitespace removed), criterion 3 (return 4, nothing on stdout, exactly the Interface's message, and the command's output is not repeated) and criterion 14 (with no `site_load` called first, the library reads `SITE_TOKEN_CMD` from the file `FACTORY_SITE` names). The smoke test contradicts no other criterion; it does not exercise `hosting_api`, `hosting_git` or the docs criterion.
+
+    Findings: none. Nothing is open.
