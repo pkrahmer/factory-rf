@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T14:35:52.476184Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T14:35:34.389241Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-02T14:35:52.476184Z'
   stage: intake
 ---
 
@@ -144,3 +153,4 @@ Expect: one line, `$(echo ran)`.
 4. 2026-11-02 human: 1. Yes, as you propose: `site show` and `site get` print `site_load`'s message to standard error, nothing to standard output, and exit with its status (1, 2 or 3). Add the criterion with rows for the three failing loads, for both commands.
    2. Yes: `site get` with no name, or with a name that does not start with `SITE_`, prints the usage line and exits 2; add the cases as rows of criterion 13.
    3. Refuse: `site init` for a path inside a git work tree prints the loader's message (`site: <path> lies in a git repository; keep the site file outside every repository`), writes nothing and exits 3 (decision 2). Add the criterion with both sides: in a work tree it refuses and writes nothing, outside it writes.
+5. factory: started intake as vm.
