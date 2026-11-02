@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T18:50:33.837857Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-02T18:50:11.431705Z'
   stage: tests
   run: 2f231df526914584b649693dd5c16599
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-02T18:50:33.837857Z'
+  stage: doing
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -199,3 +208,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
 
    `lint`: lint: green (0.1 s)
    `test`: FAILED tests/test_operator_job.py::test_a_failing_gcloud_shows_its_error_and_its_status[delete] - AssertionError: assert 'ERROR: (gcloud) FAILTEXT' in 'sh: 0: cannot open /tmp/pytest-of-factory/pyt...
+9. factory: started doing as vm.
