@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T20:04:36.702623Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-02T20:04:36.696111Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:04:36.702623Z'
+  stage: intake
+---
+
 # A sanitiser with the site's own rules and a leak check
 
 ## Description
@@ -60,3 +87,6 @@ sed "s|$d|<d>|" "$d/out"
 Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
 
 ## Journal
+
+1. 2026-11-02 human: created.
+2. factory: started intake as vm.
