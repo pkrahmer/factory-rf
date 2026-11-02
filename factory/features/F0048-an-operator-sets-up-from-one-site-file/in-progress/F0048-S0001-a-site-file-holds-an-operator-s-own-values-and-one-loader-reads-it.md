@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T14:56:33.623334Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-02T14:56:12.616514Z'
   stage: review
   run: 49f71b5f188c41bc8afa875833168fc5
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-02T14:56:33.623334Z'
+  stage: doing
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -279,3 +288,4 @@ Expect: one line, `$(echo ran)`.
     6. Interface, line format (story): the Interface says "there is no space around the `=`" and also "the value is everything after the first `=`". Those two do not settle a space on one side only, and no criterion covers either case. The code refuses `SITE_A =1`, because the key `SITE_A ` is not a name. It loads `SITE_A= 1` with the value ` 1` (`operator/lib/site.sh:93-102`). Fix: the coder asks the human whether `SITE_A= 1` is a fault or the value ` 1`. A criterion then covers both one-sided cases as rows of one parametrized test. Only criterion 5's row `SITE_A = 1` (spaces on both sides) tests this rule now.
 
     Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py`, `tests/test_operator_site.py`, both `A`).
+13. factory: started doing as vm.
