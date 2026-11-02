@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 503
 comments_read: [6586887222]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-02T19:59:56.234323Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-11-02T19:59:35.382930Z'
   stage: docs
   run: 955b852ba00b4d32a6abe0275a787fa6
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:59:56.234323Z'
+  stage: smoke-test
 ---
 
 # The reviewer judges all five groups in every review
@@ -251,3 +260,4 @@ Expect: two lines, `1` and `0`.
     `check`: check: green (not run again: passed on tree 3c9fdc6e474e at 2026-11-02T19:56:26Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+19. factory: started smoke-test as vm.
