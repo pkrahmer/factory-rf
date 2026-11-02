@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T20:21:12.127407Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-02T20:20:51.562510Z'
   stage: review
   run: 18a354a5c4a947ebb882269be0039272
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:21:12.127407Z'
+  stage: doing
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -256,3 +265,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     - No copied helper: `run_script` and `operator_environment` are reused from `tests/operator_support.py`.
     - The Description matches what was built, and the docs criterion still holds.
     - The journal states the main choice: Python inline in the script, rather than `operator/lib/sanitise.py`. One small correction: the precedents it cites, `status.sh` and `job.sh`, use `python3 -c` without `-I`.
+13. factory: started doing as vm.
