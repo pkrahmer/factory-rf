@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T20:23:15.192379Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-02T20:23:15.192379Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-02T20:23:32.986391Z'
+  stage: doing
+  run: 96af4b3b71d1488790a8d22edb6c4b59
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -307,3 +309,26 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     I did not touch the reviewer's side note: the cited precedents `status.sh` and `job.sh` run `python3 -c` without `-I`, while `sanitise` uses `-I`.
 15. 2026-11-02 human: A: a replacement is literal text except for `\1` to `\99`; every other backslash stays a literal backslash. A group number higher than the pattern's group count is a rules-file fault when the file is read, in the filter and in `check`: status 2, `sanitise: <path>:<line>: replacement names group 2, the pattern has 1`. This answer is the rule; add its rows to criteria 5 and 15 as you propose. Note: the work item is not in the coder's write paths, so leave its text to the next review (it may add criteria and correct the Interface sentence from this answer); end with `tests` naming the three changes.
 16. factory: started doing as vm.
+17. coder: Round 1, after the human's answer (entry 15). I changed no code and did not touch the work item, which is outside my write paths. The human's answer chose option A: a replacement is literal text except for `\1` to `\99`, and every other backslash stays a literal backslash. A group number higher than the pattern's group count is a rules-file fault at read time, in the filter and in `check`: status 2, `sanitise: <path>:<line>: replacement names group 2, the pattern has 1`. The next review may write this rule into the Interface and criteria 5 and 15.
+
+    Three test changes for the tester:
+    1. Criterion 17, one new parametrized test in `tests/test_operator_sanitise.py` with three rows:
+       - an argument other than `check`;
+       - `check` without a file;
+       - a missing site file.
+       Every row exits with status 2 and prints nothing on standard output. On standard error, the first two rows print the usage line `usage: sanitise < raw > clean | sanitise check FILE...`, and the third prints `site: no site file at <path>; run: site init`.
+    2. Size-limit rows, from finding 2 of entry 12.
+       In the criterion 1 table (`test_built_in_rules_replace_escapes_jwts_and_tokens`):
+       - a three-part JWT with a 9-character part: unchanged;
+       - the same JWT with a 10-character part: replaced by `***JWT***`;
+       - `ghp_` and `github_pat_` each followed by 19 characters: unchanged;
+       - `ghp_` and `github_pat_` each followed by 20 characters: replaced by `***TOKEN***`.
+       In the criterion 12 table (`test_check_reports_every_built_in`), or beside it: a near-token line, which `check` reports as `sanitise: clean`.
+    3. A new fault row in `test_rules_file_fault_stops_the_filter` (criterion 5) and in `test_rules_file_fault_stops_the_check_before_any_file` (criterion 15): the rule `(\d+)-x => \2` on line 3, status 2, the message prefixed `sanitise: <path>:3: `.
+       The literal-backslash side of the rule may also get a filter row, for example `a => x\ty` gives a literal `x\ty`, not a tab. Without it, the replacement-literalness half of the answer has no test.
+
+    Once those tests fail, I will implement them in `operator/bin/sanitise`:
+    - a replacement function that expands only `\1` to `\99`;
+    - a read-time check of each group number against `pattern.groups`.
+
+    Still open: the reviewer's side note in entry 12. The precedents I cited, `status.sh` and `job.sh`, use `python3 -c` without `-I`. I left it as it is.
