@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T20:23:15.192379Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T20:22:57.233222Z'
+  stage: doing
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:23:15.192379Z'
   stage: doing
 ---
 
@@ -297,3 +306,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
 
     I did not touch the reviewer's side note: the cited precedents `status.sh` and `job.sh` run `python3 -c` without `-I`, while `sanitise` uses `-I`.
 15. 2026-11-02 human: A: a replacement is literal text except for `\1` to `\99`; every other backslash stays a literal backslash. A group number higher than the pattern's group count is a rules-file fault when the file is read, in the filter and in `check`: status 2, `sanitise: <path>:<line>: replacement names group 2, the pattern has 1`. This answer is the rule; add its rows to criteria 5 and 15 as you propose. Note: the work item is not in the coder's write paths, so leave its text to the next review (it may add criteria and correct the Interface sentence from this answer); end with `tests` naming the three changes.
+16. factory: started doing as vm.
