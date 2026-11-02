@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T17:49:42.481721Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T17:49:24.474902Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:49:42.481721Z'
   stage: intake
 ---
 
@@ -118,3 +127,4 @@ Expect: one line, `0`.
    4. Yes to the journal sections: one criterion that the section headers appear and that a journal line holding `Met` or `Findings` appears under them (names and content as today's script prints them). The fetch: one criterion that the git sections read the branch as it is on the bare remote after a commit the local clone has not seen.
    5. Add one criterion that the stand-in sees the query strings `state=open&per_page=50`, `per_page=20` for the commits and `per_page=100` for the comments; no case beyond 100 comments.
    6. Untested by design: the pull and the push go to a local bare remote, where the header does no work, and S0003 tests what `hosting_git` gives git. Criterion 9 checks the pushed commit, which is enough.
+5. factory: started intake as vm.
