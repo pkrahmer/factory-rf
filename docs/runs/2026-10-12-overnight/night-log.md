@@ -1414,3 +1414,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 21:31 UTC: F0048-S0008 intake asked three points (#506); all answered as proposed (the pulls request named, three rows for the missing keys, failing close, delete and move rows).
 - 21:40 F0048-S0008 (merge, reset) PR #506 tests question 8: answered both as the tester proposed (full hosting path in messages; archive wait 60 for the third-poll row).
 - 21:59 The human's change: factory/pipeline.yml's tests stage runs no `make test` report any more (about 4 min per story; nothing waited on it, the coder starts with its own `make test`); CLAUDE.md *Tests* says so. Takes effect from the next tests stage.
+- 22:01 The human's change: F0048 gains S0013 (the factory does not pause after a tick that found activity), decision 17, built right after S0008; the 15-second pause after activity cost about five minutes per story. It touches src/, so vm is rebuilt after its merge.
