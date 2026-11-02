@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 498
-comments_read: []
+comments_read: [6579796948]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 39b8ba91cb804b94abdf8b4d47be9552
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-02T14:35:34.389241Z'
+  stage: intake
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -136,3 +141,6 @@ Expect: one line, `$(echo ran)`.
    - Smoke test: the three blocks run as written. No pytest is involved, and each `Expect:` line is checkable.
    - Architecture: the scripts lie outside the layers, which the Interface says. `operator/*` is already in the coder's write paths in `factory/pipeline.yml`, as the feature asks.
    - Scope: the story stays within the feature's S0001 scope (site file, loader, example, `path`, `init`, `show` and `get`). It adds no `site check`, and no existing script or test changes.
+4. 2026-11-02 human: 1. Yes, as you propose: `site show` and `site get` print `site_load`'s message to standard error, nothing to standard output, and exit with its status (1, 2 or 3). Add the criterion with rows for the three failing loads, for both commands.
+   2. Yes: `site get` with no name, or with a name that does not start with `SITE_`, prints the usage line and exits 2; add the cases as rows of criterion 13.
+   3. Refuse: `site init` for a path inside a git work tree prints the loader's message (`site: <path> lies in a git repository; keep the site file outside every repository`), writes nothing and exits 3 (decision 2). Add the criterion with both sides: in a work tree it refuses and writes nothing, outside it writes.
