@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T17:15:31.620526Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-02T17:15:31.620526Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T17:17:25.782778Z'
+  stage: review
+  run: 581c62d6bf5545b7b6cea24ba831cdba
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -166,8 +168,9 @@ Tests: `tests/test_operator_hosting.py`, with stand-ins for `curl` and `gh` on t
 15. The edges of the 200 to 299 range, as more rows of criterion 7's test: 299 returns 0 and prints the body; 199 and 300, each with the body `{"message":"Edge"}`, return 22 with `hosting: GET /user: 199 Edge` and `hosting: GET /user: 300 Edge`.
 16. `hosting_git` returns git's exit status when git fails: `hosting_git config --get no.such.key` (a key no configuration holds) returns 1, as git does.
 17. Sourced without a prior `site_load`, with a `SITE_` value already in the environment (`SITE_TOKEN_CMD` naming the token command) and `FACTORY_SITE` naming a file that does not exist, the library does not call `site_load`: `hosting_token` prints the token and standard error is empty (no `site: no site file` message). A row of criterion 14's test.
-18. `make check` stays green.
-19. docs: `docs/operator-guide.md` gets a section *The token source* in the site file's part (the three ways to give a token, the command's rules, that the token is never in an argument list and why, `SITE_API_URL`); `README.md` and the other documents: none.
+18. `hosting_repo_api POST /pulls '{"a":"b"}'` with `SITE_REPOSITORY=owner/repo` passes its BODY on to the API call: the `curl` stand-in's standard input holds the URL `url = "https://api.github.com/repos/owner/repo/pulls"`, `request = "POST"` and the line `data = "{\"a\":\"b\"}"`.
+19. `make check` stays green.
+20. docs: `docs/operator-guide.md` gets a section *The token source* in the site file's part (the three ways to give a token, the command's rules, that the token is never in an argument list and why, `SITE_API_URL`); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -368,3 +371,31 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 19. factory: started review as vm.
+20. reviewer: Review, round 1. Group 1 (acceptance criteria and the Interface) fails. I read every criterion (1–17) and every Interface rule against `operator/lib/hosting.sh` and `tests/test_operator_hosting.py`.
+
+    Each of criteria 1–17 has a test that checks what the criterion says. The round-0 findings are fixed:
+    - the 299, 199 and 300 rows exist;
+    - `test_git_returns_the_exit_status_of_git` exists;
+    - `test_the_library_loads_the_site_itself` has both sides;
+    - `test_the_api_call_leaves_no_temporary_file` now checks the exit status and the one `curl` call.
+
+    The coder's `make check` was green (entry 18). The tests pass, but two Interface rules do not hold for real input, and one Interface behaviour had no criterion.
+
+    1. operator/lib/hosting.sh:92 (`write-out = "%output{...}%{http_code}"` in `_hosting_curl_config`): the status file only works with curl 8.3 or later, because `%output{}` was added in 8.3.0.
+       - Debian 12 ships curl 7.88.1. That is the curl on this VM (`curl --version`) and the one the operator guide installs from Debian (docs/operator-guide.md:1020). With it the status file stays empty, so every `hosting_api` call returns 22 with "no answer", even on a 200.
+       - The stand-in `CURL_STAND_IN` supports `%output{}`, so criteria 7, 12 and 15 pass only against the stand-in.
+       - Fix: write the status with a write-out form that curl 7.x knows, and keep the Interface's temporary status file. For example, use `write-out = "%{stderr}%{http_code}"` (curl 7.63 and later), send curl's standard error to the status file, and read its last three characters. An empty result, or `000`, stays "no answer".
+    2. operator/lib/hosting.sh:111 (the `sed` in `_hosting_error_message`): the greedy `.*"message"` takes the last `"message"` key in the body, not the body's own `message` that the Interface names. GitHub's 422 answers (`{"message":"Validation Failed","errors":[{...,"message":"A pull request already exists ..."}]}`) report the nested message. Fix: take the first `"message"` key. One way is to cut the text up to the first `"message"` with a parameter expansion before matching the value.
+    3. criterion 18 added, and it needs its test. The Interface's `hosting_repo_api METHOD PATH [BODY]` passes BODY on to `hosting_api`, but no test calls `hosting_repo_api` with a body. Criterion 8 and its test only use `GET /pulls`. Fix: add a test (or a row of `test_the_repository_call_puts_the_site_repository_in_the_path`) where `hosting_repo_api POST /pulls '{"a":"b"}'` gives the repository URL, `request = "POST"` and `data = "{\"a\":\"b\"}"` on the stand-in's standard input.
+
+    Closing criteria renumbered: `make check` is now 19, and `docs:` is 20.
+
+    Not findings, for the documenter: the docs criterion's section *The token source* should state the lowest curl version that the fix for finding 1 needs.
+
+    Groups 2–5 were not reviewed because group 1 failed.
+
+    Earlier tests:
+    - tests/operator_support.py: none needed. The change only adds `HOSTING_LIBRARY` and `run_hosting`, and every helper the file held stays as it was.
+
+    Notes:
+    - tests/test_operator_hosting.py `test_the_api_call_gives_curl_the_token_on_standard_input_only`: `CURL_ARGUMENTS + [str(arguments)]` also searches the test's own constant, which can never hold the token. Searching `arguments` alone says the same thing.
