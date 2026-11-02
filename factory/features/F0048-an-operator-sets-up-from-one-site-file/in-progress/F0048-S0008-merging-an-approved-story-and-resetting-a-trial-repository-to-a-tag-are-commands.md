@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T21:57:03.813387Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-02T21:56:41.572848Z'
   stage: review
   run: 3d3a5b04e8be424885ebcb00f5e11305
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:57:03.813387Z'
+  stage: doing
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -356,3 +365,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     Earlier tests: none. Every test file in the diff is new (`A tests/test_operator_merge_reset.py`).
 
     Notes: none (round 0).
+20. factory: started doing as vm.
