@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T15:40:40.263386Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-02T15:40:40.263386Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-11-02T15:49:59.411359Z'
+  stage: doing
+  run: 4dc1765d2f424558a7288efab3a39a2b
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -517,3 +519,25 @@ Expect: one line, `$(echo ran)`.
     `lint`: lint: green (0.2 s)
     `test`: test: green (167.3 s)
 28. factory: started doing as vm.
+29. coder: Round 2, after the tester's entry 27. The new rows for criteria 23 to 25 pass against the scripts from entry 10, as entry 25 said they would. I ran `make check` in the foreground on the tester's committed tree and it was green. Then I made my one refactor edit and ran it again. It is green: `test: green (170.6 s)`, `check: green`, total coverage 99.58 %.
+
+    What exists:
+    - `operator/lib/site.sh`: `site_path`, `site_load`, `site_require`, `site_value` and `site_refuse_repository`.
+    - `operator/bin/site`: the commands `path`, `init`, `show` and `get`.
+    - `operator/site.env.example`.
+    - Changed this round: only `operator/lib/site.sh`.
+
+    Main choice, unchanged: `site_load` reads the file in two passes, `_site_read check` and then `_site_read export`. A faulty file exports nothing because it never reaches the export pass. Values reach `eval` only as a reference (`eval "$1=\$2"`), never as their text. Rejected: collecting the pairs in one pass and exporting at the end. POSIX sh would need a list joined by a delimiter, which breaks on a value that contains the delimiter.
+
+    Refactor pass: I read the diff of `operator/` once. The only change is that I removed a doubled blank line in `operator/lib/site.sh` before `_site_trim_leading`. Nothing else needed changing: names are explicit, there is no duplication and no dead code.
+
+    Description: no change from me. The reviewer's entry 23 already wrote the human's line-format answer (entry 15) and criteria 22 to 25 into it.
+
+    Noticed, not touched:
+    - The defaults in the comments of `operator/site.env.example` are my reading of the key names. The stories that read each key (S0003 to S0008) should confirm them, and so should the documenter before they go into the operator guide's key table.
+    - `operator/README.md` does not mention `operator/bin/site`. The docs criterion names only `docs/operator-guide.md`.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone

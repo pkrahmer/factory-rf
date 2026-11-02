@@ -121,7 +121,6 @@ _site_export() {
   fi
 }
 
-
 _site_trim_leading() {
   _site_text=$1
   while :; do
