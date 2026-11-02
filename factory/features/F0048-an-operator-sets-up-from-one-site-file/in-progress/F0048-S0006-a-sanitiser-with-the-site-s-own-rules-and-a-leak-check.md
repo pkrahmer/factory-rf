@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T20:33:11.902725Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-02T20:32:51.228059Z'
   stage: review
   run: 0074ec284f954ff2a76e2d6e5db1e398
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:33:11.902725Z'
+  stage: doing
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -453,3 +462,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
 
     Notes:
     - `tests/test_operator_sanitise.py:338` `test_check_leaves_near_tokens_clean` is the refused side of the rule that `test_check_reports_every_built_in` (`:318`) tests. It could be rows of that one parametrized test (expected output `sanitise: clean`, status 0) instead of a separate function.
+24. factory: started doing as vm.
