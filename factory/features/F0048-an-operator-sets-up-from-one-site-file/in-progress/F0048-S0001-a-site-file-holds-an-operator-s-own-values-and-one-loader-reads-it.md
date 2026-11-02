@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 498
 comments_read: [6579796948]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T14:56:33.623334Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,13 @@ journal:
   kind: started
   at: '2026-11-02T14:56:33.623334Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: question
+  at: '2026-11-02T14:56:54.662600Z'
+  stage: doing
+  run: c7e0caa46edf4dab8b9a0e9975d50254
+  blocked: question
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -289,3 +292,24 @@ Expect: one line, `$(echo ran)`.
 
     Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py`, `tests/test_operator_site.py`, both `A`).
 13. factory: started doing as vm.
+14. coder: Round 1. The reviewer's finding 6 says to ask you about the line format, so I am asking before anything else. Criteria 17 to 21 need only their tests, and the existing code already does what they say:
+    - 17: `read -r` and `printf '%s'` keep a `\` as text.
+    - 18: `_site_is_name` in `operator/lib/site.sh` accepts digits and `_`.
+    - 19: `_site_export` keeps the first value.
+    - 20: `site_require` adds the `SITE_` prefix to a bare name.
+    - 21: `site path` in `operator/bin/site` calls `site_path`.
+
+    I changed no code. Once you answer, I will end with `tests` so the tester writes 17 to 21 and whatever criterion your answer adds, all in one pass.
+
+    Question: the Interface says "there is no space around the `=`" and also "the value is everything after the first `=`". These two do not settle a space on one side only. Here is what `operator/lib/site.sh` (`_site_parse_line`) does today:
+    - `SITE_A =1` is a fault, `not a KEY=value line`, because the key `SITE_A ` is not a name.
+    - `SITE_A= 1` loads with the value ` 1`, keeping the leading space.
+
+    Options:
+    (a) Keep today's behaviour. A space before the `=` is a fault, and a space after it belongs to the value, since the value is everything after the first `=` and only trailing whitespace is removed. This changes no code. It matches the `.env` reading where `SITE_A=" 1"` and `SITE_A= 1` both keep the space.
+    (b) A space on either side of the `=` is a fault (`not a KEY=value line`). This is a small change in `_site_parse_line`: it refuses a value whose first character is whitespace. The cost is that a value can then start with a space only when quoted.
+    (c) Keep (a) for the space before the `=`, but remove leading whitespace from the value. The cost is that this quietly differs from "everything after the first `=`".
+
+    I would choose (a). It is the literal reading of the Interface, the fault is reported where the key is malformed, and an operator who wants a leading space can still write one. Whichever you choose, one criterion goes before the closing two (they become 23 and 24). It covers `SITE_A =1` and `SITE_A= 1` as rows of one parametrized test, and the Interface sentence is made explicit.
+
+    Noticed, not touched: nothing new beyond my entry 10. The example's defaults are still my reading of the key names, and `operator/README.md` does not mention `site`.
