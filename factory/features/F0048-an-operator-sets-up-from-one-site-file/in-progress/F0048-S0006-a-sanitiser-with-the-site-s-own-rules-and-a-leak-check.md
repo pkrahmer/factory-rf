@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T20:09:43.743123Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T20:09:25.712373Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:09:43.743123Z'
   stage: intake
 ---
 
@@ -114,3 +123,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
    4. An empty pattern is a fault for all three kinds, a row each; a rules-file fault stops `check` too, with status 2 and the same message (a row).
    5. `check` makes sure every named file exists before it reads any: a missing file prints only its message, nothing else, and status 2. State it and test it with the missing file second.
    6. Yes, both rows: the environment's `SITE_SANITISE_RULES` wins over the site file's, and a relative path is relative to the site file's folder.
+5. factory: started intake as vm.
