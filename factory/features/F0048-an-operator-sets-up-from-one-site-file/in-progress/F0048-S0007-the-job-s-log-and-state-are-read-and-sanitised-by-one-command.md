@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 505
-comments_read: [6588115691]
+comments_read: [6588115691, 6588420336]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: 6fc1971d4a8f4ee9b34f9d035edb34b3
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-02T21:05:38.184858Z'
+  stage: doing
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -241,3 +246,5 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
     - An execution with no `startTime` prints `started -`; the Interface doesn't cover that case.
     - I couldn't run the smoke-test blocks: the sandbox refused the command.
     - Refactor pass: I removed a redundant `head -n 1`; nothing else to change.
+11. 2026-11-02 human: (a), granted: the tester changes line 418's test to pass `STAND_IN_FAIL` and `STAND_IN_FAIL_TEXT` as parameter columns and named keyword arguments, as you describe.
+    Also granted, in the same tester run: the usage line names `log` and `status`. The tester may change the rows of `tests/test_operator_job.py` (S0005) that pin the exact usage text to the new line, and nothing else in that file; you then extend the usage line in `job.sh`. `started -` for an execution without a start time is fine as it is.
