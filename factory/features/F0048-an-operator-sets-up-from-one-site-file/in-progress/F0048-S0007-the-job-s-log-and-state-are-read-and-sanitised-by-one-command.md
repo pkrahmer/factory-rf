@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 505
 comments_read: [6588115691]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T20:57:02.254547Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-02T20:57:02.254547Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-02T21:01:13.519762Z'
+  stage: doing
+  run: 6fc1971d4a8f4ee9b34f9d035edb34b3
+  blocked: question
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -210,3 +213,31 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
    `lint`: lint: green (0.1 s)
    `test`: FAILED tests/test_operator_job_log.py::test_quiet_that_leaves_no_line_prints_nothing - AssertionError: usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes]
 9. factory: started doing as vm.
+10. coder: I stopped before `review`. The code is done, but `make check` fails at `make types` on the new test module, and I can't edit tests.
+
+    The failure (`make types`, mypy --strict):
+    ```
+    tests/test_operator_job_log.py:418: error: Argument 4 to "run" of "JobWorld" has incompatible type "**dict[str, str]"; expected "dict[str, str] | None"  [arg-type]
+    ```
+    In `test_status_shows_a_missing_execution_and_gcloud_failures`, `extra` is a `dict[str, str]`. mypy checks `**extra` against every keyword of `JobWorld.run`, including `values: dict[str, str] | None`. The test runs correctly; the problem is only the type.
+
+    Everything else is green when run one target at a time: lint, layers, sast, secrets and licenses, and `make test` (99.58 % coverage). All of `tests/test_operator_job_log.py` and `tests/test_operator_job.py` pass.
+
+    The question: may the tester fix line 418's typing? Options:
+    (a) Pass the two values as named keyword arguments: give `STAND_IN_FAIL` and `STAND_IN_FAIL_TEXT` as parameter columns (an empty string meaning "no failure") and call `world.run(..., STAND_IN_FAIL=fail or "", STAND_IN_FAIL_TEXT=fail_text)`.
+    (b) Make `extra` a `dict[str, str]` and give it to `run` some other way, for example through a new `env: dict[str, str]` keyword on `JobWorld.run`.
+    I would choose (a): it's the smaller change, and the stand-in already treats an empty `STAND_IN_FAIL` as no failure. With your answer I end the stage with `tests`, and the tester makes exactly that change.
+
+    What I built (in the working tree, `operator/job/job.sh` only):
+    - `log [N] [--execution NAME] [--quiet]`. It picks the execution in `chosen_execution`: the option, else `last-execution`, else `executions list --limit=1`. `read_log` runs `gcloud logging read` with the Interface's filter and flags and drops empty lines. `drop_noise` applies the eleven prefixes after the tab, plus `token refreshed:`. The lines then go through `operator/bin/sanitise` and `tail -n N`. When the answer is empty, the "no log lines yet" message goes to standard error and the exit is 0.
+    - `status`: one `executions list --limit=5 --format=json` call, formatted by a small `python3 -I` program. It times the start in UTC, adds ` ended` when there is a completion time, and adds `: <message>` from the first condition whose status is `False`. The state is running, then succeeded, then failed, else waiting. It then reads the log as `log` does, and `stop_line` (awk) looks at the last 200 lines. A stop-form line (`stop <kind> <reason>: `) counts unless a later `preflight: ` line follows it. Only the printed line is sanitised.
+    - `gcloud_read` shows `job: gcloud <label> failed: <first line of stderr>` and exits 1.
+    - `state_folder` and `last_execution_file` are now shared with `execute`.
+
+    Main decision: `gcloud_call` now adds `--region` only to `run` calls. The real `gcloud logging read` refuses the flag, because Cloud Logging has no region. The alternative I rejected was a second call wrapper for logging: two places to keep the project and impersonation flags in step.
+
+    Noticed, not touched:
+    - The usage line doesn't name `log` or `status`. `tests/test_operator_job.py` (S0005) checks the exact usage text, so extending it breaks six of its rows. That would need a change to an S0005 test.
+    - An execution with no `startTime` prints `started -`; the Interface doesn't cover that case.
+    - I couldn't run the smoke-test blocks: the sandbox refused the command.
+    - Refactor pass: I removed a redundant `head -n 1`; nothing else to change.
