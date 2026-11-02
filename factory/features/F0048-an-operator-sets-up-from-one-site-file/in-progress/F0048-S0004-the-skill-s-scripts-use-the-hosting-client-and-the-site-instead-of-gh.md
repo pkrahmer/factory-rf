@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 501
 comments_read: [6584170311, 6584737120]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T18:21:32.449574Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-02T18:21:32.449574Z'
   stage: review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T18:22:47.568648Z'
+  stage: review
+  run: 1bf33543ec68488daf356aa552f168df
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -139,8 +141,9 @@ Tests: `tests/test_operator_skill_scripts.py`: each script runs in `tmp_path` wi
 14. `approval.sh` prints the journal sections: the headers `== what the journal says about the smoke test, the findings and the leaves (<item>)` and `== the journal's last entry` appear, and a journal line holding `Met` or `Findings` appears under the first.
 15. `approval.sh`'s git sections read the branch as it is on the bare remote after `hosting_git fetch -q`: a commit pushed to the remote by another clone, which the script's checkout has not seen, shows in the sections.
 16. The stand-in sees the query strings `state=open&per_page=50` for the pull requests, `per_page=20` for the commits and `per_page=100` for the comments `approval.sh` reads (no case beyond 100 comments).
-17. `make check` stays green.
-18. docs: `operator/README.md` (the *Needs* part: `gh` is no longer needed when a token command is set; the settings file holds the switches only when the site gives the repository and the checkout) and `docs/operator-guide.md` (the site file's section: `SITE_REPOSITORY` and `SITE_CHECKOUT` are read by the skill); the other documents: none.
+17. `settings.sh get repository` with a JSON file and no site file at `FACTORY_SITE`, or with a site file that has a faulty line, prints the JSON file's repository and exits 0 (two rows); with the faulty file, the site file's message is on standard error.
+18. `make check` stays green.
+19. docs: `operator/README.md` (the *Needs* part: `gh` is no longer needed when a token command is set; the settings file holds the switches only when the site gives the repository and the checkout) and `docs/operator-guide.md` (the site file's section: `SITE_REPOSITORY` and `SITE_CHECKOUT` are read by the skill); the other documents: none.
 
 ## Smoke test
 
@@ -293,3 +296,18 @@ Expect: one line, `0`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 14. factory: started review as vm.
+15. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (the five scripts under `operator/skill/kumpel/scripts/`, `tests/operator_support.py`, `tests/test_operator_hosting.py` and the new `tests/test_operator_skill_scripts.py`) against the work item. Group 1 (acceptance criteria) fails, so the review stops there. All gaps of group 1:
+
+    1. `tests/test_operator_skill_scripts.py::test_the_newest_comment_decides_the_state`: criterion 2 limits the verdict marker to "the last three lines" of the comment, and the script reads only `tail -n 3` (`status.sh:40`). Only the inside side is tested. Fix: add a row where `<!-- kumpel verdict -->` is the fourth line from the end at `stage:doing`, which gives `working`.
+    2. `tests/test_operator_skill_scripts.py::test_settings_init_needs_no_arguments_when_the_site_gives_both`: the Interface says `init` with no argument "writes only the switches", but the test compares only the keys it expects (`{key: data.get(key) for key in written}`). A file that also held `repository`/`checkout` would pass. Fix: assert `data == written`.
+    3. Same test: criterion 8 refuses `init` with no argument "when [the site] does not" give both values, but only the row where the site gives neither is tested. Fix: add a row where the site gives `SITE_REPOSITORY` without `SITE_CHECKOUT`, expecting exit 2 and the usage line (the `site_gives_both` rule in `settings.sh`).
+    4. criterion 17 added, and it needs its test. `settings.sh:12-15` lets the JSON file answer alone when there is no site file, and goes on past a faulty site file (`site_load || :`). No criterion pins either case, and the test of criterion 7 always writes a site file. The new criterion 17 has two rows: no site file, and a site file with a faulty line. In both, `get repository` prints the JSON file's value. With the faulty file, the site file's message is on standard error. The closing criteria are now 18 (`make check`) and 19 (docs).
+
+    Everything else in group 1 holds:
+    - Criteria 1, 3–7 and 9–16 each have a test that checks what the criterion names.
+    - The journal's entry 13 records `check: green` after the coder.
+    - The pull in `start-story.sh`/`next-story.sh` is untested by design, per the human's answer in journal entry 4.6.
+
+    Earlier tests:
+    - `tests/test_operator_hosting.py`: the standing leave to move a shared test helper. `CURL_STAND_IN` and `hosting_env` moved to `tests/operator_support.py`; every test keeps its name and checks the same thing.
+    - `tests/operator_support.py`: the same standing leave, together with the Interface's "shared through `tests/operator_support.py`". It received the moved helpers. The stand-in's one addition, `STAND_IN_CURL_ROUTES`, does nothing when that variable is unset, so the earlier tests are unaffected.
