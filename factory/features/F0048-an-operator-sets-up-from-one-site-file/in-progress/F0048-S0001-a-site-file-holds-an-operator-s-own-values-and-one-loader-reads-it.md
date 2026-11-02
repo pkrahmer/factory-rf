@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T15:54:57.517773Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -203,6 +207,11 @@ journal:
   at: '2026-11-02T15:54:36.465178Z'
   stage: review
   run: 00b90595de924038b244a83d145bc663
+- number: 36
+  speaker: factory
+  kind: started
+  at: '2026-11-02T15:54:57.517773Z'
+  stage: doing
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -610,3 +619,4 @@ Expect: one line, `$(echo ran)`.
     4. Criterion 29 (docs), `operator/README.md` *What is here*: the table lists every path under `operator/` that a reader needs. After this story it lacks `bin/site`, `lib/site.sh` and `site.env.example`, yet criterion 29 says "the other documents: none". The coder has flagged this in entries 10, 14, 17, 21, 25 and 29, and nobody acted. Fix: criterion 29 also names `operator/README.md`'s table, with one row each for `bin/site`, `lib/site.sh` and `site.env.example`. No journal entry settles this, so I did not edit the criterion myself. The coder puts it to the human beside the `tests` hand-off; the human's answer then lets the criterion change.
 
     Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py` and `tests/test_operator_site.py`, both `A`).
+36. factory: started doing as vm.
