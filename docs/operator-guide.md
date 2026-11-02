@@ -970,7 +970,7 @@ sh operator/bin/site get SITE_REPOSITORY
 | `SITE_TIMEOUT` | the job's task timeout, in seconds | 14400 |
 | `SITE_IDLE_MINUTES` | idle minutes after which the job ends itself | 60 |
 | `SITE_RESET_REPOSITORY` | the repository a trial resets, `owner/repo` | none |
-| `SITE_SANITISE_RULES` | the file of rules that sanitise what leaves the site | none |
+| `SITE_SANITISE_RULES` | the file of rules that sanitise what leaves the site | `sanitise.rules` beside the site file |
 
 The skill's scripts (`operator/skill/kumpel/scripts/`) read `SITE_REPOSITORY` and `SITE_CHECKOUT` from the site file, or from the environment when it sets them, before they look at the skill's `settings.json`. When the site gives both, `settings.json` holds only the switches (`merge`, `answer`, `start_next`) and `settings.sh init` takes no argument; when it gives either one short, `init` needs `<owner/name> <checkout>` and the JSON file keeps them. A missing or faulty site file does not stop `settings.sh`: the JSON file answers, and a faulty file's message goes to standard error. The scripts reach the API and git only through `hosting_repo_api` and `hosting_git`, so a script with neither a token command nor a `gh` login stops with `hosting: the token command failed; see SITE_TOKEN_CMD in the site file`.
 
@@ -998,6 +998,77 @@ FACTORY_SITE="$d/site.env" sh -c '. operator/lib/site.sh; . operator/lib/hosting
 ```
 
 This prints `abc`.
+
+### Sanitising what leaves the machine
+
+A log, a result or a note that goes from your machine into a repository must not carry the site's names: its domain, its project, its repository, a token. `sh operator/bin/sanitise` removes them and proves that a file has none left. It needs the site file (without one it prints the site's own message and exits 2).
+
+```sh
+sanitise                    # standard input to standard output, rules applied
+sanitise check FILE...      # exit 0 and "sanitise: clean", or 1 naming file:line, or 3
+```
+
+Any other call prints `usage: sanitise < raw > clean | sanitise check FILE...` and exits 2.
+
+#### The rules file
+
+The rules file is `$SITE_SANITISE_RULES` when that is set (in the environment, which wins, or in the site file), else `sanitise.rules` in the folder of the site file. A relative path is relative to the site file's folder. The patterns are your company's names, so the file is the site's: keep it beside the site file and never put it into a repository. The repository holds the mechanism only.
+
+Each line is blank, a comment (`#`) or one of three rules:
+
+| Line | Meaning |
+|---|---|
+| `PATTERN => REPLACEMENT` | replace every match of the pattern |
+| `drop: PATTERN` | remove every line that matches |
+| `leak: PATTERN` | the check reports a match; the filter leaves the text alone |
+
+A pattern is a Python regular expression, applied with `re.sub`, case sensitive. The first ` => ` of a line splits it, and whitespace around both parts is removed. The replacement is literal text, except that `\1` to `\99` stand for that group of the pattern (two digits are one number; a group that took no part in the match gives empty text). Every other backslash stays a backslash.
+
+```
+# the company's names
+corp\.example\.invalid => <company-host>
+(\d+)-secret => \1-x
+drop: ^DEBUG
+leak: internal-project
+```
+
+A line of another kind, an empty pattern, a pattern that is not a regular expression, or a replacement that names a group the pattern lacks stops the command with `sanitise: <path>:<line>: <reason>` and status 2. `check` stops the same way before it reads any file. Rules are numbered from 1 in file order, counting rule lines only, not blank lines or comments.
+
+#### The filter
+
+The filter applies the built-in rules first, then the site's in file order, line by line. The order of lines is kept, every line ends with a newline, and empty input gives empty output. The built-in rules are:
+
+1. `builtin-1`: terminal escape sequences (`\x1b[31m` and the like) are removed.
+2. `builtin-2`: `eyJ` followed by two more dot-separated base64url parts, each at least 10 characters, becomes `***JWT***`.
+3. `builtin-3`: `ghp_`, `gho_`, `ghu_`, `ghs_` or `ghr_` followed by 20 or more letters or digits, and `github_pat_` followed by 20 or more letters, digits or `_`, become `***TOKEN***`.
+
+Without a rules file the filter prints `sanitise: no rules file at <path>; only the built-in rules apply` to standard error once and goes on.
+
+#### The check
+
+`sanitise check FILE...` tests every line of every file against the built-in token patterns and every pattern of the rules file (the left side of `=>`, `drop:` and `leak:`). For each line and rule that matches it prints `<file>:<line>: <n>` once, where `<n>` is the rule's number, or `builtin-1`, `builtin-2` or `builtin-3`. It never prints the matched text, so its report is no leak. The exit status is:
+
+| Status | Meaning |
+|---|---|
+| 0 | `sanitise: clean` |
+| 1 | at least one match was reported |
+| 2 | a rules-file fault, a wrong call, or a named file that does not exist (`sanitise: <file>: no such file`, and nothing else on standard output) |
+| 3 | no rules file (`sanitise: no rules file at <path>; nothing to check against`) |
+
+A filtered file passes the check against the same rules, unless a replacement itself matches a pattern.
+
+```bash
+d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
+printf 'SITE_PROJECT=p\n' > "$d/site.env"
+printf 'corp\\.example\\.invalid => <company-host>\n' > "$d/sanitise.rules"
+export FACTORY_SITE="$d/site.env"
+printf 'one\nat corp.example.invalid\n' > "$d/raw.txt"
+sh operator/bin/sanitise < "$d/raw.txt" > "$d/clean.txt"; cat "$d/clean.txt"
+sh operator/bin/sanitise check "$d/raw.txt" | sed "s|$d|<d>|"
+sh operator/bin/sanitise check "$d/clean.txt" | sed "s|$d|<d>|"
+```
+
+This prints `one`, `at <company-host>`, then `<d>/raw.txt:2: 1`, then `sanitise: clean`.
 
 ## On Cloud Run
 

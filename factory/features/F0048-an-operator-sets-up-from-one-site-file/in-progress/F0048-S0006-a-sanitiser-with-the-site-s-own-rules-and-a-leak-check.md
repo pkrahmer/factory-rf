@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-02T20:42:40.245426Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -189,6 +185,12 @@ journal:
   kind: started
   at: '2026-11-02T20:42:40.245426Z'
   stage: docs
+- number: 33
+  speaker: documenter
+  kind: result
+  at: '2026-11-02T20:44:02.054322Z'
+  stage: docs
+  run: 6105d78b7e9343948e5e32ac5f367c2f
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -597,3 +599,21 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     Notes:
     - `tests/test_operator_sanitise.py:47` `write_file` writes one file, and `tests/git_support.py:111` `write_files` writes a dict of files. The new test could use the shared helper with a one-entry dict instead of keeping its own.
 32. factory: started docs as vm.
+33. documenter: Round 2, docs stage. I found no discrepancy between `operator/bin/sanitise` and the Interface, so I have no findings for the coder.
+
+    Files changed, all documents, so I did not run `make check`. The factory checks right after this stage.
+    - `docs/operator-guide.md`: a new section *Sanitising what leaves the machine* in the site file's part, between *The token source* and *On Cloud Run*, as criterion 19 asks. It covers:
+      - the two uses and the usage line;
+      - the rules file's place (the environment wins over the site file, a relative path is relative to the site file's folder, the default is `sanitise.rules` beside the site file) and its format (the three rule kinds, the first ` => ` splitting, the `\1` to `\99` replacement rule, rule numbering);
+      - the built-in rules, the filter's behaviour, `check` with its report format and exit statuses, and that the rules file is the site's and never goes into a repository.
+    - `docs/operator-guide.md`, the keys table: the default of `SITE_SANITISE_RULES` was "none". It is now `sanitise.rules` beside the site file, as the Interface says. The comment in `operator/site.env.example` still says "the default is none". The example is outside my write paths, so that comment is stale and is not mine to fix.
+
+    I ran the section's example and it printed `one`, `at <company-host>`, `<d>/raw.txt:2: 1` and `sanitise: clean`, as the section says.
+
+    Cross-read and found current: `README.md`, `docs/operator-guide.md`'s *The site file* part (its place, format, `site` command, token source). They name no changed behaviour. `site init` still says `site check` does not exist yet, which is still true.
+
+    Stale text I noticed and left alone: the `operator/site.env.example` comment named above. Also, *The site file* intro says "the stories to come make the other keys live". This is general and still true.
+
+    `check`: check: green (not run again: passed on tree 7d449b5b5bb4 at 2026-11-02T20:39:00Z)
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok
