@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 502
-comments_read: [6585290870, 6586194468]
+comments_read: [6585290870, 6586194468, 6586555390]
 handed_over: null
 claim: null
 journal:
@@ -209,6 +209,11 @@ journal:
   stage: review
   run: d2517e1766fc4b04aee76bdb8adfe0f0
   blocked: question
+- number: 37
+  speaker: human
+  kind: comment
+  at: '2026-11-02T19:33:35.954432Z'
+  stage: review
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -667,3 +672,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     Earlier tests:
     - `tests/test_operator_hosting.py`: changed under the standing leave to move a shared test helper. Its copied JSON-lines reader inside `calls` now calls the shared `read_records`. `calls` keeps its name and callers, and every test keeps its name and what it checks. The tester's entry 32 names the file.
     - `tests/recording_stand_in_support.py`: a support module, changed under the same standing leave. It gains the shared `read_records`, and `recorded_calls` now uses it and returns the same thing.
+37. 2026-11-02 human: (a): amend criterion 23 with the wording of your finding 1 (the three refusals beside the key table in *Creating the job*, and that a job needs the `https://` form of the repository URL), and with no other finding pass the story to docs.
