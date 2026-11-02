@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870, 6586194468, 6586555390]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T19:33:56.131559Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -223,6 +219,12 @@ journal:
   kind: started
   at: '2026-11-02T19:33:56.131559Z'
   stage: review
+- number: 39
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T19:34:48.196933Z'
+  stage: review
+  run: cf67267959da4523a2e886ff0b9bc7a5
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -281,7 +283,7 @@ Tests: `tests/test_operator_job.py`, a stand-in `gcloud` that records its argume
 20. A value with `@` in any of `SITE_REPOSITORY_URL`, `SITE_CODE_URL`, `SITE_CODE_REF`, `SITE_PROXY`, `SITE_NO_PROXY`, `SITE_MODEL`, `SITE_LOGIN_URL`, `SITE_LOGIN_SCOPE`, `SITE_LOGIN_CLIENT_ID` and `SITE_IDLE_MINUTES` makes `create` print `job: <KEY> holds '@', the delimiter of the job's env list` on standard error, run no `gcloud` and exit 1; rows of one parametrized test: one per key (`SITE_REPOSITORY_URL=git@host:org/work.git` among them), `update` and `create --dry-run` with that URL refused, and the same keys without `@` accepted (the call runs, exit 0).
 21. A `SITE_MODEL_INPUT_COST` or `SITE_MODEL_OUTPUT_COST` that is not digits with at most one `.` makes `create` print `job: <KEY> is not a number` on standard error, run no `gcloud` and exit 1; rows of one parametrized test: `abc`, `nan`, `inf`, `-1`, `1e3`, `1.2.3` and `.` refused (each key at least once), `update` and `create --dry-run` with `abc` refused, and `0`, `3`, `15.5`, `.5` and `1.` accepted, each written into `provider.json` as that number.
 22. `make check` stays green.
-23. docs: `docs/operator-guide.md`, *Creating the job*: the template call is replaced by `job.sh create` with the keys it reads (a table that points to the site file's table), the order of a first start (`site check`, `job.sh create`, `job.sh execute`), the overlap rule and the deletion rule, and says that the job's wrapper only writes the provider file and hands over; `README.md` and the other documents: none.
+23. docs: `docs/operator-guide.md`, *Creating the job*: the template call is replaced by `job.sh create` with the keys it reads (a table that points to the site file's table); beside that table, the three values `create` and `update` refuse (an instance name with a character other than a letter, a digit, `.`, `_` or `-`; an `@` in a value of the env list; a price that is not a plain number), and that a job therefore needs the `https://` form of the repository URL, since an SSH URL such as `git@host:owner/name.git` holds an `@`; the order of a first start (`site check`, `job.sh create`, `job.sh execute`), the overlap rule and the deletion rule, and says that the job's wrapper only writes the provider file and hands over; `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -683,3 +685,25 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     - `tests/recording_stand_in_support.py`: a support module, changed under the same standing leave. It gains the shared `read_records`, and `recorded_calls` now uses it and returns the same thing.
 37. 2026-11-02 human: (a): amend criterion 23 with the wording of your finding 1 (the three refusals beside the key table in *Creating the job*, and that a job needs the `https://` form of the repository URL), and with no other finding pass the story to docs.
 38. factory: started review as vm.
+39. reviewer: Review after the human's answer in entry 37 ("(a)"). No code changed since entry 36's review: between that review's commit `97c63bc5f` and `HEAD`, only this work item and `docs/runs/` changed (through the merge from `main`). I did not rely on that alone and read the diff myself: `operator/job/job.sh`, the test list of `tests/test_operator_job.py`, and the changes to `tests/recording_stand_in_support.py` and `tests/test_operator_hosting.py`.
+
+    - **Group 1 (acceptance criteria) passes.** Criteria 1 to 21 each have a test named after what they check. The tests for criteria 19 to 21 have the rows those criteria list, and the `SITE_JOB` refusals are now rows of `test_missing_site_keys_are_named_in_one_line`. `make check` after the coder was green (entry 34).
+    - **Group 2 (architecture) passes.** Nothing under `src/` changes.
+    - **Group 3 (security) passes.** `check_instance`, `check_env_values` and `check_costs` (`job.sh:51-83`) run before the wrapper is built and before any `gcloud` call. Both heredocs are quoted. The secrets reach the job only as mounts. The diff adds no suppression markers.
+    - **Group 4 (quality) passes.**
+    - **Group 5 (work item hygiene):** entry 36's one finding is resolved by the edit entry 37 approved.
+
+    No other findings.
+
+    Criterion 23 amended on the human's word (entry 37, option (a)). Before, it asked for the key table, the start order, the overlap and deletion rules, and the wrapper's role. Now it also asks that *Creating the job* name, beside the key table, the three values `create` and `update` refuse:
+    - an instance name with a character other than a letter, a digit, `.`, `_` or `-`;
+    - an `@` in a value of the env list;
+    - a price that is not a plain number.
+
+    It also says that a job therefore needs the `https://` form of the repository URL, because an SSH URL such as `git@host:owner/name.git` holds an `@`.
+
+    Nothing else in the work item changed. The Description already names the three refusals (entry 24's correction).
+
+    Earlier tests:
+    - `tests/test_operator_hosting.py`: changed under the standing leave to move a shared test helper. `calls` keeps its name and callers and now returns `read_records(records / f"{name}.jsonl")`. Every test keeps its name and what it checks (tester's entry 32).
+    - `tests/recording_stand_in_support.py`: support module, changed under the same leave. It gains the shared `read_records`, and `recorded_calls` now uses it and returns the same thing.
