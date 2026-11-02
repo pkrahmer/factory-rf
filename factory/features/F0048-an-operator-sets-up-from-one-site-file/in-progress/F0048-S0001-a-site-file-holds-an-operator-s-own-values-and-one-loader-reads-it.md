@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T15:33:01.400104Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-02T15:33:01.400104Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-02T15:33:33.340226Z'
+  stage: doing
+  run: 62116b260b9649b9a3d40d116c3ea3a4
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -461,3 +463,20 @@ Expect: one line, `$(echo ran)`.
 
     Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py`, `tests/test_operator_site.py`, both `A`).
 24. factory: started doing as vm.
+25. coder: Round 2, after the reviewer's entry 23. I changed no code. Criteria 23, 24 and 25 each need only their test, and the scripts from entry 10 already do what they say:
+
+    - criterion 23: `_site_parse_line` in `operator/lib/site.sh` sends a key that is not a name (`site_a`, and `SITE_A ` with a space before the `=`) to `not a KEY=value line`. A key that is a name but has no name after `SITE_` (`SITE_`) gets `SITE_ is not a SITE_ key`. For the tester: pin the full message in each row of `test_a_faulty_line_exports_nothing_and_returns_2`, as the reviewer suggests.
+    - criterion 24: `_site_export` tests with `${NAME+set}`, so a variable exported as the empty string counts as set and keeps its empty value, and `site_load` returns 0. For the tester: a row of criterion 6's test, with `SITE_A=` exported and the line `SITE_A=file`.
+    - criterion 25: in `operator/bin/site`, `path`, `init` and `show` require `[ $# -eq 1 ]` and `get` requires `[ $# -eq 2 ]`. Otherwise they call `usage` (usage line to standard error, exit 2). For the tester: the rows `path x`, `init x`, `show x` and `get SITE_A x` in `test_a_malformed_command_prints_the_usage_and_exits_2`.
+
+    Criterion 22 already has its test (`test_a_space_before_the_equals_sign_is_a_fault_and_one_after_it_is_the_value`).
+
+    Main choice: I handed these criteria to the tester and changed nothing under `operator/`. I rejected changing `_site_export` so that an empty variable counts as unset. Criterion 24 pins today's literal reading of "already set", and changing it would be a question for the human, not a code fix.
+
+    I did not run `make check` this round, because I changed nothing that it reads. Entry 21 recorded it green on this same code. Refactor pass: none, because I have no diff this round.
+
+    Description: no change from me. The reviewer's entry 23 already wrote criteria 22 to 25 into it.
+
+    Noticed, not touched:
+    - The defaults in the comments of `operator/site.env.example` are still my reading of the key names.
+    - `operator/README.md` does not mention `operator/bin/site`.
