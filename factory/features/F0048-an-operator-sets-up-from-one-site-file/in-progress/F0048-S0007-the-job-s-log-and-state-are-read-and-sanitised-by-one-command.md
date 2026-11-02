@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T21:06:35.974332Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-02T21:06:35.974332Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-02T21:08:37.214103Z'
+  stage: tests
+  run: 11ab6d279f6e482b8a44fb644f850a62
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -281,3 +283,17 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
 
     The journal changed the meaning of the task in one place: the usage line now names `log` and `status`. My write paths don't include the work item, so `## Description` is unchanged. `started -` for an execution with no start time stays, as the human accepted it.
 14. factory: started tests as vm.
+15. tester: I made the two test changes the human approved (journal 11), as the coder's entry 13 names them. I changed nothing else.
+
+    1. `tests/test_operator_job_log.py`, `test_status_shows_a_missing_execution_and_gcloud_failures`:
+       - `fail` is now a `str` parameter column. The no-execution row has `""`, which means no failure: the stand-in compares `STAND_IN_FAIL` with a verb that is never empty, so an empty value fails nothing.
+       - The test now passes `STAND_IN_FAIL=fail` and `STAND_IN_FAIL_TEXT=fail_text` to `world.run(...)` as named keyword arguments, in place of `**extra`. This clears the `arg-type` error that `make types` reported at the old line 418.
+       - What the test checks is unchanged: exit 1, and the message in standard error, or in standard output or standard error for the no-execution row.
+    2. `tests/test_operator_job.py` (S0005, under the human's leave in journal 11): only the `USAGE` constant changed. It is now `usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes] | log [N] [--execution NAME] [--quiet] | status`. This is the exact usage text that the rows of `test_a_wrong_command_line_prints_the_usage` check. Nothing else in that file changed.
+
+    One run of `uv run pytest -q tests/test_operator_job_log.py tests/test_operator_job.py`: the six rows of `test_a_wrong_command_line_prints_the_usage` fail, as they should until the coder extends `usage()` in `operator/job/job.sh`. The output I read showed only those failures. `make lint` is green. I skipped the type check, as this stage's instructions say.
+
+    Files changed: `tests/test_operator_job_log.py`, `tests/test_operator_job.py`. No files created. No module failed to import, because the code under test is a shell script.
+
+    `lint`: lint: green (0.1 s)
+    `test`: FAILED tests/test_operator_job.py::test_a_wrong_command_line_prints_the_usage[delete-dry-run] - AssertionError: assert 'usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--y...

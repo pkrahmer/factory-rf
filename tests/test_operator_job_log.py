@@ -394,7 +394,7 @@ def test_status_shows_the_factory_s_stop(
 @pytest.mark.parametrize(
     ("fail", "fail_text", "message"),
     [
-        pytest.param(None, "", f"job: no execution of {JOB} found", id="no-execution"),
+        pytest.param("", "", f"job: no execution of {JOB} found", id="no-execution"),
         pytest.param(
             "executions list",
             "ERROR: (gcloud.run.jobs.executions.list) PERMISSION_DENIED\nsecond line\n",
@@ -411,13 +411,18 @@ def test_status_shows_the_factory_s_stop(
     ],
 )
 def test_status_shows_a_missing_execution_and_gcloud_failures(
-    world: JobWorld, fail: str | None, fail_text: str, message: str
+    world: JobWorld, fail: str, fail_text: str, message: str
 ) -> None:
-    executions = [] if fail is None else [execution("e1", runningCount=1)]
-    extra = {} if fail is None else {"STAND_IN_FAIL": fail, "STAND_IN_FAIL_TEXT": fail_text}
-    result = world.run(["status"], log=["10:00:01\tline"], executions=executions, **extra)
+    executions = [execution("e1", runningCount=1)] if fail else []
+    result = world.run(
+        ["status"],
+        log=["10:00:01\tline"],
+        executions=executions,
+        STAND_IN_FAIL=fail,
+        STAND_IN_FAIL_TEXT=fail_text,
+    )
     assert result.exit_status == 1
-    shown = result.stdout + result.stderr if fail is None else result.stderr
+    shown = result.stderr if fail else result.stdout + result.stderr
     assert message in shown.splitlines()
 
 

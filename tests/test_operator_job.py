@@ -594,7 +594,10 @@ def test_execute_saves_the_name_under_home_without_xdg_state_home(
     assert saved.read_text(encoding="utf-8").strip() == "exec-new"
 
 
-USAGE = "usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes]"
+USAGE = (
+    "usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes]"
+    " | log [N] [--execution NAME] [--quiet] | status"
+)
 
 
 @pytest.mark.parametrize(
