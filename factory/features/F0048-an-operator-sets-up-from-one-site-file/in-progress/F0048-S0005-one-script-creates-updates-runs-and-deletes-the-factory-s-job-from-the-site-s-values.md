@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 502
-comments_read: []
+comments_read: [6585290870]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 5671c82e0460495a9d2f569dfbd6030a
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-02T18:43:41.002681Z'
+  stage: intake
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -109,3 +114,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
    4. Failure paths with no criterion. Criterion 13 has a row only for `create`, but the Interface says any failing `gcloud` shows its standard error and exits with that status. Which rows are expected for `update`, `execute` (the list call and the execute call), and `delete`? Should the test use an exit status other than 1, since the Interface says "exits with its status"? I would choose rows for all four commands, with status 3 on one of them.
    5. `--dry-run` is stated for both `create` and `update`, but criterion 10 does not say which command it runs. It also does not say whether the unknown-ref refusal in the Interface ("`--dry-run` takes the text the same way") is tested with `--dry-run`. Should criterion 10 have rows for `create` and `update`, and criterion 7 a row for an unknown ref with `--dry-run` (status 1, the message, no `gcloud`)? I would choose yes.
    6. Criterion 12 tests only the case where `delete` has no `--yes`. The Interface says `delete` and `execute` need only the project, region and job name. Does criterion 3 cover that for `delete` (see question 2)? Should `delete` get the project, region and impersonation checks of criterion 2? I would choose yes, with `delete` and `execute` added to the rows of criterion 2.
+4. 2026-11-02 human: Yes to all six, as you propose: 1 an `update` row in criterion 1; 2 `create` and `update` fail with the missing-keys line and exit 2, `execute` and `delete --yes` work with only the project, the region and the job; 3 a row with count 2 and one where only a later line is running; 4 failure rows for all four commands, one of them with status 3; 5 `--dry-run` rows for `create` and `update`, and the unknown-ref row with `--dry-run`; 6 `delete` and `execute` join the rows of criterion 2.
