@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T18:44:39.891305Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-02T18:44:18.717249Z'
   stage: intake
   run: 74738f812f4f49b9964fc3436bedc7fe
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-02T18:44:39.891305Z'
+  stage: tests
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -141,3 +150,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
    - Smoke test: both commands are runnable. Neither runs pytest, so the `-q` rule does not apply. Each `Expect:` line is checkable: the three lines `exec-1`, `exit 0`, `exec-1`, and the exact missing-keys line with `exit 2`.
    - Architecture: shell under `operator/`, which the coder's write paths cover per the feature's change. Tests are at `tests/test_operator_job.py` with stand-ins, and no code under `src/factory/` changes.
    - Scope: the story lies within the feature's S0005 scope, and `job.sh log` and `job.sh status` (S0007) stay out.
+7. factory: started tests as vm.
