@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-02T21:12:44.087744Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-02T21:12:22.770591Z'
   stage: doing
   run: 264d832fb4d540d3abf825bc624b967f
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:12:44.087744Z'
+  stage: review
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -335,3 +344,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+18. factory: started review as vm.
