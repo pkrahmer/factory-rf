@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T20:50:58.216190Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-02T20:50:58.216190Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-02T20:56:41.491751Z'
+  stage: tests
+  run: 94489c0296334d27b7c028ef18f349a4
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -162,3 +164,39 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
    - Architecture: shell under `operator/job/`, using S0005's state file and S0006's sanitiser. It touches no layer of `src/factory`. Tests are at the `tests/` root, as the story names.
    - Scope: within feature scope (S0007 `job.sh log` and `status`). Nothing from "Out of scope" is touched.
 7. factory: started tests as vm.
+8. tester: I wrote the tests for `job.sh log` and `job.sh status` in one new module. It runs `operator/job/job.sh` from the checkout, with a `gcloud` stand-in first on the `PATH`, the site file and `sanitise.rules` in `tmp_path/site`, and `XDG_STATE_HOME` in `tmp_path`.
+
+   Criterion → test (all in `tests/test_operator_job_log.py`):
+   - criterion 1: `test_log_reads_the_named_execution_and_prints_its_lines_in_order`
+   - criterion 2: `test_log_chooses_the_execution` (rows: option-over-state-file, state-file-over-newest, newest, none)
+   - criterion 3: `test_log_prints_the_last_n_lines` (rows: three-of-ten, sixty-of-sixty, sixty-of-sixty-one, zero)
+   - criterion 4: `test_log_passes_its_lines_through_the_sanitiser` (rows: site-pattern, token, no-rules-file with exactly one warning)
+   - criterion 5: `test_quiet_drops_the_noise` (one row for each of the eleven prefixes, one for `token refreshed:`, keeps-prefix-in-the-middle, keeps-all-without-quiet)
+   - criterion 6: `test_a_failing_logging_read_is_shown`
+   - criterion 7: `test_an_empty_answer_says_the_log_is_late`
+   - criterion 8: `test_status_lists_the_five_newest_executions` (six executions; TZ is `XYZ-9`, so a time printed in local time would show)
+   - criterion 9: `test_status_shows_the_factory_s_stop` (rows: stopped, none, preflight-after-stop)
+   - criterion 10: `test_status_shows_a_missing_execution_and_gcloud_failures` (rows: no-execution, executions-list-fails, logging-read-fails)
+   - criterion 11: `test_log_and_status_read_the_execution_job_execute_saved` (the file is written by running `job.sh execute` itself)
+   - criterion 12: `test_log_leaves_out_empty_lines` (rows: all, two)
+   - criterion 13: `test_every_gcloud_call_carries_the_impersonation` (log, status)
+   - criterion 14: `test_a_missing_site_value_is_refused` (log and status × each of the three values)
+   - criterion 15: `test_status_names_running_before_failed`
+   - criterion 16: `test_status_looks_for_the_stop_in_the_last_200_lines` (rows: 200th-from-the-end, 201st-from-the-end; it also checks that status's `logging read` call equals log's)
+   - criterion 17: `test_only_the_stop_form_counts_as_a_stop`
+   - criterion 18: `test_quiet_that_leaves_no_line_prints_nothing`
+   - criterion 19: `test_a_wrong_argument_prints_the_usage` (rows: n-not-a-number, n-negative, log-unknown-option, status-unknown-option)
+
+   Choices where the criteria leave room. None of them decides behaviour the criteria leave open:
+   - **Own stand-in.** The `gcloud` stand-in is a new one in my module. The S0005 stand-in in `tests/test_operator_job.py` cannot answer `logging read`, and `executions list` there cannot answer as each `--format` asks. Extending it would go beyond the standing leave to move a helper. No earlier test file was changed.
+   - **Execution shape.** Fixture executions use the Cloud Run v1 JSON shape: `metadata.name`, `status.startTime`, `completionTime`, `runningCount`, `succeededCount`, `failedCount`, `conditions`. Zero counts are left out, as gcloud does. The stand-in honours `--limit`.
+   - **Failed condition.** The failed execution has one condition with status `True` first and one with status `False` that carries the message. Any reasonable reading of "first failed condition" passes.
+   - **Stop line.** The stop line is the factory's own log form, `<stamp> stop machine preflight_failed: …`. The test checks only that the `factory: stopped: ` line ends with the sanitised stop text, so it does not decide whether the time prefix is kept.
+   - **Not asserted.** For `status`, the tests do not check the exit status where no criterion states it. They also do not check standard output after a failure in `status`, because the list is printed before the log is read.
+
+   Files created: `tests/test_operator_job_log.py`.
+
+   Test run (`uv run pytest -q tests/test_operator_job_log.py`): the tests fail because `job.sh` has no `log` or `status` command yet. It answers both with its usage line and exit 2. No module failed to import, because the code under test is a shell script. The rows of `test_a_wrong_argument_prints_the_usage` probably pass already, since today's usage line covers them, but I did not confirm it: the output I read showed only the failures. `make lint` is green.
+
+   `lint`: lint: green (0.1 s)
+   `test`: FAILED tests/test_operator_job_log.py::test_quiet_that_leaves_no_line_prints_nothing - AssertionError: usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes]
