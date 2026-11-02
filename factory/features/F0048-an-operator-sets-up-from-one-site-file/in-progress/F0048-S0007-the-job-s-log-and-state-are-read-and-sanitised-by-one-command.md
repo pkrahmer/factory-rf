@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 505
-comments_read: []
+comments_read: [6588115691]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 6cc8d335d8454698bcb248dd471f0395
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-02T20:49:56.918224Z'
+  stage: intake
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -110,3 +115,12 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
    6. The stop rule is ambiguous. The text says "the newest log line that contains ` stop `", but the condition is a line of the form `stop <kind> <reason>: <detail>`. A line that contains ` stop ` without that form (say `job: stop requested by user`) has no stated outcome. I would say only the stop form counts, and add a row for it that gives `no stop`.
    7. `log` after `--quiet` leaves no line. Does it print the `no log lines yet` message (my choice: no, only an empty answer from `gcloud` does) or nothing? Please state it, with a row.
    8. An invalid `N` (not a number, negative) and an unknown option have no stated behaviour. I would add a row: a message on standard error and exit 2, or whatever the S0005 commands do.
+4. 2026-11-02 human: All as you propose:
+   1. Eleven; criterion 5 says eleven.
+   2. Yes, the empty-line criterion, and `log N` counts only non-empty lines.
+   3. Yes, the impersonation criterion for both commands; a missing `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB` gives `site_require`'s message and exit 2, as in S0005, one row per command.
+   4. Yes, the row with running 1 and failed 1 giving `running`.
+   5. Yes, both edge rows; `status` reads the log with the same arguments as `log` and keeps its last 200 non-empty lines.
+   6. Only the stop form `stop <kind> <reason>: <detail>` counts; add the row for a line that only contains ` stop `.
+   7. `--quiet` that leaves no line prints nothing and exits 0; the `no log lines yet` message is only for an empty answer from `gcloud`. A row.
+   8. An invalid `N` or an unknown option prints `job.sh`'s usage line on standard error and exits 2, as its other commands do. A row each.
