@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 506
-comments_read: [6588966186]
+comments_read: [6588966186, 6589156211]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: e87058f2e51d4a3981077b0dd8fb60c7
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-02T21:41:52.265681Z'
+  stage: tests
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -162,3 +167,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
    The stand-in: S0003's `CURL_STAND_IN` (from `tests/operator_support.py`) answers only by URL, with 200 or 404. These criteria need answers per method, per call number and with any status. So I put a small router named `curl` in front of it, inside the test module. The router reads the request from curl's configuration and picks the status and body for that call's method, path and call number. It then runs S0003's stand-in unchanged as `recording-curl`, which records every request. I checked the router by hand: `hosting_repo_api` through it gives the expected bodies, the 422 and 404 messages, and the recorded method, route and body.
 
    Not importable: none. Both scripts are missing (`operator/skill/kumpel/scripts/merge.sh`, `reset-to-tag.sh`), so every test fails with `sh: cannot open …`. `make lint` is green. I did not run the type check, as this stage says.
+9. 2026-11-02 human: Both as you propose. 1: (a), the message keeps the full path as `hosting_api` prints it; criterion 3 and the messages of criterion 9 are read with the full `/repos/<repository>/...` path. 2: your reading; the no-archive row runs with `KUMPEL_ARCHIVE_WAIT=0`, the third-poll row with `KUMPEL_POLL_SECONDS=0` and `KUMPEL_ARCHIVE_WAIT=60`, and the other merge tests keep 0 and 60. The router in front of S0003's stand-in is fine.
