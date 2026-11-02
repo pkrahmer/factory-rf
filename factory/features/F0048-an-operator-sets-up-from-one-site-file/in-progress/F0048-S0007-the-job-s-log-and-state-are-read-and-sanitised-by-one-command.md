@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 505
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T20:48:08.501904Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-02T20:48:08.501904Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-02T20:48:38.183807Z'
+  stage: intake
+  run: 6cc8d335d8454698bcb248dd471f0395
+  blocked: question
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -97,3 +100,13 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
 
 1. 2026-11-02 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. Questions:
+
+   1. Criterion 5 says "a row for each of the twelve prefixes and one for `token refreshed:`", but the Interface lists eleven prefixes: `Selecting `, `Preparing to unpack`, `Unpacking `, `Setting up `, `Get:`, `Fetched `, `Processing triggers`, `debconf:`, `Copying blob`, `Copying config` and `Writing manifest`. Is one prefix missing from the Interface, or should the criterion say eleven? I would say eleven.
+   2. The Interface says `log` "drops empty lines" and has no criterion for it. I would add one: a fixture with empty lines in between prints none of them, and `log N` counts only the non-empty lines.
+   3. The Interface says "the impersonation flag is added as in S0005", and no criterion tests it for `log` or `status`. I would add a criterion: with the site's impersonation value set, both commands pass the flag to every `gcloud` call (logging read and executions list). Please also confirm what happens when `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB` is missing. Is that the loader's error as in S0005, and does it need a row here?
+   4. The state rule has no criterion for the executions list. In `status`, the `<state>` precedence (`running`, then `succeeded`, then `failed`, else `waiting`) is only tested with single-count fixtures. I would add a row where two counts are 1 or more, such as running 1 and failed 1, expecting `running`.
+   5. The last-200-lines window in `status` has no test on its edge. I would add a row: a stop line that is the 200th line from the end is found, and one that is the 201st gives `no stop in the last 200 lines`. Also say what `status` asks `gcloud logging read` for: the same arguments as `log` with its last 200 lines kept?
+   6. The stop rule is ambiguous. The text says "the newest log line that contains ` stop `", but the condition is a line of the form `stop <kind> <reason>: <detail>`. A line that contains ` stop ` without that form (say `job: stop requested by user`) has no stated outcome. I would say only the stop form counts, and add a row for it that gives `no stop`.
+   7. `log` after `--quiet` leaves no line. Does it print the `no log lines yet` message (my choice: no, only an empty answer from `gcloud` does) or nothing? Please state it, with a row.
+   8. An invalid `N` (not a number, negative) and an unknown option have no stated behaviour. I would add a row: a message on standard error and exit 2, or whatever the S0005 commands do.
