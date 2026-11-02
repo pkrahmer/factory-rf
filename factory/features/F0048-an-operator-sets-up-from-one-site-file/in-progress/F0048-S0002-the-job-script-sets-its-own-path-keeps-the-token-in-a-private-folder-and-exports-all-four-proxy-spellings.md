@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T16:17:59.624853Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-02T16:17:59.618427Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:17:59.624853Z'
+  stage: intake
+---
+
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
 
 ## Description
@@ -53,3 +80,6 @@ grep -c 'tools/bin' vm/job-start.sh
 Expect: one line holding a number of at least 2 (the tools step and the new `PATH` line both name the folder).
 
 ## Journal
+
+1. 2026-11-02 human: created.
+2. factory: started intake as vm.
