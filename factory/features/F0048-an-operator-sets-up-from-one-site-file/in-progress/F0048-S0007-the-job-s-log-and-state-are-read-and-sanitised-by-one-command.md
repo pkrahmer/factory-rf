@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T21:24:27.141075Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-02T21:24:27.141075Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T21:25:32.298939Z'
+  stage: review
+  run: 208b9f4d50f44b60814e0ddb2c8284f1
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -465,3 +467,22 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 26. factory: started review as vm.
+27. reviewer: Review of round 1. I read `operator/job/job.sh`, the new `tests/operator_job_support.py`, `tests/test_operator_job_log.py` and the changes to `tests/test_operator_job.py`. I checked them against criteria 1 to 21 and every rule of the Interface, and I checked how each finding of journal 19 was handled. Journal 25 records the factory's `make check` as green after the coder (`check: green`, `duplicates: 0 new`).
+
+    How the round-0 findings were handled:
+    - Finding 1: `status()` prints `no_execution` and exits 1 before `chosen_execution` when the formatted list is empty. The new row `no-execution-saved-file` pins this.
+    - Finding 2: the row `200th-non-empty-with-empty-lines` puts 199 empty lines after the stop line. If empty lines counted, the stop line would sit at the 399th line from the end.
+    - Finding 3: `JOB`, `IMPERSONATE`, `BARE` and `words` now live in `tests/operator_job_support.py`. `BARE` keeps the values `SITE` gave it (`p1`, `europe-west3`, `JOB`).
+    - Finding 4: the paired tests are now rows of `test_status_shows_the_factory_s_stop` and `test_only_an_empty_answer_says_the_log_is_late`.
+    - Finding 5: `create_or_update` calls `make_work`.
+    - Finding 6: the purpose line names reading the log and the status.
+
+    Every limit is tested on both sides: N at 60 and 61, and 0; the window at 200 and 201; five of six executions. Every refused side is tested too: an invalid N, an unknown option, a missing site value, a failed `gcloud` call and no execution. I searched `operator/` for a second copy of the new helpers (`gcloud_read`, the UTC clock, `drop_noise`) and found none.
+
+    no findings
+
+    Earlier tests:
+    - `tests/test_operator_job.py`: two leaves cover it. Under the human's leave in journal 11, only the `USAGE` constant changed to the new usage line. Under the standing leave to move a shared test helper, `JOB`, `IMPERSONATE`, `BARE` and `words` moved to `tests/operator_job_support.py`, with the same values and the same function. No test was renamed, and none checks anything different.
+
+    Notes:
+    - `tests/test_operator_job_log.py:398-402` and `:526-530`: the same assertion on the last line (stopped or `NO_STOP`) is written twice. A small helper in the module would hold it once.
