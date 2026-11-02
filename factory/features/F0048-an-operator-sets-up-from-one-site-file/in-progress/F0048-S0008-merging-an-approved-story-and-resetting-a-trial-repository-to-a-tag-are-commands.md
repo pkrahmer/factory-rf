@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T21:33:21.144109Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-02T21:33:00.283228Z'
   stage: intake
   run: 5a2e2a8824f540a788ca415cf0b32964
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:33:21.144109Z'
+  stage: tests
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -119,3 +128,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
    - Scope: within the feature's scope item for `merge.sh` and `reset-to-tag.sh`, and not in its "Out of scope". It matches decision 8.
 
    Edits carried in from journal entry 4 (the human's answer): the sentence naming the pull request listing in the Interface, the three rows of criterion 5, and the rows of criterion 9. I changed nothing else, and the Description is unchanged.
+7. factory: started tests as vm.
