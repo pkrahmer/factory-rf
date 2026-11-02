@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-02T17:40:24.855313Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -219,6 +223,11 @@ journal:
   at: '2026-11-02T17:40:03.988203Z'
   stage: doing
   run: 3ae3cce630ad4013ba8970df7857ec34
+- number: 39
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:40:24.855313Z'
+  stage: review
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -686,3 +695,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+39. factory: started review as vm.
