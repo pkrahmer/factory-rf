@@ -2,7 +2,7 @@
 
 ## Goal
 
-Running the factory in a Cloud Run job, and driving it as the human in the loop, works since F0047, but the session of 2026-11-02 that built F0001 on the todo demo needed about thirty values (the project, the region, the connector, the proxy, three secret names, the model API's addresses, the repositories) and about two hundred lines of shell that held them: a job creation script, a GitHub helper, a log reader, a sanitiser and a runbook. All of it sat in a folder outside the repository, because the values are the company's, and the whole is lost with the machine. The skill's scripts also call `gh`, whose login did not see the project's repository at work. This feature moves everything that is not a value into the repository and leaves one file outside it: `site.env`, a plain list of `SITE_` values that no code ever executes. A new session on a new machine copies `site.env.example`, fills in the values, runs `site check`, and is ready: `job.sh create` and `job.sh execute` start the factory in a job, the skill's scripts drive it through a token command the site names (a secret store, `gh`, anything that prints a token), and the logs of a run are read and sanitised by a command, not by an incantation. It also fixes the two defects of the job profile that the session found (the `PATH` and the token's folder, S0002) so that no workaround stands in the job's configuration. Done when every story below is merged and `make check` is green.
+Running the factory in a Cloud Run job, and driving it as the human in the loop, works since F0047, but the session of 2026-11-02 that built F0001 on the todo demo needed about thirty values (the project, the region, the connector, the proxy, three secret names, the model API's addresses, the repositories) and about two hundred lines of shell that held them: a job creation script, a GitHub helper, a log reader, a sanitiser and a runbook. All of it sat in a folder outside the repository, because the values are the company's, and the whole is lost with the machine. The skill's scripts also call `gh`, whose login did not see the project's repository at work. This feature moves everything that is not a value into the repository and leaves one file outside it: `site.env`, a plain list of `SITE_` values that no code ever executes. A new session on a new machine copies `site.env.example`, fills in the values, runs `site check`, and is ready: `job.sh create` and `job.sh execute` start the factory in a job, the skill's scripts drive it through a token command the site names (a secret store, `gh`, anything that prints a token), and the logs of a run are read and sanitised by a command, not by an incantation. It also fixes the two defects of the job profile that the session found (the `PATH` and the token's folder, S0002) so that no workaround stands in the job's configuration, and ends a job whose machine stop cannot be fixed (S0010). Done when every story below is merged and `make check` is green.
 
 ## Scope
 
@@ -15,13 +15,14 @@ Running the factory in a Cloud Run job, and driving it as the human in the loop,
 - `job.sh log` and `job.sh status`: the run's log and its state, sanitised (S0007).
 - `merge.sh` and `reset-to-tag.sh` for the person or agent who drives a run (S0008).
 - `site check`, the one command that says whether a machine is ready, and the operator guide's chapter on setting a machine up (S0009).
+- In a job, a machine stop that stands for ten minutes ends the factory's process with status 1 (S0010).
 
 ## Out of scope
 
 - Making the job's own surroundings: the project, the secrets, the connector, the service account, the network, the bot user of the code host. They are the platform's and the operator's; `site check` only says whether they can be seen.
 - The judgment of the operator skill (answering, approving), its switches and its references: unchanged.
 - Moving the skill to a repository of its own, and any other operating system than Linux and macOS with a POSIX shell and `python3`.
-- The factory's own code under `src/factory/`: nothing here changes it.
+- The factory's own code under `src/factory/`: nothing here changes it, except S0010's rule for a machine stop in a job.
 - Any company value in this repository, a test or a document: the example file, the tests and the documents use made-up names (`example.invalid`, `owner/repo`).
 
 ## Stories
@@ -37,6 +38,7 @@ The build order; start one at a time, the next when the one before is archived i
 - S0007: The job's log and state are read and sanitised by one command
 - S0008: Merging an approved story and resetting a trial repository to a tag are commands
 - S0009: One command says whether a machine is ready, and the guide says how to get there
+- S0010: In a job a machine stop that stands for ten minutes ends the factory's process
 
 ## The human's changes
 
@@ -54,3 +56,7 @@ One, before S0001: in `factory/pipeline.yml` the coder's write paths gain `"oper
 8. **A reset to a tag needs three things:** `--yes`, a repository the site names as resettable (`SITE_RESET_REPOSITORY`) that equals the repository the commands work on, and a tag that exists. Reason: a force-push to `main` is the one act of these scripts that cannot be undone, and the factory's own repository must never be its target (S0008).
 9. **The sanitiser's rules are the site's.** The repository holds the mechanism and the leak check; the patterns (a company's domain, a project id) are values and live in the site's folder. Reason: the sanitiser's own rules would otherwise be the leak (S0006).
 10. **A story's test of a script uses stand-ins on the `PATH`, as `tests/vm_support.py` does for `vm/job-start.sh`.** No test calls `gcloud`, `gh`, `curl` or a real `git` remote; the code host is a stand-in `curl` and a local bare repository (this feature's decision; `CLAUDE.md` *Tests*).
+11. **The machine's own values live in `~/.config/kumpel/`.** The site file, its sanitiser rules and the skill's `settings.json` share one folder, and the state file of `job.sh` lies in `~/.local/state/kumpel/`. Reason: Kumpel is the product, and one folder holds what one machine knows (the human, 2026-11-02; S0001, S0005).
+12. **The job runs the start script of the code it clones.** `job.sh` takes `vm/job-start.sh` from `SITE_CODE_REF` with `git show`, not from the working tree, so the script and the code it installs are of one commit (the master's review, 2026-11-02; S0005).
+13. **In a job a machine stop that stands for ten minutes ends the process with status 1.** A job's machine cannot be fixed in place, and a stop that holds it costs its CPUs until the task timeout and shows the execution as running; ending it shows the failure where the operator looks. A VM keeps waiting for the fix. Ten minutes, fixed, leave room for a preflight item that passes on a later tick (the human, 2026-11-02; S0010).
+14. **Tests of the scripts use the real `git`** (`CLAUDE.md` *Tests*); what `hosting_git` gives git is read back through `git config` and git's own trace, not through a stand-in (the master's review, 2026-11-02; S0003, S0004).

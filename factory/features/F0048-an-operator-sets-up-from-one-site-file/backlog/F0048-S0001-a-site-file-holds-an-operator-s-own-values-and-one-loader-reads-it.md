@@ -14,7 +14,7 @@ site_load             # reads the file; exports every SITE_ value; exit 0, 1, 2 
 site_require NAME...  # exit 0, or 2 naming every NAME that is unset or empty
 ```
 
-- `site_path` prints `$FACTORY_SITE` when it is set and not empty, else `$XDG_CONFIG_HOME/factory-operator/site.env` when `XDG_CONFIG_HOME` is set and not empty, else `$HOME/.config/factory-operator/site.env`.
+- `site_path` prints `$FACTORY_SITE` when it is set and not empty, else `$XDG_CONFIG_HOME/kumpel/site.env` when `XDG_CONFIG_HOME` is set and not empty, else `$HOME/.config/kumpel/site.env` (the folder the skill's `settings.json` already uses: one folder for the machine's own values, feature decision 11).
 - The file's lines are blank, a comment (first non-blank character `#`), or `SITE_NAME=value`. `NAME` is capitals, digits and `_`, at least one character; there is no space around the `=`. The value is everything after the first `=`, with trailing whitespace removed; one pair of single or double quotes around the whole value is removed and keeps the whitespace inside. A quote that is not matched stays in the value.
 - A value is stored literally: `$`, a backtick, `;` and `\` have no meaning, and nothing in the file is ever executed.
 - A line that is none of the three kinds, or whose key is not `SITE_` followed by the name, is a fault: `site_load` exports nothing from the file, prints `site: <path>:<line>: not a KEY=value line` or `site: <path>:<line>: <key> is not a SITE_ key` to standard error and returns 2.
