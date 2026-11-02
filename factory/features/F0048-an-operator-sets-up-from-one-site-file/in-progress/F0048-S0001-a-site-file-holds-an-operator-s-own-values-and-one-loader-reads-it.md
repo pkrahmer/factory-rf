@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595, 6581849151]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T16:12:15.319275Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -262,6 +258,12 @@ journal:
   kind: started
   at: '2026-11-02T16:12:15.319275Z'
   stage: review
+- number: 46
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T16:13:24.902485Z'
+  stage: review
+  run: 48382e9ed5fb4c268bf0c8c449ffdf75
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -742,3 +744,23 @@ Expect: one line, `$(echo ran)`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 45. factory: started review as vm.
+46. reviewer: Review, round 1 (after the human's entries 33 and 42). As entry 33 asked, I judged all five groups in one pass. I read `operator/lib/site.sh`, `operator/bin/site`, `operator/site.env.example`, the three new rows of `operator/README.md`, `tests/operator_support.py` and `tests/test_operator_site.py` against the Interface and criteria 1 to 29.
+
+    no findings
+
+    - Group 1, acceptance criteria: every criterion from 1 to 27 has a test that checks what the criterion names, and each rule's sides are rows of one parametrized test. Since round 0, three things changed:
+      - Criterion 26 now has its row `empty-xdg-config-home` (`tests/test_operator_site.py:92-94`).
+      - Criterion 27 now has its row `get-prefix-without-name` (`:415`).
+      - Criterion 9's `all-set` row now sets and requires `SITE_A SITE_B` (`:298`, `:312-314`).
+      The tester's run passed (entry 39), and the coder's `make check` after the README edit was green (entry 44).
+    - Group 2, architecture: the scripts lie outside the layers. The tests start processes only through `factory.adapters.process.run_process`, and they reach git only through `git_support.run_git`. `tests/operator_support.py` is a support module, as `CLAUDE.md` asks. No existing helper runs a shell script with a built environment, so it copies nothing.
+    - Group 3, security:
+      - No value's text ever reaches `eval`. `_site_export` assigns through `\$2`. `site_value` and `_site_export` evaluate only a name that `_site_is_name` has checked.
+      - `site init` writes under `umask 077` and then runs `chmod 600`. It refuses a work tree before it makes any folder.
+      - No marker silences a check. The example's hosts are `example.invalid`, `localhost` or `192.0.2.10`.
+    - Group 4, quality: the names are clear and there is no dead code. The comments in `site.sh` say why: the two-pass read, the `eval` guards, and the walk up to the nearest folder that exists. `site_refuse_repository` is shared by the loader and `init` rather than copied.
+    - Group 5, work item hygiene: the journal explains the two-pass load and the rejected one-pass collection. The Description and the Interface match the code, including the space rule (entry 15) and the `SITE_?*` usage rule. Criterion 29 still describes what the documenter must write. The rows in `operator/README.md`'s *What is here* table were added on the human's instruction (entry 42).
+    - Rejected as a finding: `operator/bin/site:8` finds the library with `$(dirname "$0")/..`, while the skill scripts use `here=$(cd "$(dirname "$0")" && pwd)`. Both resolve correctly from any working folder, so this is a style difference, not a fault.
+    - Open, for the documenter (not a finding): the defaults in the comments of `operator/site.env.example` (for example `SITE_CPU` 4, `SITE_TIMEOUT` 24h, `gh auth token`) are the coder's reading of the key names (entry 10). Check them before they go into the operator guide's key table.
+
+    Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py` and `tests/test_operator_site.py`, both `A`).
