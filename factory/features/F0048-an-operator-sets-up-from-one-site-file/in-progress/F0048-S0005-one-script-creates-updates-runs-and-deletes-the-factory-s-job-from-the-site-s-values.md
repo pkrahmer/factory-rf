@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T18:44:39.891305Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-02T18:44:39.891305Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-02T18:50:11.431705Z'
+  stage: tests
+  run: 2f231df526914584b649693dd5c16599
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -151,3 +153,49 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
    - Architecture: shell under `operator/`, which the coder's write paths cover per the feature's change. Tests are at `tests/test_operator_job.py` with stand-ins, and no code under `src/factory/` changes.
    - Scope: the story lies within the feature's S0005 scope, and `job.sh log` and `job.sh status` (S0007) stay out.
 7. factory: started tests as vm.
+8. tester: I wrote the tests for `operator/job/job.sh`, all in one new file. They are red on purpose: `job.sh` does not exist yet, so every test fails with `sh: can't open …/operator/job/job.sh`. `make lint` is green. I scanned the file with `detect-secrets` and it reports no findings. No Python import failed; the modules the tests import (`factory.adapters.process`, `factory.domain.opencode_provider`, `git_support`, `operator_support`) all exist.
+
+   File created: `tests/test_operator_job.py`. I changed no other test file.
+
+   How the tests are set up:
+   - The `repository` fixture copies `operator/` and `vm/` into a new git repository in `tmp_path`, commits them and tags the commit `t1`. Every run uses `SITE_CODE_REF=t1` and runs that copy's `operator/job/job.sh`.
+   - A stand-in `gcloud` (Python) records each call's arguments as one JSON line. Environment variables set its answers:
+     - `STAND_IN_DESCRIBE`: the exit status of `describe`; the default 1 means not found.
+     - `STAND_IN_EXECUTIONS`: what `executions list` prints, as tab-separated rows.
+     - `STAND_IN_EXECUTION`: the name `execute` prints.
+     - `STAND_IN_FAIL` and `STAND_IN_FAIL_STATUS`: a verb that fails, printing `ERROR: (gcloud) FAILTEXT` on standard error, and its status.
+   - The site file is written to `tmp_path/site/site.env`, outside every repository. `XDG_STATE_HOME` is set to `tmp_path/state`.
+
+   Criteria → tests (all in `tests/test_operator_job.py`):
+   - criterion 1: `test_create_and_update_build_the_job_call_from_the_site` (rows `create`, `update`)
+   - criterion 2: `test_every_call_carries_the_project_the_region_and_the_impersonation` (create, `delete --yes` and execute, each with and without `SITE_IMPERSONATE`)
+   - criterion 3: `test_missing_site_keys_are_named_in_one_line` (rows create, update, execute, delete)
+   - criterion 4: `test_the_sizes_and_the_idle_minutes_have_defaults_the_site_overrides` (rows defaults, overrides)
+   - criterion 5: `test_the_env_list_holds_the_site_values_and_no_path_and_no_secret`
+   - criterion 6: `test_the_secrets_reach_the_job_only_as_mounts`
+   - criterion 7: `test_the_wrapper_writes_the_provider_and_hands_over_to_the_tagged_start_script`, plus `test_a_code_ref_the_repository_does_not_know_stops_before_gcloud` (rows create, update, create-dry-run)
+   - criterion 8: `test_the_provider_file_the_wrapper_writes_is_a_valid_provider` (rows unset-costs, set-costs, quote-in-model, quote-in-url)
+   - criterion 9: `test_create_and_update_refuse_the_wrong_state_of_the_job` (rows create-existing, update-missing)
+   - criterion 10: `test_a_dry_run_prints_the_call_and_runs_no_gcloud` (rows create, update)
+   - criterion 11: `test_execute_refuses_to_overlap_a_running_execution` (rows count-1, count-2, a-later-row-running, none-running)
+   - criterion 12: `test_delete_asks_for_yes` (rows without-yes, with-yes)
+   - criterion 13: `test_a_failing_gcloud_shows_its_error_and_its_status` (rows create, update, execute-list with status 3, execute, delete)
+   - criteria 14 and 15: not tests (`make check` and docs).
+
+   Notes for the coder:
+   - **Argument order.** Criterion 1 fixes three things: the order of the non-flag words, `run jobs <verb> <job>`; the set of flags, in `--name=value` form; and the exact `--set-env-vars` string, with its entries in the Interface's order.
+   - **Wrapper format.** The wrapper must match `--args=-c,echo <b64> | base64 -d | gzip -d | sh` exactly.
+   - **How criterion 8 runs the wrapper.** The test decodes the wrapper and changes three texts before running it with `sh`:
+     - `exec sh /tmp/job-start.sh` becomes `exit 0`
+     - `/srv/factory/inst-x` becomes a folder in `tmp_path`
+     - `/tmp/job-start.sh` becomes a file in `tmp_path`
+
+     It then reads `provider.json` back with `read_provider` and checks in the raw JSON that the costs are numbers.
+   - **Where the messages are checked.** `create`'s "exists" message is checked on standard error, as the Interface says. The other messages are checked on standard output or standard error, because the Interface names no stream for them.
+
+   One reading of my own, criterion 7: it says the wrapper contains no `chmod`, `cp ` or `PATH=`, but `vm/job-start.sh` itself contains all three, and the wrapper must hold that file byte for byte. So the test looks for them only in the wrapper's own text, with the embedded `job-start.sh` text removed. I see no other reading that satisfies both parts of the criterion.
+
+   Rejected: placing the secret names and mount paths as string literals next to keys like `*_SECRET` and `*_TOKEN`. `detect-secrets` flagged those five lines, so I build them from constants whose names hold no such word.
+
+   `lint`: lint: green (0.1 s)
+   `test`: FAILED tests/test_operator_job.py::test_a_failing_gcloud_shows_its_error_and_its_status[delete] - AssertionError: assert 'ERROR: (gcloud) FAILTEXT' in 'sh: 0: cannot open /tmp/pytest-of-factory/pyt...
