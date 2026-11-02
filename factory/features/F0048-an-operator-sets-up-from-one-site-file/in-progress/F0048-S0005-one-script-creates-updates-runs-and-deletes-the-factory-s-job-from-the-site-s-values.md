@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T18:57:31.434150Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-02T18:57:10.300239Z'
   stage: review
   run: d5273bcacae64d91a5cd9754070925b8
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-02T18:57:31.434150Z'
+  stage: doing
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -268,3 +277,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     I stopped at group 1, as the checklist says; groups 2 to 5 get their turn in the next review. I made no change to the Description. It still matches what was built.
 
     Earlier tests: none. The diff only adds `tests/test_operator_job.py` and changes, renames or deletes no test file that `main` holds.
+13. factory: started doing as vm.
