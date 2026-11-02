@@ -11,6 +11,7 @@ ROOT = Path(__file__).parent.parent
 SITE_LIBRARY = ROOT / "operator" / "lib" / "site.sh"
 SITE_COMMAND = ROOT / "operator" / "bin" / "site"
 SITE_EXAMPLE = ROOT / "operator" / "site.env.example"
+HOSTING_LIBRARY = ROOT / "operator" / "lib" / "hosting.sh"
 KEY_LINE = re.compile(r"^(SITE_[A-Z0-9_]+)=")
 
 
@@ -34,6 +35,12 @@ def run_site(words: list[str], cwd: Path, env: dict[str, str]) -> ProcessResult:
 def run_library(code: str, cwd: Path, env: dict[str, str]) -> ProcessResult:
     """Source the site library in `sh`, then run `code`."""
     return run_script(["-c", f'. "{SITE_LIBRARY}"\n{code}'], cwd, env)
+
+
+def run_hosting(code: str, cwd: Path, env: dict[str, str], *, load: bool = True) -> ProcessResult:
+    """Source the site library, `site_load` when `load`, then the hosting library; run `code`."""
+    loading = 'site_load || exit "$?"\n' if load else ""
+    return run_library(f'{loading}. "{HOSTING_LIBRARY}"\n{code}', cwd, env)
 
 
 def load_site(cwd: Path, env: dict[str, str]) -> ProcessResult:
