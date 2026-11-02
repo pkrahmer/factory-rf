@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 503
 comments_read: [6586887222]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-02T19:59:56.234323Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-02T19:59:56.234323Z'
   stage: smoke-test
+- number: 20
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-02T20:00:14.216103Z'
+  stage: smoke-test
+  run: 969b76df33204440bbe22a957b92f2d1
 ---
 
 # The reviewer judges all five groups in every review
@@ -261,3 +263,23 @@ Expect: two lines, `1` and `0`.
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 19. factory: started smoke-test as vm.
+20. smoke-tester: Smoke test passed. I ran both commands from the repository root exactly as written and found nothing wrong.
+
+    Command 1: `grep -c "Go through all of groups 1 to 5 in every review" claude/agents/reviewer.md`
+    ```
+    1
+    ```
+    Command 2: `grep -c "Stop at the first failing group" claude/agents/reviewer.md`
+    ```
+    0
+    ```
+    (grep exits with status 1 when it counts zero matches. As intake noted, that does not affect the check.)
+
+    Expect: two lines, `1` and `0`. **Met.**
+
+    Checked against the acceptance criteria:
+    - Criterion 1: line 53 of `claude/agents/reviewer.md` holds the Interface's sentence word for word. It is followed by one blank line and then item 1, `1. **Acceptance criteria**`.
+    - Criterion 2: the old phrase is absent from the reviewer. `grep -rl "Go through all of groups 1 to 5" claude/agents/` lists only `reviewer.md`, so no other shipped agent holds the new phrase.
+    - Criteria 3 to 5: the smoke test does not reach them, and nothing it showed contradicts them.
+
+    Findings: none.
