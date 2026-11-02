@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T18:38:48.513425Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-02T18:38:48.506530Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-02T18:38:48.513425Z'
+  stage: intake
+---
+
 # One script creates, updates, runs and deletes the factory's job from the site's values
 
 ## Description
@@ -70,3 +97,6 @@ FACTORY_SITE="$d/site.env" sh operator/job/job.sh create; echo "exit $?"
 Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE_PROXY, SITE_NO_PROXY, SITE_JOB, SITE_INSTANCE, SITE_REPOSITORY_URL, SITE_CODE_URL, SITE_CODE_REF, SITE_HOSTING_SECRET, SITE_MODEL_SECRET, SITE_MODEL_BASE_URL, SITE_MODEL, SITE_LOGIN_URL, SITE_LOGIN_SCOPE, SITE_LOGIN_CLIENT_ID in <the file's path>` (on standard error) and `exit 2`.
 
 ## Journal
+
+1. 2026-11-02 human: created.
+2. factory: started intake as vm.
