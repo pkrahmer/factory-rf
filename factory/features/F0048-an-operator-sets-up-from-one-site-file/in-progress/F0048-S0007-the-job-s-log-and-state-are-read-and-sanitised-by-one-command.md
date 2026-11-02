@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T20:50:14.796694Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T20:49:56.918224Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:50:14.796694Z'
   stage: intake
 ---
 
@@ -124,3 +133,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
    6. Only the stop form `stop <kind> <reason>: <detail>` counts; add the row for a line that only contains ` stop `.
    7. `--quiet` that leaves no line prints nothing and exits 0; the `no log lines yet` message is only for an empty answer from `gcloud`. A row.
    8. An invalid `N` or an unknown option prints `job.sh`'s usage line on standard error and exits 2, as its other commands do. A row each.
+5. factory: started intake as vm.
