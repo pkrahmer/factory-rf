@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870, 6586194468]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T19:22:27.739444Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-11-02T19:22:27.739444Z'
   stage: doing
+- number: 30
+  speaker: coder
+  kind: result
+  at: '2026-11-02T19:23:17.627745Z'
+  stage: doing
+  run: 37c6582cc42d4440a71056e13e3cc574
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -532,3 +534,17 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
 
     Earlier tests: none. `git diff --name-status main...HEAD` lists the only test file, `tests/test_operator_job.py`, as added (`A`), and no test file that `main` holds is changed, renamed or deleted.
 29. factory: started doing as vm.
+30. coder: Round 1, after the human's answer (entry 26) and the reviewer's entry 28. Every finding in entry 28 is a change to tests or to the work item, so I changed no code. `operator/job/job.sh` stays as round 2 left it, and the working tree is clean (`git status --short` prints nothing). I did not run `make check`, because nothing changed since the last green run (entry 22). The changes for the tester, all in `tests/test_operator_job.py` unless named otherwise:
+
+    1. Criteria 19, 20 and 21 (entry 28, finding 1; entry 26). Write one parametrized test per criterion with exactly the rows the criterion lists, including the `update` and `create --dry-run` rows. For criterion 21, also read the accepted costs back from `provider.json` as numbers. They exercise `check_instance`, `check_env_values` and `check_costs` (`operator/job/job.sh:51-83`), which no test runs yet.
+    2. Finding 2. Move the two cases of `test_execute_and_delete_name_a_missing_job` (`:595`) into `test_missing_site_keys_are_named_in_one_line` (`:286`) as rows. They keep their assertions: one `site: missing SITE_JOB in <path>` line, exit 2, no `gcloud` call. The refused and accepted sides of the rule then sit in one test.
+    3. Finding 3, under the standing leave to move a shared test helper. `calls` (`:212`) is a copy of `recorded_calls` in `tests/recording_stand_in_support.py:22`. Both read a JSON-lines file of calls and return an empty list when the file is missing. Put one reader that takes the records file's path in `tests/recording_stand_in_support.py`, let `recorded_calls` use it, and use it here instead of `calls`. The third copy, `tests/test_operator_hosting.py:97` `calls(records, name)`, returns dict rows from `<name>.jsonl`. It may move onto the same reader under the same leave. If it does, the tester's entry names that file and every earlier test keeps its name and checks the same thing.
+
+    Main choice: send the item to the tester instead of answering with a `question`. Entry 26 asks for that hand-over for criteria 19 to 21, and findings 2 and 3 are changes to tests too. I rejected touching the tests myself (R9).
+
+    Noticed, not touched: finding 4 asks for criterion 23 (docs) to name the three refusals for the operator:
+    - an instance name outside letters, digits, `.`, `_` and `-`;
+    - an `@` in an env-list value, so an SSH URL such as `git@host:org/work.git` is refused;
+    - a price that is not a plain number.
+
+    Entry 28 says the next review or intake applies that wording. I left `## Description` and the criteria unchanged, since entry 28 changed no part of the task's meaning that the coder writes.
