@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595, 6581849151]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-02T16:15:12.970450Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -284,6 +280,12 @@ journal:
   kind: started
   at: '2026-11-02T16:15:12.970450Z'
   stage: smoke-test
+- number: 50
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-02T16:15:53.050598Z'
+  stage: smoke-test
+  run: 18cf20838bc84c26ad4cd3f954f34095
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -811,3 +813,38 @@ Expect: one line, `$(echo ran)`.
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 49. factory: started smoke-test as vm.
+50. smoke-tester: Ran the three commands under `## Smoke test` from the repository root, in order, each in its own shell exactly as written. Every one met its `Expect:` line, and nothing in the output goes against an acceptance criterion. I fixed nothing.
+
+    Command 1 (`site show` on a file holding SITE_PROJECT, a comment line and a quoted SITE_REGION; output lines 1, 7, 8 and 9 only):
+
+    ```
+    SITE_REPOSITORY=unset
+    SITE_PROJECT=set
+    SITE_REGION=set
+    SITE_IMPERSONATE=unset
+    ```
+
+    Met. These are the four lines expected, at the example's positions 1, 7, 8 and 9, so `show` follows the example's order (criteria 10 and 14). No value was printed. The comment line was skipped and the quoted value counted as set (criteria 2 and 3).
+
+    Command 2 (`site init` into a folder that does not exist, `stat`, then a second `site init`):
+
+    ```
+    site: wrote /tmp/tmp.pjDoKm5rOa/new/site.env; edit it, then run: site check
+    600
+    site: /tmp/tmp.pjDoKm5rOa/new/site.env exists; not overwritten
+    exit 1
+    ```
+
+    Met. `init` made the folder and wrote the file with mode 600, and the second run refused and exited 1, with the messages the Interface gives (criterion 12).
+
+    Command 3 (`site get SITE_A` where the file holds `SITE_A=$(echo ran)`):
+
+    ```
+    $(echo ran)
+    ```
+
+    Met. The value came back as literal text and was not executed (criterion 4).
+
+    Findings: none.
+
+    Also checked: `docs/operator-guide.md` has the section `## The site file` (line 897, listed in the contents at line 12). I only checked that the section is there and did not read it against criterion 29. Each command removed its own temporary folder through its `trap`, and none was left in `/tmp`.
