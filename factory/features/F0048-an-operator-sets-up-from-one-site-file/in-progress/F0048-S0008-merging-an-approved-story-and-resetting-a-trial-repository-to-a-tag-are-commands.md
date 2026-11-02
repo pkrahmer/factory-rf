@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T21:50:35.854784Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-02T21:50:35.854784Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-02T21:54:02.921549Z'
+  stage: doing
+  run: 8b91edc0d0ab428692f2ea54c6837dfb
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -296,3 +298,21 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     `lint`: lint: green (0.1 s)
     `test`: test: green (81.4 s)
 16. factory: started doing as vm.
+17. coder: I wrote no new code in this round. The two scripts from entry 13 are already in the committed state. The tester's change in entry 15 replaced the test module's own `in_order` with the shared one from `tests/vm_support.py`, so the `test_suite_held_once` failure is gone. `make check` is now green: `check: green`, coverage 99.58 %, `test: green (82.4 s)`.
+
+    Built (entry 13, unchanged since):
+    - `operator/skill/kumpel/scripts/merge.sh`: it refuses unless the pull request is open, not a draft, labelled `stage:approval` and on `work-item/<id>`. Otherwise it merges with `{"merge_method":"merge"}` and polls `/commits?per_page=20` for `work item <id>: merged, archived`.
+    - `operator/skill/kumpel/scripts/reset-to-tag.sh`: it runs only when `SITE_REPOSITORY` equals `SITE_RESET_REPOSITORY`. It resolves the tag, following an annotated tag once, then lists the open work-item pull requests and the `work-item/` refs. Without `--yes` it prints the plan and exits 1. With `--yes` it closes, deletes, then moves `main` by force, and stops at the first failing call.
+
+    Main choice: the clock ends `merge.sh`'s archive wait (`date +%s` against the start), not a running sum of the pauses. A sum never grows when `KUMPEL_POLL_SECONDS=0`, so the wait would never end. A wait of 0 still makes one poll. I rejected a poll counter (wait divided by pause), which has no answer for a pause of 0. A second choice: `reset-to-tag.sh` reports `no tag <tag>` only on a 404. Any other failure of the lookup keeps the hosting client's own message.
+
+    Refactor: I re-read both scripts against `main` and found nothing to change. The repeated usage line in `reset-to-tag.sh`'s argument `case` is two short lines; I left it.
+
+    What the journal changed: entry 9 decided that the messages keep the full `/repos/<repository>/...` path (criteria 3 and 9). It also decided that the third-poll row of criterion 4 runs with `KUMPEL_ARCHIVE_WAIT=60`. The tests and the code follow that. `## Description` still has the wording from before entry 9, because the factory dropped the tester's rewrite (entry 11). The work item is not in my write paths, so it is still not rewritten.
+
+    Noticed, not touched:
+    - If the GET of the pull-request list or the branch list fails, the reset stops with the hosting message followed by a Python JSON traceback. No criterion covers this.
+    - Criterion 13 (docs) is the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
