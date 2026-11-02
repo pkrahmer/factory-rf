@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-02T21:54:23.506307Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-02T21:54:02.921549Z'
   stage: doing
   run: 8b91edc0d0ab428692f2ea54c6837dfb
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:54:23.506307Z'
+  stage: review
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -316,3 +325,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+18. factory: started review as vm.
