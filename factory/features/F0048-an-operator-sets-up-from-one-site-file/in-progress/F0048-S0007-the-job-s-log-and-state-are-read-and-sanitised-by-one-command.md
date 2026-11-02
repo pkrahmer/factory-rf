@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T21:12:44.087744Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-02T21:12:44.087744Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T21:14:40.547706Z'
+  stage: review
+  run: 4225ae1233dd4db886ea3a73b460d91d
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -136,7 +138,7 @@ job.sh status                                  # the latest executions, and the 
 - `status` lists the five newest executions (`gcloud run jobs executions list --job=$SITE_JOB --limit=5 --format=json`), newest first, one line each: `<name> <state> started <HH:MM>` with ` ended <HH:MM>` for a finished one and, for a failed one, `: <the message of its first failed condition>`; `<state>` is `running` when the running count is 1 or more, `succeeded` when the succeeded count is 1 or more, `failed` when the failed count is 1 or more, else `waiting`. Times are in UTC.
 - After the list, for the execution `log` would read, `status` prints `factory: stopped: <the newest log line that contains " stop ", sanitised>` when the last 200 log lines hold a line of the factory's stop form `stop <kind> <reason>: <detail>` and no later line shows the factory running again (a later `preflight:` item line counts as running), else `factory: no stop in the last 200 lines`.
 
-- `status` reads the log with the same arguments as `log` and keeps its last 200 non-empty lines; only the stop form counts. `--quiet` that leaves no line prints nothing and exits 0. An invalid `N` or an unknown option prints `job.sh`'s usage line on standard error and exits 2; a missing `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB` gives `site_require`'s message and exit 2. (Journal 4.)
+- `status` reads the log with the same arguments as `log` and keeps its last 200 non-empty lines; only the stop form counts. `--quiet` that leaves no line prints nothing and exits 0. An invalid `N` or an unknown option prints `job.sh`'s usage line, which names `log` and `status` too (journal 11), on standard error and exits 2; a missing `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB` gives `site_require`'s message and exit 2. (Journal 4.)
 
 Tests: `tests/test_operator_job_log.py`, the `gcloud` stand-in of S0005's tests answering `logging read` with a fixture and `executions list` with JSON, the site and the rules file in `tmp_path`.
 
@@ -345,3 +347,17 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 18. factory: started review as vm.
+19. reviewer: Review of round 0. I read `operator/job/job.sh`, `tests/test_operator_job_log.py` and the change to `tests/test_operator_job.py` against criteria 1 to 21 and every rule of the Interface. I also checked the stop regex in `stop_line` against the factory's real log lines: `src/factory/application/stops.py:43` writes `stop {scope} {reason}: {detail}`, and `preflight.py:498` writes `preflight: {name}: {detail}` before the stop. The regex matches the stop line, and `stop cleared …` does not match it. Journal 17 says the factory's `make check` was green.
+
+    Findings:
+    1. `operator/job/job.sh` `status()` (around line 440): when `executions list` returns `[]` and a `last-execution` file exists, `status` prints no execution line, reads the saved execution's log and exits 0. Criterion 10 says without condition that `status` with no executions prints `job: no execution of <job> found` and exits 1. The coder noted this in journal 17. Fix: when the JSON list is empty, `status` prints the message and exits 1 before `chosen_execution`. The tester adds a row to `test_status_shows_a_missing_execution_and_gcloud_failures` with `world.save_execution(...)` and no executions.
+    2. `tests/test_operator_job_log.py:496` `test_status_looks_for_the_stop_in_the_last_200_lines`: criterion 16 and the Interface say `status` keeps its last 200 *non-empty* lines, but no row has empty lines inside the window, so counting empty lines would pass too. Fix: add a row with empty lines after the stop line, so the stop line is the 200th non-empty line from the end and would be past 200 if the empty lines counted. Expect `factory: stopped: …`.
+    3. `tests/test_operator_job_log.py:155` `words` is a second copy of `words` in `tests/test_operator_job.py:136`. `JOB` and `IMPERSONATE` (lines 16 and 18) are also copied from `tests/test_operator_job.py:20,29`, and `BARE` (line 17) holds the same three keys as `tests/test_operator_job.py:51`. Fix: the tester moves them to a shared support module under `tests/` under the standing leave, and both modules import them from there.
+    4. `tests/test_operator_job_log.py:514` `test_only_the_stop_form_counts_as_a_stop` is the refused side of the stop-form rule, and its other side is the `stopped` row of `test_status_shows_the_factory_s_stop` (line 382). In the same way, `test_quiet_that_leaves_no_line_prints_nothing` (line 520) and `test_an_empty_answer_says_the_log_is_late` (line 314) are the two sides of the "`no log lines yet` only for an empty answer" rule. Fix: make each pair rows of one parametrized test.
+    5. `operator/job/job.sh:302` `make_work` adds a helper for the two lines that `create_or_update` still holds as its own copy at `job.sh:230-231` (`work=$(mktemp -d) || exit 1` and the `trap`). Fix: `create_or_update` calls `make_work`.
+    6. `operator/job/job.sh:2`: the purpose line still reads "create, update, execute and delete it", but the script now also reads the log and the status, as the usage comment below it says. Fix: the purpose line names reading an execution's log and the job's status.
+
+    description corrected: "An invalid `N` or an unknown option prints `job.sh`'s usage line on standard error" -> "… prints `job.sh`'s usage line, which names `log` and `status` too (journal 11), on standard error" (journal 11 extended the usage line).
+
+    Earlier tests:
+    - `tests/test_operator_job.py`: changed under the human's leave, journal 11. Only the `USAGE` constant changed, to the new usage line; no test was renamed and none checks something else.
