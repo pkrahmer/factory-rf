@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T14:45:19.069469Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-02T14:44:58.025185Z'
   stage: tests
   run: e425d265a2614d018e745f4aab7e3ead
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-02T14:45:19.069469Z'
+  stage: doing
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -213,3 +222,4 @@ Expect: one line, `$(echo ran)`.
 
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/test_operator_site.py::test_init_refuses_a_path_in_a_git_work_tree[outside] - AssertionError: sh: 0: cannot open /work/checkout/operator/bin/site: No such file
+9. factory: started doing as vm.
