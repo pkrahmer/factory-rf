@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T21:42:10.532906Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T21:41:52.265681Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:42:10.532906Z'
   stage: tests
 ---
 
@@ -168,3 +177,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
 
    Not importable: none. Both scripts are missing (`operator/skill/kumpel/scripts/merge.sh`, `reset-to-tag.sh`), so every test fails with `sh: cannot open …`. `make lint` is green. I did not run the type check, as this stage says.
 9. 2026-11-02 human: Both as you propose. 1: (a), the message keeps the full path as `hosting_api` prints it; criterion 3 and the messages of criterion 9 are read with the full `/repos/<repository>/...` path. 2: your reading; the no-archive row runs with `KUMPEL_ARCHIVE_WAIT=0`, the third-poll row with `KUMPEL_POLL_SECONDS=0` and `KUMPEL_ARCHIVE_WAIT=60`, and the other merge tests keep 0 and 60. The router in front of S0003's stand-in is fine.
+10. factory: started tests as vm.
