@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 503
 comments_read: [6586887222]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T19:54:26.169174Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-02T19:54:05.396239Z'
   stage: tests
   run: bfa5834fd05a4d0b96eec75a7b277576
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:54:26.169174Z'
+  stage: doing
 ---
 
 # The reviewer judges all five groups in every review
@@ -176,3 +185,4 @@ Expect: two lines, `1` and `0`.
 
     `lint`: lint: green (0.1 s)
     `test`: FAILED tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged - AssertionError: assert 0 == 1
+13. factory: started doing as vm.
