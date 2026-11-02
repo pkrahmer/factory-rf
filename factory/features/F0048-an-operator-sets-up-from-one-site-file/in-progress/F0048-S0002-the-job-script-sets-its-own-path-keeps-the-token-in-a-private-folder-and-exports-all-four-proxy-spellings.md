@@ -7,7 +7,11 @@ crashes: 1
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T16:34:56.584717Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -79,6 +83,11 @@ journal:
   speaker: factory
   kind: crash
   at: '2026-11-02T16:34:54.434395Z'
+  stage: doing
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:34:56.584717Z'
   stage: doing
 ---
 
@@ -216,3 +225,4 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
     `test`: FAILED tests/test_vm_job_start_environment.py::test_a_second_run_makes_an_existing_secrets_folder_private_and_replaces_the_old_token - AssertionError: assert 493 == 448
 12. factory: started doing as vm.
 13. factory: crash 1: the run of stage doing ended without a result. Its work is discarded back to commit 70d62a4b979f9f2ddc4eba0f8801ad597644be92.
+14. factory: started doing as vm.
