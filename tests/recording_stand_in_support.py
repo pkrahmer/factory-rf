@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from typing import Any
 
 from git_support import write_executable
 
@@ -19,9 +20,13 @@ def recording_stand_in(folder: Path, *, printed: str = "") -> Path:
     )
 
 
+def read_records(path: Path) -> list[Any]:
+    """The JSON values a stand-in wrote to `path`, one a line, oldest first; none when never run."""
+    if not path.exists():
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+
+
 def recorded_calls(executable: Path) -> list[list[str]]:
     """The argument lists the stand-in `executable` recorded, oldest first; none when never run."""
-    calls = executable.parent / "calls"
-    if not calls.exists():
-        return []
-    return [json.loads(line) for line in calls.read_text(encoding="utf-8").splitlines()]
+    return read_records(executable.parent / "calls")

@@ -896,7 +896,7 @@ sudo systemctl start factory@vm
 
 ## The site file
 
-The values that belong to one site (a project, a region, a proxy, the names of secrets, two repositories, a token command) live in one plain file, `site.env`, and one loader, `operator/lib/site.sh`, reads it for every operator script. The file is where company values go, so it lies outside every repository. No script reads it yet for a job, and no existing script uses the hosting library (*The token source*); the stories to come make each key live.
+The values that belong to one site (a project, a region, a proxy, the names of secrets, two repositories, a token command) live in one plain file, `site.env`, and one loader, `operator/lib/site.sh`, reads it for every operator script. The file is where company values go, so it lies outside every repository. `operator/job/job.sh` reads it for the job (*Creating the job*), and the skill's scripts use the hosting library (*The token source*); the stories to come make the other keys live.
 
 ### Its place
 
@@ -944,31 +944,31 @@ sh operator/bin/site get SITE_REPOSITORY
 | `SITE_CHECKOUT` | the local checkout of that repository | required |
 | `SITE_API_URL` | the hosting service's API | GitHub's public API |
 | `SITE_TOKEN_CMD` | the command that prints a hosting-service token | `gh auth token` |
-| `SITE_PROXY` | the proxy for the job and its tools | no proxy |
-| `SITE_NO_PROXY` | hosts reached without the proxy, comma-separated | none |
+| `SITE_PROXY` | the proxy for the job and its tools | required for a job |
+| `SITE_NO_PROXY` | hosts reached without the proxy, comma-separated | required for a job |
 | `SITE_PROJECT` | the cloud project of the job | required for a job |
 | `SITE_REGION` | the cloud region of the job | required for a job |
 | `SITE_IMPERSONATE` | the service account the operator's cloud commands impersonate | your own login |
 | `SITE_RUN_AS` | the service account the job runs as | required for a job |
 | `SITE_CONNECTOR` | the network connector the job's traffic leaves through | required for a job |
 | `SITE_JOB` | the name of the job | required for a job |
-| `SITE_INSTANCE` | the instance's name in the job | the job's name |
+| `SITE_INSTANCE` | the instance's name in the job | required for a job |
 | `SITE_REPOSITORY_URL` | the clone URL of the factory's repository | required for a job |
 | `SITE_CODE_URL` | the clone URL of the factory's own code | required for a job |
-| `SITE_CODE_REF` | the branch or tag of the code the job runs | `main` |
+| `SITE_CODE_REF` | the branch or tag of the code the job runs | required for a job |
 | `SITE_HOSTING_SECRET` | the secret that holds the hosting-service token | required for a job |
 | `SITE_MODEL_SECRET` | the secret that holds the model provider's key | required for a job |
-| `SITE_MODEL_BASE_URL` | the model provider's API | the provider's public API |
+| `SITE_MODEL_BASE_URL` | the model provider's API | required for a job |
 | `SITE_MODEL` | the model the agents run on | required for a job |
-| `SITE_MODEL_INPUT_COST` | price per million input tokens, in dollars | no cost record |
-| `SITE_MODEL_OUTPUT_COST` | price per million output tokens, in dollars | no cost record |
-| `SITE_LOGIN_URL` | the login service that issues the provider's tokens | no login |
-| `SITE_LOGIN_SCOPE` | the scope asked of the login service | none |
-| `SITE_LOGIN_CLIENT_ID` | the client id given to the login service | none |
-| `SITE_CPU` | the job's CPUs | 4 |
-| `SITE_MEMORY` | the job's memory | 16Gi |
-| `SITE_TIMEOUT` | the job's task timeout | 24h |
-| `SITE_IDLE_MINUTES` | idle minutes after which the job ends itself | 30 |
+| `SITE_MODEL_INPUT_COST` | price per million input tokens, in dollars | `0` |
+| `SITE_MODEL_OUTPUT_COST` | price per million output tokens, in dollars | `0` |
+| `SITE_LOGIN_URL` | the login service that issues the provider's tokens | required for a job |
+| `SITE_LOGIN_SCOPE` | the scope asked of the login service | required for a job |
+| `SITE_LOGIN_CLIENT_ID` | the client id given to the login service | required for a job |
+| `SITE_CPU` | the job's CPUs | 8 |
+| `SITE_MEMORY` | the job's memory | 32Gi |
+| `SITE_TIMEOUT` | the job's task timeout, in seconds | 14400 |
+| `SITE_IDLE_MINUTES` | idle minutes after which the job ends itself | 60 |
 | `SITE_RESET_REPOSITORY` | the repository a trial resets, `owner/repo` | none |
 | `SITE_SANITISE_RULES` | the file of rules that sanitise what leaves the site | none |
 
@@ -1074,20 +1074,44 @@ When the model costs nothing, a price of 0 makes `budget_usd` inert. The time li
 
 ### Creating the job
 
-The command below is a template, not a recorded run: the placeholders are yours, and the script must reach the bare image somehow. The probes of `planning/cloud-sandbox/` ship it inside the job's arguments, compressed and base64-coded.
+`operator/job/job.sh` creates, updates, starts and deletes the job from the site file's values (*The site file*). It never guesses a project, a region or a job's name: every `gcloud` call carries `--project` and `--region` from the file, and `--impersonate-service-account` when `SITE_IMPERSONATE` is set.
 
 ```bash
-gcloud run jobs create <job> \
-  --image=<a debian:trixie-slim reachable from the project> \
-  --cpu=8 --memory=16Gi \
-  --task-timeout=23h --max-retries=0 \
-  --vpc-connector=<the shared connector> --vpc-egress=all-traffic \
-  --set-secrets=/secrets/hosting-token=<secret>:latest \
-  --set-env-vars=FACTORY_INSTANCE=<instance>,FACTORY_REPOSITORY_URL=<project url>,FACTORY_CODE_URL=<code url>,FACTORY_CODE_REF=<tag or commit>,FACTORY_TOKEN_FILE=/secrets/hosting-token,https_proxy=<proxy url> \
-  --command=sh --args="-c,<the script's text, however you ship it>"
+sh operator/job/job.sh create [--dry-run]
+sh operator/job/job.sh update [--dry-run]
+sh operator/job/job.sh execute
+sh operator/job/job.sh delete [--yes]
 ```
 
-Add the remaining settings of your instance to `--set-env-vars`.
+`create` and `update` build one `gcloud run jobs` call with the settings of *What the job needs*: the image `docker.io/library/debian:trixie-slim`, `--execution-environment=gen2`, `--max-retries=0`, `--vpc-egress=all-traffic`, the two secrets as mounts (`/secrets/hosting-token` and `/secrets-llm/client-secret`, never their values) and the job's environment, which carries the proxy in its four spellings and sets no `PATH`. They read these keys; the meaning and the format of each are in the table of *The keys*:
+
+| Command | Keys it reads |
+|---|---|
+| `create`, `update` (required) | `SITE_PROJECT`, `SITE_REGION`, `SITE_RUN_AS`, `SITE_CONNECTOR`, `SITE_PROXY`, `SITE_NO_PROXY`, `SITE_JOB`, `SITE_INSTANCE`, `SITE_REPOSITORY_URL`, `SITE_CODE_URL`, `SITE_CODE_REF`, `SITE_HOSTING_SECRET`, `SITE_MODEL_SECRET`, `SITE_MODEL_BASE_URL`, `SITE_MODEL`, `SITE_LOGIN_URL`, `SITE_LOGIN_SCOPE`, `SITE_LOGIN_CLIENT_ID` |
+| `create`, `update` (optional) | `SITE_IMPERSONATE` (none), `SITE_CPU` (`8`), `SITE_MEMORY` (`32Gi`), `SITE_TIMEOUT` (`14400`, seconds), `SITE_IDLE_MINUTES` (`60`), `SITE_MODEL_INPUT_COST` and `SITE_MODEL_OUTPUT_COST` (`0`) |
+| `execute`, `delete` | `SITE_PROJECT`, `SITE_REGION`, `SITE_JOB` |
+
+Missing required keys are all named in one line, `site: missing <keys> in <path>`, with status 2 and no `gcloud` call.
+
+Before it builds the call, `create` and `update` refuse three kinds of value, with `job: ...` on standard error, status 1 and no `gcloud` call:
+
+- A `SITE_INSTANCE` with a character other than a letter, a digit, `.`, `_` or `-`. It becomes a path (`/srv/factory/<instance>`) in the shell text the job runs.
+- An `@` in `SITE_REPOSITORY_URL`, `SITE_CODE_URL`, `SITE_CODE_REF`, `SITE_PROXY`, `SITE_NO_PROXY`, `SITE_MODEL`, `SITE_LOGIN_URL`, `SITE_LOGIN_SCOPE`, `SITE_LOGIN_CLIENT_ID` or `SITE_IDLE_MINUTES`. `@` is the delimiter of the job's env list (`--set-env-vars=^@^...`).
+- A `SITE_MODEL_INPUT_COST` or `SITE_MODEL_OUTPUT_COST` that is not digits with at most one `.` (`15.5` and `.5` pass; `-1`, `1e3`, `nan` do not).
+
+The second rule has a consequence: an SSH repository URL such as `git@host:owner/name.git` holds an `@`, so a job needs the `https://` form of `SITE_REPOSITORY_URL` (the factory itself accepts both, see *Configuration*).
+
+The job's command is one line of shell that decodes a script (base64, gzip). The script only makes `/srv/factory/<instance>`, writes the provider file `provider.json` from the site's model values, writes `vm/job-start.sh` to `/tmp/job-start.sh` and hands over to it (`exec sh /tmp/job-start.sh`). The text of `vm/job-start.sh` is taken from `SITE_CODE_REF` of the repository that holds `job.sh`, not from its working tree, so the job runs the code the ref names. A ref the repository does not know stops `create` and `update` with `job: <ref> is not known here; fetch it first`, status 1. A `vm/job-start.sh` that holds a line `JOB_START_SH_END` is refused, because that line ends the text in the wrapper.
+
+`create` refuses a job that exists (`job: <job> exists; use update`) and `update` one that does not (`job: <job> does not exist; use create`), both with status 1. `--dry-run` runs no `gcloud` call, not even the check for the job: it prints the call, one argument per line, with the wrapper as `<wrapper: N bytes>`, so you can read it before it runs. A failing `gcloud` shows its standard error and `job.sh` exits with its status.
+
+A first start goes in this order:
+
+1. `site check`, to prove the site file (it does not exist yet; until it does, `site show` lists the keys that are set).
+2. `sh operator/job/job.sh create`.
+3. `sh operator/job/job.sh execute`.
+
+`execute` starts an execution with `gcloud run jobs execute --async`, prints the execution's name and writes it to `${XDG_STATE_HOME:-$HOME/.local/state}/kumpel/last-execution`. It lists the job's executions first and, when one is running, refuses with `job: an execution of <job> is still running: <name>; two executions of one instance must not overlap` and status 1: the platform's role at a site may not cancel an execution, so the check comes before the start. `delete` without `--yes` prints `job: would delete <job> and stop its running execution; run again with --yes` and exits 1; with `--yes` it deletes the job without asking.
 
 ## The preflight and the health check
 
