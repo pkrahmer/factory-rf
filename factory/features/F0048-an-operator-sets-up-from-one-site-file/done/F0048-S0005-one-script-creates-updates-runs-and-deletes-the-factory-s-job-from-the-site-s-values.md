@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -247,6 +247,11 @@ journal:
   at: '2026-11-02T19:37:14.179525Z'
   stage: smoke-test
   run: 08d83ddef2dc416e86ea85ce3a5d7620
+- number: 44
+  speaker: factory
+  kind: done
+  at: '2026-11-02T19:41:41.800566Z'
+  stage: approval
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -772,3 +777,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     Met: two lines. The missing keys are named in one message, in the Interface's order, with the site file's path, and the exit status is 2 (criterion 3). I ran it again with `2>/dev/null` and nothing printed except `exit 2`, so the message goes to standard error as expected.
 
     Against the criteria: the smoke test exercises criteria 3 and 11 and contradicts none. Since this command runs before any `gcloud` call, it exits before any call to `gcloud`, which fits criterion 3's "runs no `gcloud`". Nothing is open. The temporary directories removed themselves on exit, and I left nothing in `/tmp`.
+44. factory: done (pull request merged); cost: 19 runs, 31.2 min, 192 turns, 748769 tokens in (5982355 more from cache), 120830 out, $9.15
