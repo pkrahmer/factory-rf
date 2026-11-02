@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T17:34:04.361293Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,12 @@ journal:
   kind: started
   at: '2026-11-02T17:34:04.361293Z'
   stage: tests
+- number: 36
+  speaker: tester
+  kind: result
+  at: '2026-11-02T17:36:23.061891Z'
+  stage: tests
+  run: ffe9b82b82334ddca1ea9716720c0fe6
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -637,3 +639,20 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
 
     The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0003-a-hosting-client-in-shell-takes-its-token-from-a-command-the-site-names.md.
 35. factory: started tests as vm.
+36. tester: Tester, approved test change (Mode: a test change the human approved). Coder entry 34 named three changes, all in tests/test_operator_hosting.py, a file this story's tests stage wrote. The human approved criteria 19 and 20 in entry 30. Finding 3 is reviewer entry 32's finding, which coder entry 34 handed on. I made exactly those three changes and nothing else.
+
+    - criterion 19: tests/test_operator_hosting.py::test_the_status_decides_the_result_of_the_api_call, new row `422-own-message-first`. Status 422, body `{"message":"Validation Failed","errors":[{"message":"A pull request already exists"}]}`, exit 22, standard error exactly `hosting: GET /user: 422 Validation Failed`.
+    - criterion 20: same test, new row `curl-fails-with-its-error-text`. curl exits 7 after writing `curl: (7) Failed to connect to api.github.com port 443` and a newline on its standard error, and standard error is exactly `hosting: GET /user: no answer`.
+      - For this row, `CURL_STAND_IN` now writes the text of `STAND_IN_CURL_ERROR` (empty by default) to its standard error before the write-out, as a real curl run with `--show-error` does.
+      - The parametrized test gained a `curl_error` column, passed in as `STAND_IN_CURL_ERROR`. Every earlier row has `""` there and checks the same thing as before.
+      - Rejected: an unregistered custom pytest mark to carry the text. A column is plain and typed.
+    - finding 3: in test_the_api_call_gives_curl_the_token_on_standard_input_only, the token search now covers the recorded `arguments` alone, not `CURL_ARGUMENTS + [str(arguments)]`.
+
+    Files: none created; changed tests/test_operator_hosting.py only. `ruff format` re-wrapped some rows of the parametrize table, and I split the 422 body over two string literals for the line length.
+
+    Test run: `uv run pytest -q tests/test_operator_hosting.py`, once. All tests passed, the two new rows included, because `operator/lib/hosting.sh` already meets criteria 19 and 20, as coder entry 34 says. After that run I changed only the wrapping of the 422 body literal, which leaves its value the same. Every module imported. `make lint`: green.
+
+    Not changed: reviewer entry 32's note on the success side of "the command's standard error is discarded". Under entry 30 that is a note, and no answer from the human calls for it.
+
+    `lint`: lint: green (0.1 s)
+    `test`: test: green (78.6 s)

@@ -86,6 +86,9 @@ else:
     sys.stdout.write(body)
     sys.stdout.flush()
 
+sys.stderr.write(os.environ.get("STAND_IN_CURL_ERROR", ""))
+sys.stderr.flush()
+
 if write_out is not None:
     if write_out.startswith("@"):
         with open(write_out[1:], encoding="utf-8") as source:
@@ -282,7 +285,7 @@ def test_the_api_call_gives_curl_the_token_on_standard_input_only(
     assert len(recorded) == 1
     arguments = recorded[0]["argv"]
     assert arguments == CURL_ARGUMENTS
-    assert not any(ACCESS in str(argument) for argument in CURL_ARGUMENTS + [str(arguments)])
+    assert not any(ACCESS in str(argument) for argument in arguments)
     lines = curl_input(records)
     for line in [
         f'header = "Authorization: Bearer {ACCESS}"',
@@ -347,22 +350,25 @@ def first_hundred_on_one_line(stderr: str) -> bool:
 
 
 @pytest.mark.parametrize(
-    ("status", "body", "curl_exit", "exit_status", "stdout", "stderr_check"),
+    ("status", "body", "curl_exit", "curl_error", "exit_status", "stdout", "stderr_check"),
     [
-        pytest.param("200", '{"login":"someone"}\n', "0", 0, '{"login":"someone"}\n', "", id="200"),
-        pytest.param("201", '{"id":1}\n', "0", 0, '{"id":1}\n', "", id="201"),
-        pytest.param("204", "", "0", 0, "", "", id="204"),
-        pytest.param("299", '{"id":2}\n', "0", 0, '{"id":2}\n', "", id="299"),
         pytest.param(
-            "199", '{"message":"Edge"}', "0", 22, "", "hosting: GET /user: 199 Edge\n", id="199"
+            "200", '{"login":"someone"}\n', "0", "", 0, '{"login":"someone"}\n', "", id="200"
+        ),
+        pytest.param("201", '{"id":1}\n', "0", "", 0, '{"id":1}\n', "", id="201"),
+        pytest.param("204", "", "0", "", 0, "", "", id="204"),
+        pytest.param("299", '{"id":2}\n', "0", "", 0, '{"id":2}\n', "", id="299"),
+        pytest.param(
+            "199", '{"message":"Edge"}', "0", "", 22, "", "hosting: GET /user: 199 Edge\n", id="199"
         ),
         pytest.param(
-            "300", '{"message":"Edge"}', "0", 22, "", "hosting: GET /user: 300 Edge\n", id="300"
+            "300", '{"message":"Edge"}', "0", "", 22, "", "hosting: GET /user: 300 Edge\n", id="300"
         ),
         pytest.param(
             "301",
             "Moved Permanently",
             "0",
+            "",
             22,
             "",
             "hosting: GET /user: 301 Moved Permanently\n",
@@ -372,13 +378,37 @@ def first_hundred_on_one_line(stderr: str) -> bool:
             "404",
             '{"message":"Not Found"}',
             "0",
+            "",
             22,
             "",
             "hosting: GET /user: 404 Not Found\n",
             id="404",
         ),
-        pytest.param("500", LONG_BODY, "0", 22, "", first_hundred_on_one_line, id="500"),
-        pytest.param("200", "", "7", 22, "", "hosting: GET /user: no answer\n", id="curl-fails"),
+        pytest.param("500", LONG_BODY, "0", "", 22, "", first_hundred_on_one_line, id="500"),
+        pytest.param(
+            "200", "", "7", "", 22, "", "hosting: GET /user: no answer\n", id="curl-fails"
+        ),
+        pytest.param(
+            "422",
+            '{"message":"Validation Failed",'
+            '"errors":[{"message":"A pull request already exists"}]}',
+            "0",
+            "",
+            22,
+            "",
+            "hosting: GET /user: 422 Validation Failed\n",
+            id="422-own-message-first",
+        ),
+        pytest.param(
+            "200",
+            "",
+            "7",
+            "curl: (7) Failed to connect to api.github.com port 443\n",
+            22,
+            "",
+            "hosting: GET /user: no answer\n",
+            id="curl-fails-with-its-error-text",
+        ),
     ],
 )
 def test_the_status_decides_the_result_of_the_api_call(
@@ -388,6 +418,7 @@ def test_the_status_decides_the_result_of_the_api_call(
     status: str,
     body: str,
     curl_exit: str,
+    curl_error: str,
     exit_status: int,
     stdout: str,
     stderr_check: str | Callable[[str], bool],
@@ -397,6 +428,7 @@ def test_the_status_decides_the_result_of_the_api_call(
         STAND_IN_CURL_STATUS=status,
         STAND_IN_CURL_BODY=body,
         STAND_IN_CURL_EXIT=curl_exit,
+        STAND_IN_CURL_ERROR=curl_error,
     )
     result = run_hosting("hosting_api GET /user", tmp_path, env)
     assert (result.exit_status, result.stdout) == (exit_status, stdout), result.stderr
