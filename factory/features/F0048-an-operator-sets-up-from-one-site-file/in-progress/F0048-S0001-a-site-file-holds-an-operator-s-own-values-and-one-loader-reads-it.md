@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 498
 comments_read: [6579796948]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T14:54:10.245113Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-02T14:54:10.245113Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T14:56:12.616514Z'
+  stage: review
+  run: 49f71b5f188c41bc8afa875833168fc5
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -139,8 +141,13 @@ Tests: `tests/test_operator_site.py` (the scripts are outside the layers), runni
 14. The example file: it loads without a fault; every `SITE_` key line has a comment line directly above it; its keys, in order, begin with the thirty-one of the Interface; no value contains a string that is not made up (a test over its text: every `://` is followed by a host that ends in `example.invalid`, `localhost` or an IP address of `192.0.2.`).
 15. `site show` and `site get SITE_A` with a failing load, as rows of one parametrized test (two commands by three loads): a missing file (status 1), a faulty file (status 2) and a file in a git work tree (status 3) print the loader's message of the Interface to standard error, nothing to standard output, and exit with that status.
 16. `site init` for a path inside a git work tree prints the message of the Interface to standard error, creates neither the folder nor the file, and exits 3; for the same path outside a work tree it writes the file (the two sides as rows of one parametrized test).
-17. `make check` stays green.
-18. docs: `docs/operator-guide.md` gets a section *The site file* (what it is, its place and `FACTORY_SITE`, the format and that it is never executed, the rule that it lies outside every repository, `site init`, `show` and `get`, and the keys by the use that reads them as far as the stories to come make them known: a table of key, meaning, default); `README.md` and the other documents: none.
+17. A backslash in a value has no meaning: the line `SITE_A=a\nb\\c` exports exactly the text `a\nb\\c`.
+18. A key's name may hold digits and `_` after `SITE_`: the line `SITE_A_1=x` exports `SITE_A_1` as `x` and returns 0.
+19. A key that appears twice keeps its first value, as a variable already set does: the lines `SITE_A=first` and `SITE_A=second` export `SITE_A` as `first`.
+20. `site_require` also takes names without the `SITE_` prefix, as the Interface's `site_require A B` shows: with `SITE_A` and `SITE_B` unset, `site_require A B` prints `site: missing SITE_A, SITE_B in <path>` and returns 2.
+21. `site path` prints the path of the Interface's order (the one `site_path` prints) and a newline, and exits 0.
+22. `make check` stays green.
+23. docs: `docs/operator-guide.md` gets a section *The site file* (what it is, its place and `FACTORY_SITE`, the format and that it is never executed, the rule that it lies outside every repository, `site init`, `show` and `get`, and the keys by the use that reads them as far as the stories to come make them known: a table of key, meaning, default); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -262,3 +269,13 @@ Expect: one line, `$(echo ran)`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: Review, round 0. Group 1 (acceptance criteria) fails. The tests for criteria 1 to 16 match their criteria, and the journal shows `make check` green after the coder. But some rules of the Interface, and some behaviour the diff builds, have no test. I added five criteria for them before the closing two, which become 22 (`make check`) and 23 (docs). I stopped at group 1, as the checklist says, so groups 2 to 5 were not judged this round.
+
+    1. criterion 17 added: it needs its test. The Interface says a `\` in a value has no meaning, but the rows of criterion 4 (`tests/test_operator_site.py::test_a_value_is_never_interpreted`) cover only `$`, the backtick and `;`.
+    2. criterion 18 added: it needs its test. The Interface says a NAME is "capitals, digits and `_`". Only the refused side (lower case) is tested. No test loads a key with a digit (`operator/lib/site.sh:109` `_site_is_name` accepts one).
+    3. criterion 19 added: it needs its test. When a key appears twice, the first value wins (`operator/lib/site.sh:116` `_site_export`; the coder's entry 10 names this choice). This follows from the Interface's rule that a variable already set keeps its value, but nothing tests it.
+    4. criterion 20 added: it needs its test. `site_require` adds `SITE_` to a name given without it (`operator/lib/site.sh:48-51`), as the Interface's `site_require A B` shows. The test `test_require_names_every_unset_or_empty_name_in_the_order_given` passes only full names.
+    5. criterion 21 added: it needs its test. The command `site path` (`operator/bin/site:213`) is never run. Criterion 1 tests only the library function `site_path`.
+    6. Interface, line format (story): the Interface says "there is no space around the `=`" and also "the value is everything after the first `=`". Those two do not settle a space on one side only, and no criterion covers either case. The code refuses `SITE_A =1`, because the key `SITE_A ` is not a name. It loads `SITE_A= 1` with the value ` 1` (`operator/lib/site.sh:93-102`). Fix: the coder asks the human whether `SITE_A= 1` is a fault or the value ` 1`. A criterion then covers both one-sided cases as rows of one parametrized test. Only criterion 5's row `SITE_A = 1` (spaces on both sides) tests this rule now.
+
+    Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py`, `tests/test_operator_site.py`, both `A`).
