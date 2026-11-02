@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T17:50:35.816820Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-02T17:50:35.816820Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-02T17:56:47.153594Z'
+  stage: tests
+  run: f43b1b78a114462dbfe375139ebf7eb1
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -150,3 +152,41 @@ Expect: one line, `0`.
    - Scope: within F0048 scope (the skill's scripts use the client and the site). It touches no "Out of scope" item and no test of another story.
    Open point for the tester: today's `settings.sh get` with no settings file raises a Python error and prints no message of its own. So criterion 7 requires only a non-zero exit for `get repository` when nothing is set, and the exact text only for `show`.
 7. factory: started tests as vm.
+8. tester: Tests written for every criterion in `tests/test_operator_skill_scripts.py`. The scripts run under `sh` in `tmp_path` with a site file, a `curl` stand-in that answers by URL, and real bare remotes and clones for the git parts.
+
+   - criterion 1: tests/test_operator_skill_scripts.py::test_status_lists_the_open_work_items_and_the_last_archive
+   - criterion 2: tests/test_operator_skill_scripts.py::test_the_newest_comment_decides_the_state (the seven kinds, verdict, no comments at doing and at approval, marker+verdict, marker at approval, verdict at approval, unknown kind)
+   - criterion 3: tests/test_operator_skill_scripts.py::test_a_pull_request_without_stage_label_and_many_comments
+   - criterion 4: tests/test_operator_skill_scripts.py::test_the_last_archive_is_the_newest_archive_subject
+   - criterion 5: tests/test_operator_skill_scripts.py::test_approval_prints_the_files_and_the_cost_from_the_api
+   - criterion 6: tests/test_operator_skill_scripts.py::test_approval_prints_the_git_sections_from_the_checkout (with a `noqa` marker / `none`)
+   - criterion 7: tests/test_operator_skill_scripts.py::test_settings_answer_the_repository_and_checkout_from_the_site_first
+   - criterion 8: tests/test_operator_skill_scripts.py::test_settings_init_needs_no_arguments_when_the_site_gives_both
+   - criterion 9: tests/test_operator_skill_scripts.py::test_start_story_moves_the_story_and_pushes_it
+   - criterion 10: tests/test_operator_skill_scripts.py::test_start_story_refuses_an_id_in_no_backlog
+   - criterion 11: tests/test_operator_skill_scripts.py::test_next_story_names_the_next_story_to_start
+   - criterion 12: tests/test_operator_skill_scripts.py::test_status_without_a_token_source_stops
+   - criterion 13: tests/test_operator_skill_scripts.py::test_no_script_calls_gh
+   - criterion 14: tests/test_operator_skill_scripts.py::test_approval_prints_the_journal_sections
+   - criterion 15: tests/test_operator_skill_scripts.py::test_approval_reads_the_branch_as_the_remote_holds_it
+   - criterion 16: tests/test_operator_skill_scripts.py::test_the_scripts_ask_with_the_query_strings_of_the_interface
+
+   Files:
+   - Created: `tests/test_operator_skill_scripts.py`.
+   - Changed, under the standing leave to move a shared test helper (the story's Interface asks for S0003's hosting stand-in to be shared through `tests/operator_support.py`):
+     - `tests/operator_support.py` now holds `CURL_STAND_IN` and `hosting_env`, moved out of `tests/test_operator_hosting.py`.
+     - `tests/test_operator_hosting.py` now imports both from there. Every test there keeps its name and checks the same thing.
+     - The stand-in gained one optional input, `STAND_IN_CURL_ROUTES`: a JSON file of bodies keyed by the URL's path and query, or by the path alone; any other URL gets 404. When that variable is unset it behaves as before, so the S0003 tests are untouched in behaviour.
+
+   Assumption for the coder and the reviewer: the Interface does not name the endpoint for the comments `approval.sh` reads. The tests serve it at `/repos/owner/repo/issues/4/comments` with any query, as `status.sh` reads a pull request's comments. Criterion 16 checks that every request to it carries `per_page=100`.
+
+   Test run: one run of `uv run pytest -q tests/test_operator_skill_scripts.py tests/test_operator_hosting.py`; the last lines showed failures in the new tests, for the right reason:
+   - `next-story.sh` still needs the JSON settings file.
+   - `status.sh` still calls `gh`.
+   - The scripts still contain `gh`.
+   Every module imported; nothing failed at collection. I ran it once as the stage says, so I don't have the full count or confirmation that the moved hosting tests pass; the factory's `make test` records that.
+
+   `make lint` is green. The type check was skipped, as the stage says.
+
+   `lint`: lint: green (0.1 s)
+   `test`: FAILED tests/test_operator_skill_scripts.py::test_no_script_calls_gh - AssertionError: assert ['approval.sh...status.sh:25'] == []
