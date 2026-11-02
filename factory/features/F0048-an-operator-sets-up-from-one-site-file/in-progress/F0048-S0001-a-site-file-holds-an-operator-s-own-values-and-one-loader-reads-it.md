@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T15:33:54.209080Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-11-02T15:33:33.340226Z'
   stage: doing
   run: 62116b260b9649b9a3d40d116c3ea3a4
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-02T15:33:54.209080Z'
+  stage: tests
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -480,3 +489,4 @@ Expect: one line, `$(echo ran)`.
     Noticed, not touched:
     - The defaults in the comments of `operator/site.env.example` are still my reading of the key names.
     - `operator/README.md` does not mention `operator/bin/site`.
+26. factory: started tests as vm.
