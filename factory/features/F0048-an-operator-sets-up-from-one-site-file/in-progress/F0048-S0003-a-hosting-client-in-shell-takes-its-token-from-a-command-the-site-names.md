@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-02T17:31:10.554289Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -174,6 +178,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T17:30:52.351334Z'
+  stage: review
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:31:10.554289Z'
   stage: review
 ---
 
@@ -554,3 +563,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     - `tests/test_operator_hosting.py:285`: `CURL_ARGUMENTS + [str(arguments)]` also searches the test's own constant. Searching `arguments` alone says the same thing. This was carried over from round 1.
 29. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 30. 2026-11-02 human: Go on. Criteria 19 and 20 are right (they pin round 1's two real fixes): the coder ends with `tests` naming them, the tester adds the two rows and the stand-in's error text. In the next review, judge all five groups in one pass, not only group 1, so every remaining finding comes at once. A further missing side that the code already handles and that needs only a test row is a note, not a reason to send the story back.
+31. factory: started review as vm.
