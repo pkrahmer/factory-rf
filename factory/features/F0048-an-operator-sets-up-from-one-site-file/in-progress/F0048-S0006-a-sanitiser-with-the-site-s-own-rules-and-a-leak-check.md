@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T20:14:12.364738Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-02T20:14:12.364738Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-02T20:18:32.728722Z'
+  stage: doing
+  run: e280ad32b241486c861b1e98c959b188
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -190,3 +192,26 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
    `lint`: lint: green (0.1 s)
    `test`: FAILED tests/test_operator_sanitise.py::test_environment_rules_file_wins_over_the_site_file[relative-to-site-folder] - AssertionError: assert 2 == 0
 9. factory: started doing as vm.
+10. coder: Built `operator/bin/sanitise` (a new file, executable). It is a `sh` wrapper that sources `operator/lib/site.sh`, runs `site_load` and works out the rules path. That path is `$SITE_SANITISE_RULES`, taken relative to the site file's folder unless it is absolute, or else `sanitise.rules` beside the site file. The environment wins over the site file because `site_load` never overwrites a variable that is already set. The wrapper then hands the mode, the rules path and the files to an inline `python3 -I -c` program, the same pattern as `operator/skill/kumpel/scripts/status.sh` and `operator/job/job.sh`.
+
+    The program checks in this order:
+    - A missing rules file: the filter warns once and applies only the built-ins; `check` stops with status 3.
+    - Rules-file faults: status 2, `sanitise: <path>:<line>: <reason>`, with the physical line number.
+    - For `check`, that every named file exists, before it reads any: status 2.
+
+    After that it either filters line by line or scans: `<file>:<line>: <rule>` once per line and rule, then `sanitise: clean` / exit 0, or exit 1.
+
+    Rules are numbered in file order, counting only `=>`, `drop:` and `leak:` lines. On a line, `drop:` and `leak:` are recognised by their prefix first; then the first ` => ` splits it. The line is padded with a space so that `=> x` still splits and its empty pattern is reported as a fault. Text is read as UTF-8 with surrogateescape, so binary bytes in a log pass through unchanged.
+
+    Main choice: the Python is inline in the script, following the operator scripts' existing idiom. I rejected a separate `operator/lib/sanitise.py`. It would be a Python file outside `src/` that the project's ruff, mypy and structural checks were not designed for, and it would be a second way of embedding Python in the operator scripts.
+
+    Refactor: the list of check patterns is now built once per run rather than once per line. Nothing else needed changing.
+
+    Checks: all 38 tests in `tests/test_operator_sanitise.py` pass. Both smoke tests give the expected output (`a <company-host> b` and `last`; then `exit 1` and `<d>/raw.txt:2: 1`). `make check` is green.
+
+    Noticed but not touched:
+    - A `=>` replacement with a bad group reference (for example `\2` when the pattern has one group) is not refused when the rules are read. It fails with a Python traceback the first time it matches, because the Interface lists only empty and invalid patterns as faults. The traceback shows the replacement template, never the input line.
+    - A missing or faulty site file makes `sanitise` exit 2 after `site_load`'s own message. The Interface does not say which status that case should have.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone

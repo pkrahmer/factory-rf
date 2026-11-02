@@ -1,0 +1,153 @@
+#!/bin/sh
+# Strips the site's names and the tokens from text that leaves the machine, and proves a file clean.
+#   sanitise                  standard input to standard output, the rules applied
+#   sanitise check FILE...    exit 0 and "sanitise: clean", 1 naming file:line and rule, 2 (fault) or 3 (no rules)
+# The rules file is $SITE_SANITISE_RULES (relative to the site file's folder), else
+# sanitise.rules beside the site file: the patterns are the site's names, so it stays outside
+# every repository with the site file.
+set -u
+operator=$(dirname "$0")/..
+. "$operator/lib/site.sh"
+
+usage() {
+  echo "usage: sanitise < raw > clean | sanitise check FILE..." >&2
+  exit 2
+}
+
+rules_path() {
+  folder=$(dirname "$(site_path)")
+  case ${SITE_SANITISE_RULES:-} in
+    '') printf '%s\n' "$folder/sanitise.rules" ;;
+    /*) printf '%s\n' "$SITE_SANITISE_RULES" ;;
+    *) printf '%s\n' "$folder/$SITE_SANITISE_RULES" ;;
+  esac
+}
+
+# A report names the file, the line and the rule, never the matched text, so it is no leak itself.
+program='
+import re, sys
+
+BUILT_INS = [
+    ("builtin-1", [r"\x1b\[[0-9;]*[A-Za-z]"], ""),
+    ("builtin-2", [r"eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"], "***JWT***"),
+    ("builtin-3", [r"gh[pousr]_[A-Za-z0-9]{20,}", r"github_pat_[A-Za-z0-9_]{20,}"], "***TOKEN***"),
+]
+
+
+def fail(message, status):
+    print(f"sanitise: {message}", file=sys.stderr)
+    sys.exit(status)
+
+
+def compile_pattern(text, path, number):
+    if not text:
+        fail(f"{path}:{number}: empty pattern", 2)
+    try:
+        return re.compile(text)
+    except re.error as error:
+        fail(f"{path}:{number}: not a regular expression: {error}", 2)
+
+
+def parse_line(line, path, number):
+    text = line.strip()
+    if not text or text.startswith("#"):
+        return None
+    for kind in ("drop", "leak"):
+        if text.startswith(f"{kind}:"):
+            return (kind, compile_pattern(text[len(kind) + 1 :].strip(), path, number), "")
+    # Padding lets a line that starts with the arrow split too, so its empty pattern is a fault.
+    left, arrow, right = f" {text} ".partition(" => ")
+    if not arrow:
+        fail(f"{path}:{number}: not a rule, a comment or a blank line", 2)
+    return ("replace", compile_pattern(left.strip(), path, number), right.strip())
+
+
+def read_rules(path):
+    with open(path, encoding="utf-8", errors="surrogateescape") as source:
+        lines = source.read().split("\n")
+    parsed = (parse_line(line, path, number) for number, line in enumerate(lines, 1))
+    return [rule for rule in parsed if rule is not None]
+
+
+def lines_of(data):
+    text = data.decode("utf-8", errors="surrogateescape")
+    lines = text.split("\n")
+    if lines[-1] == "":
+        lines.pop()
+    return lines
+
+
+def sanitised(line, rules):
+    for _, patterns, replacement in BUILT_INS:
+        for pattern in patterns:
+            line = re.sub(pattern, replacement, line)
+    for kind, pattern, replacement in rules:
+        if kind == "drop" and pattern.search(line):
+            return None
+        if kind == "replace":
+            line = pattern.sub(replacement, line)
+    return line
+
+
+def run_filter(rules):
+    output = []
+    for line in lines_of(sys.stdin.buffer.read()):
+        kept = sanitised(line, rules)
+        if kept is not None:
+            output.append(f"{kept}\n")
+    sys.stdout.buffer.write("".join(output).encode("utf-8", errors="surrogateescape"))
+
+
+def checks(rules):
+    named = [(name, [re.compile(pattern) for pattern in patterns]) for name, patterns, _ in BUILT_INS]
+    numbered = [(str(number), [pattern]) for number, (_, pattern, _) in enumerate(rules, 1)]
+    return named + numbered
+
+
+def run_check(rules, files):
+    for file in files:
+        try:
+            open(file, "rb").close()
+        except OSError:
+            fail(f"{file}: no such file", 2)
+    leaked = False
+    patterns_by_rule = checks(rules)
+    for file in files:
+        with open(file, "rb") as source:
+            lines = lines_of(source.read())
+        for number, line in enumerate(lines, 1):
+            for name, patterns in patterns_by_rule:
+                if any(pattern.search(line) for pattern in patterns):
+                    print(f"{file}:{number}: {name}")
+                    leaked = True
+    if leaked:
+        sys.exit(1)
+    print("sanitise: clean")
+
+
+def main(mode, path, files):
+    try:
+        open(path, "rb").close()
+    except OSError:
+        if mode == "check":
+            fail(f"no rules file at {path}; nothing to check against", 3)
+        print(f"sanitise: no rules file at {path}; only the built-in rules apply", file=sys.stderr)
+        rules = []
+    else:
+        rules = read_rules(path)
+    if mode == "check":
+        run_check(rules, files)
+    else:
+        run_filter(rules)
+
+
+main(sys.argv[1], sys.argv[2], sys.argv[3:])
+'
+
+case ${1:-} in
+  '') [ $# -eq 0 ] || usage; mode=filter ;;
+  check) [ $# -ge 2 ] || usage; mode=check; shift ;;
+  *) usage ;;
+esac
+site_load || exit 2
+exec python3 -I -c "$program" "$mode" "$(rules_path)" "$@"
