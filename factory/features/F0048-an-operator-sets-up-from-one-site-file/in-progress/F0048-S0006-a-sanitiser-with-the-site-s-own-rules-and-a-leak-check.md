@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 504
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T20:04:36.702623Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-02T20:04:36.702623Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-02T20:05:01.663391Z'
+  stage: intake
+  run: b04f9f96f8fb48c3a789600d25108ec6
+  blocked: question
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -90,3 +93,13 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
 
 1. 2026-11-02 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. Questions on the Interface and the criteria:
+
+   1. Rule numbering in `check`: "`<n>` the number of the rule in the order of the file". Does the count include only rule lines (`=>`, `drop:`, `leak:`), or also blank and comment lines? Does a `=>` rule count once? Does `drop:` count and get tested by `check`? The Interface lists "each rule's left side and each `leak:` pattern", which leaves `drop:` patterns out. I would choose: numbers count only rule lines, 1-based, in file order, and `drop:` patterns are tested like the others. Please state this in the Interface, and add a criterion with a `drop:` rule and a comment or blank line before the rule, so the numbering is tested.
+   2. Built-ins in `check`: it "tests the built-in token patterns" and names `builtin-1..3`. Is `builtin-1` (ANSI escapes) tested by `check`, or only JWT (`builtin-2`) and tokens (`builtin-3`)? `builtin-3` covers two patterns (`gh[pousr]_` and `github_pat_`). Criterion 8 tests only `builtin-3` with one token form. I would choose: all three are tested. Please add criteria for `builtin-1` and `builtin-2`, and for both forms of `builtin-3`.
+   3. "Ends every line with a newline" has no criterion. Add one with an input whose last line has no newline, and say whether an empty input gives empty output.
+   4. Criterion 5 (faults) covers only the `drop:` empty pattern. An empty pattern on the left of `=>` (`=> x`) and an empty `leak:` pattern are not covered. Is an empty pattern a fault for all three kinds? I would choose yes, with a row for each. Also, does a rules-file fault stop `check` with status 2 and the same message? There is no criterion for that side of `check`.
+   5. Criterion 9: for a missing file, does `check` print the reports of files read before it, or nothing? "does not read the others" is ambiguous about files that come before it. Please state which and test it.
+   6. Criterion 7 has no row for the environment variable overriding the site-file value, which the Interface states ("or the environment") and decision 3 of the feature promises. Add one, and one for a relative path.
+
+   The architecture is not a concern: it is a shell script under `operator/bin/`, as the feature scopes. The scope is within the feature (S0006, no use of the sanitiser yet). The smoke test commands are runnable and their `Expect:` lines are checkable.
