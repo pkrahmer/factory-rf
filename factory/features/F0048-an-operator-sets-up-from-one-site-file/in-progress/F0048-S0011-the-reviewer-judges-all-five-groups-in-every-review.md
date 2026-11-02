@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 503
 comments_read: [6586887222]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T19:58:19.301506Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-02T19:58:19.301506Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T19:58:50.044906Z'
+  stage: review
+  run: 36e9aabb921a4a83abd1e190f25e4aea
 ---
 
 # The reviewer judges all five groups in every review
@@ -212,3 +214,13 @@ Expect: two lines, `1` and `0`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 15. factory: started review as vm.
+16. reviewer: no findings
+
+    I read the diff (`claude/agents/reviewer.md`, `tests/test_claude_agent_texts.py`, `tests/test_claude_agent_texts_review_groups.py`) against the work item and checked all five groups.
+    - Acceptance criteria: criterion 1 is pinned by `test_the_checklist_sentence_asks_for_all_five_groups_right_before_item_one`. It checks the Interface's sentence word for word, followed by one blank line and then `1. **Acceptance criteria**`. Criterion 2 is pinned by `test_the_reviewer_no_longer_says_stop_at_the_first_failing_group`, plus `test_no_other_agent_asks_for_all_five_groups`, which runs once for each other agent in `SHIPPED_NAMES`. Criterion 3 is pinned by `test_the_rest_of_the_reviewer_body_is_unchanged`. That test puts the old sentence back and compares a CRC-32 of the whole stripped body, so items 1 to 6, the notes, criterion and Description paragraphs, *Stage* and *Lessons* are all covered. The diff to `reviewer.md` changes only that one line, so the green test means the stored CRC is the one of main's body. The Interface states no limit and no failing side. Entry 14 records the coder's `make check` as green. `test_the_reviewer_no_longer_stops_before_the_earlier_tests` (`tests/test_claude_agent_texts.py:272`) is unchanged.
+    - Architecture and security: only a shipped agent text and tests change. There is no code under `src/`, no marker and no secret. The CRC is stored as an integer, so `make secrets` stays green without a baseline entry.
+    - Quality: the test module has a docstring, plain functions, the shared `agent_body`/`SHIPPED_NAMES` from `tests/shipped_agents.py`, and a why-comment on the CRC constant. No helper is copied.
+    - Hygiene: the journal explains the main decision, the anchor conflict and the human's ruling (entry 8). It also says what was rejected: a SHA-256 digest, reading `main` through git, and keeping "whichever group failed". The Description matches what was built. The docs criterion still names `docs/project-guide/agents.md` and `docs/decisions.md`, the two places the coder noted as stale.
+
+    Earlier tests:
+    - tests/test_claude_agent_texts.py: changed under the human's leave in journal entry 8. Only the anchor in `ROLE_AND_STAGE_ANCHORS["reviewer"]` changed, to `Item 6 is part of every review.`, and nothing else in the file.
