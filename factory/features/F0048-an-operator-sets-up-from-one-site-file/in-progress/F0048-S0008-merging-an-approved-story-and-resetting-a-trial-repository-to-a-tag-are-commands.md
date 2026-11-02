@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T21:57:03.813387Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-02T21:57:03.813387Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-02T21:59:23.524915Z'
+  stage: doing
+  run: 3f0e535bc18247b1a2dec3b9862d5771
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -366,3 +368,22 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
 
     Notes: none (round 0).
 20. factory: started doing as vm.
+21. coder: I fixed review finding 1 in code. Criteria 12 and 13 (findings 2 and 3) now need their tests, so I'm handing back to the tester.
+
+    Finding 1 is fixed: a failing read now ends with `hosting_api`'s message alone, with no Python traceback after it. Each script now stores the API's answer first with `|| exit 1` (or `|| return 1` inside a function) and parses it after. This follows the pattern `merge.sh` already used for `GET /pulls/<pr>`.
+    - `operator/skill/kumpel/scripts/merge.sh`: in `archived`, the `GET /commits?per_page=20` answer goes into `commits` before it is parsed. A failing poll now returns 1 without a traceback, and the wait goes on as before until `KUMPEL_ARCHIVE_WAIT` ends it.
+    - `operator/skill/kumpel/scripts/reset-to-tag.sh`: the annotated tag's `GET /git/tags/<sha>` (in `tag_commit`) goes into `annotated`, the open pull request list into `open_pulls`, and the `work-item/` ref list into `refs`. Each is parsed afterwards. The `|| exit 1` that used to sit on each parse is gone, because the `|| exit 1` on the read now catches the failure.
+
+    Main choice: keep the read and the parse as two separate steps. I rejected `set -o pipefail`: it is not POSIX `sh`, and it would still let Python print its traceback before the script stops.
+
+    Tests needed. Both criteria were added by the reviewer in entry 19, and the code already behaves as they say:
+    - Criterion 12: a failing read stops the reset before any change. Rows: the open pull request list, the `work-item/` ref list, and the annotated tag's `GET /git/tags/<sha>`, each answered 500. Each row checks the `hosting_api` message with the full `/repos/<repository>/...` path, exit 1, and no change sent. With this fix, the test can also check that the message is the last line printed.
+    - Criterion 13: a wrong command line prints the `usage:` line on standard error, exits 2 and sends no request. Rows: `merge.sh` with one argument and with three; `reset-to-tag.sh` with none, with `--yse` and with three.
+
+    `make check` is green after the change: `test: green (82.2 s)`, `check: green`.
+
+    Refactor: I read the diff and found nothing more to change.
+
+    What the journal changed: the reviewer brought the Description in line with entry 9 and added criteria 12 and 13. I did not rewrite the Description further.
+
+    Noticed, not touched: none.

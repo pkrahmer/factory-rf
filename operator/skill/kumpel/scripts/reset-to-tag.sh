@@ -47,23 +47,26 @@ tag_commit() {
   rm -f "$errors"
   sha=$(printf '%s' "$ref" | json_field object.sha)
   if [ "$(printf '%s' "$ref" | json_field object.type)" = tag ]; then
-    sha=$(hosting_repo_api GET "/git/tags/$sha" | json_field object.sha) || return 1
+    annotated=$(hosting_repo_api GET "/git/tags/$sha") || return 1
+    sha=$(printf '%s' "$annotated" | json_field object.sha)
   fi
   printf '%s\n' "$sha"
 }
 
 commit=$(tag_commit) || exit 1
-pulls=$(hosting_repo_api GET "/pulls?state=open&per_page=100" | python3 -c '
+open_pulls=$(hosting_repo_api GET "/pulls?state=open&per_page=100") || exit 1
+pulls=$(printf '%s' "$open_pulls" | python3 -c '
 import json, sys
 for pull in json.load(sys.stdin):
     if pull["head"]["ref"].startswith("work-item/"):
         print(pull["number"])
-') || exit 1
-branches=$(hosting_repo_api GET "/git/matching-refs/heads/work-item/" | python3 -c '
+')
+refs=$(hosting_repo_api GET "/git/matching-refs/heads/work-item/") || exit 1
+branches=$(printf '%s' "$refs" | python3 -c '
 import json, sys
 for ref in json.load(sys.stdin):
     print(ref["ref"].removeprefix("refs/heads/"))
-') || exit 1
+')
 short=$(printf '%.7s' "$commit")
 
 if [ -z "$yes" ]; then

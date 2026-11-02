@@ -32,7 +32,8 @@ elif pull["head"]["ref"] != f"work-item/{item}":
 }
 
 archived() {
-  hosting_repo_api GET "/commits?per_page=20" | python3 -c '
+  commits=$(hosting_repo_api GET "/commits?per_page=20") || return 1
+  printf '%s' "$commits" | python3 -c '
 import json, sys
 subject = f"work item {sys.argv[1]}: merged, archived"
 sys.exit(0 if any(c["commit"]["message"].split("\n")[0] == subject for c in json.load(sys.stdin)) else 1)
