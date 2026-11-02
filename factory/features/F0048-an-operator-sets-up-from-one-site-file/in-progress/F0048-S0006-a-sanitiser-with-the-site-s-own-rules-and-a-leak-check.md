@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T20:34:04.382650Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-11-02T20:33:43.715171Z'
   stage: doing
   run: 130eea06e6414c70abb03ad956156942
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:34:04.382650Z'
+  stage: tests
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -489,3 +498,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     What the journal changed: entries 15 and 23 changed the meaning of the task, and the reviewer has already written that change into the Interface and the criteria. I did not rewrite the Description, because the work item is outside my write paths.
 
     Noticed but not touched: the reviewer's side note in entry 12 is still open. The precedents I cited earlier, `status.sh` and `job.sh`, run `python3 -c` without `-I`.
+26. factory: started tests as vm.
