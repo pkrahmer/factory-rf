@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T20:26:32.712085Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-02T20:26:11.710266Z'
   stage: tests
   run: 147aa77b13454612b0999f6bf14236fe
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:26:32.712085Z'
+  stage: doing
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -379,3 +388,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
 
     `lint`: lint: green (0.1 s)
     `test`: FAILED tests/test_operator_sanitise.py::test_rules_file_fault_stops_the_check_before_any_file[missing-group] - AssertionError: assert 1 == 2
+20. factory: started doing as vm.
