@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T18:57:31.434150Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-02T18:57:31.434150Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-02T18:57:55.841957Z'
+  stage: doing
+  run: 3622712519694e569cb56c6b08273f00
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -278,3 +280,20 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
 
     Earlier tests: none. The diff only adds `tests/test_operator_job.py` and changes, renames or deletes no test file that `main` holds.
 13. factory: started doing as vm.
+14. coder: The reviewer's latest entry added criteria 14 to 18. Each needs only its test, because `operator/job/job.sh` already does what they describe. So I changed no code and send the work item to the tester for these tests in `tests/test_operator_job.py`:
+
+    - **Criterion 14:** `execute` and `delete --yes` with `SITE_JOB` unset print `site: missing SITE_JOB in <path>`, run no `gcloud` and exit 2. The code is `require_job`, `operator/job/job.sh:37-40`.
+    - **Criterion 15:** `execute` with `XDG_STATE_HOME` unset writes the execution's name to `$HOME/.local/state/kumpel/last-execution`. The code is at `job.sh:231`.
+    - **Criterion 16:** no command, an unknown command, and `create --yes`, `update --force`, `execute --dry-run` and `delete --dry-run` print the `usage:` line on standard error, run no `gcloud` and exit 2.
+    - **Criterion 17:** a `vm/job-start.sh` at the tagged ref that holds the line `JOB_START_SH_END` makes `create` print `job: vm/job-start.sh holds the line JOB_START_SH_END; the wrapper cannot carry it` on standard error. It runs no `gcloud` and exits 1.
+    - **Criterion 18:** when `describe` fails with text on standard error, `update` shows that text before its `does not exist; use create` line. `create` shows none of it and goes on to create.
+
+    **What I built this round:** nothing. The code is as entry 10 left it, and I made no refactor because there is no new diff.
+
+    **Main choice and the alternative I rejected:** the coder does not write tests, so the work item goes to the tester. The rejected alternative was changing `job.sh`: every new criterion describes what the script already does. If a new test fails against the script, the next doing round fixes the code.
+
+    **Description:** the journal did not change the task's meaning. The reviewer's new criteria pin existing behaviour, and the reviewer already renumbered the closing criteria to 19 and 20, so I did not rewrite the Description.
+
+    **Noticed, not touched (still open from entry 10):**
+    - A site value that contains `@` would break the `^@^` env list.
+    - A cost value that is not a number stops `create` with Python's traceback instead of a `job:` message.
