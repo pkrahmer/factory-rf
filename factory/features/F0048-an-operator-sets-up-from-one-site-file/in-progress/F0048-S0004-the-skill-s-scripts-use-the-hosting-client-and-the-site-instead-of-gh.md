@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311, 6584737120]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-02T18:32:56.990554Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-02T18:32:56.990554Z'
   stage: smoke-test
+- number: 27
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-02T18:33:27.087556Z'
+  stage: smoke-test
+  run: 00cb73f034ad4325be108fb363b0bd14
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -494,3 +496,33 @@ Expect: one line, `0`.
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 26. factory: started smoke-test as vm.
+27. smoke-tester: I ran both commands from `## Smoke test` from the repository root, as written and in order. I fixed nothing.
+
+    Command 1 (a site file with `SITE_REPOSITORY` and `SITE_CHECKOUT`, then `settings.sh init` with no argument and `settings.sh show`), run as one bash script, exit 0:
+    ```
+    settings written: /tmp/tmp.byMGdFR0eb/settings.json
+    repository owner/repo, checkout /path/to/checkout
+    switches: merge off, answer on, start_next on
+    ```
+    Met `Expect:`: three lines, in the expected order, with the expected text. I made a second throwaway run to check the file `init` writes. It holds only the switches, which matches criterion 8 (three switches at their defaults, no repository or checkout):
+    ```
+    {
+      "switches": {
+        "merge": false,
+        "answer": true,
+        "start_next": true
+      }
+    }
+    ```
+
+    Command 2 (`grep -n -v '^[[:space:]]*#' operator/skill/kumpel/scripts/*.sh | grep -c -w gh`):
+    ```
+    0
+    ```
+    Met `Expect:`: one line, `0`. The exit status is 1, which is how `grep -c` signals a count of zero; it is not an error, and it agrees with criterion 13.
+
+    I read `## Acceptance criteria` again (1–19). Neither command contradicts any criterion. Criteria 7 and 8 (settings from the site file, `init` with no argument) and criterion 13 (no `gh` calls) are the ones these commands touch, and both behave as described. The smoke test does not run the hosting-client scripts (`status.sh`, `approval.sh`, `start-story.sh`, `next-story.sh`), so it can neither confirm nor contradict criteria 1–6, 9–12 and 14–17.
+
+    The temporary directories removed themselves on exit, nothing is left in `/tmp`, and the working tree is unchanged.
+
+    Findings: none.
