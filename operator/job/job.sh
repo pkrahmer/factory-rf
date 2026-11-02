@@ -1,9 +1,13 @@
 #!/bin/sh
-# The factory's Cloud Run job, from the site's values: create, update, execute and delete it.
+# The factory's Cloud Run job, from the site's values: create, update, execute and delete it,
+# and read an execution's log and the job's status.
 #   job.sh create  [--dry-run]   create the job; refused when it exists
 #   job.sh update  [--dry-run]   update the job with the same settings; refused when it is missing
 #   job.sh execute               start an execution; refused while one runs; print its name
 #   job.sh delete  [--yes]       delete the job, which stops its running execution
+#   job.sh log [N] [--execution NAME] [--quiet]
+#                                print the execution's last N log lines (default 60), sanitised
+#   job.sh status                print the newest executions and the factory's stop, if any
 # --dry-run prints the call, one argument per line, and runs no gcloud.
 set -u
 operator=$(dirname "$0")/..
@@ -17,13 +21,17 @@ start_script=/tmp/job-start.sh
 start_end=JOB_START_SH_END
 
 usage() {
-  echo "usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes]" >&2
+  echo "usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes] | log [N] [--execution NAME] [--quiet] | status" >&2
   exit 2
 }
 
-# Every call names its project and region, so gcloud's own defaults never pick them.
+# Every call names its project, and every Cloud Run call its region, so gcloud's own defaults
+# never pick them. Cloud Logging has no region, and gcloud refuses the flag there.
 gcloud_call() {
-  set -- "$@" "--project=$SITE_PROJECT" "--region=$SITE_REGION"
+  set -- "$@" "--project=$SITE_PROJECT"
+  if [ "$1" = run ]; then
+    set -- "$@" "--region=$SITE_REGION"
+  fi
   if [ -n "${SITE_IMPERSONATE:-}" ]; then
     set -- "$@" "--impersonate-service-account=$SITE_IMPERSONATE"
   fi
@@ -206,6 +214,11 @@ job_exists() {
   gcloud_call run jobs describe "$SITE_JOB" >/dev/null 2>"$work/describe.err"
 }
 
+make_work() {
+  work=$(mktemp -d) || exit 1
+  trap 'rm -rf "$work"' EXIT
+}
+
 create_or_update() {
   verb=$1
   shift
@@ -220,8 +233,7 @@ create_or_update() {
   check_env_values
   check_costs
   check_code_ref
-  work=$(mktemp -d) || exit 1
-  trap 'rm -rf "$work"' EXIT
+  make_work
   write_wrapper
   if [ "$dry_run" = no ]; then
     if job_exists; then
@@ -236,6 +248,14 @@ create_or_update() {
     fi
   fi
   job_call "$verb"
+}
+
+state_folder() {
+  printf '%s' "${XDG_STATE_HOME:-$HOME/.local/state}/kumpel"
+}
+
+last_execution_file() {
+  printf '%s' "$(state_folder)/last-execution"
 }
 
 # Two executions of one instance would share its repository and its pull requests.
@@ -266,8 +286,7 @@ execute() {
   fi
   name=$(gcloud_call run jobs execute "$SITE_JOB" --async "--format=value(metadata.name)") || exit
   printf '%s\n' "$name"
-  state=${XDG_STATE_HOME:-$HOME/.local/state}/kumpel
-  mkdir -p "$state" && printf '%s\n' "$name" >"$state/last-execution"
+  mkdir -p "$(state_folder)" && printf '%s\n' "$name" >"$(last_execution_file)"
 }
 
 delete() {
@@ -285,6 +304,163 @@ delete() {
   gcloud_call run jobs delete "$SITE_JOB" --quiet
 }
 
+# gcloud's own error is the operator's only clue, so its first line is shown, never dropped.
+gcloud_read() {
+  label=$1
+  shift
+  if ! gcloud_call "$@" 2>"$work/gcloud.err"; then
+    echo "job: gcloud $label failed: $(head -n 1 "$work/gcloud.err")" >&2
+    return 1
+  fi
+}
+
+no_execution() {
+  echo "job: no execution of $SITE_JOB found" >&2
+}
+
+# The option names it, else the one execute started last, else the job's newest.
+chosen_execution() {
+  if [ -n "$1" ]; then
+    printf '%s\n' "$1"
+  elif [ -s "$(last_execution_file)" ]; then
+    head -n 1 "$(last_execution_file)"
+  else
+    newest=$(gcloud_read "run jobs executions list" run jobs executions list "--job=$SITE_JOB" \
+      --limit=1 "--format=value(metadata.name)") || return 1
+    if [ -z "$newest" ]; then
+      no_execution
+      return 1
+    fi
+    printf '%s\n' "$newest"
+  fi
+}
+
+# Writes the execution's non-empty log lines, oldest first, as HH:MM:SS<TAB>text to $work/log.
+read_log() {
+  gcloud_read "logging read" logging read \
+    "resource.type=cloud_run_job AND labels.\"run.googleapis.com/execution_name\"=$1" \
+    --order=asc --limit=4000 --freshness=2d '--format=value(timestamp.date("%H:%M:%S"),textPayload)' \
+    >"$work/log.raw" || exit 1
+  grep -v '^$' "$work/log.raw" >"$work/log"
+}
+
+# The package manager's and the image copy's progress, and the login's refreshes.
+drop_noise() {
+  tab=$(printf '\t')
+  grep -v -e "^[^$tab]*${tab}Selecting " -e "^[^$tab]*${tab}Preparing to unpack" \
+    -e "^[^$tab]*${tab}Unpacking " -e "^[^$tab]*${tab}Setting up " -e "^[^$tab]*${tab}Get:" \
+    -e "^[^$tab]*${tab}Fetched " -e "^[^$tab]*${tab}Processing triggers" \
+    -e "^[^$tab]*${tab}debconf:" -e "^[^$tab]*${tab}Copying blob" -e "^[^$tab]*${tab}Copying config" \
+    -e "^[^$tab]*${tab}Writing manifest" -e 'token refreshed:'
+}
+
+sanitise() {
+  "$operator/bin/sanitise"
+}
+
+log() {
+  count=60
+  execution=
+  quiet=no
+  while [ $# -gt 0 ]; do
+    case $1 in
+      --execution)
+        [ $# -ge 2 ] || usage
+        execution=$2
+        shift
+        ;;
+      --quiet) quiet=yes ;;
+      -*) usage ;;
+      *[!0-9]* | '') usage ;;
+      *) count=$1 ;;
+    esac
+    shift
+  done
+  dry_run=no
+  require_job
+  make_work
+  name=$(chosen_execution "$execution") || exit 1
+  read_log "$name"
+  if [ ! -s "$work/log" ]; then
+    echo "job: no log lines yet; Cloud Logging arrives one to two minutes late" >&2
+    exit 0
+  fi
+  if [ "$quiet" = yes ]; then
+    drop_noise <"$work/log" | sanitise | tail -n "$count"
+  else
+    sanitise <"$work/log" | tail -n "$count"
+  fi
+}
+
+# One line for each execution of `executions list --format=json`, in the order given.
+execution_program='
+import json, re, sys
+from datetime import datetime, timezone
+
+
+def clock(text):
+    if not text:
+        return "-"
+    plain = re.sub(r"\.[0-9]+", "", text).replace("Z", "+00:00")
+    return datetime.fromisoformat(plain).astimezone(timezone.utc).strftime("%H:%M")
+
+
+def state(status):
+    for name in ("running", "succeeded", "failed"):
+        if status.get(name + "Count", 0) >= 1:
+            return name
+    return "waiting"
+
+
+def failure(status):
+    for condition in status.get("conditions", []):
+        if condition.get("status") == "False":
+            return condition.get("message", "")
+    return ""
+
+
+for execution in json.load(sys.stdin):
+    status = execution.get("status", {})
+    line = execution["metadata"]["name"] + " " + state(status) + " started " + clock(status.get("startTime"))
+    if status.get("completionTime"):
+        line += " ended " + clock(status["completionTime"])
+    if state(status) == "failed":
+        line += ": " + failure(status)
+    print(line)
+'
+
+# The newest line of the stop form, unless a later preflight item shows the factory running again.
+stop_line() {
+  awk '
+    /(^|[\t ])stop [^ ]+ [^ :]+: / { stop = $0; next }
+    /(^|[\t ])preflight: / { stop = "" }
+    END { if (stop != "") print stop }
+  '
+}
+
+status() {
+  [ $# -eq 0 ] || usage
+  dry_run=no
+  require_job
+  make_work
+  gcloud_read "run jobs executions list" run jobs executions list "--job=$SITE_JOB" --limit=5 \
+    --format=json >"$work/executions.json" || exit 1
+  executions=$(python3 -I -c "$execution_program" <"$work/executions.json") || exit 1
+  if [ -z "$executions" ]; then
+    no_execution
+    exit 1
+  fi
+  printf '%s\n' "$executions"
+  name=$(chosen_execution "") || exit 1
+  read_log "$name"
+  stop=$(tail -n 200 "$work/log" | stop_line)
+  if [ -n "$stop" ]; then
+    printf 'factory: stopped: %s\n' "$(printf '%s\n' "$stop" | sanitise)"
+  else
+    echo "factory: no stop in the last 200 lines"
+  fi
+}
+
 [ $# -ge 1 ] || usage
 command=$1
 shift
@@ -292,5 +468,7 @@ case $command in
   create | update) create_or_update "$command" "$@" ;;
   execute) execute "$@" ;;
   delete) delete "$@" ;;
+  log) log "$@" ;;
+  status) status "$@" ;;
   *) usage ;;
 esac

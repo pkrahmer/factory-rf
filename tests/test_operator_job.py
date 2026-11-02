@@ -14,10 +14,10 @@ import pytest
 from factory.adapters.process import ProcessResult
 from factory.domain.opencode_provider import read_provider
 from git_support import commit_all, run_git, write_executable
+from operator_job_support import BARE, IMPERSONATE, JOB, words
 from operator_support import ROOT, operator_environment, run_script
 from recording_stand_in_support import read_records
 
-JOB = "factory-job"
 HOSTING_MOUNT = "/secrets/hosting-token"
 MODEL_MOUNT = "/secrets-llm/client-secret"
 HOSTING_NAME = "hosting-sm"
@@ -26,7 +26,6 @@ MOUNTS = f"{HOSTING_MOUNT}={HOSTING_NAME}:latest,{MODEL_MOUNT}={MODEL_NAME}:late
 TAG = "t1"
 INSTANCE = "inst-x"
 JOB_ROOT = f"/srv/factory/{INSTANCE}"
-IMPERSONATE = "deployer@p1.iam.gserviceaccount.com"
 NO_PROXY = "localhost,.internal,10.0.0.0/8"
 SITE: dict[str, str] = {
     "SITE_PROJECT": "p1",
@@ -48,7 +47,6 @@ SITE: dict[str, str] = {
     "SITE_LOGIN_SCOPE": "api://llm/.default",
     "SITE_LOGIN_CLIENT_ID": "client-1",
 }
-BARE = {key: SITE[key] for key in ("SITE_PROJECT", "SITE_REGION", "SITE_JOB")}
 WRAPPER = re.compile(r"--args=-c,echo ([A-Za-z0-9+/=]+) \| base64 -d \| gzip -d \| sh")
 LONG_BASE64 = re.compile(r"[A-Za-z0-9+/=]{101,}")
 START = "exec sh /tmp/job-start.sh"
@@ -131,11 +129,6 @@ def job_flags(cpu: str = "8", memory: str = "32Gi", timeout: str = "14400") -> s
         f"--set-secrets={MOUNTS}",
         "--command=sh",
     }
-
-
-def words(call: list[str]) -> list[str]:
-    """The words of a call that are no flag, in order."""
-    return [word for word in call if not word.startswith("-")]
 
 
 def flag(call: list[str], name: str) -> str:
@@ -594,7 +587,10 @@ def test_execute_saves_the_name_under_home_without_xdg_state_home(
     assert saved.read_text(encoding="utf-8").strip() == "exec-new"
 
 
-USAGE = "usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes]"
+USAGE = (
+    "usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes]"
+    " | log [N] [--execution NAME] [--quiet] | status"
+)
 
 
 @pytest.mark.parametrize(
