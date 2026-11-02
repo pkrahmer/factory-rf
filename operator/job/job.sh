@@ -20,7 +20,7 @@ start_script=/tmp/job-start.sh
 start_end=JOB_START_SH_END
 
 usage() {
-  echo "usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes]" >&2
+  echo "usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes] | log [N] [--execution NAME] [--quiet] | status" >&2
   exit 2
 }
 

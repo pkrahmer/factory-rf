@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T21:08:58.353085Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-02T21:08:58.353085Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-02T21:12:22.770591Z'
+  stage: doing
+  run: 264d832fb4d540d3abf825bc624b967f
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -307,3 +309,29 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
     `lint`: lint: green (0.1 s)
     `test`: FAILED tests/test_operator_job.py::test_a_wrong_command_line_prints_the_usage[delete-dry-run] - AssertionError: assert 'usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--y...
 16. factory: started doing as vm.
+17. coder: The tester changed the tests as journal 11 allowed (entry 15). In this run I made the one remaining change: `usage()` in `operator/job/job.sh` now prints `usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes] | log [N] [--execution NAME] [--quiet] | status`. `make check` is green: `check: green`, 99.58 % coverage.
+
+    What I built, all in `operator/job/job.sh`. Most of it came from the earlier run, journal 10.
+    - `log [N] [--execution NAME] [--quiet]`:
+      - `chosen_execution` picks the execution: the option, else `last-execution`, else `executions list --limit=1`.
+      - `read_log` runs `gcloud logging read` with the Interface's filter and flags, then drops empty lines.
+      - With `--quiet`, `drop_noise` removes the eleven prefixes (matched after the tab) and lines containing `token refreshed:`.
+      - The lines then go through `operator/bin/sanitise`, then `tail -n N`.
+    - `status`:
+      - One `executions list --limit=5 --format=json` call. A small `python3 -I` program turns each execution into a line: the start time in UTC, ` ended` when there is a completion time, and `: <message>` from the first condition whose status is `False`.
+      - It then reads the log as `log` does. `stop_line` (awk) looks at the last 200 lines for the stop form. A later `preflight: ` line cancels the stop. Only the printed stop line is sanitised.
+    - `gcloud_read` shows `job: gcloud <label> failed: <first line of stderr>` and exits 1.
+    - `state_folder` and `last_execution_file` are now shared with `execute`.
+
+    Main decision: `gcloud_call` now adds `--region` only to `run` calls, because `gcloud logging read` refuses the flag (Cloud Logging has no region). I rejected a second call wrapper just for logging: it would mean two places that have to add the project and impersonation flags the same way.
+
+    What the journal changed: the usage line now names `log` and `status` (journal 11), and `started -` for an execution with no start time is accepted. My write paths don't include the work item, so `## Description` is unchanged.
+
+    Refactor pass: I read the whole diff again and found nothing to change.
+
+    Noticed, not touched:
+    - When `executions list` returns an empty list but a `last-execution` file exists, `status` prints no execution lines and reads that file's execution. It does not print `job: no execution of <job> found`. Criterion 10's test has no state file, so it passes, and the Interface doesn't cover the combination.
+    - I didn't run the smoke-test blocks in this run.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
