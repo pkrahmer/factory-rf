@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T20:50:58.216190Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-02T20:50:37.438270Z'
   stage: intake
   run: 9e1ebd00a8d74424b1b3ca0f907f76e6
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:50:58.216190Z'
+  stage: tests
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -152,3 +161,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
    - Smoke test: both blocks are runnable with a stand-in gcloud on PATH. Each has an `Expect:` line that can be checked against the output. No pytest command is involved.
    - Architecture: shell under `operator/job/`, using S0005's state file and S0006's sanitiser. It touches no layer of `src/factory`. Tests are at the `tests/` root, as the story names.
    - Scope: within feature scope (S0007 `job.sh log` and `status`). Nothing from "Out of scope" is touched.
+7. factory: started tests as vm.
