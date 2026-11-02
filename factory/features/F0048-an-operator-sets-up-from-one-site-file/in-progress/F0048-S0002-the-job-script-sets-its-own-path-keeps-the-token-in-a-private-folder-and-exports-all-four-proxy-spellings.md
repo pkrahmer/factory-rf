@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-02T16:49:39.733858Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -166,6 +162,12 @@ journal:
   kind: started
   at: '2026-11-02T16:49:39.733858Z'
   stage: smoke-test
+- number: 29
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-02T16:50:04.951060Z'
+  stage: smoke-test
+  run: a06a69db53644fff880e149581783971
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -428,3 +430,29 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
 28. factory: started smoke-test as vm.
+29. smoke-tester: I ran the three commands under `## Smoke test` from the repository root, in order and exactly as written. I fixed nothing.
+
+    1. `sh -n vm/job-start.sh; echo "exit $?"`
+    ```
+    exit 0
+    ```
+    Met. The expectation was one line, `exit 0`.
+
+    2. `env -i PATH="$PATH" sh vm/job-start.sh; echo "exit $?"`
+    ```
+    job-start: FACTORY_INSTANCE is not set
+    exit 2
+    ```
+    Met. I ran it again with standard error sent to `/dev/null`, and only the `exit 2` line was left. So the refusal goes to standard error, as expected.
+
+    3. `grep -c 'tools/bin' vm/job-start.sh`
+    ```
+    3
+    ```
+    Met. The expectation was a number of at least 2. The three matches are the new `export PATH="$root/tools/bin:$PATH"` at `vm/job-start.sh:85` and the two `$tools/bin/...` calls of the tools step at lines 150 and 151.
+
+    Against the acceptance criteria: the smoke test contradicts none of them. I also read the changed part of `vm/job-start.sh`. Lines 74–85 cover the token-folder check, the copy with modes 0700 and 0600, the `job-start: token-file: copied to <root>/secrets` line, the `failed token-file` stops (status 1), and the `PATH` export after the inputs. Lines 88–93 export all four proxy spellings and keep an `HTTP_PROXY` or `http_proxy` the job set to a value that is not empty. That matches the Interface.
+
+    For the `docs:` criterion I read `docs/operator-guide.md`. It covers what the criterion asks for: the `FACTORY_TOKEN_FILE` row (line 1001), the proxy row with the four spellings and the plain-HTTP reason (line 1002), and *The steps* naming the `PATH` (line 1018). The smoke test exercises none of this behaviour; the stand-in tests do.
+
+    Findings: none.
