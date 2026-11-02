@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T18:50:33.837857Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-02T18:50:33.837857Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-02T18:55:25.816221Z'
+  stage: doing
+  run: 09276c1a81624cb399aa4b24602782f8
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -209,3 +211,32 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
    `lint`: lint: green (0.1 s)
    `test`: FAILED tests/test_operator_job.py::test_a_failing_gcloud_shows_its_error_and_its_status[delete] - AssertionError: assert 'ERROR: (gcloud) FAILTEXT' in 'sh: 0: cannot open /tmp/pytest-of-factory/pyt...
 9. factory: started doing as vm.
+10. coder: I built `operator/job/job.sh`, a new executable POSIX `sh` script with the four commands of the Interface: `create`, `update`, `execute` and `delete`. It sources `operator/lib/site.sh` and reuses `site_load` and `site_require`, so the missing-keys line, its order and exit status 2 come from the site library rather than a second copy. All 39 tests in `tests/test_operator_job.py` pass; the run printed only dots, so I have no summary line to quote. `make check` is green: lint, types, layers, sast, secrets, licenses and test (81.3 s) each ended green, then `check: green`. The sandbox refused the smoke-test command, so I did not run the two smoke-test blocks; the smoke-test stage runs them.
+
+    How it is built:
+    - **One function for every `gcloud` call.** `gcloud_call` adds `--project`, `--region` and, when it is set, `--impersonate-service-account` to each call. Under `--dry-run` it prints `gcloud` and the arguments one per line and runs nothing. `job_call` builds the `create`/`update` call once, with the verb as its only difference.
+    - **Order of checks in `create` and `update`.** They check the required keys first, then the code ref with `git rev-parse --verify "<ref>^{commit}"` in the repository that holds `job.sh`. An unknown ref stops with the Interface's message and status 1, before `describe` and before any `gcloud` call, including under `--dry-run`. Then they build the wrapper, then run `describe` (not on a dry run), then the call.
+    - **The wrapper.** It runs `mkdir -p <root>`, then a quoted heredoc that writes `provider.json`, then a quoted heredoc that holds the text of `git show <ref>:vm/job-start.sh` byte for byte, then `exec sh /tmp/job-start.sh`. It is packed with `gzip -n | base64 | tr -d '\n'`. If the start script ever held the heredoc's end line, the script stops with a message.
+    - **`execute`.** It reads the tab-separated `executions list` rows and treats any numeric count of 1 or more as running; a blank count means not running. The execution's name is saved under `${XDG_STATE_HOME:-$HOME/.local/state}/kumpel/last-execution`.
+    - **A failing `gcloud`.** Its standard error goes straight through and the command exits with its status.
+    - **`describe` output.** On `create`, a failing `describe` means "not found", so its error text stays hidden. On `update` it is shown before the `does not exist; use create` message, so an auth failure is not mistaken for a missing job.
+
+    Main choice: `python3` and `json.dumps` run in `job.sh` on the operator's machine. The wrapper carries the finished JSON as heredoc text. The alternative I rejected was having the wrapper call `python3` inside the job: the job's image, `debian:trixie-slim`, has no `python3`, and the job would break. The Interface's "written by python3" holds either way, and no value is quoted by hand. Costs are parsed as numbers (`3` gives 3, `15.5` gives 15.5).
+
+    Smaller choices:
+    - `<wrapper: N bytes>` counts the base64 text, which is the length that lands on the command line.
+    - Every refusal message goes to standard error.
+
+    Refactor: I read my diff once and found nothing to change.
+
+    The journal changed nothing in the Description: entry 4's answers were already carried into the criteria by intake.
+
+    Noticed, not touched:
+    - A site value that contains `@` would break the `^@^` env list. No criterion covers it, and I added no check.
+    - A cost value that is not a number stops `create` with Python's traceback, not a `job:` message.
+    - `vm/job-start.sh` itself still holds `cp`, `chmod` and `PATH=`. The tester's reading of criterion 7 already accepts that.
+
+    The docs criterion (15) is left for the docs stage.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
