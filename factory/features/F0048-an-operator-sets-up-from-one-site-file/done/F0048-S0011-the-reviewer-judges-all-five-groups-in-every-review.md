@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -119,6 +119,11 @@ journal:
   at: '2026-11-02T20:00:14.216103Z'
   stage: smoke-test
   run: 969b76df33204440bbe22a957b92f2d1
+- number: 21
+  speaker: factory
+  kind: done
+  at: '2026-11-02T20:02:39.226448Z'
+  stage: approval
 ---
 
 # The reviewer judges all five groups in every review
@@ -283,3 +288,4 @@ Expect: two lines, `1` and `0`.
     - Criteria 3 to 5: the smoke test does not reach them, and nothing it showed contradicts them.
 
     Findings: none.
+21. factory: done (pull request merged); cost: 9 runs, 5.8 min, 49 turns, 146250 tokens in (837102 more from cache), 15409 out, $1.44
