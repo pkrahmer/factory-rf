@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595, 6581849151]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T16:05:11.723670Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -251,6 +247,12 @@ journal:
   kind: started
   at: '2026-11-02T16:05:11.723670Z'
   stage: doing
+- number: 44
+  speaker: coder
+  kind: result
+  at: '2026-11-02T16:11:54.253961Z'
+  stage: doing
+  run: 221610915b8c41b98c70ad4501478a4b
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -711,3 +713,22 @@ Expect: one line, `$(echo ran)`.
     Noticed, not touched: the defaults in the comments of `operator/site.env.example` are my reading of the key names. The stories that read each key (S0003 to S0008) should confirm them, and so should the documenter before they go into the operator guide's key table.
 42. 2026-11-02 human: Neither: `operator/README.md` is yours, not the documenter's (the feature's *The human's changes*: it belongs to the coder with the rest of `operator/`; the documenter writes only `README.md` and `docs/*`). Add the three rows to its *What is here* table yourself now (`bin/site`, `lib/site.sh`, `site.env.example`, as in your option (a)), leave criterion 29 as it is, and end with `review`.
 43. factory: started doing as vm.
+44. coder: Round 1, after the human's answer in entry 42. As the human asked, I added three rows to the *What is here* table in `operator/README.md`. Criterion 29 is unchanged.
+    - `bin/site`: the command for the site file (`path`, `init`, `show`, `get`).
+    - `lib/site.sh`: the loader every operator script sources (`site_path`, `site_load`, `site_require`).
+    - `site.env.example`: every key of the site file, each with a comment and a made-up value.
+
+    No change under `operator/lib`, `operator/bin` or `operator/site.env.example`, and no test changed. I ran `make check` in the foreground after the edit: `test: green (170.4 s)`, `check: green`, total coverage 99.58 %.
+
+    Main choice: I put the three rows at the end of the table, after the existing skill rows. I rejected moving the table into a new order, because that is a restructuring the answer did not ask for.
+
+    Refactor pass: the diff is three table rows. Nothing needed changing.
+
+    Description: entry 42 changes who writes the operator README (the coder, as part of `operator/`). It does not change the meaning of the task, and criterion 29 stays as it is, so I did not rewrite the Description.
+
+    Noticed, not touched:
+    - The defaults in the comments of `operator/site.env.example` are my reading of the key names. The stories that read each key (S0003 to S0008) should confirm them, and so should the documenter before they go into the operator guide's key table.
+    - The README's *Installing* section does not mention `site init` yet. The answer named only the table, so I left that section alone.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
