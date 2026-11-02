@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T21:59:47.136582Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-02T21:59:23.524915Z'
   stage: doing
   run: 3f0e535bc18247b1a2dec3b9862d5771
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:59:47.136582Z'
+  stage: tests
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -387,3 +396,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     What the journal changed: the reviewer brought the Description in line with entry 9 and added criteria 12 and 13. I did not rewrite the Description further.
 
     Noticed, not touched: none.
+22. factory: started tests as vm.
