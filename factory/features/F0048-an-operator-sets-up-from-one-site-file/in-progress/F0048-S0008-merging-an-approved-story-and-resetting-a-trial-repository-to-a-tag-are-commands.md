@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T22:11:18.907936Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -189,6 +185,12 @@ journal:
   kind: started
   at: '2026-11-02T22:11:18.907936Z'
   stage: doing
+- number: 33
+  speaker: coder
+  kind: result
+  at: '2026-11-02T22:14:45.422410Z'
+  stage: doing
+  run: abf0f06515d047c181d9798521f62279
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -547,3 +549,19 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
 
     `lint`: lint: green (0.1 s)
 32. factory: started doing as vm.
+33. coder: I wrote no new code in this round. The latest review's code finding (entry 27, finding 1) was fixed in entry 29: `merge.sh` now gets its repository from `settings.sh get repository`. Findings 2 and 3 needed only tests, and the tester wrote them in entry 31: the `tag-ref` row of `test_a_failing_read_stops_the_reset_before_any_change` and `test_a_failing_read_of_the_merge_is_reported`. I ran `make check` on the committed state and it is green: `test: green (82.0 s)`, coverage 99.58 %, `check: green`. All 39 tests in `tests/test_operator_merge_reset.py` pass.
+
+    Built (entries 13, 21 and 29, unchanged since):
+    - `operator/skill/kumpel/scripts/merge.sh`
+    - `operator/skill/kumpel/scripts/reset-to-tag.sh`
+
+    Main choice (entry 13): the clock ends the archive wait in `merge.sh` (`date +%s` against the start), not a running sum of the pauses, because a sum never grows when `KUMPEL_POLL_SECONDS=0`. I rejected a poll counter for the same reason. Entry 21: each API answer is stored first, with `|| exit 1` or `|| return 1`, and parsed after. I rejected `set -o pipefail`: it is not POSIX, and Python would still print its traceback. Entry 29: `merge.sh` reuses `settings.sh get repository`, as `approval.sh` and `status.sh` do. I rejected reading the settings file in `merge.sh` itself, which would copy `settings.sh`'s fallback.
+
+    Refactor: I re-read `merge.sh` and found nothing to change. `reset-to-tag.sh` has not changed since entry 21's refactor.
+
+    What the journal changed: entry 27 widened criterion 12 and added criterion 14, both already in the Description, and entry 31 tested them. I rewrote nothing.
+
+    Noticed, not touched: the reviewer's notes in entry 27 are still open, as an optional move under the standing leave, which is the tester's job. `tests/test_operator_merge_reset.py` copies the constants `SCRIPTS`, `REPOSITORY`, `PREFIX`, `API_URL` and `ACCESS_COMMAND` from `tests/test_operator_skill_scripts.py`. It also repeats that file's URL parsing (`Machine.requests` against `Operator.urls`) and its folder setup (the `machine` fixture against the `operator` fixture).
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
