@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T17:06:31.267022Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,13 +69,19 @@ journal:
   kind: started
   at: '2026-11-02T17:06:31.267022Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T17:08:27.877400Z'
+  stage: review
+  run: aa3e06e57778413bab31fdb624ef56db
 ---
 
 # A hosting client in shell takes its token from a command the site names
 
 ## Description
 
-The operator's scripts talk to the code host in three ways: the REST API (pull requests, comments, files), git over HTTPS (fetch, push) and, until now, the `gh` program, whose login is the person's own and, at one site, did not see the project's repository. This story adds one shell library, `operator/lib/hosting.sh`, that does the first two with a token from a source the site names: the command in `SITE_TOKEN_CMD` (a secret store, a keychain, any program that prints a token), or, when that is unset, `gh auth token`, so that a home setup works as it does today. The token never appears in an argument list, where `ps` would show it to every user of the machine: the API call gets its authorization through the configuration `curl` reads on standard input, and git gets it through `GIT_CONFIG_*` environment variables. A failing source stops with a message that never repeats its output. The story changes no existing script (S0004 does) and reads the site through S0001's loader.
+The operator's scripts talk to the code host in three ways: the REST API (pull requests, comments, files), git over HTTPS (fetch, push) and, until now, the `gh` program, whose login is the person's own and, at one site, did not see the project's repository. This story adds one shell library, `operator/lib/hosting.sh`, that does the first two with a token from a source the site names: the command in `SITE_TOKEN_CMD` (a secret store, a keychain, any program that prints a token), or, when that is unset or empty, `gh auth token`, so that a home setup works as it does today. The token never appears in an argument list, where `ps` would show it to every user of the machine: the API call gets its authorization through the configuration `curl` reads on standard input, and git gets it through `GIT_CONFIG_*` environment variables. A failing source stops with a message that never repeats its output. The story changes no existing script (S0004 does) and reads the site through S0001's loader.
 
 ## Interface
 
@@ -119,8 +121,11 @@ Tests: `tests/test_operator_hosting.py`, with stand-ins for `curl` and `gh` on t
 12. After `hosting_api` has run, for a success and for a failure alike, no file remains in the temporary folder that was not there before (the status file is removed).
 13. With the token source failing, `hosting_api GET /user` and `hosting_repo_api GET /pulls` return 4, print the message of the Interface to standard error and nothing to standard output, and the `curl` stand-in is not called.
 14. Sourced without a prior `site_load`, with `FACTORY_SITE` naming a site file that holds `SITE_TOKEN_CMD`, `hosting_token` prints that command's token.
-15. `make check` stays green.
-16. docs: `docs/operator-guide.md` gets a section *The token source* in the site file's part (the three ways to give a token, the command's rules, that the token is never in an argument list and why, `SITE_API_URL`); `README.md` and the other documents: none.
+15. The edges of the 200 to 299 range, as more rows of criterion 7's test: 299 returns 0 and prints the body; 199 and 300, each with the body `{"message":"Edge"}`, return 22 with `hosting: GET /user: 199 Edge` and `hosting: GET /user: 300 Edge`.
+16. `hosting_git` returns git's exit status when git fails: `hosting_git config --get no.such.key` (a key no configuration holds) returns 1, as git does.
+17. Sourced without a prior `site_load`, with a `SITE_` value already in the environment (`SITE_TOKEN_CMD` naming the token command) and `FACTORY_SITE` naming a file that does not exist, the library does not call `site_load`: `hosting_token` prints the token and standard error is empty (no `site: no site file` message). A row of criterion 14's test.
+18. `make check` stays green.
+19. docs: `docs/operator-guide.md` gets a section *The token source* in the site file's part (the three ways to give a token, the command's rules, that the token is never in an argument list and why, `SITE_API_URL`); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -245,3 +250,18 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: Review, round 0. Group 1 (acceptance criteria) fails. I read every criterion and every Interface rule against `tests/test_operator_hosting.py` and `operator/lib/hosting.sh`. Criteria 1–14 each have a test that checks what the criterion says, and the coder's `make check` was green (entry 10). The gaps are untested sides of rules the Interface states. The code under `operator/` already handles all three, so I added the criteria rather than asking.
+
+    1. criterion 15 added, and it needs its test: Interface "A status from 200 to 299 returns 0". Criterion 7 tests 200, 201, 204 and 301, so 299 inside the range and 199 and 300 outside it are untested. Fix: add rows 299 → 0, and 199 and 300 → 22 with `hosting: GET /user: <status> Edge`, to the parametrized test `test_the_status_decides_the_result_of_the_api_call`.
+    2. criterion 16 added, and it needs its test: Interface "`hosting_git` ... the exit status of git". `test_git_gets_the_token_through_its_environment` only checks git succeeding (exit 0). Fix: a test where `hosting_git config --get no.such.key` returns 1.
+    3. criterion 17 added, and it needs its test: Interface "it calls `site_load` itself when `SITE_` values are not loaded yet". Only the not-loaded side is tested (`test_the_library_loads_the_site_itself`). Fix: make that test parametrized and add a row with `SITE_TOKEN_CMD` in the environment and `FACTORY_SITE` naming a missing file. That row expects the token on stdout and an empty stderr.
+    4. tests/test_operator_hosting.py `test_the_api_call_leaves_no_temporary_file`: the test never checks that the call ran (no exit status, no curl call recorded). A `hosting_api` that failed before `mktemp` would still pass, so it does not show criterion 12. Fix: assert the exit status (0 for 200, 22 for 404) and one recorded `curl` call.
+
+    Closing criteria renumbered: `make check` is now 18 and `docs:` is 19.
+
+    description corrected: "or, when that is unset, `gh auth token`" -> "or, when that is unset or empty, `gh auth token`". This follows human answer 5 (entry 4) and the Interface's "set and not empty".
+
+    Groups 2–5 were not reviewed because group 1 failed.
+
+    Earlier tests:
+    - tests/operator_support.py: no leave needed. The change only adds `HOSTING_LIBRARY` and `run_hosting` and leaves every existing helper as it was. The story's Interface also asks for this helper to be extended.
