@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T17:08:48.884344Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-02T17:08:27.877400Z'
   stage: review
   run: aa3e06e57778413bab31fdb624ef56db
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:08:48.884344Z'
+  stage: doing
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -265,3 +274,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
 
     Earlier tests:
     - tests/operator_support.py: no leave needed. The change only adds `HOSTING_LIBRARY` and `run_hosting` and leaves every existing helper as it was. The story's Interface also asks for this helper to be extended.
+13. factory: started doing as vm.
