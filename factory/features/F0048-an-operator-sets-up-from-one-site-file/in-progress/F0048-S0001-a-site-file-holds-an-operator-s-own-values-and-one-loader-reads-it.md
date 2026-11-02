@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T15:55:48.906068Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -214,6 +218,11 @@ journal:
   at: '2026-11-02T15:55:28.217802Z'
   stage: doing
   run: 8f888f7d9470475086821401e7f0ec33
+- number: 38
+  speaker: factory
+  kind: started
+  at: '2026-11-02T15:55:48.906068Z'
+  stage: tests
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -638,3 +647,4 @@ Expect: one line, `$(echo ran)`.
     Description: nothing in the journal since entry 33 has changed the meaning of the task.
 
     Noticed, not touched: the defaults in the comments of `operator/site.env.example` are my reading of the key names. The stories that read each key (S0003 to S0008) should confirm them, and so should the documenter before they go into the operator guide's key table.
+38. factory: started tests as vm.
