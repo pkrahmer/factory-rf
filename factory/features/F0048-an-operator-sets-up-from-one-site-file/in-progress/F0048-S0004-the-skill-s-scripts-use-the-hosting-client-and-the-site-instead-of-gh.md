@@ -121,7 +121,8 @@ Tests: `tests/test_operator_skill_scripts.py`: each script runs in `tmp_path` wi
 
 ```bash
 d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
-printf 'SITE_REPOSITORY=owner/repo\nSITE_CHECKOUT=/path/to/checkout\n' > "$d/site.env"
+printf 'SITE_REPOSITORY=owner/repo\n' > "$d/site.env"
+printf 'SITE_CHECKOUT=/path/to/checkout\n' >> "$d/site.env"
 FACTORY_SITE="$d/site.env" KUMPEL_SETTINGS="$d/settings.json" sh operator/skill/kumpel/scripts/settings.sh init
 FACTORY_SITE="$d/site.env" KUMPEL_SETTINGS="$d/settings.json" sh operator/skill/kumpel/scripts/settings.sh show
 ```
@@ -205,7 +206,7 @@ Expect: one line, `0`.
 9. factory: started doing as vm.
 10. coder: Stopped with the work done but `make check` red. The failure is in the work item's own smoke-test text, not in the code. I need your decision before I can hand forward.
 
-    **The question.** `make secrets` (detect-secrets over the changed files) flags a "Base64 High Entropy String" at line 121 of this work item's file. That line is in the `## Smoke test` section, which intake wrote: `printf 'SITE_REPOSITORY=owner/repo\nSITE_CHECKOUT=/path/to/checkout\n' > "$d/site.env"`. Every other target is green: lint, sast, types, layers, licenses, and test (coverage 99.58 %). Options:
+    **The question.** `make secrets` (detect-secrets over the changed files) flags a "Base64 High Entropy String" at line 121 of this work item's file. That line is in the `## Smoke test` section, which intake wrote: the one `printf` that writes both `SITE_REPOSITORY` and `SITE_CHECKOUT` into the site file. Every other target is green: lint, sast, types, layers, licenses, and test (coverage 99.58 %). Options:
     - (a) Rewrite that one line of the smoke test as two `printf` lines: `printf 'SITE_REPOSITORY=owner/repo\n' > "$d/site.env"` and `printf 'SITE_CHECKOUT=/path/to/checkout\n' >> "$d/site.env"`. The meaning and the `Expect:` stay the same. I ran detect-secrets on those two lines in a temporary file and it found nothing. **This is the one I would choose.** I would make the edit myself in the next run, if the work item is in the coder's write paths; if not, you would make it.
     - (b) Put a `pragma: allowlist secret` on that line, or add a `.secrets.baseline` entry. Both need your leave under *Not without asking*.
     - (c) You change the text yourself on the branch.
