@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T17:09:28.049917Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-02T17:09:07.084569Z'
   stage: doing
   run: 79b5816ba2354c5eb40d7097b9207d3e
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:09:28.049917Z'
+  stage: tests
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -290,3 +299,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     Main choice: no code change, because the findings only need tests. Rejected: changing the code ahead of the tests, since nothing in it has to change.
     The journal changed nothing in the Description this round: the reviewer already corrected "unset" to "unset or empty".
     Noticed, not touched: the round-0 notes still stand. `%output{}` in `--write-out` needs curl 8.3 or later; the docs criterion may want to say so. And the JSON `message` is found with sed, not a JSON parser.
+15. factory: started tests as vm.
