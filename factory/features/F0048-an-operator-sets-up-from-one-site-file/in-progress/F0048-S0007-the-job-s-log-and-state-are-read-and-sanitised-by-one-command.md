@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T21:08:58.353085Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-02T21:08:37.214103Z'
   stage: tests
   run: 11ab6d279f6e482b8a44fb644f850a62
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:08:58.353085Z'
+  stage: doing
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -297,3 +306,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
 
     `lint`: lint: green (0.1 s)
     `test`: FAILED tests/test_operator_job.py::test_a_wrong_command_line_prints_the_usage[delete-dry-run] - AssertionError: assert 'usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--y...
+16. factory: started doing as vm.
