@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T22:00:57.653323Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-02T22:00:57.653323Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-02T22:04:27.788005Z'
+  stage: doing
+  run: 1b87f34e390044e99cb3a8f54c3ba16e
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -421,3 +423,19 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
 
     `lint`: lint: green (0.1 s)
 24. factory: started doing as vm.
+25. coder: I wrote no new code in this round. Review finding 1 (a failing read printed a Python traceback after `hosting_api`'s message) was fixed in entry 21. Findings 2 and 3 needed only their tests, and the tester wrote them in entry 23. I ran `make check` on the committed state and it is green: `test: green (80.5 s)`, coverage 99.58 %, `check: green`. That includes the 36 tests of `tests/test_operator_merge_reset.py`, among them the new `test_a_failing_read_stops_the_reset_before_any_change` (criterion 12) and `test_a_wrong_command_line_prints_the_usage_and_sends_nothing` (criterion 13).
+
+    Built (entries 13 and 21, unchanged since):
+    - `operator/skill/kumpel/scripts/merge.sh`
+    - `operator/skill/kumpel/scripts/reset-to-tag.sh`
+
+    Main choice (entry 13): the clock ends the archive wait in `merge.sh` (`date +%s` against the start), not a running sum of the pauses. A sum never grows when `KUMPEL_POLL_SECONDS=0`, so the wait would never end. I rejected a poll counter for the same reason. Entry 21's choice: store each API answer first, with `|| exit 1`, and parse it after. I rejected `set -o pipefail`, because it is not POSIX and would still let Python print its traceback.
+
+    Refactor: I made no change this round. The diff is the one I read in entry 21.
+
+    What the journal changed: entry 23 added the tests for criteria 12 and 13. The Description already holds them (the reviewer, entry 19).
+
+    Noticed, not touched: the tester chose not to check that the hosting message is the last line printed (entry 23). The code does print it last.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
