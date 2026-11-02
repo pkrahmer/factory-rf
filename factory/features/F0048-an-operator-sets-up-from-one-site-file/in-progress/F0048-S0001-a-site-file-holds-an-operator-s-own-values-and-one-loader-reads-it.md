@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T14:36:36.012272Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-02T14:36:36.012272Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-02T14:44:58.025185Z'
+  stage: tests
+  run: e425d265a2614d018e745f4aab7e3ead
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -176,3 +178,38 @@ Expect: one line, `$(echo ran)`.
    - Architecture: the scripts lie outside the layers, as the Interface says. `operator/*` is already in the coder's write paths, as the feature asks. The tests go in `tests/test_operator_support.py`'s sibling `tests/test_operator_site.py` with the helper in `tests/operator_support.py`, which `CLAUDE.md` allows.
    - Scope: within the feature's S0001 scope. It adds no `site check` and changes no existing script or test.
 7. factory: started tests as vm.
+8. tester: I wrote the tests for criteria 1 to 16. The scripts run as `sh` child processes in `tmp_path`, each with an environment built from scratch: `PATH`, `HOME` in `tmp_path`, and `FACTORY_SITE` / `XDG_CONFIG_HOME` where a row needs them.
+
+   - criterion 1: tests/test_operator_site.py::test_the_site_path_follows_factory_site_then_xdg_then_home (4 rows)
+   - criterion 2: tests/test_operator_site.py::test_the_loader_exports_key_lines_and_skips_blank_and_comment_lines
+   - criterion 3: tests/test_operator_site.py::test_the_value_is_the_text_after_the_first_equals_sign (7 rows)
+   - criterion 4: tests/test_operator_site.py::test_a_value_is_never_interpreted (3 rows)
+   - criterion 5: tests/test_operator_site.py::test_a_faulty_line_exports_nothing_and_returns_2 (5 rows)
+   - criterion 6: tests/test_operator_site.py::test_a_variable_already_in_the_environment_keeps_its_value
+   - criterion 7: tests/test_operator_site.py::test_a_missing_site_file_returns_1
+   - criterion 8: tests/test_operator_site.py::test_a_site_file_in_a_git_work_tree_is_refused (in a work tree / outside one)
+   - criterion 9: tests/test_operator_site.py::test_require_names_every_unset_or_empty_name_in_the_order_given (3 rows: all set; unset and empty; order given)
+   - criterion 10: tests/test_operator_site.py::test_show_says_set_or_unset_for_every_key_of_the_example_and_no_value
+   - criterion 11: tests/test_operator_site.py::test_get_prints_a_set_value_and_refuses_an_unset_or_empty_one (set / unset / empty)
+   - criterion 12: tests/test_operator_site.py::test_init_writes_the_example_once_with_mode_0600
+   - criterion 13: tests/test_operator_site.py::test_a_malformed_command_prints_the_usage_and_exits_2 (4 rows)
+   - criterion 14: tests/test_operator_site.py::test_the_example_loads_comments_every_key_and_holds_only_made_up_values
+   - criterion 15: tests/test_operator_site.py::test_show_and_get_pass_on_a_failing_load (2 commands × 3 loads)
+   - criterion 16: tests/test_operator_site.py::test_init_refuses_a_path_in_a_git_work_tree (in a work tree / outside one)
+   - criteria 17 and 18 are `make check` and docs, so they get no test.
+
+   Choices within the criteria, none of them a new expectation:
+   - Criterion 5: every faulty row has a good line `SITE_B=good` before the faulty one, so "exports nothing" is a real check. The rows therefore expect line number 2. The criterion gives the message text only for `plain text` and `OTHER=1`. For the lower-case key, the spaces around `=` and `SITE_=1`, the test checks only that standard error is one line starting with `site: <path>:2: `. It does not choose between the two messages.
+   - Criterion 14: the example lies inside this repository, and the loader refuses a file in a git work tree. So the test loads a copy of the example in `tmp_path`.
+   - Criterion 12: the test changes the file between the two `site init` runs, so "left byte for byte" is a real check.
+   - Criteria 12 and 16: a successful `site init` is expected to exit 0.
+   - Criterion 13: the row `get HOME` runs with a valid site file, so the result does not depend on whether the command loads before it checks the usage.
+
+   Files created: `tests/operator_support.py` (paths of the scripts and the example; `operator_environment`, `run_script`, `run_site`, `run_library`, `load_site`, `exported`, `example_keys`, `make_work_tree`; git through `git_support.run_git`) and `tests/test_operator_site.py`.
+
+   `make test`: every test in `tests/test_operator_site.py` fails because the scripts are missing (`sh: 0: cannot open /work/checkout/operator/bin/site: No such file`, and the same for `operator/lib/site.sh`), and the example file is missing too. Nothing failed to import: the tests need no Python module under test, only the missing scripts and the example.
+
+   `make lint` is green.
+
+   `lint`: lint: green (0.2 s)
+   `test`: FAILED tests/test_operator_site.py::test_init_refuses_a_path_in_a_git_work_tree[outside] - AssertionError: sh: 0: cannot open /work/checkout/operator/bin/site: No such file
