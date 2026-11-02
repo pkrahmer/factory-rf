@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870, 6586194468, 6586555390]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-02T19:36:38.145612Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -236,6 +240,11 @@ journal:
   at: '2026-11-02T19:36:14.856167Z'
   stage: docs
   run: 4b8f536d576e49dd8eb834b360c1de94
+- number: 42
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:36:38.145612Z'
+  stage: smoke-test
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -740,3 +749,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     `check`: check: green (not run again: passed on tree cf3269b0adfa at 2026-11-02T19:29:24Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+42. factory: started smoke-test as vm.
