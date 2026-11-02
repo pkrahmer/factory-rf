@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T22:15:06.074355Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -200,6 +196,12 @@ journal:
   kind: started
   at: '2026-11-02T22:15:06.074355Z'
   stage: review
+- number: 35
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T22:15:59.999716Z'
+  stage: review
+  run: b947c2d5ee7e435e8ac6199ee05ad41f
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -575,3 +577,21 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 34. factory: started review as vm.
+35. reviewer: no findings
+
+    Checked and passing:
+    - Acceptance criteria: criteria 1 to 14 each have a test in `tests/test_operator_merge_reset.py` that checks what the criterion says. The refusals (2), the repository conditions (5), the failing writes (9), the failing reads (12, four rows; each also checks that no `no tag` line is printed), the usage lines (13) and the failing reads of the merge (14, two rows) are rows of one parametrized test each. The archive wait is tested on both sides, at 0 s and at 60 s with the archive commit in the third answer. Both sides of the tag lookup are tested: a 404 gives `no tag`, a 500 gives the hosting message. The factory's `make check` after the coder was green (entry 33), and duplicates shows 0 new.
+    - Entry 29's fix holds: `merge.sh:13-14` takes the repository from `settings.sh get repository`, as `approval.sh:13-14` does. `reset-to-tag.sh:78` keeps `SITE_REPOSITORY` itself, as its Interface requires. The fallback to the settings file is `settings.sh`'s own behaviour, which is already used and tested. No new criterion is needed.
+    - Architecture: nothing under `src/` changed. The scripts use the S0001 site loader and the S0003 `hosting_repo_api`.
+    - Security: no secrets and no silencing markers. The token stays out of argument lists through `hosting.sh`. `--yes` is matched exactly. The branch names in the `DELETE` paths come from `matching-refs/heads/work-item/`. Every API answer is stored with `|| exit 1` or `|| return 1` before Python parses it.
+    - Quality: every function has a comment that says why or what it gives back. There is no dead code. There is no shared JSON helper under `operator/lib/` that `json_field` copies.
+    - Hygiene: the journal explains the main choices and what was rejected: the clock ends the wait, not a sum of pauses or a poll counter; only a 404 counts as a missing tag; the read is kept apart from the parse rather than using `pipefail`; `settings.sh get repository` is reused rather than reading the file again. The Description and the Interface match what was built. Docs criterion 16 still names the three documents.
+
+    Considered and not reported:
+    - `status.sh:55-60` also reads `/commits?per_page=20` for archive subjects. It finds the latest archive of any work item, while `merge.sh:36-43` checks for one work item's archive. These are different questions, so it is not a copy.
+
+    Earlier tests: none. The only test file in the diff is new (`A tests/test_operator_merge_reset.py`).
+
+    Notes (round 2, about the test file the diff adds):
+    - `tests/test_operator_merge_reset.py:16-21`: `SCRIPTS`, `REPOSITORY`, `PREFIX`, `API_URL` and `ACCESS_COMMAND` still copy the constants at `tests/test_operator_skill_scripts.py:15-20`. They could move to `tests/operator_support.py` under the standing leave.
+    - `tests/test_operator_merge_reset.py:126-167`: `Machine.requests` repeats the URL parsing of `Operator.urls` in `tests/test_operator_skill_scripts.py`. The `machine` fixture repeats the folder setup of the `operator` fixture there.
