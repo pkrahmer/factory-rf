@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T20:14:12.364738Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-02T20:13:51.241620Z'
   stage: tests
   run: 4e9af38edc36406b8962510ba0c6aec9
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:14:12.364738Z'
+  stage: doing
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -180,3 +189,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
 
    `lint`: lint: green (0.1 s)
    `test`: FAILED tests/test_operator_sanitise.py::test_environment_rules_file_wins_over_the_site_file[relative-to-site-folder] - AssertionError: assert 2 == 0
+9. factory: started doing as vm.
