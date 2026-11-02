@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 499
 comments_read: [6582236900]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T16:23:50.781477Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-02T16:23:50.781477Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-02T16:25:31.302428Z'
+  stage: tests
+  run: 7a1a9040efce4d149d52b208dbc7080c
+  blocked: question
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -138,3 +141,27 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
    - Architecture: a shell script under `vm/`, tests under `tests/` with `tests/vm_support.py` stand-ins. This is consistent with `CLAUDE.md`, and the coder's write paths include `vm/*`.
    - Scope: within feature F0048's S0002 scope (PATH, private token copy, four proxy spellings), and not in its Out of scope. No earlier test changes.
 7. factory: started tests as vm.
+8. tester: Question: an earlier test conflicts with the new copy behavior, and making it pass again needs a test change I am not allowed to make without your approval.
+
+   `run_job_start` in `tests/vm_support.py` writes its default token to `<tmp>/secrets/hosting-token` and creates that folder with a plain `mkdir()`. Under the usual umask 022 (this VM's umask), the folder gets mode 0755. Once the coder implements the Interface, every earlier job-start run takes the copy path and writes the token text into `<root>/secrets/hosting-token`. `tests/test_vm_job_start.py::test_the_token_is_never_printed_written_or_passed_on_a_command_line` searches every file under `full_run.root` for `HIDDEN_TEXT` and expects none. So that test turns red once the coder implements the Interface. This contradicts criterion 10 ("the existing tests keep passing unchanged") and the Interface's "No earlier test changes". The coder cannot fix it, because the coder never edits tests.
+
+   Options:
+   (a) In `run_job_start` (`tests/vm_support.py`), add `token.parent.chmod(0o700)` after the token folder is made. The earlier runs then take the no-copy path, and the earlier test still checks the same thing. No earlier test file changes; only the shared helper does.
+   (b) Change the earlier test so it skips `<root>/secrets/hosting-token` when it searches for written token text. This weakens what it checks.
+   (c) Leave both as they are. The earlier test then goes red and the story cannot pass `make check`.
+   I would choose (a): one line in the shared helper, every earlier test name and check unchanged. Please give the word for it. (`tests/vm_support.py` is a shared helper this story did not write, and the standing leave only covers moving helpers, so I need your approval.)
+
+   The tests for the story's criteria are already written, in the new file `tests/test_vm_job_start_environment.py`. They pass their own token file, so they work the same under (a), (b) or (c):
+   criterion 1: tests/test_vm_job_start_environment.py::test_factory_run_starts_with_the_tools_folder_first_on_the_path
+   criterion 2: tests/test_vm_job_start_environment.py::test_the_image_build_starts_with_the_tools_folder_first_on_the_path
+   criterion 3: tests/test_vm_job_start_environment.py::test_a_token_is_copied_into_a_private_folder_only_when_its_folder_is_not_private (rows 0755, 0750, 0705)
+   criterion 4: same test, row 0700; the 0750 and 0705 rows are the copied rows above
+   criterion 5: tests/test_vm_job_start_environment.py::test_the_token_s_text_is_never_printed_when_it_is_copied
+   criterion 6: tests/test_vm_job_start_environment.py::test_a_failing_copy_stops_the_script_before_factory_run
+   criterion 7: tests/test_vm_job_start_environment.py::test_a_missing_token_file_stops_the_script_as_before
+   criterion 8: tests/test_vm_job_start_environment.py::test_a_given_proxy_reaches_the_image_build_under_all_four_names (seven rows)
+   criterion 9: tests/test_vm_job_start_environment.py::test_without_a_proxy_no_stand_in_sees_one_and_apt_is_not_configured
+   criterion 10: the existing tests/test_vm_job_start.py::test_the_steps_run_in_order_and_factory_run_replaces_the_script, unchanged
+   criterion 11: tests/test_vm_job_start_environment.py::test_a_second_run_makes_an_existing_secrets_folder_private_and_replaces_the_old_token
+
+   Files created: `tests/test_vm_job_start_environment.py`. No earlier test file was changed. Every module imported, with no collection errors. My one run (`uv run pytest -q` on the new file) ended red as intended: the copy, `PATH` and proxy tests fail on wrong results, since the script does not do these yet. `make lint` is green. I renamed two constants (`GIVEN_CONTENT`, `OLD_CONTENT`) because ruff's S105 rule flagged the names as hardcoded passwords. Once you answer, the next run makes the agreed change to the helper (if you choose (a) or (b)) and ends with `doing`.
