@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311, 6584737120]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-02T18:32:56.990554Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-11-02T18:32:36.255400Z'
   stage: docs
   run: 12c8828485ca411bacb2bf7f9eb719ba
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-02T18:32:56.990554Z'
+  stage: smoke-test
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -484,3 +493,4 @@ Expect: one line, `0`.
     `check`: check: green (not run again: passed on tree 1a703605acf0 at 2026-11-02T18:28:09Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+26. factory: started smoke-test as vm.
