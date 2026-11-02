@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T20:23:53.692552Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-02T20:23:32.986391Z'
   stage: doing
   run: 96af4b3b71d1488790a8d22edb6c4b59
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:23:53.692552Z'
+  stage: tests
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -332,3 +341,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     - a read-time check of each group number against `pattern.groups`.
 
     Still open: the reviewer's side note in entry 12. The precedents I cited, `status.sh` and `job.sh`, use `python3 -c` without `-I`. I left it as it is.
+18. factory: started tests as vm.
