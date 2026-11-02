@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T20:36:58.918474Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-02T20:36:58.918474Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-11-02T20:40:32.255541Z'
+  stage: doing
+  run: 77fc5753504c48199dd1ec618e7bc622
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -523,3 +525,23 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     `lint`: lint: green (0.1 s)
     `test`: test: green (79.3 s)
 28. factory: started doing as vm.
+29. coder: Round 2, after the tester's rows (entry 27). I changed no file. All 64 tests in `tests/test_operator_sanitise.py` already pass against `operator/bin/sanitise` as it stands, as entry 25 predicted, and `make check` is green.
+
+    What was built (in earlier rounds, unchanged now): `operator/bin/sanitise`. It is a `sh` wrapper that sources `operator/lib/site.sh` and resolves the rules path (`SITE_SANITISE_RULES`, relative to the site file's folder, or else `sanitise.rules` beside the site file). It hands the work to an inline `python3 -I -c` program, which:
+    - applies the built-in rules first and then the site's rules, line by line;
+    - refuses rules-file faults at read time with status 2, including a replacement that names a group the pattern lacks;
+    - expands only `\1` to `\99` in a replacement, through a function given to `re.sub`, and keeps every other backslash literal;
+    - in `check`, first makes sure every named file exists, then reports `file:line: rule` once per line and rule, and never prints the matched text.
+
+    Main choices (kept): the Python stays inline in the script, the operator scripts' idiom; I rejected a separate `operator/lib/sanitise.py`. Groups are expanded by a function; I rejected re-escaping the template for `re.sub`.
+
+    Refactor: I read the whole script again as a reviewer would. Nothing needed changing.
+
+    What the journal changed: entries 15 and 23 made a replacement literal except for `\1` to `\99`, made a too-high group a rules-file fault, and added the size-limit and edge rows. The reviewer has already written these into the Interface and the criteria. The Description's summary paragraph still holds, so I did not rewrite it; the work item is outside my write paths anyway.
+
+    Noticed but not touched: the side note from entry 12 is still open. The earlier precedents, `status.sh` and `job.sh`, run `python3 -c` without `-I`; `sanitise` uses `-I`.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
