@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T17:33:06.865903Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -186,6 +190,11 @@ journal:
   at: '2026-11-02T17:32:45.892686Z'
   stage: review
   run: 364946448f2b413d94d9d8eb86dc8c56
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:33:06.865903Z'
+  stage: doing
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -597,3 +606,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
 
     Notes:
     - tests/test_operator_hosting.py `test_the_token_is_the_first_line_of_the_command_trimmed`: the Interface's "the command's standard error is discarded" is tested only on the failing side (criterion 3's stderr row), not for a command that succeeds and also writes to standard error. The code already handles it (`2>/dev/null`, `operator/lib/hosting.sh:12`); a row would pin it. Per entry 30 this is a note, not a reason to send the story back.
+33. factory: started doing as vm.
