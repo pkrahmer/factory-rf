@@ -11,6 +11,7 @@ import pytest
 from factory.adapters.process import ProcessResult
 from git_support import write_executable
 from operator_support import CURL_STAND_IN, ROOT, hosting_env, run_script
+from vm_support import in_order
 
 SCRIPTS = ROOT / "operator" / "skill" / "kumpel" / "scripts"
 REPOSITORY = "owner/repo"
@@ -171,12 +172,6 @@ def printed(result: ProcessResult) -> list[str]:
     return result.stdout.splitlines() + result.stderr.splitlines()
 
 
-def in_order(lines: list[str], expected: list[str]) -> bool:
-    """`expected` are lines of `lines`, in this order."""
-    remaining = iter(lines)
-    return all(line in remaining for line in expected)
-
-
 # merge.sh
 
 
@@ -221,7 +216,7 @@ def test_an_approved_pull_request_is_merged_and_its_archive_awaited(machine: Mac
     assert puts == [Request("PUT", "/pulls/5/merge", {"merge_method": "merge"})]
     routes = [request.route for request in machine.requests()]
     assert "/commits?per_page=20" in routes[routes.index("/pulls/5/merge") :]
-    assert in_order(printed(result), ["merged #5", f"archived {ITEM}"])
+    assert in_order("\n".join(printed(result)), ["merged #5", f"archived {ITEM}"])
 
 
 @pytest.mark.parametrize(
@@ -297,7 +292,7 @@ def test_the_merge_waits_for_the_archive_commit(
     machine.answer(merge_answers(commits=commits))
     result = machine.run("merge.sh", "5", ITEM, KUMPEL_POLL_SECONDS="0", KUMPEL_ARCHIVE_WAIT=wait)
     assert result.exit_status == exit_status, result.stderr
-    assert in_order(printed(result), ["merged #5", line])
+    assert in_order("\n".join(printed(result)), ["merged #5", line])
 
 
 # reset-to-tag.sh
@@ -401,7 +396,7 @@ def test_without_yes_the_reset_prints_its_plan_and_changes_nothing(machine: Mach
     assert result.exit_status == 1
     assert {request.method for request in machine.requests()} <= {"GET"}
     assert in_order(
-        printed(result),
+        "\n".join(printed(result)),
         [
             "would close 2 open work-item pull request(s)",
             "would delete 3 work-item branch(es)",
@@ -439,7 +434,7 @@ def test_with_yes_the_reset_closes_deletes_and_moves_in_this_order(machine: Mach
     assert result.exit_status == 0, result.stderr
     assert machine.changes() == full_reset()
     assert in_order(
-        printed(result),
+        "\n".join(printed(result)),
         [
             "closed #7",
             "closed #8",

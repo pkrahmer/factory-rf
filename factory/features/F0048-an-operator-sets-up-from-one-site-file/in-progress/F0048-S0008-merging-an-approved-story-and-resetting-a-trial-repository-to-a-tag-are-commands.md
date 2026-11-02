@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T21:48:11.392088Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-02T21:48:11.392088Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-02T21:50:15.240578Z'
+  stage: tests
+  run: 9df60ed230e049f6900860402f369187
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -250,3 +252,37 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     - A failing GET of the pull-request list or the branch list stops the reset with the hosting message, followed by Python's JSON error. No criterion covers this.
     - The docs criterion (13) is the documenter's.
 14. factory: started tests as vm.
+15. tester: Made the test change the coder named in entry 13, under the standing leave in `CLAUDE.md` *Tests* to use a shared test helper instead of keeping a copy. Only `tests/test_operator_merge_reset.py` changed.
+
+    Changes:
+    - Removed the module's own top-level `in_order`, which `tests/test_suite_held_once.py::test_each_shared_helper_and_constant_is_held_once[vm-setup-helpers]` refused.
+    - It now imports `in_order` from `tests/vm_support.py`.
+    - Every call site now passes `"\n".join(printed(result))` instead of the list of lines. There are four call sites, not the five entry 13 counted. They are in `test_an_approved_pull_request_is_merged_and_its_archive_awaited`, `test_the_merge_waits_for_the_archive_commit`, `test_without_yes_the_reset_prints_its_plan_and_changes_nothing` and `test_with_yes_the_reset_closes_deletes_and_moves_in_this_order`.
+
+    Every test keeps its name and still checks that the expected lines appear in the given order. One difference: the shared helper looks for each expected text anywhere in the output, where the old copy matched whole lines.
+
+    Mapping, all in `tests/test_operator_merge_reset.py` (unchanged from entry 11):
+    - criterion 1: test_an_approved_pull_request_is_merged_and_its_archive_awaited
+    - criterion 2: test_a_pull_request_that_is_not_ready_for_the_merge_is_refused
+    - criterion 3: test_a_merge_the_host_refuses_stops_without_polling
+    - criterion 4: test_the_merge_waits_for_the_archive_commit
+    - criterion 5: test_a_repository_the_site_does_not_name_as_resettable_is_not_reset
+    - criterion 6: test_without_yes_the_reset_prints_its_plan_and_changes_nothing
+    - criterion 7: test_a_tag_that_does_not_exist_changes_nothing and test_the_tag_is_followed_to_its_commit
+    - criterion 8: test_with_yes_the_reset_closes_deletes_and_moves_in_this_order
+    - criterion 9: test_a_failing_call_stops_the_reset_there
+    - criterion 10: test_a_reset_with_nothing_to_close_or_delete_only_moves_main
+    - criterion 11: test_no_change_touches_another_ref_or_a_tag
+    - criteria 12 and 13: no test
+
+    Results:
+    - `uv run pytest -q tests/test_operator_merge_reset.py`: all 28 pass, now that the coder's scripts exist.
+    - I also ran `tests/test_suite_held_once.py` once, to confirm the failure the coder named is gone. All 10 pass. That is one run more than the stage's single run.
+    - `make lint` is green.
+
+    Files created: none. Files changed: `tests/test_operator_merge_reset.py`. Not importable: none.
+
+    Still open, from entry 13: the Description still has the wording from before the human's answer in entry 9, because the factory dropped my rewrite of it in entry 11. Criteria 3 and 9 still quote the short path, and criterion 4 still gives a wait of 0 for both rows. The tests follow the answer in entry 9.
+
+    `lint`: lint: green (0.1 s)
+    `test`: test: green (81.4 s)
