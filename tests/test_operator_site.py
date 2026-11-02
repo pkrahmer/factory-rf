@@ -219,13 +219,13 @@ def test_a_space_before_the_equals_sign_is_a_fault_and_one_after_it_is_the_value
     [
         pytest.param("plain text", "not a KEY=value line", id="plain-text"),
         pytest.param("OTHER=1", "OTHER is not a SITE_ key", id="other-key"),
-        pytest.param("site_a=1", None, id="lower-case"),
-        pytest.param("SITE_A = 1", None, id="spaces-around-equals"),
-        pytest.param("SITE_=1", None, id="no-name"),
+        pytest.param("site_a=1", "not a KEY=value line", id="lower-case"),
+        pytest.param("SITE_A = 1", "not a KEY=value line", id="spaces-around-equals"),
+        pytest.param("SITE_=1", "SITE_ is not a SITE_ key", id="no-name"),
     ],
 )
 def test_a_faulty_line_exports_nothing_and_returns_2(
-    tmp_path: Path, site_file: Path, site_env: dict[str, str], line: str, message: str | None
+    tmp_path: Path, site_file: Path, site_env: dict[str, str], line: str, message: str
 ) -> None:
     site_file.write_text(f"SITE_B=good\n{line}\n", encoding="utf-8")
 
@@ -234,22 +234,25 @@ def test_a_faulty_line_exports_nothing_and_returns_2(
     assert result.exit_status == 2
     assert exported(result.stdout) == {}
     lines = result.stderr.splitlines()
-    assert len(lines) == 1, result.stderr
-    if message is None:
-        assert lines[0].startswith(f"site: {site_file}:2: ")
-    else:
-        assert lines[0] == f"site: {site_file}:2: {message}"
+    assert lines == [f"site: {site_file}:2: {message}"]
 
 
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param("env", id="non-empty"),
+        pytest.param("", id="empty"),
+    ],
+)
 def test_a_variable_already_in_the_environment_keeps_its_value(
-    tmp_path: Path, site_file: Path, site_env: dict[str, str]
+    tmp_path: Path, site_file: Path, site_env: dict[str, str], value: str
 ) -> None:
     site_file.write_text("SITE_A=file\nSITE_B=other\n", encoding="utf-8")
 
-    result = load_site(tmp_path, {**site_env, "SITE_A": "env"})
+    result = load_site(tmp_path, {**site_env, "SITE_A": value})
 
     assert result.exit_status == 0, result.stderr
-    assert exported(result.stdout) == {"SITE_A": "env", "SITE_B": "other"}
+    assert exported(result.stdout) == {"SITE_A": value, "SITE_B": "other"}
 
 
 def test_a_missing_site_file_returns_1(
@@ -402,6 +405,10 @@ def test_init_writes_the_example_once_with_mode_0600(tmp_path: Path) -> None:
         pytest.param(["frobnicate"], id="unknown-command"),
         pytest.param(["get"], id="get-without-name"),
         pytest.param(["get", "HOME"], id="get-not-a-site-key"),
+        pytest.param(["path", "x"], id="path-with-a-word-too-many"),
+        pytest.param(["init", "x"], id="init-with-a-word-too-many"),
+        pytest.param(["show", "x"], id="show-with-a-word-too-many"),
+        pytest.param(["get", "SITE_A", "x"], id="get-with-a-word-too-many"),
     ],
 )
 def test_a_malformed_command_prints_the_usage_and_exits_2(

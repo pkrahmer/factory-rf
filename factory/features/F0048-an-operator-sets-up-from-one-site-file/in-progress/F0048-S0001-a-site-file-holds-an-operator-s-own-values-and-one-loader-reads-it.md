@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T15:33:54.209080Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-02T15:33:54.209080Z'
   stage: tests
+- number: 27
+  speaker: tester
+  kind: result
+  at: '2026-11-02T15:40:19.333084Z'
+  stage: tests
+  run: 24af66c57cbc40ee904101b4592b58f2
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -490,3 +492,18 @@ Expect: one line, `$(echo ran)`.
     - The defaults in the comments of `operator/site.env.example` are still my reading of the key names.
     - `operator/README.md` does not mention `operator/bin/site`.
 26. factory: started tests as vm.
+27. tester: Tests, round 2. This is the test change named in the coder's entry 25: criteria 23 to 25 from the reviewer's entry 23 needed only their tests. I added them as new rows of the three existing tests in `tests/test_operator_site.py`, which the reviewer and the coder both suggested. This story wrote that file, so no earlier test of another story changed.
+
+    - criterion 23: tests/test_operator_site.py::test_a_faulty_line_exports_nothing_and_returns_2. The rows `site_a=1` and `SITE_A = 1` now expect the whole message `site: <path>:2: not a KEY=value line`. The row `SITE_=1` expects `site: <path>:2: SITE_ is not a SITE_ key`. The prefix-only check is gone, and each row now compares the full standard error line. The test still covers criterion 5.
+    - criterion 24: tests/test_operator_site.py::test_a_variable_already_in_the_environment_keeps_its_value. It is now parametrized over the environment value: `env` (criterion 6) and the empty string. With `SITE_A=` exported and the line `SITE_A=file`, the empty row expects `SITE_A` to stay empty and `site_load` to return 0. Like criterion 6, it also expects the file's `SITE_B` to be exported.
+    - criterion 25: tests/test_operator_site.py::test_a_malformed_command_prints_the_usage_and_exits_2. I added the rows `path x`, `init x`, `show x` and `get SITE_A x`. Each expects the usage line on standard error, nothing on standard output and exit status 2. The test still covers criterion 13.
+    - criterion 22 was already covered: tests/test_operator_site.py::test_a_space_before_the_equals_sign_is_a_fault_and_one_after_it_is_the_value.
+
+    Files changed: `tests/test_operator_site.py`. No files created.
+
+    Test run: I ran `make test` once and it passed (`test: green (170.4 s)`). The code under `operator/` already does what these criteria say (coder, entry 25), so the new rows never failed. `make lint` is green.
+
+    Modules the test run could not import: none.
+
+    `lint`: lint: green (0.2 s)
+    `test`: test: green (167.3 s)
