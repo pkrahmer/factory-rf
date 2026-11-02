@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T19:01:25.605438Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-02T19:01:04.523432Z'
   stage: tests
   run: 8840e06c1bba474683ee0a6eb839b691
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:01:25.605438Z'
+  stage: doing
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -333,3 +342,4 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
 
     `lint`: lint: green (0.1 s)
     `test`: test: green (80.8 s)
+17. factory: started doing as vm.
