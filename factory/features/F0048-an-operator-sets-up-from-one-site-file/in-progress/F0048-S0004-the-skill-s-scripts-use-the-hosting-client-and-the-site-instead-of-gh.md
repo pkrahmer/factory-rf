@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 501
 comments_read: [6584170311]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T17:57:07.996169Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-02T17:57:07.996169Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-02T18:00:46.763221Z'
+  stage: doing
+  run: e6123964a1b6405bb7fa1ffc93c82daf
+  blocked: question
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -200,3 +203,35 @@ Expect: one line, `0`.
    `lint`: lint: green (0.1 s)
    `test`: FAILED tests/test_operator_skill_scripts.py::test_no_script_calls_gh - AssertionError: assert ['approval.sh...status.sh:25'] == []
 9. factory: started doing as vm.
+10. coder: Stopped with the work done but `make check` red. The failure is in the work item's own smoke-test text, not in the code. I need your decision before I can hand forward.
+
+    **The question.** `make secrets` (detect-secrets over the changed files) flags a "Base64 High Entropy String" at line 121 of this work item's file. That line is in the `## Smoke test` section, which intake wrote: `printf 'SITE_REPOSITORY=owner/repo\nSITE_CHECKOUT=/path/to/checkout\n' > "$d/site.env"`. Every other target is green: lint, sast, types, layers, licenses, and test (coverage 99.58 %). Options:
+    - (a) Rewrite that one line of the smoke test as two `printf` lines: `printf 'SITE_REPOSITORY=owner/repo\n' > "$d/site.env"` and `printf 'SITE_CHECKOUT=/path/to/checkout\n' >> "$d/site.env"`. The meaning and the `Expect:` stay the same. I ran detect-secrets on those two lines in a temporary file and it found nothing. **This is the one I would choose.** I would make the edit myself in the next run, if the work item is in the coder's write paths; if not, you would make it.
+    - (b) Put a `pragma: allowlist secret` on that line, or add a `.secrets.baseline` entry. Both need your leave under *Not without asking*.
+    - (c) You change the text yourself on the branch.
+
+    **What is built (in the working tree, for the factory's commit):**
+    - `operator/skill/kumpel/scripts/settings.sh`:
+      - It sources `lib/site.sh` and loads the site file only when that file exists, so with no site file the JSON file answers alone.
+      - `get repository` and `get checkout` print `SITE_REPOSITORY` and `SITE_CHECKOUT` first, else the JSON file's value.
+      - `show` takes the repository and the checkout from the site first, then the JSON file.
+      - `init` with no arguments, when the site gives both values, writes only the switches; with two arguments it works as before.
+    - `status.sh`:
+      - The open pull requests, the newest comment and the last archive now come from `hosting_repo_api`. The comment is found from the issue's `comments` count, then `per_page=1&page=<c>`.
+      - The state rules are unchanged, line for line.
+      - `SITE_REPOSITORY` is set from `settings.sh get repository`, so a JSON-only setup still works.
+    - `approval.sh`:
+      - `== files` comes from `/pulls/<n>/files?per_page=100`; the cost comes from `/issues/<n>/comments?per_page=100`. Both API calls run before any output, so a missing token stops the script before it prints a section.
+      - `hosting_git fetch -q` replaces `git fetch`. The git sections are unchanged.
+    - `start-story.sh` and `next-story.sh`: they source both libraries and use `hosting_git pull` and `hosting_git push`.
+    - All of these scripts now use `pwd -P`. `wait.sh` is unchanged.
+
+    **Main choice.** JSON is parsed with inline `python3`, which `settings.sh` already needs. I rejected `jq`: it is not installed here, and it would add a new thing the operator needs.
+
+    **Checks.** `uv run pytest -q tests/test_operator_skill_scripts.py tests/test_operator_hosting.py` passes. Both smoke-test commands give the expected output: the three `settings.sh` lines, and `0` from the `gh` grep.
+
+    **Refactor.** I replaced a `set --` trick in `settings.sh init` with an explicit if/elif/else.
+
+    **Noticed, not touched:**
+    - `operator/README.md`'s *Needs* and `docs/operator-guide.md` are for the docs stage (criterion 18).
+    - In `status.sh`, a failed `hosting_repo_api` inside the comment-count pipeline surfaces as a python JSON error after the hosting client's own message.
