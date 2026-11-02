@@ -1,3 +1,126 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 503
+comments_read: [6586887222]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-02T19:42:35.716893Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:42:35.723101Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-02T19:43:15.756650Z'
+  stage: intake
+  run: 40254bec641c4b90b2dd242aab00aa5d
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:43:36.188820Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-02T19:45:44.904229Z'
+  stage: tests
+  run: 8c1fe8c2a8874077a16f5a2ce99f0e08
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:46:05.614939Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-11-02T19:46:59.176272Z'
+  stage: doing
+  run: ce9750e3d2304707816bb6af9b3ef057
+  blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-11-02T19:51:24.074413Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:51:42.098680Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-02T19:52:04.194522Z'
+  stage: doing
+  run: 79e8942a1601483eab5e763f35cfc5f5
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:52:25.363367Z'
+  stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-11-02T19:54:05.396239Z'
+  stage: tests
+  run: bfa5834fd05a4d0b96eec75a7b277576
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:54:26.169174Z'
+  stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-02T19:57:58.357182Z'
+  stage: doing
+  run: 4fff90f2697640b6b675d3bd058bdb95
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:58:19.301506Z'
+  stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T19:58:50.044906Z'
+  stage: review
+  run: 36e9aabb921a4a83abd1e190f25e4aea
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:59:11.012095Z'
+  stage: docs
+- number: 18
+  speaker: documenter
+  kind: result
+  at: '2026-11-02T19:59:35.382930Z'
+  stage: docs
+  run: 955b852ba00b4d32a6abe0275a787fa6
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:59:56.234323Z'
+  stage: smoke-test
+- number: 20
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-02T20:00:14.216103Z'
+  stage: smoke-test
+  run: 969b76df33204440bbe22a957b92f2d1
+---
+
 # The reviewer judges all five groups in every review
 
 ## Description
@@ -28,3 +151,135 @@ grep -c "Stop at the first failing group" claude/agents/reviewer.md
 Expect: two lines, `1` and `0`.
 
 ## Journal
+
+1. 2026-11-02 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names the concrete file `claude/agents/reviewer.md`, its Role section, and gives the replacement sentence word for word. Today's line (line 53) matches the "today's" it replaces. Test module and the unchanged existing test are named. The existing test at tests/test_claude_agent_texts.py:272 only asserts the old phrase "Stop at the first failing group and report it" is absent, so it still passes.
+   - Criteria: 1 (exact sentence directly before item 1), 2 (old phrase absent; the new phrase absent from the other agents' bodies), 3 (rest of the body is byte-for-byte unchanged, compared against the body with the sentence put back) and 4 (`make check`) are each testable by one test function. The Interface states no limit, validation or error, so there is no failing side to cover. Criterion 5 is the docs criterion, and its targets are named.
+   - Smoke test: two grep -c commands, runnable. The Expect line (`1` and `0`) can be checked against the output. No pytest command, so there is no `-q` concern. Note that `grep -c` exits 1 on a zero count, which is harmless for the check.
+   - Architecture: only a shipped agent text under `claude/` changes. No layer or code is touched, and the file lies within the coder's write paths.
+   - Scope: within F0048 (listed as S0011 in its Scope and Stories, and decision 15). Nothing in the feature's Out of scope is touched, and no other agent file changes.
+4. factory: started tests as vm.
+5. tester: I wrote the tests for criteria 1 to 3. They follow the pattern of `tests/test_claude_agent_texts.py` and use `agent_body` from `tests/shipped_agents.py`.
+   - criterion 1: tests/test_claude_agent_texts_review_groups.py::test_the_checklist_sentence_asks_for_all_five_groups_right_before_item_one. It checks that the Interface's sentence, word for word, comes directly before `1. **Acceptance criteria**`, separated by one blank line.
+   - criterion 2: tests/test_claude_agent_texts_review_groups.py::test_the_reviewer_no_longer_says_stop_at_the_first_failing_group checks the reviewer. tests/test_claude_agent_texts_review_groups.py::test_no_other_agent_asks_for_all_five_groups is parametrized over every other shipped agent.
+   - criterion 3: tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged. The new sentence must occur exactly once. The test then puts today's sentence back in its place and compares a CRC-32 of the result with the CRC-32 of the reviewer's body on the branch as it stands, which is still main's body before this story.
+   - criterion 4 (`make check`) and criterion 5 (docs) have no test of their own.
+
+   Rejected: a SHA-256 hex digest for criterion 3. `make secrets` flags it as a high-entropy string, and I would not add a `pragma: allowlist secret` or a baseline entry without asking. A CRC-32 stored as an integer still catches any accidental change to the bytes and keeps `make secrets` green. I also rejected reading `main` through git in the test, because that comparison would break once this story is merged.
+
+   Files created: tests/test_claude_agent_texts_review_groups.py. I changed no earlier test file.
+
+   Run: `uv run pytest -q tests/test_claude_agent_texts_review_groups.py`. Every module imported. The three reviewer tests fail on their assertions because the reviewer still has the old sentence. The other-agent rows pass, since they guard against something that does not exist yet. `make lint` and `make secrets` are green.
+
+   `lint`: lint: green (0.1 s)
+   `test`: FAILED tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged - AssertionError: assert 0 == 1
+6. factory: started doing as vm.
+7. coder: Question: an earlier test conflicts with the Interface's sentence.
+
+   The fix is a single sentence in `claude/agents/reviewer.md`, line 53. I made the replacement exactly as the Interface words it. With it, the three reviewer tests in `tests/test_claude_agent_texts_review_groups.py` passed. But one earlier test from another story then failed: `tests/test_claude_agent_texts.py::test_role_and_stage_sections_carry_the_texts_of_the_role[reviewer]`:
+
+   ```
+   E       AssertionError: assert ['Item 6 is p...roup failed.'] == []
+   E         Left contains one more item: 'Item 6 is part of every review, whichever group failed.'
+   ```
+
+   The cause is that `ROLE_AND_STAGE_ANCHORS["reviewer"]` (`tests/test_claude_agent_texts.py:120`) requires the anchor `Item 6 is part of every review, whichever group failed.` The Interface's sentence ends `Item 6 is part of every review.`, so the anchor is gone. The story names `test_the_reviewer_no_longer_stops_before_the_earlier_tests` as the one earlier test that passes unchanged. It says nothing about this one, and I may not change it. I put `reviewer.md` back to its old line, so this stage leaves no change in the working tree.
+
+   Options:
+   (a) The tester changes the anchor at `tests/test_claude_agent_texts.py:120` to `Item 6 is part of every review.`, with your leave, and the Interface sentence stays word for word. The anchor still pins item 6 being in every review, and the new sentence says that without "whichever group failed", because no group stops the review any more. **I would choose this.**
+   (b) The Interface sentence keeps the old ending: `... do not pad the report. Item 6 is part of every review, whichever group failed.` That changes criterion 1. The constants in `tests/test_claude_agent_texts_review_groups.py` would then need the tester to change them too.
+
+   If you answer (a), I end the next doing run with `tests`, naming that anchor change. Then I make the one-line change to `reviewer.md` once the tester has made it.
+
+   Noticed, not touched: `docs/project-guide/agents.md:258` and `docs/decisions.md:587` still describe "whichever group failed" and "it stops at the first failing group". Criterion 5 already gives these to the documenter.
+8. 2026-11-02 human: (a), granted: the tester changes the anchor of `ROLE_AND_STAGE_ANCHORS["reviewer"]` at `tests/test_claude_agent_texts.py:120` to `Item 6 is part of every review.` and nothing else in that file; the Interface's sentence stays word for word. End with `tests` naming that change, then make the one-line change to `reviewer.md`.
+9. factory: started doing as vm.
+10. coder: Test change, as the human granted in entry 8: in `tests/test_claude_agent_texts.py:120`, change the anchor of `ROLE_AND_STAGE_ANCHORS["reviewer"]` from `Item 6 is part of every review, whichever group failed.` to `Item 6 is part of every review.`, and change nothing else in that file.
+
+    I changed nothing in this run, and the working tree holds no change. `claude/agents/reviewer.md` still has its old line 53. In the next doing run, after the tester's change, I replace that line with the Interface's sentence word for word. In round 0 that replacement made the three tests in `tests/test_claude_agent_texts_review_groups.py` pass. Only the old anchor stopped `make check` from being green.
+
+    Rejected: making the `reviewer.md` change now. Until the anchor changes, it turns `make check` red. Entry 8 also orders the steps: the test change first, then the one-line change.
+
+    The journal changes nothing about the meaning of the task: the Interface's sentence stays word for word, so the Description stays as it is.
+
+    Noticed, not touched: `docs/project-guide/agents.md:258` and `docs/decisions.md:587` still say "whichever group failed" and "it stops at the first failing group". Criterion 5 gives both to the documenter.
+11. factory: started tests as vm.
+12. tester: I made the test change the human granted in entry 8 and the coder named in entry 10. In `tests/test_claude_agent_texts.py:120`, the anchor in `ROLE_AND_STAGE_ANCHORS["reviewer"]` changed from `Item 6 is part of every review, whichever group failed.` to `Item 6 is part of every review.`. I changed nothing else in that file and no other file. The reason is that the Interface's sentence ends with `Item 6 is part of every review.`, so the old anchor could not hold once the sentence is in place.
+
+    The criterion mapping is unchanged from entry 5:
+    - criterion 1: tests/test_claude_agent_texts_review_groups.py::test_the_checklist_sentence_asks_for_all_five_groups_right_before_item_one
+    - criterion 2: tests/test_claude_agent_texts_review_groups.py::test_the_reviewer_no_longer_says_stop_at_the_first_failing_group and tests/test_claude_agent_texts_review_groups.py::test_no_other_agent_asks_for_all_five_groups
+    - criterion 3: tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged
+    - criteria 4 and 5: no test of their own
+
+    Files changed: tests/test_claude_agent_texts.py (only the one anchor, under the human's leave in entry 8). Files created: none.
+
+    Run: `uv run pytest -q tests/test_claude_agent_texts.py tests/test_claude_agent_texts_review_groups.py`. Every module imported. Four tests fail on their assertions, as expected, because `claude/agents/reviewer.md` still has the old sentence: `test_role_and_stage_sections_carry_the_texts_of_the_role[reviewer]` and the three reviewer tests in the new module. All four should pass once the coder replaces line 53 with the Interface's sentence. `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
+    `test`: FAILED tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged - AssertionError: assert 0 == 1
+13. factory: started doing as vm.
+14. coder: I built the one-line change in `claude/agents/reviewer.md`, in the *Role* section (line 52). The sentence before the checklist now matches the Interface word for word: `Checklist, in this order. Go through all of groups 1 to 5 in every review, also when an earlier group fails, and report every finding of every group in this one entry; do not pad the report. Item 6 is part of every review.` No other line of the reviewer and no other agent file changed.
+
+    `make check` is green (`check: green`, with `test: green (82.0 s)`). That run includes the three reviewer tests in `tests/test_claude_agent_texts_review_groups.py` and `test_role_and_stage_sections_carry_the_texts_of_the_role[reviewer]` with the anchor the tester changed in entry 12.
+
+    Main choice: I replaced exactly the one sentence and left everything around it as it was, as criterion 3 requires. I rejected keeping the old ending "whichever group failed": the human ruled it out in entry 8.
+
+    Refactor: the diff is the single sentence, so nothing needed changing.
+
+    Description: entry 8 left the Interface's sentence word for word, so the meaning of the task is unchanged and the Description stays as it is.
+
+    Noticed, not touched: `docs/project-guide/agents.md:258` and `docs/decisions.md:587` still say "whichever group failed" and "it stops at the first failing group". Criterion 5 gives both to the documenter.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
+15. factory: started review as vm.
+16. reviewer: no findings
+
+    I read the diff (`claude/agents/reviewer.md`, `tests/test_claude_agent_texts.py`, `tests/test_claude_agent_texts_review_groups.py`) against the work item and checked all five groups.
+    - Acceptance criteria: criterion 1 is pinned by `test_the_checklist_sentence_asks_for_all_five_groups_right_before_item_one`. It checks the Interface's sentence word for word, followed by one blank line and then `1. **Acceptance criteria**`. Criterion 2 is pinned by `test_the_reviewer_no_longer_says_stop_at_the_first_failing_group`, plus `test_no_other_agent_asks_for_all_five_groups`, which runs once for each other agent in `SHIPPED_NAMES`. Criterion 3 is pinned by `test_the_rest_of_the_reviewer_body_is_unchanged`. That test puts the old sentence back and compares a CRC-32 of the whole stripped body, so items 1 to 6, the notes, criterion and Description paragraphs, *Stage* and *Lessons* are all covered. The diff to `reviewer.md` changes only that one line, so the green test means the stored CRC is the one of main's body. The Interface states no limit and no failing side. Entry 14 records the coder's `make check` as green. `test_the_reviewer_no_longer_stops_before_the_earlier_tests` (`tests/test_claude_agent_texts.py:272`) is unchanged.
+    - Architecture and security: only a shipped agent text and tests change. There is no code under `src/`, no marker and no secret. The CRC is stored as an integer, so `make secrets` stays green without a baseline entry.
+    - Quality: the test module has a docstring, plain functions, the shared `agent_body`/`SHIPPED_NAMES` from `tests/shipped_agents.py`, and a why-comment on the CRC constant. No helper is copied.
+    - Hygiene: the journal explains the main decision, the anchor conflict and the human's ruling (entry 8). It also says what was rejected: a SHA-256 digest, reading `main` through git, and keeping "whichever group failed". The Description matches what was built. The docs criterion still names `docs/project-guide/agents.md` and `docs/decisions.md`, the two places the coder noted as stale.
+
+    Earlier tests:
+    - tests/test_claude_agent_texts.py: changed under the human's leave in journal entry 8. Only the anchor in `ROLE_AND_STAGE_ANCHORS["reviewer"]` changed, to `Item 6 is part of every review.`, and nothing else in the file.
+17. factory: started docs as vm.
+18. documenter: I wrote the two documents the docs criterion names. I ran no `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/project-guide/agents.md` (line 258): the reviewer's checklist line now says the reviewer goes through all of groups 1 to 5 in every review, also when an earlier group fails, and reports every finding in one entry. Item 6 is always part of the review. It no longer says the reviewer stops at the first failing group.
+    - `docs/decisions.md`: a new entry at the end, *The reviewer judges all five groups in every review*, dated 2026-11-02. It gives the decision, the reason (a round per group, and three round caps in F0048) and the test that pins it. It also says what stays unchanged.
+
+    Cross-read and found current: `README.md`, `docs/operator-guide.md` and the rest of `docs/project-guide/`. A grep for "first failing", "whichever group" and "stops at the first" found nothing stale there. The criterion also says `README.md` and the other documents get nothing.
+
+    Stale text I saw and did not touch: `docs/decisions.md:587` is the 2026-10-18 entry *The reviewer names every earlier test the diff changes*. It still says "whichever group failed". I left it as the history of that day, and the new entry says it replaces that wording. The other grep hits (`docs/operator-guide.md:1438` and `docs/project-guide/stage-environment.md:240`) are about checks and a script, so they are unrelated to this story.
+
+    Findings: none. The diff matches the Interface and the criteria.
+
+    `check`: check: green (not run again: passed on tree 3c9fdc6e474e at 2026-11-02T19:56:26Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
+19. factory: started smoke-test as vm.
+20. smoke-tester: Smoke test passed. I ran both commands from the repository root exactly as written and found nothing wrong.
+
+    Command 1: `grep -c "Go through all of groups 1 to 5 in every review" claude/agents/reviewer.md`
+    ```
+    1
+    ```
+    Command 2: `grep -c "Stop at the first failing group" claude/agents/reviewer.md`
+    ```
+    0
+    ```
+    (grep exits with status 1 when it counts zero matches. As intake noted, that does not affect the check.)
+
+    Expect: two lines, `1` and `0`. **Met.**
+
+    Checked against the acceptance criteria:
+    - Criterion 1: line 53 of `claude/agents/reviewer.md` holds the Interface's sentence word for word. It is followed by one blank line and then item 1, `1. **Acceptance criteria**`.
+    - Criterion 2: the old phrase is absent from the reviewer. `grep -rl "Go through all of groups 1 to 5" claude/agents/` lists only `reviewer.md`, so no other shipped agent holds the new phrase.
+    - Criteria 3 to 5: the smoke test does not reach them, and nothing it showed contradicts them.
+
+    Findings: none.

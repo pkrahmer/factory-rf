@@ -1321,3 +1321,11 @@ Date: 2026-11-01 (F0047-S0007; decision 14 of the feature).
 - Why: the factory runs upstream opencode, which has switches for what a company build closes by construction. Measured on 2026-10-31 (opencode 1.19.3, P14): without the switches every run contacts `models.opencode.ai` once; with them it does not, and `OPENCODE_DISABLE_MODELS_FETCH` is the switch that does it. The other two changed nothing observable and stay as upstream's guards. The provider file already defines the models, so no public list is needed; without the file opencode needs it, so the VM path is untouched.
 - `registry.npmjs.org` is still contacted at the start of every run, most likely for the provider's npm package, and no switch removes it. A deployment that must prove no traffic to the vendor reads the proxy's log or runs the startup probe of `planning/cloud-sandbox/`.
 - Rejected: setting the switches without a provider file (opencode would have no model list); an offline model file; a stage image with the provider's package pre-installed (a candidate after the feature, `planning/v1.2-candidates.md`).
+
+## The reviewer judges all five groups in every review
+
+Date: 2026-11-02 (F0048-S0011).
+
+- Decision: the reviewer goes through all of the checklist's groups 1 to 5 in every review, also when an earlier group fails, and reports every finding of every group in one entry. Item 6 stays part of every review. The sentence before the checklist in `claude/agents/reviewer.md` says so; `tests/test_claude_agent_texts_review_groups.py` pins it.
+- Why: the reviewer used to stop at the first failing group, so a gap in group 1 showed the later groups only in a later round, and each round costs a coder run, a tester run and a review. In F0048, S0001, S0003 and S0005 reached the round cap this way (the night log of 2026-11-02).
+- This replaces "stops at the first failing group" in the entries *The reviewer names every earlier test the diff changes* (2026-10-18) and its predecessors; their wording "whichever group failed" is history. What counts as a finding or a note, the criteria the reviewer may add and the decision (`docs` with no finding, `doing` with any) are unchanged.
