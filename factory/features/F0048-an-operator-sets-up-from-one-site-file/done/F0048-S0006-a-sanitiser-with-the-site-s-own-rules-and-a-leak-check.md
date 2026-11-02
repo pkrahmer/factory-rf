@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -202,6 +202,11 @@ journal:
   at: '2026-11-02T20:44:50.292499Z'
   stage: smoke-test
   run: 93a323e3101144cabfd9ba683eba4034
+- number: 36
+  speaker: factory
+  kind: done
+  at: '2026-11-02T20:47:14.909647Z'
+  stage: approval
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -652,3 +657,4 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     Checked against `## Acceptance criteria`: the output agrees with criteria 2, 3, 8 and 10, and contradicts none. The smoke test does not reach the other criteria, including the `docs:` criterion; the tests cover those.
 
     Findings: none.
+36. factory: done (pull request merged); cost: 16 runs, 19.9 min, 134 turns, 468241 tokens in (2928397 more from cache), 86778 out, $5.71
