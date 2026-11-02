@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 502
 comments_read: [6585290870, 6586194468]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T19:20:26.375741Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-02T19:20:26.375741Z'
   stage: review
+- number: 28
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T19:22:06.814800Z'
+  stage: review
+  run: 0da05b40f4794f14ad1fd21b06bfd087
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -495,3 +497,28 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
 25. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 26. 2026-11-02 human: Go on. Criteria 19 to 21 are right (they pin round 2's three security fixes): the coder ends with `tests` naming them, the tester writes the three tests. In the next review, judge all five groups in one pass, so every remaining finding comes at once. A further missing side that the code already handles and that needs only a test row is a note, not a reason to send the story back.
 27. factory: started review as vm.
+28. reviewer: Review after the human's answer in entry 26. As that answer asked, I judged all five groups in one pass. I read `operator/job/job.sh`, `tests/test_operator_job.py`, the work item, and `operator/lib/site.sh`, which the script sources.
+
+    - **Group 1 (acceptance criteria) fails, on criteria 19 to 21 only.** Entry 26 sent the work item straight to review, so the coder's `tests` hand-over and the tester's three tests have not happened yet. Every other criterion, 1 to 18, has a test that checks what it is named after, and both sides of every other Interface rule are tested. That includes running count 0 or empty against 1 and 2, missing keys, the job's state, an unknown ref, `--yes`, usage, a failing `gcloud`, and `describe`'s text. `make check` was green after the coder (entry 22).
+    - **Group 2 (architecture) passes.** Nothing under `src/` changes, the script lives under `operator/`, and the test sits at the `tests/` root.
+    - **Group 3 (security) passes.** The round-2 checks close entry 20's three findings:
+      - `check_instance` (`job.sh:51-58`) keeps shell syntax out of `$root` in the wrapper.
+      - `check_env_values` (`:61-71`) keeps `@` out of the `^@^` list.
+      - `check_costs` (`:74-83`) refuses a bad price before `python3` reads it, so no traceback and no NaN.
+
+      `provider.json` is one `json.dumps` line inside a quoted heredoc. The start script is in a quoted heredoc guarded by the `JOB_START_SH_END` check. The secrets are mounts only. `site_value` calls `eval` only on a name it has checked. No suppression markers.
+    - **Group 4 (quality)** has one finding, a copied helper in the test file (finding 3).
+    - **Group 5 (work item hygiene)** has one finding, the docs criterion (finding 4). The Description already names the three refusals (entry 24's correction) and matches the code.
+
+    Findings:
+    1. `tests/test_operator_job.py` (whole file) against `operator/job/job.sh:51-83`: criteria 19, 20 and 21 have no test, so `check_instance`, `check_env_values` and `check_costs` are never run by any test. Entry 22 notes that a broken key list once stayed green. Fix: the coder ends with `tests` naming criteria 19 to 21, as entry 26 says, and the tester writes one parametrized test per criterion with exactly the rows each criterion lists. That includes the `update` and `create --dry-run` rows, and for criterion 21 the accepted costs read back from `provider.json`.
+    2. `tests/test_operator_job.py:595` `test_execute_and_delete_name_a_missing_job` is the refused side of the "execute and delete need the project, the region and the job" rule. Its accepted side is the `execute` and `delete` rows of `test_missing_site_keys_are_named_in_one_line` at `:286`, so one rule's two sides are split across two functions. Fix: make the two refused cases rows of the `:286` test, keeping their assertions: the one `site: missing SITE_JOB in <path>` line, exit 2, no `gcloud`.
+    3. `tests/test_operator_job.py:212` `calls` is a second copy of `recorded_calls` in `tests/recording_stand_in_support.py:22`: both read a JSON-lines file of calls and return none when the file is missing. The same reader is copied a third time at `tests/test_operator_hosting.py:97` `calls`. Fix: put one shared reader of a records file in `tests/recording_stand_in_support.py` (or extend `recorded_calls` to take the records path) and use it here. The hosting copy may move there under the standing leave to move a shared test helper.
+    4. The work item, criterion 23 (docs): it does not name the three refusals of criteria 19 to 21. The operator must learn from *Creating the job* that `create` and `update` refuse each of these:
+       - an instance name outside letters, digits, `.`, `_` and `-`;
+       - an `@` in a value of the env list, so an SSH repository URL such as `git@host:org/work.git` is refused;
+       - a price that is not a plain number.
+
+       Fix: criterion 23 also names these three refusals next to the key table. The coder and the tester cannot write the work item, so the next review (or intake) applies this wording.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` lists the only test file, `tests/test_operator_job.py`, as added (`A`), and no test file that `main` holds is changed, renamed or deleted.
