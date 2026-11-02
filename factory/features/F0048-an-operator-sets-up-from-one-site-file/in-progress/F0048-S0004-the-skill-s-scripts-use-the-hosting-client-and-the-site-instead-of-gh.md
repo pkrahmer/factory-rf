@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311, 6584737120]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T18:26:21.363845Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-02T18:26:00.164435Z'
   stage: tests
   run: bcf56fcb34ac425f8052d0c0932b2d47
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-02T18:26:21.363845Z'
+  stage: doing
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -378,3 +387,4 @@ Expect: one line, `0`.
 
     `lint`: lint: green (0.2 s)
     `test`: test: green (81.2 s)
+20. factory: started doing as vm.
