@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-11-02T21:27:46.386992Z'
   stage: smoke-test
   run: c220d658ecfd4818959eca516fcb5335
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-11-02T21:29:07.504408Z'
+  stage: approval
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -552,3 +557,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
     Reading the acceptance criteria again: neither command contradicts any criterion. Commands 1 and 2 agree with criteria 1, 5 and 6; the others (`status`, choosing the execution, the sanitiser rules, impersonation) were not exercised by these commands and nothing here goes against them.
 
     Findings: none.
+32. factory: done (pull request merged); cost: 14 runs, 21.5 min, 117 turns, 442446 tokens in (3185383 more from cache), 79160 out, $5.37
