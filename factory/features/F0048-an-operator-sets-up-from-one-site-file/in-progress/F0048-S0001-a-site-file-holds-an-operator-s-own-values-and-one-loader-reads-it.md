@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T15:54:57.517773Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -212,6 +208,12 @@ journal:
   kind: started
   at: '2026-11-02T15:54:57.517773Z'
   stage: doing
+- number: 37
+  speaker: coder
+  kind: result
+  at: '2026-11-02T15:55:28.217802Z'
+  stage: doing
+  run: 8f888f7d9470475086821401e7f0ec33
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -620,3 +622,19 @@ Expect: one line, `$(echo ran)`.
 
     Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py` and `tests/test_operator_site.py`, both `A`).
 36. factory: started doing as vm.
+37. coder: Round 1, after the reviewer's entry 35 and the human's entry 33. I changed no code. `operator/lib/site.sh` and `operator/bin/site` already do what criteria 26 and 27 say. `make check` was green on this code (entry 29), and nothing it reads has changed since, so I did not run it again. There was no refactor pass because I have no diff this round.
+
+    For the tester, the test changes the reviewer named (entry 35, findings 1 to 3), all in `tests/test_operator_site.py`:
+    - **Criterion 26:** add the row `pytest.param({"XDG_CONFIG_HOME": ""}, "home/.config/kumpel/site.env", id="empty-xdg-config-home")` to `test_the_site_path_follows_factory_site_then_xdg_then_home`.
+    - **Criterion 27:** add the row `pytest.param(["get", "SITE_"], id="get-prefix-without-name")` to `test_a_malformed_command_prints_the_usage_and_exits_2`.
+    - **Criterion 9 (finding 3):** in the `all-set` row of `test_require_names_every_unset_or_empty_name_in_the_order_given`, set `SITE_B` in that row's environment and pass `SITE_A SITE_B` instead of `SITE_A SITE_D`. The variable can be set per row through a parameter, because the `unset-and-empty` and `order-given` rows need `SITE_B` unset. This story wrote the test, and the reviewer asked for the change.
+
+    Main choice: I end with `tests`, as the human asked in entry 33, and do not bundle finding 4 into a question first. Finding 4 changes only the docs criterion, not the tests or the code, so it does not hold up the tester. I rejected asking first: that would delay the hand-off the human asked for and would still cost one question either way.
+
+    Still open: reviewer finding 4 (criterion 29 and `operator/README.md`). The *What is here* table in `operator/README.md` does not list `bin/site`, `lib/site.sh` or `site.env.example`, but criterion 29 says "the other documents: none". Only the human can change that criterion. When the work item comes back to doing, I will ask the human with these options:
+    - (a) Add `operator/README.md`'s table to criterion 29, with one row each for the three paths. This is my choice.
+    - (b) Keep criterion 29 as it is and leave the README table to a later story.
+
+    Description: nothing in the journal since entry 33 has changed the meaning of the task.
+
+    Noticed, not touched: the defaults in the comments of `operator/site.env.example` are my reading of the key names. The stories that read each key (S0003 to S0008) should confirm them, and so should the documenter before they go into the operator guide's key table.
