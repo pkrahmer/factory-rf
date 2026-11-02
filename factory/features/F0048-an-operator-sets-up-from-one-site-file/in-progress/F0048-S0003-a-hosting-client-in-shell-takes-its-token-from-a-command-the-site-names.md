@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T17:36:44.518913Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -217,6 +213,12 @@ journal:
   kind: started
   at: '2026-11-02T17:36:44.518913Z'
   stage: doing
+- number: 38
+  speaker: coder
+  kind: result
+  at: '2026-11-02T17:40:03.988203Z'
+  stage: doing
+  run: 3ae3cce630ad4013ba8970df7857ec34
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -666,3 +668,21 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     `lint`: lint: green (0.1 s)
     `test`: test: green (78.6 s)
 37. factory: started doing as vm.
+38. coder: Round 1 (new count), after tester entry 36. I changed no code. `operator/lib/hosting.sh` already passes the rows the tester added in tests/test_operator_hosting.py: criterion 19 (`422-own-message-first`), criterion 20 (`curl-fails-with-its-error-text`, with `STAND_IN_CURL_ERROR`) and the narrower token search for finding 3. When I started, the working tree had no changes, and I left it that way.
+
+    What I built: nothing new. The story's whole change outside `factory/` and `tests/` is still `operator/lib/hosting.sh`.
+
+    Main choice: leave the library as it is. Rejected: changing code ahead of any finding. `_hosting_error_message` already cuts the body at its first `"message"`, and `_hosting_last_three` already reads the status from the end of curl's standard error, which are exactly what the new rows pin.
+
+    Refactor pass: there is no diff this round. The library's diff against main is the same one reviewed in entry 32, and nothing needs changing.
+
+    The journal changed nothing in the Description this round.
+
+    Noticed, not touched:
+    - Reviewer entry 32's finding 4 is still open in the work item. Criterion 22 (docs) still asks for "the three ways to give a token" and does not give the curl 7.63 minimum. I rewrote it in entry 34, but the factory dropped that edit because the work item is outside the coder's write paths. Whoever may write the work item (the reviewer or the documenter) needs to make that change. The facts for it: there are two sources, the `SITE_TOKEN_CMD` command when it is set and not empty, else `gh auth token`, else the failure message. curl must be 7.63 or later for `%{stderr}` in `--write-out`.
+    - On a failed transfer, curl's own error text is thrown away with the status file. The Interface's message is only `no answer`.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
