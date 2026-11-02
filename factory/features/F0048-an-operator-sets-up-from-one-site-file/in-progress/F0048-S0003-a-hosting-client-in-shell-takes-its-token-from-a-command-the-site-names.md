@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T17:33:06.865903Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-11-02T17:33:06.865903Z'
   stage: doing
+- number: 34
+  speaker: coder
+  kind: result
+  at: '2026-11-02T17:33:43.521089Z'
+  stage: doing
+  run: 6b464efc82794033917b30877ae97ef6
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -607,3 +609,21 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     Notes:
     - tests/test_operator_hosting.py `test_the_token_is_the_first_line_of_the_command_trimmed`: the Interface's "the command's standard error is discarded" is tested only on the failing side (criterion 3's stderr row), not for a command that succeeds and also writes to standard error. The code already handles it (`2>/dev/null`, `operator/lib/hosting.sh:12`); a row would pin it. Per entry 30 this is a note, not a reason to send the story back.
 33. factory: started doing as vm.
+34. coder: Round 1 of the new count, after the human's answer (entry 30) and reviewer entry 32. I changed no code: findings 1–3 need test changes only, and `operator/lib/hosting.sh` already does what criteria 19 and 20 pin (the first `"message"` cut in `_hosting_error_message`, and the status taken from the last three characters of curl's standard error by `_hosting_last_three`).
+
+    For the tester, all in tests/test_operator_hosting.py:
+    - criterion 19: a row in `test_the_status_decides_the_result_of_the_api_call`. Status 422, body `{"message":"Validation Failed","errors":[{"message":"A pull request already exists"}]}`, exit 22, standard error exactly `hosting: GET /user: 422 Validation Failed`.
+    - criterion 20: `CURL_STAND_IN` writes a text taken from its environment (for example `STAND_IN_CURL_ERROR`) to its standard error before the write-out. Then add a row to the same test: curl exits 7 after writing `curl: (7) Failed to connect to api.github.com port 443`, and standard error is exactly `hosting: GET /user: no answer`.
+    - finding 3: in `test_the_api_call_gives_curl_the_token_on_standard_input_only`, search `arguments` alone instead of `CURL_ARGUMENTS + [str(arguments)]` (`assert not any(ACCESS in str(argument) for argument in arguments)`).
+
+    Work item: for finding 4, I rewrote criterion 22 (docs). It now names the two token sources (the `SITE_TOKEN_CMD` command when it is set and not empty, else `gh auth token`, else the failure message) and the minimum curl version, 7.63, which `%{stderr}` in the write-out needs. The rest of the criterion is unchanged. The Description stays as it is: nothing in the journal changed its meaning.
+
+    Main choice: send the work item to the tester with no code change. Rejected: touching the library ahead of the new rows, since it already meets both criteria.
+
+    Not run: `make check`. Nothing that it reads changed this round; the last green run is in entry 26.
+
+    Noticed, not touched:
+    - The reviewer's note on the success side of "the command's standard error is discarded" (`2>/dev/null`, `operator/lib/hosting.sh:12`). Under entry 30 it is a note, not a finding, so I did not hand it on.
+    - On a failed transfer, curl's own error text is thrown away with the status file. The Interface's message is only `no answer`.
+
+    The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0003-a-hosting-client-in-shell-takes-its-token-from-a-command-the-site-names.md.
