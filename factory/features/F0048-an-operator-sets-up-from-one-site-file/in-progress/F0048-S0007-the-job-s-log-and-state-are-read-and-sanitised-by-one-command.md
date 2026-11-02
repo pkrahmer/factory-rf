@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T21:20:25.104280Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-02T21:20:04.552815Z'
   stage: tests
   run: 90fda224ee2d430783a43e3482f3760e
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:20:25.104280Z'
+  stage: doing
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -429,3 +438,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
 
     `lint`: lint: green (0.1 s)
     `test`: test: green (80.1 s)
+24. factory: started doing as vm.
