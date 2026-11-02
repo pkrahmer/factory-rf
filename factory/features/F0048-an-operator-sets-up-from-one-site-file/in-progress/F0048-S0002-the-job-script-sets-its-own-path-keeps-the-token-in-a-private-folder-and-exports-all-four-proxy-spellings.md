@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-02T16:39:05.444119Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-02T16:38:44.009132Z'
   stage: doing
   run: 77b28f577c1840fd915159af68a31201
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:39:05.444119Z'
+  stage: review
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -246,3 +255,4 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+16. factory: started review as vm.
