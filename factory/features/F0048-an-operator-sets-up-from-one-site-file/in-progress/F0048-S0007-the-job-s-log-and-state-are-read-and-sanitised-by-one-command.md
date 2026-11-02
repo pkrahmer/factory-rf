@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-02T21:25:52.955836Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-02T21:25:32.298939Z'
   stage: review
   run: 208b9f4d50f44b60814e0ddb2c8284f1
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:25:52.955836Z'
+  stage: docs
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -486,3 +495,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
 
     Notes:
     - `tests/test_operator_job_log.py:398-402` and `:526-530`: the same assertion on the last line (stopped or `NO_STOP`) is written twice. A small helper in the module would hold it once.
+28. factory: started docs as vm.
