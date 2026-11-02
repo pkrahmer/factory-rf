@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T17:31:10.554289Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-11-02T17:31:10.554289Z'
   stage: review
+- number: 32
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T17:32:45.892686Z'
+  stage: review
+  run: 364946448f2b413d94d9d8eb86dc8c56
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -564,3 +566,34 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
 29. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 30. 2026-11-02 human: Go on. Criteria 19 and 20 are right (they pin round 1's two real fixes): the coder ends with `tests` naming them, the tester adds the two rows and the stand-in's error text. In the next review, judge all five groups in one pass, not only group 1, so every remaining finding comes at once. A further missing side that the code already handles and that needs only a test row is a note, not a reason to send the story back.
 31. factory: started review as vm.
+32. reviewer: Review, the round after the human's answer (entry 30). As the human asked, I judged all five groups in one pass. I read every criterion (1–20) and every Interface rule against `operator/lib/hosting.sh` and `tests/test_operator_hosting.py`. Criteria 1–18 each have a test that checks what the criterion says, and the coder's last `make check` was green (entry 26).
+
+    No stage ran between the human's answer and this review: the branch has no commit after entry 28's review except the merge of `main`. So criteria 19 and 20 still have no test.
+
+    Group 1, acceptance criteria:
+    1. tests/test_operator_hosting.py `test_the_status_decides_the_result_of_the_api_call`: criterion 19 has no row. The fix it pins, the first `"message"` at `operator/lib/hosting.sh:118`, can be undone with every test still green. Fix: the coder ends with `tests` naming it, as entry 30 says. The tester adds the row: status 422, body `{"message":"Validation Failed","errors":[{"message":"A pull request already exists"}]}`, exit 22, standard error `hosting: GET /user: 422 Validation Failed`.
+    2. tests/test_operator_hosting.py `CURL_STAND_IN` and the same test: criterion 20 has no row. The stand-in also cannot yet write an error text before its write-out, so `_hosting_last_three` (`operator/lib/hosting.sh:110`) is unpinned. Fix, through `tests` as entry 30 says: the stand-in writes a text from its environment (for example `STAND_IN_CURL_ERROR`) on standard error before the write-out. A new row: curl exits 7 after writing `curl: (7) Failed to connect to api.github.com port 443`, and standard error is exactly `hosting: GET /user: no answer`.
+
+    Group 4, quality (test file; this is round 0 of the new count, so it is a finding here, not a note):
+    3. tests/test_operator_hosting.py:285 `test_the_api_call_gives_curl_the_token_on_standard_input_only`: `CURL_ARGUMENTS + [str(arguments)]` also searches the test's own constant, which can never hold the token. Fix: search `arguments` alone (`assert not any(ACCESS in str(argument) for argument in arguments)`). Name it in the same `tests` hand-over.
+
+    Group 5, work item hygiene:
+    4. Work item, criterion 22 (docs): it asks for "the three ways to give a token", but the Interface has two sources: `SITE_TOKEN_CMD` when it is set and not empty, else `gh auth token`. It also leaves out what the operator must now know, that `hosting_api` needs curl 7.63 or later (`%{stderr}` in `--write-out`, `operator/lib/hosting.sh:92`). Fix: rewrite criterion 22 to name the two sources (the command, else `gh auth token` when unset or empty, else the failure message) and the curl 7.63 minimum, keeping the rest of it.
+
+    Groups 2 (architecture) and 3 (security) have no findings:
+    - Architecture: the change is a shell library under `operator/lib/`. It reads the site through S0001's loader and reuses `_site_trim_leading` and `_site_trim_trailing` and `site_require` instead of copying them, and it changes no existing script.
+    - Security:
+      - The token reaches `curl` only through the builtin `printf` on a pipe, and `git` only through `GIT_CONFIG_*` prefix assignments.
+      - The token source's output and standard error are never repeated.
+      - No new check-silencing marker.
+      - `sh -c "$SITE_TOKEN_CMD"` is the Interface's design and feature decision 1.
+
+    Points I set aside:
+    - `_hosting_bearer`, `_hosting_secret` and `_hosting_basic` keep the token in unexported variables of the calling shell after the call. Nothing exports them, no operator script uses `set -a`, and no Interface rule is broken.
+    - The sourcing-time guard reads `env`, so it sees exported `SITE_` values only. `site_load` exports, so this matches the Interface.
+
+    Earlier tests:
+    - tests/operator_support.py: none needed. It only adds `HOSTING_LIBRARY` and `run_hosting`, and every helper it held stays as it was.
+
+    Notes:
+    - tests/test_operator_hosting.py `test_the_token_is_the_first_line_of_the_command_trimmed`: the Interface's "the command's standard error is discarded" is tested only on the failing side (criterion 3's stderr row), not for a command that succeeds and also writes to standard error. The code already handles it (`2>/dev/null`, `operator/lib/hosting.sh:12`); a row would pin it. Per entry 30 this is a note, not a reason to send the story back.
