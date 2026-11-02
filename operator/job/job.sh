@@ -47,6 +47,41 @@ require_settings() {
     SITE_LOGIN_URL SITE_LOGIN_SCOPE SITE_LOGIN_CLIENT_ID || exit
 }
 
+# The instance's name becomes a path in the shell text the job runs, so it holds no shell syntax.
+check_instance() {
+  case $SITE_INSTANCE in
+    *[!ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-]*)
+      echo "job: SITE_INSTANCE may hold only letters, digits, '.', '_' and '-'" >&2
+      exit 1
+      ;;
+  esac
+}
+
+# A value holding the env list's delimiter would split into entries of its own.
+check_env_values() {
+  for name in SITE_REPOSITORY_URL SITE_CODE_URL SITE_CODE_REF SITE_PROXY SITE_NO_PROXY SITE_MODEL \
+    SITE_LOGIN_URL SITE_LOGIN_SCOPE SITE_LOGIN_CLIENT_ID SITE_IDLE_MINUTES; do
+    case $(site_value "$name") in
+      *@*)
+        echo "job: $name holds '@', the delimiter of the job's env list" >&2
+        exit 1
+        ;;
+    esac
+  done
+}
+
+# NaN, infinity or a negative price would make the provider file invalid or wrong.
+check_costs() {
+  for name in SITE_MODEL_INPUT_COST SITE_MODEL_OUTPUT_COST; do
+    case $(site_value "$name") in
+      *[!0123456789.]* | *.*.* | .)
+        echo "job: $name is not a number" >&2
+        exit 1
+        ;;
+    esac
+  done
+}
+
 job_root() {
   printf '%s' "/srv/factory/$SITE_INSTANCE"
 }
@@ -181,6 +216,9 @@ create_or_update() {
     *) usage ;;
   esac
   require_settings
+  check_instance
+  check_env_values
+  check_costs
   check_code_ref
   work=$(mktemp -d) || exit 1
   trap 'rm -rf "$work"' EXIT

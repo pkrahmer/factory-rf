@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T19:06:50.025864Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-02T19:06:50.025864Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-11-02T19:14:02.845241Z'
+  stage: doing
+  run: 223adb59ed074157b3c7f3ddb704a6d5
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -404,3 +406,28 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
 
     Earlier tests: none. `git diff --name-status main...HEAD` shows the only test file, `tests/test_operator_job.py`, as added (`A`). No test file that `main` holds is changed, renamed or deleted.
 21. factory: started doing as vm.
+22. coder: Round 2: I fixed the three security findings from the reviewer's entry 20, all in `operator/job/job.sh`. `create` and `update` now run three new checks after `require_settings` and before `check_code_ref`. A refused value stops with a `job:` message on standard error and status 1. That happens before the wrapper is built and before any `gcloud` call, `--dry-run` included.
+
+    - **Finding 1, `check_instance`:** `SITE_INSTANCE` may hold only ASCII letters, digits, `.`, `_` and `-`. Anything else gets `job: SITE_INSTANCE may hold only letters, digits, '.', '_' and '-'`. Because of this, `$root` in the wrapper's shell text can carry no shell syntax. The allowed characters are spelled out in full rather than written as `[A-Za-z]`, so the locale cannot change what passes.
+    - **Finding 2, `check_env_values`:** any value that goes into the `^@^` env list and contains `@` is refused, naming the key: `job: <KEY> holds '@', the delimiter of the job's env list`. The keys checked are `SITE_REPOSITORY_URL`, `SITE_CODE_URL`, `SITE_CODE_REF`, `SITE_PROXY`, `SITE_NO_PROXY`, `SITE_MODEL`, `SITE_LOGIN_URL`, `SITE_LOGIN_SCOPE`, `SITE_LOGIN_CLIENT_ID` and `SITE_IDLE_MINUTES`. `SITE_INSTANCE` is not in the list because `check_instance` already refuses `@`.
+    - **Finding 3, `check_costs`:** `SITE_MODEL_INPUT_COST` and `SITE_MODEL_OUTPUT_COST` must be unset, or digits with at most one `.`. Anything else gets `job: <KEY> is not a number`. That refuses `abc`, `nan`, `inf`, negative values and exponent notation before Python sees the value, so no traceback and no `NaN` or `Infinity` reaches the provider file.
+
+    **Main choice:** I check the values in the shell, before the wrapper is built. The alternative I rejected was validating inside the `python3` of `provider_json` or escaping the values. Escaping would not help the env list, which has no escape for its delimiter. One shell check per finding also gives every refusal the same `job:` form and puts them all in one place in `create_or_update`.
+
+    **Criteria and tests:** the reviewer asked for a criterion per finding. My write paths cover `operator/`, not the work item, so I could not add the criteria. These are the three I propose:
+    1. `create` refuses a `SITE_INSTANCE` with a character outside `[A-Za-z0-9._-]`. Rows: `a;rm`, `a b`, `$(x)` refused; `a-1.b_c` accepted.
+    2. `create` refuses `@` in a value of the env list, naming the key. Rows: `SITE_REPOSITORY_URL=git@host:org/work.git` refused; the default site accepted.
+    3. `create` refuses a cost that is not a number with `job: <KEY> is not a number`. Rows: `abc`, `nan` and `-1` refused; `15.5` accepted.
+
+    All three apply to `update` and `--dry-run` too, with status 1 and no `gcloud` call. None of these checks has a test yet. During my refactor I broke the `@` check's key list with a stray `\ `, and `make check` stayed green. I fixed it, but this shows they need the criteria and the tests.
+
+    **Not verified by hand:** the sandbox refused my commands that ran a copy of `job.sh` against a site file, as in entry 10. I have not run any of the new refusals.
+
+    **Refactor:** I removed `SITE_INSTANCE` from the `@` check because `check_instance` already covers it, and fixed the stray `\ ` that edit introduced. `make check` ended `test: green (81.2 s)` and `check: green`.
+
+    **Description:** the journal adds three refusals to the task. I could not rewrite the Description because the work item is outside my write paths. It needs the three criteria above, before the two closing ones.
+
+    **Noticed, not touched:** the reviewer's note on `tests/test_operator_job.py:595` (merging two tests into one parametrized test) is a test change and is left to the tester. `SITE_RUN_AS`, `SITE_CONNECTOR` and the secret names go into flags, not the env list or the wrapper, so I left them unchecked.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
