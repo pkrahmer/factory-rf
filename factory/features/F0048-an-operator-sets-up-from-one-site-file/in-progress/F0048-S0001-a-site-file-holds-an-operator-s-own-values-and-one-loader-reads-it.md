@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T15:50:23.315190Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,19 @@ journal:
   kind: started
   at: '2026-11-02T15:50:23.315190Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T15:51:29.739215Z'
+  stage: review
+  run: 679a52f28f7c4582ae2eb4aeeac60b9e
+- number: 32
+  speaker: factory
+  kind: question
+  at: '2026-11-02T15:51:29.739215Z'
+  stage: review
+  run: 679a52f28f7c4582ae2eb4aeeac60b9e
+  blocked: round_cap
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -218,7 +227,7 @@ site get SITE_X       # prints the value
 - `site init` makes the file's folder, copies the example to the path with mode 0600 and prints `site: wrote <path>; edit it, then run: site check`; when the file exists it prints `site: <path> exists; not overwritten` to standard error and exits 1.
 - `site show` and `site get` print `site_load`'s message to standard error, nothing to standard output, and exit with its status (1, 2 or 3).
 - `site init` for a path inside a git work tree (same test as the loader's) prints `site: <path> lies in a git repository; keep the site file outside every repository` to standard error, writes nothing (no folder, no file) and exits 3.
-- Any other command, `site get` with no name and `site get` with a name that does not start with `SITE_` included, prints `usage: site path | init | show | get SITE_X` to standard error and exits 2.
+- Any other command, `site get` with no name and `site get` with a name that is not `SITE_` followed by at least one character included, prints `usage: site path | init | show | get SITE_X` to standard error and exits 2.
 
 `operator/site.env.example`: the keys below, in this order, each with a comment line of one or two sentences directly above it that says what it is, whether it is required and its default, and a made-up value (a URL uses `example.invalid`, a repository `owner/repo`, a path `/path/to/...`). Later stories add keys at the end; none changes the first thirty-one.
 
@@ -253,8 +262,10 @@ Tests: `tests/test_operator_site.py` (the scripts are outside the layers), runni
 23. The message of each faulty line kind, as rows of one parametrized test: `site_a=1` (lower case) and `SITE_A = 1` give `site: <path>:<line>: not a KEY=value line`; `SITE_=1` gives `site: <path>:<line>: SITE_ is not a SITE_ key` (a key that is a name but not `SITE_` followed by one).
 24. A variable set to the empty string in the environment counts as already set and keeps its value: with `SITE_A=` exported and the line `SITE_A=file`, `SITE_A` stays empty and `site_load` returns 0.
 25. A known command with a word too many prints the usage line to standard error, nothing to standard output, and exits 2, as rows of one parametrized test: `site path x`, `site init x`, `site show x` and `site get SITE_A x`.
-26. `make check` stays green.
-27. docs: `docs/operator-guide.md` gets a section *The site file* (what it is, its place and `FACTORY_SITE`, the format and that it is never executed, the rule that it lies outside every repository, `site init`, `show` and `get`, and the keys by the use that reads them as far as the stories to come make them known: a table of key, meaning, default); `README.md` and the other documents: none.
+26. An empty `XDG_CONFIG_HOME` is ignored like an empty `FACTORY_SITE`: with `FACTORY_SITE` unset and `XDG_CONFIG_HOME` set to the empty string, `site_path` prints `$HOME/.config/kumpel/site.env` (a row of criterion 1's test).
+27. `site get SITE_` (the prefix with no name, which is not a key the loader accepts) prints the usage line to standard error, nothing to standard output, and exits 2 (a row of criterion 13's test).
+28. `make check` stays green.
+29. docs: `docs/operator-guide.md` gets a section *The site file* (what it is, its place and `FACTORY_SITE`, the format and that it is never executed, the rule that it lies outside every repository, `site init`, `show` and `get`, and the keys by the use that reads them as far as the stories to come make them known: a table of key, meaning, default); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -551,3 +562,17 @@ Expect: one line, `$(echo ran)`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 30. factory: started review as vm.
+31. reviewer: Review, round 2. Group 1 (acceptance criteria) fails again, on two small gaps. I went through criteria 1 to 25 and every rule of the Interface against `tests/test_operator_site.py`, `operator/lib/site.sh` and `operator/bin/site`. The tests for criteria 1 to 25 match their criteria, including the rows the tester added for 23 to 25. The coder's `make check` was green (entry 29). Two limits that the scripts already build have no test for one of their sides. I added a criterion for each before the closing two, which are now 28 (`make check`) and 29 (docs). Neither needs a change under `operator/`. These are the last group 1 gaps I found. Because I stopped at group 1, as the checklist says, I did not judge groups 2 to 5 this round.
+
+    description corrected: Interface, usage rule: "`site get` with a name that does not start with `SITE_`" -> "`site get` with a name that is not `SITE_` followed by at least one character". This matches criterion 27 below and `operator/bin/site:63` (`SITE_?*`). The loader's own rule says a NAME has at least one character, so `SITE_` alone is not a key.
+
+    1. criterion 26 added: it needs its test. The Interface says `site_path` uses `XDG_CONFIG_HOME` only "when it is set and not empty", and `operator/lib/site.sh:12` (`-n "${XDG_CONFIG_HOME:-}"`) builds that. The rows of `tests/test_operator_site.py::test_the_site_path_follows_factory_site_then_xdg_then_home` test the empty side only for `FACTORY_SITE`, never for `XDG_CONFIG_HOME`. Fix: add a row to that test with `FACTORY_SITE` unset and `XDG_CONFIG_HOME` empty, expecting `home/.config/kumpel/site.env`.
+    2. criterion 27 added: it needs its test. `operator/bin/site:62-65` gives the usage line and exit 2 for `site get SITE_` (the prefix with nothing after it). The rows of `test_a_malformed_command_prints_the_usage_and_exits_2` test only `get HOME` and `get` with no name, not this edge of the `SITE_` prefix. Fix: add the row `["get", "SITE_"]` to that test.
+
+    For the coder: the code already does what criteria 26 and 27 say. End with `tests` and name these two criteria.
+
+    Earlier tests: none. Every test file in the diff is new (`tests/operator_support.py` and `tests/test_operator_site.py`, both `A`).
+
+    Notes:
+    - `tests/test_operator_site.py:295`: criterion 9 says "with `SITE_A` and `SITE_B` set", but the `all-set` row uses `SITE_A SITE_D`. It checks the same rule.
+32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
