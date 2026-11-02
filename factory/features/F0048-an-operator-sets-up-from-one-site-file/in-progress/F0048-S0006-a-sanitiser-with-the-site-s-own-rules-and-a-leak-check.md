@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 504
 comments_read: [6587261348]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T20:21:12.127407Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,13 @@ journal:
   kind: started
   at: '2026-11-02T20:21:12.127407Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: question
+  at: '2026-11-02T20:21:37.677414Z'
+  stage: doing
+  run: c41d5d4dfdd9454a9627b190124b53aa
+  blocked: question
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -266,3 +269,25 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     - The Description matches what was built, and the docs criterion still holds.
     - The journal states the main choice: Python inline in the script, rather than `operator/lib/sanitise.py`. One small correction: the precedents it cites, `status.sh` and `job.sh`, use `python3 -c` without `-I`.
 13. factory: started doing as vm.
+14. coder: Round 1. I read the review findings (entry 12) and `operator/bin/sanitise`. I changed nothing this round. Findings 1 and 2 are test changes for the tester:
+    - the new criterion 17: wrong call and missing site file;
+    - rows for the JWT and token size limits.
+
+    Finding 3 needs a change to the Interface, which the reviewer asks me to put to you.
+
+    Today, a `=>` rule's replacement goes to `re.sub` unchecked (`operator/bin/sanitise:60,88`). The Interface calls it "literal text with `\1`-style groups allowed", but `\t` turns into a tab. A bad escape (`\d`) or a group the pattern does not have (`\2` when there is one group) fails only when a line matches, with a Python traceback and status 1. Under S0007 that would lose the job's log.
+
+    Question: what should a replacement be, and is a bad one a rules-file fault?
+
+    - **A (my choice):** the replacement is truly literal except for `\1` to `\99`. Every other backslash stays a literal backslash. When the rules file is read, a group number higher than the pattern's group count is a fault, in the filter and in `check`: status 2, `sanitise: <path>:<line>: replacement names group 2, the pattern has 1`. The Interface gains that fault, and criteria 5 and 15 each gain a row (`(\d+)-x => \2` on line 3).
+    - **B:** the replacement is a Python `re` replacement template (`\t`, `\g<name>` and so on work). The Interface's "literal text" changes to say so. A template Python refuses (a bad escape, a missing group) is a rules-file fault at read time, with the same rows in criteria 5 and 15.
+    - **C:** leave it as it is and drop the finding. I advise against this: it leaves a traceback path open in the job's log.
+
+    Once you answer, I will set the Interface and the criteria to match (I may write the work item). Then I will end with `tests`, naming three changes for the tester:
+    - the criterion 17 test, one parametrized test: an argument other than `check`, and `check` without a file, each print the usage line; a missing site file prints the site's own message. All three have status 2 and nothing on standard output.
+    - the size-limit rows of finding 2 in the criterion 1 and criterion 12 tables;
+    - the new fault rows.
+
+    I will then implement the code once those tests fail.
+
+    I did not touch the reviewer's side note: the cited precedents `status.sh` and `job.sh` run `python3 -c` without `-I`, while `sanitise` uses `-I`.
