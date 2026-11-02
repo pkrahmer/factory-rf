@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T20:34:04.382650Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-02T20:34:04.382650Z'
   stage: tests
+- number: 27
+  speaker: tester
+  kind: result
+  at: '2026-11-02T20:36:36.112349Z'
+  stage: tests
+  run: 0700ca86002a461fb497e6f335b2e2bd
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -499,3 +501,15 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
 
     Noticed but not touched: the reviewer's side note in entry 12 is still open. The precedents I cited earlier, `status.sh` and `job.sh`, run `python3 -c` without `-I`.
 26. factory: started tests as vm.
+27. tester: Round 2. I made the test change the coder named in entry 25, which follows the reviewer's findings in entry 23 and the criteria the reviewer wrote under the human's leave in entry 15. The only file I changed is `tests/test_operator_sanitise.py`, and I created no files. Every test from earlier rounds keeps its name except `test_check_leaves_near_tokens_clean`: as the reviewer's note and entry 25 allow, I folded it into `test_check_reports_every_built_in` as rows. No module failed to import.
+
+    - Criteria 5 and 15 (`test_rules_file_fault_stops_the_filter`, `test_rules_file_fault_stops_the_check_before_any_file`): each row of the shared `FAULTS` table now carries the reason it expects. The `missing-group` row now checks the whole line `sanitise: <path>:3: replacement names group 2, the pattern has 1`. A new row, `missing-two-digit-group` (`(\d+)-x => \10`), checks the whole line ending `replacement names group 10, the pattern has 1`. The other rows have no fixed reason in the Interface, so they still check only the prefix `sanitise: <path>:3: `. The new helper `names_the_fault` does that check for both tests.
+    - Criterion 2 (`test_site_rule_replaces_every_occurrence_and_keeps_groups`): each row now has its own rules file. The new rows are `case-sensitive`, `both-parts-trimmed`, `first-arrow-splits`, `group-zero-literal` (`zero => x\0y`), `two-digit-group` (`\100` gives `j0`) and `unmatched-group-empty` (`(a)|(b) => [\1\2]` gives `[b]`).
+    - Criterion 1 (`test_built_in_rules_replace_escapes_jwts_and_tokens`): new rows `jwt-third-part-of-9`, which stays unchanged, and `jwt-third-part-of-10`, which is replaced. The existing JWT rows are now labelled `jwt-second-part-of-*`.
+    - Criterion 12 (`test_check_reports_every_built_in`): the near-token rows are now in this test (`jwt-second-part-of-9`, `jwt-third-part-of-9`, `ghp-of-19`, `github-pat-of-19`) and expect status 0 and only `sanitise: clean`.
+    - Criterion 10 (`test_check_reports_once_per_line_and_rule`): new line 4 `alpha alpha`, reported once as `4: 1`, and new line 5 with both a `ghp_` and a `github_pat_` token, reported once as `5: builtin-3`.
+
+    I ran `uv run pytest -q tests/test_operator_sanitise.py` once and all 64 tests passed. That is expected, because the code already behaves as the corrected criteria say (entry 25). `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
+    `test`: test: green (79.3 s)

@@ -17,6 +17,8 @@ CLASSIC_TOKEN = "ghp_" + "a" * 30
 FINE_GRAINED_TOKEN = "github_pat_" + "a" * 30
 SHORT_PART_JWT = "eyJabcdefghij.abcdefghi.abcdefghij2"
 TEN_PART_JWT = "eyJabcdefghij.abcdefghij.abcdefghij2"
+SHORT_THIRD_PART_JWT = "eyJabcdefghij.abcdefghij1.abcdefghi"
+TEN_THIRD_PART_JWT = "eyJabcdefghij.abcdefghij1.abcdefghij"
 USAGE = "usage: sanitise < raw > clean | sanitise check FILE..."
 
 
@@ -78,8 +80,10 @@ def reports(result: ProcessResult) -> list[str]:
         pytest.param(f"key {FINE_GRAINED_TOKEN} end", "key ***TOKEN*** end", id="github-pat-token"),
         pytest.param("ghp_short", "ghp_short", id="short-ghp"),
         pytest.param("eyJabc.def", "eyJabc.def", id="short-jwt"),
-        pytest.param(SHORT_PART_JWT, SHORT_PART_JWT, id="jwt-part-of-9"),
-        pytest.param(TEN_PART_JWT, "***JWT***", id="jwt-part-of-10"),
+        pytest.param(SHORT_PART_JWT, SHORT_PART_JWT, id="jwt-second-part-of-9"),
+        pytest.param(TEN_PART_JWT, "***JWT***", id="jwt-second-part-of-10"),
+        pytest.param(SHORT_THIRD_PART_JWT, SHORT_THIRD_PART_JWT, id="jwt-third-part-of-9"),
+        pytest.param(TEN_THIRD_PART_JWT, "***JWT***", id="jwt-third-part-of-10"),
         pytest.param("ghp_" + "a" * 19, "ghp_" + "a" * 19, id="ghp-of-19"),
         pytest.param("ghp_" + "a" * 20, "***TOKEN***", id="ghp-of-20"),
         pytest.param("github_pat_" + "a" * 19, "github_pat_" + "a" * 19, id="github-pat-of-19"),
@@ -98,21 +102,38 @@ def test_built_in_rules_replace_escapes_jwts_and_tokens(
 
 
 @pytest.mark.parametrize(
-    ("line", "expected"),
+    ("rule", "line", "expected"),
     [
         pytest.param(
+            HOST_RULE,
             "a corp.example.invalid b corp.example.invalid",
             "a <company-host> b <company-host>",
             id="every-occurrence",
         ),
-        pytest.param("id 42-secret", "id 42-x", id="group"),
-        pytest.param("a tab", r"a x\ty", id="other-backslash-literal"),
+        pytest.param(
+            HOST_RULE, "CORP.EXAMPLE.INVALID", "CORP.EXAMPLE.INVALID", id="case-sensitive"
+        ),
+        pytest.param(GROUP_RULE, "id 42-secret", "id 42-x", id="group"),
+        pytest.param("  spaced   =>   S  ", "spaced", "S", id="both-parts-trimmed"),
+        pytest.param("first => one => two", "first", "one => two", id="first-arrow-splits"),
+        pytest.param(r"tab => x\ty", "a tab", r"a x\ty", id="other-backslash-literal"),
+        pytest.param(r"zero => x\0y", "zero", r"x\0y", id="group-zero-literal"),
+        pytest.param(
+            r"(a)(b)(c)(d)(e)(f)(g)(h)(i)(j) => \100", "abcdefghij", "j0", id="two-digit-group"
+        ),
+        pytest.param(r"(a)|(b) => [\1\2]", "b", "[b]", id="unmatched-group-empty"),
     ],
 )
 def test_site_rule_replaces_every_occurrence_and_keeps_groups(
-    tmp_path: Path, site_folder: Path, site_env: dict[str, str], line: str, expected: str
+    tmp_path: Path,
+    site_folder: Path,
+    site_env: dict[str, str],
+    *,
+    rule: str,
+    line: str,
+    expected: str,
 ) -> None:
-    write_rules(site_folder, HOST_RULE, GROUP_RULE, r"tab => x\ty")
+    write_rules(site_folder, rule)
 
     result = run_filter(tmp_path, site_env, f"{line}\n")
 
@@ -143,18 +164,33 @@ def test_site_rules_see_the_text_the_built_ins_left_in_file_order(
 
 
 FAULTS = [
-    pytest.param("no arrow here", id="no-kind"),
-    pytest.param("[unclosed => x", id="invalid-pattern"),
-    pytest.param("=> x", id="empty-replace-pattern"),
-    pytest.param("drop:", id="empty-drop-pattern"),
-    pytest.param("leak:", id="empty-leak-pattern"),
-    pytest.param(r"(\d+)-x => \2", id="missing-group"),
+    pytest.param("no arrow here", "", id="no-kind"),
+    pytest.param("[unclosed => x", "", id="invalid-pattern"),
+    pytest.param("=> x", "", id="empty-replace-pattern"),
+    pytest.param("drop:", "", id="empty-drop-pattern"),
+    pytest.param("leak:", "", id="empty-leak-pattern"),
+    pytest.param(
+        r"(\d+)-x => \2", "replacement names group 2, the pattern has 1", id="missing-group"
+    ),
+    pytest.param(
+        r"(\d+)-x => \10",
+        "replacement names group 10, the pattern has 1",
+        id="missing-two-digit-group",
+    ),
 ]
 
 
-@pytest.mark.parametrize("fault", FAULTS)
+def names_the_fault(output: str, rules: Path, reason: str) -> bool:
+    """Whether `output` holds the fault's line, whole when its reason is fixed."""
+    prefix = f"sanitise: {rules}:3: "
+    if reason:
+        return f"{prefix}{reason}" in output.splitlines()
+    return any(line.startswith(prefix) for line in output.splitlines())
+
+
+@pytest.mark.parametrize(("fault", "reason"), FAULTS)
 def test_rules_file_fault_stops_the_filter(
-    tmp_path: Path, site_folder: Path, site_env: dict[str, str], fault: str
+    tmp_path: Path, site_folder: Path, site_env: dict[str, str], fault: str, reason: str
 ) -> None:
     rules = write_rules(site_folder, HOST_RULE, "# a comment", fault)
 
@@ -162,7 +198,7 @@ def test_rules_file_fault_stops_the_filter(
 
     assert result.exit_status == 2
     assert result.stdout == ""
-    assert f"sanitise: {rules}:3: " in result.stderr
+    assert names_the_fault(result.stderr, rules, reason)
 
 
 def test_missing_rules_file_warns_once_in_the_filter_and_stops_the_check(
@@ -274,12 +310,24 @@ def test_check_reports_once_per_line_and_rule(
     tmp_path: Path, site_folder: Path, site_env: dict[str, str]
 ) -> None:
     write_rules(site_folder, "alpha => A", "leak: beta")
-    leaking = write_file(tmp_path, "leaking.txt", "alpha beta\nx\nalpha\n")
+    leaking = write_file(
+        tmp_path,
+        "leaking.txt",
+        f"alpha beta\nx\nalpha\nalpha alpha\nkeys {CLASSIC_TOKEN} {FINE_GRAINED_TOKEN}\n",
+    )
 
     result = run_check(tmp_path, site_env, leaking)
 
     assert result.exit_status == 1
-    assert reports(result) == sorted([f"{leaking}:1: 1", f"{leaking}:1: 2", f"{leaking}:3: 1"])
+    assert reports(result) == sorted(
+        [
+            f"{leaking}:1: 1",
+            f"{leaking}:1: 2",
+            f"{leaking}:3: 1",
+            f"{leaking}:4: 1",
+            f"{leaking}:5: builtin-3",
+        ]
+    )
 
 
 def test_sanitised_output_passes_the_check(
@@ -313,38 +361,26 @@ def test_sanitised_output_passes_the_check(
         pytest.param(f"auth {JWT}", "builtin-2", id="jwt"),
         pytest.param(f"key {CLASSIC_TOKEN}", "builtin-3", id="ghp-token"),
         pytest.param(f"key {FINE_GRAINED_TOKEN}", "builtin-3", id="github-pat-token"),
+        pytest.param(f"auth {SHORT_PART_JWT}", "", id="jwt-second-part-of-9"),
+        pytest.param(f"auth {SHORT_THIRD_PART_JWT}", "", id="jwt-third-part-of-9"),
+        pytest.param("key ghp_" + "a" * 19, "", id="ghp-of-19"),
+        pytest.param("key github_pat_" + "a" * 19, "", id="github-pat-of-19"),
     ],
 )
 def test_check_reports_every_built_in(
     tmp_path: Path, site_folder: Path, site_env: dict[str, str], line: str, rule: str
 ) -> None:
     write_rules(site_folder, UNRELATED_RULE)
-    leaking = write_file(tmp_path, "leaking.txt", f"{line}\n")
+    checked = write_file(tmp_path, "checked.txt", f"{line}\n")
 
-    result = run_check(tmp_path, site_env, leaking)
+    result = run_check(tmp_path, site_env, checked)
 
-    assert result.exit_status == 1
-    assert reports(result) == [f"{leaking}:1: {rule}"]
-
-
-@pytest.mark.parametrize(
-    "line",
-    [
-        pytest.param(f"auth {SHORT_PART_JWT}", id="jwt-part-of-9"),
-        pytest.param("key ghp_" + "a" * 19, id="ghp-of-19"),
-        pytest.param("key github_pat_" + "a" * 19, id="github-pat-of-19"),
-    ],
-)
-def test_check_leaves_near_tokens_clean(
-    tmp_path: Path, site_folder: Path, site_env: dict[str, str], line: str
-) -> None:
-    write_rules(site_folder, UNRELATED_RULE)
-    near = write_file(tmp_path, "near.txt", f"{line}\n")
-
-    result = run_check(tmp_path, site_env, near)
-
-    assert result.exit_status == 0
-    assert result.stdout.splitlines() == ["sanitise: clean"]
+    if rule:
+        assert result.exit_status == 1
+        assert reports(result) == [f"{checked}:1: {rule}"]
+    else:
+        assert result.exit_status == 0
+        assert result.stdout.splitlines() == ["sanitise: clean"]
 
 
 def test_check_numbers_only_rule_lines(
@@ -379,9 +415,9 @@ def test_filter_ends_every_line_with_a_newline(
     assert result.stdout == expected
 
 
-@pytest.mark.parametrize("fault", FAULTS)
+@pytest.mark.parametrize(("fault", "reason"), FAULTS)
 def test_rules_file_fault_stops_the_check_before_any_file(
-    tmp_path: Path, site_folder: Path, site_env: dict[str, str], fault: str
+    tmp_path: Path, site_folder: Path, site_env: dict[str, str], fault: str, reason: str
 ) -> None:
     rules = write_rules(site_folder, HOST_RULE, "# a comment", fault)
     leaking = write_file(tmp_path, "leaking.txt", f"at corp.example.invalid {CLASSIC_TOKEN}\n")
@@ -390,10 +426,7 @@ def test_rules_file_fault_stops_the_check_before_any_file(
 
     assert result.exit_status == 2
     assert str(leaking) not in result.stdout
-    assert any(
-        line.startswith(f"sanitise: {rules}:3: ")
-        for line in (result.stdout + result.stderr).splitlines()
-    )
+    assert names_the_fault(result.stdout + result.stderr, rules, reason)
 
 
 @pytest.mark.parametrize(
