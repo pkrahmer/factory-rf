@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 506
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-02T21:29:28.109550Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-02T21:29:28.109550Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-02T21:29:51.865212Z'
+  stage: intake
+  run: 6a60427a8c3941cc9174c185c0ccf7f1
+  blocked: question
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -80,3 +83,12 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
 
 1. 2026-11-02 human: created.
 2. factory: started intake as vm.
+3. intake: 1. The Interface does not name the request that lists the open pull requests for `reset-to-tag.sh`. The stand-in `curl` answers from fixtures per URL, so the coder and the tester must read the same request. It gives no URL (for example `GET /pulls?state=open&per_page=100`), and it does not say whether the script follows pages. Suggestion: name `GET /pulls?state=open&per_page=100`, without paging, and add a sentence saying so.
+
+   2. Interface rule: `reset-to-tag.sh` exits 2 with the `site_require` message when `SITE_REPOSITORY` or `SITE_RESET_REPOSITORY` is unset. Criterion 5 only covers the unset `SITE_RESET_REPOSITORY`, and the smoke test does too. The side where `SITE_REPOSITORY` is unset has no criterion. Suggestion: make criterion 5 three rows (different, reset repository unset, repository unset).
+
+   3. Interface rule: a failing call stops the script and prints the message of `hosting_api`. Criterion 9 tests only a failing `DELETE`. A failing close `PATCH`, a failing move of `main`, and a failing `GET` (the lookup of the tag or the list of pull requests) have no criterion. Suggestion: widen criterion 9 into rows for a failing close, delete and move, with the later requests not sent in each row. Alternatively, say that the other calls are deliberately not tested.
+
+   Findings of the format check: none (it passed).
+
+   The other checks are fine. `merge.sh` has a criterion for each message and for both sides of the wait. The smoke tests are runnable and their `Expect:` lines are checkable. The scripts sit in the skill's `operator/` folder, as the feature's scope says.
