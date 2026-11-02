@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-02T17:46:40.258739Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-02T17:46:40.252102Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:46:40.258739Z'
+  stage: intake
+---
+
 # The skill's scripts use the hosting client and the site instead of gh
 
 ## Description
@@ -63,3 +90,6 @@ grep -n -v '^[[:space:]]*#' operator/skill/kumpel/scripts/*.sh | grep -c -w gh
 Expect: one line, `0`.
 
 ## Journal
+
+1. 2026-11-02 human: created.
+2. factory: started intake as vm.
