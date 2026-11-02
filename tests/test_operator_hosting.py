@@ -441,6 +441,21 @@ def test_the_repository_call_puts_the_site_repository_in_the_path(
         assert calls(records, "curl") == []
 
 
+def test_the_repository_call_passes_its_body_on(
+    tmp_path: Path, make_env: Callable[..., dict[str, str]], records: Path
+) -> None:
+    env = make_env(source=ACCESS_COMMAND, SITE_REPOSITORY="owner/repo")
+    result = run_hosting('hosting_repo_api POST /pulls \'{"a":"b"}\'', tmp_path, env)
+    assert result.exit_status == 0, result.stderr
+    lines = curl_input(records)
+    for line in [
+        'url = "https://api.github.com/repos/owner/repo/pulls"',
+        'request = "POST"',
+        'data = "{\\"a\\":\\"b\\"}"',
+    ]:
+        assert line in lines
+
+
 @pytest.fixture
 def repository(tmp_path: Path) -> Path:
     """A git work tree in `tmp_path` with one commit, `the subject`."""

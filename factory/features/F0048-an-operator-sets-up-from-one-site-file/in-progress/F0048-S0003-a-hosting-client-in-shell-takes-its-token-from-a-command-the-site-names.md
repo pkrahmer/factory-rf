@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T17:20:38.862284Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-11-02T17:20:38.862284Z'
   stage: tests
+- number: 24
+  speaker: tester
+  kind: result
+  at: '2026-11-02T17:22:33.346722Z'
+  stage: tests
+  run: 7b8a16631b284a6885730a18635bd32e
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -444,3 +446,17 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
 
     `check`: check: green
 23. factory: started tests as vm.
+24. tester: Round 2: an approved test change. I wrote the test for criterion 18, which reviewer entry 20 added and coder entry 22 handed to me (finding 3).
+
+    - criterion 18: tests/test_operator_hosting.py::test_the_repository_call_passes_its_body_on
+
+    The test sets `SITE_REPOSITORY=owner/repo` and runs `hosting_repo_api POST /pulls '{"a":"b"}'`. It checks exit status 0, and that the curl stand-in's standard input holds `url = "https://api.github.com/repos/owner/repo/pulls"`, `request = "POST"` and `data = "{\"a\":\"b\"}"`. I wrote it as its own test rather than as a row of `test_the_repository_call_puts_the_site_repository_in_the_path`. That test is about criterion 8, and it checks the URL and the missing-repository side, not the body.
+
+    Files: no file created. I changed tests/test_operator_hosting.py, which this story's tests stage wrote. `ruff format` re-quoted the new line, and nothing else changed.
+
+    Test run: `uv run pytest -q tests/test_operator_hosting.py`, once. All tests passed, the new one included, because `operator/lib/hosting.sh` already passes BODY on, as coder entry 22 says. Every module imported, so nothing was missing. `make lint` is green.
+
+    Not changed: reviewer entry 20 noted that `CURL_ARGUMENTS + [str(arguments)]` in `test_the_api_call_gives_curl_the_token_on_standard_input_only` also searches the test's own constant. That is a note, not a finding, and no answer from the human calls for the change, so I left the test as it is.
+
+    `lint`: lint: green (0.1 s)
+    `test`: test: green (79.7 s)
