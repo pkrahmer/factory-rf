@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T20:57:02.254547Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-02T20:56:41.491751Z'
   stage: tests
   run: 94489c0296334d27b7c028ef18f349a4
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-02T20:57:02.254547Z'
+  stage: doing
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -200,3 +209,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
 
    `lint`: lint: green (0.1 s)
    `test`: FAILED tests/test_operator_job_log.py::test_quiet_that_leaves_no_line_prints_nothing - AssertionError: usage: job.sh create [--dry-run] | update [--dry-run] | execute | delete [--yes]
+9. factory: started doing as vm.
