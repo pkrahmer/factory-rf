@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 505
 comments_read: [6588115691, 6588420336]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T21:06:35.974332Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-02T21:06:15.184078Z'
   stage: doing
   run: 583b17a6ee7741adaec221e18f292004
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-02T21:06:35.974332Z'
+  stage: tests
 ---
 
 # The job's log and state are read and sanitised by one command
@@ -271,3 +280,4 @@ Expect: two lines, `job: gcloud logging read failed: ERROR: (gcloud.logging.read
     Already built in the working tree (previous run, journal 10): `operator/job/job.sh` with `log` and `status`. Its main decision stays as it was: `gcloud_call` adds `--region` only to `run` calls. The alternative I rejected was a second call wrapper for logging.
 
     The journal changed the meaning of the task in one place: the usage line now names `log` and `status`. My write paths don't include the work item, so `## Description` is unchanged. `started -` for an execution with no start time stays, as the human accepted it.
+14. factory: started tests as vm.
