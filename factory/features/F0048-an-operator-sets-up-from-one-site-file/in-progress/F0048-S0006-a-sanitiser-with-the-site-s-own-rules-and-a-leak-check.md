@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T20:40:52.711315Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-02T20:40:52.711315Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T20:42:18.909452Z'
+  stage: review
+  run: 585afb36ffd9402195159f830b537915
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -555,3 +557,33 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 30. factory: started review as vm.
+31. reviewer: Round 2 review of `operator/bin/sanitise` and `tests/test_operator_sanitise.py`, read against the work item. These are the only two files in `git diff main...HEAD -- . ':!factory'`. After the coder, `make check` was green (entry 29) and `make duplicates` reported 0 new findings.
+
+    no findings
+
+    What I checked:
+    - **Group 1 (acceptance criteria).** I read each of criteria 1 to 17 against its test, and every one has a test that checks what it says.
+      - Criterion 1: the JWT limits are tested on both sides, for the second part and for the third part (9 is left unchanged, 10 is replaced). `ghp_` and `github_pat_` are each tested at 19 and 20.
+      - Criterion 2: all of the Interface's replacement rules have a row, each with its own rules file: case sensitivity, trimming, the first ` => ` splitting the line, `\t` and `\0` kept as literal text, `\100` read as group 10 followed by `0`, and an unmatched group giving empty text.
+      - Criteria 5 and 15: they share the `FAULTS` rows. The two group faults check the whole message. The group-count limit is tested on both sides: `\1` against one group is accepted (`GROUP_RULE`), and `\2` and `\10` are refused.
+      - Criterion 9: the missing-file case (the missing file named second) checks that its message is the only output.
+      - Criterion 10: has the `alpha alpha` row and the row with two tokens on one line.
+      - Criterion 12: its near-token rows now sit in one parametrized test.
+      - Criterion 17: one parametrized test with three rows.
+      - Every rule the Interface states has its failing side tested: the warning appears once, `check` sees that every file exists before it reads any, a fault stops `check` before any file is read, and the environment's value wins over the site file's.
+    - **Group 2 (architecture).** The work is a `sh` script under `operator/bin/` that reuses `site_path` and `site_load` from `operator/lib/site.sh`. Nothing under `src/` changed.
+    - **Group 3 (security).** The Python program is a constant run with `python3 -I -c`, and its values come in through argv. There is no silencing marker. A bad replacement is now a rules-file fault caught when the file is read (`literal_replacement`, `:66-78`), so it no longer causes a traceback. Reports print only the file, the line and the rule.
+    - **Group 4 (quality).** I found no dead code. The built-in patterns appear nowhere else in `operator/` or `src/factory`. The comments explain why, not what.
+    - **Group 5 (work item hygiene).**
+      - The journal gives the main choices and what was rejected: entry 10 keeps the Python inline rather than in `operator/lib/sanitise.py`, and entry 21 expands groups by a function rather than re-escaping the template.
+      - The Description still matches what was built.
+      - The Interface carries the rule from the human's answer in entry 15, and criterion 19 still names the operator guide's section. The guide has a part called *The site file* at `docs/operator-guide.md:897`.
+
+    Rejected as findings:
+    - The filter reads all of standard input before it writes. The Interface asks only that line order is kept and the rules apply line by line, and nothing in this story's scope needs streaming. When S0007 uses the sanitiser on the job's log, whether that log has to stream is a question for that story.
+    - `drop:` and `leak:` are recognised by their prefix before ` => ` is looked for. The Interface lists those as separate kinds of line, so this matches it.
+
+    Earlier tests: none. `git diff --name-status main...HEAD` shows `tests/test_operator_sanitise.py` as the only test file, and it is new (status A).
+
+    Notes:
+    - `tests/test_operator_sanitise.py:47` `write_file` writes one file, and `tests/git_support.py:111` `write_files` writes a dict of files. The new test could use the shared helper with a one-entry dict instead of keeping its own.
