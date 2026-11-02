@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T16:28:11.454339Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T16:27:53.347742Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-02T16:28:11.454339Z'
   stage: tests
 ---
 
@@ -171,3 +180,4 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
 
    Files created: `tests/test_vm_job_start_environment.py`. No earlier test file was changed. Every module imported, with no collection errors. My one run (`uv run pytest -q` on the new file) ended red as intended: the copy, `PATH` and proxy tests fail on wrong results, since the script does not do these yet. `make lint` is green. I renamed two constants (`GIVEN_CONTENT`, `OLD_CONTENT`) because ruff's S105 rule flagged the names as hardcoded passwords. Once you answer, the next run makes the agreed change to the helper (if you choose (a) or (b)) and ends with `doing`.
 9. 2026-11-02 human: (a), granted: add `token.parent.chmod(0o700)` in `run_job_start` of `tests/vm_support.py` after the token folder is made, so the earlier runs keep the no-copy path; every earlier test keeps its name and check. Name the helper change in your entry.
+10. factory: started tests as vm.
