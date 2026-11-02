@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -286,6 +286,11 @@ journal:
   at: '2026-11-02T16:15:53.050598Z'
   stage: smoke-test
   run: 18cf20838bc84c26ad4cd3f954f34095
+- number: 51
+  speaker: factory
+  kind: done
+  at: '2026-11-02T16:16:45.573605Z'
+  stage: approval
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -848,3 +853,4 @@ Expect: one line, `$(echo ran)`.
     Findings: none.
 
     Also checked: `docs/operator-guide.md` has the section `## The site file` (line 897, listed in the contents at line 12). I only checked that the section is there and did not read it against criterion 29. Each command removed its own temporary folder through its `trap`, and none was left in `/tmp`.
+51. factory: done (pull request merged); cost: 22 runs, 47.5 min, 192 turns, 740896 tokens in (4382255 more from cache), 106921 out, $8.48
