@@ -972,6 +972,8 @@ sh operator/bin/site get SITE_REPOSITORY
 | `SITE_RESET_REPOSITORY` | the repository a trial resets, `owner/repo` | none |
 | `SITE_SANITISE_RULES` | the file of rules that sanitise what leaves the site | none |
 
+The skill's scripts (`operator/skill/kumpel/scripts/`) read `SITE_REPOSITORY` and `SITE_CHECKOUT` from the site file, or from the environment when it sets them, before they look at the skill's `settings.json`. When the site gives both, `settings.json` holds only the switches (`merge`, `answer`, `start_next`) and `settings.sh init` takes no argument; when it gives either one short, `init` needs `<owner/name> <checkout>` and the JSON file keeps them. A missing or faulty site file does not stop `settings.sh`: the JSON file answers, and a faulty file's message goes to standard error. The scripts reach the API and git only through `hosting_repo_api` and `hosting_git`, so a script with neither a token command nor a `gh` login stops with `hosting: the token command failed; see SITE_TOKEN_CMD in the site file`.
+
 ### The token source
 
 `operator/lib/hosting.sh` is the shell library that talks to the code host: the REST API (`hosting_api`, and `hosting_repo_api` for `/repos/$SITE_REPOSITORY...`) and git over HTTPS (`hosting_git`). Source it after `operator/lib/site.sh`; it loads the site file itself when no `SITE_` value is loaded yet. It replaces the `gh` program for those two uses, whose login is the person's own and may not see the project's repository.

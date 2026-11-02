@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 501
 comments_read: [6584170311, 6584737120]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-02T18:31:56.214319Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-02T18:31:56.214319Z'
   stage: docs
+- number: 25
+  speaker: documenter
+  kind: result
+  at: '2026-11-02T18:32:36.255400Z'
+  stage: docs
+  run: 12c8828485ca411bacb2bf7f9eb719ba
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -458,3 +460,27 @@ Expect: one line, `0`.
     - `tests/test_operator_hosting.py`: changed under the standing leave to move a shared test helper. `CURL_STAND_IN` and `hosting_env` moved to `tests/operator_support.py`, and the file now imports them from there. Every test keeps its name and checks the same thing.
     - `tests/operator_support.py`: received the moved helpers under the same standing leave, together with the Interface's "shared through `tests/operator_support.py`". The stand-in's one addition, `STAND_IN_CURL_ROUTES`, does nothing when that variable is unset, so the earlier tests are unaffected.
 24. factory: started docs as vm.
+25. documenter: Docs round 1 for F0048-S0004. I wrote the two documents criterion 19 names. I changed only documents, so I did not run `make check`. The factory's checks after this stage decide. I ran no example, because I wrote none.
+
+    Files changed:
+    - `operator/README.md`, section *Needs*: `gh` is no longer required. The reader now needs `git`, `curl`, `python3`, a POSIX shell and a way to a token (`SITE_TOKEN_CMD`, or else a logged-in `gh` that is used only to print the token). I wrote `curl` because `hosting.sh` and the new tests use it.
+    - `operator/README.md`, section *Installing*: the skill asks for nothing when the site file gives `SITE_REPOSITORY` and `SITE_CHECKOUT`. The settings file then holds the switches only, and `settings.sh init` takes no argument. Without the site's values the skill asks for the repository and the checkout, and the JSON file keeps them.
+    - `docs/operator-guide.md`, the site file's section, before *The token source*: a paragraph on what the skill's scripts read from the site, the JSON-file fallback (a missing or faulty site file does not stop `settings.sh`), `init` needing arguments unless the site gives both values, and the hosting client's message when there is no token.
+
+    Cross-read and found current against the diff:
+    - The rest of `operator/README.md`: the scripts table at line 13 still matches the scripts' names and jobs.
+    - The `docs/operator-guide.md` sections on the site file, its keys, and the hosting library (`hosting_repo_api`, `hosting_git`, the return codes, the message for a missing token).
+    - The scripts' own header comments and the Interface: they agree with what I wrote.
+
+    Stale text I noticed and left alone:
+    1. `operator/skill/kumpel/references/answering.md:24` (`gh pr comment`) and `approving.md:18` (`gh pr merge`) still use `gh`. The skill's text is outside my write paths and the Description keeps it unchanged. The "no `gh`" rule in criterion 13 covers only `scripts/*.sh`. These two lines are a candidate for a later story.
+    2. `operator/skill/kumpel/SKILL.md:12` says to ask the human for the repository and the checkout when the settings are missing. That is still true when the site gives none, and it leaves out the site-file path. The skill's text is not mine.
+    3. The coder's note stands: in `status.sh`, a failed `hosting_repo_api` inside the `newest_comment` pipeline prints the hosting client's message, then a Python JSON error. That is a code matter, not a documentation finding.
+
+    No findings against the code.
+
+    The factory left out changes outside the write paths: operator/README.md.
+
+    `check`: check: green (not run again: passed on tree 1a703605acf0 at 2026-11-02T18:28:09Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
