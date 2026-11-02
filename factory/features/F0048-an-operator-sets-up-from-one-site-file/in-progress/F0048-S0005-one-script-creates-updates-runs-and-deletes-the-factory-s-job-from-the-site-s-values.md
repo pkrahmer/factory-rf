@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870, 6586194468]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T19:23:38.917398Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-11-02T19:23:38.917398Z'
   stage: tests
+- number: 32
+  speaker: tester
+  kind: result
+  at: '2026-11-02T19:27:02.226529Z'
+  stage: tests
+  run: b2dcac4294654d9999fbbac15e7736f9
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -558,3 +560,41 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
 
     Entry 28 says the next review or intake applies that wording. I left `## Description` and the criteria unchanged, since entry 28 changed no part of the task's meaning that the coder writes.
 31. factory: started tests as vm.
+32. tester: Made the test changes the coder named in entry 30. They come from the human's answer in entry 26 and the reviewer's findings 1 to 3 in entry 28.
+
+    Criterion → test:
+    - criterion 19: tests/test_operator_job.py::test_an_instance_name_holds_only_letters_digits_dots_underscores_and_dashes. One parametrized test with nine rows:
+      - `create` refuses `a;rm`, `a b`, `$(x)`, `a/b`, `a@b` and `inst-ä`;
+      - `update` and `create --dry-run` refuse `a;rm`;
+      - `create` accepts `Inst-1.b_c`: the call runs and the exit is 0.
+    - criterion 20: tests/test_operator_job.py::test_a_value_of_the_env_list_holds_no_at_sign. One parametrized test:
+      - `create` is refused once for each of the ten keys. `SITE_REPOSITORY_URL=git@host:org/work.git` is one of them; the other keys get their value with `@x` added;
+      - `update` and `create --dry-run` are refused with the SSH URL;
+      - `create` accepts the same keys without `@` (`SITE_IDLE_MINUTES=60` is set so all ten keys are present).
+    - criterion 21: tests/test_operator_job.py::test_a_price_is_digits_with_at_most_one_dot. One parametrized test:
+      - refused: `abc`, `nan`, `inf`, `-1`, `1e3`, `1.2.3` and `.`, spread over both keys, plus `abc` on the output key;
+      - `update` and `create --dry-run` with `abc` are refused;
+      - accepted: `0`, `3`, `15.5`, `.5` and `1.`, each set on both keys. Each is read back from the `provider.json` the wrapper writes as a JSON number equal to that value.
+    - criteria 3 and 14 (finding 2): the two cases of `test_execute_and_delete_name_a_missing_job` are now rows `execute-without-job` and `delete-without-job` of tests/test_operator_job.py::test_missing_site_keys_are_named_in_one_line, and the old function is gone. Each row now lists its missing keys. The assertions are unchanged: one `site: missing … in <path>` line, exit 2, no `gcloud` call.
+
+    Helpers inside the same file:
+    - `provider_text`: the wrapper-running part of `test_the_provider_file_the_wrapper_writes_is_a_valid_provider`, pulled out so the criterion 21 test can share it. That test still checks the same thing.
+    - `found`: gives the `describe` status a command needs to go on (`update` needs the job to exist, `create` needs it not to).
+
+    Finding 3, under the standing leave to move a shared test helper:
+    - `tests/recording_stand_in_support.py` gains `read_records(path)`, one reader of a JSON-lines records file that returns an empty list when the file is missing. `recorded_calls` now uses it.
+    - In `tests/test_operator_job.py`, the copied `calls` is removed and every use is now `read_records(records)`.
+    - Earlier test file changed: `tests/test_operator_hosting.py` (another story's). Its `calls(records, name)` keeps its name and its callers, and now returns `read_records(records / f"{name}.jsonl")`. Its unused `import json` is removed. No test there changed name or what it checks.
+
+    Run: `uv run pytest -q` over `tests/test_operator_job.py`, `tests/test_operator_hosting.py`, `tests/test_suite_held_once.py` and `tests/test_shared_imports.py`.
+    - The first run had 2 failures. They were my test's fault: the stand-in said the job exists on the accepted `create` rows, so `create` refused. I added `found` to fix it.
+    - The second run passed. The new tests are green because `operator/job/job.sh:51-83` already implements the three checks. This was the human's leave for an approved change, not a red-first specification.
+
+    I ran the tests twice instead of once, because the first run exposed my own bug. `make lint` is green. I did not run the type check, as the stage says.
+
+    Files created: none. Files changed: `tests/test_operator_job.py`, `tests/recording_stand_in_support.py`, `tests/test_operator_hosting.py`. Modules the test run could not import: none.
+
+    Open: entry 28's finding 4, the wording of criterion 23 (docs), is for the next review or intake to apply. I did not touch it.
+
+    `lint`: lint: green (0.1 s)
+    `test`: test: green (79.5 s)

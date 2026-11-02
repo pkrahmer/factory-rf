@@ -15,6 +15,7 @@ from factory.adapters.process import ProcessResult
 from factory.domain.opencode_provider import read_provider
 from git_support import commit_all, run_git, write_executable
 from operator_support import ROOT, operator_environment, run_script
+from recording_stand_in_support import read_records
 
 JOB = "factory-job"
 HOSTING_MOUNT = "/secrets/hosting-token"
@@ -209,13 +210,6 @@ def run_job(tmp_path: Path, repository: Path, records: Path) -> RunJob:
     return run
 
 
-def calls(records: Path) -> list[list[str]]:
-    """The argument lists the `gcloud` stand-in recorded, oldest first."""
-    if not records.exists():
-        return []
-    return [json.loads(line) for line in records.read_text(encoding="utf-8").splitlines()]
-
-
 def site_path(tmp_path: Path) -> Path:
     """The site file's path the `run_job` fixture writes."""
     return tmp_path / "site" / "site.env"
@@ -230,7 +224,7 @@ def test_create_and_update_build_the_job_call_from_the_site(
 ) -> None:
     result = run_job([verb], SITE, STAND_IN_DESCRIBE=describe)
     assert result.exit_status == 0, result.stderr
-    recorded = calls(records)
+    recorded = read_records(records)
     assert [words(call)[:3] for call in recorded] == [
         ["run", "jobs", "describe"],
         ["run", "jobs", verb],
@@ -265,7 +259,7 @@ def test_every_call_carries_the_project_the_region_and_the_impersonation(
     values = {**SITE, "SITE_IMPERSONATE": IMPERSONATE} if impersonate else SITE
     result = run_job(job_words, values, STAND_IN_EXECUTION="exec-1")
     assert result.exit_status == 0, result.stderr
-    recorded = calls(records)
+    recorded = read_records(records)
     assert recorded
     for call in recorded:
         assert f"--project={SITE['SITE_PROJECT']}" in call
@@ -275,12 +269,14 @@ def test_every_call_carries_the_project_the_region_and_the_impersonation(
 
 
 @pytest.mark.parametrize(
-    ("job_words", "values", "refused"),
+    ("job_words", "values", "missing"),
     [
-        pytest.param(["create"], SITE, True, id="create"),
-        pytest.param(["update"], SITE, True, id="update"),
-        pytest.param(["execute"], BARE, False, id="execute"),
-        pytest.param(["delete", "--yes"], BARE, False, id="delete"),
+        pytest.param(["create"], SITE, ("SITE_REGION", "SITE_CODE_REF"), id="create"),
+        pytest.param(["update"], SITE, ("SITE_REGION", "SITE_CODE_REF"), id="update"),
+        pytest.param(["execute"], BARE, (), id="execute"),
+        pytest.param(["delete", "--yes"], BARE, (), id="delete"),
+        pytest.param(["execute"], BARE, ("SITE_JOB",), id="execute-without-job"),
+        pytest.param(["delete", "--yes"], BARE, ("SITE_JOB",), id="delete-without-job"),
     ],
 )
 def test_missing_site_keys_are_named_in_one_line(
@@ -290,22 +286,18 @@ def test_missing_site_keys_are_named_in_one_line(
     job_words: list[str],
     values: dict[str, str],
     *,
-    refused: bool,
+    missing: tuple[str, ...],
 ) -> None:
-    missing = {
-        key: value for key, value in values.items() if key not in ("SITE_REGION", "SITE_CODE_REF")
-    }
-    result = run_job(
-        job_words, missing if refused else values, STAND_IN_DESCRIBE="0", STAND_IN_EXECUTION="e"
-    )
-    if refused:
-        line = f"site: missing SITE_REGION, SITE_CODE_REF in {site_path(tmp_path)}"
+    kept = {key: value for key, value in values.items() if key not in missing}
+    result = run_job(job_words, kept, STAND_IN_DESCRIBE="0", STAND_IN_EXECUTION="e")
+    if missing:
+        line = f"site: missing {', '.join(missing)} in {site_path(tmp_path)}"
         assert result.stderr.splitlines() == [line]
         assert result.exit_status == 2
-        assert calls(records) == []
+        assert read_records(records) == []
     else:
         assert result.exit_status == 0, result.stderr
-        assert calls(records)
+        assert read_records(records)
 
 
 @pytest.mark.parametrize(
@@ -339,7 +331,7 @@ def test_the_sizes_and_the_idle_minutes_have_defaults_the_site_overrides(
 ) -> None:
     result = run_job(["create"], {**SITE, **values})
     assert result.exit_status == 0, result.stderr
-    call = calls(records)[-1]
+    call = read_records(records)[-1]
     assert {f"--cpu={cpu}", f"--memory={memory}", f"--task-timeout={timeout}"} <= set(call)
     assert f"FACTORY_IDLE_SHUTDOWN_MINUTES={idle}" in flag(call, "set-env-vars").split("@")
 
@@ -353,7 +345,7 @@ def test_the_env_list_holds_the_site_values_and_no_path_and_no_secret(
         **MARKED_ENV,
     )
     assert result.exit_status == 0, result.stderr
-    listed = flag(calls(records)[-1], "set-env-vars")
+    listed = flag(read_records(records)[-1], "set-env-vars")
     assert listed.startswith("^@^")
     entries = listed.removeprefix("^@^").split("@")
     assert entries == env_list(SITE).removeprefix("^@^").split("@")
@@ -373,7 +365,7 @@ def test_the_secrets_reach_the_job_only_as_mounts(run_job: RunJob, records: Path
         **MARKED_ENV,
     )
     assert result.exit_status == 0, result.stderr
-    recorded = calls(records)
+    recorded = read_records(records)
     assert flag(recorded[-1], "set-secrets") == MOUNTS
     texts = [word for call in recorded for word in call] + [wrapper_of(recorded[-1])]
     for mark in MARKS:
@@ -388,7 +380,7 @@ def test_the_wrapper_writes_the_provider_and_hands_over_to_the_tagged_start_scri
     start.write_text(tagged + "# changed in the work tree only\n", encoding="utf-8")
     result = run_job(["create"], SITE)
     assert result.exit_status == 0, result.stderr
-    script = wrapper_of(calls(records)[-1])
+    script = wrapper_of(read_records(records)[-1])
     assert f"mkdir -p {JOB_ROOT}" in script
     assert f"{JOB_ROOT}/provider.json" in script
     assert START_SCRIPT in script
@@ -414,7 +406,22 @@ def test_a_code_ref_the_repository_does_not_know_stops_before_gcloud(
     result = run_job(job_words, {**SITE, "SITE_CODE_REF": "unknown-ref"}, STAND_IN_DESCRIBE="0")
     assert "job: unknown-ref is not known here; fetch it first" in result.stderr
     assert result.exit_status == 1
-    assert calls(records) == []
+    assert read_records(records) == []
+
+
+def provider_text(tmp_path: Path, call: list[str]) -> str:
+    """The `provider.json` the wrapper of `call` writes, run with its folders in `tmp_path`."""
+    script = wrapper_of(call)
+    root = tmp_path / "job-root"
+    # The wrapper runs here with its two folders moved into tmp_path and without the hand-over.
+    local = (
+        script.replace(START, "exit 0")
+        .replace(JOB_ROOT, str(root))
+        .replace(START_SCRIPT, str(tmp_path / "job-start.sh"))
+    )
+    ran = run_script(["-c", local], tmp_path, operator_environment(tmp_path))
+    assert ran.exit_status == 0, ran.stderr
+    return (root / "provider.json").read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize(
@@ -445,17 +452,7 @@ def test_the_provider_file_the_wrapper_writes_is_a_valid_provider(
     site = {**SITE, **values}
     result = run_job(["create"], site)
     assert result.exit_status == 0, result.stderr
-    script = wrapper_of(calls(records)[-1])
-    root = tmp_path / "job-root"
-    # The wrapper runs here with its two folders moved into tmp_path and without the hand-over.
-    local = (
-        script.replace(START, "exit 0")
-        .replace(JOB_ROOT, str(root))
-        .replace(START_SCRIPT, str(tmp_path / "job-start.sh"))
-    )
-    ran = run_script(["-c", local], tmp_path, operator_environment(tmp_path))
-    assert ran.exit_status == 0, ran.stderr
-    text = (root / "provider.json").read_text(encoding="utf-8")
+    text = provider_text(tmp_path, read_records(records)[-1])
     model = site["SITE_MODEL"]
     raw = json.loads(text)["models"][model]
     assert isinstance(raw["input_cost"], int | float)
@@ -483,7 +480,7 @@ def test_create_and_update_refuse_the_wrong_state_of_the_job(
     shown = result.stderr if verb == "create" else result.stdout + result.stderr
     assert message in shown
     assert result.exit_status == 1
-    assert [words(call)[2] for call in calls(records)] == ["describe"]
+    assert [words(call)[2] for call in read_records(records)] == ["describe"]
 
 
 @pytest.mark.parametrize("verb", ["create", "update"])
@@ -492,7 +489,7 @@ def test_a_dry_run_prints_the_call_and_runs_no_gcloud(
 ) -> None:
     result = run_job([verb, "--dry-run"], SITE, STAND_IN_DESCRIBE="0")
     assert result.exit_status == 0, result.stderr
-    assert calls(records) == []
+    assert read_records(records) == []
     lines = result.stdout.splitlines()
     assert {"run", "jobs", verb, JOB} <= set(lines)
     assert job_flags() <= set(lines)
@@ -516,7 +513,7 @@ def test_execute_refuses_to_overlap_a_running_execution(
     result = run_job(
         ["execute"], BARE, STAND_IN_EXECUTIONS=executions, STAND_IN_EXECUTION="exec-new"
     )
-    recorded = calls(records)
+    recorded = read_records(records)
     listing = recorded[0]
     assert words(listing) == ["run", "jobs", "executions", "list"]
     assert f"--job={JOB}" in listing
@@ -544,7 +541,7 @@ def test_execute_refuses_to_overlap_a_running_execution(
 )
 def test_delete_asks_for_yes(run_job: RunJob, records: Path, *, confirmed: bool) -> None:
     result = run_job(["delete", "--yes"] if confirmed else ["delete"], BARE)
-    deletes = [call for call in calls(records) if words(call)[2:3] == ["delete"]]
+    deletes = [call for call in read_records(records) if words(call)[2:3] == ["delete"]]
     if confirmed:
         assert result.exit_status == 0, result.stderr
         assert len(deletes) == 1
@@ -588,20 +585,6 @@ def test_a_failing_gcloud_shows_its_error_and_its_status(
     assert result.exit_status == status
 
 
-@pytest.mark.parametrize(
-    "job_words",
-    [pytest.param(["execute"], id="execute"), pytest.param(["delete", "--yes"], id="delete")],
-)
-def test_execute_and_delete_name_a_missing_job(
-    tmp_path: Path, run_job: RunJob, records: Path, job_words: list[str]
-) -> None:
-    values = {key: value for key, value in BARE.items() if key != "SITE_JOB"}
-    result = run_job(job_words, values, STAND_IN_EXECUTION="exec-new")
-    assert result.stderr.splitlines() == [f"site: missing SITE_JOB in {site_path(tmp_path)}"]
-    assert result.exit_status == 2
-    assert calls(records) == []
-
-
 def test_execute_saves_the_name_under_home_without_xdg_state_home(
     tmp_path: Path, run_job: RunJob
 ) -> None:
@@ -631,7 +614,7 @@ def test_a_wrong_command_line_prints_the_usage(
     result = run_job(job_words, SITE, STAND_IN_DESCRIBE="0", STAND_IN_EXECUTION="exec-new")
     assert USAGE in result.stderr.splitlines()
     assert result.exit_status == 2
-    assert calls(records) == []
+    assert read_records(records) == []
 
 
 def test_a_start_script_holding_the_wrappers_end_line_is_refused(
@@ -645,7 +628,7 @@ def test_a_start_script_holding_the_wrappers_end_line_is_refused(
     message = "job: vm/job-start.sh holds the line JOB_START_SH_END; the wrapper cannot carry it"
     assert message in result.stderr.splitlines()
     assert result.exit_status == 1
-    assert calls(records) == []
+    assert read_records(records) == []
 
 
 DESCRIBE_TEXT = "ERROR: (gcloud) DESCRIBETEXT"
@@ -658,7 +641,7 @@ def test_a_failing_describe_is_shown_by_update_and_hidden_by_create(
     result = run_job(
         [verb], SITE, STAND_IN_DESCRIBE="1", STAND_IN_DESCRIBE_TEXT=DESCRIBE_TEXT + "\n"
     )
-    verbs = [words(call)[2] for call in calls(records)]
+    verbs = [words(call)[2] for call in read_records(records)]
     if verb == "update":
         message = f"job: {JOB} does not exist; use create"
         assert DESCRIBE_TEXT in result.stderr
@@ -671,3 +654,130 @@ def test_a_failing_describe_is_shown_by_update_and_hidden_by_create(
         assert DESCRIBE_TEXT not in result.stdout + result.stderr
         assert result.exit_status == 0, result.stderr
         assert verbs == ["describe", "create"]
+
+
+def found(job_words: list[str]) -> str:
+    """The `describe` status under which the command `job_words` goes on: `update` needs the job."""
+    return "0" if job_words[0] == "update" else "1"
+
+
+INSTANCE_REFUSED = "job: SITE_INSTANCE may hold only letters, digits, '.', '_' and '-'"
+
+
+@pytest.mark.parametrize(
+    ("job_words", "instance", "refused"),
+    [
+        *(
+            pytest.param(["create"], instance, True, id=f"create-{instance}")
+            for instance in ("a;rm", "a b", "$(x)", "a/b", "a@b", "inst-ä")
+        ),
+        pytest.param(["update"], "a;rm", True, id="update-a;rm"),
+        pytest.param(["create", "--dry-run"], "a;rm", True, id="create-dry-run-a;rm"),
+        pytest.param(["create"], "Inst-1.b_c", False, id="create-Inst-1.b_c"),
+    ],
+)
+def test_an_instance_name_holds_only_letters_digits_dots_underscores_and_dashes(
+    run_job: RunJob, records: Path, job_words: list[str], instance: str, *, refused: bool
+) -> None:
+    result = run_job(
+        job_words, {**SITE, "SITE_INSTANCE": instance}, STAND_IN_DESCRIBE=found(job_words)
+    )
+    if refused:
+        assert INSTANCE_REFUSED in result.stderr.splitlines()
+        assert result.exit_status == 1
+        assert read_records(records) == []
+    else:
+        assert result.exit_status == 0, result.stderr
+        assert words(read_records(records)[-1])[2] == "create"
+
+
+ENV_KEYS = (
+    "SITE_REPOSITORY_URL",
+    "SITE_CODE_URL",
+    "SITE_CODE_REF",
+    "SITE_PROXY",
+    "SITE_NO_PROXY",
+    "SITE_MODEL",
+    "SITE_LOGIN_URL",
+    "SITE_LOGIN_SCOPE",
+    "SITE_LOGIN_CLIENT_ID",
+    "SITE_IDLE_MINUTES",
+)
+WITHOUT_AT = {**SITE, "SITE_IDLE_MINUTES": "60"}
+SSH_URL = "git@host:org/work.git"
+
+
+def with_at(key: str) -> str:
+    """A value of `key` holding `@`: the SSH form of the repository's URL, else `@` added."""
+    return SSH_URL if key == "SITE_REPOSITORY_URL" else WITHOUT_AT[key] + "@x"
+
+
+@pytest.mark.parametrize(
+    ("job_words", "key"),
+    [
+        *(pytest.param(["create"], key, id=f"create-{key}") for key in ENV_KEYS),
+        pytest.param(["update"], "SITE_REPOSITORY_URL", id="update-ssh-url"),
+        pytest.param(["create", "--dry-run"], "SITE_REPOSITORY_URL", id="create-dry-run-ssh-url"),
+        pytest.param(["create"], None, id="create-without-at"),
+    ],
+)
+def test_a_value_of_the_env_list_holds_no_at_sign(
+    run_job: RunJob, records: Path, job_words: list[str], key: str | None
+) -> None:
+    values = WITHOUT_AT if key is None else {**WITHOUT_AT, key: with_at(key)}
+    result = run_job(job_words, values, STAND_IN_DESCRIBE=found(job_words))
+    if key is not None:
+        message = f"job: {key} holds '@', the delimiter of the job's env list"
+        assert message in result.stderr.splitlines()
+        assert result.exit_status == 1
+        assert read_records(records) == []
+    else:
+        assert result.exit_status == 0, result.stderr
+        assert words(read_records(records)[-1])[2] == "create"
+
+
+INPUT_COST = "SITE_MODEL_INPUT_COST"
+OUTPUT_COST = "SITE_MODEL_OUTPUT_COST"
+
+
+@pytest.mark.parametrize(
+    ("job_words", "key", "cost"),
+    [
+        pytest.param(["create"], INPUT_COST, "abc", id="create-input-abc"),
+        pytest.param(["create"], OUTPUT_COST, "nan", id="create-output-nan"),
+        pytest.param(["create"], INPUT_COST, "inf", id="create-input-inf"),
+        pytest.param(["create"], OUTPUT_COST, "-1", id="create-output-minus-1"),
+        pytest.param(["create"], INPUT_COST, "1e3", id="create-input-1e3"),
+        pytest.param(["create"], OUTPUT_COST, "1.2.3", id="create-output-1.2.3"),
+        pytest.param(["create"], INPUT_COST, ".", id="create-input-dot"),
+        pytest.param(["create"], OUTPUT_COST, "abc", id="create-output-abc"),
+        pytest.param(["update"], INPUT_COST, "abc", id="update-input-abc"),
+        pytest.param(["create", "--dry-run"], INPUT_COST, "abc", id="create-dry-run-input-abc"),
+        *(
+            pytest.param(["create"], None, cost, id=f"create-accepted-{cost}")
+            for cost in ("0", "3", "15.5", ".5", "1.")
+        ),
+    ],
+)
+def test_a_price_is_digits_with_at_most_one_dot(
+    tmp_path: Path,
+    run_job: RunJob,
+    records: Path,
+    job_words: list[str],
+    *,
+    key: str | None,
+    cost: str,
+) -> None:
+    if key is not None:
+        result = run_job(job_words, {**SITE, key: cost}, STAND_IN_DESCRIBE=found(job_words))
+        assert f"job: {key} is not a number" in result.stderr.splitlines()
+        assert result.exit_status == 1
+        assert read_records(records) == []
+    else:
+        result = run_job(job_words, {**SITE, INPUT_COST: cost, OUTPUT_COST: cost})
+        assert result.exit_status == 0, result.stderr
+        text = provider_text(tmp_path, read_records(records)[-1])
+        written = json.loads(text)["models"][SITE["SITE_MODEL"]]
+        for name in ("input_cost", "output_cost"):
+            assert isinstance(written[name], int | float)
+            assert written[name] == float(cost)

@@ -1,7 +1,6 @@
 """The operator's hosting library: its token source, its API calls through `curl` and its git."""
 
 import base64
-import json
 import shlex
 from collections.abc import Callable
 from pathlib import Path
@@ -16,6 +15,7 @@ from operator_support import (
     make_work_tree,
     run_hosting,
 )
+from recording_stand_in_support import read_records
 
 ACCESS = "tok123"
 # The command builds the token, so its text is in no file the test writes.
@@ -96,10 +96,7 @@ def make_env(
 
 def calls(records: Path, name: str) -> list[dict[str, object]]:
     """The calls a stand-in recorded, in order."""
-    path = records / f"{name}.jsonl"
-    if not path.exists():
-        return []
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    return read_records(records / f"{name}.jsonl")
 
 
 def curl_input(records: Path) -> list[str]:
