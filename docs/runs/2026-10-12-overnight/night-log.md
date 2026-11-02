@@ -1402,3 +1402,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 19:33 UTC: F0048-S0005 reviewer judged all five groups (#502), only the docs criterion lacked the three refusals; answered (a): the reviewer amends criterion 23 and passes to docs.
 - 19:36 UTC: F0048-S0011 (the reviewer judges all five groups in every review) added as the human asked, built next after S0005; decision 15.
 - 19:42 UTC: F0048-S0005 (job.sh) at approval, PR #502: six checks green (two support files changed under the standing leave to share read_records; no marker; smoke met; three security refusals pinned by criteria 19-21; $9.15 over 19 runs); merged, archived. No rebuild. F0048-S0011 (the reviewer judges all five groups) started, as the human asked.
+- 19:49 UTC: F0048-S0011 coder asked (#503): an earlier text test anchors "Item 6 is part of every review, whichever group failed."; leave granted (a): the tester changes that one anchor to the new ending.
