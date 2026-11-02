@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-02T17:34:04.361293Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -197,6 +201,11 @@ journal:
   at: '2026-11-02T17:33:43.521089Z'
   stage: doing
   run: 6b464efc82794033917b30877ae97ef6
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:34:04.361293Z'
+  stage: tests
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -627,3 +636,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     - On a failed transfer, curl's own error text is thrown away with the status file. The Interface's message is only `no answer`.
 
     The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0003-a-hosting-client-in-shell-takes-its-token-from-a-command-the-site-names.md.
+35. factory: started tests as vm.
