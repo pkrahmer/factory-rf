@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T21:44:25.441962Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-02T21:44:25.441962Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-02T21:47:50.248954Z'
+  stage: doing
+  run: c8c1a72330734868b5f31e8b32cba16e
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -217,3 +219,24 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     `lint`: lint: green (0.1 s)
     `test`: FAILED tests/test_suite_held_once.py::test_each_shared_helper_and_constant_is_held_once[vm-setup-helpers] - AssertionError: in_order
 12. factory: started doing as vm.
+13. coder: Implemented both scripts. Every test in `tests/test_operator_merge_reset.py` passes (28). `make check` is red, and only for a reason in that test module, so I'm handing it back for one test change.
+
+    **Test change needed:** `tests/test_operator_merge_reset.py` defines its own top-level `in_order`, and `tests/test_suite_held_once.py::test_each_shared_helper_and_constant_is_held_once[vm-setup-helpers]` asserts that only `vm_support.py` defines `in_order`. The failure: `FAILED tests/test_suite_held_once.py::test_each_shared_helper_and_constant_is_held_once[vm-setup-helpers] - AssertionError: in_order`. The change: drop the module's `in_order` and call `vm_support.in_order("\n".join(printed(result)), [...])` at its five call sites. That falls under the standing leave to use a shared helper; renaming it locally would keep a second copy. Every other part of `make check` was green in the same run: lint, types, layers, sast, secrets, licenses, and the rest of the tests at 99.58 % coverage.
+
+    Built:
+    - `operator/skill/kumpel/scripts/merge.sh`: refuses unless the pull request is open, not a draft, labelled `stage:approval` and on `work-item/<id>`. Then it merges with `{"merge_method":"merge"}` and polls `/commits?per_page=20` for `work item <id>: merged, archived`.
+    - `operator/skill/kumpel/scripts/reset-to-tag.sh`: needs the site's repository to be equal to its resettable repository. It resolves the tag, following an annotated tag once, and lists the open work-item pull requests and the `work-item/` refs. Without `--yes` it prints the plan. With `--yes` it closes, deletes, then moves `main` by force, and stops at the first failure.
+    - Both scripts use `hosting_repo_api` and the site's `SITE_REPOSITORY` directly, not `settings.sh get repository`, so they work with no settings file. They are mode 644 like their sibling scripts and are run with `sh`.
+
+    Main choice: the archive wait in `merge.sh` is ended by the clock (`date +%s` against the start), not by adding up the pauses. With `KUMPEL_POLL_SECONDS=0`, a sum of pauses would never grow and the wait would never end. A wait of 0 still makes one poll. Rejected: a counter of polls (wait divided by pause), which has no answer for a pause of 0.
+
+    Second choice: `reset-to-tag.sh` says `no tag <tag>` only when the tag lookup fails with a 404. Any other failure, such as a missing token or a 401, prints the hosting client's own message. Rejected: reporting every failed lookup as a missing tag.
+
+    Refactor: I read the diff and found nothing to change.
+
+    The smoke test's two commands were run by hand and print exactly the expected lines and exits (`... is not the site's resettable repository` / `exit 1`, `site: missing SITE_RESET_REPOSITORY in <path>` / `exit 2`).
+
+    Noticed, not touched:
+    - The tester's rewrite of `## Description` after entry 9 was dropped by the factory (entry 11's note). Criteria 3, 4 and 9 still read with the short path and a wait of 0 on both rows. The tests and code follow the human's answer in entry 9: the full `/repos/<repository>/...` path, and a wait of 60 for the third-poll row. I do not have the work item in my write paths.
+    - A failing GET of the pull-request list or the branch list stops the reset with the hosting message, followed by Python's JSON error. No criterion covers this.
+    - The docs criterion (13) is the documenter's.
