@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-02T17:43:24.689690Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -241,6 +245,11 @@ journal:
   at: '2026-11-02T17:43:02.724453Z'
   stage: docs
   run: aecce8ed69434db5826863dd008346bf
+- number: 43
+  speaker: factory
+  kind: started
+  at: '2026-11-02T17:43:24.689690Z'
+  stage: smoke-test
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -767,3 +776,4 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     `check`: check: green (not run again: passed on tree ff72949d31ad at 2026-11-02T17:38:32Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+43. factory: started smoke-test as vm.
