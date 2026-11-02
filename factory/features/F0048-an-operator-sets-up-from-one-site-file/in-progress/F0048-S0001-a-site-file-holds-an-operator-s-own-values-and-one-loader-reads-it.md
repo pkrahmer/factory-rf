@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948, 6580704685, 6581576595]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-02T15:53:07.643816Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -191,6 +195,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-02T15:52:49.593938Z'
+  stage: review
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-11-02T15:53:07.643816Z'
   stage: review
 ---
 
@@ -582,3 +591,4 @@ Expect: one line, `$(echo ran)`.
     - `tests/test_operator_site.py:295`: criterion 9 says "with `SITE_A` and `SITE_B` set", but the `all-set` row uses `SITE_A SITE_D`. It checks the same rule.
 32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 33. 2026-11-02 human: Go on. The coder ends with `tests` naming criteria 26 and 27; the tester adds the two rows the reviewer named (`XDG_CONFIG_HOME` empty, `get SITE_`). In the next review, judge all five groups in one pass, not only group 1, so that every remaining finding comes at once. A further missing side of a limit that the code already builds and that needs only a test row is a note, not a reason to send the story back.
+34. factory: started review as vm.
