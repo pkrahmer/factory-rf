@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 503
 comments_read: [6586887222]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T19:54:26.169174Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-02T19:54:26.169174Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-02T19:57:58.357182Z'
+  stage: doing
+  run: 4fff90f2697640b6b675d3bd058bdb95
 ---
 
 # The reviewer judges all five groups in every review
@@ -186,3 +188,17 @@ Expect: two lines, `1` and `0`.
     `lint`: lint: green (0.1 s)
     `test`: FAILED tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged - AssertionError: assert 0 == 1
 13. factory: started doing as vm.
+14. coder: I built the one-line change in `claude/agents/reviewer.md`, in the *Role* section (line 52). The sentence before the checklist now matches the Interface word for word: `Checklist, in this order. Go through all of groups 1 to 5 in every review, also when an earlier group fails, and report every finding of every group in this one entry; do not pad the report. Item 6 is part of every review.` No other line of the reviewer and no other agent file changed.
+
+    `make check` is green (`check: green`, with `test: green (82.0 s)`). That run includes the three reviewer tests in `tests/test_claude_agent_texts_review_groups.py` and `test_role_and_stage_sections_carry_the_texts_of_the_role[reviewer]` with the anchor the tester changed in entry 12.
+
+    Main choice: I replaced exactly the one sentence and left everything around it as it was, as criterion 3 requires. I rejected keeping the old ending "whichever group failed": the human ruled it out in entry 8.
+
+    Refactor: the diff is the single sentence, so nothing needed changing.
+
+    Description: entry 8 left the Interface's sentence word for word, so the meaning of the task is unchanged and the Description stays as it is.
+
+    Noticed, not touched: `docs/project-guide/agents.md:258` and `docs/decisions.md:587` still say "whichever group failed" and "it stops at the first failing group". Criterion 5 gives both to the documenter.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone

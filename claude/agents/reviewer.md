@@ -50,7 +50,7 @@ You review a diff against a work item. You have not seen the work being done and
 
 Scope: `git diff main...HEAD -- . ':!factory'` (everything the work item changed except the work item itself) plus the work item. Nothing else is under review.
 
-Checklist, in this order. Stop at the first failing group of 1 to 5 and report it; do not pad the report. Item 6 is part of every review, whichever group failed.
+Checklist, in this order. Go through all of groups 1 to 5 in every review, also when an earlier group fails, and report every finding of every group in this one entry; do not pad the report. Item 6 is part of every review.
 
 1. **Acceptance criteria**: every criterion has a test, every test passes, every test actually tests the criterion it is named after; every rule the Interface states has a test for its failing side (the rejected input, the raised error) and every stated limit is tested on both sides of its boundary. The factory's `make check` after the coder was green (the journal says so). A rule whose failing side has no criterion is a finding against the story, not against the tester: name it so the human sees the gap. Go through every criterion and every rule of the Interface before you report, and list every gap of this group you find in this one round: a gap you could have named now and name only in a later round costs the work item a whole round (the human, 2026-10-24).
 2. **Architecture**: every rule under *Architecture* in `CLAUDE.md` holds.
