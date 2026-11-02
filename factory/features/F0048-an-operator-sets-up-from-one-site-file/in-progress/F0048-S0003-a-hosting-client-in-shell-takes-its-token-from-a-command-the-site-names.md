@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-02T17:42:22.077500Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -239,6 +235,12 @@ journal:
   kind: started
   at: '2026-11-02T17:42:22.077500Z'
   stage: docs
+- number: 42
+  speaker: documenter
+  kind: result
+  at: '2026-11-02T17:43:02.724453Z'
+  stage: docs
+  run: aecce8ed69434db5826863dd008346bf
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -748,3 +750,20 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     - tests/test_operator_hosting.py:442 `test_the_repository_call_puts_the_site_repository_in_the_path`: the `missing` column always equals `url_line is None`, so one of the two columns would do.
     - tests/test_operator_hosting.py:220 `test_the_token_is_the_first_line_of_the_command_trimmed`: carried over from entry 32. The success side of "the command's standard error is discarded" has no row. The code handles it (`operator/lib/hosting.sh:12`, `2>/dev/null`).
 41. factory: started docs as vm.
+42. documenter: Docs, round 1. I read the story, the diff of `operator/lib/hosting.sh` and the tests, and the operator guide. I found no code contradicting the Interface or the criteria.
+
+    Files changed:
+    - `docs/operator-guide.md`: a new section *The token source* in *The site file*, after *The keys*, as criterion 22 asks. It gives the two token sources, the command's rules (first line, trimmed, stderr discarded), the failure message and status 4, why the token is never in an argument list and how `curl` and git get it, `SITE_API_URL`, the return codes of the three calls, and the `curl` 7.63 minimum. I took the minimum from coder entries 22 and 26 and from the reviewer's note. It also says that the header goes to every http(s) remote of that git call, since the Interface fixes that key. The runnable example is the story's first smoke test, which I ran: it prints `abc`.
+    - `docs/operator-guide.md`, the opening paragraph of *The site file*: it said no script reads the file for the hosting service. It now says no existing script uses the hosting library yet, and points to the new section.
+
+    Criterion 22 says "the three ways to give a token", but the code has two sources: `SITE_TOKEN_CMD`, else `gh auth token`. I wrote what the code does. Reviewer entry 40 explained why the wording stays, since it follows feature.md's Goal. The work item itself is outside my write paths.
+
+    Cross-read and found current: README.md (no mention of the library), `docs/project-guide/` and `docs/decisions.md` (nothing about `operator/lib`), the *Configuration* and *The keys* tables (`SITE_TOKEN_CMD` default `gh auth token` and `SITE_API_URL` default are correct).
+
+    I ran no `make check`: I changed only documents.
+
+    Stale text I saw and did not touch: none.
+
+    `check`: check: green (not run again: passed on tree ff72949d31ad at 2026-11-02T17:38:32Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok

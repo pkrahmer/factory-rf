@@ -896,7 +896,7 @@ sudo systemctl start factory@vm
 
 ## The site file
 
-The values that belong to one site (a project, a region, a proxy, the names of secrets, two repositories, a token command) live in one plain file, `site.env`, and one loader, `operator/lib/site.sh`, reads it for every operator script. The file is where company values go, so it lies outside every repository. No script reads it yet for a job or for the hosting service; the stories to come make each key live, and until then the file and the `site` command are all there is.
+The values that belong to one site (a project, a region, a proxy, the names of secrets, two repositories, a token command) live in one plain file, `site.env`, and one loader, `operator/lib/site.sh`, reads it for every operator script. The file is where company values go, so it lies outside every repository. No script reads it yet for a job, and no existing script uses the hosting library (*The token source*); the stories to come make each key live.
 
 ### Its place
 
@@ -971,6 +971,31 @@ sh operator/bin/site get SITE_REPOSITORY
 | `SITE_IDLE_MINUTES` | idle minutes after which the job ends itself | 30 |
 | `SITE_RESET_REPOSITORY` | the repository a trial resets, `owner/repo` | none |
 | `SITE_SANITISE_RULES` | the file of rules that sanitise what leaves the site | none |
+
+### The token source
+
+`operator/lib/hosting.sh` is the shell library that talks to the code host: the REST API (`hosting_api`, and `hosting_repo_api` for `/repos/$SITE_REPOSITORY...`) and git over HTTPS (`hosting_git`). Source it after `operator/lib/site.sh`; it loads the site file itself when no `SITE_` value is loaded yet. It replaces the `gh` program for those two uses, whose login is the person's own and may not see the project's repository.
+
+The token comes from one of two sources:
+
+1. `SITE_TOKEN_CMD`, when it is set and not empty: a command that prints a token (a secret store, a keychain, any program). It runs as `sh -c "$SITE_TOKEN_CMD"`. The first line of its output is the token, with surrounding whitespace and a trailing carriage return removed. Its standard error is discarded.
+2. Otherwise `gh auth token`, so a home setup with a logged-in `gh` needs no entry.
+
+When the command exits non-zero, prints nothing (or only blank lines), or there is neither a command nor `gh`, the library prints `hosting: the token command failed; see SITE_TOKEN_CMD in the site file` and returns 4. The message never repeats what the command printed, because that may be an error text that holds a secret.
+
+The token is never in an argument list, where `ps` shows it to every user of the machine. The API call gives `curl` its URL and headers, the token among them, as a configuration on standard input (`--config -`). `hosting_git` gives git a `http.extraHeader` and an empty `credential.helper` through the `GIT_CONFIG_*` environment variables, and sets `GIT_TERMINAL_PROMPT=0`. The header is sent to every http(s) remote that git call contacts. The token is written to no file. `curl` 7.63 or later is needed; Debian 12 has 7.88.
+
+`SITE_API_URL` is the base of the API calls (default `https://api.github.com`; a trailing `/` is removed), for a GitHub Enterprise server.
+
+Return codes of `hosting_api`: 0 for an HTTP status from 200 to 299 (the body is printed); 22 for any other status, with `hosting: <METHOD> <PATH>: <status> <message>` on standard error (the body's JSON `message`, else its first 100 characters), or `no answer` when `curl` gave no status; 4 when there is no token. `hosting_repo_api` returns 2 when `SITE_REPOSITORY` is unset. `hosting_git` returns git's own status, or 4 without running git.
+
+```bash
+d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
+printf 'SITE_TOKEN_CMD=printf "  abc  "\n' > "$d/site.env"
+FACTORY_SITE="$d/site.env" sh -c '. operator/lib/site.sh; . operator/lib/hosting.sh; hosting_token'
+```
+
+This prints `abc`.
 
 ## On Cloud Run
 
