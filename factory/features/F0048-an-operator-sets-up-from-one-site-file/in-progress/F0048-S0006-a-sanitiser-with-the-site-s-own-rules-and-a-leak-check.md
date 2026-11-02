@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 504
 comments_read: [6587261348, 6587570081]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-02T20:44:22.662233Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -200,6 +196,12 @@ journal:
   kind: started
   at: '2026-11-02T20:44:22.662233Z'
   stage: smoke-test
+- number: 35
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-02T20:44:50.292499Z'
+  stage: smoke-test
+  run: 93a323e3101144cabfd9ba683eba4034
 ---
 
 # A sanitiser with the site's own rules and a leak check
@@ -627,3 +629,26 @@ Expect: two lines, `exit 1` and `<d>/raw.txt:2: 1`.
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
 34. factory: started smoke-test as vm.
+35. smoke-tester: Smoke test, round 2. I ran both commands under `## Smoke test` as written, from the repository root and in order. Each ran in its own shell, so its `trap` removed its temporary folder when the shell ended.
+
+    Command 1 (the filter with a `=>` rule and a `drop:` rule):
+
+    ```
+    a <company-host> b
+    last
+    ```
+
+    Exit status 0. This **meets** its `Expect:` line: the two lines `a <company-host> b` and `last`. The host was replaced, the `noise here` line was dropped and the line order was kept.
+
+    Command 2 (`sanitise check` on a file whose line 2 matches rule 1):
+
+    ```
+    exit 1
+    <d>/raw.txt:2: 1
+    ```
+
+    This **meets** its `Expect:` line: `exit 1` and `<d>/raw.txt:2: 1`. The report gives only the file, the line and the rule number, and does not print the matched host.
+
+    Checked against `## Acceptance criteria`: the output agrees with criteria 2, 3, 8 and 10, and contradicts none. The smoke test does not reach the other criteria, including the `docs:` criterion; the tests cover those.
+
+    Findings: none.
