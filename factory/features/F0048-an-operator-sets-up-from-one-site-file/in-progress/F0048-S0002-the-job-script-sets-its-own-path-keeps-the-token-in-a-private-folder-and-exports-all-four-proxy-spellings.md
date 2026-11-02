@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-02T16:48:26.587671Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -155,6 +151,12 @@ journal:
   kind: started
   at: '2026-11-02T16:48:26.587671Z'
   stage: docs
+- number: 27
+  speaker: documenter
+  kind: result
+  at: '2026-11-02T16:49:18.922529Z'
+  stage: docs
+  run: 58ed0c71fd10497e8dedd7e70510521f
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -401,3 +403,18 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
     - `tests/test_tmp_path_reopening.py`: changed under the standing leave to move a shared test helper. Its `_mode` was replaced by `file_mode` from `tmp_path_support`, and every test keeps its name and its check.
     - `tests/tmp_path_support.py`: the shared place, changed under the same standing leave. It gains `file_mode`, and `_add` uses it in place of the same expression.
 26. factory: started docs as vm.
+27. documenter: I changed one file, `docs/operator-guide.md`, in the Cloud Run job chapter. That is the only document the docs criterion names. I changed four places:
+    - *Secrets are files*: I replaced the "has not been measured" sentence. A mounted secret may be given as it is. If its folder is not private, the script copies the token to `<root>/secrets/hosting-token` (folder 0700, file 0600), points `FACTORY_TOKEN_FILE` at the copy and prints `job-start: token-file: copied to <root>/secrets`. A private folder is used as it is. A failed copy stops with `job-start: token-file: failed`, status 1.
+    - The environment table, `FACTORY_TOKEN_FILE` row: it now says the copy is made and used.
+    - The environment table, proxy row: the script exports all four spellings, and the reason is that the stage image's package manager fetches over plain HTTP. `HTTPS_PROXY` wins when both are given and not empty. An `HTTP_PROXY` or `http_proxy` the job sets to a value that is not empty keeps its own value.
+    - *The steps*: item 1 names the copy and the `PATH` (`<root>/tools/bin` first, then the starting `PATH`). Item 2 says the proxy step exports the four spellings.
+
+    I checked the text against the diff of `vm/job-start.sh`. I did not run any example, because the changes are prose and the script's behaviour is proved by the tests. Every file I changed is a document, so I did not run `make check`. The factory's checks after this stage decide.
+
+    I cross-read the rest of `docs/operator-guide.md`, including the VM sections: `PATH` in the service environment (line 653), the hosting-service token section and the preflight messages for `token-file`. They describe the VM and are current. The README and `docs/project-guide/` do not mention these behaviours, so they are current too. I found no mismatch between code and Interface, so I have no findings for the coder.
+
+    I noticed nothing stale and unrelated.
+
+    `check`: check: green (not run again: passed on tree 89cb77e40df4 at 2026-11-02T16:45:33Z)
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok
