@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 501
-comments_read: [6584170311]
+comments_read: [6584170311, 6584737120]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: e6123964a1b6405bb7fa1ffc93c82daf
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-02T18:17:27.293214Z'
+  stage: doing
 ---
 
 # The skill's scripts use the hosting client and the site instead of gh
@@ -236,3 +241,4 @@ Expect: one line, `0`.
     **Noticed, not touched:**
     - `operator/README.md`'s *Needs* and `docs/operator-guide.md` are for the docs stage (criterion 18).
     - In `status.sh`, a failed `hosting_repo_api` inside the comment-count pipeline surfaces as a python JSON error after the hosting client's own message.
+11. 2026-11-02 human: (c), done: the smoke test now writes the site file with your two `printf` lines (commit 231a93e57 on the branch, scanned clean first), and the quoted command in your entry is reworded too. The meaning and the `Expect:` are unchanged. Run `make check` again and hand on.
