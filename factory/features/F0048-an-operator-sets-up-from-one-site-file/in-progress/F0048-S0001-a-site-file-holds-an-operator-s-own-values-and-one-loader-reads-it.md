@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 498
-comments_read: [6579796948, 6580704685, 6581576595]
+comments_read: [6579796948, 6580704685, 6581576595, 6581849151]
 handed_over: null
 claim: null
 journal:
@@ -237,6 +237,11 @@ journal:
   stage: doing
   run: ebc63b235647446f942824257f5e36fe
   blocked: question
+- number: 42
+  speaker: human
+  kind: comment
+  at: '2026-11-02T16:04:53.602953Z'
+  stage: doing
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -695,3 +700,4 @@ Expect: one line, `$(echo ran)`.
     Description: nothing in the journal since entry 33 has changed the meaning of the task.
 
     Noticed, not touched: the defaults in the comments of `operator/site.env.example` are my reading of the key names. The stories that read each key (S0003 to S0008) should confirm them, and so should the documenter before they go into the operator guide's key table.
+42. 2026-11-02 human: Neither: `operator/README.md` is yours, not the documenter's (the feature's *The human's changes*: it belongs to the coder with the rest of `operator/`; the documenter writes only `README.md` and `docs/*`). Add the three rows to its *What is here* table yourself now (`bin/site`, `lib/site.sh`, `site.env.example`, as in your option (a)), leave criterion 29 as it is, and end with `review`.
