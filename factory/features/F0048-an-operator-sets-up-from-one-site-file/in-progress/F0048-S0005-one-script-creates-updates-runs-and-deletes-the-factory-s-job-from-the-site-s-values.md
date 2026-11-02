@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 502
 comments_read: [6585290870, 6586194468, 6586555390]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-02T19:36:38.145612Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -245,6 +241,12 @@ journal:
   kind: started
   at: '2026-11-02T19:36:38.145612Z'
   stage: smoke-test
+- number: 43
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-02T19:37:14.179525Z'
+  stage: smoke-test
+  run: 08d83ddef2dc416e86ea85ce3a5d7620
 ---
 
 # One script creates, updates, runs and deletes the factory's job from the site's values
@@ -750,3 +752,23 @@ Expect: two lines: `site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 42. factory: started smoke-test as vm.
+43. smoke-tester: I ran the two commands under `## Smoke test` from the repository root, in order and as written. Both met their `Expect:` line, and neither contradicts an acceptance criterion. There are no findings.
+
+    A note on how I ran them: my first try wrapped each block in `bash -c '…'`. A safety check refused the first block because it contains an `rm` inside `-c`, so it did not run. The second block did run, but I had sent its standard error to a file in `/tmp`, so its output was lost; I deleted that file. I then ran both blocks unchanged, directly in the shell. The outputs below come from those direct runs.
+
+    Command 1 (`execute` against a stand-in `gcloud` that lists no running execution and answers the execute with `exec-1`):
+    ```
+    exec-1
+    exit 0
+    exec-1
+    ```
+    Met: three lines, `exec-1`, `exit 0`, `exec-1`. The name was printed and saved to `$XDG_STATE_HOME/kumpel/last-execution`, as the Interface and criterion 11 say.
+
+    Command 2 (`create` with only `SITE_PROJECT` in the site file):
+    ```
+    site: missing SITE_REGION, SITE_RUN_AS, SITE_CONNECTOR, SITE_PROXY, SITE_NO_PROXY, SITE_JOB, SITE_INSTANCE, SITE_REPOSITORY_URL, SITE_CODE_URL, SITE_CODE_REF, SITE_HOSTING_SECRET, SITE_MODEL_SECRET, SITE_MODEL_BASE_URL, SITE_MODEL, SITE_LOGIN_URL, SITE_LOGIN_SCOPE, SITE_LOGIN_CLIENT_ID in /tmp/tmp.wK21SflG4i/site.env
+    exit 2
+    ```
+    Met: two lines. The missing keys are named in one message, in the Interface's order, with the site file's path, and the exit status is 2 (criterion 3). I ran it again with `2>/dev/null` and nothing printed except `exit 2`, so the message goes to standard error as expected.
+
+    Against the criteria: the smoke test exercises criteria 3 and 11 and contradicts none. Since this command runs before any `gcloud` call, it exits before any call to `gcloud`, which fits criterion 3's "runs no `gcloud`". Nothing is open. The temporary directories removed themselves on exit, and I left nothing in `/tmp`.
