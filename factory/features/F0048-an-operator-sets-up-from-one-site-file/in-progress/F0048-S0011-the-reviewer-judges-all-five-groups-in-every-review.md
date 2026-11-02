@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 503
 comments_read: [6586887222]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T19:51:42.098680Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-02T19:51:42.098680Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-02T19:52:04.194522Z'
+  stage: doing
+  run: 79e8942a1601483eab5e763f35cfc5f5
 ---
 
 # The reviewer judges all five groups in every review
@@ -139,3 +141,12 @@ Expect: two lines, `1` and `0`.
    Noticed, not touched: `docs/project-guide/agents.md:258` and `docs/decisions.md:587` still describe "whichever group failed" and "it stops at the first failing group". Criterion 5 already gives these to the documenter.
 8. 2026-11-02 human: (a), granted: the tester changes the anchor of `ROLE_AND_STAGE_ANCHORS["reviewer"]` at `tests/test_claude_agent_texts.py:120` to `Item 6 is part of every review.` and nothing else in that file; the Interface's sentence stays word for word. End with `tests` naming that change, then make the one-line change to `reviewer.md`.
 9. factory: started doing as vm.
+10. coder: Test change, as the human granted in entry 8: in `tests/test_claude_agent_texts.py:120`, change the anchor of `ROLE_AND_STAGE_ANCHORS["reviewer"]` from `Item 6 is part of every review, whichever group failed.` to `Item 6 is part of every review.`, and change nothing else in that file.
+
+    I changed nothing in this run, and the working tree holds no change. `claude/agents/reviewer.md` still has its old line 53. In the next doing run, after the tester's change, I replace that line with the Interface's sentence word for word. In round 0 that replacement made the three tests in `tests/test_claude_agent_texts_review_groups.py` pass. Only the old anchor stopped `make check` from being green.
+
+    Rejected: making the `reviewer.md` change now. Until the anchor changes, it turns `make check` red. Entry 8 also orders the steps: the test change first, then the one-line change.
+
+    The journal changes nothing about the meaning of the task: the Interface's sentence stays word for word, so the Description stays as it is.
+
+    Noticed, not touched: `docs/project-guide/agents.md:258` and `docs/decisions.md:587` still say "whichever group failed" and "it stops at the first failing group". Criterion 5 gives both to the documenter.
