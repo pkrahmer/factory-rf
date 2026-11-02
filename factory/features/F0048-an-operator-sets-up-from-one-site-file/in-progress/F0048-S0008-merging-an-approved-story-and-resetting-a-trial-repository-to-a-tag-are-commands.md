@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-02T22:00:57.653323Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-02T22:00:36.199064Z'
   stage: tests
   run: 657c162f8069477a81e6f7f8c509b8fa
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-02T22:00:57.653323Z'
+  stage: doing
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -411,3 +420,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     Run: `uv run pytest -q tests/test_operator_merge_reset.py` passed all 36 tests. The new tests pass straight away rather than failing first, because the code already did what both criteria ask (entries 19 and 21). The test runner imported every module. `make lint` is green.
 
     `lint`: lint: green (0.1 s)
+24. factory: started doing as vm.
