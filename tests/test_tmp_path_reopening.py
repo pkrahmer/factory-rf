@@ -2,7 +2,6 @@
 
 import os
 import shutil
-import stat
 import sys
 from collections.abc import Callable
 from datetime import timedelta
@@ -11,7 +10,7 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.process import ProcessRequest, run_process
-from tmp_path_support import reopen
+from tmp_path_support import file_mode, reopen
 
 TESTS = Path(__file__).parent
 
@@ -47,10 +46,6 @@ def test_closes_in_a_fixture(closing: Path) -> None:
 def test_uses_no_tmp_path() -> None:
     assert True
 """
-
-
-def _mode(path: Path) -> int:
-    return stat.S_IMODE(path.lstat().st_mode)
 
 
 def _sealed_git_folder(tree: Path) -> None:
@@ -155,7 +150,7 @@ def test_reopen_gives_the_owner_back_every_folder_and_entry_and_keeps_every_othe
 
     reopen(tree)
 
-    assert {name: _mode(tree / name) for name in expected} == expected
+    assert {name: file_mode(tree / name) for name in expected} == expected
     shutil.rmtree(tree)
     assert not tree.exists()
 
@@ -204,7 +199,7 @@ def test_reopen_leaves_a_symbolic_link_and_its_target_as_they_are(
     if target_mode is None:
         assert not os.path.lexists(target)
     else:
-        assert _mode(target) == target_mode
+        assert file_mode(target) == target_mode
 
 
 def test_reopen_of_a_missing_root_changes_nothing(tmp_path: Path) -> None:
@@ -265,7 +260,11 @@ def test_a_test_that_closes_folders_in_its_tmp_path_leaves_them_open_after_its_t
     assert not (base / "test_uses_no_tmp_path0").exists()
     left = base / "test_closes_its_tmp_path0"
     late = base / "test_closes_in_a_fixture0" / "late"
-    assert (_mode(left / "checkout" / ".git"), _mode(left / "closed"), _mode(late)) == expected
+    assert (
+        file_mode(left / "checkout" / ".git"),
+        file_mode(left / "closed"),
+        file_mode(late),
+    ) == expected
     if plugin:
         shutil.rmtree(base)
         assert not base.exists()

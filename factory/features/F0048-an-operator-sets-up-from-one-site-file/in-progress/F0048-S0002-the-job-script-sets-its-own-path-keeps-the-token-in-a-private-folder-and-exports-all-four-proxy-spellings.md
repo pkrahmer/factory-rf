@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 499
 comments_read: [6582236900, 6582370543]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-02T16:41:30.255582Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-11-02T16:41:30.255582Z'
   stage: tests
+- number: 21
+  speaker: tester
+  kind: result
+  at: '2026-11-02T16:43:28.864250Z'
+  stage: tests
+  run: beba9797f40947aa809f89951da3cc1d
 ---
 
 # The job script sets its own PATH, keeps the token in a private folder and exports all four proxy spellings
@@ -303,3 +305,15 @@ Expect: one line holding a number of at least 2 (the tools step and the new `PAT
 
     `vm/job-start.sh` stays as it was after entry 15. The journal changed nothing in the Description.
 20. factory: started tests as vm.
+21. tester: I moved the shared test helper that the reviewer's finding 1 (entry 17) and the coder's entry 19 name. The move falls under the standing leave in `CLAUDE.md` *Tests*: one shared place, earlier tests keep their names and checks.
+
+    - `tests/tmp_path_support.py`: I added the public helper `file_mode(path)`, which returns `stat.S_IMODE(path.lstat().st_mode)` (the `lstat` form, as the coder asked). The module's private `_add` used the same expression, so it now calls `file_mode` too, and there is one copy.
+    - `tests/test_tmp_path_reopening.py` (an earlier story's test file, changed under the standing leave): I removed its `_mode`. Its three uses now call `file_mode` from `tmp_path_support`, and the `stat` import it no longer needs is gone. `ruff format` re-wrapped one assertion. Every test keeps its name and its check.
+    - `tests/test_vm_job_start_environment.py`: I removed its `_mode` (the `path.stat()` copy) and its `stat` import, and its uses call `file_mode`. The token folder and the copy are not symbolic links, so `lstat` checks the same thing here.
+
+    The criterion → test mapping is unchanged from entry 11. No new test file was created. Every module imported.
+
+    My one run, `uv run pytest -q tests/test_tmp_path_reopening.py tests/test_vm_job_start_environment.py`, passed all 31 tests, because the script is already built. `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
+    `test`: test: green (75.1 s)

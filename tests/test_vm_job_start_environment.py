@@ -1,19 +1,15 @@
 """The job start script's environment: its `PATH`, its private token copy and its proxy names."""
 
-import stat
 from pathlib import Path
 
 import pytest
 
+from tmp_path_support import file_mode
 from vm_support import SYSTEM_PATH, JobRun, StandInCall, run_job_start
 
 PROXY_NAMES = ("HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy")
 GIVEN_CONTENT = "TOKENMARK\n"
 OLD_CONTENT = "an old token\n"
-
-
-def _mode(path: Path) -> int:
-    return stat.S_IMODE(path.stat().st_mode)
 
 
 def _token_in_folder(tmp_path: Path, mode: int) -> Path:
@@ -83,7 +79,7 @@ def test_a_token_is_copied_into_a_private_folder_only_when_its_folder_is_not_pri
     tmp_path: Path, mode: int, *, copied: bool
 ) -> None:
     token = _token_in_folder(tmp_path, mode)
-    original_mode = _mode(token)
+    original_mode = file_mode(token)
     run = run_job_start(tmp_path, {"FACTORY_TOKEN_FILE": str(token)})
     secrets = run.root / "secrets"
     copy = secrets / "hosting-token"
@@ -92,11 +88,11 @@ def test_a_token_is_copied_into_a_private_folder_only_when_its_folder_is_not_pri
     assert run.result.exit_status == 0, run.result.stderr
     assert len(started) == 1
     assert token.read_text(encoding="utf-8") == GIVEN_CONTENT
-    assert _mode(token) == original_mode
+    assert file_mode(token) == original_mode
     if copied:
         assert started[0].env["FACTORY_TOKEN_FILE"] == str(copy)
-        assert _mode(secrets) == 0o700
-        assert _mode(copy) == 0o600
+        assert file_mode(secrets) == 0o700
+        assert file_mode(copy) == 0o600
         assert copy.read_bytes() == token.read_bytes()
         assert f"job-start: token-file: copied to {secrets}" in run.result.stdout.splitlines()
     else:
@@ -189,6 +185,6 @@ def test_a_second_run_makes_an_existing_secrets_folder_private_and_replaces_the_
     run = run_job_start(tmp_path, {"FACTORY_TOKEN_FILE": str(token)})
 
     assert run.result.exit_status == 0, run.result.stderr
-    assert _mode(secrets) == 0o700
-    assert _mode(secrets / "hosting-token") == 0o600
+    assert file_mode(secrets) == 0o700
+    assert file_mode(secrets / "hosting-token") == 0o600
     assert (secrets / "hosting-token").read_text(encoding="utf-8") == GIVEN_CONTENT
