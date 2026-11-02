@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 500
 comments_read: [6582972884, 6583792692]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-02T17:40:24.855313Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -228,6 +224,12 @@ journal:
   kind: started
   at: '2026-11-02T17:40:24.855313Z'
   stage: review
+- number: 40
+  speaker: reviewer
+  kind: result
+  at: '2026-11-02T17:42:01.014256Z'
+  stage: review
+  run: acbba859402f4037a47bbfe57c4162be
 ---
 
 # A hosting client in shell takes its token from a command the site names
@@ -696,3 +698,43 @@ Expect: two lines, `exit 4` and `hosting: the token command failed; see SITE_TOK
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 39. factory: started review as vm.
+40. reviewer: Review, round 1 of the new count, after the human's answer (entry 30). As entry 30 asks, I judged all five groups in one pass. I read every criterion (1–20) and every Interface rule against `operator/lib/hosting.sh`, `tests/test_operator_hosting.py` and the `tests/operator_support.py` change. The coder's last `make check` was green (entry 38).
+
+    no findings
+
+    Group 1, acceptance criteria:
+    - Criteria 1–18 keep the tests named in entries 8, 16 and 24.
+    - Criterion 19 is the row `422-own-message-first` of `test_the_status_decides_the_result_of_the_api_call`. The old greedy match would give the nested message and fail this row, so the first-`message` cut at `operator/lib/hosting.sh:118` is now pinned.
+    - Criterion 20 is the row `curl-fails-with-its-error-text`. `CURL_STAND_IN` now writes `STAND_IN_CURL_ERROR` to standard error before the write-out (`tests/test_operator_hosting.py:89`). A whole-file comparison with `000` would fail this row, so `_hosting_last_three` (`operator/lib/hosting.sh:110`) is pinned.
+    - Entry 32's finding 3 is fixed: `tests/test_operator_hosting.py:288` searches `arguments` alone.
+    - The 100-character limit is tested on both sides: the 500 row's body has its 100th character (the last `y`) inside the message and its 101st (the first `Z`) outside.
+    - The 200–299 range is tested at 199, 200, 299 and 300.
+
+    Group 2, architecture: no findings. The change is one shell library under `operator/lib/`. It loads the site through S0001's loader and reuses `_site_trim_leading`, `_site_trim_trailing` and `site_require` rather than copying them. It changes no existing script.
+
+    Group 3, security: no findings.
+    - The token reaches `curl` only through the builtin `printf` on a pipe, and `base64` only on standard input.
+    - It reaches `git` only through `GIT_CONFIG_*` prefix assignments.
+    - The token source's standard output and standard error are never repeated.
+    - There is no new check-silencing marker.
+
+    Group 4, quality: no findings in `operator/lib/hosting.sh`. Names say what things are, each comment gives a reason, and no helper is a second copy: the stand-in recorder in `tests/vm_support.py` (`StandInCall`) has a different shape from this file's `calls`.
+
+    Group 5, work item hygiene: no findings. The journal gives the main choices and what was rejected (entries 10, 22, 26). The Description matches what was built. I set aside entry 32's finding 4, which said criterion 22 (docs) is stale, for two reasons:
+    - "the three ways to give a token" matches feature.md's Goal, "a secret store, `gh`, anything that prints a token".
+    - The curl 7.63 minimum (`%{stderr}` in `--write-out`, `operator/lib/hosting.sh:95`) is below the Debian 12 curl (7.88) that the operator guide installs, so an operator following the guide does not need it.
+
+    The documenter may still name the minimum, from coder entries 22 and 26. I did not edit the criterion: my role may correct only the Description.
+
+    Points I looked at and set aside:
+    - `hosting_git` sets `http.extraHeader` unscoped, so git sends the header to every http(s) remote it contacts. The Interface names that exact key, and criterion 9 checks it, so the code follows the Interface. A URL-scoped key would be a story change for the human, not a defect here.
+    - `hosting_api` returns 22 without a message when `mktemp` fails (`operator/lib/hosting.sh:27`). The Interface says nothing about that case.
+    - The header line does not pass the token through `_hosting_quote`. Hosting tokens hold no `"` or `\`.
+    - Carried over from entry 32: a 2xx answer cut off in mid-body returns 0, following the Interface's "no status" definition of a curl failure; and the guard at sourcing time reads exported `SITE_` values only, which matches `site_load`, since it exports.
+
+    Earlier tests:
+    - tests/operator_support.py: none needed. The change only adds `HOSTING_LIBRARY` and `run_hosting`, and every helper the file held stays as it was.
+
+    Notes:
+    - tests/test_operator_hosting.py:442 `test_the_repository_call_puts_the_site_repository_in_the_path`: the `missing` column always equals `url_line is None`, so one of the two columns would do.
+    - tests/test_operator_hosting.py:220 `test_the_token_is_the_first_line_of_the_command_trimmed`: carried over from entry 32. The success side of "the command's standard error is discarded" has no row. The code handles it (`operator/lib/hosting.sh:12`, `2>/dev/null`).
