@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 503
 comments_read: [6586887222]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-02T19:59:11.012095Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-02T19:58:50.044906Z'
   stage: review
   run: 36e9aabb921a4a83abd1e190f25e4aea
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:59:11.012095Z'
+  stage: docs
 ---
 
 # The reviewer judges all five groups in every review
@@ -224,3 +233,4 @@ Expect: two lines, `1` and `0`.
 
     Earlier tests:
     - tests/test_claude_agent_texts.py: changed under the human's leave in journal entry 8. Only the anchor in `ROLE_AND_STAGE_ANCHORS["reviewer"]` changed, to `Item 6 is part of every review.`, and nothing else in the file.
+17. factory: started docs as vm.
