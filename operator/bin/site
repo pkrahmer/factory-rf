@@ -1,0 +1,69 @@
+#!/bin/sh
+# The operator's site file: where it is, a first copy of it, and its values.
+#   site path             print the site file's path
+#   site init             write the example to the path, mode 0600
+#   site show             print SITE_X=set or SITE_X=unset for every key of the example
+#   site get SITE_X       print one value
+set -u
+operator=$(dirname "$0")/..
+example=$operator/site.env.example
+. "$operator/lib/site.sh"
+
+usage() {
+  echo "usage: site path | init | show | get SITE_X" >&2
+  exit 2
+}
+
+init() {
+  file=$(site_path)
+  site_refuse_repository "$file" || exit 3
+  if [ -e "$file" ]; then
+    echo "site: $file exists; not overwritten" >&2
+    exit 1
+  fi
+  mkdir -p "$(dirname "$file")"
+  (umask 077 && cp "$example" "$file") || exit 1
+  chmod 600 "$file"
+  echo "site: wrote $file; edit it, then run: site check"
+}
+
+show() {
+  site_load || exit
+  while IFS= read -r line || [ -n "$line" ]; do
+    case $line in
+      SITE_*=*)
+        key=${line%%=*}
+        if [ -n "$(site_value "$key")" ]; then
+          echo "$key=set"
+        else
+          echo "$key=unset"
+        fi
+        ;;
+    esac
+  done < "$example"
+}
+
+get() {
+  site_load || exit
+  value=$(site_value "$1")
+  if [ -z "$value" ]; then
+    echo "site: $1 is not set" >&2
+    exit 1
+  fi
+  printf '%s\n' "$value"
+}
+
+case ${1:-} in
+  path) [ $# -eq 1 ] || usage; site_path ;;
+  init) [ $# -eq 1 ] || usage; init ;;
+  show) [ $# -eq 1 ] || usage; show ;;
+  get)
+    [ $# -eq 2 ] || usage
+    case $2 in
+      SITE_?*) ;;
+      *) usage ;;
+    esac
+    get "$2"
+    ;;
+  *) usage ;;
+esac

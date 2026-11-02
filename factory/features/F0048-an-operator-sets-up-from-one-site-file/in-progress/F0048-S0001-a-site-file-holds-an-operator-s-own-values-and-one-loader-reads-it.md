@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 498
 comments_read: [6579796948]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-02T14:45:19.069469Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-02T14:45:19.069469Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-02T14:53:49.282978Z'
+  stage: doing
+  run: 41abe8e2821648259b75f35c8d44a9ba
 ---
 
 # A site file holds an operator's own values and one loader reads it
@@ -223,3 +225,30 @@ Expect: one line, `$(echo ran)`.
    `lint`: lint: green (0.2 s)
    `test`: FAILED tests/test_operator_site.py::test_init_refuses_a_path_in_a_git_work_tree[outside] - AssertionError: sh: 0: cannot open /work/checkout/operator/bin/site: No such file
 9. factory: started doing as vm.
+10. coder: I wrote the loader, the command and the example. The tests in `tests/test_operator_site.py` pass and `make check` is green. The shell's permission check refused my one combined command, so I did not run the three smoke-test blocks. The tests cover the same behaviour.
+
+    Built:
+    - `operator/lib/site.sh` (POSIX sh, sourced): `site_path`, `site_load` and `site_require`, as the Interface gives them. It also has two public helpers that the command needs:
+      - `site_value NAME` prints a variable's value. It prints nothing for a name that is not capitals, digits and `_`, so no name reaches `eval` unchecked.
+      - `site_refuse_repository PATH` gives the work-tree message and returns 3. The loader and `site init` share it.
+    - `operator/bin/site` (`path`, `init`, `show` and `get`): it sources the library through `$(dirname "$0")/..`. `init` copies the example under `umask 077` and then runs `chmod 600`.
+    - `operator/site.env.example`: the 31 keys in the Interface's order. Each key has one comment line directly above it, and the values are made up (`example.invalid`, `owner/repo`, `/path/to/...`, `192.0.2.10`).
+
+    Main choice: `site_load` reads the file twice with `while IFS= read -r`. The first pass checks every line and stops at the first fault. Only a clean file gets the second pass, which exports. That is how a faulty file exports nothing. A value is assigned with `eval "$1=\$2"`, so `eval` sees only the checked key name and a reference to the value, never the value's text. Rejected: collecting the pairs during one pass and exporting at the end. In POSIX sh that needs a delimiter-joined list, which breaks on values that contain the delimiter.
+
+    Other choices:
+    - The work-tree test walks up to the nearest folder that exists before it asks `git -C … rev-parse --is-inside-work-tree`, because `site init` may target a folder that does not exist yet.
+    - The line kinds:
+      - A key that is not a valid name (`site_a`, or `SITE_A ` with a space before the `=`) is reported as `not a KEY=value line`.
+      - A valid name without the `SITE_<name>` shape (`OTHER`, `SITE_`) is reported as `<key> is not a SITE_ key`.
+    - `site_require` accepts a name with or without the `SITE_` prefix, because the Interface's example (`site_require A B` reports `SITE_A, SITE_B`) and the tests (full names) differ. A name without the prefix gets `SITE_` added.
+    - A key that appears twice in the file: the first value wins, by the same rule that lets the environment win.
+
+    Refactor pass: I read the diff once, moved the value lookup into the public `site_value` (it had been a private helper that the command called) and simplified `get`'s usage check to `SITE_?*`. Nothing else needed changing.
+
+    Noticed, not touched:
+    - The defaults and required/optional wording in the example's comments are my reading of the key names (for example `SITE_CPU` 4, `SITE_TIMEOUT` 24h, `SITE_IDLE_MINUTES` 30, and `gh auth token` as the default `SITE_TOKEN_CMD`). The stories that read each key (S0003 to S0008) should correct them, and the documenter should check them before the key table goes into the operator guide.
+    - The operator README (`operator/README.md`) does not yet mention `operator/bin/site`. The docs criterion names only `docs/operator-guide.md`, so I left the README as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
