@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 503
 comments_read: [6586887222]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-02T19:58:19.301506Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-02T19:57:58.357182Z'
   stage: doing
   run: 4fff90f2697640b6b675d3bd058bdb95
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-02T19:58:19.301506Z'
+  stage: review
 ---
 
 # The reviewer judges all five groups in every review
@@ -202,3 +211,4 @@ Expect: two lines, `1` and `0`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+15. factory: started review as vm.
