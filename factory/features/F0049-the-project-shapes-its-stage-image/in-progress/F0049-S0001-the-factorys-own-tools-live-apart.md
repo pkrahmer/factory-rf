@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 526
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T23:08:03.991582Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-03T23:08:03.991582Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-03T23:08:41.551828Z'
+  stage: intake
+  run: 719fab3b9e864bae8547bb92006006d6
+  blocked: question
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -67,3 +70,15 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (format check passed; no findings from it). The Interface states behaviours that have no criterion, so two coders could read them two ways and both pass:
+   1. The Interface says each of `/usr/local/bin/claude` and `/usr/local/bin/opencode` passes its arguments on unchanged. Criterion 4 only checks that the commands exist and name `/opt/factory/node/bin/node`. Proposal: add to criterion 4 a row that refuses a wrapper that does not forward its arguments (for example, one with no `"$@"`).
+   2. The Interface says `/usr/local/bin/node` and `/usr/local/bin/npm` do not exist and nothing else of `/opt/factory` is on the `PATH`. No criterion tests either. The smoke test greps only the `install` line, and the human's `command -v node` check in criterion 5 happens after the merge. Proposal: a criterion that the stage-image test refuses a Dockerfile that links or creates `node` or `npm` in `/usr/local/bin`, or that puts `/opt/factory` in an `ENV PATH` line.
+   3. The Interface says the archive is unpacked into `/opt/factory/node` and that the download uses `curl`. Criterion 2 checks only the `sha256sum -c` ordering and that nothing is piped into a shell. Proposal: add rows for the unpack target and the `curl` download, or drop those clauses from the Interface.
+   4. The Interface says `vm/setup.sh` and `vm/job-start.sh` read the new pins "if they need them". A coder cannot tell whether they need them, and no criterion covers it. Proposal: state that neither script changes, or name what each must read.
+   5. The Interface says the two new `ARG`s sit "beside the existing pins". No criterion tests the placement. Proposal: drop the placement or accept that it is untested.
+   I would choose the proposals in 1 and 2, and for 3 to add the two rows. For 4, state that neither script changes. For 5, drop the placement.
+
+   The other checks found nothing:
+   - The smoke test commands are runnable and each `Expect:` is checkable. The `pytest` line has no `-q`, which is right because `addopts` already sets one.
+   - The architecture is fine: only `vm/` and `tests/test_stage_image.py` change.
+   - The scope matches S0001 in `feature.md`, and the test change falls under the feature's leave for S0001.
