@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T08:47:10.608804Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T08:47:10.602256Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:47:10.608804Z'
+  stage: intake
+---
+
 # The operator meets the site file, with true values and clear errors
 
 <!-- folded by the human on 2026-11-03 from the three stories the acceptance F0048-A0001 proposed (decision 18) -->
@@ -97,3 +124,6 @@ test -e "$d/imported"; echo "imported: $?"
 Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and `# The job's memory. Optional; the default is 16Gi.`; then `usage: site path | init | show | get SITE_X | check` and `exit 2`; then `imported: 1`.
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
