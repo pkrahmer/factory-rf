@@ -10,7 +10,6 @@ ARG FACTORY_IMAGE=unlabelled
 LABEL factory.image="${FACTORY_IMAGE}"
 RUN apt-get update \
  && apt-get install -y --no-install-recommends git make curl ca-certificates procps nodejs npm \
-    build-essential cmake \
  && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir uv==${UV_VERSION}
 RUN npm install --global --no-audit --no-fund @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}

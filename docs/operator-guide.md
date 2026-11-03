@@ -474,7 +474,7 @@ Every container of a v1.2 stage (the sync, the agent, the checks) starts from on
 
 It holds:
 
-- the pinned base image, and Debian's `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs`, `npm`, `build-essential` and `cmake`, at the versions the base image's Debian release ships;
+- the pinned base image, and Debian's `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs` and `npm`, at the versions the base image's Debian release ships;
 - `uv`, Claude Code and opencode at exact versions, with the runtimes' environment: `DISABLE_AUTOUPDATER`, `UV_LINK_MODE`, `PYTHONDONTWRITEBYTECODE`, the two version records `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION`, and the opencode model ids `FACTORY_OPENCODE_MODELS`;
 - the agent files (`claude/agents` and `claude/settings.json`) at `/etc/factory/claude`, read-only.
 
@@ -490,7 +490,7 @@ podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> <the checkout>
 
 `--build-arg FACTORY_IMAGE=<ref>` sets the label `factory.image`; it defaults to `unlabelled`. The label is not the identity of the image. The settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, and you renew that file after every build. `vm/setup.sh` makes the file with a fresh uuid when it is missing or empty (see *The script*). Nothing in `make check` builds the image.
 
-`vm/Dockerfile` installs nine Debian packages by name alone: `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs`, `npm`, `build-essential` and `cmake` (the last two for projects in C or C++, whose `make check` builds on the host). Debian's mirror keeps only a package's current version, so an exact version stops building at the next point release, and a job rebuilds the image at every start. The base image's digest fixes the Debian release instead, and within one stable release Debian ships only security and serious fixes. Everything that shapes a result is still pinned: the base image is named with its digest, and `uv`, Claude Code and opencode have exact versions. A pin is changed in `vm/Dockerfile` alone and checked with `uv run pytest tests/test_stage_image.py`, which reports any reference that floats (a `FROM` without a digest, `latest`, a download piped into a shell, an `apt-get install` of anything but those nine names) and checks that each pin has its form.
+`vm/Dockerfile` installs seven Debian packages by name alone: `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs` and `npm`. Debian's mirror keeps only a package's current version, so an exact version stops building at the next point release, and a job rebuilds the image at every start. The base image's digest fixes the Debian release instead, and within one stable release Debian ships only security and serious fixes. Everything that shapes a result is still pinned: the base image is named with its digest, and `uv`, Claude Code and opencode have exact versions. A pin is changed in `vm/Dockerfile` alone and checked with `uv run pytest tests/test_stage_image.py`, which reports any reference that floats (a `FROM` without a digest, `latest`, a download piped into a shell, an `apt-get install` of anything but those seven names) and checks that each pin has its form.
 
 A VM's next rebuild takes the current packages of the same release.
 
