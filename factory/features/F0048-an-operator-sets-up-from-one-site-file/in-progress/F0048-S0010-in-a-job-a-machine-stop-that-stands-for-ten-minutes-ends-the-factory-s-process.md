@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T01:52:50.442397Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-03T01:52:45.004087Z'
   stage: intake
   run: 7d9fa92636d949688f02a13ee7c7be48
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:52:50.442397Z'
+  stage: tests
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -99,3 +108,4 @@ Expect: one line that says the tests passed and names no failure.
    - Smoke test: I carried in the human's answer from journal entry 4 and dropped `-q` from the second command, because `pyproject.toml` already sets `-q` in `addopts`. The `Expect:` line is unchanged. The first block (a grep for the guide's line, expecting `1`) is runnable and checkable once the docs stage has run.
    - Architecture: the rule needs no new layer. It reads the stops the factory already keeps and acts through the existing loop exit, so it fits the layers in `CLAUDE.md`.
    - Scope: the story matches `feature.md` (S0010, decision 13). `src/factory/` is touched only for the machine-stop rule in a job, which the feature's out-of-scope section allows.
+7. factory: started tests as vm.
