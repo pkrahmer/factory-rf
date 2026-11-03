@@ -274,6 +274,30 @@ def test_each_tool_is_installed_once_at_its_pinned_version(
         assert [word for word in installs[0][2:] if not word.startswith("-")] == [requirement]
 
 
+def _installed_by_the_factory_npm(dockerfile: str, requirement: str) -> bool:
+    installs = [command for command in _installs(dockerfile, FACTORY_NPM) if requirement in command]
+    return len(installs) == 1 and installs[0][installs[0].index("--prefix") + 1] == FACTORY_PREFIX
+
+
+@pytest.mark.parametrize("requirement", [CLAUDE_CODE, OPENCODE], ids=["claude-code", "opencode"])
+@pytest.mark.parametrize(
+    ("change", "installed"),
+    [
+        pytest.param(lambda text: text, True, id="as-built"),
+        pytest.param(lambda text: text.replace(FACTORY_NPM, "npm"), False, id="bare-npm"),
+        pytest.param(
+            lambda text: text.replace(f"--prefix {FACTORY_PREFIX}", "--prefix /usr/local"),
+            False,
+            id="other-prefix",
+        ),
+    ],
+)
+def test_the_runtimes_are_installed_by_the_factory_npm_into_its_prefix(
+    stage_dockerfile: str, requirement: str, change: Callable[[str], str], installed: bool
+) -> None:
+    assert _installed_by_the_factory_npm(change(stage_dockerfile), requirement) == installed
+
+
 def test_opencode_is_installed_after_claude_code(stage_dockerfile: str) -> None:
     installs = _installs(stage_dockerfile, FACTORY_NPM)
     claude = [index for index, command in enumerate(installs) if CLAUDE_CODE in command]
@@ -434,6 +458,16 @@ def _replace_on_lines_with(marker: str, old: str, new: str) -> Callable[[str], s
     return change
 
 
+def _drop_lines_with(marker: str) -> Callable[[str], str]:
+    """A change that drops the joined lines that hold `marker`."""
+
+    def change(text: str) -> str:
+        lines = re.sub(r"\\\n", " ", text).splitlines()
+        return "\n".join(line for line in lines if marker not in line)
+
+    return change
+
+
 def _node_archive_is_checked(dockerfile: str) -> bool:
     instructions = _instructions(dockerfile)
     commands = _commands(dockerfile)
@@ -495,6 +529,11 @@ def _node_archive_is_checked(dockerfile: str) -> bool:
             False,
             id="another-target",
         ),
+        pytest.param(
+            _replace_on_lines_with("sha256sum -c", "${NODE_SHA256}", "a" * 64),
+            False,
+            id="literal-checksum",
+        ),
     ],
 )
 def test_the_node_archive_is_checked_before_it_is_unpacked(
@@ -542,6 +581,14 @@ def _runs_on_the_factory_node(dockerfile: str, name: str) -> bool:
     [
         pytest.param(lambda text: text, True, id="as-built"),
         pytest.param(lambda text: text.replace('"$@"', ""), False, id="no-arguments"),
+        pytest.param(
+            lambda text: text.replace(
+                f"{FACTORY_NODE} {FACTORY_PREFIX}/bin/", "node /opt/factory/bin/"
+            ),
+            False,
+            id="bare-node",
+        ),
+        pytest.param(_drop_lines_with("> /usr/local/bin/"), False, id="no-command"),
     ],
 )
 def test_each_runtime_command_runs_on_the_factory_node(

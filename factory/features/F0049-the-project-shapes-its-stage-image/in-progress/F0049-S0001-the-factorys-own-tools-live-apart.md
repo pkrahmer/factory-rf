@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T23:20:02.815485Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-03T23:20:02.815485Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-03T23:20:47.749473Z'
+  stage: tests
+  run: 41fac88b478148e984794fb7a34c9c22
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -268,3 +270,19 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     - Entry 10's open points still stand. `NODE_SHA256` is checked against the real archive only when the human builds the image. A runtime whose bin is not a Node script would break its wrapper.
     - The journal did not change the Description.
 15. factory: started tests as vm.
+16. tester: Approved test change, round 1. I added the three changes the coder named in entry 14 (from the reviewer's findings in entry 12). All of them are in `tests/test_stage_image.py`, the only file I changed. That file was already changed for this story under the feature's leave; the changes this round only add tests.
+
+    1. `test_each_runtime_command_runs_on_the_factory_node` (criterion 4) has two new rows, both expected `False`, for `claude` and for `opencode`:
+       - `bare-node`: `/opt/factory/node/bin/node /opt/factory/bin/` is replaced by `node /opt/factory/bin/`.
+       - `no-command`: the wrappers' RUNs are dropped. A new helper, `_drop_lines_with`, drops the joined lines that write to `/usr/local/bin/`. A row's change does not know which name its test case checks, so it drops both wrappers; each name's check then fails on its own missing wrapper.
+    2. `test_the_runtimes_are_installed_by_the_factory_npm_into_its_prefix` (criterion 4, Interface) is a new parametrized test over Claude Code and opencode, using a new helper `_installed_by_the_factory_npm`. Its rows:
+       - `as-built`: accepted.
+       - `bare-npm`: `/opt/factory/node/bin/npm` replaced by `npm`; refused.
+       - `other-prefix`: `--prefix /usr/local`; refused.
+    3. `test_the_node_archive_is_checked_before_it_is_unpacked` (criterion 2) has a new row, `literal-checksum`, expected `False`. In the `sha256sum -c` line, `${NODE_SHA256}` is replaced by `"a" * 64`.
+
+    `uv run pytest -q tests/test_stage_image.py` passes in full (104 tests). That is expected: the reviewer said `vm/Dockerfile` already refuses every side these rows add, so they pin behaviour that already holds and are not red. `make lint`: lint: green. Every test module imported.
+
+    Files created: none.
+
+    `lint`: lint: green (0.1 s)
