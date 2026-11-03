@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268, 6598279355]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T07:55:50.218894Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-03T07:55:50.218894Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T07:56:26.054555Z'
+  stage: review
+  run: dd9c6366f15547bba3d0bb9344639362
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -256,3 +258,17 @@ Expect: `1`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 18. factory: started review as vm.
+19. reviewer: no findings
+
+    What I checked:
+    - Group 1, acceptance criteria. Criterion 1: the three sentences in `claude/agents/reviewer.md:66` match the human's text in journal entry 4 word for word, including the clause "One exception holds from round 0". `tests/test_claude_agent_texts_review_leave.py` `_NOTES` pins the same text through `test_agent_section_holds_the_review_leave_text[reviewer-notes]`. The adjacency rows `[notes-follow-recommendation]` and `[added-criterion-follows-notes]` stop the old sentence from closing the paragraph. Criterion 2: every other sentence of `_NOTES` is unchanged in the diff. Criterion 3: the coder's `make check` was green (entry 17). Criterion 4 is the docs stage's work. The Interface states no input rule or limit, so no failing side is missing.
+    - Group 2, architecture: nothing under `src/` changed.
+    - Group 3, security: no markers, secrets or code.
+    - Group 4, quality: the two local strings in the CRC test say what they hold. There is no dead code or duplicated helper.
+    - Group 5, work item hygiene: the Description matches what was built. The journal records the main choice (copy the human's words as given) and what was rejected (rewording to keep the CRC). The docs criterion still says what `docs/decisions.md` must gain.
+
+    Open for the human, not a finding: two other lines in `claude/agents/reviewer.md` keep the general rule. The lesson at line 85 ("Count as a finding a stated limit tested on one side only") and checklist item 1 at line 55 ("every stated limit is tested on both sides") still read that way. The new sentence calls itself "One exception", so it limits them. Unlike the copied-helper sentence, though, it does not name "your lessons". Rewording them is outside this story's Interface ("every other sentence of the paragraph stays"). The same goes for the `CLAUDE.md` *Tests* line, which the human changes with the merge.
+
+    Earlier tests:
+    - `tests/test_claude_agent_texts_review_leave.py`: under the feature's leave for S0017 in `feature.md` (only the pinned sentence that counted an untested side as a finding). Only the last sentence of `_NOTES` changed.
+    - `tests/test_claude_agent_texts_review_groups.py`: under the human's leave in journal entry 11. Only the body of `test_the_rest_of_the_reviewer_body_is_unchanged` changed: it now also swaps the three new sentences back to the old one before it takes the CRC. `_EARLIER_BODY_CRC32`, the test's name and the rest of the module are unchanged.
