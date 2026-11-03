@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T01:32:34.048929Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-11-03T01:32:28.117655Z'
   stage: review
   run: d26a6214f54a40cfbc75343f85f9e351
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:32:34.048929Z'
+  stage: doing
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -365,3 +374,4 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
     6. The work item's Interface, check 11, says "`job`: informational, always `ok`". The code (`operator/bin/site:316`) fails it with `needs SITE_JOB` when the key is missing, as the human confirmed in entry 14. Fix: the coder rewrites that clause, for example "`ok` whenever its keys are set (a missing `SITE_JOB` fails by the `needs` rule)". I left it alone because I may only correct the Description.
 
     Earlier tests: none changed. `git diff --name-status main...HEAD` lists the one test file, `tests/test_operator_site_check.py`, as `A`.
+19. factory: started doing as vm.
