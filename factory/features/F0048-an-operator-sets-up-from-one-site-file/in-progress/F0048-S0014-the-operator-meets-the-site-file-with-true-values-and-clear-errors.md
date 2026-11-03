@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 515
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T08:47:10.608804Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-03T08:47:10.608804Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-03T08:47:38.006721Z'
+  stage: intake
+  run: e104c71b35114c50b447ef49b4dd25d2
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -127,3 +129,9 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names concrete files and exact strings: the 15 comment lines word for word, the usage line, the `job` line texts, `-I` as first option, the status.sh read messages. Checked against the example: the 18 job keys are the 10 already marked "Required for a job." plus the 8 new ones, and the four untouched optional comments (API_URL, TOKEN_CMD, IMPERSONATE, RESET_REPOSITORY) already start "Optional; the default is".
+   Criteria: each is testable by one parametrized test. Every stated rule has both sides: required vs optional in the comments (criterion 1), the loader's refused and accepted forms (12), the `job` line's not-found, unreadable and existing cases (11), usage with exit 2 and `check extra` (6), 500 on each of three reads vs all 200 (10), and `-I` per file (9). The defaults are each tested against what `job.sh` does (2, 3, 13). The leave for changing S0001, S0005 and S0009 tests is in feature.md. One note, not a question: the Interface says the pull-request list read "keeps its behaviour", and only the existing status.sh rows cover that.
+   Smoke test: the commands are runnable and use no pytest. `grep -c` gives 18 once the 8 new lines exist. The two grep lines match the new comments. `site` with no command exits 2 with the usage. `imported: 1` follows from `test -e` failing when `-I` is in place. All four Expect parts are checkable against the output.
+   Architecture: all changes are in the operator's shell and example files and in tests. The README is left to the documenter (decision 22), and the coder's write paths cover the rest. Nothing touches `src/factory/`.
+   Scope: it matches F0048's S0014 entry and decisions 18, 21 and 22. Nothing in the feature's "Out of scope" is touched.
