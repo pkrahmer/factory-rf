@@ -5,15 +5,31 @@ FROM ${BASE_IMAGE}
 ARG CLAUDE_CODE_VERSION=2.1.296
 ARG OPENCODE_VERSION=1.19.3
 ARG UV_VERSION=0.9.2
+# The factory's own Node, apart from any a project installs; both from nodejs.org's SHASUMS256.txt.
+ARG NODE_VERSION=22.23.4
+ARG NODE_SHA256=1805bcd35e6815559bd2eb97db438d3fdb0eb3a5e6a977b7c1badca76337e9ce
 # Only a label: the settings read the image's identity from a file the operator renews.
 ARG FACTORY_IMAGE=unlabelled
 LABEL factory.image="${FACTORY_IMAGE}"
 RUN apt-get update \
- && apt-get install -y --no-install-recommends git make curl ca-certificates procps nodejs npm \
+ && apt-get install -y --no-install-recommends git make curl ca-certificates procps xz-utils \
  && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir uv==${UV_VERSION}
-RUN npm install --global --no-audit --no-fund @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
-RUN npm install --global --no-audit --no-fund opencode-ai@${OPENCODE_VERSION}
+RUN curl -fsSL -o /tmp/node.tar.xz https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz \
+ && echo "${NODE_SHA256}  /tmp/node.tar.xz" | sha256sum -c - \
+ && mkdir -p /opt/factory/node \
+ && tar -xJf /tmp/node.tar.xz -C /opt/factory/node --strip-components=1 \
+ && rm /tmp/node.tar.xz
+# npm and the runtimes' install scripts find node through the PATH, for this step alone.
+RUN export PATH=/opt/factory/node/bin:${PATH} \
+ && /opt/factory/node/bin/npm install --global --prefix /opt/factory --no-audit --no-fund @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
+RUN export PATH=/opt/factory/node/bin:${PATH} \
+ && /opt/factory/node/bin/npm install --global --prefix /opt/factory --no-audit --no-fund opencode-ai@${OPENCODE_VERSION}
+# The runtimes run on the factory's Node by its full path, whatever node a project puts on the PATH.
+RUN printf '#!/bin/sh\nexec /opt/factory/node/bin/node /opt/factory/bin/claude "$@"\n' > /usr/local/bin/claude \
+ && chmod 0755 /usr/local/bin/claude
+RUN printf '#!/bin/sh\nexec /opt/factory/node/bin/node /opt/factory/bin/opencode "$@"\n' > /usr/local/bin/opencode \
+ && chmod 0755 /usr/local/bin/opencode
 # The agent files, read-only; the sync container copies them into the dataset's home.
 COPY claude /etc/factory/claude
 RUN chmod 0755 /etc/factory/claude /etc/factory/claude/agents && find /etc/factory/claude -type f -exec chmod 0644 {} +

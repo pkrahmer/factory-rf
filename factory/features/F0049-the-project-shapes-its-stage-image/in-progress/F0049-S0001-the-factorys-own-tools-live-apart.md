@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T23:13:00.248970Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-03T23:13:00.248970Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-03T23:17:35.189087Z'
+  stage: doing
+  run: fe3fd48e6b404b18b3706fc62ce65b16
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -161,3 +163,34 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
 
    `lint`: lint: green (0.2 s)
 9. factory: started doing as vm.
+10. coder: Built the image in `vm/Dockerfile`, the only file I changed. All rows of `tests/test_stage_image.py` pass and `make check` is green (ends with `check: green`). The image itself was not built (criterion 6: the human builds it on the VM after the merge).
+
+    - Two new pins: `ARG NODE_VERSION=22.23.4` and `ARG NODE_SHA256=1805bcd3…e9ce`.
+      - Both values come from `https://nodejs.org/dist/latest-v22.x/SHASUMS256.txt` as it stood today (the line for `node-v22.23.4-linux-x64.tar.xz`).
+      - I could not check the checksum against the archive itself: downloading the archive was refused in this stage. The human's build after the merge is the first real `sha256sum -c`.
+    - The `apt-get install` line now names `git make curl ca-certificates procps xz-utils`; `nodejs` and `npm` are gone.
+    - One RUN does the whole Node install:
+      - downloads the archive with `curl -fsSL -o /tmp/node.tar.xz`;
+      - checks it with `echo "${NODE_SHA256}  /tmp/node.tar.xz" | sha256sum -c -`;
+      - then runs `mkdir -p /opt/factory/node`, unpacks with `tar -xJf … -C /opt/factory/node --strip-components=1`, and removes the archive.
+    - Claude Code and opencode are installed by `/opt/factory/node/bin/npm install --global --prefix /opt/factory --no-audit --no-fund` at their existing pins, one RUN each, Claude Code first.
+    - Each RUN for those installs starts with `export PATH=/opt/factory/node/bin:${PATH} &&`. npm's own shebang (`#!/usr/bin/env node`) and opencode's install script find `node` through the PATH, so without this the step fails. The export holds for that build step only; the image's `ENV` lines have no PATH.
+    - `/usr/local/bin/claude` and `/usr/local/bin/opencode` are written by `printf` in a RUN of their own each, then `chmod 0755`.
+      - Each runs `exec /opt/factory/node/bin/node /opt/factory/bin/<name> "$@"`.
+      - Node follows the npm bin link to the package's entry script.
+    - The `ENV FACTORY_*_VERSION` lines, `vm/setup.sh` and `vm/job-start.sh` are unchanged.
+
+    Main choice: the commands start the runtimes through npm's bin links under `/opt/factory/bin`, called by `/opt/factory/node/bin/node`.
+    - Rejected: naming each package's entry file (`lib/node_modules/@anthropic-ai/claude-code/cli.js`, `opencode-ai/bin/opencode`). That ties the commands to the inner layout of each package, which can change between versions.
+    - Rejected: `--global` alone with `/opt/factory/bin` on the PATH. The Interface forbids it.
+    - Kept `--global` beside `--prefix` so npm uses its standard `bin/` and `lib/node_modules/` layout under `/opt/factory` and not `/opt/factory/node_modules/.bin`; the tests allow either.
+
+    Refactor: I read the diff once and found nothing to change.
+
+    Noticed, not touched:
+    - If a future Claude Code release ships its `claude` bin as a native binary and not a Node script, `node /opt/factory/bin/claude` would fail. The human's `claude --version` check after the build covers it.
+    - The header comment's "Debian's packages follow the base image's release" still points at the decision entry the docs stage will update.
+    - The journal changed nothing in the Description.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
