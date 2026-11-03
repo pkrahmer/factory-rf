@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T23:20:53.829779Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-03T23:20:47.749473Z'
   stage: tests
   run: 41fac88b478148e984794fb7a34c9c22
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:20:53.829779Z'
+  stage: doing
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -286,3 +295,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     Files created: none.
 
     `lint`: lint: green (0.1 s)
+17. factory: started doing as vm.
