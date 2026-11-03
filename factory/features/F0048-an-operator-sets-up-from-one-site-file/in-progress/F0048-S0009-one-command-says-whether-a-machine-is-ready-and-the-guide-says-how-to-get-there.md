@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 509
-comments_read: []
+comments_read: [6592609715]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 1e69e63922dd4fe6a58b4fc73d4e0894
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-03T01:06:10.660287Z'
+  stage: intake
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -105,3 +110,14 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
    9. Check 5 (`repository`) has the detail "the status and message" for a non-200 answer. Criterion 2 has a 404 row only. Please state the exact detail format, for example `HTTP 404: Not Found`, so the test can check it.
 
    My recommendation for 1 to 9 is to add the criteria and Interface lines as above. The architecture and scope are fine: the work is shell under `operator/`, inside the feature's scope and inside the coder's write paths.
+4. 2026-11-03 human: All nine as you recommend, with these facts:
+
+   1. Add the criterion, with one row where `gcloud run jobs describe` succeeds (`ok job: <name> exists`) and one where it fails (`ok job: <name> does not exist yet`).
+   2. Check 11 runs `gcloud run jobs describe $SITE_JOB --project $SITE_PROJECT --region $SITE_REGION`, as `job_exists` in `operator/job/job.sh` does. Exit 0 means it exists; any other exit means "does not exist yet", and the line is still `ok`. Like `job.sh create`, the check does not tell a missing job from a failed call; a broken identity already fails check 7.
+   3. Add a covered-FAIL row for the host of `SITE_REPOSITORY_URL` and one for the host of `SITE_API_URL`.
+   4. Add both: the `git` stand-in sees `https_proxy` equal to `SITE_PROXY`, and it sees no token and no credential configuration (no `GIT_CONFIG_*` authorization, no `http.extraHeader`).
+   5. The key is `SITE_IMPERSONATE`, and the flag is `--impersonate-service-account=<value>`, as in `job.sh`. It goes on every `gcloud` call of `site check` (checks 7, 8 and 11). Rows on check 7: the flag is present when the key is set and absent when it is not.
+   6. Yes: the row's `gcloud` stand-in writes a multi-line error, and the detail is its first line.
+   7. The job set is exactly the keys `require_settings` in `operator/job/job.sh` requires: `SITE_PROJECT SITE_REGION SITE_RUN_AS SITE_CONNECTOR SITE_PROXY SITE_NO_PROXY SITE_JOB SITE_INSTANCE SITE_REPOSITORY_URL SITE_CODE_URL SITE_CODE_REF SITE_HOSTING_SECRET SITE_MODEL_SECRET SITE_MODEL_BASE_URL SITE_MODEL SITE_LOGIN_URL SITE_LOGIN_SCOPE SITE_LOGIN_CLIENT_ID`. Name them in the Interface.
+   8. One tool's row stands for the rule, plus one row with two tools missing at once for the plural detail.
+   9. The detail of a non-200 answer is the hosting client's own message, as in check 4 and in S0008, for example `hosting: GET /repos/owner/repo: 404 Not Found`.
