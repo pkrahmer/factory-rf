@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T23:32:34.727145Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -178,6 +182,11 @@ journal:
   at: '2026-11-03T23:32:28.484951Z'
   stage: tests
   run: 8de3d8a6192e4257879548da91235d3f
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:32:34.727145Z'
+  stage: doing
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -535,3 +544,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     Files created: none. Changed: `tests/test_stage_image.py`. Modules the test run could not import: none.
 
     `lint`: lint: green (0.1 s)
+32. factory: started doing as vm.
