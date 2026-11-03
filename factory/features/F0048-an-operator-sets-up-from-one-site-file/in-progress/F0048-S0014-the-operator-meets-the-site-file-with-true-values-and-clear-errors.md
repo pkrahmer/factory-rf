@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 515
 comments_read: [6599499091]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T09:09:38.220149Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-11-03T09:09:32.434627Z'
   stage: review
   run: 0039bfea67054b8c98b4b7f651f433f8
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-03T09:09:38.220149Z'
+  stage: docs
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -431,3 +440,4 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
     - `tests/test_operator_site.py`: the human's leave in `feature.md` for `USAGE` and the space-after row; criterion 12 for the new rows; the standing leave for moving `INTERFACE_KEYS`; entry 12 for the rename to `test_a_space_beside_the_equals_sign_is_a_fault_and_one_inside_the_value_is_kept`.
     - `tests/test_operator_site_check.py`: the standing leave (the machine, stand-ins, constants and helpers moved unchanged to `tests/site_check_support.py`, apart from the added `describe_error`); the human's leave in `feature.md` and criteria 11 and 14 for the rows of the `job`-line test and its `site: ready` check.
     - `tests/test_operator_skill_scripts.py`: none needed (it only adds `test_status_stops_at_a_failing_read_with_the_hosting_message`).
+21. factory: started docs as vm.
