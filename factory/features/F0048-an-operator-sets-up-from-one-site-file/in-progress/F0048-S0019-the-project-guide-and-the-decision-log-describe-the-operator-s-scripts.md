@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T11:37:05.399791Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-03T11:36:59.892158Z'
   stage: tests
   run: 00e95af8d4ea47f3af805099debdf4b7
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:37:05.399791Z'
+  stage: doing
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -122,3 +131,4 @@ Expect: `documents ok`
    `make lint` is green after ruff sorted the import block. I skipped the type check, as the stage says.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
