@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T23:19:38.752220Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-03T23:19:32.875013Z'
   stage: review
   run: 3466c01ca6d94bdd9b9795ed0a059712
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:19:38.752220Z'
+  stage: doing
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -227,3 +236,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
 
     Earlier tests:
     - tests/test_stage_image.py: under the feature's leave for S0001 (feature.md, "A leave, for S0001"). Changed: the Debian package rows (`STAGE_PACKAGES`, the id `eighth-package` renamed `seventh-package`); the npm install rows (`NPM_FLAGS`, the `FACTORY_NPM` rows, the opencode-after-Claude-Code order); the place of the runtimes (`/opt/factory` taken out of `ABSENT_WORDS`); and the floating-reference test's rewrite of the npm path and the prefix, which keeps that test checking the npm pins. The new test functions are additions and need no leave.
+13. factory: started doing as vm.
