@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T00:17:32.166646Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T00:17:32.160334Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:17:32.166646Z'
+  stage: intake
+---
+
 # The factory does not pause after a tick that found activity
 
 ## Description
@@ -29,3 +56,6 @@ uv run python -c "from factory.application.scheduler import pause_after; print(p
 Expect: `0.0 30.0`.
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
