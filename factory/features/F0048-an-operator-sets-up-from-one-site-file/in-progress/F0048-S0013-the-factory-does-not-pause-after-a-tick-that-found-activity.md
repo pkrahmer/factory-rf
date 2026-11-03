@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 507
 comments_read: [6591979242]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T00:30:13.835586Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-03T00:30:13.835586Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T00:31:07.505100Z'
+  stage: review
+  run: 9458fccd5c2740daa64ef6d6a5390ca7
 ---
 
 # The factory does not pause after a tick that found activity
@@ -186,3 +188,28 @@ Expect: `0.0 30.0`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: no findings
+
+    What I checked, in `git diff main...HEAD -- . ':!factory'` (`src/factory/application/scheduler.py`, `tests/application/test_scheduler.py`) and the work item:
+    - Acceptance criteria:
+      - Criterion 1: the table test has rows 0, 1, 2, 3, 4 and 10, with 0 giving 0 s, so the 0/1 boundary is tested on both sides. `test_negative_idle_count_is_refused` covers -1.
+      - Criterion 2: `test_activity_iterations_do_not_sleep_and_an_idle_one_sleeps_thirty_seconds` pins the whole call order and the single 30 s sleep.
+      - Criterion 3: `test_failed_iterations_each_sleep_growing_and_are_each_logged` has one row where prepare raises and one where tick raises. It checks the 30/60/120 growth and the three log lines.
+      - Criterion 4: `test_a_stop_requested_during_an_activity_iteration_ends_the_run_before_the_next_tick` checks that no third tick runs, that nothing sleeps, and that `should_stop` comes before every `prepare`.
+      - Both Interface rules have their failing side tested: the negative count, and the sleep after an idle or failed iteration. The coder's `make check` was green (entry 10).
+    - Architecture: the change stays inside `factory.application.scheduler`, with no new import and no I/O.
+    - Security: nothing relevant; no silencing markers.
+    - Quality:
+      - `FIRST_PAUSE` is renamed to `FIRST_IDLE_PAUSE`, and no other reference to it is left in `src`.
+      - The doubling loop starts at the first idle pause, and the overflow comment matches the new exponent.
+      - The docstrings of `pause_after` and `Scheduler` say why. `duplicates` reports 0 new.
+      - Not counted as a finding: after an activity iteration, `run` now calls `should_stop` twice in a row (the check after the iteration, then the loop condition). This is harmless and is pinned only by criterion 4's ordering check.
+    - Work item hygiene:
+      - Entry 10 names the main choice (no `sleep` call rather than `sleep(0)`) and the rejected alternative.
+      - The Description matches what was built.
+      - The docs criterion covers the operator guide paragraph that is now stale, under "The loop and its pauses", lines 121–123, which still say 15 s. It also asks for one new entry in `docs/decisions.md`. For the documenter: the entries at lines 265 and 283 cite `FIRST_PAUSE` and the 15 s pause as history; the new entry can say that they are superseded.
+
+    Earlier tests:
+    - tests/application/test_scheduler.py, changed under the human's leave in journal entry 6. Option (a) changed four earlier tests, each keeping its name: `test_each_iteration_prepares_then_ticks_and_the_first_comes_before_any_sleep`, `test_sleeps_follow_the_idle_count_since_the_last_activity`, `test_a_failed_preparation_skips_the_tick_and_counts_as_idle` and `test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle`.
+      - That last test now stops after its second iteration instead of at its second tick; on the prepare side the second iteration holds the first tick. This matches the intent of option (a): it cannot hang.
+      - The table test was renamed to `test_pause_is_none_after_activity_and_doubles_from_thirty_seconds_up_to_two_minutes`. Criterion 1 allows changing it, and entry 6 approves the new name.
