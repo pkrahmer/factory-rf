@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T07:03:13.586532Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-03T07:03:13.586532Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-03T07:03:39.207501Z'
+  stage: intake
+  run: 3077e67d5ead40dfb6f464d249de34a0
 ---
 
 # Stopping the service stops its agents
@@ -54,13 +56,13 @@ This story makes a stop of the service stop the instance's containers. Every con
 
 ## Interface
 
-- Every container the factory starts, for an agent run and for a project command, carries the label `factory.instance=<FACTORY_INSTANCE>`.
+- Every container the factory starts, for an agent run and for a project command, carries the label `factory.instance=<FACTORY_INSTANCE>`. All starts go through `PodmanRuns.launch` in `src/factory/adapters/podman_runs.py` (agent runs through `agent_launch`, project commands through `run`, which calls `launch`). `PodmanRuns.__init__` gains a required keyword-only `instance: str`, set by `factory.entry.wiring` from the settings' instance; `launch` puts the two words `--label`, `factory.instance=<instance>` next to each other, after `--rm`.
 - `vm/factory.service` gains `ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i`, so that systemd runs it as the user `factory` after every end of `factory-run` (a stop, a crash before the restart). Its failure, or no container to stop, never fails the unit. Every other line of the unit stays.
 - `vm/setup.sh` installs the new unit as it installs it today (a machine whose installed unit differs from the checkout gets the existing message, which names the operator guide's *The rebuild after a merge*).
 
 ## Acceptance criteria
 
-1. The argument list of a container start, for an agent run and for a project command, holds `--label` `factory.instance=<instance>` with the instance of the factory's settings. Rows: the two kinds of start, and two instance names.
+1. The argument list of a container start, for an agent run and for a project command, holds the two words `--label`, `factory.instance=<instance>` next to each other, after `--rm`, with the instance given to `PodmanRuns`. Rows: `launch` with two instance names, and one row through `run`, to show that the project-command path carries the label too.
 2. `vm/factory.service` holds the `ExecStopPost` line of the Interface exactly once, after `ExecStart`, and every line it held before is unchanged.
 3. `make check` stays green. No test starts a real container: the tests run inside a check container. The human checks the stop on the machine after the merge (decision 20).
 4. docs: `docs/operator-guide.md`: where it describes stopping or rebuilding the service, one paragraph saying that a stop ends the instance's running agent and check containers, that a stage cut off this way is taken up again by the next start, and that a machine set up before this story installs the new `vm/factory.service` by hand (`install -m 0644` to `/etc/systemd/system/factory@.service`, then `systemctl daemon-reload`). `docs/decisions.md`: one entry stating that the instance's containers carry a label and the unit stops them after every end of the service, and why (rootless podman puts the containers outside the service's cgroup), with the rejected alternatives (`KillMode`, which cannot reach a scope of another systemd; a stop handler in `factory-run`, which does not run after a crash). `README.md` and the project guide: none.
@@ -69,10 +71,10 @@ This story makes a stop of the service stop the instance's containers. Every con
 
 ```bash
 grep -c '^ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i$' vm/factory.service
-grep -rn 'factory.instance' src/factory | head -1 | cut -d: -f1
+grep -rln 'factory.instance' src/factory
 ```
 
-Expect: `1`, then the path of the module that adds the label.
+Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
 
 ## Journal
 
@@ -99,3 +101,9 @@ Expect: `1`, then the path of the module that adds the label.
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: after the human's answer (journal entry 4) it names `PodmanRuns.launch` in `src/factory/adapters/podman_runs.py`, a required keyword-only `instance: str` on `PodmanRuns.__init__` set by `factory.entry.wiring`, the word order (`--label`, `factory.instance=<instance>` after `--rm`), the unit line and the `vm/setup.sh` behaviour. I wrote the first two into the Interface from entry 4 (the human's edit carried in, not mine).
+   - Criteria: 1 now has rows for `launch` with two instance names and one through `run`, each checkable against the argument list (also from entry 4). 2 pins the exact `ExecStopPost` line once, after `ExecStart`, with the other lines unchanged. That covers the Interface's rules that other instances' and unlabelled containers are untouched, and that a failure never fails the unit, both through the `-` prefix and the `label=…=%i` filter. Entry 4 says so, and the human checks both on vm after the merge (decision 20). Criterion 3 is the check, and 4 is the docs criterion.
+   - Smoke test: commands are runnable. The second is now `grep -rln 'factory.instance' src/factory`, and its Expect is the single line `src/factory/adapters/podman_runs.py` (from entry 4). The first has Expect `1`.
+   - Architecture: the label is added in the adapters layer, the one wrapper that starts podman. The instance comes from the entry-layer wiring, so the layers stay intact. The unit change is under `vm/`.
+   - Scope: within F0048 (decision 20, built first). Nothing in "Out of scope" is touched, and no existing test is changed.
