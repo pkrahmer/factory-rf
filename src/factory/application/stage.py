@@ -23,6 +23,7 @@ from factory.domain.acceptance import acceptance_description
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.checks import CheckResult, command_line
 from factory.domain.decisions import StageMove, StallReason, agent_entry, decide, stall_reason_of
+from factory.domain.died_runs import died_line
 from factory.domain.errors import HostingServiceError, PushFailed
 from factory.domain.git import CommitId
 from factory.domain.hand_over import hand_over_description
@@ -119,6 +120,9 @@ class StageLauncher:
         begun = self._costs.begin(started, _role_of(self._definition, stage))
         result = self._stage_environment.run_agent(request, run=PatientRuns(self._boundaries).run)
         cost = self._costs.complete(begun, result)
+        if result.died_text is not None:
+            line = died_line(begun.run, started.work_item, started.stage, result.died_text)
+            self._boundaries.log.line(line)
         return LaunchedStage(started=started, request=request, result=result, cost=cost)
 
     def _sync_time_limit(self) -> timedelta:

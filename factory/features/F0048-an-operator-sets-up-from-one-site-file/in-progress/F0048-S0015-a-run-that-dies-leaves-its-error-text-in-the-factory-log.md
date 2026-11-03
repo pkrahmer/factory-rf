@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T08:20:11.931595Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-03T08:20:11.931595Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-03T08:26:28.774756Z'
+  stage: doing
+  run: f73737b014dd4319bcdd77ad3e9f9686
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -232,3 +234,28 @@ Expect: the path of the module that writes the line.
 
     `lint`: lint: green (0.1 s)
 12. factory: started doing as vm.
+13. coder: I built the died-run line as the human's answer in entry 9 laid it out (option b). All five of the tester's files pass, and `make check` is green, with the last run after the refactor.
+
+    What I built:
+    - `src/factory/domain/agent_runs.py`: `AgentRunResult` gains `died_text: str | None = None`. The cost record and its contract are untouched.
+    - `src/factory/domain/died_runs.py` (new): `died_line(run, work_item, stage, text)` returns `run <run> of <work item> (<stage>) died: <text>`. It is now the only module under `src/factory` whose text contains `died: `, so the smoke test `grep -rlF 'died: ' src/factory` prints `src/factory/domain/died_runs.py`. I ran it.
+    - `src/factory/adapters/agent_launch.py`: `died_text(error_text, stderr, exit_status)` holds all the text rules, with `DIED_STDERR_LINES = 3` and `DIED_TEXT_LENGTH = 300`:
+      - the reply's stripped, non-blank lines come first;
+      - otherwise the last three of standard error;
+      - otherwise `exit <status>`;
+      - the lines are joined with ` / ` and cut with `…`.
+    - `src/factory/adapters/claude_runtime.py`: `_died_text` fills the field only when the end is `died`. It passes `reply.result` only when the reply `is_error`, so the agent's own answer is never quoted.
+    - `src/factory/adapters/opencode_runtime.py`: `_error_message` takes the last `error` event's `data.message`, and `_died_text` works as in the claude runtime.
+    - `src/factory/application/stage.py`, in `StageLauncher.launch`: after the cost record is completed, a result with `died_text` writes `died_line(begun.run, …)` through `boundaries.log`.
+
+    Main choice: the runtimes fill the text only when the end is `died`, and the stage writes the line whenever `died_text` is set. I rejected having the stage check `end_reason == "died"` as well. The field is the one source, and a second condition would only duplicate the runtimes' rule. A resumed run carries the second call's `died_text` through `resumed_result`'s `model_copy`, with no change needed.
+
+    Refactor: there was one pass. `died_text` first joined standard error and split it again; now one `_text_lines` helper strips the lines and drops the blank ones for both the reply and standard error. Nothing else needed changing.
+
+    Noticed, not touched:
+    - With login files set, the login shell prints `factory-login-used: …` on standard error. A died run whose standard error holds nothing else would then quote that line instead of `exit <status>`. The Interface says "the last non-empty lines of standard error" with no exception, so I followed it as written. If that line should be left out, it is a new rule for the human to decide.
+    - The Description still lacks criteria 6 to 9 and the new smoke test. Entry 9 gives that update to the reviewer, so I did not rewrite it.
+    - Coverage shows `opencode_runtime.py:480` (`return "time_limit"` in `_end_reason`) as uncovered. That line was already there before this story.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone

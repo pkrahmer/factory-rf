@@ -27,6 +27,8 @@ KILL_STATUSES = frozenset({137, -9})
 # podman's `--timeout` ends the container with 255, not 137 (podman 4.9.3, measured 2026-10-24).
 PODMAN_TIMEOUT_STATUS = 255
 CONTAINER_KILL_STATUSES = KILL_STATUSES | {PODMAN_TIMEOUT_STATUS}
+DIED_STDERR_LINES = 3
+DIED_TEXT_LENGTH = 300
 
 SHELL_EXECUTABLE = "/bin/sh"
 # Claude Code's name for a token made by `claude setup-token`.
@@ -366,3 +368,25 @@ def denied_path(tool_input: JsonValue, keys: Sequence[str]) -> str | None:
         if isinstance(value, str):
             return value
     return None
+
+
+def _text_lines(text: str) -> list[str]:
+    stripped = (line.strip() for line in text.splitlines())
+    return [line for line in stripped if line]
+
+
+def _cut(text: str) -> str:
+    if len(text) <= DIED_TEXT_LENGTH:
+        return text
+    return text[:DIED_TEXT_LENGTH] + "…"
+
+
+def died_text(error_text: str | None, stderr: str, exit_status: int) -> str:
+    """The text a died run leaves: its error reply, else standard error's last lines, else its exit.
+
+    Lines are stripped and joined on one line without the blank ones, and the text is cut short.
+    """
+    lines = _text_lines(error_text or "") or _text_lines(stderr)[-DIED_STDERR_LINES:]
+    if not lines:
+        return f"exit {exit_status}"
+    return _cut(" / ".join(lines))
