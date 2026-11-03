@@ -44,10 +44,15 @@ The build order; start one at a time, the next when the one before is archived i
 - S0012: Kumpel signs everything it does
 - S0009: One command says whether a machine is ready, and the guide says how to get there
 - S0010: In a job a machine stop that stands for ten minutes ends the factory's process
+- S0016: Stopping the service stops its agents
+- S0015: A run that dies leaves its error text in the factory log
+- S0014: The operator meets the site file, with true values and clear errors
 
 ## The human's changes
 
 One, before S0001: in `factory/pipeline.yml` the coder's write paths gain `"operator/*"`, so that the line reads `coder: {write_paths: ["src/*", "template/*", "claude/*", "vm/*", "operator/*"], time_limit: 40, lease_duration: 60}`. Everything else lies inside the write paths: the coder writes `operator/*` and `vm/*` (S0002), the tester `tests/*`, the documenter `README.md` and `docs/*`. `operator/README.md` belongs to the coder with the rest of `operator/`. No story touches `Makefile`, `pyproject.toml`, `security/`, `CLAUDE.md` or `.secrets.baseline`; if the scripts' tests need a stand-in helper module, it lies under `tests/`.
+
+A leave, for S0014 (2026-11-03): its tester may change the `USAGE` constant of `tests/test_operator_site.py`, which S0001 wrote, to the usage line with `check`, and nothing else in that module.
 
 ## Decisions taken for the human
 
@@ -68,3 +73,6 @@ One, before S0001: in `factory/pipeline.yml` the coder's write paths gain `"oper
 15. **The reviewer judges all five groups in every review (S0011, built right after S0005).** Stopping at the first failing group cost a round per group; S0001, S0003 and S0005 reached the round cap that way, and S0005 settled in one review once it judged all groups. Only the checklist's opening sentence changes (the human, 2026-11-02).
 16. **Kumpel signs everything it does (S0012, built after S0008, which brings `merge.sh`).** The skill acts with the human's token, so GitHub and the journal cannot tell its acts from the human's. A visible signature line and a marker on every comment, Kumpel as the start commit's author and a merge message say who acted, with no second account and no change to the factory, which copies the comment's text into the journal. A separate account for the factory at home is the human's own step, outside this feature (the human, 2026-11-02).
 17. **The factory does not pause after a tick that found activity (S0013, built right after S0008).** A story hands over between its stages about twenty times, and the 15-second pause after each cost about five minutes per story, a tenth of its time, while the next tick had work. The idle pauses and the back-off after errors stay (the human, 2026-11-02).
+18. **The acceptance's three proposed stories are one story (S0014).** The acceptance F0048-A0001 proposed three small stories on one subject, the operator meeting the site file: the example's comments, the README with the skill and `site`'s usage, and isolated Python with clear read errors in the scripts. Each story costs about six agent runs whatever its size, so they are folded into one with all their criteria. The example keeps `SITE_TIMEOUT=24h`, because `gcloud run jobs --task-timeout` takes a duration as well as seconds (the human, 2026-11-03).
+19. **A run that dies leaves its error text in the factory log (S0015, built before S0014).** Two runs at the subscription's limit ended as `died` on 2026-11-02, and nothing kept the text the provider-limit pattern should have matched. The line is needed before the pattern can be fixed from facts; the cost record and its contract stay unchanged (the human, 2026-11-03).
+20. **Stopping the service stops its agents (S0016, built first).** Rootless podman puts the containers outside the service's cgroup, so a stop or a crash with `Restart=always` left the agent writing while a second run started on the same dataset; the acceptance met this. A label per instance and an `ExecStopPost` in the unit stop exactly the instance's containers. No test starts a real container; the human checks the stop on `vm` after the merge (the human, 2026-11-03).
