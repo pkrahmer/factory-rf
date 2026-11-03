@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T11:41:16.363816Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-03T11:41:16.363816Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-11-03T11:41:30.725832Z'
+  stage: doing
+  run: 0415260e0fff42839bc8439d7b9ea410
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -179,3 +181,18 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff only adds tests/test_operator_skill_name.py and changes no test file that `main` holds.
 10. factory: started doing as vm.
+11. coder: The reviewer's one finding is a copied test helper, so it is a change to tests. I changed no code this round.
+
+    The tester should make this move under the standing leave in `CLAUDE.md`. Move the skill directory constant (`ROOT / "operator" / "skill" / "kumpel"`) into tests/operator_skill_support.py, which already builds `SCRIPTS` under that same directory. Then have two modules import it from there:
+    - tests/test_operator_skill_signature.py, where it is `SKILL` at line 22 (the earlier test file);
+    - tests/test_operator_skill_name.py, where it is `SKILL_DIRECTORY` at line 9.
+
+    `SCRIPTS` could then be built from the moved constant. Every earlier test keeps its name and what it checks.
+
+    I confirmed the copy: both constants name the same directory.
+
+    Code state: the two skill texts are as I left them in entry 7, each with one line changed (operator/skill/kumpel/SKILL.md:8 and operator/skill/kumpel/references/standing-orders.md:3). `make check` was green there. I did not run it this round because nothing under my write paths changed.
+
+    What the journal changed: nothing in the meaning of the task, so the Description stays as written.
+
+    Noticed but not touched: the old name is still in README.md, docs/operator-guide.md and docs/project-guide/. Those files are the documenter's under part B.
