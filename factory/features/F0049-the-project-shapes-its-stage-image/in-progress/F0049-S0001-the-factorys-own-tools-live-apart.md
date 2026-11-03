@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948, 6618330636]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T23:46:39.316899Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -276,6 +272,12 @@ journal:
   kind: started
   at: '2026-11-03T23:46:39.316899Z'
   stage: docs
+- number: 49
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T23:47:01.896241Z'
+  stage: docs
+  run: ba9d17b93c2b4c5a8ed41b6199189fe9
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -862,3 +864,19 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     Earlier tests:
     - tests/test_stage_image.py: the feature's leave for S0001 (feature.md, "A leave, for S0001") covers the changes to the Debian package rows, the npm install rows, the places of the runtimes, and the floating-reference rewrite of the npm path. The added test functions needed no leave.
 48. factory: started docs as vm.
+49. documenter: Docs, round 1. I changed no file this round. The round-0 documentation already matched the diff, and the only change since then is the reworded comment at `vm/Dockerfile:28`, which no document quotes.
+
+    Cross-read and found current against the diff (`vm/Dockerfile`, `tests/test_stage_image.py`):
+    - `docs/operator-guide.md`, *The stage image*: the package list and the paragraph on six packages, the Node paragraph (`NODE_VERSION`, `NODE_SHA256`, `sha256sum -c` before the unpack, `/opt/factory`, the commands that exec the runtimes, no Node for projects, how to change the pin), and the *Update the pins* bullet that now names Node. Line 277, where opencode is "installed from npm", is still true. All of this matches the criteria and the Dockerfile as reviewed.
+    - `docs/decisions.md`: the new entry *The factory's tools live apart, under `/opt/factory`, with their own Node*. Its supersede note for `nodejs` and `npm` points at the older entry "Debian's packages follow the base image's release". That older entry (line 1310) keeps its seven packages, as the new entry says it does.
+    - `README.md` and `docs/project-guide/`: I grepped for `nodejs`, `npm` and Node 18. Nothing is stale, and the criterion says none for these.
+
+    The new `docs/decisions.md` entry has no "Rejected" line, because the story names no rejected option for it.
+
+    Stale text I did not touch: none seen.
+
+    I made no code finding. Criterion 6, the human's build of the image on the VM, is still open. I ran no `make check`, because I changed no file.
+
+    `check`: check: green (not run again: passed on tree 7d0e85ea365c at 2026-11-03T23:44:03Z)
+    `secrets`: secrets: green (2.4 s)
+    `documents`: documents ok
