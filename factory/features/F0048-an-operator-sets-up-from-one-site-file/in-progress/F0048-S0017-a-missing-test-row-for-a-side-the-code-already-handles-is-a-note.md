@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268, 6598279355]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T07:52:26.002574Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-03T07:52:20.367801Z'
   stage: tests
   run: 306579f893974285b2bf2388c4d9fa6b
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:52:26.002574Z'
+  stage: doing
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -213,3 +222,4 @@ Expect: `1`.
     `lint`: lint: green (0.1 s)
 
     `lint`: lint: green (0.2 s)
+16. factory: started doing as vm.
