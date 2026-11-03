@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 507
 comments_read: [6591979242]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T00:31:27.972433Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-03T00:31:27.972433Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T00:31:53.665607Z'
+  stage: docs
+  run: 8ba28379eddf46b691b93ea81ab82589
 ---
 
 # The factory does not pause after a tick that found activity
@@ -223,3 +225,18 @@ Expect: `0.0 30.0`.
       - That last test now stops after its second iteration instead of at its second tick; on the prepare side the second iteration holds the first tick. This matches the intent of option (a): it cannot hang.
       - The table test was renamed to `test_pause_is_none_after_activity_and_doubles_from_thirty_seconds_up_to_two_minutes`. Criterion 1 allows changing it, and entry 6 approves the new name.
 13. factory: started docs as vm.
+14. documenter: Changed two files, both documents, so I did not run `make check` (the factory's checks decide).
+    - `docs/operator-guide.md`, *The loop and its pauses*:
+      - The first-iteration rule now says there is no pause after it when its tick found activity, and 30 seconds when it was idle.
+      - The pause paragraph now says there is no pause after activity, and that idle pauses are 30, 60 and 120 seconds, each failed iteration counting as idle.
+    - `docs/decisions.md`: one new entry, "No pause after a tick that found activity". It gives the reason (about twenty hand-overs a story, about five minutes in pauses, F0048 decision 17), the rejected `sleep(0)` and the 15-second base with a special case for zero. It marks the older 15-second wording as superseded.
+
+    Checked against the diff (`src/factory/application/scheduler.py`): the code matches the Interface and the docs, and I found nothing to send back to the coder.
+
+    Cross-read and found current: `README.md`; the rest of `docs/operator-guide.md`, including the idle-shutdown paragraph ("the pauses above are unchanged" is still true) and the repository-stop text ("pauses as for any idle iteration"); `docs/project-guide/watching.md`, whose remark about the loop's pauses is generic. I did not run the smoke command; it follows from the code diff (0 → 0.0, 1 → 30.0).
+
+    Stale text I left alone: the entries of 2026-10-16 in `docs/decisions.md` (lines 265 and 283) still cite `FIRST_PAUSE` and the 15-second pause. They are dated history, and the new entry says it supersedes them.
+
+    `check`: check: green (not run again: passed on tree d5a566d5a04c at 2026-11-03T00:28:21Z)
+    `secrets`: secrets: green (2.1 s)
+    `documents`: documents ok
