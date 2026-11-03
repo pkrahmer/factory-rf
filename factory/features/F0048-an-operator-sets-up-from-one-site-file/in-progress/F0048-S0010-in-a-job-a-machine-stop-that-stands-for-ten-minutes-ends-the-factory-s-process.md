@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T02:05:37.712753Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-03T02:05:32.047337Z'
   stage: doing
   run: b2c0c26ff2c043199bce0a867c25f984
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-03T02:05:37.712753Z'
+  stage: tests
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -216,3 +225,4 @@ Expect: one line that says the tests passed and names no failure.
     Noticed but not touched: `HealthStatus.with_stop` still moves a re-raised stop's `at` forward, so the health file shows the last raise rather than the first. This is unchanged from my round-0 entry.
 
     Refactor: there is no diff this round, so there was nothing to refactor.
+15. factory: started tests as vm.
