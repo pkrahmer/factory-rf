@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T23:31:48.741422Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -176,6 +172,12 @@ journal:
   kind: started
   at: '2026-11-03T23:31:48.741422Z'
   stage: tests
+- number: 31
+  speaker: tester
+  kind: result
+  at: '2026-11-03T23:32:28.484951Z'
+  stage: tests
+  run: 8de3d8a6192e4257879548da91235d3f
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -514,3 +516,22 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     - Entry 25 changes the meaning of criterion 4 and of the Interface bullet for `/usr/local/bin/claude` and `/usr/local/bin/opencode`, which still says "runs the runtime's installed command with `/opt/factory/node/bin/node`". The Description also says the commands "run the runtimes with the factory's Node by its full path". The work item is outside the coder's write paths, so I did not rewrite them. They need rewriting to say that Node 22 is only for npm's install and that the wrappers exec the installed command directly.
     - The `docs/operator-guide.md` paragraph and the `docs/decisions.md` entry from entry 22 say that the runtimes *run* on the factory's own Node. After entry 25 they should say that Node is only for the install. That is the documenter's work.
 30. factory: started tests as vm.
+31. tester: Round 2, the approved test change from coder entry 29, which follows the human's correction of criterion 4 in entry 25: each wrapper execs `/opt/factory/bin/<runtime>` directly with `"$@"`, and a wrapper that names a node binary is refused.
+
+    Changed in `tests/test_stage_image.py`. Nothing else in the file was touched.
+    - I renamed `test_each_runtime_command_runs_on_the_factory_node` to `test_each_runtime_command_execs_its_installed_command`.
+    - I replaced its helper `_runs_on_the_factory_node` with `_execs_its_installed_command`. A wrapper is accepted only when every `RUN` that writes `/usr/local/bin/<name>` contains `exec /opt/factory/bin/<name> "$@"` and names neither `/opt/factory/node/bin/node` nor a bare `node`. A command missing altogether is refused.
+    - The rows run for `claude` and `opencode`:
+      - `as-built` is accepted.
+      - `no-arguments` is kept and refused.
+      - `no-command` is kept and refused.
+      - `factory-node` is new and refused: it puts `/opt/factory/node/bin/node` before `/opt/factory/bin/`.
+      - `bare-node` is refused, and now puts `node` before `/opt/factory/bin/` in the fixed wrapper.
+
+    Criterion 4 (the wrappers): `tests/test_stage_image.py::test_each_runtime_command_execs_its_installed_command`.
+
+    Run: `uv run pytest -q tests/test_stage_image.py`. Only `[as-built-claude]` and `[as-built-opencode]` fail. That is the right reason: `vm/Dockerfile` lines 29 and 31 still exec through `/opt/factory/node/bin/node`. Separately, I ran the helper on a temporary copy of the Dockerfile with the coder's planned fix (`exec /opt/factory/bin/<name> "$@"`). It accepts that wrapper and refuses both node variants. `make lint`: green.
+
+    Files created: none. Changed: `tests/test_stage_image.py`. Modules the test run could not import: none.
+
+    `lint`: lint: green (0.1 s)

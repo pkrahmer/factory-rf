@@ -566,35 +566,46 @@ def test_the_apt_install_names_exactly_the_six_packages(
     assert (sorted(packages) == sorted(STAGE_PACKAGES)) == exact
 
 
-def _runs_on_the_factory_node(dockerfile: str, name: str) -> bool:
+def _execs_its_installed_command(dockerfile: str, name: str) -> bool:
+    wrapper = re.compile(rf'exec {re.escape(FACTORY_PREFIX)}/bin/{name} "\$@"')
     runs = [
         arguments
         for keyword, arguments in _instructions(dockerfile)
         if keyword == "RUN" and f"/usr/local/bin/{name}" in arguments
     ]
-    return bool(runs) and all(FACTORY_NODE in each and '"$@"' in each for each in runs)
+    return bool(runs) and all(
+        wrapper.search(each) and FACTORY_NODE not in each and not re.search(r"\bnode ", each)
+        for each in runs
+    )
 
 
 @pytest.mark.parametrize("name", ["claude", "opencode"])
 @pytest.mark.parametrize(
-    ("change", "runs"),
+    ("change", "execs"),
     [
         pytest.param(lambda text: text, True, id="as-built"),
         pytest.param(lambda text: text.replace('"$@"', ""), False, id="no-arguments"),
+        pytest.param(_drop_lines_with("> /usr/local/bin/"), False, id="no-command"),
         pytest.param(
             lambda text: text.replace(
-                f"{FACTORY_NODE} {FACTORY_PREFIX}/bin/", "node /opt/factory/bin/"
+                f"exec {FACTORY_PREFIX}/bin/", f"exec {FACTORY_NODE} {FACTORY_PREFIX}/bin/"
+            ),
+            False,
+            id="factory-node",
+        ),
+        pytest.param(
+            lambda text: text.replace(
+                f"exec {FACTORY_PREFIX}/bin/", f"exec node {FACTORY_PREFIX}/bin/"
             ),
             False,
             id="bare-node",
         ),
-        pytest.param(_drop_lines_with("> /usr/local/bin/"), False, id="no-command"),
     ],
 )
-def test_each_runtime_command_runs_on_the_factory_node(
-    stage_dockerfile: str, name: str, change: Callable[[str], str], runs: bool
+def test_each_runtime_command_execs_its_installed_command(
+    stage_dockerfile: str, name: str, change: Callable[[str], str], execs: bool
 ) -> None:
-    assert _runs_on_the_factory_node(change(stage_dockerfile), name) == runs
+    assert _execs_its_installed_command(change(stage_dockerfile), name) == execs
 
 
 def _keeps_the_factory_node_off_the_path(dockerfile: str) -> bool:
