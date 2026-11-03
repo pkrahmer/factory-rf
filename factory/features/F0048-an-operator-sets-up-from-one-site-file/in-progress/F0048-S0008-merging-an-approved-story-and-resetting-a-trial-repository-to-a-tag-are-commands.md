@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211, 6591823542]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T00:12:17.296505Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -236,6 +240,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T00:11:57.651949Z'
+  stage: docs
+- number: 42
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:12:17.296505Z'
   stage: docs
 ---
 
@@ -638,3 +647,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
 
     Comment anything to retry: the attempts go back to 0 and the stage runs again. Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
 41. 2026-11-03 human: Retry: both docs runs ended at the usage limit, which has reset now.
+42. factory: started docs as vm.
