@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-03T11:58:00.553715Z'
   stage: smoke-test
   run: 4b7b66f4287c4210ab3b947036ad626d
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-03T12:01:57.327801Z'
+  stage: approval
 ---
 
 # The job's start script leaves no temporary folder behind
@@ -196,3 +201,4 @@ Expect: `0`, then `1`.
     Findings: none.
 
     Open: none.
+14. factory: done (pull request merged); cost: 6 runs, 4.0 min, 38 turns, 121951 tokens in (664591 more from cache), 10006 out, $1.12
