@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -175,6 +175,11 @@ journal:
   at: '2026-11-03T01:43:38.509650Z'
   stage: smoke-test
   run: 2519927d96964f9cbdf50735c8c7a11f
+- number: 31
+  speaker: factory
+  kind: done
+  at: '2026-11-03T01:47:34.243220Z'
+  stage: approval
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -570,3 +575,4 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
     Re-read the acceptance criteria: neither command's output contradicts any criterion. The two commands only touch the site-file failure path and the usage error. The other criteria (the eleven checks, no_proxy rules, impersonation, no writes, docs) are not exercised by this smoke test and are left to the tests and the review.
 
     Findings: none.
+31. factory: done (pull request merged); cost: 13 runs, 27.2 min, 123 turns, 503371 tokens in (3995304 more from cache), 104075 out, $6.46
