@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T23:30:57.024136Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -165,6 +161,12 @@ journal:
   kind: started
   at: '2026-11-03T23:30:57.024136Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-11-03T23:31:35.227722Z'
+  stage: doing
+  run: e3b29874c3974e409a98ac7e419763b0
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -482,3 +484,23 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
 26. 2026-11-03 human: closed the pull request.
 27. factory: sent back to doing, round 2.
 28. factory: started doing as vm.
+29. coder: Round 2: no code change yet. In entry 25 the human changed criterion 4 (feature decision 6). Each wrapper now execs `/opt/factory/bin/<runtime>` directly with `"$@"`, and a wrapper that names a node binary is refused. `tests/test_stage_image.py` still asks for the old wrapper, so `vm/Dockerfile` cannot be fixed until the tester changes that test (R9).
+
+    The test change, in `tests/test_stage_image.py`: `test_each_runtime_command_runs_on_the_factory_node` and its helper `_runs_on_the_factory_node` must check the new wrapper. A wrapper is accepted when it execs `/opt/factory/bin/<name>` with `"$@"` and names no node binary: neither `/opt/factory/node/bin/node` nor a bare `node`. The rows:
+    - `as-built`: the fixed wrapper, `exec /opt/factory/bin/<name> "$@"`; accepted.
+    - `no-arguments`: kept; refused.
+    - `no-command`: kept; refused.
+    - `factory-node`: `/opt/factory/node/bin/node` put before `/opt/factory/bin/`; refused.
+    - `bare-node`: bare `node` put before `/opt/factory/bin/`; refused.
+
+    The test name could become `test_each_runtime_command_execs_its_installed_command`. The rest of the file stays as it is: the Node pin, the checked download, the six packages, the install through the factory's npm, and the PATH rows.
+
+    Once the tester has made the change, my next round changes only the two `printf` lines in `vm/Dockerfile` (lines 29 and 31) to `exec /opt/factory/bin/claude "$@"` and `exec /opt/factory/bin/opencode "$@"`.
+
+    Built: nothing this round. I did not run `make check`, because nothing changed.
+
+    Main choice: end with `tests` now, and leave `vm/Dockerfile` alone until the test changes. Rejected: fixing `vm/Dockerfile` in the same round. The current `test_each_runtime_command_runs_on_the_factory_node` would then fail on the committed tree. The Dockerfile change should come after the test that pins it.
+
+    Noticed, not touched:
+    - Entry 25 changes the meaning of criterion 4 and of the Interface bullet for `/usr/local/bin/claude` and `/usr/local/bin/opencode`, which still says "runs the runtime's installed command with `/opt/factory/node/bin/node`". The Description also says the commands "run the runtimes with the factory's Node by its full path". The work item is outside the coder's write paths, so I did not rewrite them. They need rewriting to say that Node 22 is only for npm's install and that the wrappers exec the installed command directly.
+    - The `docs/operator-guide.md` paragraph and the `docs/decisions.md` entry from entry 22 say that the runtimes *run* on the factory's own Node. After entry 25 they should say that Node is only for the install. That is the documenter's work.
