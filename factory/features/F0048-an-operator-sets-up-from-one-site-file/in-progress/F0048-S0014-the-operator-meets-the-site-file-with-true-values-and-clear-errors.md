@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 515
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T08:59:49.094270Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-03T08:59:43.496521Z'
   stage: review
   run: e4abc88e80e64bd08cf0bac6067d36c5
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:59:49.094270Z'
+  stage: doing
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -252,3 +261,4 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
    - tests/test_operator_site.py: the human's leave in `feature.md` for `USAGE` and the space-after row, criterion 12 for the new rows, and the standing leave for `INTERFACE_KEYS`. The rename goes beyond them (finding 5).
    - tests/test_operator_site_check.py: the standing leave (the machine, stand-ins, constants and line helpers moved unchanged to `tests/site_check_support.py`, apart from the added `describe_error`), and the human's leave in `feature.md` for the `job`-line rows.
    - tests/test_operator_skill_scripts.py: none needed (it only adds `test_status_stops_at_a_failing_read_with_the_hosting_message`).
+10. factory: started doing as vm.
