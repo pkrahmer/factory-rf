@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 508
 comments_read: [6592252694]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T00:48:54.772237Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,13 @@ journal:
   kind: started
   at: '2026-11-03T00:48:54.772237Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: question
+  at: '2026-11-03T00:49:13.599618Z'
+  stage: doing
+  run: 2e692e85c97a45c597795c530da51190
+  blocked: question
 ---
 
 # Kumpel signs everything it does
@@ -215,3 +218,16 @@ Expect: two lines, a number of at least `1`, then `0`.
     - `tests/test_operator_skill_scripts.py`: under the standing leave for moving `Operator`, its constants and its helpers to `tests/operator_skill_support.py`. Every remaining test keeps its name and checks the same thing. The deleted row `verdict-fourth-from-the-end` has no leave (finding 2).
     - `tests/test_operator_merge_reset.py`: `test_an_approved_pull_request_is_merged_and_its_archive_awaited` was changed under the human's leave in the story. Criterion 5, part of the story as the human wrote it (entry 1), names S0008's merge test and asks for a row per field.
 13. factory: started doing as vm.
+14. coder: Round 1. I changed no code: none of the review's findings calls for a code change. I read `operator/skill/kumpel/scripts/comment.sh` against the two new criteria, and it already meets both. Criterion 9: it signs the text again unless the text, with trailing newlines stripped, ends with the blank line, the signature line and the marker. Criterion 10: `[ $# -eq 2 ]` refuses three arguments with the usage line, exit 2, before any request. Findings 1, 3 and 4 are test changes for the tester. Finding 2 needs the human's answer first, so I stopped here.
+
+    Question to the human (review finding 2): the tester deleted the row `verdict-fourth-from-the-end` of `test_the_newest_comment_decides_the_state` in `tests/test_operator_skill_scripts.py`. That test belongs to an earlier story. The row expected `working` for a newest comment whose `<!-- kumpel verdict -->` marker has three lines after it. Under this story's rule (the marker anywhere in the body), that case is now `verdict posted`, so the old expectation is wrong either way. The options:
+      (a) Keep the row and change its expectation to `verdict posted`. It then pins the new "anywhere" rule in the earlier story's test.
+      (b) Accept the deletion. The new test's `verdict-marker-at-the-top` row already covers the case.
+    I would choose (a): it keeps the earlier test's table whole, and it checks the rule change where the old rule was pinned.
+
+    Once you answer, I will end with `tests`, naming three changes for the tester:
+      - finding 2: the change you choose here;
+      - finding 1: move the parsing of `curl.jsonl` (`sent` in `tests/test_operator_skill_signature.py` and `Machine.requests()` with `Request` in `tests/test_operator_merge_reset.py`) into `tests/operator_skill_support.py`, under the standing leave;
+      - findings 3 and 4: the rows for criterion 9 (beside criterion 2's row) and criterion 10 (in criterion 3's test).
+
+    Noticed, not touched: nothing new beyond entry 10.
