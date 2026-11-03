@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T07:29:55.513286Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-11-03T07:29:49.959814Z'
   stage: docs
   run: da1902f34e00421da7ca3b7d43868e59
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:29:55.513286Z'
+  stage: smoke-test
 ---
 
 # Stopping the service stops its agents
@@ -503,3 +512,4 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     `check`: check: green (not run again: passed on tree bc17833f377e at 2026-11-03T07:26:30Z)
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
+29. factory: started smoke-test as vm.
