@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T23:24:29.321055Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-11-03T23:24:23.159147Z'
   stage: doing
   run: 0578edd142c64b90978486eef9f81d01
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:24:29.321055Z'
+  stage: review
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -318,3 +327,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+19. factory: started review as vm.
