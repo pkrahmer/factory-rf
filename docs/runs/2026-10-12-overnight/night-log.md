@@ -1454,3 +1454,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 08:03 CLAUDE.md's Tests line on the untested side now follows decision 23 (d0a33ac5c); no test pins it.
 - 08:04 vm rebuilt at d0a33ac5c with no container running (claude/ changed); preflight green, no stops.
 - 08:04 Started F0048-S0015 (a run that dies leaves its error text in the factory log).
+- 08:08 F0048-S0015 (died-run text) PR #514 intake question 3: took intake's proposals: one pure helper died_line in agent_launch called by both runtimes; last 3 non-empty stderr lines; reply wins, an empty reply falls to stderr; lines stripped, blanks dropped; a cost-record-unchanged criterion; raw exit status; smoke test grep -rlF with agent_launch.py.
