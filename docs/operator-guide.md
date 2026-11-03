@@ -865,6 +865,8 @@ Stop it first. An agent run lasts up to its role's `time_limit`, so a running in
 sudo systemctl stop factory@vm
 ```
 
+A stop of the service also ends the instance's running agent and check containers. The unit runs `podman stop --filter label=factory.instance=%i` as `factory` after every end of `factory-run`, a stop or a crash, and every container the factory starts carries that label, so containers of another instance, or without the label, are left alone. A stage cut off this way is a crash for the factory, and the next start takes it up again (see "A restart during a stage"). A machine set up before this change keeps the old unit until you install the new one by hand: copy `vm/factory.service` from your checkout to the VM, then run `sudo install -m 0644 factory.service /etc/systemd/system/factory@.service` and `sudo systemctl daemon-reload`. `vm/setup.sh` prints that the file differs and leaves it (see below).
+
 Then bring the checkout and the image up to date. On the VM as `factory` (`sudo -iu factory`):
 
 ```bash

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T07:29:10.930204Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-03T07:29:10.930204Z'
   stage: docs
+- number: 28
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T07:29:49.959814Z'
+  stage: docs
+  run: da1902f34e00421da7ca3b7d43868e59
 ---
 
 # Stopping the service stops its agents
@@ -478,3 +480,26 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     - `tests/test_vm_service_stop.py:6`: `EARLIER_LINES` is a second copy of the unit's text, beside `UNIT` in `tests/test_vm_local_environment.py`.
     - Entry 22 names `tests/test_vm_service.py` as criterion 2's test. The test is `tests/test_vm_service_stop.py::test_the_unit_stops_the_instances_containers_after_its_start_line`.
 27. factory: started docs as vm.
+28. documenter: I wrote the two documents the docs criterion names and found no finding for the coder. The code matches the Interface.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The rebuild after a merge*: one paragraph after the stop command. It says that a stop ends the instance's agent and check containers through the label filter, that other instances' and unlabelled containers are left alone, and that a cut-off stage is a crash the next start takes up again (it links to *A restart during a stage*). It also says how a machine set up earlier installs the new unit by hand: `install -m 0644` to `/etc/systemd/system/factory@.service`, then `systemctl daemon-reload`. The stage's `make check` was not run.
+    - `docs/decisions.md`: a new entry at the end, "A stop of the service stops the instance's containers". It gives the decision, why (rootless podman puts the containers outside the service's cgroup; the acceptance F0048-A0001 met it), and the rejected alternatives: `KillMode`, a stop handler in `factory-run`, and the label passed from each caller.
+
+    I ran the smoke test's two commands. The `grep -c` on the unit prints `1`. `grep -rlF 'factory.instance' src/factory` prints only `src/factory/adapters/podman_runs.py`.
+
+    I changed only documents, so I did not run `make check` (the stage's rule). The factory's checks decide.
+
+    Cross-read and found current:
+    - `README.md`: it has nothing on stopping or on containers.
+    - `docs/project-guide/`: I did not search it. The criterion says none, and I did not read the rest of the guide against the diff.
+    - The operator guide passages *A restart during a stage* and *On GCP, step by step* step 12. They describe a stop during a stage as a crash and need no change.
+    - The operator guide's *The two passes* section, which I checked only for the installed unit's message. The message still matches `vm/setup.sh`, which is unchanged.
+
+    Stale text I saw and did not touch:
+    - `pyproject.toml:65` names the work item id in the comment on the per-file ignore. That is the human's commit; the coder noted it too.
+    - The reviewer's note that entry 22 names the wrong test file for criterion 2 is a journal slip. It is not mine.
+
+    `check`: check: green (not run again: passed on tree bc17833f377e at 2026-11-03T07:26:30Z)
+    `secrets`: secrets: green (2.4 s)
+    `documents`: documents ok
