@@ -10,12 +10,14 @@ Kumpel is the product; kumpel-factory, this repository, is one of its components
 |---|---|
 | `skill/kumpel/SKILL.md` | the skill: what to read first, the loop, the switches |
 | `skill/kumpel/references/` | the standing orders, how to answer, how to approve, how to shape |
-| `skill/kumpel/scripts/` | `settings.sh` (the switches), `status.sh` (the state from GitHub), `wait.sh` (wait for the next event), `approval.sh` (the six checks' facts), `next-story.sh` (the next story of the build order), `start-story.sh` |
+| `skill/kumpel/scripts/` | `settings.sh` (the switches), `status.sh` (the state from GitHub), `wait.sh` (wait for the next event), `approval.sh` (the six checks' facts), `next-story.sh` (the next story of the build order), `start-story.sh`, `comment.sh` (post a signed comment), `merge.sh` (merge an approved story and wait for its archive), `reset-to-tag.sh` (reset a trial repository to a tag) |
 | `opencode/command/kumpel.md` | the command `/kumpel [<switch> on|off]` for opencode |
 | `claude/commands/kumpel.md` | the same command for Claude Code |
 | `bin/site` | the command for the site file: `path`, `init`, `show`, `get` |
 | `lib/site.sh` | the loader every operator script sources: `site_path`, `site_load`, `site_require` |
 | `site.env.example` | every key of the site file, each with a comment and a made-up value |
+
+Kumpel signs everything it does. A comment ends with the line `— Kumpel, for the human who owns this project` and the marker `<!-- kumpel -->`, a start commit has the author `Kumpel <kumpel@noreply.invalid>`, and a merge commit says `Merged by Kumpel after the six approval checks.` So a reader of the pull request, the journal or the history can tell Kumpel's acts from the human's, although both use the human's token.
 
 ## Installing (for the trial)
 

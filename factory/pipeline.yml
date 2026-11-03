@@ -22,7 +22,7 @@ roles:
   tester: {write_paths: ["tests/*"], time_limit: 40, lease_duration: 60}
   coder: {write_paths: ["src/*", "template/*", "claude/*", "vm/*", "operator/*"], time_limit: 40, lease_duration: 60}
   reviewer: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
-  documenter: {write_paths: ["README.md", "docs/*"], time_limit: 40, lease_duration: 60}
+  documenter: {write_paths: ["README.md", "docs/*", "operator/README.md"], time_limit: 40, lease_duration: 60}
   smoke-tester: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
   # Mutation testing runs only by sweep, outside the factory (the human, 2026-10-19); without make mutants
   # the acceptances of 2026-10-19 took at most about 22 minutes, so it has the other roles' limits.
