@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T23:10:01.221004Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-03T23:10:01.221004Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-03T23:12:54.206398Z'
+  stage: tests
+  run: 7608e5a52b7e477d8e8d4e97f0486593
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -117,3 +119,35 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
    - Architecture: only `vm/` and `tests/test_stage_image.py` change, and the docs criterion names `docs/operator-guide.md` and `docs/decisions.md`. This fits the layers.
    - Scope: this is S0001 of `feature.md`. The test change falls under the feature's leave for S0001, which covers the Debian package, Node and npm install rows and the places of `claude`, `opencode` and `uv`. Open: that leave names those rows only. The new pin-form, checksum, `curl`, wrapper and `PATH` rows are additions to the module. I read them as inside the leave's purpose ("to the image S0001 describes").
 7. factory: started tests as vm.
+8. tester: Wrote the tests for the stage image's own Node under /opt/factory. They are all in `tests/test_stage_image.py`, which I changed under the feature's leave. I created no new files.
+
+   Criterion → test:
+   - criterion 1: tests/test_stage_image.py::test_the_factory_node_is_pinned_by_version_and_checksum. Rows: the file as built, `20.1.0`, `22.1`, a checksum of 63 digits, and one in upper case.
+   - criterion 2: tests/test_stage_image.py::test_the_node_archive_is_checked_before_it_is_unpacked. Rows: as built, no `sha256sum -c`, the check after the unpack, a pipe into a shell, a download without `curl`, and another unpack target.
+     - The download is any command with a word holding `nodejs.org`, and its program must be `curl`.
+     - The check is a `sha256sum -c` command whose RUN names `NODE_SHA256`. It must come before a `tar` command whose target word ends in `/opt/factory/node`.
+   - criterion 3: tests/test_stage_image.py::test_the_apt_install_names_exactly_the_six_packages. Rows: as built, `nodejs` added, `npm` added. The changed `STAGE_PACKAGES` also drives the earlier tests `test_each_debian_package_is_installed_by_name_alone` and `test_the_one_apt_install_is_the_tools_without_recommends`.
+   - criterion 4 (the installs): tests/test_stage_image.py::test_each_tool_is_installed_once_at_its_pinned_version (rows claude-code and opencode). These now expect `/opt/factory/node/bin/npm install` with `--prefix /opt/factory`, `--no-audit` and `--no-fund`, in place of `--global`. tests/test_stage_image.py::test_opencode_is_installed_after_claude_code now uses the same program.
+   - criterion 4 (the two commands): tests/test_stage_image.py::test_each_runtime_command_runs_on_the_factory_node. It checks claude and opencode, each as built and with no `"$@"`. A RUN that names `/usr/local/bin/<name>` must name `/opt/factory/node/bin/node` and `"$@"`.
+   - criterion 5: tests/test_stage_image.py::test_the_factory_node_stays_off_the_path. Rows: as built, an `ln -s` of node to `/usr/local/bin/node`, an `ln -s` of npm into `/usr/local/bin/`, an npm script created by `printf` in `/usr/local/bin/npm`, and `ENV PATH=/opt/factory/node/bin:${PATH}`.
+   - criteria 6 and 7: no test. They are `make check` and docs.
+
+   Other changes to the earlier rows of `tests/test_stage_image.py`, all for the image this story describes:
+   - `/opt/factory` left `ABSENT_WORDS`.
+   - The floating-reference row `eighth-package` is now `seventh-package`.
+   - `test_the_stage_image_has_no_floating_reference` now changes the text it gives `floating_references`. It replaces `/opt/factory/node/bin/npm` with `npm`, and `--prefix /opt/factory` with `--prefix=_`. Without that, the shared helper in `tests/dockerfile_support.py` would miss npm called by its full path, so the opencode row would pass silently. It would also report `/opt/factory` as an unpinned npm package.
+   - I left `tests/dockerfile_support.py` unchanged, because it is outside the feature's leave.
+
+   Checks:
+   - `uv run pytest -q tests/test_stage_image.py`: the new and changed rows for the as-built file fail, as they should. They fail on wrong results, not on import errors.
+   - `make lint`: green.
+   - Every module imported.
+
+   I also wrote, outside the repository in a mktemp folder, a sample Dockerfile with the change applied: curl, `sha256sum -c`, `tar -C /opt/factory/node`, npm with `--prefix`, and printf wrappers. All 93 rows of the module passed against it, so a straightforward implementation can turn the suite green.
+
+   Open, for the coder:
+   - Each wrapper must be written by a RUN that names `/usr/local/bin/claude` or `/usr/local/bin/opencode` literally. A loop over the names would not satisfy the test.
+   - The Node archive must be unpacked by `tar` straight into `/opt/factory/node`, not unpacked elsewhere and then moved.
+   - The existing one-COPY rule still holds, so a `COPY <<EOF` heredoc cannot be used for the wrappers.
+
+   `lint`: lint: green (0.2 s)

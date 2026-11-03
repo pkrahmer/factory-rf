@@ -20,15 +20,23 @@ from dockerfile_support import (
     _env,
     _from_references,
     _instructions,
+    _piped_download_findings,
     _pipelines,
+    _shell_lines,
     _uncommented,
     floating_references,
 )
 
 ROOT = Path(__file__).parent.parent
 STAGE_DOCKERFILE = ROOT / "vm" / "Dockerfile"
-STAGE_PACKAGES = ["git", "make", "curl", "ca-certificates", "procps", "nodejs", "npm"]
-NPM_FLAGS = ["--global", "--no-audit", "--no-fund"]
+STAGE_PACKAGES = ["git", "make", "curl", "ca-certificates", "procps", "xz-utils"]
+FACTORY_PREFIX = "/opt/factory"
+FACTORY_NODE_DIRECTORY = "/opt/factory/node"
+FACTORY_NODE = "/opt/factory/node/bin/node"
+FACTORY_NPM = "/opt/factory/node/bin/npm"
+NPM_FLAGS = ["--prefix", "--no-audit", "--no-fund"]
+NODE_VERSION = re.compile(r"22\.\d+\.\d+")
+LOWER_SHA256 = re.compile(r"[0-9a-f]{64}")
 CLAUDE_CODE = "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
 OPENCODE = "opencode-ai@${OPENCODE_VERSION}"
 AGENT_FILES_COPY = "claude /etc/factory/claude"
@@ -56,7 +64,6 @@ ABSENT_WORDS = [
     "ENTRYPOINT",
     "CMD",
     "gitconfig",
-    "/opt/factory",
     "src",
     "pyproject.toml",
     "uv.lock",
@@ -123,14 +130,16 @@ RELEASE_PACKAGES = sorted(f"apt package {package}" for package in STAGE_PACKAGES
                 "--no-install-recommends ", "--no-install-recommends wget ", 1
             ),
             False,
-            id="eighth-package",
+            id="seventh-package",
         ),
     ],
 )
 def test_the_stage_image_has_no_floating_reference(
     stage_dockerfile: str, change: Callable[[str], str], pinned: bool
 ) -> None:
-    findings = floating_references(change(stage_dockerfile))
+    # floating_references knows npm by its bare name and an option's value only after "=".
+    text = change(stage_dockerfile).replace(FACTORY_NPM, "npm")
+    findings = floating_references(text.replace(f"--prefix {FACTORY_PREFIX}", "--prefix=_"))
     others = [finding for finding in findings if finding not in RELEASE_PACKAGES]
 
     assert (others == []) == pinned
@@ -245,8 +254,8 @@ def test_the_one_apt_install_is_the_tools_without_recommends(
     ("program", "requirement", "flags"),
     [
         pytest.param("pip", "uv==${UV_VERSION}", ["--no-cache-dir"], id="uv"),
-        pytest.param("npm", CLAUDE_CODE, NPM_FLAGS, id="claude-code"),
-        pytest.param("npm", OPENCODE, NPM_FLAGS, id="opencode"),
+        pytest.param(FACTORY_NPM, CLAUDE_CODE, NPM_FLAGS, id="claude-code"),
+        pytest.param(FACTORY_NPM, OPENCODE, NPM_FLAGS, id="opencode"),
     ],
 )
 def test_each_tool_is_installed_once_at_its_pinned_version(
@@ -258,13 +267,15 @@ def test_each_tool_is_installed_once_at_its_pinned_version(
 
     assert len(installs) == 1
     assert set(flags) <= set(installs[0])
+    if program == FACTORY_NPM:
+        assert installs[0][installs[0].index("--prefix") + 1] == FACTORY_PREFIX
     if program == "pip":
         assert len(_installs(stage_dockerfile, "pip")) == 1
         assert [word for word in installs[0][2:] if not word.startswith("-")] == [requirement]
 
 
 def test_opencode_is_installed_after_claude_code(stage_dockerfile: str) -> None:
-    installs = _installs(stage_dockerfile, "npm")
+    installs = _installs(stage_dockerfile, FACTORY_NPM)
     claude = [index for index, command in enumerate(installs) if CLAUDE_CODE in command]
     opencode = [index for index, command in enumerate(installs) if OPENCODE in command]
 
@@ -373,3 +384,205 @@ def test_the_first_line_names_the_build_command(stage_dockerfile: str) -> None:
 
     assert first.startswith("#")
     assert "podman build -f vm/Dockerfile" in first
+
+
+def _node_is_pinned(dockerfile: str) -> bool:
+    pins = _arg_defaults(_instructions(dockerfile), before_from=False)
+    return bool(
+        NODE_VERSION.fullmatch(pins.get("NODE_VERSION", ""))
+        and LOWER_SHA256.fullmatch(pins.get("NODE_SHA256", ""))
+    )
+
+
+@pytest.mark.parametrize(
+    ("change", "pinned"),
+    [
+        pytest.param(lambda text: text, True, id="as-built"),
+        pytest.param(
+            lambda text: re.sub(r"NODE_VERSION=\S+", "NODE_VERSION=20.1.0", text),
+            False,
+            id="node-20",
+        ),
+        pytest.param(
+            lambda text: re.sub(r"NODE_VERSION=\S+", "NODE_VERSION=22.1", text),
+            False,
+            id="two-numbers",
+        ),
+        pytest.param(lambda text: re.sub(r"(NODE_SHA256=)\S", r"\1", text), False, id="63-digits"),
+        pytest.param(
+            lambda text: re.sub(
+                r"NODE_SHA256=(\S+)", lambda match: f"NODE_SHA256={match[1].upper()}", text
+            ),
+            False,
+            id="upper-case",
+        ),
+    ],
+)
+def test_the_factory_node_is_pinned_by_version_and_checksum(
+    stage_dockerfile: str, change: Callable[[str], str], pinned: bool
+) -> None:
+    assert _node_is_pinned(change(stage_dockerfile)) == pinned
+
+
+def _replace_on_lines_with(marker: str, old: str, new: str) -> Callable[[str], str]:
+    """A change that replaces `old` by `new` on the joined lines that hold `marker`."""
+
+    def change(text: str) -> str:
+        lines = re.sub(r"\\\n", " ", text).splitlines()
+        return "\n".join(line.replace(old, new) if marker in line else line for line in lines)
+
+    return change
+
+
+def _node_archive_is_checked(dockerfile: str) -> bool:
+    instructions = _instructions(dockerfile)
+    commands = _commands(dockerfile)
+    downloads = [command for command in commands if any("nodejs.org" in w for w in command)]
+    checks = [
+        index
+        for index, command in enumerate(commands)
+        if Path(command[0]).name == "sha256sum" and "-c" in command
+    ]
+    unpacks = [
+        index
+        for index, command in enumerate(commands)
+        if Path(command[0]).name == "tar"
+        and any(word.rstrip("/").endswith(FACTORY_NODE_DIRECTORY) for word in command[1:])
+    ]
+    checked_runs = [
+        arguments
+        for keyword, arguments in instructions
+        if keyword == "RUN" and "sha256sum -c" in arguments
+    ]
+    piped = [
+        finding
+        for line in _shell_lines(instructions)
+        for pipeline in _pipelines(line)
+        for finding in _piped_download_findings(pipeline)
+    ]
+    return bool(
+        downloads
+        and all(Path(command[0]).name == "curl" for command in downloads)
+        and checks
+        and unpacks
+        and max(checks) < min(unpacks)
+        and all("NODE_SHA256" in arguments for arguments in checked_runs)
+        and piped == []
+    )
+
+
+@pytest.mark.parametrize(
+    ("change", "checked"),
+    [
+        pytest.param(lambda text: text, True, id="as-built"),
+        pytest.param(lambda text: text.replace("sha256sum -c", "sha256sum"), False, id="no-check"),
+        pytest.param(
+            lambda text: (
+                text.replace("sha256sum -c", "sha256sum")
+                + '\nRUN echo "${NODE_SHA256}  /tmp/node.tar.xz" | sha256sum -c -\n'
+            ),
+            False,
+            id="check-after-unpack",
+        ),
+        pytest.param(
+            lambda text: f"{text}\nRUN curl -fsSL https://example.org/install.sh | sh\n",
+            False,
+            id="piped-into-a-shell",
+        ),
+        pytest.param(_replace_on_lines_with("nodejs.org", "curl", "wget"), False, id="not-curl"),
+        pytest.param(
+            _replace_on_lines_with("tar ", FACTORY_NODE_DIRECTORY, "/opt/node"),
+            False,
+            id="another-target",
+        ),
+    ],
+)
+def test_the_node_archive_is_checked_before_it_is_unpacked(
+    stage_dockerfile: str, change: Callable[[str], str], checked: bool
+) -> None:
+    assert _node_archive_is_checked(change(stage_dockerfile)) == checked
+
+
+@pytest.mark.parametrize(
+    ("change", "exact"),
+    [
+        pytest.param(lambda text: text, True, id="as-built"),
+        *[
+            pytest.param(
+                lambda text, package=package: text.replace(
+                    "--no-install-recommends ", f"--no-install-recommends {package} ", 1
+                ),
+                False,
+                id=package,
+            )
+            for package in ["nodejs", "npm"]
+        ],
+    ],
+)
+def test_the_apt_install_names_exactly_the_six_packages(
+    stage_dockerfile: str, change: Callable[[str], str], exact: bool
+) -> None:
+    packages = _apt_packages(_commands(change(stage_dockerfile)))
+
+    assert (sorted(packages) == sorted(STAGE_PACKAGES)) == exact
+
+
+def _runs_on_the_factory_node(dockerfile: str, name: str) -> bool:
+    runs = [
+        arguments
+        for keyword, arguments in _instructions(dockerfile)
+        if keyword == "RUN" and f"/usr/local/bin/{name}" in arguments
+    ]
+    return bool(runs) and all(FACTORY_NODE in each and '"$@"' in each for each in runs)
+
+
+@pytest.mark.parametrize("name", ["claude", "opencode"])
+@pytest.mark.parametrize(
+    ("change", "runs"),
+    [
+        pytest.param(lambda text: text, True, id="as-built"),
+        pytest.param(lambda text: text.replace('"$@"', ""), False, id="no-arguments"),
+    ],
+)
+def test_each_runtime_command_runs_on_the_factory_node(
+    stage_dockerfile: str, name: str, change: Callable[[str], str], runs: bool
+) -> None:
+    assert _runs_on_the_factory_node(change(stage_dockerfile), name) == runs
+
+
+def _keeps_the_factory_node_off_the_path(dockerfile: str) -> bool:
+    instructions = _instructions(dockerfile)
+    named = re.search(r"/usr/local/bin/(node|npm)\b", _uncommented(dockerfile))
+    links = [
+        command
+        for command in _commands(dockerfile)
+        if Path(command[0]).name in {"ln", "cp", "install"}
+        and any(Path(word).name in {"node", "npm"} for word in command[1:])
+        and any(word.rstrip("/") == "/usr/local/bin" for word in command[1:])
+    ]
+    paths = [
+        arguments
+        for keyword, arguments in instructions
+        if keyword == "ENV" and "PATH" in arguments and FACTORY_PREFIX in arguments
+    ]
+    return named is None and links == [] and paths == []
+
+
+@pytest.mark.parametrize(
+    ("extra", "off_the_path"),
+    [
+        pytest.param("", True, id="as-built"),
+        pytest.param(f"RUN ln -s {FACTORY_NODE} /usr/local/bin/node", False, id="node-link"),
+        pytest.param(f"RUN ln -s {FACTORY_NPM} /usr/local/bin/", False, id="npm-link"),
+        pytest.param(
+            f"RUN printf '#!/bin/sh\\nexec {FACTORY_NPM} \"$@\"\\n' > /usr/local/bin/npm",
+            False,
+            id="npm-created",
+        ),
+        pytest.param("ENV PATH=/opt/factory/node/bin:${PATH}", False, id="env-path"),
+    ],
+)
+def test_the_factory_node_stays_off_the_path(
+    stage_dockerfile: str, extra: str, off_the_path: bool
+) -> None:
+    assert _keeps_the_factory_node_off_the_path(f"{stage_dockerfile}\n{extra}\n") == off_the_path
