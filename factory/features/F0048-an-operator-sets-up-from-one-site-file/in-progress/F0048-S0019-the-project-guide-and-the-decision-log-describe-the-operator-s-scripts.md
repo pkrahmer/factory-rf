@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T11:42:10.684298Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-03T11:42:04.743285Z'
   stage: tests
   run: fb3d3cb265db408488c71520285420ad
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:42:10.684298Z'
+  stage: doing
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -225,3 +234,4 @@ Expect: `documents ok`
     `uv run pytest -q tests/test_operator_skill_name.py tests/test_operator_skill_signature.py`: all 20 tests passed. `make lint`: lint: green.
 
     `lint`: lint: green (0.1 s)
+14. factory: started doing as vm.
