@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict
 from run_layout_support import read_records, write_script
 
 IMAGE = "factory-stage:1"
+INSTANCE = "vm"
 CALLS = "podman-calls.jsonl"
 PLAN = "podman-plan.json"
 

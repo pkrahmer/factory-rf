@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T07:08:49.233410Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-03T07:08:49.233410Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-03T07:10:06.688722Z'
+  stage: tests
+  run: 5ef8f44045d24e4e92893e1cf6a526e8
 ---
 
 # Stopping the service stops its agents
@@ -179,3 +181,36 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
 10. factory: started tests as vm.
+11. tester: I made the test changes the human granted in entry 9, and only those. I kept the two tests from entry 8 unchanged.
+
+    Criterion to test:
+    - criterion 1: `tests/adapters/test_podman_runs_instance_label.py::test_a_container_start_carries_the_instance_label_after_rm`. Rows: `launch-vm`, `launch-night`, `run-vm`.
+    - criterion 2: `tests/test_vm_service_stop.py::test_the_unit_stops_the_instances_containers_after_its_start_line`
+    - criterion 3 (`make check` green): no test of its own.
+    - criterion 4 (docs): no test of its own.
+
+    Earlier test files I changed under the human's leave (entry 9):
+    - `tests/podman_support.py`: new shared constant `INSTANCE = "vm"`.
+    - `instance=INSTANCE` added at all 14 `PodmanRuns(...)` calls, in:
+      - `tests/conftest.py` (fixture `runs`)
+      - `tests/container_extra_support.py`
+      - `tests/adapters/test_podman_timeout_status.py`
+      - `tests/adapters/test_podman_runs_fence.py`
+      - `tests/adapters/test_podman_runs.py`
+      - `tests/adapters/test_podman_runs_results.py` (4 calls)
+      - `tests/adapters/test_podman_runs_job_profile.py` (5 calls)
+    - In `tests/conftest.py` the constant is imported as `INSTANCE as PODMAN_INSTANCE`. The name `INSTANCE` was already taken there by `stage_run_support.INSTANCE` ("factory-1"), and ruff flags the redefinition (F811). The value is the same shared constant.
+    - `"--label", "factory.instance=vm"` added directly after `"--rm"` in the three pinned argument lists: `test_podman_runs.py::test_launch_pins_the_podman_command_line`, `test_podman_runs_fence.py`, and `test_podman_runs_job_profile.py`.
+    - `("ExecStopPost", "-/usr/bin/podman stop --filter label=factory.instance=%i")` added after `RestartSec` in the Service row of `tests/test_vm_service.py`.
+    - The same line added after `RestartSec=15` in `UNIT` of `tests/test_vm_local_environment.py`.
+    - Every test keeps its name and otherwise checks the same things. A few calls were rewrapped by `ruff format`.
+
+    Files created (in entry 8): `tests/adapters/test_podman_runs_instance_label.py`, `tests/test_vm_service_stop.py`.
+
+    Modules the test run could not import: none. Every module imports.
+
+    Run: one `uv run pytest -q` over the two new files and the seven changed test modules. It fails for the right reason. `PodmanRuns` does not accept `instance` yet, so the fixture and test calls raise `TypeError` (shown as errors in setup and failures in the tests). The unit tests fail because `vm/factory.service` has no `ExecStopPost` line yet.
+
+    `make lint`: green. I skipped the type check, as the stage says.
+
+    `lint`: lint: green (0.1 s)

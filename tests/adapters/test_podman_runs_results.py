@@ -11,7 +11,7 @@ from factory.adapters import process
 from factory.adapters.podman_runs import PODMAN_TIME_LIMIT, PodmanRuns
 from factory.adapters.process import ProcessResult
 from factory.domain.errors import ContainerError
-from podman_support import IMAGE, Podman, PodmanPlan
+from podman_support import IMAGE, INSTANCE, Podman, PodmanPlan
 from run_process_recorder import Recorder
 from time_limits import ROOMY_BOUND_SECONDS
 
@@ -25,7 +25,7 @@ def workspace(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def runs(podman: Podman, workspace: Path) -> PodmanRuns:
-    return PodmanRuns(str(podman.path), IMAGE, workspace)
+    return PodmanRuns(str(podman.path), IMAGE, workspace, instance=INSTANCE)
 
 
 def test_a_run_passes_the_command_s_status_and_output_through(
@@ -158,7 +158,7 @@ def test_podman_s_own_fault_is_its_exit_status(runs: PodmanRuns, podman: Podman)
 def test_a_podman_that_cannot_start_is_a_container_error_of_the_command(
     tmp_path: Path, workspace: Path
 ) -> None:
-    runs = PodmanRuns(str(tmp_path / "nowhere"), IMAGE, workspace)
+    runs = PodmanRuns(str(tmp_path / "nowhere"), IMAGE, workspace, instance=INSTANCE)
 
     with pytest.raises(ContainerError) as raised:
         runs.run(
@@ -198,8 +198,10 @@ def _adapter(tmp_path: Path, podman: Podman, workspace: Path, row: Row) -> tuple
         executable = str(podman.path)
         podman.plan(row.plan)
     if row.time_limit is None:
-        return executable, PodmanRuns(executable, IMAGE, workspace)
-    return executable, PodmanRuns(executable, IMAGE, workspace, time_limit=row.time_limit)
+        return executable, PodmanRuns(executable, IMAGE, workspace, instance=INSTANCE)
+    return executable, PodmanRuns(
+        executable, IMAGE, workspace, time_limit=row.time_limit, instance=INSTANCE
+    )
 
 
 def _check_fault(raised: ContainerError, command: str, fault: Fault) -> None:

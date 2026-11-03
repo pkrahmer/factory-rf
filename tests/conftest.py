@@ -56,6 +56,7 @@ from git_support import (
 from human_clone import HumanClone
 from operator_skill_support import Operator, make_operator
 from podman_support import IMAGE, Podman, PodmanPlan, write_podman
+from podman_support import INSTANCE as PODMAN_INSTANCE
 from proof_support import World, build_world, start_story
 from run_layout_support import Layout, build_layout
 from run_process_recorder import Recorder
@@ -443,7 +444,9 @@ def listing_zfs(tmp_path: Path) -> Zfs:
 @pytest.fixture
 def runs(podman: Podman) -> PodmanRuns:
     """Return a `PodmanRuns` over the stand-in `podman`, its dataset at a fixed host path."""
-    return PodmanRuns(str(podman.path), IMAGE, Path("/srv/factory/vm/work"))
+    return PodmanRuns(
+        str(podman.path), IMAGE, Path("/srv/factory/vm/work"), instance=PODMAN_INSTANCE
+    )
 
 
 @pytest.fixture
