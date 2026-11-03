@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694, 6592430164]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T00:59:19.017205Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-03T00:59:12.984364Z'
   stage: review
   run: 3aee635f7e8940acb1c5309c8c0d9a12
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:59:19.017205Z'
+  stage: docs
 ---
 
 # Kumpel signs everything it does
@@ -353,3 +362,4 @@ Expect: two lines, a number of at least `1`, then `0`.
 
     Notes:
     - `tests/operator_skill_support.py`, `Operator.urls()`: it still parses `curl.jsonl` itself, for URLs only, beside `recorded_requests` in the same module. It could be built on top of that parsing.
+24. factory: started docs as vm.
