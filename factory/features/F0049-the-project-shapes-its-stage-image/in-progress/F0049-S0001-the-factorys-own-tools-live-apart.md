@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948, 6618330636]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T23:45:49.449799Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -265,6 +261,12 @@ journal:
   kind: started
   at: '2026-11-03T23:45:49.449799Z'
   stage: review
+- number: 47
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T23:46:33.461985Z'
+  stage: review
+  run: bbdeb449c7ef466f991ff7cfe4d150cb
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -825,3 +827,28 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 46. factory: started review as vm.
+47. reviewer: Review, round 1 (after the human's answer in entry 41). No findings.
+
+    I read the work item, the diff's stat, and the diffs of `vm/Dockerfile`, `tests/test_stage_image.py`, `docs/operator-guide.md` and `docs/decisions.md`. I also read the helper list in `tests/dockerfile_support.py` and the feature's leave for S0001.
+
+    The only change since the last review is the comment at `vm/Dockerfile:28`. It now reads "The runtimes are native executables: the factory's Node serves only the npm step, so the commands exec them directly." That is the wording the human asked for in entry 41. No "install" comes before "npm" on that line, so smoke-test command 4 no longer matches it. Line 23 ("npm and the runtimes' install scripts …") does not match either. Coder entry 45 reports `make check` green.
+
+    Groups 1 to 5:
+    - **Criterion 1:** `test_the_factory_node_is_pinned_by_version_and_checksum` refuses `20.1.0`, `22.1`, a 63-digit checksum and an upper-case checksum, and accepts the file as built.
+    - **Criterion 2:** `test_the_node_archive_is_checked_before_it_is_unpacked` refuses each of these: no `sha256sum -c`, a check after the unpack, a pipe into a shell, a download without curl, another unpack target, and a literal checksum.
+    - **Criterion 3:** `test_the_apt_install_names_exactly_the_six_packages` refuses the list with `nodejs` added and with `npm` added.
+    - **Criterion 4:** `test_each_tool_is_installed_once_at_its_pinned_version` and `test_the_runtimes_are_installed_by_the_factory_npm_into_its_prefix` refuse a bare `npm` and another prefix. `test_each_runtime_command_execs_its_installed_command` refuses, for both claude and opencode, a wrapper with no arguments, a missing command, the factory's node and a bare node.
+    - **Criterion 5:** `test_the_factory_node_stays_off_the_path` refuses a node link, an npm link, a created npm and an `ENV PATH` line.
+    - **Interface:** the Dockerfile matches it. The pins are well-formed, `curl -o` is followed by `sha256sum -c -` before the `tar` into `/opt/factory/node`, the npm installs use `--prefix /opt/factory`, the wrappers are `exec /opt/factory/bin/<runtime> "$@"`, there is no `ENV PATH` line, and the apt line names six packages.
+    - **Architecture:** only `vm/`, tests and docs changed, so there is nothing to report.
+    - **Security:** the download is checked before use, nothing is piped into a shell, and the diff adds no secret, no marker and no baseline entry.
+    - **Quality:** the Dockerfile comments say why.
+    - **Docs:** the operator-guide paragraph and the decisions entry match criterion 7 as corrected.
+    - **Hygiene:** the Description, the Interface and the criteria match what was built, and the journal names the main choice and the rejected option.
+
+    Still open: criterion 6, the human's build on the VM. It is the only check of `NODE_SHA256` against the real archive and of `claude --version` and `opencode --version` through the wrappers.
+
+    no findings
+
+    Earlier tests:
+    - tests/test_stage_image.py: the feature's leave for S0001 (feature.md, "A leave, for S0001") covers the changes to the Debian package rows, the npm install rows, the places of the runtimes, and the floating-reference rewrite of the npm path. The added test functions needed no leave.
