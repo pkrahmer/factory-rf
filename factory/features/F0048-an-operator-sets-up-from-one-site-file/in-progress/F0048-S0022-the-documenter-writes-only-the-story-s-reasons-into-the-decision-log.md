@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 524
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T13:18:53.031626Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-11-03T13:18:53.031626Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-11-03T13:21:17.099645Z'
+  stage: doing
+  run: 97ad538ed816430a8afedf0658ef0612
+  blocked: question
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -114,3 +117,14 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: Stopped at `make check`: an earlier story's test pins the documenter's whole `## Lessons` list, so the Interface's bullet can't pass without changing that test. I didn't change the test.
+
+   - Built: `claude/agents/documenter.md`, `## Lessons`. The Interface's bullet is in word for word, after the project-guide bullet and before the temporary-directory bullet. The documents-only bullet is still last. I left this edit in the working tree. The new test module `tests/test_claude_agent_texts_decision_log.py` should pass with it; I didn't run it alone.
+   - Red: `make test` has exactly one failure: `tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets[documenter] - assert ['- Run `make...step 3 says.'] == ['- Run `make...step 3 says.']`. That test (line 276) checks that each shipped agent's `## Lessons` lines equal `LESSONS[name]` exactly. `LESSONS["documenter"]` (from line 91) has the five old bullets. Both the Interface and that table hold for themselves, but together they can't pass. The test was written by another story, and the standing leave covers only moving shared helpers, so changing it needs your word (R9).
+
+   Options:
+   - (a) The tester adds the new bullet to `LESSONS["documenter"]` in `tests/test_claude_agent_texts.py`, between the project-guide entry and `_TEMPORARY_DIRECTORY_LESSON`. The test still checks what it did, with the documenter's new list. I'd choose (a). With your answer I end with `tests` and name this change.
+   - (b) Drop the bullet from the documenter. That undoes the story.
+   - (c) Change the old test to stop pinning the full list for the documenter. That weakens a test of another story.
+
+   Noticed but not touched: nothing else. No `src/` change, so nothing to refactor yet.
