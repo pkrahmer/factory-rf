@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694, 6592430164]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T00:53:10.308156Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T00:53:07.298288Z'
+  stage: doing
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:53:10.308156Z'
   stage: doing
 ---
 
@@ -237,3 +246,4 @@ Expect: two lines, a number of at least `1`, then `0`.
 
     Noticed, not touched: nothing new beyond entry 10.
 15. 2026-11-03 human: (a), as you propose: keep the row `verdict-fourth-from-the-end` and change its expectation to `verdict posted`. Then hand the three changes to the tester as you list them.
+16. factory: started doing as vm.
