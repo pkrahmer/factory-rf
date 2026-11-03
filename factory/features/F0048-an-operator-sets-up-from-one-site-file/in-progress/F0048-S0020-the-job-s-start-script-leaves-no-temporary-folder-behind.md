@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 520
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T11:52:50.365926Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-03T11:52:44.606976Z'
   stage: tests
   run: 9d7dcffed19a405fbd38c3adeeef2e6f
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:52:50.365926Z'
+  stage: doing
 ---
 
 # The job's start script leaves no temporary folder behind
@@ -93,3 +102,4 @@ Expect: `0`, then `1`.
    Open: none.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
