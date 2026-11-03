@@ -24,6 +24,7 @@ Running the factory in a Cloud Run job, and driving it as the human in the loop,
 - Stopping the service stops the instance's containers (S0016, added after the first acceptance, decision 20).
 - A missing test row for a side the code already handles is a note in review (S0017, decision 23).
 - The guide's advice follows the defaults and the died line, and the job keeps one image in memory (S0018, from the second acceptance, decision 24).
+- The project guide and the decision log describe the operator's scripts, and the current texts name the repository `kumpel-factory` (S0019, from the third acceptance, decision 25).
 
 ## Out of scope
 
@@ -55,6 +56,7 @@ The build order; start one at a time, the next when the one before is archived i
 - S0015: A run that dies leaves its error text in the factory log
 - S0014: The operator meets the site file, with true values and clear errors
 - S0018: The guide's advice on the job and on the probe follows the defaults and the died line
+- S0019: The project guide and the decision log describe the operator's scripts
 
 ## The human's changes
 
@@ -92,3 +94,4 @@ A leave, for S0017 (2026-11-03): its tester may change, in `tests/test_claude_ag
 22. **`operator/README.md` is the documenter's alone.** One owner, like `README.md` and `docs/`; the coder's write paths name the rest of `operator/` instead of `operator/*`. A story's README change is part of its docs criterion (the human, 2026-11-03).
 23. **A missing test row for a side the code already handles is a note (S0017, built right after S0016).** The human gave this answer three times in F0048; written into the reviewer's text and the decision log, it stops costing a question or a round. The reviewer still reads the code, and a side the code does not handle stays a finding (the human, 2026-11-03).
 24. **The job keeps one image in memory, and a machine keeps one per instance (S0018, part B).** The job's podman storage is a tmpfs, so the build's leftover layers took memory the 16Gi default needs; the job builds with `--layers=false` and prunes after the build. On vm every rebuild left the old stage image behind, 26 GB by 2026-11-03; the guide's rebuild routine prunes untagged, unused images, which keeps another instance's tagged image and running containers safe. The cost is a slower next build (the human, 2026-11-03).
+25. **The repository is `pkrahmer/kumpel-factory` (S0019, part B).** Kumpel is the product, and the factory's repository carries its name; the human renamed it on 2026-11-03, after F0048-A0003, with no container running, and changed vm's remotes and its repository URL. The current texts take the new name; history (archived work items, earlier decision entries, `planning/`, `docs/runs/`) keeps the old one, and the local folder keeps its name (the human, 2026-11-03).
