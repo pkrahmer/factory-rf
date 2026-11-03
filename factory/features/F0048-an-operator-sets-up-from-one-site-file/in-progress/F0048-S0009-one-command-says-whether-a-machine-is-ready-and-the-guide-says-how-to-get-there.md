@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T01:15:28.090101Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,13 @@ journal:
   kind: started
   at: '2026-11-03T01:15:28.090101Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-11-03T01:22:32.985507Z'
+  stage: doing
+  run: fb3ec15861784b0997b731fc9fa8f97f
+  blocked: question
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -260,3 +263,38 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
 
     `lint`: lint: green (0.1 s)
 12. factory: started doing as vm.
+13. coder: I stopped before handing on. The code is done and `make test` is green (82 s, coverage 99.58 %). `lint`, `types`, `layers`, `sast` and `licenses` are green too. `make check` is still red, because `make secrets` flags a line that I did not write.
+
+    **The finding.** detect-secrets reports a "Secret Keyword" at line 102 of this work item: the Interface line ``8. `secrets`: `gcloud secrets describe <name> --project` exits 0 …``. It reads `` `secrets`: `…` `` as a keyword followed by a value. The line was committed before this stage (intake carried it in from entry 4). The files I changed are not flagged.
+
+    **Options:**
+    - (a) You add `pragma: allowlist secret` to that line, or an entry in `.secrets.baseline`. I may not do either without asking (CLAUDE.md, "Not without asking").
+    - (b) I reword the line so the keyword no longer has a value after a colon, for example "8. The `secrets` check runs `gcloud secrets describe <name> --project` …". The meaning stays the same, but the Description changes when no journal entry asked for it.
+    - (c) You or intake reword it.
+
+    I would choose (b), if you allow it. Say which and the stage runs again.
+
+    **What I built** (in the working tree, not committed):
+    - `operator/bin/site`: a new `check` subcommand.
+      - The eleven checks run in the Interface's order. Each prints `ok <name>` or `FAIL <name>: <detail>`. The run ends with `site: ready` (exit 0) or `site: <n> failed` (exit 1).
+      - If the site file does not load, that check's line and `site: 1 failed` are the only output.
+      - A check whose keys are missing prints `needs <keys>` through `needs` and does not run.
+      - `gcloud` calls go through `site_gcloud`. It adds `--project=`, `--region=` for `run`, and `--impersonate-service-account=` when `SITE_IMPERSONATE` is set.
+      - `ls-remote` runs with `https_proxy=$SITE_PROXY` and an empty credential helper. For a ref that is not a commit id it runs `--exit-code <url> refs/heads/<ref> refs/tags/<ref>`.
+      - `check extra` prints `usage: site check` and exits 2.
+    - `operator/README.md`: the "What is here" section is now the map of the folder. Each file has its story and its use.
+
+    **Main choice.** The repository check captures `hosting_repo_api` with `2>&1`. On a failure the hosting client prints nothing on standard output, so the captured text is its own message (`hosting: GET /repos/owner/repo: 404 Not Found`). I rejected a temporary file for standard error.
+
+    **Two smaller choices:**
+    - The general usage line stays `usage: site path | init | show | get SITE_X`. Adding `| check` broke two rows of `tests/test_operator_site.py`, so I put it back.
+    - The `job` check follows the general `needs` rule, so with `SITE_JOB` missing it prints `FAIL`. The Interface calls the check "always ok", but it cannot name the job without the key.
+
+    **Noticed, not touched:**
+    - `job_keys` in `site` repeats the list in `require_settings` in `operator/job/job.sh`.
+    - `site_gcloud` mirrors `gcloud_call` there, without its dry run. Sharing them would mean moving them into `operator/lib/`, which is a change to `job.sh` beyond this story.
+    - `docs/operator-guide.md` still says "`site check` does not exist yet" (around line 928). The guide's chapter belongs to the documenter. Its test for the example file's keys already passes.
+
+    **Not run:** I could not run the smoke test's own commands (the shell call was denied). The `site-file-missing` and usage tests check the same output.
+
+    **Refactor pass:** I read my diff and nothing needed changing.
