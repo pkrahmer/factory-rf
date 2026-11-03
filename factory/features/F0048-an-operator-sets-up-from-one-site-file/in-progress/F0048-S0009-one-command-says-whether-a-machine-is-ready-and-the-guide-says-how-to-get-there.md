@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T01:43:09.060525Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-11-03T01:43:09.060525Z'
   stage: smoke-test
+- number: 30
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T01:43:38.509650Z'
+  stage: smoke-test
+  run: 2519927d96964f9cbdf50735c8c7a11f
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -529,3 +531,42 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 29. factory: started smoke-test as vm.
+30. smoke-tester: Smoke test run from the repository root, both commands exactly as written, in order. No server involved. Nothing was fixed or changed; the working tree is clean and the temporary directory removed itself.
+
+    Command 1:
+
+    ```bash
+    d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
+    FACTORY_SITE="$d/none.env" sh operator/bin/site check; echo "exit $?"
+    ```
+
+    Output:
+
+    ```
+    FAIL site file: site: no site file at /tmp/tmp.mJXTdom4f7/none.env; run: site init
+    site: 1 failed
+    exit 1
+    ```
+
+    Met its `Expect:` line: three lines, `FAIL site file: site: no site file at <d>/none.env; run: site init`, `site: 1 failed`, `exit 1`. No other check ran after the site file failed (Interface; criterion 2's missing-file row).
+
+    Command 2:
+
+    ```bash
+    sh operator/bin/site check extra; echo "exit $?"
+    ```
+
+    Output (standard output and standard error captured separately to check the stream):
+
+    ```
+    stdout:
+    exit 2
+    stderr:
+    usage: site check
+    ```
+
+    Met its `Expect:` line: two lines, `usage: site check` on standard error and `exit 2` (criterion 9).
+
+    Re-read the acceptance criteria: neither command's output contradicts any criterion. The two commands only touch the site-file failure path and the usage error. The other criteria (the eleven checks, no_proxy rules, impersonation, no writes, docs) are not exercised by this smoke test and are left to the tests and the review.
+
+    Findings: none.
