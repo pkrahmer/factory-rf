@@ -587,3 +587,43 @@ def test_the_tools_step_installs_uv_in_its_own_environment_and_syncs_the_code(
     assert syncs[0][1].argv == ["sync", "--frozen", "--no-dev"]
     assert Path(syncs[0][1].cwd).resolve() == (run.root / "factory").resolve()
     assert venvs[0] < pips[0] < syncs[0][0] < _first(run, "podman")
+
+
+@pytest.mark.parametrize(
+    ("failing", "install_fails", "message"),
+    [
+        pytest.param(frozenset[str](), False, None, id="success"),
+        pytest.param(frozenset({"curl"}), False, "job-start: runc: failed", id="download"),
+        pytest.param(
+            frozenset({"sha256sum"}),
+            False,
+            "job-start: runc: checksum does not match",
+            id="mismatch",
+        ),
+        pytest.param(frozenset[str](), True, "job-start: runc: failed", id="install"),
+    ],
+)
+def test_the_runc_download_folder_is_removed_however_the_step_ends(
+    tmp_path: Path, failing: frozenset[str], install_fails: bool, message: str | None
+) -> None:
+    temporary = tmp_path / "temporary"
+    temporary.mkdir()
+    run = run_job_start(
+        tmp_path,
+        {"TMPDIR": str(temporary)},
+        failing=failing,
+        failing_install_target=(
+            tmp_path / "prefix" / "usr" / "local" / "bin" / "runc" if install_fails else None
+        ),
+    )
+    downloads = [call for call in run.named("curl") if RUNC_URL.format(RUNC_VERSION) in call.argv]
+    target = Path(_downloaded(downloads[0])) if len(downloads) == 1 else None
+
+    assert target is not None and target.parent.parent == temporary
+    assert list(temporary.iterdir()) == []
+    if message is None:
+        assert run.result.exit_status == 0, run.result.stderr
+    else:
+        assert run.result.exit_status == 1
+        assert message in run.result.stderr.splitlines()
+        assert run.named("factory-run") == []
