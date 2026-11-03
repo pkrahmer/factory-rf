@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 522
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T12:48:47.553597Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-03T12:48:47.553597Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T12:49:11.762192Z'
+  stage: smoke-test
+  run: eef0c9debd0d4808b301ad3b1f9cf2a0
 ---
 
 # The decision log gives the feature's own reasons for the operator's scripts
@@ -222,3 +224,50 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test run from the repository root, every command as written and in order. All four met their `Expect:` lines. No findings.
+
+    1. The phrase probes:
+    ```
+    pasted secret: 1
+    what one machine knows: 1
+    did not see: 2
+    home setup: 1
+    cannot cancel: 1
+    trixie-slim: 1
+    delimiter: 1
+    factory's own repository: 1
+    ```
+    Met: eight lines, each count at least 1.
+
+    2. The "Rejected" probes:
+    ```
+    0
+    1
+    3
+    ```
+    Met: `0`, then at least `1`, then at least `3`.
+
+    3. `git diff --stat main...HEAD -- docs README.md`:
+    ```
+     docs/decisions.md | 18 +++++++++---------
+     1 file changed, 9 insertions(+), 9 deletions(-)
+    ```
+    Met: one changed file, `docs/decisions.md`.
+
+    4. `uv run python -m factory.entry.check_documents`:
+    ```
+    Bytecode compiled 4164 files in 49ms
+    documents ok
+    ```
+    Met: `documents ok`. The first line is uv's bytecode notice, not output of the check.
+
+    Criteria checked again against `git diff main...HEAD -- docs/decisions.md`:
+    - Criterion 2 holds. The diff stays inside four of the seven F0048 entries (site file, hosting token, `job.sh`, reset to a tag), and every heading is unchanged.
+      - The site file "Why" names the typo or pasted secret, `~/.config/kumpel/` and `~/.local/state/kumpel/`. Its "Rejected" names the one-pass collection and its delimiter. The ignored-file option carries `(the human, 2026-11-03)`. The "second source of defaults" option is replaced by the given wording (decision 21).
+      - The token "Why" names `gh`'s login that did not see the repository at work, the home setup, and the real `git` read back through `git config` and git's trace. The stored-token option carries `(the human, 2026-11-03)`.
+      - The `job.sh` "Decision" names `create` refusing a job that exists and the wrapper that only writes the provider file and hands over. Its "Why" names the platform that cannot cancel an execution. Its "Rejected" has the `SITE_CODE_REF` wording as given and `python3` missing from `debian:trixie-slim`.
+      - The reset "Why" says the factory's own repository must never be its target. The terminal-prompt option carries `(the human, 2026-11-03)`.
+      - No other line of the log changed. Existing "Decision" lines only gained sentences, which the criterion asks for in the `job.sh` entry.
+    - Criterion 1 is the factory's gate. Entries 7 and 11 record `check: green`.
+
+    Open: none. As intake noted, the `did not see` probe already counted 1 on `main`, so it proves little on its own. The diff shows the new sentence is present.
