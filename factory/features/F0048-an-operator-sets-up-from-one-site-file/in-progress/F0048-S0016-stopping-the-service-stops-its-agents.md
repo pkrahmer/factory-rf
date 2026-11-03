@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T07:10:12.635235Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-11-03T07:10:06.688722Z'
   stage: tests
   run: 5ef8f44045d24e4e92893e1cf6a526e8
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:10:12.635235Z'
+  stage: doing
 ---
 
 # Stopping the service stops its agents
@@ -214,3 +223,4 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     `make lint`: green. I skipped the type check, as the stage says.
 
     `lint`: lint: green (0.1 s)
+12. factory: started doing as vm.
