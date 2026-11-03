@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268, 6598279355]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T07:52:26.002574Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-03T07:52:26.002574Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-03T07:55:44.507220Z'
+  stage: doing
+  run: fddb7be870d34885bf67dedb9714dd98
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -223,3 +225,24 @@ Expect: `1`.
 
     `lint`: lint: green (0.2 s)
 16. factory: started doing as vm.
+17. coder: `make check` is green, and I changed no files in this run. The work was already in place before this run started:
+
+    - `claude/agents/reviewer.md`: in the notes paragraph, the human's three sentences from journal entry 4 replace the old sentence, word for word. That edit was committed with the earlier doing run (entry 10).
+    - `tests/test_claude_agent_texts_review_groups.py`: the tester's change to the CRC test, made under the human's leave in entry 11 (entry 15).
+
+    Results of this run:
+    - `make check` ends with `check: green`. Coverage is 99.56 %.
+    - The smoke test `grep -c 'handles that side' claude/agents/reviewer.md` prints `1`, as the story expects.
+
+    Main choice: I copied the human's text exactly as written. I rejected rewording the reviewer text so that the earlier CRC guard would still pass without a test change. The human fixed the words in entry 4 and chose the test change in entry 11, option (a).
+
+    Refactor: nothing to change. Against `main`, the diff outside the tests and `factory/` is one replaced line in `claude/agents/reviewer.md`.
+
+    What the journal changed: the human's answers (entries 4 and 11) fixed the exact wording and approved the CRC test change. The intake already wrote both into the Interface, so I did not touch `## Description`.
+
+    Not touched:
+    - The `docs/decisions.md` entry from criterion 4. That is the docs stage's work.
+    - The `CLAUDE.md` *Tests* line "the reviewer counts an untested side as a finding". It belongs to the human and is changed with this story's merge.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
