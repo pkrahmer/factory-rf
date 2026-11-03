@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 508
-comments_read: []
+comments_read: [6592252694]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 8b36bd80e4ae4d96bae6655be9e84bfe
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-03T00:40:03.625516Z'
+  stage: intake
 ---
 
 # Kumpel signs everything it does
@@ -86,3 +91,4 @@ Expect: two lines, a number of at least `1`, then `0`.
    3. Criterion 6 tests only the accepting side of `status.sh`'s new rule (`<!-- kumpel verdict -->` anywhere in the body). The Interface changes the rule from "last three lines" to "anywhere". Should there be a row where the newest comment has no verdict marker and does not print `verdict posted`? Should there be a row with the marker at the top of a long body, to show that "anywhere" really replaced "last three lines"? I would add both as rows.
 
    I found no other gaps. The Interface is concrete, `hosting_repo_api` exists in `operator/lib/hosting.sh`, the smoke test commands are runnable and its `Expect:` line is checkable, and the story is inside the feature's scope as S0012.
+4. 2026-11-03 human: All three as you propose. 1: add the criterion, `SKILL.md`, `references/answering.md` and `references/approving.md` each contain `comment.sh` (a test over the three files), before the two closing criteria. 2: the head branch is the pull request's `head.ref` from the read S0008's `merge.sh` already makes. 3: add both rows to criterion 6, a newest comment without the verdict marker (no `verdict posted`), and the marker at the top of a long body (`verdict posted`).
