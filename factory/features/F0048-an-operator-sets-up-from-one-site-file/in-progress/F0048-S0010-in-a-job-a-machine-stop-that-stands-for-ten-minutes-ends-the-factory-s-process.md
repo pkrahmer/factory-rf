@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T02:07:54.474845Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-03T02:07:54.474845Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-03T02:11:14.822083Z'
+  stage: doing
+  run: 2726d4c8fb61454eb732465fc41bb2b2
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -269,3 +271,17 @@ Expect: one line that says the tests passed and names no failure.
 
     `lint`: lint: green (0.1 s)
 17. factory: started doing as vm.
+18. coder: Round 1, after the tester's changes (entry 16): I changed no code. The code from round 0 (entry 10) already passes the new tests: `src/factory/application/machine_stop_exit.py` (`MachineStopExit`), `src/factory/entry/wiring.py` (`machine_stop_exit_of`), `src/factory/entry/run.py` (`_observed_iteration`, and `MachineStopStood` mapped to status 1 in `main`), and `src/factory/domain/errors.py` (`MachineStopStood`). `make check` is green with coverage at 99.56 %. It covers the new tests for criterion 6 (the stop raised again on every tick counts from its first raise), criterion 7 (the stop's line is the last line of the log) and the iteration that runs no tick. The `observed_prepare` path in `run.py`, which was uncovered in round 0, is now covered. The two lines still uncovered in `run.py` and `wiring.py` were uncovered before this story: the `__main__` guard and a token-source factory.
+
+    Main choice: none was new this round. The earliest `at` of an unbroken stretch stays the start of the count, as in entry 10. I rejected adding code for the round's findings, because all four were test changes and the tester has made them.
+
+    Refactor: this round has no code diff, so there was nothing to refactor.
+
+    The journal changed the task's meaning only through the reviewer's criteria 6 and 7, which the Description already holds. The work item is outside my write paths.
+
+    Noticed but not touched: `HealthStatus.with_stop` still moves a re-raised stop's `at` forward, so the health file shows the last raise rather than the first. This is unchanged from entry 10.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
