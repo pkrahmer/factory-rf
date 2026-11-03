@@ -378,6 +378,7 @@ def test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options(
         [
             *JOB_PODMAN_OPTIONS,
             "build",
+            "--layers=false",
             "--network=host",
             "-f",
             "vm/Dockerfile",

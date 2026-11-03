@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229, 6600934999]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T10:17:46.465259Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-03T10:17:46.465259Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-03T10:18:10.623798Z'
+  stage: tests
+  run: dea8a093ada94a0e898ce74cc12610d3
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -227,3 +229,15 @@ Expect: `documents ok`
 
     Noticed but not touched: nothing.
 14. factory: started tests as vm.
+15. tester: I made the one test change the human approved in entry 11, as the coder named it in entry 13.
+
+    - Changed: `tests/test_vm_job_start.py::test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options`. In the expected build argv, I added `"--layers=false",` right after `"build",`. Nothing else in the module changed. The test keeps its name and its rows `given` and `default`.
+    - Why: the Interface requires the step `image` to build with `--layers=false`, so the old exact argv could no longer match the build. The human chose option (a) in entry 11.
+    - Files changed: tests/test_vm_job_start.py, which an earlier story wrote; the human gave leave in entry 11. I created no files. No module failed to import.
+    - Mapping for the criteria (unchanged from entry 8):
+      - criterion 1: tests/test_vm_job_start_image.py::test_the_image_step_builds_without_layers_and_then_prunes
+      - criterion 2: tests/test_vm_job_start_image.py::test_a_failed_prune_fails_the_image_step
+      - criterion 3: tests/test_vm_job_start_image.py::test_the_prune_never_removes_a_tagged_image
+    - One run, `uv run pytest -q tests/test_vm_job_start.py`: all 42 tests pass. `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
