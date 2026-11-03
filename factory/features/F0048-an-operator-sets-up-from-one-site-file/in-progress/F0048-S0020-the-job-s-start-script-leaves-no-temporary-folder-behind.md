@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 520
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T11:52:03.161725Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-03T11:51:57.767089Z'
   stage: intake
   run: 03af1de5920a4139b6625250bb8c471b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:52:03.161725Z'
+  stage: tests
 ---
 
 # The job's start script leaves no temporary folder behind
@@ -68,3 +77,4 @@ Expect: `0`, then `1`.
    Smoke test: one runnable `grep -c` command, with an `Expect:` line (`0`, then `1`) that the output can be checked against. It runs no pytest, so the `-q` rule does not apply.
    Architecture: the change stays inside `vm/job-start.sh`, which is the coder's write path, and the tests stay under `tests/` beside the existing `vm/job-start.sh` tests. No Python layer is touched.
    Scope: it matches S0020 in `feature.md` and decision 26. The grammar fix to the operator guide is named in the Description and in decision 26. It is not in the feature's Out of scope list. The story changes no test that another story wrote.
+4. factory: started tests as vm.
