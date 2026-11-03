@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T07:42:34.559287Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T07:42:34.553073Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:42:34.559287Z'
+  stage: intake
+---
+
 # A missing test row for a side the code already handles is a note
 
 <!-- written by the human on 2026-11-03 from the acceptance F0048-A0001's decision 9 (decision 23) -->
@@ -29,3 +56,6 @@ grep -c 'handles that side' claude/agents/reviewer.md
 Expect: `1`.
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
