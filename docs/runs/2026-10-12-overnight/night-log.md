@@ -1450,3 +1450,7 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 07:42 Started F0048-S0017 (a missing test row for a side the code already handles is a note).
 - 07:43 F0048-S0017 (test-row note) PR #513 intake question 3: gave the exact three sentences that replace the reviewer's 'untested side ... is still a finding' sentence (the exception from round 0, read the code, a note names side, location and missing row; an unhandled side stays a finding).
 - 07:50 F0048-S0017 (test-row note) PR #513 coder question 10: (a), leave for the tester to make test_the_rest_of_the_reviewer_body_is_unchanged (S0011's CRC test) also swap this story's three sentences back before the CRC; the constant stays.
+- 08:03 F0048-S0017 (test-row note) PR #513 merged after the six checks (files in scope; only the two tests under the feature's leave and my entry-11 leave changed; smoke test met; no findings; no new markers; 10 runs, $1.48) and archived (040785909).
+- 08:03 CLAUDE.md's Tests line on the untested side now follows decision 23 (d0a33ac5c); no test pins it.
+- 08:04 vm rebuilt at d0a33ac5c with no container running (claude/ changed); preflight green, no stops.
+- 08:04 Started F0048-S0015 (a run that dies leaves its error text in the factory log).
