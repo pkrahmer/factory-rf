@@ -32,6 +32,7 @@ from factory.adapters.agent_launch import (
     Starters,
     container_launch,
     denied_path,
+    died_run_text,
     finished_run,
     login_argv,
     login_paths,
@@ -492,6 +493,15 @@ def _limit_wait(end_reason: EndReason, watch: _Watch) -> timedelta | None:
     return named_wait(watch.limit_text)
 
 
+def _error_message(events: Sequence[_Event]) -> str | None:
+    messages = [
+        event.error.data.message
+        for event in events
+        if event.type == "error" and event.error is not None and event.error.data is not None
+    ]
+    return messages[-1] if messages else None
+
+
 def _result(request: AgentRunRequest, process: ProcessResult, watch: _Watch) -> AgentRunResult:
     # The duration is the whole run's, so `run` sets it once the call has ended.
     login = login_used(process.stderr)
@@ -517,6 +527,10 @@ def _result(request: AgentRunRequest, process: ProcessResult, watch: _Watch) -> 
         login=login,
         session=session,
         limit_wait=_limit_wait(end_reason, watch),
+        # The agent's own text is never quoted: only an error event's message.
+        died_text=died_run_text(
+            end_reason, _error_message(events), process.stderr, process.exit_status
+        ),
     )
 
 

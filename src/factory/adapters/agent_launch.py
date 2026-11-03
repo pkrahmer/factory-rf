@@ -9,7 +9,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, JsonValue
 
 from factory.application.containers import ContainerRuns
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, Login
+from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, EndReason, Login
 from factory.domain.containers import WORK_CHECKOUT, read_only_at_own_path
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoint, KillPoints
@@ -27,6 +27,8 @@ KILL_STATUSES = frozenset({137, -9})
 # podman's `--timeout` ends the container with 255, not 137 (podman 4.9.3, measured 2026-10-24).
 PODMAN_TIMEOUT_STATUS = 255
 CONTAINER_KILL_STATUSES = KILL_STATUSES | {PODMAN_TIMEOUT_STATUS}
+DIED_STDERR_LINES = 3
+DIED_TEXT_LENGTH = 300
 
 SHELL_EXECUTABLE = "/bin/sh"
 # Claude Code's name for a token made by `claude setup-token`.
@@ -366,3 +368,40 @@ def denied_path(tool_input: JsonValue, keys: Sequence[str]) -> str | None:
         if isinstance(value, str):
             return value
     return None
+
+
+def _text_lines(text: str) -> list[str]:
+    stripped = (line.strip() for line in text.splitlines())
+    return [line for line in stripped if line]
+
+
+def _stderr_lines(stderr: str) -> list[str]:
+    # The login shell's marker is the factory's own line, not a reason the run died.
+    return [line for line in _text_lines(stderr) if not line.startswith(LOGIN_USED_PREFIX)]
+
+
+def _cut(text: str) -> str:
+    if len(text) <= DIED_TEXT_LENGTH:
+        return text
+    return text[:DIED_TEXT_LENGTH] + "…"
+
+
+def died_text(error_text: str | None, stderr: str, exit_status: int) -> str:
+    """The text a died run leaves: its error reply, else standard error's last lines, else its exit.
+
+    Lines are stripped and joined on one line without the blank ones, and the text is cut short.
+    """
+    lines = _text_lines(error_text or "") or _stderr_lines(stderr)[-DIED_STDERR_LINES:]
+    if not lines:
+        return f"exit {exit_status}"
+    return _cut(" / ".join(lines))
+
+
+def died_run_text(
+    end_reason: EndReason, error_text: str | None, stderr: str, exit_status: int | None
+) -> str | None:
+    """The `died_text` of a run that died, `None` for any other end."""
+    # A process that was stopped has no exit status, and a stopped run did not die.
+    if end_reason != "died" or exit_status is None:
+        return None
+    return died_text(error_text, stderr, exit_status)

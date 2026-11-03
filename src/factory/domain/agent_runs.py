@@ -157,6 +157,8 @@ class AgentRunResult(BaseModel):
     login: Login | None = None
     session: str | None = None
     limit_wait: timedelta | None = None
+    # What the runtime gave as the reason a run died; never the agent's own answer.
+    died_text: str | None = None
 
     @model_validator(mode="after")
     def _decision_and_entry_only_when_completed(self) -> Self:

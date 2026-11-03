@@ -32,6 +32,7 @@ from factory.adapters.agent_launch import (
     Starters,
     container_launch,
     denied_path,
+    died_run_text,
     finished_run,
     login_argv,
     login_paths,
@@ -233,6 +234,12 @@ def _end_reason(
     return "completed" if _answered(request, reply.structured_output) else "no_result"
 
 
+def _died_text(end_reason: EndReason, process: ProcessResult, reply: _Reply | None) -> str | None:
+    # The agent's own answer is never quoted: only an error reply's text.
+    error_text = reply.result if reply is not None and reply.is_error else None
+    return died_run_text(end_reason, error_text, process.stderr, process.exit_status)
+
+
 def _tokens(usage: _Usage | None) -> TokenCounts | None:
     if usage is None or usage.input_tokens is None or usage.output_tokens is None:
         return None
@@ -277,6 +284,7 @@ def _result(
             login=login,
             session=session,
             limit_wait=limit_wait,
+            died_text=_died_text(end_reason, process, reply),
         )
     output = reply.structured_output if end_reason == "completed" else None
     cost = None if reply.total_cost_usd is None else Decimal(str(reply.total_cost_usd))
@@ -295,6 +303,7 @@ def _result(
         login=login,
         session=session,
         limit_wait=limit_wait,
+        died_text=_died_text(end_reason, process, reply),
     )
 
 
