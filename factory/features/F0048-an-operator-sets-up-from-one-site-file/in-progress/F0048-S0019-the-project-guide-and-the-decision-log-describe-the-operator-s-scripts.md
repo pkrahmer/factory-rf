@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 519
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T11:35:40.819882Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-03T11:35:40.819882Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-03T11:36:05.816957Z'
+  stage: intake
+  run: 3e7946b57b4840c5b6128984b909b43c
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -91,3 +93,9 @@ Expect: `documents ok`
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names the concrete files (operator.md, project-guide README.md, decisions.md for the documenter; SKILL.md and standing-orders.md for the coder) and the one new text test. No signatures are needed, since no code changes. I read the two skill texts: each holds exactly one `factory-rf` (SKILL.md:8, standing-orders.md:3), and no test under tests/ or file under operator/ pins the old name, so the change cannot break a pinned test.
+   Criteria: criterion 1 is testable by one parametrized test with one row per file, and its failing side is the old name present. Criterion 3 is the docs criterion: each part names a file, the sections, the ten support modules and the seven decision entries, and the document check plus the smoke commands can verify them. The Interface states no conversion, limit or error rule that lacks a criterion.
+   Smoke test: the five commands are runnable. The two greps and the loop print the stated outputs. The `git grep` path list gives exit 1 only once the old name is gone, and it leaves out docs/decisions.md, which may name it. The `check_documents` command is the project's own. None runs pytest, so the `-q` rule does not apply. Each Expect line is checkable.
+   Architecture: the story changes no code and no layer. It writes within the roles' write paths: the coder under operator/, the documenter under README.md and docs/. CLAUDE.md, planning/ and docs/runs/ are left alone.
+   Scope: the story is inside F0048's scope (the last Scope bullet names S0019) and breaks nothing in Out of scope. Decisions 22 and 25 of feature.md match the Description.
