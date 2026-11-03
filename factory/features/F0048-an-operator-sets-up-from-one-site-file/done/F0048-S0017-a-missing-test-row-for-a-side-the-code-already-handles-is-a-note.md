@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -136,6 +136,11 @@ journal:
   at: '2026-11-03T07:57:16.410856Z'
   stage: smoke-test
   run: b03052b54cb14a6e800a853a9ce666db
+- number: 24
+  speaker: factory
+  kind: done
+  at: '2026-11-03T08:03:15.284988Z'
+  stage: approval
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -330,3 +335,4 @@ Expect: `1`.
     Findings: none.
 
     Open, not a finding (already raised by the reviewer and the documenter): the `CLAUDE.md` *Tests* line, the reviewer's lesson at line 85 and checklist item 1 at line 55 still state the general both-sides rule. `CLAUDE.md` is the human's to change with the merge, and rewording the other two is outside this story's Interface.
+24. factory: done (pull request merged); cost: 10 runs, 8.0 min, 55 turns, 156414 tokens in (878364 more from cache), 15974 out, $1.48
