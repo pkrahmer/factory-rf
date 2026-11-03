@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T01:56:19.531735Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-03T01:56:13.607668Z'
   stage: tests
   run: 7e37009ea8424aa691d71dadff3db83c
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:56:19.531735Z'
+  stage: doing
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -129,3 +138,4 @@ Expect: one line that says the tests passed and names no failure.
    Open, for the coder: `StopService.raise_stop` puts each raise into the health status through `with_stop`, which replaces a standing stop of the same reason. The preflight raises again on every failing tick with `at=clock.now()`, so as the code stands now the stop's `at` moves forward on each tick. The rule counts from the stop's own `at`, and these tests write `at` once.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
