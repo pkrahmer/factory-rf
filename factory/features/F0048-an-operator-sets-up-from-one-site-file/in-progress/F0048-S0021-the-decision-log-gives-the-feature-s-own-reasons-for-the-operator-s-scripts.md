@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 522
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T12:44:58.330927Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-03T12:44:58.330927Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-03T12:45:12.348407Z'
+  stage: tests
+  run: c4d6c7a4ac564f5bb928914b5963c341
 ---
 
 # The decision log gives the feature's own reasons for the operator's scripts
@@ -115,3 +117,9 @@ Expect: `documents ok`
    - Scope: within F0048's scope line for S0021 (decision 27 of `feature.md`). It touches none of the feature's Out of scope items. Earlier entries, code and the other documents stay as they are.
    The story names no test. Tests is the only forward decision available, so I am ending with it.
 4. factory: started tests as vm.
+5. tester: No tests written: the story changes only documents.
+   - criterion 1 (`make check` stays green): no test of its own. The coder's `make check` checks it.
+   - criterion 2 (docs: the seven F0048 entries of `docs/decisions.md`): no test. The Interface says "No new test: the change is checked by the document check and the smoke test". The documenter's `make documents` and the smoke test's greps check it.
+   Files created: none. Modules the test run could not import: none, because no test was added, so I did not run the tests. `make lint` is green.
+
+   `lint`: lint: green (0.1 s)
