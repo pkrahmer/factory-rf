@@ -195,3 +195,30 @@ def test_a_reply_that_is_no_error_is_not_quoted_when_its_process_exits_non_zero(
 
     assert result.end_reason == "died"
     assert result.died_text == "exit 1"
+
+
+@pytest.mark.parametrize(
+    "start", [pytest.param(_claude, id="claude"), pytest.param(_opencode, id="opencode")]
+)
+@pytest.mark.parametrize(
+    ("step", "expected"),
+    [
+        pytest.param(
+            Step(stderr="factory-login-used: subscription\n", exit_status=3),
+            "exit 3",
+            id="only-the-login-line",
+        ),
+        pytest.param(
+            Step(stderr="factory-login-used: subscription\nfirst\nsecond\n", exit_status=1),
+            "first / second",
+            id="login-line-among-others",
+        ),
+    ],
+)
+def test_a_run_that_died_never_quotes_the_login_shell_s_line(
+    tmp_path: Path, start: Start, step: Step, expected: str
+) -> None:
+    result = _run(start, tmp_path, [step])
+
+    assert result.end_reason == "died"
+    assert result.died_text == expected

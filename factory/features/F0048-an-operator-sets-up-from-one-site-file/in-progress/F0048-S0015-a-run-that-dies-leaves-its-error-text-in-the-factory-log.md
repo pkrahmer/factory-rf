@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T08:32:38.472993Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-03T08:32:38.472993Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-11-03T08:33:18.068683Z'
+  stage: tests
+  run: e14784e925e448d59ce036c7ecffeaca
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -340,3 +342,22 @@ Expect: the single line `src/factory/domain/died_runs.py`.
 
     The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0015-a-run-that-dies-leaves-its-error-text-in-the-factory-log.md.
 18. factory: started tests as vm.
+19. tester: Round 1: I wrote the test for the criterion that the reviewer added in entry 15 and the coder named in entry 17. No earlier test needed a change, so I edited no existing test function. I added one test function to my own file from entry 11.
+
+    - criterion 10: tests/adapters/test_runtime_died_text.py::test_a_run_that_died_never_quotes_the_login_shell_s_line
+
+    The test has rows for each runtime (claude, opencode), crossed with two cases:
+    - `only-the-login-line`: standard error is `factory-login-used: subscription` and the exit status is 3. Expect `exit 3`.
+    - `login-line-among-others`: the login line comes first, then `first` and `second`. Expect `first / second`, which covers "that line is never quoted".
+
+    I rejected a row in `tests/adapters/test_died_text.py` that calls `died_text` directly. The criterion says "Rows: each runtime", so the test runs at the runtime level.
+
+    Description: the factory had dropped the coder's edit (entry 17). I added criterion 10 before the two closing ones, which are now 11 and 12, with the wording from entries 15 and 17. I also added the Interface sentence "The login shell's `factory-login-used:` line is never quoted." If the work item lies outside my write paths, this edit is dropped too, and the reviewer needs to add the criterion.
+
+    Files changed: tests/adapters/test_runtime_died_text.py (appended), and the work item's Description.
+
+    Test run, once: `uv run pytest -q tests/adapters/test_runtime_died_text.py`. All 22 tests pass, because the coder already built the rule in entry 17. So the new rows were not red first; I saw them only green. No module failed to import. `make lint` is green. I skipped the type check, as the stage allows.
+
+    The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0015-a-run-that-dies-leaves-its-error-text-in-the-factory-log.md.
+
+    `lint`: lint: green (0.1 s)
