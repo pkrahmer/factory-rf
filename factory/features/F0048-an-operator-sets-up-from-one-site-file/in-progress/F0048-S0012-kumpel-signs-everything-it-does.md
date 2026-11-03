@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694, 6592430164]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T00:59:19.017205Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-03T00:59:19.017205Z'
   stage: docs
+- number: 25
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T00:59:54.904314Z'
+  stage: docs
+  run: b36ce2f4c84d46e8b9a24a7965103e3d
 ---
 
 # Kumpel signs everything it does
@@ -363,3 +365,20 @@ Expect: two lines, a number of at least `1`, then `0`.
     Notes:
     - `tests/operator_skill_support.py`, `Operator.urls()`: it still parses `curl.jsonl` itself, for URLs only, beside `recorded_requests` in the same module. It could be built on top of that parsing.
 24. factory: started docs as vm.
+25. documenter: Docs, round 1. I wrote the documentation the docs criterion asks for. I changed documents only, so I did not run `make check`; the factory runs it after this stage.
+
+    Files changed:
+    - `operator/README.md`: the scripts row of the table now names `comment.sh` (post a signed comment) and `merge.sh`. A new paragraph before *Installing* says Kumpel signs its comments (signature line and `<!-- kumpel -->`), its start commits (author `Kumpel <kumpel@noreply.invalid>`) and its merges (the commit message).
+    - `docs/operator-guide.md`: a new subsection, *Telling Kumpel's acts from the human's*, placed after the skill's `merge.sh` paragraph and before *On Cloud Run*. It covers the signature in a comment and in the journal, that `comment.sh` signs once, that `status.sh` finds the verdict marker anywhere in the newest comment, the start commit's author, and the merge commit's title and message.
+
+    Cross-read and found current against the diff: `README.md`; the rest of `docs/operator-guide.md`, including the skill and `merge.sh` paragraphs and the site-file part; `docs/decisions.md`; `docs/project-guide/`. None of them mentions `gh pr comment`, the "last three lines" rule or the old merge body. I ran no example, because I wrote no command to run. The `git log --format='%an: %s'` line I wrote is a plain git format string, and the Kumpel author comes from `start-story.sh`.
+
+    Code check: `comment.sh`, `merge.sh`, `start-story.sh` and `status.sh` match the Interface, so I have no findings for the coder.
+
+    Stale text I noticed but did not touch: none.
+
+    The factory left out changes outside the write paths: operator/README.md.
+
+    `check`: check: green (not run again: passed on tree 534ed5c4cd87 at 2026-11-03T00:56:36Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok

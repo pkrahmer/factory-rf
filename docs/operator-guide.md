@@ -1091,6 +1091,17 @@ The force-push cannot be undone: the commits `main` held are no longer on any br
 
 The same skill folder merges a story: `merge.sh <pr> <id>` (see *A merge archives the story*). It refuses a pull request that is not open, is a draft, is not labelled `stage:approval` or is not `work-item/<id>`; merges with a merge commit; then polls the latest 20 commits of `main` for `work item <id>: merged, archived` every `KUMPEL_POLL_SECONDS` seconds (15) for at most `KUMPEL_ARCHIVE_WAIT` seconds (300). It prints `merged #<pr>` and `archived <id>` and exits 0; if the archive commit does not come in time it exits 1 with `merge.sh: merged, but no archive commit for <id> after <N> s`. Start the next story only after `archived`.
 
+### Telling Kumpel's acts from the human's
+
+The skill acts with the human's own token, so GitHub shows the human's account on everything it does. Kumpel therefore signs each act:
+
+- **A comment** ends with a blank line, the line `— Kumpel, for the human who owns this project` and the marker `<!-- kumpel -->`. The skill posts only through `comment.sh <pr> <file>`, which adds the signature (once; a text that already ends with it is posted as it is) and prints `commented #<pr>`. The factory copies a comment's text into the journal, so the signature line is there too: a journal entry of the human that ends with it was written by Kumpel. A verdict is recognised by `<!-- kumpel verdict -->` anywhere in the newest comment, so the signature after it does not hide it from `status.sh`.
+- **A start commit** (`start-story.sh`) has the author and committer `Kumpel <kumpel@noreply.invalid>`. The checkout's own `user.name` and `user.email` are not changed.
+- **A merge commit** (`merge.sh`) has the title `Merge pull request #<pr> from <branch>` and the message `Merged by Kumpel after the six approval checks.`
+
+`git log --format='%an: %s'` shows the author of each commit. A comment, commit or merge without these marks is the human's.
+
+
 ## On Cloud Run
 
 A Cloud Run job runs the factory without a VM. The job starts bare: the root file system is memory, nothing is installed and nothing persists, so every start installs the tools, clones the code and builds the stage image again. `vm/job-start.sh` is the job's command. It is a POSIX `sh` script that turns a bare `debian:trixie-slim` into a running instance and ends in `exec factory-run`. Creating the job, its secrets and its schedule is yours; this chapter says what to give it. The pieces it uses are described under *The job profile*, *The metadata server in a job*, *Without ZFS* and *The idle shutdown*.
