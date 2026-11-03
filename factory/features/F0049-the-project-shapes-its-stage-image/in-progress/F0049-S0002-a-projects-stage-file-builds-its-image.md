@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 527
 comments_read: [6618558222]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T23:57:04.224086Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-03T23:57:04.224086Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-03T23:58:17.694225Z'
+  stage: tests
+  run: 01045af6e9324417bb58f82f1c5b86d6
+  blocked: question
 ---
 
 # A project's stage file builds the image its stages run in
@@ -135,3 +138,29 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
    - Architecture: the rule is in domain, the images interface is in application, and podman is reached only through its adapter wrapper, which matches the layers and R5. The wiring is in one place. The earlier `PATH` tests change under the feature's leave for S0002.
    - Scope: within F0049's S0002 scope. Rebuilding on a changed `main` is left to S0003, and nothing in the story touches the feature's out-of-scope items.
 7. factory: started tests as vm.
+8. tester: I stopped before writing any test. The Interface leaves out names and seams that every criterion's test has to import or call, so any test I wrote now would fix my own guesses as the coder's specification. I read the work item, `docs/project-guide/stage-environment.md` (podman adapter, settings and wiring, preflight), `src/factory/entry/run.py`, the names in `src/factory/entry/wiring.py` and `src/factory/domain/stops.py`, and `tests/entry/test_health.py::test_every_stop_reason_makes_the_check_fail_until_it_is_cleared`. No files were created and `make test` was not run.
+
+   Please answer each point below, or accept the choice I would make:
+
+   1. **Where `stage_layer` lives and what it raises (criteria 1, 2).** The Interface says "a module of its own or `factory.domain.containers`" and "a refusal". I would choose `factory.domain.stage_layer`, with `StageLayer`, `STAGE_FILE` and the exception `StageLayerRefused(ValueError)` whose `str()` is the reason. The other option is `factory.domain.containers` with the same names.
+
+   2. **The images interface, its DTO, adapter and fake (criteria 4 to 10).** There are no module or class names, and no constructor for the podman adapter. I would choose:
+      - `factory.application.images`: `Images(ABC)` with `build` and `path`, `ImageBuild(passed: bool, duration: timedelta, output_tail: str)` with the lines joined by `\n`, and `IMAGE_BUILD_TIME_LIMIT = timedelta(minutes=30)`.
+      - `factory.adapters.podman_images`: `PodmanImages(executable: str)`, running `<executable> build ...` and then `<executable> image prune -f` for the untagged images, and `<executable> image inspect --format '{{json .Config.Env}}' <image>` for `path`.
+      - `factory.adapters.fake_images`: `FakeImages(paths: dict[str, str] = {}, build_result: ImageBuild | None = None)`, which records its `build` calls in a `builds` list.
+      - `project_image_tag(stage_image: str) -> str` in `factory.domain.stage_layer`.
+
+      Please confirm or correct each name, the prune command and the inspect format. The adapter test pins those exact arguments.
+
+   3. **The seam of the start (criteria 3, 4, 5, 6, 9, 11).** These tests need to call the start with a fake `Images`, then read the image the container runs take, the identity, the `PATH`s and the stop. The Interface says only "one place of the wiring". I would choose:
+      - a function in `factory.entry.wiring`, `project_image_settings(settings, git, images, stops) -> InstanceSettings | None`. It reads `STAGE_FILE` from `origin/main` through the `Git` wrapper. It returns the settings with `stage_image` and `image` replaced (the project tag and the layer's identity), or unchanged when there is no file. It raises or clears `stage_image_failed` through `StopService`, and returns `None` while the stop stands.
+      - `run_instance` gains `images: Images | None = None` (podman by default) and calls that function before `build_tick`. With `None`, it runs no tick and leaves the stop in the health file, so that "no stage starts" can be checked.
+      - the sync and agent `PATH`s come from `stage_environment_of(boundaries)` and `agent_environment(...)`, given `images.path(<image in use>)`.
+
+      If you have another seam in mind (a field on `Boundaries`, a step in `RepositoryWaiter.prepare`), please name it.
+
+   4. **The scope of `stage_image_failed`.** `_require_scope_of_reason` refuses a stop whose scope is not its reason's. The health row (criterion 12) builds its scope from `("preflight_failed", "disk_low")`, so a machine-scoped reason means that line of the earlier test must change. I would choose `machine`, because the image is the instance's, as with `preflight_failed`. The row then needs `stage_image_failed` added to that tuple, and I would make that change under criterion 12. The other option is `repository`, which needs only the new row.
+
+   5. **The "different reasons" of criterion 1.** I will check that the 12 refused rows give pairwise distinct `str()` reasons, as entry 4, item 7 says. The 64 KiB rows: is "64 KiB" measured as 65536 bytes of the UTF-8 encoding of `text`? `text` is a `str`, so how should the "bytes that are not UTF-8" row reach `stage_layer`? I would choose 65536 encoded bytes. For the non-UTF-8 row I would test the start's reading of the file (a stage file on `main` holding `b"\xff"` gives `stage_image_failed`), not `stage_layer`. The other option is to make `stage_layer` take `bytes`.
+
+   Once these are answered I will write all thirteen tests in one run.
