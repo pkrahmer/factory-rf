@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T23:56:30.646180Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-03T23:56:30.646180Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-03T23:56:58.507346Z'
+  stage: intake
+  run: d207184f90bf4141ab234c6c193c1052
 ---
 
 # A project's stage file builds the image its stages run in
@@ -57,7 +59,7 @@ Every container of an instance (the sync, the agent, the checks) runs in the sta
   - The template, which the first criterion accepts, is these three lines: `ARG FACTORY_BASE`, `FROM ${FACTORY_BASE}`, and `RUN apt-get update && apt-get install -y --no-install-recommends build-essential cmake && rm -rf /var/lib/apt/lists/*`.
 - The constant `STAGE_FILE = "factory/stage.Containerfile"` and the project image's tag, `f"{FACTORY_STAGE_IMAGE}-project"` (for example `factory-stage:vm-project`), each defined once.
 - An interface in `factory.application` for the images, with one podman implementation in `factory.adapters` (podman is reached only through its wrapper, R5) and one fake:
-  - `build(layer: StageLayer, base: str, tag: str, time_limit: timedelta) -> ImageBuild`: builds `layer.text` with `--build-arg FACTORY_BASE=<base>`, `--network=host`, rootless and with an empty context directory, tags it `tag`, and removes images left without a tag after it. `ImageBuild` holds `passed`, `duration` and `output_tail` (the build's last 20 lines).
+  - `build(layer: StageLayer, base: str, tag: str, time_limit: timedelta) -> ImageBuild`: builds `layer.text` with `--build-arg FACTORY_BASE=<base>`, `--network=host` and with an empty context directory, tags it `tag`, and removes images left without a tag after it. `ImageBuild` holds `passed`, `duration` and `output_tail` (the build's last 20 lines).
   - `path(image: str) -> str`: the `PATH` the image's configuration sets (podman's `image inspect`), or the base's default `/usr/local/bin:/usr/bin:/bin` when it sets none.
   - The build's time limit is 30 minutes, one constant.
 - The project image is named in one place of the wiring: the image every container run takes, and the identity the preflight and the check reuse take. The sync environment's and the agent environment's `PATH` are built from `path(<the image in use>)` (the agent's with its scripts folder first), in place of the fixed `/usr/local/bin:/usr/bin:/bin`. Rows of earlier tests that pin that `PATH` change under the feature's leave.
@@ -72,8 +74,14 @@ Every container of an instance (the sync, the agent, the checks) runs in the sta
 5. The containers' `PATH` is the image's: a fake image whose `PATH` is `/opt/jdk/bin:/usr/local/bin:/usr/bin:/bin` gives the sync environment that `PATH` and the agent environment its scripts folder followed by it; an image that sets none gives `/usr/local/bin:/usr/bin:/bin`.
 6. A stage file that breaks the rule, and one whose build fails or reaches its time limit, each stand as the stop `stage_image_failed` with its detail as the Interface states, and no stage starts while it stands; the base image is not used in its place.
 7. The podman adapter's build passes `--build-arg FACTORY_BASE=<base>`, `--network=host`, `-t <tag>` and an empty context directory, and after a build runs the removal of untagged images; its `path` reads the image's configured `PATH`. Tested through the argument lists and a stand-in for `podman`, without a real container.
-8. `make check` stays green.
-9. docs: `docs/operator-guide.md`: a section *The project's stage file*: what `factory/stage.Containerfile` is, its rule, an example that adds `build-essential` and `cmake`, that only `main` counts, that the build has the network and no files of the repository so the project pins its own versions and checksums, where the project image and its identity show, and the stop `stage_image_failed` and what to do about it. The project guide: `stage-environment.md` names the images interface, its fake and the one place where the image in use is chosen. `docs/decisions.md`: one entry with feature decisions 1, 3 and 4 and their reasons. `README.md`: one sentence that a project can add tools to its stage image with that file.
+8. The podman adapter's `output_tail`: a build that prints 25 lines gives the last 20 lines in order; one that prints 5 lines gives all 5.
+9. The podman adapter's build that reaches its time limit gives `passed=False` (a short limit through a stand-in `podman`, with `ROOMY_LIMIT` as `CLAUDE.md` states), and the wiring passes the one 30-minute constant to `build`.
+10. The podman adapter's `path`: inspect output with a `PATH` gives that `PATH`; inspect output without one gives `/usr/local/bin:/usr/bin:/bin`.
+11. After a `stage_image_failed` stop, the next start of `factory-run` with a valid stage file, and one with no stage file, each holds no such stop.
+12. `factory-health` shows `stage_image_failed` as a stop: a row `stage_image_failed` in `test_every_stop_reason_makes_the_check_fail_until_it_is_cleared` (`tests/entry/test_health.py`).
+13. `factory-watch` shows `stage_image_failed` as a stop: a test of its own in `tests/entry/test_watch.py`, since no existing watch test renders every stop reason generically.
+14. `make check` stays green.
+15. docs: `docs/operator-guide.md`: a section *The project's stage file*: what `factory/stage.Containerfile` is, its rule, an example that adds `build-essential` and `cmake`, that only `main` counts, that the build has the network and no files of the repository so the project pins its own versions and checksums, where the project image and its identity show, and the stop `stage_image_failed` and what to do about it. The project guide: `stage-environment.md` names the images interface, its fake and the one place where the image in use is chosen. `docs/decisions.md`: one entry with feature decisions 1, 3 and 4 and their reasons. `README.md`: one sentence that a project can add tools to its stage image with that file.
 
 ## Smoke test
 
@@ -110,3 +118,10 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
    7. Confirmed: the test checks that each row is refused and that the reasons differ between rows; no fixed texts.
    8. Separate rows: the rule break, the failed build and the time limit. The time limit's detail uses the same text as a failed build ("the stage file did not build in <s> s:" and the tail).
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: concrete. `stage_layer(text, base_identity) -> StageLayer` in `factory.domain`, with the rule, digest and identity stated. `STAGE_FILE` and the project tag are each defined once. The images interface has `build` and `path` with their DTO, one podman adapter and one fake. The stop reason `stage_image_failed` has its detail text. "Rootless" is dropped from `build`, from journal entry 4 item 4.
+   - Criteria: each is testable by one test function. Every Interface rule has a criterion for both sides: the accepted and refused rows of 1, the digest in 2, no file and a valid file in 3 and 4, a stop for a rule break, a failed build and a time limit in 6 (separate rows, same detail text for the last two per entry 4 item 8). I wrote the human's answers from entry 4 into the story: new criteria 8 (`output_tail` with 25 and with 5 lines), 9 (the adapter's time limit gives `passed=False`; the wiring passes the 30-minute constant), 10 (`path` with and without a PATH in the inspect output), 11 (the stop ends with the next start, valid file or no file), 12 (`factory-health` row) and 13 (`factory-watch`). `make check` and `docs:` are now 14 and 15. Criterion 1 checks that each row is refused and that the reasons differ, not their texts (entry 4 item 7).
+   - Existing tests, from entry 4 item 6: `tests/entry/test_health.py::test_every_stop_reason_makes_the_check_fail_until_it_is_cleared` is parametrized over stop reasons, so criterion 12 adds a `stage_image_failed` row to it. `tests/entry/test_watch.py` has no generic test of every stop reason, so criterion 13 is a test of its own for `factory-watch`.
+   - Smoke test: the three grep commands are runnable and do not run pytest. Each Expect line (`1`, `1`, the single line `"stage_image_failed"`) is checkable.
+   - Architecture: the rule is in domain, the images interface is in application, and podman is reached only through its adapter wrapper, which matches the layers and R5. The wiring is in one place. The earlier `PATH` tests change under the feature's leave for S0002.
+   - Scope: within F0049's S0002 scope. Rebuilding on a changed `main` is left to S0003, and nothing in the story touches the feature's out-of-scope items.
