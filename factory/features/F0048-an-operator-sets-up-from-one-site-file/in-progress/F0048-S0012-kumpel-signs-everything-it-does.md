@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 508
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T00:37:52.423165Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-03T00:37:52.423165Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-03T00:38:12.217816Z'
+  stage: intake
+  run: 8b36bd80e4ae4d96bae6655be9e84bfe
+  blocked: question
 ---
 
 # Kumpel signs everything it does
@@ -74,3 +77,12 @@ Expect: two lines, a number of at least `1`, then `0`.
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. Questions:
+
+   1. The Interface states that `references/answering.md` (*How to post*) and `references/approving.md` (the verdict and a finding) say to post with `comment.sh`, and that `SKILL.md` names `comment.sh` in its list of scripts. No criterion tests either. Criterion 7 only tests that `gh pr comment` is absent. Two coders could read this two ways and both would pass. Should I add a criterion before the two closing ones? For example: "`SKILL.md`, `references/answering.md` and `references/approving.md` each contain `comment.sh` (a test over the three files)". I would add it.
+
+   2. Criterion 5 and the Interface give `commit_title` as `Merge pull request #<pr> from <head branch>`. They don't say where `merge.sh` gets the head branch. Does it read it from the pull request that S0008's approval checks already fetch, or from somewhere else? The criterion needs a PR stand-in that supplies a head ref, so the story should name the source. I would choose the pull request's `head.ref` from the same read S0008 already makes.
+
+   3. Criterion 6 tests only the accepting side of `status.sh`'s new rule (`<!-- kumpel verdict -->` anywhere in the body). The Interface changes the rule from "last three lines" to "anywhere". Should there be a row where the newest comment has no verdict marker and does not print `verdict posted`? Should there be a row with the marker at the top of a long body, to show that "anywhere" really replaced "last three lines"? I would add both as rows.
+
+   I found no other gaps. The Interface is concrete, `hosting_repo_api` exists in `operator/lib/hosting.sh`, the smoke test commands are runnable and its `Expect:` line is checkable, and the story is inside the feature's scope as S0012.
