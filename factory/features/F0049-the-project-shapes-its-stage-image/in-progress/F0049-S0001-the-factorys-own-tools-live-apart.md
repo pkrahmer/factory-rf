@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 526
-comments_read: []
+comments_read: [6617813159]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 719fab3b9e864bae8547bb92006006d6
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-03T23:09:30.682173Z'
+  stage: intake
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -82,3 +87,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
    - The smoke test commands are runnable and each `Expect:` is checkable. The `pytest` line has no `-q`, which is right because `addopts` already sets one.
    - The architecture is fine: only `vm/` and `tests/test_stage_image.py` change.
    - The scope matches S0001 in `feature.md`, and the test change falls under the feature's leave for S0001.
+4. 2026-11-03 human: Yes to all five, as you recommend: 1 and 2 become criteria (a wrapper without "$@" is refused; a Dockerfile that creates or links node or npm in /usr/local/bin, or puts /opt/factory on an ENV PATH line, is refused); 3 gets the two rows (the unpack target /opt/factory/node and the curl download); 4: neither vm/setup.sh nor vm/job-start.sh changes; 5: drop the placement.
