@@ -12,7 +12,7 @@ example=$operator/site.env.example
 . "$operator/lib/site.sh"
 
 usage() {
-  echo "usage: site path | init | show | get SITE_X" >&2
+  echo "usage: site path | init | show | get SITE_X | check" >&2
   exit 2
 }
 
@@ -163,7 +163,7 @@ check_repository() {
   needs repository SITE_REPOSITORY || return 0
   if ! answer=$(hosting_repo_api GET "" 2>&1); then
     fail repository "$(first_line "$answer")"
-  elif ! printf '%s' "$answer" | python3 -c '
+  elif ! printf '%s' "$answer" | python3 -I -c '
 import json, sys
 
 sys.exit(0 if json.load(sys.stdin).get("permissions", {}).get("push") is True else 1)
@@ -294,15 +294,24 @@ covers() {
   return 1
 }
 
-# A missing job is not told from a failed call, as in `job.sh create`; the identity check
-# already fails for a broken login.
+# The line only informs, since `job.sh create` makes the job; a describe that fails for another
+# reason than a missing job shows a rights or project problem before `job.sh` meets it.
 check_job() {
   needs job SITE_PROJECT SITE_REGION SITE_JOB || return 0
-  if site_gcloud_with gcloud run jobs describe "$SITE_JOB" >/dev/null 2>&1; then
+  if message=$(site_gcloud_with gcloud run jobs describe "$SITE_JOB" 2>&1 >/dev/null); then
     pass "job: $SITE_JOB exists"
-  else
+  elif is_not_found "$message"; then
     pass "job: $SITE_JOB does not exist yet"
+  else
+    pass "job: $SITE_JOB cannot be read: $(first_line "${message:-gcloud run jobs describe failed}")"
   fi
+}
+
+is_not_found() {
+  case $1 in
+    *"Cannot find job"* | *NOT_FOUND*) return 0 ;;
+  esac
+  return 1
 }
 
 case ${1:-} in

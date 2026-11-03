@@ -19,7 +19,7 @@ comments=$(hosting_repo_api GET "/issues/$1/comments?per_page=100")
 hosting_git fetch -q
 branch=origin/work-item/$2
 echo "== files"
-printf '%s' "$files" | python3 -c 'import json, sys; [print(f["filename"]) for f in json.load(sys.stdin)]'
+printf '%s' "$files" | python3 -I -c 'import json, sys; [print(f["filename"]) for f in json.load(sys.stdin)]'
 echo "== tests changed (M = an earlier test)"; git diff --name-status "origin/main...$branch" -- tests
 item=$(git ls-tree -r --name-only "$branch" factory/features | grep "/in-progress/$2-.*\.md$" | head -n 1)
 journal=$(git show "$branch:$item" | sed -n '/^## Journal/,$p')
@@ -33,7 +33,7 @@ echo "== Expect lines"; git show "$branch:$item" | grep -n '^Expect' | cut -c1-2
 echo "== new markers"
 git diff "origin/main...$branch" -- src tests | grep -E '^\+' | grep -nE 'noqa|type: ignore|pragma: no|pytest.mark.skip|xfail' || echo "none"
 echo "== cost (the factory's table on the pull request)"
-printf '%s' "$comments" | python3 -c '
+printf '%s' "$comments" | python3 -I -c '
 import json, sys
 tables = [c["body"] for c in json.load(sys.stdin) if ":cost_table:" in c["body"]]
 print(tables[-1] if tables else "no cost table yet")

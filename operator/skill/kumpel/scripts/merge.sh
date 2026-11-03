@@ -18,7 +18,7 @@ wait=${KUMPEL_ARCHIVE_WAIT:-300}
 
 # Prints the first reason the pull request of the API's answer may not be merged, nothing when none.
 refusal() {
-  python3 -c '
+  python3 -I -c '
 import json, sys
 pr, item = sys.argv[1:]
 pull = json.load(sys.stdin)
@@ -35,7 +35,7 @@ elif pull["head"]["ref"] != f"work-item/{item}":
 
 archived() {
   commits=$(hosting_repo_api GET "/commits?per_page=20") || return 1
-  printf '%s' "$commits" | python3 -c '
+  printf '%s' "$commits" | python3 -I -c '
 import json, sys
 subject = f"work item {sys.argv[1]}: merged, archived"
 sys.exit(0 if any(c["commit"]["message"].split("\n")[0] == subject for c in json.load(sys.stdin)) else 1)
@@ -45,9 +45,9 @@ sys.exit(0 if any(c["commit"]["message"].split("\n")[0] == subject for c in json
 pull=$(hosting_repo_api GET "/pulls/$pr") || exit 1
 reason=$(printf '%s' "$pull" | refusal)
 [ -z "$reason" ] || { echo "merge.sh: $reason" >&2; exit 1; }
-branch=$(printf '%s' "$pull" | python3 -c 'import json, sys; print(json.load(sys.stdin)["head"]["ref"])')
+branch=$(printf '%s' "$pull" | python3 -I -c 'import json, sys; print(json.load(sys.stdin)["head"]["ref"])')
 # The merge commit says Kumpel merged it, since the human's token makes it.
-body=$(python3 -c '
+body=$(python3 -I -c '
 import json, sys
 print(json.dumps({
     "merge_method": "merge",

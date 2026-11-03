@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 515
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T08:52:42.195554Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-03T08:52:42.195554Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-03T08:57:26.994973Z'
+  stage: doing
+  run: 5258c7909e8c4f2ebb789c7c606fad16
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -196,3 +198,28 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: I made the tester's failing tests pass without changing any test. `make check` is green: lint, types, layers, sast, secrets, licenses and test (83 s).
+
+   What I built, by part:
+   - A: In `operator/site.env.example` I replaced the 15 comment lines with the Interface's text word for word. No `SITE_*=value` line changed. In `operator/job/job.sh` the defaults are now `--cpu=4`, `--memory=16Gi`, `--task-timeout=86400` and `FACTORY_IDLE_SHUTDOWN_MINUTES=30`.
+   - B: `operator/bin/site` has the usage line `usage: site path | init | show | get SITE_X | check`. In `operator/skill/kumpel/SKILL.md`, step 1 of *Before anything* now says:
+     - the repository and the checkout come from the site file first (`SITE_REPOSITORY`, `SITE_CHECKOUT`);
+     - when the site file gives both, the agent runs `settings.sh init` with no arguments;
+     - otherwise it asks the human for the two values and suggests putting them into the site file.
+     No other line of `SKILL.md` changed. `operator/README.md` is left to the docs stage (criterion 15).
+   - D: `check_job` in `operator/bin/site` now captures gcloud's standard error. A message that contains `Cannot find job` or `NOT_FOUND` gives `does not exist yet` (helper `is_not_found`). Any other failure gives `cannot be read: <first line>`, through the existing `first_line`. The line always passes.
+   - E: `_site_parse_line` in `operator/lib/site.sh` treats a space or tab directly after `=` as a fault. The message is the same as for a space before `=`: `not a KEY=value line` with the line number.
+   - C: Every `python3 -c` and `python3 -` in these scripts now starts `python3 -I`: `operator/bin/site`, `operator/job/job.sh` and `operator/skill/kumpel/scripts/{status,settings,approval,comment,merge,reset-to-tag}.sh`. In `status.sh`, the issue read, the comments-page read and the commits read are each assigned to a variable first, followed by `|| exit 1`. The call `comment=$(newest_comment …)` also has `|| exit 1`, so a failure inside the command substitution stops the whole script. A failing read therefore ends with the hosting client's message and no traceback. The pull-request list read is unchanged.
+
+   Main choice: for D, I tell a missing job from an unreadable one by matching gcloud's error text. The rejected alternative was a second gcloud call, for example `jobs list --filter`, to look for the job by name. That costs another call, and a rights problem would make it fail in the same way. I also accept `NOT_FOUND`, besides the stand-in's `Cannot find job`, because an API-level 404 reads that way. The tester could not confirm gcloud's real wording for a missing job, and neither could I. If the real text differs, a missing job would show as `cannot be read: …`. The line would still pass and the check's result would not change.
+
+   Refactor pass: I read the diff and found nothing to change. The loader computes `${_site_line#*=}` twice, once for the new check and once for the value; I left that as it is, since it is a one-line expansion.
+
+   Journal: no entry changed the meaning of the task, so I did not rewrite the Description.
+
+   Noticed, not touched:
+   - `merge.sh` and `reset-to-tag.sh` already used `-I` in some places; I only added it where it was missing.
+   - The docs criterion (15) remains for the documenter: the `operator/README.md` sections, the guide's key table and *The `site` command*, and the `docs/decisions.md` entry about `-I`.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 42 known, 0 gone

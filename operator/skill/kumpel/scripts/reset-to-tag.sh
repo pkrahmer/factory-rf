@@ -22,7 +22,7 @@ fi
 
 # Prints the value of the dotted `path` in the JSON on standard input.
 json_field() {
-  python3 -c '
+  python3 -I -c '
 import json, sys
 value = json.load(sys.stdin)
 for key in sys.argv[1].split("."):
@@ -55,14 +55,14 @@ tag_commit() {
 
 commit=$(tag_commit) || exit 1
 open_pulls=$(hosting_repo_api GET "/pulls?state=open&per_page=100") || exit 1
-pulls=$(printf '%s' "$open_pulls" | python3 -c '
+pulls=$(printf '%s' "$open_pulls" | python3 -I -c '
 import json, sys
 for pull in json.load(sys.stdin):
     if pull["head"]["ref"].startswith("work-item/"):
         print(pull["number"])
 ')
 refs=$(hosting_repo_api GET "/git/matching-refs/heads/work-item/") || exit 1
-branches=$(printf '%s' "$refs" | python3 -c '
+branches=$(printf '%s' "$refs" | python3 -I -c '
 import json, sys
 for ref in json.load(sys.stdin):
     print(ref["ref"].removeprefix("refs/heads/"))

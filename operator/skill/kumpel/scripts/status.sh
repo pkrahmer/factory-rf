@@ -14,7 +14,7 @@ export SITE_REPOSITORY
 
 # Prints `<n> <work item> <stage labels>` for each work-item pull request of the API's list.
 work_items() {
-  python3 -c '
+  python3 -I -c '
 import json, sys
 for pull in json.load(sys.stdin):
     branch = pull["head"]["ref"]
@@ -27,17 +27,18 @@ for pull in json.load(sys.stdin):
 # The body of the newest comment of pull request <n>, nothing when it has none: the comment count
 # names the last page of one comment each, so one more call fetches it alone.
 newest_comment() {
-  count=$(hosting_repo_api GET "/issues/$1" | python3 -c 'import json, sys; print(json.load(sys.stdin)["comments"])')
+  issue=$(hosting_repo_api GET "/issues/$1") || exit 1
+  count=$(printf '%s' "$issue" | python3 -I -c 'import json, sys; print(json.load(sys.stdin)["comments"])')
   [ "$count" -gt 0 ] || return 0
-  hosting_repo_api GET "/issues/$1/comments?per_page=1&page=$count" |
-    python3 -c 'import json, sys; print(json.load(sys.stdin)[-1]["body"])'
+  page=$(hosting_repo_api GET "/issues/$1/comments?per_page=1&page=$count") || exit 1
+  printf '%s' "$page" | python3 -I -c 'import json, sys; print(json.load(sys.stdin)[-1]["body"])'
 }
 
 pulls=$(hosting_repo_api GET "/pulls?state=open&per_page=50")
 items=$(printf '%s' "$pulls" | work_items)
 while read -r number item stage; do
   [ -n "$number" ] || continue
-  comment=$(newest_comment "$number")
+  comment=$(newest_comment "$number") || exit 1
   last=$(printf '%s\n' "$comment" | tail -n 3)
   kind=$(printf '%s\n' "$last" | sed -n 's/^<!-- factory key=[^:]*:\([^:]*\):[^:]* -->$/\1/p' | tail -n 1)
   case "$kind" in
@@ -52,7 +53,8 @@ while read -r number item stage; do
 done <<ITEMS
 $items
 ITEMS
-hosting_repo_api GET "/commits?per_page=20" | python3 -c '
+commits=$(hosting_repo_api GET "/commits?per_page=20") || exit 1
+printf '%s' "$commits" | python3 -I -c '
 import json, sys
 subjects = (commit["commit"]["message"].split("\n")[0] for commit in json.load(sys.stdin))
 archives = [s for s in subjects if s.startswith("work item ") and s.endswith(": merged, archived")]
