@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 514
 comments_read: [6598577655]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T08:10:17.786100Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-03T08:10:17.786100Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-03T08:11:03.790721Z'
+  stage: tests
+  run: 9b6ea620cc064847aa3cac1c4405ed14
+  blocked: question
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -131,3 +134,21 @@ Expect: the path of the module that writes the line.
    - Architecture: the pure helper in adapters, with the runtimes writing through the factory log, fits the layers. Cost record and contract unchanged.
    - Scope: this is S0015 of F0048, named in its stories list and in decision 19. Nothing in Out of scope is touched.
 7. factory: started tests as vm.
+8. tester: I stopped before writing any tests. I wrote no files and ran neither `make test` nor `make lint`. There are two blockers.
+
+   1. **The Description does not hold the answer.** Entry 6 says intake carried your answer from entry 4 into the Description: the `died_line` signature, the rules on the last 3 lines, the fallback and stripping, and criteria 6 to 9. The Description committed at 8dd8a5b04 still has only the original Interface and criteria 1 to 7. Its smoke test is also still `grep -rn 'died: ' src/factory | head -1 | cut -d: -f1`. Should I test from entry 4 as written? If so, I would name its five additions as criteria 6 to 9 in my entry. Or should the Description be fixed first? I would choose to test from entry 4, unless you want the Description corrected before any tests exist.
+
+   2. **The runtime-level criteria have no interface I can test against.** These are criterion 1 ("Rows: each runtime"), criterion 2 ("each case and each runtime"), criterion 4 and criterion 5. `ClaudeCodeRuntime` and `OpencodeRuntime` cannot see any of the following:
+      - the factory log (`FactoryLog` in `factory.application.machine`)
+      - the run id
+      - the work item
+      - the stage
+
+      `AgentRunRequest` carries none of the last three, and neither constructor takes a `FactoryLog`. Entry 4 leaves "the smallest path that brings the line there" to the coder. That leaves my tests nothing to call and nothing to observe. I can test `died_line(...)` directly now, for the text rules: criteria 3, 6, 7, 8, the exit-status case of criterion 2 and the cut. I cannot test the per-runtime rows without guessing how they are wired. Options:
+      - (a) Each runtime takes a `FactoryLog` in its constructor (`factory_log: FactoryLog | None = None`). `AgentRunRequest` gains `run`, `work_item` and `stage`, defaulting to `None` so that no existing caller changes. The runtime calls `died_line` and writes the line itself. Tests would run each runtime's stand-in with a recording `FactoryLog` and read its lines.
+      - (b) `AgentRunResult` gains a `died_text: str | None` that each runtime fills from the error reply, standard error or exit status. The stage, which knows the run, work item, stage and log, calls `died_line` and writes the line. The cost record would keep its own fields, so the contract stays unchanged. The runtime rows would check `died_text`, and one application test would check the log line. This drops "the runtime writes the line" and makes `died_line` take the text instead of the raw pieces.
+      - (c) As (a), but the runtimes reach the log through a narrower interface of your naming.
+
+      I would choose (a). It keeps your `died_line` signature and "both runtimes write the line" exactly as stated. Please name the option, and with it the constructor parameter and request fields, so that both the tests and the coder build against the same names.
+
+   **Minor point, no row unless you ask:** entry 4 sets a negative exit status for a signal (`exit -9`). No criterion names it, so I would add no row for it.
