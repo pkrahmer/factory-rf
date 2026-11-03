@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -158,6 +158,11 @@ journal:
   at: '2026-11-03T08:39:28.273375Z'
   stage: smoke-test
   run: 56a69b831f2d4cf1b76f47e31f1947a0
+- number: 28
+  speaker: factory
+  kind: done
+  at: '2026-11-03T08:45:28.607795Z'
+  stage: approval
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -497,3 +502,4 @@ Expect: the single line `src/factory/domain/died_runs.py`.
     Checked against the acceptance criteria: the output contradicts none of them. I also read the docs criterion (12) against `docs/operator-guide.md`. At line 244, the paragraph **A run that ends `died`.** says that the factory log names the died run and quotes its error text, gives the text rules, and says this text is what `FACTORY_PROVIDER_LIMIT_MESSAGE` must match when a provider's limit is the cause. That matches the criterion. The smoke test itself does not cover criteria 1–10 (behaviour by runtime and by end reason) or 11 (`make check`); the tests and the factory's checks cover those.
 
     Findings: none. Nothing fixed, nothing open.
+28. factory: done (pull request merged); cost: 12 runs, 19.4 min, 136 turns, 391428 tokens in (4586317 more from cache), 63527 out, $5.01
