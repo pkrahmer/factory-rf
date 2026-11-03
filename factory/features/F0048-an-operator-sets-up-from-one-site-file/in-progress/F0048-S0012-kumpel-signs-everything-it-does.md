@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T00:40:06.684588Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-03T00:40:06.684588Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-03T00:40:23.750123Z'
+  stage: intake
+  run: 44324a0e74c344db9e2dd14b3b2ae243
 ---
 
 # Kumpel signs everything it does
@@ -58,7 +60,7 @@ The Kumpel skill acts on the code host with the human's own token, so its commen
 
 `operator/skill/kumpel/scripts/start-story.sh`: the start commit's author and committer are `Kumpel <kumpel@noreply.invalid>` (set for that one commit, not in the checkout's configuration). Every other line stays.
 
-`operator/skill/kumpel/scripts/merge.sh` (S0008): the merge call's body adds `"commit_title": "Merge pull request #<pr> from <head branch>"` and `"commit_message": "Merged by Kumpel after the six approval checks."`. Every other rule of S0008 stays.
+`operator/skill/kumpel/scripts/merge.sh` (S0008): the merge call's body adds `"commit_title": "Merge pull request #<pr> from <head branch>"` (the head branch is the pull request's `head.ref`, from the read `merge.sh` already makes) and `"commit_message": "Merged by Kumpel after the six approval checks."`. Every other rule of S0008 stays.
 
 `operator/skill/kumpel/scripts/status.sh`: a newest comment holds a verdict when `<!-- kumpel verdict -->` is anywhere in its body (today: in its last three lines). The other states keep their rules.
 
@@ -73,10 +75,11 @@ Tests: `tests/test_operator_skill_signature.py`, with the `curl` stand-in of `te
 3. The refusals, as rows of one parametrized test: a missing file and an empty file (message, exit 1, no request); a request answered 404 (the hosting client's message, exit 1); no argument and one argument (usage, exit 2).
 4. `start-story.sh F0001-S0002` pushes a start commit whose author and committer are `Kumpel <kumpel@noreply.invalid>`, and the clone's `user.name` and `user.email` are unchanged afterwards.
 5. `merge.sh` sends the merge body with `merge_method` `merge`, the `commit_title` and the `commit_message` of the Interface (S0008's merge test gains these fields; a row per field).
-6. `status.sh` prints `verdict posted` for a newest comment whose body holds `<!-- kumpel verdict -->` followed by the signature line and `<!-- kumpel -->` (five lines after the verdict marker), and still prints `waits: <kind>` when that comment holds a factory marker of a known kind as well.
+6. `status.sh` prints `verdict posted` for a newest comment whose body holds `<!-- kumpel verdict -->` followed by the signature line and `<!-- kumpel -->` (five lines after the verdict marker), and still prints `waits: <kind>` when that comment holds a factory marker of a known kind as well. Two more rows: a newest comment without the verdict marker does not print `verdict posted`; the marker at the top of a long body (more than three lines follow it) prints `verdict posted`.
 7. No file under `operator/skill/kumpel/` holds `gh pr comment` (a test over the folder's text).
-8. `make check` stays green.
-9. docs: `operator/README.md` (the scripts table: `comment.sh`; a sentence that Kumpel signs its comments, commits and merges); `docs/operator-guide.md`, the skill's part: how a reader tells Kumpel's acts from the human's (the signature line in a comment and in the journal, the commit author, the merge message); `README.md` and the other documents: none.
+8. `SKILL.md`, `references/answering.md` and `references/approving.md` each contain `comment.sh` (a test over the three files).
+9. `make check` stays green.
+10. docs: `operator/README.md` (the scripts table: `comment.sh`; a sentence that Kumpel signs its comments, commits and merges); `docs/operator-guide.md`, the skill's part: how a reader tells Kumpel's acts from the human's (the signature line in a comment and in the journal, the commit author, the merge message); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -102,3 +105,9 @@ Expect: two lines, a number of at least `1`, then `0`.
    I found no other gaps. The Interface is concrete, `hosting_repo_api` exists in `operator/lib/hosting.sh`, the smoke test commands are runnable and its `Expect:` line is checkable, and the story is inside the feature's scope as S0012.
 4. 2026-11-03 human: All three as you propose. 1: add the criterion, `SKILL.md`, `references/answering.md` and `references/approving.md` each contain `comment.sh` (a test over the three files), before the two closing criteria. 2: the head branch is the pull request's `head.ref` from the read S0008's `merge.sh` already makes. 3: add both rows to criterion 6, a newest comment without the verdict marker (no `verdict posted`), and the marker at the top of a long body (`verdict posted`).
 5. factory: started intake as vm.
+6. intake: accepted. I carried in the human's answers from journal entry 4 (all three as I proposed); that is their edit, not mine: (1) a new criterion 8, "`SKILL.md`, `references/answering.md` and `references/approving.md` each contain `comment.sh`", before the closing two, which are now 9 and 10; (2) the Interface's `merge.sh` line now says the head branch is the pull request's `head.ref`, from the read `merge.sh` already makes; (3) criterion 6 gained two rows, a newest comment without the verdict marker (no `verdict posted`) and the marker at the top of a long body (`verdict posted`).
+   - Interface: `comment.sh`, `start-story.sh`, `merge.sh` and `status.sh` are named with concrete behaviour, messages and exit codes. `hosting_repo_api` exists in `operator/lib/hosting.sh`. The head branch source is now stated.
+   - Criteria: each is testable by one test function. Every Interface behaviour has one: signing (1), no double signing (2), the refusals on both sides (3), the start commit author and unchanged config (4), the merge body fields (5), the verdict rule on both sides (6), the references and `SKILL.md` naming `comment.sh` (8), no `gh pr comment` (7).
+   - Smoke test: both commands are runnable, and the `Expect:` line (a number of at least 1, then 0) can be checked against the output. Neither runs pytest.
+   - Architecture: scripts and references under `operator/skill/kumpel/`, a test under `tests/` with the shared stand-ins. Nothing in `src/factory/` changes.
+   - Scope: this is S0012 of the feature's scope and its stories list, and not in its Out of scope.
