@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-11-03T09:12:45.040488Z'
   stage: smoke-test
   run: e88cc1ac69ec415e932ce6a9423094b7
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-11-03T09:16:42.360609Z'
+  stage: approval
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -514,3 +519,4 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
     - The example's comments name those same defaults: the timeout comment at line 59 and the idle-minutes comment at line 61. That fits criteria 2 and 13.
 
     Open: nothing.
+25. factory: done (pull request merged); cost: 11 runs, 17.3 min, 125 turns, 466031 tokens in (5100334 more from cache), 74388 out, $5.88
