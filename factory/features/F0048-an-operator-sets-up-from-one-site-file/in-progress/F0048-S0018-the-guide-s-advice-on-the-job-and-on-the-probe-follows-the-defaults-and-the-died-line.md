@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T09:51:33.745787Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T09:51:33.739546Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T09:51:33.745787Z'
+  stage: intake
+---
+
 # The guide's advice on the job and on the probe follows the defaults and the died line
 
 <!-- proposed by feature acceptance of 2026-11-03; the human added part B on 2026-11-03 (decision 24) -->
@@ -58,3 +85,6 @@ uv run python -m factory.entry.check_documents
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
