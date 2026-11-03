@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 515
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T08:47:43.707132Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-03T08:47:43.707132Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-03T08:52:36.425091Z'
+  stage: tests
+  run: d06f7b4cb3894ea58c23c86495936aed
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -145,3 +147,42 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
    Architecture: all changes are in the operator's shell and example files and in tests. The README is left to the documenter (decision 22), and the coder's write paths cover the rest. Nothing touches `src/factory/`.
    Scope: it matches F0048's S0014 entry and decisions 18, 21 and 22. Nothing in the feature's "Out of scope" is touched.
 4. factory: started tests as vm.
+5. tester: I wrote the tests for every acceptance criterion. One run of the changed test files (`uv run pytest -q -n 8 <files>`) fails where the code does not exist yet: the example's comments, the job's defaults, the usage line, the space after `=`, `-I`, the status.sh reads, the SKILL.md step 1 and the `cannot be read` job line. The earlier rows that are unaffected pass, and so does the unchanged `does-not-exist-yet` row. `make lint` is green. The test runner had no module it could not import, because everything under test is a shell script or a text file.
+
+   Criterion → test:
+   - criterion 1: tests/test_operator_site_example.py::test_each_comment_says_whether_its_key_is_required_and_otherwise_names_a_default (one row per key of the example; `site_job_keys` is read by sourcing `operator/lib/site.sh`)
+   - criterion 2: tests/test_operator_site_example.py::test_the_named_size_defaults_are_those_the_job_takes_without_the_key (rows cpu, memory, timeout, idle-minutes; `job.sh create --dry-run` on the example's values with the key left out)
+   - criterion 3: tests/test_operator_site_example.py::test_the_named_price_default_is_the_price_the_provider_file_holds_without_the_key (rows input, output; read back through `provider_text` and `read_provider`)
+   - criterion 4: tests/test_operator_site_example.py::test_the_sanitise_rules_default_is_the_file_beside_the_site_file
+   - criterion 5: tests/test_operator_site_example.py::test_show_on_a_copy_of_the_example_says_set_for_every_key_in_order
+   - criterion 6: tests/test_operator_site.py::test_a_malformed_command_prints_the_usage_and_exits_2 (only the `USAGE` constant changed, with the leave in feature.md) and the unchanged tests/test_operator_site_check.py::test_an_argument_after_check_prints_the_usage
+   - criterion 7: tests/test_operator_texts.py::test_the_first_step_names_the_site_file_and_the_rest_is_unchanged (`AFTER_FIRST_STEP` is today's text from step 2 through *The loop*)
+   - criterion 8: tests/test_operator_python_isolation.py::test_a_json_module_in_the_working_folder_is_never_imported (rows settings-show, settings-init, status, comment, site-check, job-create-dry-run; stdout is compared with the folder path written as `<root>`)
+   - criterion 9: tests/test_operator_python_isolation.py::test_every_python_start_passes_isolated_mode_first (one row per file of the Interface; it counts `python3` as a command at the start of a line or after `|`, `(`, `$(`, `;` or `&&`)
+   - criterion 10: tests/test_operator_skill_scripts.py::test_status_stops_at_a_failing_read_with_the_hosting_message (rows issue, comments-page, commits); the existing status.sh rows stay as they were
+   - criterion 11: tests/test_operator_site_check.py::test_the_job_check_tells_whether_the_job_exists_and_never_fails (rows exists, does-not-exist-yet, cannot-be-read; each also checks that the last line is `site: ready` and the exit is 0)
+   - criterion 12: tests/test_operator_site.py::test_a_space_beside_the_equals_sign_is_a_fault_and_one_inside_the_value_is_kept (rows space-before, space-after, tab-after, no-space, space-inside-the-value)
+   - criterion 13: tests/test_operator_job.py::test_the_sizes_and_the_idle_minutes_have_defaults_the_site_overrides (the `defaults` row is now 4/16Gi/86400/30)
+   - criteria 14 and 15: no test (they belong to `make check` and the docs stage)
+
+   Files created: tests/test_operator_site_example.py, tests/test_operator_texts.py, tests/test_operator_python_isolation.py, tests/site_check_support.py.
+
+   Earlier test files I changed:
+   - **Moves under the standing leave** (every earlier test keeps its name and what it checks):
+     - tests/test_operator_site_check.py: its machine, stand-ins, constants and line helpers moved to tests/site_check_support.py. The `system` fixture now calls `link_system`.
+     - tests/test_operator_job.py: `GCLOUD_STAND_IN`, `TAG`, `INSTANCE`, `JOB_ROOT`, `WRAPPER`, `START`, `START_SCRIPT`, `RunJob`, `wrapper_of` and `provider_text` moved to tests/operator_job_support.py. The bodies of the `repository` and `run_job` fixtures moved there as `make_job_repository` and `job_runner`, and the fixtures call them.
+     - tests/test_operator_site.py: `INTERFACE_KEYS` moved to tests/operator_support.py.
+   - **Additions to shared helpers:**
+     - The curl stand-in in tests/operator_support.py answers a route listed in `STAND_IN_CURL_FAILURES` with that status and body.
+     - `Operator.fail` in tests/operator_skill_support.py writes that file.
+     - The gcloud stand-in of `site check` writes `Setup.describe_error` to standard error on a describe.
+   - **Changes by the work item:**
+     - tests/test_operator_job.py, criterion 13 (the human's leave): the defaults of `job_flags` and `env_list` and the `defaults` row are now 4/16Gi/86400/30. The `overrides` row now uses 8/32Gi, because 4/16Gi are the defaults now and the row would no longer show an override.
+     - tests/test_operator_site.py, criterion 12 (decision 21): `test_a_space_before_the_equals_sign_is_a_fault_and_one_after_it_is_the_value` had a row `SITE_A= 1` accepted, which decision 21 reverses. It is replaced by the criterion 12 test above, which keeps the space-before row. This renames an earlier test; I read the Interface's "new rows in the tests of the loader" as covering it.
+     - tests/test_operator_site_check.py, criterion 11: in the job-check test, the `does-not-exist-yet` row's stand-in now prints a not-found error, and a `cannot-be-read` row was added.
+
+   Open for the coder:
+   - In the not-found row, the gcloud stand-in prints `ERROR: (gcloud.run.jobs.describe) Cannot find job [factory-job].`, which is what I recall `gcloud run jobs describe` printing for a missing job; I could not check it against gcloud here. The permission row prints `ERROR: (gcloud.run.jobs.describe) PERMISSION_DENIED: ...` followed by a second line.
+   - The failing status.sh read answers `500` with `{"message": "Server Error"}`, so the test expects `hosting: GET /repos/owner/repo/<path>: 500 Server Error` as the last line on standard error.
+
+   `lint`: lint: green (0.1 s)

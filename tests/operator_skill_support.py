@@ -76,6 +76,13 @@ class Operator:
         bodies = {route: json.dumps(value) for route, value in routes.items()}
         self.routes_file.write_text(json.dumps(bodies), encoding="utf-8")
 
+    def fail(self, route: str, status: str, message: str) -> None:
+        """Let the `curl` stand-in answer the path and query `route` with `status` and `message`."""
+        body = json.dumps({"message": message})
+        self.routes_file.with_name("failures.json").write_text(
+            json.dumps({route: [status, body]}), encoding="utf-8"
+        )
+
     def run(self, script: str, *arguments: str) -> ProcessResult:
         """Run the skill's `script` with `arguments` on this machine."""
         env = hosting_env(
@@ -85,6 +92,7 @@ class Operator:
             self.temporary,
             self.bin_folder,
             STAND_IN_CURL_ROUTES=str(self.routes_file),
+            STAND_IN_CURL_FAILURES=str(self.routes_file.with_name("failures.json")),
             KUMPEL_SETTINGS=str(self.settings_file),
             **GIT_VARIABLES,
         )

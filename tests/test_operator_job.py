@@ -1,21 +1,29 @@
 """The operator's job script: the job's call to `gcloud` built from the site's values."""
 
-import base64
-import gzip
 import json
-import os
 import re
-import shutil
-from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import ProcessResult
 from factory.domain.opencode_provider import read_provider
-from git_support import commit_all, run_git, write_executable
-from operator_job_support import BARE, IMPERSONATE, JOB, words
-from operator_support import ROOT, operator_environment, run_script
+from git_support import commit_all, run_git
+from operator_job_support import (
+    BARE,
+    IMPERSONATE,
+    INSTANCE,
+    JOB,
+    JOB_ROOT,
+    START,
+    START_SCRIPT,
+    TAG,
+    RunJob,
+    job_runner,
+    make_job_repository,
+    provider_text,
+    words,
+    wrapper_of,
+)
 from recording_stand_in_support import read_records
 
 HOSTING_MOUNT = "/secrets/hosting-token"
@@ -23,9 +31,6 @@ MODEL_MOUNT = "/secrets-llm/client-secret"
 HOSTING_NAME = "hosting-sm"
 MODEL_NAME = "model-sm"
 MOUNTS = f"{HOSTING_MOUNT}={HOSTING_NAME}:latest,{MODEL_MOUNT}={MODEL_NAME}:latest"
-TAG = "t1"
-INSTANCE = "inst-x"
-JOB_ROOT = f"/srv/factory/{INSTANCE}"
 NO_PROXY = "localhost,.internal,10.0.0.0/8"
 SITE: dict[str, str] = {
     "SITE_PROJECT": "p1",
@@ -47,43 +52,14 @@ SITE: dict[str, str] = {
     "SITE_LOGIN_SCOPE": "api://llm/.default",
     "SITE_LOGIN_CLIENT_ID": "client-1",
 }
-WRAPPER = re.compile(r"--args=-c,echo ([A-Za-z0-9+/=]+) \| base64 -d \| gzip -d \| sh")
 LONG_BASE64 = re.compile(r"[A-Za-z0-9+/=]{101,}")
-START = "exec sh /tmp/job-start.sh"
-START_SCRIPT = START.removeprefix("exec sh ")
 # What must never reach the job: a token command and secrets in the environment.
 MARKED_SITE = {"SITE_TOKEN_CMD": "printf 'TOKEN%s' MARK"}
 MARKS = ("TOKENMARK", "SECRETMARK")
 MARKED_ENV = dict(zip(("GITHUB_TOKEN", "ANTHROPIC_API_KEY"), MARKS, strict=True))
 
-# A stand-in for gcloud: it records its arguments; `describe` exits with STAND_IN_DESCRIBE
-# (1, not found, by default) after writing STAND_IN_DESCRIBE_TEXT to standard error,
-# `executions list` prints STAND_IN_EXECUTIONS, `execute` prints STAND_IN_EXECUTION;
-# the verb STAND_IN_FAIL fails with STAND_IN_FAIL_STATUS and a text.
-GCLOUD_STAND_IN = r"""
-import json, os, sys
 
-arguments = sys.argv[1:]
-with open(os.environ["STAND_IN_RECORD"], "a", encoding="utf-8") as record:
-    record.write(json.dumps(arguments) + "\n")
-words = [word for word in arguments if not word.startswith("-")]
-verb = "executions list" if words[2:4] == ["executions", "list"] else words[2]
-if verb == os.environ.get("STAND_IN_FAIL"):
-    sys.stderr.write("ERROR: (gcloud) FAILTEXT\n")
-    sys.exit(int(os.environ.get("STAND_IN_FAIL_STATUS", "1")))
-if verb == "describe":
-    sys.stderr.write(os.environ.get("STAND_IN_DESCRIBE_TEXT", ""))
-    sys.exit(int(os.environ.get("STAND_IN_DESCRIBE", "1")))
-if verb == "executions list":
-    sys.stdout.write(os.environ.get("STAND_IN_EXECUTIONS", ""))
-if verb == "execute":
-    sys.stdout.write(os.environ.get("STAND_IN_EXECUTION", "") + "\n")
-"""
-
-RunJob = Callable[..., ProcessResult]
-
-
-def env_list(values: dict[str, str], idle: str = "60") -> str:
+def env_list(values: dict[str, str], idle: str = "30") -> str:
     """The `--set-env-vars` value the Interface gives for the site `values`."""
     proxy, no_proxy, model = values["SITE_PROXY"], values["SITE_NO_PROXY"], values["SITE_MODEL"]
     root = f"/srv/factory/{values['SITE_INSTANCE']}"
@@ -112,7 +88,7 @@ def env_list(values: dict[str, str], idle: str = "60") -> str:
     return "^@^" + "@".join(entries)
 
 
-def job_flags(cpu: str = "8", memory: str = "32Gi", timeout: str = "14400") -> set[str]:
+def job_flags(cpu: str = "4", memory: str = "16Gi", timeout: str = "86400") -> set[str]:
     """The flags of the `create` or `update` call besides the env list and the wrapper."""
     return {
         f"--project={SITE['SITE_PROJECT']}",
@@ -138,26 +114,10 @@ def flag(call: list[str], name: str) -> str:
     return values[0]
 
 
-def wrapper_of(call: list[str]) -> str:
-    """The script the call's `--args` carries, decoded and un-gzipped."""
-    arguments = [word for word in call if word.startswith("--args=")]
-    assert len(arguments) == 1, call
-    match = WRAPPER.fullmatch(arguments[0])
-    assert match is not None, arguments[0]
-    return gzip.decompress(base64.b64decode(match.group(1))).decode("utf-8")
-
-
 @pytest.fixture
 def repository(tmp_path: Path) -> Path:
     """A git repository with `operator/` and `vm/` committed and tagged `t1`."""
-    folder = tmp_path / "repo"
-    folder.mkdir()
-    run_git(folder, "init", "-q")
-    for name in ("operator", "vm"):
-        shutil.copytree(ROOT / name, folder / name)
-    commit_all(folder, "the operator's scripts")
-    run_git(folder, "tag", TAG)
-    return folder
+    return make_job_repository(tmp_path / "repo")
 
 
 @pytest.fixture
@@ -172,35 +132,7 @@ def run_job(tmp_path: Path, repository: Path, records: Path) -> RunJob:
 
     The names in `unset` are left out of the environment.
     """
-    bin_folder = tmp_path / "bin"
-    bin_folder.mkdir()
-    write_executable(bin_folder, GCLOUD_STAND_IN, name="gcloud")
-    site_folder = tmp_path / "site"
-    site_folder.mkdir()
-    site_file = site_folder / "site.env"
-
-    def run(
-        job_words: list[str], values: dict[str, str], *, unset: tuple[str, ...] = (), **extra: str
-    ) -> ProcessResult:
-        site_file.write_text(
-            "".join(f"{key}={value}\n" for key, value in values.items()), encoding="utf-8"
-        )
-        env = operator_environment(
-            tmp_path,
-            PATH=os.pathsep.join([str(bin_folder), os.environ["PATH"]]),
-            FACTORY_SITE=str(site_file),
-            XDG_STATE_HOME=str(tmp_path / "state"),
-            GIT_CONFIG_NOSYSTEM="1",
-            STAND_IN_RECORD=str(records),
-            **extra,
-        )
-        for name in unset:
-            del env[name]
-        return run_script(
-            [str(repository / "operator" / "job" / "job.sh"), *job_words], tmp_path, env
-        )
-
-    return run
+    return job_runner(tmp_path, repository, records)
 
 
 def site_path(tmp_path: Path) -> Path:
@@ -296,16 +228,16 @@ def test_missing_site_keys_are_named_in_one_line(
 @pytest.mark.parametrize(
     ("values", "cpu", "memory", "timeout", "idle"),
     [
-        pytest.param({}, "8", "32Gi", "14400", "60", id="defaults"),
+        pytest.param({}, "4", "16Gi", "86400", "30", id="defaults"),
         pytest.param(
             {
-                "SITE_CPU": "4",
-                "SITE_MEMORY": "16Gi",
+                "SITE_CPU": "8",
+                "SITE_MEMORY": "32Gi",
                 "SITE_TIMEOUT": "3600",
                 "SITE_IDLE_MINUTES": "15",
             },
-            "4",
-            "16Gi",
+            "8",
+            "32Gi",
             "3600",
             "15",
             id="overrides",
@@ -400,21 +332,6 @@ def test_a_code_ref_the_repository_does_not_know_stops_before_gcloud(
     assert "job: unknown-ref is not known here; fetch it first" in result.stderr
     assert result.exit_status == 1
     assert read_records(records) == []
-
-
-def provider_text(tmp_path: Path, call: list[str]) -> str:
-    """The `provider.json` the wrapper of `call` writes, run with its folders in `tmp_path`."""
-    script = wrapper_of(call)
-    root = tmp_path / "job-root"
-    # The wrapper runs here with its two folders moved into tmp_path and without the hand-over.
-    local = (
-        script.replace(START, "exit 0")
-        .replace(JOB_ROOT, str(root))
-        .replace(START_SCRIPT, str(tmp_path / "job-start.sh"))
-    )
-    ran = run_script(["-c", local], tmp_path, operator_environment(tmp_path))
-    assert ran.exit_status == 0, ran.stderr
-    return (root / "provider.json").read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize(
