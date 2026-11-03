@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T02:12:22.657608Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-03T02:12:22.657608Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T02:13:12.774416Z'
+  stage: docs
+  run: db0ac835fcd64b8786cd4120bbdd114d
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -344,3 +346,23 @@ Expect: one line that says the tests passed and names no failure.
     - `tests/entry/test_run_machine_stop_exit.py` `_log`: repeats `_log` of `tests/entry/test_run_idle_exit.py` (it reads `factory.log` from a state directory, not from settings). It could go in `tests/scripted_tick_support.py`.
     - `tests/entry/test_run_machine_stop_exit.py` `_Outcome`: copies `MainRun`'s fields one by one. It could hold the `MainRun` itself.
 21. factory: started docs as vm.
+22. documenter: Docs for F0048-S0010. Only documents changed, so I did not run `make check`; the factory's checks decide. The first smoke-test command of the story (`grep -n "standing for 10 minutes in a job" docs/operator-guide.md | ...`) gives `1`. I did not run the second (`uv run pytest tests/entry/test_run_idle_exit.py`), which tests code and tests I did not change.
+
+    Files changed:
+    - `docs/operator-guide.md`: in *The idle shutdown*, a new paragraph *A machine stop in a job*. A machine stop that stands for ten minutes ends `factory-run` with status 1, so the execution ends as failed and the job's log ends with the stop's line. The same paragraph says the count runs from the first time of an unbroken stretch, and that a VM, `poweroff` and a repository stop are unchanged. In the same section, the sentence "the machine stays up while one stands" now says "on a VM" and points to that paragraph. One bullet in *The stops of the repository or the machine* says the same in one sentence. The bullet on `factory-run` exiting with status 0, in the Cloud Run job part, now names the status-1 exception.
+    - `docs/decisions.md`: new entry *In a job a machine stop ends the process* (decision 13 of the feature): decision, why, and what was rejected. The rejections come from the coder's and reviewer's entries.
+    - `docs/project-guide/watching.md`: in *The idle shutdown*, a paragraph on `MachineStopExit`, `machine_stop_exit_of`, `_observed_iteration`, `MachineStopStood` and `main` returning 1.
+
+    Cross-read and found current against the diff:
+    - `README.md`: no mention of the idle shutdown, and the criterion says none.
+    - The table rows for `FACTORY_IDLE_SHUTDOWN_ACTION` and `FACTORY_IDLE_SHUTDOWN_MINUTES` in `docs/operator-guide.md`. They only describe the idle exit, which is unchanged.
+    - The rest of `docs/project-guide/watching.md`'s idle section.
+    - `docs/decisions.md`'s entry *In a job the idle shutdown ends the process*.
+
+    Findings for the coder: none. The code agrees with the Interface and the criteria, and the docstrings are present.
+
+    Stale text not touched: `HealthStatus.with_stop` moves a re-raised stop's `at` forward, so `health.json` shows the last raise, not the first. It is noted in the coder's entry 18 and is not wrong, so I only mention it in the decisions entry as a rejected change.
+
+    `check`: check: green (not run again: passed on tree ceed9adf0207 at 2026-11-03T02:09:41Z)
+    `secrets`: secrets: green (2.6 s)
+    `documents`: documents ok
