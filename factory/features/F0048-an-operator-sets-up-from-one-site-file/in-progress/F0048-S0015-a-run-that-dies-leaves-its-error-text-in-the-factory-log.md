@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T08:26:35.090104Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-03T08:26:28.774756Z'
   stage: doing
   run: f73737b014dd4319bcdd77ad3e9f9686
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:26:35.090104Z'
+  stage: review
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -259,3 +268,4 @@ Expect: the path of the module that writes the line.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+14. factory: started review as vm.
