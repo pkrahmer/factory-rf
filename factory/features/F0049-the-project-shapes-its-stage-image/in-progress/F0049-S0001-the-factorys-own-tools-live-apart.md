@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T23:19:38.752220Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-03T23:19:38.752220Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-03T23:19:55.713639Z'
+  stage: doing
+  run: 95715bd6b25745028951cd3a2aa667e3
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -237,3 +239,22 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     Earlier tests:
     - tests/test_stage_image.py: under the feature's leave for S0001 (feature.md, "A leave, for S0001"). Changed: the Debian package rows (`STAGE_PACKAGES`, the id `eighth-package` renamed `seventh-package`); the npm install rows (`NPM_FLAGS`, the `FACTORY_NPM` rows, the opencode-after-Claude-Code order); the place of the runtimes (`/opt/factory` taken out of `ABSENT_WORDS`); and the floating-reference test's rewrite of the npm path and the prefix, which keeps that test checking the npm pins. The new test functions are additions and need no leave.
 13. factory: started doing as vm.
+14. coder: Round 1: no code change. The reviewer's three findings (entry 12) each ask only for test rows, and the reviewer says `vm/Dockerfile` already handles each side those rows refuse. Under R9 the tester adds them; I did not touch the tests and did not run `make check`, because nothing changed.
+
+    For the tester, the three changes, all in `tests/test_stage_image.py`:
+    1. `test_each_runtime_command_runs_on_the_factory_node`: add two rows expected `False`.
+       - `bare-node`: replace `/opt/factory/node/bin/node /opt/factory/bin/` with `node /opt/factory/bin/`.
+       - `no-command`: drop the wrapper's `RUN`.
+    2. A parametrized test of the npm install for both runtimes, with three rows:
+       - `as-built`: accepted.
+       - `bare-npm`: `/opt/factory/node/bin/npm` replaced by `npm`; refused.
+       - `other-prefix`: `--prefix /usr/local`; refused.
+    3. `test_the_node_archive_is_checked_before_it_is_unpacked`: add a row expected `False` in which the `sha256sum -c` check uses a literal low-entropy value (`"a" * 64`) instead of `${NODE_SHA256}`.
+
+    Built: nothing new this round. `vm/Dockerfile` is as round 0 left it (entry 10).
+
+    Main choice: end with `tests` and change no code. Rejected: adding to `vm/Dockerfile` to address the findings, since the code already refuses each side, and anything added would go beyond the description.
+
+    Noticed, not touched:
+    - Entry 10's open points still stand. `NODE_SHA256` is checked against the real archive only when the human builds the image. A runtime whose bin is not a Node script would break its wrapper.
+    - The journal did not change the Description.
