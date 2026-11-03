@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -289,6 +289,11 @@ journal:
   at: '2026-11-03T23:47:40.277327Z'
   stage: smoke-test
   run: eee21d20952b42cfa1c2de34e2e88ecf
+- number: 52
+  speaker: factory
+  kind: done
+  at: '2026-11-03T23:49:35.057921Z'
+  stage: approval
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -933,3 +938,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     - Criterion 7: in *The stage image*, `docs/operator-guide.md` now lists six packages and adds the paragraph on the Node under `/opt/factory`: the runtimes exec'd directly, no Node for projects, and how to change the pin from `SHASUMS256.txt`. `docs/decisions.md` has the entry "The factory's tools live apart, under `/opt/factory`, with their own Node", and it says it supersedes the seven-package entry for `nodejs` and `npm`. `README.md` and the project guide are unchanged.
 
     No findings. Open: none.
+52. factory: done (pull request merged); cost: 22 runs, 22.6 min, 155 turns, 603896 tokens in (3448936 more from cache), 85656 out, $6.60
