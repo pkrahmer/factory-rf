@@ -93,6 +93,11 @@ LESSONS = {
         _SECOND_LESSON,
         "- The project guide is an index plus one file for each domain, each well under the "
         "2,000 lines the file tool reads by default; split a file before it grows past that.",
+        '- In `docs/decisions.md`, write a "Why" or a "Rejected" only from what the story names: '
+        "its Description, its Interface, its docs criterion and its journal, where the human's "
+        "answers stand. Never add a reason or a rejected option of your own reading of the code "
+        "or the documents. When the story names no rejected option for an entry, write no "
+        '"Rejected" line, and name that entry in your journal entry.',
         _TEMPORARY_DIRECTORY_LESSON,
         "- When every file you changed is a document (`README.md` or a file under `docs/`), end "
         "without running `make check`, in place of step 3 of the stage: the factory runs the "

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 524
 comments_read: [6604990127]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T13:25:51.667374Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-03T13:25:51.667374Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-11-03T13:26:21.233535Z'
+  stage: tests
+  run: 40f2024725534baca46cacf5be15cc68
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -168,3 +170,19 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
     - **Description:** the journal doesn't change what the task means, so the Description stays as it is. The human's answer only allows the one test change above.
     - **Noticed but not touched:** nothing.
 11. factory: started tests as vm.
+12. tester: I made the one test change the human approved in entry 8 and the coder named in entry 10. Nothing else changed.
+
+    - **Change:** `tests/test_claude_agent_texts.py`, `LESSONS["documenter"]`. I added the Interface's decision-log bullet, word for word, between the project-guide entry and `_TEMPORARY_DIRECTORY_LESSON`. The documents-only bullet is still the list's last entry. `test_lessons_section_is_last_and_holds_exactly_the_role_bullets` keeps its name and still pins the documenter's whole list. Nothing else in that module changed.
+    - **Leave:** the human's answer in entry 8, option (a). This is the only earlier test file I changed.
+    - **Criteria to tests:** unchanged from entry 5.
+      - criterion 1: tests/test_claude_agent_texts_decision_log.py::test_documenter_lessons_hold_the_decision_log_bullet
+      - criterion 2: tests/test_claude_agent_texts_decision_log.py::test_decision_log_bullet_stands_between_the_guide_and_temporary_bullets
+      - criterion 3: tests/test_claude_agent_texts_decision_log.py::test_only_the_documenter_holds_the_decision_log_bullet
+      - criteria 4 and 5: no tests (`make check` and the docs criterion).
+    - **Files created:** none in this round.
+    - **Modules the test run could not import:** none.
+    - **Test run:** I ran `uv run pytest -q tests/test_claude_agent_texts.py tests/test_claude_agent_texts_decision_log.py` and every test passed.
+    - **Second run:** after that run, `make lint` failed with one E501: the new string was 102 characters at `tests/test_claude_agent_texts.py:99`, over the limit of 100. I moved the line break inside the string, which leaves its text the same. I then ran `tests/test_claude_agent_texts.py` again, once, against the stage's one-run rule, to check the rewrapped text still matches; it passed.
+    - **Lint:** `make lint` is now green.
+
+    `lint`: lint: green (0.1 s)
