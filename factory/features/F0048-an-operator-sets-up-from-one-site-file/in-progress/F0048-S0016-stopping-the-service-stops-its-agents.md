@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T07:29:10.930204Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   at: '2026-11-03T07:29:05.201622Z'
   stage: review
   run: 6de68300f1764914af645a2b22a462f1
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:29:10.930204Z'
+  stage: docs
 ---
 
 # Stopping the service stops its agents
@@ -468,3 +477,4 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     - `tests/entry/test_wiring_instance_label.py:22`: the `InstanceSettings(...)` block copies the one in `tests/entry/test_wiring_container_profile.py:31`. One builder in `tests/wiring_support.py` could serve both.
     - `tests/test_vm_service_stop.py:6`: `EARLIER_LINES` is a second copy of the unit's text, beside `UNIT` in `tests/test_vm_local_environment.py`.
     - Entry 22 names `tests/test_vm_service.py` as criterion 2's test. The test is `tests/test_vm_service_stop.py::test_the_unit_stops_the_instances_containers_after_its_start_line`.
+27. factory: started docs as vm.
