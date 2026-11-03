@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T01:01:53.478624Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T01:01:53.471788Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:01:53.478624Z'
+  stage: intake
+---
+
 # One command says whether a machine is ready, and the guide says how to get there
 
 ## Description
@@ -59,3 +86,6 @@ sh operator/bin/site check extra; echo "exit $?"
 Expect: two lines, `usage: site check` (standard error) and `exit 2`.
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
