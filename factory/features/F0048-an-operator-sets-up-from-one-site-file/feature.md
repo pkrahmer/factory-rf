@@ -27,6 +27,7 @@ Running the factory in a Cloud Run job, and driving it as the human in the loop,
 - The project guide and the decision log describe the operator's scripts, and the current texts name the repository `kumpel-factory` (S0019, from the third acceptance, decision 25).
 - The job's start script removes its download folder on every way out of its `runc` step (S0020, decision 26).
 - The decision log's F0048 entries give the feature's own reasons (S0021, from the fourth acceptance, decision 27).
+- The documenter's lessons hold decision 27's rule: a "Why" or a "Rejected" only from what the story names (S0022, from the fifth acceptance).
 
 ## Out of scope
 
@@ -61,6 +62,7 @@ The build order; start one at a time, the next when the one before is archived i
 - S0019: The project guide and the decision log describe the operator's scripts
 - S0020: The job's start script leaves no temporary folder behind
 - S0021: The decision log gives the feature's own reasons for the operator's scripts
+- S0022: The documenter writes only the story's reasons into the decision log
 
 ## The human's changes
 
