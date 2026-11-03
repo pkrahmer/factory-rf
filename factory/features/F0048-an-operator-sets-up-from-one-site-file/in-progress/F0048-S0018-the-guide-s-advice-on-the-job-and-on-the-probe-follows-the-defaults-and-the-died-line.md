@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229, 6600934999]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T10:23:09.644429Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-03T10:23:03.915685Z'
   stage: docs
   run: 0e9ca5373274405b9b75416aa1c4dc44
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-03T10:23:09.644429Z'
+  stage: smoke-test
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -323,3 +332,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 5940cd35f228 at 2026-11-03T10:20:06Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+22. factory: started smoke-test as vm.
