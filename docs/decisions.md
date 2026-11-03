@@ -1356,3 +1356,12 @@ Date: 2026-11-03 (F0048-S0016; decision 20 of the feature).
 - Why: rootless podman with systemd's cgroup manager puts the container and its `conmon` in a scope of the user's own systemd, outside the cgroup of `factory@<instance>`. A stop of the service ended `factory-run` and the `podman run` client, but the container went on, and the restarted factory found the stage without an owner and started a second agent on the same dataset (the acceptance F0048-A0001, 2026-11-03). The filter names the instance, so other instances' containers and unlabelled ones are not touched.
 - Rejected: `KillMode` (it acts on the service's cgroup and cannot reach a scope of another systemd); a stop handler in `factory-run` (it does not run after a crash); passing the label from each caller (`agent_launch`, `run`), which would leave two places to keep in step.
 - A machine set up earlier installs the new unit by hand; `vm/setup.sh` reports a differing unit and leaves it.
+
+## A missing test row for a side the code handles is a note
+
+Date: 2026-11-03 (F0048-S0017; decision 23 of the feature).
+
+- Decision: when a stated limit has a side without a test, the reviewer reads the code. If the code handles that side as the Interface says, the missing row is a note, not a finding; the note names the side, the code's location and the missing row. This holds from round 0. A side the code does not handle, or handles otherwise, is still a finding. The rule is the sentence group at the end of the notes paragraph in `claude/agents/reviewer.md`; `tests/test_claude_agent_texts_review_leave.py` pins it.
+- Why: the human gave the same answer three times in F0048 (S0001 entry 33, S0003 entry 30, S0005 entry 26), and each time the question cost a wait or a round, for a row that tested a side the code already got right. The rule was written nowhere lasting.
+- The tester's rule to test every stated limit on both sides is unchanged; only what the reviewer sends back changes. The lesson on a limit tested on one side only and checklist item 1 in `reviewer.md` keep their wording and are limited by this exception. The line in `CLAUDE.md` (*Tests*) that the reviewer counts an untested side as a finding is the human's to change.
+- Rejected: sending every missing row back as a finding, which cost a round each time for no fault in the code.

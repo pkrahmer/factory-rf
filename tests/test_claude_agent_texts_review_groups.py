@@ -38,6 +38,21 @@ def test_the_rest_of_the_reviewer_body_is_unchanged() -> None:
     body = agent_body("reviewer")
     assert body.count(_ALL_GROUPS) == 1
 
-    earlier = body.replace(_ALL_GROUPS, _STOP_AT_THE_FIRST)
+    untested_side_is_a_note = (
+        "A point on an acceptance criterion, the architecture, security or anything under "
+        "`src/` is still a finding and sends it back with `doing`. One exception holds from "
+        "round 0: a side of a stated limit that has no test is a note, not a finding, when you "
+        "have read the code and it handles that side as the Interface says; the note names the "
+        "side, the code's location and the missing row. A side the code does not handle, or "
+        "handles otherwise, is a finding."
+    )
+    untested_side_is_a_finding = (
+        "A point on an acceptance criterion (an untested side of a stated limit among them), "
+        "the architecture, security or anything under `src/` is still a finding and sends it "
+        "back with `doing`."
+    )
+    earlier = body.replace(_ALL_GROUPS, _STOP_AT_THE_FIRST).replace(
+        untested_side_is_a_note, untested_side_is_a_finding
+    )
 
     assert zlib.crc32(earlier.encode()) == _EARLIER_BODY_CRC32

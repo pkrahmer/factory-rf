@@ -17,9 +17,11 @@ _NOTES = (
     "`Notes:` after the findings, or after `no findings`, one line each with its location; they "
     "do not send the work item back. This holds for the copied helper and the separate test "
     "functions your lessons count as findings, when they are in a test file the diff adds. A "
-    "point on an acceptance criterion (an untested side of a stated limit among them), the "
-    "architecture, security or anything under `src/` is still a finding and sends it back with "
-    "`doing`."
+    "point on an acceptance criterion, the architecture, security or anything under `src/` is "
+    "still a finding and sends it back with `doing`. One exception holds from round 0: a side of "
+    "a stated limit that has no test is a note, not a finding, when you have read the code and it "
+    "handles that side as the Interface says; the note names the side, the code's location and "
+    "the missing row. A side the code does not handle, or handles otherwise, is a finding."
 )
 _ADDED_CRITERION = (
     "When the diff builds a behaviour that no criterion names, and pinning it needs no change "
