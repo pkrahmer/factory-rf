@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T07:45:15.807964Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-03T07:45:15.807964Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-03T07:45:47.495187Z'
+  stage: tests
+  run: 9264cc5771e4454b8fbf142dc633fc95
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -109,3 +111,16 @@ Expect: `1`.
    - Architecture: only agent text and a text test change. Nothing under `src/` changes, so the layers are untouched.
    - Scope: this is within F0048 (the feature lists S0017 and decision 23). The change to the pinned sentence in the text test is covered by the feature's leave for S0017, and the tester changes nothing else in that module.
 7. factory: started tests as vm.
+8. tester: I changed the pinned notes paragraph in `tests/test_claude_agent_texts_review_leave.py`, as the feature's leave for this story allows. In `_NOTES`, the old last sentence ("A point on an acceptance criterion (an untested side of a stated limit among them), …") is replaced by the human's three sentences from journal entry 4, word for word. The clause "One exception holds from round 0" is included. Every other sentence of `_NOTES` is unchanged, and so are the other constants and test functions.
+
+   - criterion 1: tests/test_claude_agent_texts_review_leave.py::test_agent_section_holds_the_review_leave_text[reviewer-notes] pins the new rule word for word. tests/test_claude_agent_texts_review_leave.py::test_reviewer_paragraph_follows_the_one_before_it[added-criterion-follows-notes] requires that the paragraph end with the new text right before the next paragraph. So the old sentence, which counted an untested side among the findings, can no longer close the paragraph.
+   - criterion 2: the same two tests, plus test_reviewer_paragraph_follows_the_one_before_it[notes-follow-recommendation]. They pin every other sentence of the notes paragraph and its place, as before.
+   - criterion 3 (`make check` green) and criterion 4 (docs) are not tester work: the coder's check and the docs stage cover them.
+
+   Files created: none. Changed: tests/test_claude_agent_texts_review_leave.py, the `_NOTES` constant only, under the feature's leave named in the Interface.
+
+   Modules the test run could not import: none. The run (`uv run pytest -q tests/test_claude_agent_texts_review_leave.py`) fails on purpose in three tests: [reviewer-notes], [notes-follow-recommendation] and [added-criterion-follows-notes]. They fail with an AssertionError because `claude/agents/reviewer.md` still holds the old sentence. `make lint` is green.
+
+   Rejected: a separate test that the old parenthetical is absent from the file. The adjacency test already rules it out of the paragraph, and the leave covers only the pinned sentence, not new tests in that module.
+
+   `lint`: lint: green (0.1 s)
