@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 527
-comments_read: []
+comments_read: [6618558222]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 76f3189141154e57a61fe7479ee00c1e
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-03T23:56:27.530203Z'
+  stage: intake
 ---
 
 # A project's stage file builds the image its stages run in
@@ -86,3 +91,12 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
    8. Criterion 6 puts three different failures into one criterion: a rule break, a failed build and a time limit. The detail text differs between the rule break and the build failure (`the stage file did not build in <s> s:` plus the tail). Please state whether these are separate rows, and whether the time limit's detail is the same text as a failed build's.
 
    I would choose to add one criterion for each of items 1 to 3, 5 and 6, and to confirm 4 and 7 as described.
+4. 2026-11-03 human: Answers, as you recommend:
+   1. Add a criterion for the adapter: a build that prints 25 lines gives an output_tail of its last 20 lines in order, and one that prints 5 lines gives all 5.
+   2. Add a criterion: the adapter's build that reaches its time limit gives passed=False (tested with a short limit through a stand-in podman, by the ROOMY rules of CLAUDE.md), and the wiring passes the one 30-minute constant to build.
+   3. Add the adapter's two rows: inspect output with a PATH gives that PATH; without one gives /usr/local/bin:/usr/bin:/bin.
+   4. Drop "rootless" from the Interface: the factory's podman is rootless already, and build adds no flag for it.
+   5. Add a criterion: after a stage_image_failed stop, the next start of factory-run with a valid file, or with no file, holds no such stop.
+   6. If an existing test already renders every RepositoryStopReason generically in factory-health and factory-watch, name it in your entry and add a row for stage_image_failed to it; otherwise one row per command.
+   7. Confirmed: the test checks that each row is refused and that the reasons differ between rows; no fixed texts.
+   8. Separate rows: the rule break, the failed build and the time limit. The time limit's detail uses the same text as a failed build ("the stage file did not build in <s> s:" and the tail).
