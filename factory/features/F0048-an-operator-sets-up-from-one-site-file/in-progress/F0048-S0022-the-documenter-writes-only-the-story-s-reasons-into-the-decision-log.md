@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 524
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T13:17:30.797353Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-03T13:17:30.797353Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-03T13:18:06.812345Z'
+  stage: intake
+  run: 78738c4bd07b4f53a5e3fd1e076ba65b
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -73,3 +75,9 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names one concrete file (`claude/agents/documenter.md`, `## Lessons`), the bullet's exact text, its place (after the project guide bullet, line 74, before the temporary-directory bullet, line 75; the documents-only bullet is already last) and the new test module. The helpers it cites exist (`tests/shipped_agents.py` with `SHIPPED_NAMES` and `agent_body`; `section_text` in `factory.domain.sections`). No `src/` change.
+   - Criteria: 1 (exact text present), 2 (position between the two bullets, documents-only still last) and 3 (one parametrized test, documenter holds it, six others do not) are each testable by one test function. The Interface states no rule with a failing side beyond these: "absent elsewhere" is criterion 3 and "elsewhere in the section" is criterion 2. The behaviours in the bullet (no Rejected line, name the entry in the journal) are the bullet's text, pinned word for word by criterion 1. Criterion 4 is `make check`; criterion 5 is the docs criterion.
+   - Smoke test: the two greps are runnable and have checkable Expect lines (`1`, and one line naming the documenter). The pytest command passes no `-q`, and `pyproject.toml` already sets `-q` in `addopts`, so `tail -1` shows a summary line ending in `passed`.
+   - Architecture: the change is a text in the shipped agent files under `claude/`, covered by the coder's write paths (`claude/*`). Its test sits at the `tests/` root with the other agent-text tests. No layer is touched.
+   - Scope: within F0048 (decision 27, the decision log holds only the human's reasons). It changes nothing from "Out of scope" (no `src/factory/` change, no other agent's text). The Description's "the other lessons stay" matches the Interface. Nothing is carried in from a journal answer.
