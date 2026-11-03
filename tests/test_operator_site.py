@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from operator_support import (
+    INTERFACE_KEYS,
     SITE_EXAMPLE,
     example_keys,
     exported,
@@ -19,40 +20,7 @@ from operator_support import (
     run_site,
 )
 
-INTERFACE_KEYS = [
-    "SITE_REPOSITORY",
-    "SITE_CHECKOUT",
-    "SITE_API_URL",
-    "SITE_TOKEN_CMD",
-    "SITE_PROXY",
-    "SITE_NO_PROXY",
-    "SITE_PROJECT",
-    "SITE_REGION",
-    "SITE_IMPERSONATE",
-    "SITE_RUN_AS",
-    "SITE_CONNECTOR",
-    "SITE_JOB",
-    "SITE_INSTANCE",
-    "SITE_REPOSITORY_URL",
-    "SITE_CODE_URL",
-    "SITE_CODE_REF",
-    "SITE_HOSTING_SECRET",
-    "SITE_MODEL_SECRET",
-    "SITE_MODEL_BASE_URL",
-    "SITE_MODEL",
-    "SITE_MODEL_INPUT_COST",
-    "SITE_MODEL_OUTPUT_COST",
-    "SITE_LOGIN_URL",
-    "SITE_LOGIN_SCOPE",
-    "SITE_LOGIN_CLIENT_ID",
-    "SITE_CPU",
-    "SITE_MEMORY",
-    "SITE_TIMEOUT",
-    "SITE_IDLE_MINUTES",
-    "SITE_RESET_REPOSITORY",
-    "SITE_SANITISE_RULES",
-]
-USAGE = "usage: site path | init | show | get SITE_X"
+USAGE = "usage: site path | init | show | get SITE_X | check"
 URL_HOST = re.compile(r"://(?:[^/@\s]*@)?([^/:\s'\"]*)")
 
 
@@ -197,11 +165,14 @@ def test_a_key_that_appears_twice_keeps_its_first_value(
 @pytest.mark.parametrize(
     ("line", "value"),
     [
-        pytest.param("SITE_A =1", None, id="space-before-equals"),
-        pytest.param("SITE_A= 1", " 1", id="space-after-equals"),
+        pytest.param("SITE_PROXY =http://p", None, id="space-before-equals"),
+        pytest.param("SITE_PROXY= http://p", None, id="space-after-equals"),
+        pytest.param("SITE_PROXY=\thttp://p", None, id="tab-after-equals"),
+        pytest.param("SITE_PROXY=http://p", "http://p", id="no-space"),
+        pytest.param("SITE_PROXY=http://p q", "http://p q", id="space-inside-the-value"),
     ],
 )
-def test_a_space_before_the_equals_sign_is_a_fault_and_one_after_it_is_the_value(
+def test_a_space_beside_the_equals_sign_is_a_fault_and_one_inside_the_value_is_kept(
     tmp_path: Path, site_file: Path, site_env: dict[str, str], line: str, value: str | None
 ) -> None:
     site_file.write_text(f"{line}\n", encoding="utf-8")
@@ -214,7 +185,7 @@ def test_a_space_before_the_equals_sign_is_a_fault_and_one_after_it_is_the_value
         assert result.stderr.splitlines() == [f"site: {site_file}:1: not a KEY=value line"]
     else:
         assert result.exit_status == 0, result.stderr
-        assert exported(result.stdout) == {"SITE_A": value}
+        assert exported(result.stdout) == {"SITE_PROXY": value}
 
 
 @pytest.mark.parametrize(

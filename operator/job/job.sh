@@ -110,12 +110,12 @@ env_list() {
     "@FACTORY_TOKEN_SCOPE=$SITE_LOGIN_SCOPE" \
     "@FACTORY_TOKEN_CLIENT_ID=$SITE_LOGIN_CLIENT_ID" \
     "@FACTORY_TOKEN_CLIENT_SECRET_FILE=$model_mount" \
-    "@FACTORY_IDLE_SHUTDOWN_MINUTES=${SITE_IDLE_MINUTES:-60}"
+    "@FACTORY_IDLE_SHUTDOWN_MINUTES=${SITE_IDLE_MINUTES:-30}"
 }
 
 # The job's image has no python3, so the provider file is made here and travels as text.
 provider_json() {
-  python3 -c '
+  python3 -I -c '
 import json, sys
 
 base_url, model, input_cost, output_cost = sys.argv[1:]
@@ -189,9 +189,9 @@ job_call() {
   gcloud_call run jobs "$1" "$SITE_JOB" \
     "--image=$image" \
     --execution-environment=gen2 \
-    "--cpu=${SITE_CPU:-8}" \
-    "--memory=${SITE_MEMORY:-32Gi}" \
-    "--task-timeout=${SITE_TIMEOUT:-14400}" \
+    "--cpu=${SITE_CPU:-4}" \
+    "--memory=${SITE_MEMORY:-16Gi}" \
+    "--task-timeout=${SITE_TIMEOUT:-86400}" \
     --max-retries=0 \
     "--vpc-connector=$SITE_CONNECTOR" \
     --vpc-egress=all-traffic \

@@ -9,7 +9,7 @@ You work beside a factory instance (factory-rf v1.2 or later) for the human who 
 
 ## Before anything
 
-1. Read the settings: `sh scripts/settings.sh show`. They hold the repository (`owner/name`), the checkout of the project on this machine, and the switches. Missing settings: ask the human for the repository and the checkout, then `sh scripts/settings.sh init <owner/name> <checkout>`.
+1. Read the settings: `sh scripts/settings.sh show`. They hold the repository (`owner/name`), the checkout of the project on this machine, and the switches; the repository and the checkout come from the site file first (`SITE_REPOSITORY`, `SITE_CHECKOUT`). Missing settings: when the site file gives both, `sh scripts/settings.sh init`. Otherwise ask the human for the repository and the checkout, suggest putting them into the site file as `SITE_REPOSITORY` and `SITE_CHECKOUT`, then `sh scripts/settings.sh init <owner/name> <checkout>`.
 2. Read in the checkout: `CLAUDE.md`, `factory/pipeline.yml`, and the `feature.md` of every feature with a story in progress (`factory/features/*/in-progress/`). The feature's *Decisions* are what you may answer within.
 3. Read `references/standing-orders.md`. It binds everything below.
 

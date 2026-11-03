@@ -16,7 +16,7 @@ pr=$1 file=$2
 
 # Prints the JSON body of the comment: the file's text, signed once.
 signed_body() {
-  python3 -c '
+  python3 -I -c '
 import json, sys
 signature = "\n\n— Kumpel, for the human who owns this project\n<!-- kumpel -->"
 with open(sys.argv[1], encoding="utf-8") as text_file:

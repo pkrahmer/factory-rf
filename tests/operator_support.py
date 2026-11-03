@@ -13,6 +13,40 @@ SITE_COMMAND = ROOT / "operator" / "bin" / "site"
 SITE_EXAMPLE = ROOT / "operator" / "site.env.example"
 HOSTING_LIBRARY = ROOT / "operator" / "lib" / "hosting.sh"
 KEY_LINE = re.compile(r"^(SITE_[A-Z0-9_]+)=")
+# The keys of the example file, in its order.
+INTERFACE_KEYS = [
+    "SITE_REPOSITORY",
+    "SITE_CHECKOUT",
+    "SITE_API_URL",
+    "SITE_TOKEN_CMD",
+    "SITE_PROXY",
+    "SITE_NO_PROXY",
+    "SITE_PROJECT",
+    "SITE_REGION",
+    "SITE_IMPERSONATE",
+    "SITE_RUN_AS",
+    "SITE_CONNECTOR",
+    "SITE_JOB",
+    "SITE_INSTANCE",
+    "SITE_REPOSITORY_URL",
+    "SITE_CODE_URL",
+    "SITE_CODE_REF",
+    "SITE_HOSTING_SECRET",
+    "SITE_MODEL_SECRET",
+    "SITE_MODEL_BASE_URL",
+    "SITE_MODEL",
+    "SITE_MODEL_INPUT_COST",
+    "SITE_MODEL_OUTPUT_COST",
+    "SITE_LOGIN_URL",
+    "SITE_LOGIN_SCOPE",
+    "SITE_LOGIN_CLIENT_ID",
+    "SITE_CPU",
+    "SITE_MEMORY",
+    "SITE_TIMEOUT",
+    "SITE_IDLE_MINUTES",
+    "SITE_RESET_REPOSITORY",
+    "SITE_SANITISE_RULES",
+]
 
 
 def operator_environment(tmp_path: Path, **values: str) -> dict[str, str]:
@@ -60,6 +94,13 @@ def example_keys() -> list[str]:
     return [match.group(1) for line in lines if (match := KEY_LINE.match(line))]
 
 
+def example_values() -> dict[str, str]:
+    """The example's `SITE_*=value` lines, in its order."""
+    lines = SITE_EXAMPLE.read_text(encoding="utf-8").splitlines()
+    pairs = (line.partition("=") for line in lines if line.startswith("SITE_"))
+    return {key: value for key, _, value in pairs}
+
+
 def make_work_tree(directory: Path) -> Path:
     """Make `directory` a fresh git work tree."""
     directory.mkdir(parents=True, exist_ok=True)
@@ -71,7 +112,8 @@ def make_work_tree(directory: Path) -> Path:
 # the way curl does (url, request, header, data, output, write-out) and answers as the
 # environment says, or, when `STAND_IN_CURL_ROUTES` names a JSON file, with that file's body for
 # the URL's path and query (else its path alone) and 404 for any other; a failed transfer writes
-# `000` as its status, as curl does.
+# `000` as its status, as curl does; a route `STAND_IN_CURL_FAILURES`'s JSON file names (path and
+# query) gets its status and body from there.
 CURL_STAND_IN = r"""
 import json, os, re, sys
 
@@ -125,14 +167,20 @@ with open(os.environ["STAND_IN_RECORD"], "a", encoding="utf-8") as record:
 exit_status = int(os.environ.get("STAND_IN_CURL_EXIT", "0"))
 status = os.environ.get("STAND_IN_CURL_STATUS", "200") if exit_status == 0 else "000"
 body = os.environ.get("STAND_IN_CURL_BODY", "") if exit_status == 0 else ""
+url = next((value for name, value in options if name == "url"), "")
+route = re.sub(r"^[a-z]+://[^/]*", "", url)
 routes_file = os.environ.get("STAND_IN_CURL_ROUTES")
 if routes_file and exit_status == 0:
     with open(routes_file, encoding="utf-8") as source:
         routes = json.load(source)
-    url = next((value for name, value in options if name == "url"), "")
-    route = re.sub(r"^[a-z]+://[^/]*", "", url)
     answer = routes.get(route, routes.get(route.split("?")[0]))
     status, body = ("200", answer) if answer is not None else ("404", '{"message": "Not Found"}')
+failures_file = os.environ.get("STAND_IN_CURL_FAILURES")
+if failures_file and exit_status == 0 and os.path.exists(failures_file):
+    with open(failures_file, encoding="utf-8") as source:
+        failures = json.load(source)
+    if route in failures:
+        status, body = failures[route]
 output_file = next((value for name, value in options if name in ("output", "o")), None)
 write_out = next((value for name, value in options if name in ("write-out", "w")), None)
 

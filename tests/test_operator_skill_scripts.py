@@ -547,3 +547,26 @@ def test_no_script_calls_gh() -> None:
         if not line.lstrip().startswith("#") and re.search(r"\bgh\b", line)
     ]
     assert callers == []
+
+
+@pytest.mark.parametrize(
+    "route",
+    [
+        pytest.param(f"{PREFIX}/issues/7", id="issue"),
+        pytest.param(f"{PREFIX}/issues/7/comments?per_page=1&page=1", id="comments-page"),
+        pytest.param(f"{PREFIX}/commits?per_page=20", id="commits"),
+    ],
+)
+def test_status_stops_at_a_failing_read_with_the_hosting_message(
+    operator: Operator, route: str
+) -> None:
+    operator.answer(
+        status_routes([pull(7, "work-item/F0001-S0001", ["stage:doing"])], {7: ["Hello."]})
+    )
+    operator.fail(route, "500", "Server Error")
+
+    result = operator.run("status.sh")
+
+    assert result.exit_status == 1
+    assert result.stderr.splitlines()[-1] == f"hosting: GET {route}: 500 Server Error"
+    assert "Traceback" not in result.stdout + result.stderr

@@ -122,6 +122,10 @@ _site_parse_line() {
     SITE_?*) ;;
     *) _site_fault "$1" "$_site_key is not a SITE_ key"; return 1 ;;
   esac
+  # A blank at the value's start would be kept, silently, and fail far from its cause.
+  case ${_site_line#*=} in
+    [[:space:]]*) _site_fault "$1" "not a KEY=value line"; return 1 ;;
+  esac
   _site_value=$(_site_unquote "$(_site_trim_trailing "${_site_line#*=}")")
 }
 

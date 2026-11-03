@@ -40,7 +40,7 @@ case "$command" in
       echo "usage: settings.sh init <owner/name> <checkout>" >&2; exit 2
     fi
     mkdir -p "$(dirname "$file")"
-    python3 - "$file" "$repository" "$checkout" <<'PY'
+    python3 -I - "$file" "$repository" "$checkout" <<'PY'
 import json, sys
 path, repository, checkout = sys.argv[1:]
 settings = {"repository": repository, "checkout": checkout} if repository else {}
@@ -52,7 +52,7 @@ PY
     echo "settings written: $file" ;;
   show)
     [ -f "$file" ] || { echo "no settings at $file; run: settings.sh init <owner/name> <checkout>"; exit 1; }
-    python3 - "$file" "$(site_answer repository)" "$(site_answer checkout)" <<'PY'
+    python3 -I - "$file" "$(site_answer repository)" "$(site_answer checkout)" <<'PY'
 import json, sys
 path, repository, checkout = sys.argv[1:]
 s = json.load(open(path, encoding="utf-8"))
@@ -67,7 +67,7 @@ PY
       printf '%s\n' "$answer"
       exit 0
     fi
-    python3 - "$file" "$2" <<'PY'
+    python3 -I - "$file" "$2" <<'PY'
 import json, sys
 s = json.load(open(sys.argv[1], encoding="utf-8"))
 key = sys.argv[2]
@@ -82,7 +82,7 @@ PY
   set)
     [ $# -eq 3 ] || { echo "usage: settings.sh set <switch> on|off" >&2; exit 2; }
     case "$3" in on|off) ;; *) echo "settings.sh: $3 is neither on nor off" >&2; exit 2 ;; esac
-    python3 - "$file" "$2" "$3" <<'PY'
+    python3 -I - "$file" "$2" "$3" <<'PY'
 import json, sys
 path, switch, value = sys.argv[1:]
 s = json.load(open(path, encoding="utf-8"))
