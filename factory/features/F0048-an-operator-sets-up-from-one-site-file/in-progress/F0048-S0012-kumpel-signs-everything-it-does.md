@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T00:43:16.431688Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-03T00:43:10.321861Z'
   stage: tests
   run: a59e41e79ac0464ca5ef4cd7c253757c
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:43:16.431688Z'
+  stage: doing
 ---
 
 # Kumpel signs everything it does
@@ -149,3 +158,4 @@ Expect: two lines, a number of at least `1`, then `0`.
    Open: none.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
