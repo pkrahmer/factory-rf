@@ -1,6 +1,6 @@
 # The decision log gives the feature's own reasons for the operator's scripts
 
-<!-- proposed by feature acceptance of 2026-11-03; refine before starting -->
+<!-- proposed by feature acceptance of 2026-11-03; refined with the human's answers of 2026-11-03 (decision 27) -->
 
 ## Description
 
@@ -21,13 +21,12 @@ F0048-S0019 wrote seven entries for F0048's lasting decisions in `docs/decisions
   - Rejected (S0005's journal): the wrapper calling `python3` inside the job, because the job's image, `debian:trixie-slim`, has no `python3`; `provider_json` runs on the operator's machine.
 - **The reset to a tag** (decision 8): the factory's own repository must never be its target.
 
-These "Rejected" options are named in no decision of `feature.md` and in no journal I read:
-- in the site file entry, "keeping the values in the repository, as an ignored file" and "a second source of defaults inside the scripts";
-- in the token entry, "a token stored in the site file";
-- in the `job.sh` entry, "from the code host at run time";
-- in the reset entry, "a prompt on the terminal".
+Five "Rejected" options were named in no decision and no journal. The human went through each on 2026-11-03 (decision 27):
+- Kept as the human's, marked `(the human, 2026-11-03)`: in the site file entry, "keeping the values in the repository, as an ignored file"; in the token entry, "a token stored in the site file"; in the reset entry, "a prompt on the terminal".
+- Kept and folded into decision 12's reason: in the `job.sh` entry, "reading the script from the working tree or from the code host at run time" becomes "reading the start script from any source other than `SITE_CODE_REF`: the working tree, or the code host at run time (the script would not be of the commit the job runs; decision 12)".
+- Reworded, because as written it contradicts `job.sh`, which has defaults for the job's sizes: in the site file entry, "a second source of defaults inside the scripts, which would guess where the file is silent" becomes "defaults for the site's names (project, region, job, repository); the job's sizes are the only defaults, and the example's comments name them (decision 21)".
 
-This story removes them, and a "Rejected" line left with no option reads `Rejected: none recorded.` The human may prefer to keep them as the documenter's reading; in that case the story drops criterion 2's third part (the removals) before it starts. Earlier entries of the log, the code, the tests and every other document stay as they are.
+Earlier entries of the log, the code, the tests and every other document stay as they are.
 
 ## Interface
 
@@ -41,7 +40,7 @@ Documents only. The documenter changes the seven F0048 entries of `docs/decision
    - *The hosting token comes from a command the site names ...*: its "Why" names `gh`'s login that did not see the project's repository at work and the home setup the fallback keeps. Its "Decision" or "Why" names the real `git` in the tests, read back through `git config` and git's trace.
    - *`job.sh` works from the site's values ...*: its "Decision" names the wrapper that only writes the provider file and hands over, and `create` refusing a job that exists. Its "Why" names the platform that cannot cancel an execution. Its "Rejected" names `python3` in the job's image.
    - *A reset to a tag needs three things*: its "Why" says the factory's own repository must never be the target.
-   - The five unsourced "Rejected" options named in the Description are gone, and a "Rejected" line left with no option reads `Rejected: none recorded.`
+   - The five "Rejected" options are handled as the Description says: three keep their words and gain `(the human, 2026-11-03)`, the `job.sh` one reads as given there, and the site file's "second source of defaults" is replaced by the given wording.
    - Every other line of the log stays. `uv run python -m factory.entry.check_documents` prints `documents ok`. `README.md`, `docs/operator-guide.md` and the project guide: none, since they describe what the scripts do, which does not change.
 
 ## Smoke test
@@ -52,9 +51,9 @@ for p in 'pasted secret' 'what one machine knows' 'did not see' 'home setup' 'ca
 Expect: eight lines, one per phrase, each ending in a number of at least `1`
 
 ```bash
-for p in 'as an ignored file' 'a second source of defaults' 'a token stored in the site file' 'from the code host at run time' 'a prompt on the terminal'; do printf '%s: ' "$p"; grep -c -- "$p" docs/decisions.md; done
+grep -c -- 'a second source of defaults' docs/decisions.md; grep -c -- 'other than `SITE_CODE_REF`' docs/decisions.md; grep -c -- '(the human, 2026-11-03)' docs/decisions.md
 ```
-Expect: five lines, one per phrase, each ending in `0`
+Expect: `0`; then a number of at least `1`; then a number of at least `3`
 
 ```bash
 git diff --stat main...HEAD -- docs README.md
