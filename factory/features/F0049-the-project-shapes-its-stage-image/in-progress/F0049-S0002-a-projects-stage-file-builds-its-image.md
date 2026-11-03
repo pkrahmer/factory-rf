@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T23:52:12.855066Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T23:52:12.848233Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:52:12.855066Z'
+  stage: intake
+---
+
 # A project's stage file builds the image its stages run in
 
 ## Description
@@ -42,3 +69,6 @@ grep -rhoE '"stage_image_failed"' src/factory/domain | sort -u
 Expect: `1`, `1`, then the single line `"stage_image_failed"`.
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
