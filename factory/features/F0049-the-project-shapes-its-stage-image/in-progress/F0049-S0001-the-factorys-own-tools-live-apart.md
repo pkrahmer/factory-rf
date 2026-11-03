@@ -1,17 +1,13 @@
 ---
-stage: smoke-test
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948, 6618330636]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T23:41:09.955088Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -243,6 +239,12 @@ journal:
   kind: started
   at: '2026-11-03T23:41:09.955088Z'
   stage: smoke-test
+- number: 43
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T23:41:40.934479Z'
+  stage: smoke-test
+  run: 2b67f30c395d467db11baf17bf3a63f4
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -741,3 +743,48 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
 40. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 41. 2026-11-03 human: Reword the comment on vm/Dockerfile line 28 so that no "install" comes before "npm" on it, as the smoke tester recommends (for example: "The runtimes are native executables: the factory's Node serves only the npm step, so the commands exec them directly."). The smoke test stays as written. Nothing else changes.
 42. factory: started smoke-test as vm.
+43. smoke-tester: Smoke test, round 0. I ran the five commands under `## Smoke test` from the repository root, in order and exactly as written. Four met their `Expect:` line; the fourth did not.
+
+    1. `grep -cE '^ARG NODE_VERSION=22\.[0-9]+\.[0-9]+$' vm/Dockerfile`
+    ```
+    1
+    ```
+    Expected `1`: met.
+
+    2. `grep -cE '^ARG NODE_SHA256=[0-9a-f]{64}$' vm/Dockerfile`
+    ```
+    1
+    ```
+    Expected `1`: met.
+
+    3. `grep -c 'sha256sum -c' vm/Dockerfile`
+    ```
+    1
+    ```
+    Expected `1`: met.
+
+    4. `grep -cE 'install .*\b(nodejs|npm)\b' vm/Dockerfile`
+    ```
+    1
+    ```
+    Expected `0`: **not met**. The matching line is `vm/Dockerfile:28`, which is a comment and not an install line:
+    ```
+    28:# The runtimes install native executables: the factory's Node serves npm's install alone, so the commands exec them directly.
+    ```
+
+    5. `uv run pytest tests/test_stage_image.py 2>&1 | tail -1`
+    ```
+    106 passed in 0.10s
+    ```
+    Expected a line ending in `passed` with no `failed`: met.
+
+    I then read the acceptance criteria again against `vm/Dockerfile`. None is contradicted:
+    - The `apt-get install` line names exactly `git make curl ca-certificates procps xz-utils` (criterion 3).
+    - The archive is downloaded with `curl` and checked with `sha256sum -c -` before `tar` unpacks it into `/opt/factory/node`, and nothing is piped into a shell (criterion 2).
+    - Both runtimes are installed by `/opt/factory/node/bin/npm --prefix /opt/factory` at the pinned versions, and the two commands `exec /opt/factory/bin/<runtime> "$@"` without naming any node binary (criterion 4).
+    - Nothing creates `node` or `npm` in `/usr/local/bin`, and no `ENV PATH` line names `/opt/factory`. The only PATH change is an `export` inside the two npm `RUN` steps (criterion 5).
+
+    I did not run `make check`, because this stage judges the smoke test and the factory runs the checks. Criterion 6's checks of the built image are the human's after the merge, so I did not run them either.
+
+    Findings:
+    1. Command: `grep -cE 'install .*\b(nodejs|npm)\b' vm/Dockerfile`. Expected: `0`. Observed: `1`. The match is the comment at `vm/Dockerfile:28` ("…install native executables: the factory's Node serves npm's install alone…"), where the word `npm` comes after `install` on the same line. The Dockerfile installs neither `nodejs` nor `npm`, so no criterion is contradicted. The smoke test's expectation still fails as written, and `vm/Dockerfile` is the coder's file, not a document the documenter writes, so this goes to `doing`. A possible fix: reword that comment so that no `npm` or `nodejs` follows the word `install` on the line (for example "the factory's Node serves the runtimes' installation alone"). The other option is for the human to narrow the smoke test's pattern to the `apt-get install` line. I would choose rewording the comment, because the smoke test is the human's.
