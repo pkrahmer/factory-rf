@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T01:29:58.736350Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-11-03T01:29:58.736350Z'
   stage: review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T01:32:28.117655Z'
+  stage: review
+  run: d26a6214f54a40cfbc75343f85f9e351
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -158,8 +160,10 @@ Tests: `tests/test_operator_site_check.py`, with the stand-ins of the earlier st
 15. A failing `gcloud run jobs list` whose stand-in writes a multi-line error has as detail the error's first line only.
 16. The `tools` check with two tools missing at once names both in its detail.
 17. A repository answering 404 has the detail `hosting: GET /repos/owner/repo: 404 Not Found` (the hosting client's message).
-18. `make check` stays green.
-19. docs: `docs/operator-guide.md` the chapter named in the Interface, and the site file's section's table of keys now covers every key of the example file (a test that every `SITE_` key of `operator/site.env.example` appears in the guide's text); `README.md` names the chapter in its pointers; the other documents: none.
+18. The impersonation flag on the other `gcloud` calls, as rows of one parametrized test: with `SITE_IMPERSONATE` set, both `gcloud secrets describe` calls and the `gcloud run jobs describe` call carry `--impersonate-service-account=<value>`; with it unset, none does.
+19. The `checkout` check on the `origin` url, as rows of one parametrized test: a work tree with no `origin` is `FAIL checkout` with a detail that says the origin is missing; an `origin` of the form `git@<host>:owner/repo.git` and one without `.git` are `ok`; an `origin` ending in `/xowner/repo.git` is `FAIL`.
+20. `make check` stays green.
+21. docs: `docs/operator-guide.md` the chapter named in the Interface, and the site file's section's table of keys now covers every key of the example file (a test that every `SITE_` key of `operator/site.env.example` appears in the guide's text); `README.md` names the chapter in its pointers; the other documents: none.
 
 ## Smoke test
 
@@ -350,3 +354,14 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 17. factory: started review as vm.
+18. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`: `operator/bin/site` (the new `check`), `operator/README.md` and `tests/test_operator_site_check.py`. I compared them with `operator/job/job.sh`, `operator/lib/site.sh` and `operator/lib/hosting.sh`. Each of criteria 1 to 17 and 21 has a test that checks what the criterion says, and the coder's `make check` was green (entry 16). The README map names every file the test of criterion 10 looks for. Architecture and security are clean. The diff touches no code under `src/`. It adds no suppression markers. The `ls-remote` call runs without a credential. Details carry secret names, never their values. The checkout's origin url is not echoed.
+
+    Findings:
+    1. criterion 18 added: it needs its test. The Interface says the `--impersonate-service-account` flag goes on every `gcloud` call (checks 7, 8 and 11). Criterion 14 only tests check 7, so nothing covers the `secrets describe` and `run jobs describe` calls (`operator/bin/site:135`, `site_gcloud`).
+    2. criterion 19 added: it needs its test. `check_checkout` (`operator/bin/site:195-216`) has a no-origin branch with its own detail, at line 200. `names_repository` accepts `:owner/repo` and urls without `.git`. No test reaches the no-origin branch, any origin form other than `https://…/owner/repo.git`, or a lookalike owner. The closing criteria are now 20 (`make check`) and 21 (docs).
+    3. `operator/bin/site:135` `site_gcloud` is a second copy of `gcloud_call` in `operator/job/job.sh:30`: the same `--project`, `--region` and `--impersonate-service-account` logic, minus the dry run. Fix: move one helper into `operator/lib/` (for example beside the loader), with the dry run left to `job.sh`, and have both scripts use it.
+    4. `operator/bin/site:59` `job_keys` copies the key list of `require_settings` in `operator/job/job.sh:52-55`. The Interface defines the job set as exactly that list, so two copies can drift. Fix: keep the list once in `operator/lib/site.sh` (a variable or function) and use it in both `require_settings` and `check_keys`.
+    5. `operator/bin/site:274` repeats the hosting client's default `${SITE_API_URL:-https://api.github.com}` from `operator/lib/hosting.sh:89`. Fix: take the base url from `hosting.sh`, for example a small function the client also uses, so the `no_proxy` check tests the host the client actually calls.
+    6. The work item's Interface, check 11, says "`job`: informational, always `ok`". The code (`operator/bin/site:316`) fails it with `needs SITE_JOB` when the key is missing, as the human confirmed in entry 14. Fix: the coder rewrites that clause, for example "`ok` whenever its keys are set (a missing `SITE_JOB` fails by the `needs` rule)". I left it alone because I may only correct the Description.
+
+    Earlier tests: none changed. `git diff --name-status main...HEAD` lists the one test file, `tests/test_operator_site_check.py`, as `A`.
