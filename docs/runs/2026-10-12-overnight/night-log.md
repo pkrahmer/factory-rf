@@ -1459,3 +1459,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 08:45 F0048-S0015 (died-run text) PR #514 merged after the six checks (files in scope; only new tests; smoke test met; no findings, two notes on test style; no new markers; 12 runs, $5.01) and archived (dcefc01ae).
 - 08:46 vm rebuilt at dcefc01ae with no container running (src/ changed); preflight green, no stops. A died run now writes 'run <id> of <work item> (<stage>) died: <text>' to factory.log.
 - 08:46 Started F0048-S0014 (the operator meets the site file, with true values and clear errors).
+- 09:01 F0048-S0014 (site file true) PR #515 coder question 11: (a), approved the tester's overrides row at 8/32Gi (so it differs from the new 4/16Gi default) and the rename of S0001's whitespace test (part E made its name false); findings 1-3 go to the tests stage.
