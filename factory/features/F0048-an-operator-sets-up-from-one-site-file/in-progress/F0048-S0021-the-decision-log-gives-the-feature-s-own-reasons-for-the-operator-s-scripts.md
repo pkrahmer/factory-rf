@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 522
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T12:47:38.881061Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-03T12:47:32.549148Z'
   stage: review
   run: 7ae41c228b6143ddb588f3874303ddb5
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-03T12:47:38.881061Z'
+  stage: docs
 ---
 
 # The decision log gives the feature's own reasons for the operator's scripts
@@ -167,3 +176,4 @@ Expect: `documents ok`
    - Still open for the documenter: all of criterion 2. Intake's point also stands: the smoke test's `did not see` probe already counts 1 on `main`, so it proves little.
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as vm.
