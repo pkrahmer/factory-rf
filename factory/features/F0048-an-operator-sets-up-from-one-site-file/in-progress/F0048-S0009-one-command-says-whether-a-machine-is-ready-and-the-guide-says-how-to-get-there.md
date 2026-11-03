@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T01:43:09.060525Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-11-03T01:43:02.626926Z'
   stage: docs
   run: c1437a7a857247e3a6949bb638ed9aa8
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:43:09.060525Z'
+  stage: smoke-test
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -519,3 +528,4 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
     `check`: check: green (not run again: passed on tree de1b85f8416e at 2026-11-03T01:38:02Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+29. factory: started smoke-test as vm.
