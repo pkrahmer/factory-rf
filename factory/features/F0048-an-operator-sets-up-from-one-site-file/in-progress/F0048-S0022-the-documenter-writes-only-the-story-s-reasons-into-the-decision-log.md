@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 524
 comments_read: [6604990127]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T13:25:21.089016Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T13:25:17.944790Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-03T13:25:21.089016Z'
   stage: doing
 ---
 
@@ -137,3 +146,4 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
 
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
+9. factory: started doing as vm.
