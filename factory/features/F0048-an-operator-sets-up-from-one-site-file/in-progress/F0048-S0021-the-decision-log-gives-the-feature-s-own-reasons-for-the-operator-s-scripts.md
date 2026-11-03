@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 522
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T12:48:47.553597Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-03T12:48:41.745935Z'
   stage: docs
   run: 43591e4b9a524ec28713028d4991ac73
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-03T12:48:47.553597Z'
+  stage: smoke-test
 ---
 
 # The decision log gives the feature's own reasons for the operator's scripts
@@ -212,3 +221,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 676ce2a5aa50 at 2026-11-03T11:54:59Z)
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
