@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T23:25:34.554016Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-11-03T23:25:28.952186Z'
   stage: review
   run: 47c03b8530374815b8c2bd1649f9afd1
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:25:34.554016Z'
+  stage: docs
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -368,3 +377,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
       - the floating-reference test's rewrite of the npm path and prefix, which keeps it checking the npm pins.
       
       The new test functions are additions; none needed.
+21. factory: started docs as vm.
