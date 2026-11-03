@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T06:34:18.379856Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T06:34:18.373268Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T06:34:18.379856Z'
+  stage: intake
+---
+
 # Stopping the service stops its agents
 
 <!-- written by the human on 2026-11-03 from what the acceptance F0048-A0001 met (decision 20) -->
@@ -31,3 +58,6 @@ grep -rn 'factory.instance' src/factory | head -1 | cut -d: -f1
 Expect: `1`, then the path of the module that adds the label.
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
