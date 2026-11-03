@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 524
 comments_read: [6604990127]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T13:25:21.089016Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-03T13:25:21.089016Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-03T13:25:42.868191Z'
+  stage: doing
+  run: fa253bbfaac1449fbd8294100ac1877f
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -147,3 +149,12 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
 9. factory: started doing as vm.
+10. coder: The human answered (a). I'm sending the work item to the tester for one test change, with no code change in this round.
+
+    - **Test change for the tester:** in `tests/test_claude_agent_texts.py`, add the new documenter bullet to `LESSONS["documenter"]`, between the project-guide entry and `_TEMPORARY_DIRECTORY_LESSON`, and change nothing else in that module. `test_lessons_section_is_last_and_holds_exactly_the_role_bullets` keeps its name and still pins the documenter's whole list.
+    - **Built:** `claude/agents/documenter.md`, `## Lessons`, already holds the Interface's bullet word for word, in the round-0 commit. It stands after the project-guide bullet and before the temporary-directory bullet, and the documents-only bullet is still last. I made no further code change.
+    - **Test run:** `uv run pytest -q tests/test_claude_agent_texts_decision_log.py tests/test_claude_agent_texts.py` has one failure: `tests/test_claude_agent_texts.py::test_lessons_section_is_last_and_holds_exactly_the_role_bullets[documenter]`, at line 281. That is the `LESSONS` table the change above fixes. Every test in the new module passes.
+    - **Main choice:** I left the old test to the tester, as R9 and the human's leave say. I rejected changing the test myself and rejected weakening it.
+    - **Refactor:** none needed. The only change is one line of text.
+    - **Description:** the journal doesn't change what the task means, so the Description stays as it is. The human's answer only allows the one test change above.
+    - **Noticed but not touched:** nothing.
