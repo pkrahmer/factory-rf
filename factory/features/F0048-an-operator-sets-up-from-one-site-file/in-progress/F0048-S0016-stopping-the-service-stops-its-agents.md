@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T07:10:12.635235Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,13 @@ journal:
   kind: started
   at: '2026-11-03T07:10:12.635235Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-11-03T07:11:55.599436Z'
+  stage: doing
+  run: 2e257068f5f14c7581b3a3ef6d63ae45
+  blocked: question
 ---
 
 # Stopping the service stops its agents
@@ -224,3 +227,20 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
 
     `lint`: lint: green (0.1 s)
 12. factory: started doing as vm.
+13. coder: I built the Interface and stopped before handing on: `make lint` fails on one rule, and its fix lies outside my write paths.
+
+    Built (in the working tree):
+    - `src/factory/adapters/podman_runs.py`: `PodmanRuns.__init__` gains a required keyword-only `instance: str`. `launch` puts `--label`, `factory.instance=<instance>` directly after `--rm`, with a comment on why: rootless podman places the containers outside the service's cgroup. Agent runs and project commands both go through `launch`, so both carry the label.
+    - `src/factory/entry/wiring.py`: passes `instance=settings.instance`.
+    - `vm/factory.service`: `ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i` directly after `RestartSec=15`. `vm/setup.sh` needs no change: its `cmp`/`install` already covers the new unit.
+
+    Ran: `ruff format --check`, `mypy --strict` on the two modules, and pytest on the podman adapter tests, the unit tests and `tests/entry`: all green. `ruff check` has one finding left: `src/factory/adapters/podman_runs.py:56:9: PLR0913 Too many arguments in function definition (6 > 5)`. `make check` therefore stops at lint, and I have not run it to the end.
+
+    Question: the Interface pins six constructor arguments (executable, image, workspace, instance, time_limit, profile), and `max-args = 5`. The four earlier cases (`claude_runtime.py`, `opencode_runtime.py`, `make_commands.py`, `oauth_token.py`) each have a per-file ignore in `pyproject.toml`. That file is not in the coder's write paths.
+    - (a) You add `"src/factory/adapters/podman_runs.py" = ["PLR0913"]  # the instance label joins the constructor; no noqa in the source` under `[tool.ruff.lint.per-file-ignores]`. Nothing else changes. I would choose (a): it follows the four earlier cases.
+    - (b) I put `# noqa: PLR0913` on the constructor. No module in `src` carries a noqa today except the allowed exception in `process.py`, and the existing entries say "no noqa in the source".
+    - (c) I fold `time_limit` and `profile` into an options object. That changes the Interface and the tests' calls (a test change).
+
+    Noticed, not touched: the smoke test's `grep -rln 'factory.instance' src/factory` is a regex, and its `.` matches any character. It also lists `src/factory/application/scheduler.py` and `src/factory/domain/settings.py`, whose module docstrings say "factory instance". The Expect (the single line `podman_runs.py`) therefore fails whatever this story does. `grep -rlnF` would print only `src/factory/adapters/podman_runs.py`. Please say whether the smoke test should change to `-F`.
+
+    Refactor step not reached, because check is not green. Journal: entries 4 and 9 already carried into the Description by intake and tester; nothing further changed its meaning.
