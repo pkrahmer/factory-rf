@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T07:03:44.798660Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-03T07:03:39.207501Z'
   stage: intake
   run: 3077e67d5ead40dfb6f464d249de34a0
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:03:44.798660Z'
+  stage: tests
 ---
 
 # Stopping the service stops its agents
@@ -107,3 +116,4 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
    - Smoke test: commands are runnable. The second is now `grep -rln 'factory.instance' src/factory`, and its Expect is the single line `src/factory/adapters/podman_runs.py` (from entry 4). The first has Expect `1`.
    - Architecture: the label is added in the adapters layer, the one wrapper that starts podman. The instance comes from the entry-layer wiring, so the layers stay intact. The unit change is under `vm/`.
    - Scope: within F0048 (decision 20, built first). Nothing in "Out of scope" is touched, and no existing test is changed.
+7. factory: started tests as vm.
