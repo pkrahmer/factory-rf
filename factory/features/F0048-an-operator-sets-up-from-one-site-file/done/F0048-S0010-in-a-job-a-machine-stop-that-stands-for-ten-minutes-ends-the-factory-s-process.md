@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-11-03T02:13:39.433614Z'
   stage: smoke-test
   run: 567609b05e414cecbf1f370210b57a90
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-11-03T02:17:36.175484Z'
+  stage: approval
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -401,3 +406,4 @@ Expect: one line that says the tests passed and names no failure.
     The commands do not test criteria 1–7 (the behaviour of the loop) directly. Command 2 only shows that the existing idle-exit tests still pass, which supports criterion 5. I did not run `make check` for criterion 8; the factory runs it as the stage's check.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 16.8 min, 113 turns, 358131 tokens in (3673933 more from cache), 69703 out, $4.64
