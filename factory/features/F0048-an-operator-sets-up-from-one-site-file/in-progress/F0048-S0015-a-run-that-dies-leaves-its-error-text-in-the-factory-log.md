@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T08:17:03.459265Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T08:17:00.175024Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:17:03.459265Z'
   stage: tests
 ---
 
@@ -173,3 +182,4 @@ Expect: the path of the module that writes the line.
 
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
+10. factory: started tests as vm.
