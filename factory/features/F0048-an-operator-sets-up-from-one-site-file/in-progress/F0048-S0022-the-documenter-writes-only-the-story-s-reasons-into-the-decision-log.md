@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 524
 comments_read: [6604990127]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T13:25:51.667374Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-03T13:25:42.868191Z'
   stage: doing
   run: fa253bbfaac1449fbd8294100ac1877f
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-03T13:25:51.667374Z'
+  stage: tests
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -158,3 +167,4 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
     - **Refactor:** none needed. The only change is one line of text.
     - **Description:** the journal doesn't change what the task means, so the Description stays as it is. The human's answer only allows the one test change above.
     - **Noticed but not touched:** nothing.
+11. factory: started tests as vm.
