@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 524
 comments_read: [6604990127]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T13:30:25.670744Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-03T13:30:19.177149Z'
   stage: review
   run: 753128cc0b40471fb82db9a5a74fe6cb
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-03T13:30:25.670744Z'
+  stage: docs
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -237,3 +246,4 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
 
     Earlier tests:
     - tests/test_claude_agent_texts.py: the human's leave in journal entry 8. The diff only adds the new bullet to `LESSONS["documenter"]`, between the project-guide entry and `_TEMPORARY_DIRECTORY_LESSON`. Every test keeps its name.
+17. factory: started docs as vm.
