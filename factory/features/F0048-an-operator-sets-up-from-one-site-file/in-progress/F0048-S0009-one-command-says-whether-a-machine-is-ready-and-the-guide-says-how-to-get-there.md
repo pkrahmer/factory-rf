@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T01:29:58.736350Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-11-03T01:29:53.078649Z'
   stage: doing
   run: 95856af522d841e9978866485cd9a551
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:29:58.736350Z'
+  stage: review
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -340,3 +349,4 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+17. factory: started review as vm.
