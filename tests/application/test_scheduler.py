@@ -73,9 +73,9 @@ def _outcome(outcome: Outcome) -> bool:
 
 @pytest.mark.parametrize(
     ("idle_ticks", "seconds"),
-    [(0, 15), (1, 30), (2, 60), (3, 120), (4, 120), (10, 120)],
+    [(0, 0), (1, 30), (2, 60), (3, 120), (4, 120), (10, 120)],
 )
-def test_pause_doubles_from_fifteen_seconds_up_to_two_minutes(
+def test_pause_is_none_after_activity_and_doubles_from_thirty_seconds_up_to_two_minutes(
     idle_ticks: int, seconds: int
 ) -> None:
     assert pause_after(idle_ticks) == timedelta(seconds=seconds)
@@ -145,6 +145,54 @@ def test_an_exception_from_the_preparation_is_logged_skips_the_tick_and_counts_a
     assert loop.log.lines == ["iteration failed: ValueError: boom"]
     assert loop.calls == ["prepare", "sleep", "prepare", "tick"]
     assert loop.sleeps == [30.0]
+
+
+def test_activity_iterations_do_not_sleep_and_an_idle_one_sleeps_thirty_seconds() -> None:
+    loop = Loop(prepares=[], ticks=[True, True, True, False])
+    loop.run(lambda loop: loop.count("sleep") >= 1)
+    assert loop.calls == ["prepare", "tick"] * 4 + ["sleep"]
+    assert loop.sleeps == [30.0]
+
+
+@pytest.mark.parametrize("raising_side", ["prepare", "tick"])
+def test_failed_iterations_each_sleep_growing_and_are_each_logged(raising_side: str) -> None:
+    errors: list[Outcome] = [ValueError("first"), OSError("second"), RuntimeError("third")]
+    if raising_side == "tick":
+        loop = Loop(prepares=[], ticks=errors)
+    else:
+        loop = Loop(prepares=errors, ticks=[])
+    loop.run(lambda loop: loop.count("sleep") >= 3)
+    assert loop.sleeps == [30.0, 60.0, 120.0]
+    assert loop.log.lines == [
+        "iteration failed: ValueError: first",
+        "iteration failed: OSError: second",
+        "iteration failed: RuntimeError: third",
+    ]
+
+
+def test_a_stop_requested_during_an_activity_iteration_ends_the_run_before_the_next_tick() -> None:
+    loop = Loop(prepares=[], ticks=[])
+    stop_requested = False
+
+    def tick() -> bool:
+        nonlocal stop_requested
+        found = loop.tick()
+        stop_requested = loop.count("tick") >= 2
+        return found
+
+    def should_stop() -> bool:
+        loop.calls.append("should_stop")
+        return stop_requested
+
+    Scheduler(
+        prepare=loop.prepare, tick=tick, sleep=loop.sleep, should_stop=should_stop, log=loop.log
+    ).run()
+    assert loop.count("tick") == 2
+    assert loop.count("sleep") == 0
+    assert loop.calls[-1] == "should_stop"
+    for index, call in enumerate(loop.calls):
+        if call == "prepare":
+            assert loop.calls[index - 1] == "should_stop"
 
 
 def test_an_injected_kill_from_the_tick_leaves_the_loop_unlogged() -> None:

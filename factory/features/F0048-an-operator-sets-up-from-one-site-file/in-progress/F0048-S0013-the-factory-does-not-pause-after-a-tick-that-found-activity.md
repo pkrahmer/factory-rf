@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 507
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T00:18:12.115981Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,13 @@ journal:
   kind: started
   at: '2026-11-03T00:18:12.115981Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-11-03T00:19:04.723924Z'
+  stage: tests
+  run: 6c51bcc484ce445a9c7dd61eecfcc610
+  blocked: question
 ---
 
 # The factory does not pause after a tick that found activity
@@ -77,3 +80,28 @@ Expect: `0.0 30.0`.
    Architecture: the change stays in `factory.application.scheduler`, which has no new import or layer crossing.
    Scope: it matches feature.md, whose story list includes S0013 and decision 17. It touches no Out of scope item. The docs criterion names the operator guide's *The loop and its pauses* and `docs/decisions.md`. The guide's current text, "15 seconds when the tick found activity" and the first-iteration rule, is what the story rewrites.
 4. factory: started tests as vm.
+5. tester: Question: four tests that earlier stories wrote in `tests/application/test_scheduler.py` require a 15-second sleep after an activity iteration, which this story removes. Criterion 1 lets me change only the `pause_after` table, so may I change these four as well?
+   - `test_each_iteration_prepares_then_ticks_and_the_first_comes_before_any_sleep`: every tick finds activity, and it expects `sleep` between iterations.
+   - `test_sleeps_follow_the_idle_count_since_the_last_activity`: both rows expect `15.0` after activity.
+   - `test_a_failed_preparation_skips_the_tick_and_counts_as_idle`: expects `[30.0, 15.0]`.
+   - `test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle`: it stops at the second sleep, but the second iteration finds activity and every later tick does too (the default), so once the code is changed it never stops. It would hang until pytest's time limit, not just fail.
+
+   Options:
+   (a) Change them so they keep their names and check the same thing under the new rule. I would remove the activity sleeps from the first test's expected calls, drop the `15.0` sleeps from the next two, and make the last one stop when the second tick happens with calls ending without the trailing `sleep` and sleeps `[30.0]`.
+   (b) Delete the ones the new tests already cover: the first test and `test_sleeps_follow_…`, which criterion 2 covers. Change the other two as in (a).
+   (c) Leave them as they are. The coder's `make check` then cannot go green and the last test hangs.
+   I would choose (a).
+
+   What I did: I wrote the tests for criteria 1 to 4 in `tests/application/test_scheduler.py` (no new file). Each maps to one test function:
+   criterion 1: tests/application/test_scheduler.py::test_pause_is_none_after_activity_and_doubles_from_thirty_seconds_up_to_two_minutes (the existing table test, renamed because "from fifteen seconds" is no longer true; its first row is now 0 → 0 s) and tests/application/test_scheduler.py::test_negative_idle_count_is_refused (existing, unchanged, covers -1)
+   criterion 2: tests/application/test_scheduler.py::test_activity_iterations_do_not_sleep_and_an_idle_one_sleeps_thirty_seconds
+   criterion 3: tests/application/test_scheduler.py::test_failed_iterations_each_sleep_growing_and_are_each_logged (one row where prepare raises, one where tick raises)
+   criterion 4: tests/application/test_scheduler.py::test_a_stop_requested_during_an_activity_iteration_ends_the_run_before_the_next_tick
+   criterion 5 (`make check`) and 6 (docs) have no tests.
+
+   Test run: I ran `uv run pytest -q tests/application/test_scheduler.py` once.
+   - The tests for criteria 1, 2 and 4 fail for the right reason: today's code gives 15 s for 0 idle ticks and sleeps after activity. The `[0-0]` row fails; the others pass.
+   - The criterion 3 test passes already, as expected: the behaviour after a failed iteration does not change.
+   - Every module imported; nothing was missing.
+   - `make lint` is green.
+   - I skipped the type check, as the stage says.
