@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T02:07:54.474845Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-03T02:07:48.671159Z'
   stage: tests
   run: 884259bcabda44378bb3f576606416d8
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-03T02:07:54.474845Z'
+  stage: doing
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -259,3 +268,4 @@ Expect: one line that says the tests passed and names no failure.
     Rejected: putting the no-tick case in as a row of criterion 1's test. It needs a different repository, a sleep that moves the clock, and no scripted ticks, so it is its own test.
 
     `lint`: lint: green (0.1 s)
+17. factory: started doing as vm.
