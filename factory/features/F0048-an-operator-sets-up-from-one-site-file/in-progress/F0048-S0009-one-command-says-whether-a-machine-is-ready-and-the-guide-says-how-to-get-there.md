@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T01:06:41.134646Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-03T01:06:35.749546Z'
   stage: intake
   run: afc8017aa8f04c3485c78370c4dde402
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:06:41.134646Z'
+  stage: tests
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -146,3 +155,4 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
    - Smoke test: both commands are runnable, with no pytest `-q` issue. Each `Expect:` line is checkable against the output and the exit status.
    - Architecture: the work is shell under `operator/`, plus the guide and README, all inside the coder's and documenter's write paths.
    - Scope: it is within the feature's scope (S0009) and touches nothing in "Out of scope". The model API login is not tested here, as the Description says.
+7. factory: started tests as vm.
