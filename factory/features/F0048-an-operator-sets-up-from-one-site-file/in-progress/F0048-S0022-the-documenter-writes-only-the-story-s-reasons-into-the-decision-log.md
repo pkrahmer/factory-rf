@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 524
 comments_read: [6604990127]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T13:26:27.064590Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-03T13:26:21.233535Z'
   stage: tests
   run: 40f2024725534baca46cacf5be15cc68
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-03T13:26:27.064590Z'
+  stage: doing
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -186,3 +195,4 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
     - **Lint:** `make lint` is now green.
 
     `lint`: lint: green (0.1 s)
+13. factory: started doing as vm.
