@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 520
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T11:57:15.814547Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-03T11:57:10.081077Z'
   stage: review
   run: cd8804c537954c8886e76c87bec35380
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:57:15.814547Z'
+  stage: docs
 ---
 
 # The job's start script leaves no temporary folder behind
@@ -141,3 +150,4 @@ Expect: `0`, then `1`.
 
    Earlier tests:
    - `tests/test_vm_job_start.py`: none needed. The diff only adds one test and leaves every earlier test in the file unchanged.
+10. factory: started docs as vm.
