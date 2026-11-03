@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 524
 comments_read: [6604990127]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T13:29:55.518987Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-03T13:29:55.518987Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T13:30:19.177149Z'
+  stage: review
+  run: 753128cc0b40471fb82db9a5a74fe6cb
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -218,3 +220,20 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 15. factory: started review as vm.
+16. reviewer: no findings
+
+    Reviewed `git diff main...HEAD -- . ':!factory'` (claude/agents/documenter.md, tests/test_claude_agent_texts.py, tests/test_claude_agent_texts_decision_log.py) against the work item.
+
+    - Acceptance criteria: the bullet at claude/agents/documenter.md:75 matches the Interface word for word. It comes after the project-guide bullet and before the temporary-directory bullet, and the documents-only bullet is still last.
+      - Criterion 1 is pinned by `test_documenter_lessons_hold_the_decision_log_bullet`.
+      - Criterion 2 is pinned by `test_decision_log_bullet_stands_between_the_guide_and_temporary_bullets`, which checks both neighbours and the last bullet.
+      - Criterion 3 is pinned by `test_only_the_documenter_holds_the_decision_log_bullet`, one parametrized test over `SHIPPED_NAMES`.
+      - The Interface states no other rule with a failing side.
+      - The coder's `make check` was green (journal entry 14).
+    - Architecture: nothing under `src/` changed. The new test module sits at the `tests/` root beside the other agent-text tests and reuses `section_text` and `shipped_agents`.
+    - Security: no secrets, no markers.
+    - Quality: the bullet's text appears in both test modules as expected text. This follows the precedent of tests/test_claude_agent_texts_review_leave.py. The human's leave in entry 8 also limited the old module to this one added entry, so I did not count it as a finding.
+    - Work item hygiene: the Description matches what was built. The journal names the main choice and the rejected options (entries 7 and 10). Docs criterion 5 still says what the documenter must write.
+
+    Earlier tests:
+    - tests/test_claude_agent_texts.py: the human's leave in journal entry 8. The diff only adds the new bullet to `LESSONS["documenter"]`, between the project-guide entry and `_TEMPORARY_DIRECTORY_LESSON`. Every test keeps its name.
