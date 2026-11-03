@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T02:12:22.657608Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-11-03T02:12:16.967405Z'
   stage: review
   run: 87a147142dc74e55b37606b9c897a4da
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-03T02:12:22.657608Z'
+  stage: docs
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -334,3 +343,4 @@ Expect: one line that says the tests passed and names no failure.
     Notes:
     - `tests/entry/test_run_machine_stop_exit.py` `_log`: repeats `_log` of `tests/entry/test_run_idle_exit.py` (it reads `factory.log` from a state directory, not from settings). It could go in `tests/scripted_tick_support.py`.
     - `tests/entry/test_run_machine_stop_exit.py` `_Outcome`: copies `MainRun`'s fields one by one. It could hold the `MainRun` itself.
+21. factory: started docs as vm.
