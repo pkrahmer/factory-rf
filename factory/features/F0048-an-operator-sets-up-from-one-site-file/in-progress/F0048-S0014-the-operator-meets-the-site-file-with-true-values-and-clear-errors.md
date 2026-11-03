@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 515
 comments_read: [6599499091]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T09:12:14.615738Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-11-03T09:12:14.615738Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T09:12:45.040488Z'
+  stage: smoke-test
+  run: e88cc1ac69ec415e932ce6a9423094b7
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -475,3 +477,40 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
 23. factory: started smoke-test as vm.
+24. smoke-tester: Ran the four commands under `## Smoke test` in order from the repository root, in one shell so that the `trap` removed the temporary folder. All four met their `Expect:` line. There are no findings.
+
+    1. `grep -c 'Required for a job\.$' operator/site.env.example`
+    ```
+    18
+    ```
+    Met (`18`).
+
+    2. `grep -E "^# The job's (CPUs|memory)\." operator/site.env.example`
+    ```
+    # The job's CPUs. Optional; the default is 4.
+    # The job's memory. Optional; the default is 16Gi.
+    ```
+    Met (the two lines, word for word).
+
+    3. `sh operator/bin/site 2>&1; echo "exit $?"`
+    ```
+    usage: site path | init | show | get SITE_X | check
+    exit 2
+    ```
+    Met.
+
+    4. The `json.py` block: plant the marker, write the site file, run `settings.sh init` from the temporary folder, then `test -e "$d/imported"`
+    ```
+    imported: 1
+    ```
+    Met: no marker file, so `json.py` was not imported.
+
+    Extra checks, outside the smoke test, to be sure step 4 meant something:
+    - I ran the same `settings.sh init` again without discarding its output. It exited 0 and printed `settings written: …/.config/kumpel/settings.json`, so the script really started Python.
+    - `operator/skill/kumpel/scripts/settings.sh` starts Python with `python3 -I -` at lines 43, 55, 70 and 85.
+
+    Read against the acceptance criteria, nothing contradicts them:
+    - `operator/job/job.sh` falls back to `--cpu=${SITE_CPU:-4}`, `--memory=${SITE_MEMORY:-16Gi}` and `--task-timeout=${SITE_TIMEOUT:-86400}` (lines 192–194), and to `FACTORY_IDLE_SHUTDOWN_MINUTES=${SITE_IDLE_MINUTES:-30}` (line 113).
+    - The example's comments name those same defaults: the timeout comment at line 59 and the idle-minutes comment at line 61. That fits criteria 2 and 13.
+
+    Open: nothing.
