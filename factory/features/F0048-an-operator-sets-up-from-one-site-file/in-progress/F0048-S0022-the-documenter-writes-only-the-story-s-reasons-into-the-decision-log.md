@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 524
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T13:18:15.726390Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-03T13:18:06.812345Z'
   stage: intake
   run: 78738c4bd07b4f53a5e3fd1e076ba65b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-03T13:18:15.726390Z'
+  stage: tests
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -81,3 +90,4 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
    - Smoke test: the two greps are runnable and have checkable Expect lines (`1`, and one line naming the documenter). The pytest command passes no `-q`, and `pyproject.toml` already sets `-q` in `addopts`, so `tail -1` shows a summary line ending in `passed`.
    - Architecture: the change is a text in the shipped agent files under `claude/`, covered by the coder's write paths (`claude/*`). Its test sits at the `tests/` root with the other agent-text tests. No layer is touched.
    - Scope: within F0048 (decision 27, the decision log holds only the human's reasons). It changes nothing from "Out of scope" (no `src/factory/` change, no other agent's text). The Description's "the other lessons stay" matches the Interface. Nothing is carried in from a journal answer.
+4. factory: started tests as vm.
