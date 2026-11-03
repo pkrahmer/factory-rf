@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-11-03T00:32:33.620340Z'
   stage: smoke-test
   run: 62c77b3d4d6941d1bbfa18dbf925a7c3
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-11-03T00:34:56.949194Z'
+  stage: approval
 ---
 
 # The factory does not pause after a tick that found activity
@@ -270,3 +275,4 @@ Expect: `0.0 30.0`.
     - Criterion 6: I read `docs/operator-guide.md:123`. It now says there is no pause after activity, that idle pauses are 30, 60 and 120 seconds, and that a failed iteration counts as idle. That agrees with the output.
 
     Findings: none.
+17. factory: done (pull request merged); cost: 7 runs, 6.6 min, 42 turns, 185403 tokens in (715429 more from cache), 20293 out, $1.77
