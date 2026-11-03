@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694, 6592430164]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T00:58:14.551722Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-03T00:58:08.999067Z'
   stage: doing
   run: 5adde7a8f4884b3a9e6187fbfd93a94e
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:58:14.551722Z'
+  stage: review
 ---
 
 # Kumpel signs everything it does
@@ -319,3 +328,4 @@ Expect: two lines, a number of at least `1`, then `0`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+22. factory: started review as vm.
