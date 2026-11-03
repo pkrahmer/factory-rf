@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 515
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T08:57:32.870255Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-03T08:57:32.870255Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T08:59:43.496521Z'
+  stage: review
+  run: e4abc88e80e64bd08cf0bac6067d36c5
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -102,7 +104,7 @@ The acceptance F0048-A0001 found three places where an operator does not meet th
 
 **B.** `operator/bin/site`: the usage line becomes `usage: site path | init | show | get SITE_X | check`, printed to standard error with exit 2 in every case where it is printed today. `site check` with an argument keeps `usage: site check`.
 
-`operator/README.md` (the documenter's, in the docs stage; criterion 15):
+`operator/README.md` (the documenter's, in the docs stage; criterion 16):
 
 - *Installing* says, in this order: write the site file (`sh operator/bin/site init`, fill in the values, `sh operator/bin/site check`); install the skill and the command as today. When the site file gives `SITE_REPOSITORY` and `SITE_CHECKOUT`, `settings.json` holds only the switches (`sh scripts/settings.sh init` takes no argument); otherwise the skill asks for both. It names `docs/operator-guide.md`, *Setting up an operator's machine*.
 - *Needs* names `git`, `curl`, `python3` and a POSIX shell, and a token from `SITE_TOKEN_CMD` or, without it, a `gh` login; `gcloud` for an instance in a Cloud Run job. The words "`gh` logged in for the project's GitHub" go.
@@ -138,8 +140,9 @@ Tests: `tests/test_operator_site_example.py` (A), a new `tests/test_operator_tex
 11. (D) `site check` with a `gcloud` stand-in: a describe answered as not found prints `job: <name> does not exist yet`; a describe that fails with `PERMISSION_DENIED` prints `job: <name> cannot be read: ` followed by the stand-in's first error line; an existing job prints today's line. All three rows leave the check's result as it was without the line.
 12. (E) The loader refuses `SITE_PROXY= http://p` and `SITE_PROXY=	http://p` with the fault message naming the line, as it refuses `SITE_PROXY =http://p`; it still accepts `SITE_PROXY=http://p` and a value with a space inside it. Rows of one parametrized test.
 13. (A) `job.sh create --dry-run` with a site file that leaves out `SITE_CPU`, `SITE_MEMORY`, `SITE_TIMEOUT` and `SITE_IDLE_MINUTES` puts the four defaults of the Interface in its call (S0005's rows of the defaults change to these values, with the human's leave).
-14. `make check` stays green.
-15. docs: `docs/operator-guide.md`, *The site file*: drop "the stories to come make the other keys live" from its intro. In *The keys*, replace "The defaults are those of the example's comments and are confirmed as the stories that read each key land" with a sentence saying that the example's comments and this table name the same required keys and defaults, and make the `SITE_TIMEOUT` row say what format the value takes (seconds, or a duration as gcloud takes it). *The `site` command*: the usage line with `check`; step 9 of *Setting up an operator's machine* stays true as written. `docs/decisions.md`: one entry stating that the operator's scripts start Python with `-I` and why (a folder an agent writes may be the working folder), with the rejected alternative (`cd` to the script's folder before each call). `operator/README.md` (B): *Installing* and *Needs* as the Interface says. *Installing* contains `site init` and `site check` and no sentence saying that the skill's first act asks for the repository and the checkout; *Needs* contains `SITE_TOKEN_CMD` and not `` `gh` logged in ``. The guide's table of the keys gives the new job defaults, and its *The `site` command* says what the `job` line prints in each case. `README.md` and the project guide: none, because nothing changes for them.
+14. (D) `site check` with a `gcloud` stand-in, as more rows of criterion 11's test: a describe whose error line contains `NOT_FOUND` (and not `Cannot find job`) prints `job: <name> does not exist yet`; a describe that fails with no text on standard error prints `job: <name> cannot be read: gcloud run jobs describe failed`. Both rows leave the check's result as it was without the line.
+15. `make check` stays green.
+16. docs: `docs/operator-guide.md`, *The site file*: drop "the stories to come make the other keys live" from its intro. In *The keys*, replace "The defaults are those of the example's comments and are confirmed as the stories that read each key land" with a sentence saying that the example's comments and this table name the same required keys and defaults, and make the `SITE_TIMEOUT` row say what format the value takes (seconds, or a duration as gcloud takes it). *The `site` command*: the usage line with `check`; step 9 of *Setting up an operator's machine* stays true as written. `docs/decisions.md`: one entry stating that the operator's scripts start Python with `-I` and why (a folder an agent writes may be the working folder), with the rejected alternative (`cd` to the script's folder before each call). `operator/README.md` (B): *Installing* and *Needs* as the Interface says. *Installing* contains `site init` and `site check` and no sentence saying that the skill's first act asks for the repository and the checkout; *Needs* contains `SITE_TOKEN_CMD` and not `` `gh` logged in ``. The guide's table of the keys gives the new job defaults, and its *The `site` command* says what the `job` line prints in each case. `README.md` and the project guide: none, because nothing changes for them.
 
 ## Smoke test
 
@@ -233,3 +236,19 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 42 known, 0 gone
 8. factory: started review as vm.
+9. reviewer: I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. The operator scripts do what the Interface says for parts A to E: the comments match it word for word, the job defaults are 4, 16Gi, 86400 and 30, the usage line includes `check`, every `python3` start in the eight files has `-I` first, `status.sh` assigns its three reads before parsing them and exits 1, and the loader refuses a blank after `=`. Every criterion from 1 to 13 has a test that checks what the criterion says. The trailing-space side of part E is covered by the existing `trailing-spaces` row. The coder's journal reports `make check` green.
+
+   1. criterion 14 added: it needs its test. `operator/bin/site:310-315` (`is_not_found`, the `*NOT_FOUND*` alternative) and `operator/bin/site:306` (the fallback `gcloud run jobs describe failed` when the error is empty) are behaviours no criterion named, and no row of `tests/test_operator_site_check.py::test_the_job_check_tells_whether_the_job_exists_and_never_fails` covers them. The fix is two rows in that test, as criterion 14 now says. The closing criteria were renumbered to 15 and 16, and the Interface's reference to the docs criterion now reads "criterion 16".
+   2. `tests/test_operator_python_isolation.py:60-62` (`job_dry_run`) is a second copy of `example_values` in `tests/test_operator_site_example.py:41-45`: the same parsing of the example's `SITE_*=value` lines into a dict. The fix is to move `example_values` to `tests/operator_support.py` beside `example_keys` and use it from both modules.
+   3. In `tests/operator_support.py`, `CURL_STAND_IN`'s new `STAND_IN_CURL_FAILURES` block repeats the two lines of the routes block just above it: `url = next(... name == "url" ...)` and `route = re.sub(r"^[a-z]+://[^/]*", "", url)`. The fix is to compute `url` and `route` once, before both blocks.
+   4. `tests/test_operator_job.py`: the `overrides` row of `test_the_sizes_and_the_idle_minutes_have_defaults_the_site_overrides` was changed from 4/16Gi to 8/32Gi. The leave in `feature.md` (*The human's changes*, S0014) covers only the rows that pin the job's defaults and says "Nothing else in those modules". The change keeps the row meaningful, but it needs the human's leave. The fix is for the next stage to ask the human to confirm it (`question`), or to put the row back.
+   5. `tests/test_operator_site.py`: `test_a_space_before_the_equals_sign_is_a_fault_and_one_after_it_is_the_value` was renamed to `test_a_space_beside_the_equals_sign_is_a_fault_and_one_inside_the_value_is_kept`. The leave covers the rows that pin a space after `=`, not the test's name. The old name is false once part E lands, so a rename is reasonable, but it needs the human's word. The fix is to ask the human to confirm the rename in the same question as finding 4. Changing the `space-before-equals` row to `SITE_PROXY =http://p` follows criterion 12's own words, so that part is covered.
+
+   Earlier test files the diff changes:
+   - tests/operator_job_support.py: the standing leave to move a shared test helper (`GCLOUD_STAND_IN`, `TAG`, `INSTANCE`, `JOB_ROOT`, `WRAPPER`, `START`, `START_SCRIPT`, `RunJob`, `wrapper_of`, `provider_text` and the fixture bodies moved from `tests/test_operator_job.py`).
+   - tests/operator_skill_support.py: none needed (it adds `Operator.fail` and one environment variable; every earlier use is as it was).
+   - tests/operator_support.py: the standing leave (`INTERFACE_KEYS` moved from `tests/test_operator_site.py`). The added `STAND_IN_CURL_FAILURES` route needs no leave, since it only adds; its duplication is finding 3.
+   - tests/test_operator_job.py: the standing leave for the moves, and the human's leave in `feature.md` for the `defaults` row and the `job_flags`/`env_list` defaults. The `overrides` row goes beyond both (finding 4).
+   - tests/test_operator_site.py: the human's leave in `feature.md` for `USAGE` and the space-after row, criterion 12 for the new rows, and the standing leave for `INTERFACE_KEYS`. The rename goes beyond them (finding 5).
+   - tests/test_operator_site_check.py: the standing leave (the machine, stand-ins, constants and line helpers moved unchanged to `tests/site_check_support.py`, apart from the added `describe_error`), and the human's leave in `feature.md` for the `job`-line rows.
+   - tests/test_operator_skill_scripts.py: none needed (it only adds `test_status_stops_at_a_failing_read_with_the_hosting_message`).
