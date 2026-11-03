@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T01:41:45.719151Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   at: '2026-11-03T01:41:40.119290Z'
   stage: review
   run: 35f639ca7df145a0baa23a8c5dfb93cc
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:41:45.719151Z'
+  stage: docs
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -485,3 +494,4 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
     - `tests/test_operator_site_check.py:521-527`: the `no_proxy` FAIL rows check that the detail names the host, not that it names the rule the Interface asks for.
 
     Earlier tests: none changed. `git diff --name-status main...HEAD` lists the one test file, `tests/test_operator_site_check.py`, as `A`.
+27. factory: started docs as vm.
