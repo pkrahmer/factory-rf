@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 522
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T12:44:26.907736Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-03T12:44:26.907736Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-03T12:44:52.694432Z'
+  stage: intake
+  run: 0bd46d9614b343c0ae41b534ea0cc8cb
 ---
 
 # The decision log gives the feature's own reasons for the operator's scripts
@@ -96,3 +98,10 @@ Expect: `documents ok`
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: documents only. It names the one file (`docs/decisions.md`) and the seven F0048 entries from S0019, and says that no script, module or test changes. No signatures are needed. I confirmed the entries exist (the log's lines ~1384 to 1408).
+   - Criteria: the docs criterion lists each entry, the reason or rejection it must gain, and the three kinds of "Rejected" handling, each with its wording. Each is checkable by grep. The Interface states no rule with a failing side. `make check` is the first criterion and `docs:` is last.
+   - Smoke test: the commands are runnable (`grep -c`, `git diff --stat`, and `check_documents`, which exists in `src/factory/entry`). Each `Expect:` is a count or a literal output. The current log gives 0 for `pasted secret`, `what one machine knows`, `home setup`, `cannot cancel`, `trixie-slim`, `delimiter` and `factory's own repository`, so those probes fail before the work and can pass after it. `did not see` is already 1, so that probe proves little, but it is not wrong. `a second source of defaults` is 1 now and must reach 0.
+   - Architecture: the change touches only the decision log, which the documenter owns. No layer is involved.
+   - Scope: within F0048's scope line for S0021 (decision 27 of `feature.md`). It touches none of the feature's Out of scope items. Earlier entries, code and the other documents stay as they are.
+   The story names no test. Tests is the only forward decision available, so I am ending with it.
