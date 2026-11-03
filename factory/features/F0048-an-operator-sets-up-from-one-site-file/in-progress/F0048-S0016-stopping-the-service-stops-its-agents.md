@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 512
 comments_read: [6597509758]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T07:03:44.798660Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-03T07:03:44.798660Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-03T07:04:52.265846Z'
+  stage: tests
+  run: 577ba80612a14a619810abf44c61d3be
+  blocked: question
 ---
 
 # Stopping the service stops its agents
@@ -117,3 +120,38 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
    - Architecture: the label is added in the adapters layer, the one wrapper that starts podman. The instance comes from the entry-layer wiring, so the layers stay intact. The unit change is under `vm/`.
    - Scope: within F0048 (decision 20, built first). Nothing in "Out of scope" is touched, and no existing test is changed.
 7. factory: started tests as vm.
+8. tester: I wrote the tests for criteria 1 and 2. Both fail for the right reason. I stopped there: the Interface cannot be met unless tests written by other stories change. Intake's entry said "no existing test is changed", and that does not hold. CLAUDE.md says I may change those tests only with your leave, so I am asking.
+
+   What breaks once the Interface is built:
+   - A required keyword-only `instance` on `PodmanRuns.__init__` makes every call that leaves it out raise `TypeError`. There are 14 such calls: `tests/conftest.py:446` (fixture `runs`), `tests/container_extra_support.py:39`, `tests/adapters/test_podman_timeout_status.py:44`, `tests/adapters/test_podman_runs_fence.py:76`, `tests/adapters/test_podman_runs.py:130`, `tests/adapters/test_podman_runs_results.py:28,161,201,202`, and `tests/adapters/test_podman_runs_job_profile.py:29,44,45,159,206`.
+   - Three tests pin the whole `podman run` argument list. The label words make each of them fail:
+     - `test_podman_runs.py::test_launch_pins_the_podman_command_line`
+     - the list at `test_podman_runs_fence.py:43`
+     - the list at `test_podman_runs_job_profile.py:67`
+   - Two tests pin the unit, and the `ExecStopPost` line fails both:
+     - `tests/test_vm_service.py::test_each_section_holds_exactly_its_keys[service]` lists the Service keys exactly.
+     - `tests/test_vm_local_environment.py::test_the_unit_reads_the_local_file_after_the_environment_file_and_nothing_else` asserts `text == UNIT`.
+
+   Options:
+   (a) You give me leave to change exactly these tests:
+      - Pass `instance=` at each of the 14 calls. The value would be one shared constant `INSTANCE = "vm"` in `tests/podman_support.py`.
+      - Put `"--label", "factory.instance=vm"` in the three pinned lists, directly after `"--rm"`.
+      - Add `("ExecStopPost", "-/usr/bin/podman stop --filter label=factory.instance=%i")` after `RestartSec` in the Service row of `test_vm_service.py`.
+      - Add the same line to `UNIT` in `test_vm_local_environment.py`, after the `RestartSec=15` line.
+      The tests keep their names and check the same things otherwise. This also decides two exact positions:
+      - The label goes directly after `--rm`, before the isolation words. The Interface only says "after `--rm`", but the pinned lists need one exact place.
+      - The `ExecStopPost` line goes directly after `RestartSec=15`. The Interface only says "after `ExecStart`".
+      Please confirm both positions or name others.
+   (b) Make `instance` optional with a default. This contradicts the Interface ("required") and still leaves five pinned tests red.
+   I would choose (a).
+
+   Tests written so far:
+   - Criterion 1: `tests/adapters/test_podman_runs_instance_label.py::test_a_container_start_carries_the_instance_label_after_rm`. Rows: `launch` with `vm`, `launch` with `night`, and `run` with `vm` (read from the stand-in podman's recorded call). It checks that `--label` comes after `--rm` and that the next word is `factory.instance=<instance>`.
+   - Criterion 2: `tests/test_vm_service_stop.py::test_the_unit_stops_the_instances_containers_after_its_start_line`. It checks the exact `ExecStopPost` line once, after `ExecStart`, and that the remaining lines equal the unit's current lines in order.
+   - Criterion 3 (`make check` green) and criterion 4 (docs) have no tests.
+
+   Files created: `tests/adapters/test_podman_runs_instance_label.py`, `tests/test_vm_service_stop.py`.
+
+   Run:
+   - `uv run pytest -q` on the two files: 4 failed. Every module imports. The label rows fail because `instance` is not a parameter yet. The unit test fails because the line is missing.
+   - `make lint`: green.
