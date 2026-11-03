@@ -51,6 +51,15 @@ MARK_COMMAND = "printf 'MARK%s\\n' MARK"
 MARK = "TOKENMARK"
 # A token command that succeeds and prints nothing.
 SILENT_COMMAND = "true"
+# The `origin` url of each kind of checkout that is a work tree; `None` adds no origin.
+ORIGINS: dict[str, str | None] = {
+    "work tree": REPOSITORY_URL,
+    "other origin": "https://repo.example.net/owner/other.git",
+    "no origin": None,
+    "scp origin": f"git@repo.example.net:{REPOSITORY}.git",
+    "origin without .git": f"https://repo.example.net/{REPOSITORY}",
+    "lookalike origin": f"https://repo.example.net/x{REPOSITORY}.git",
+}
 # Every value the job and the hosting client need, with no SITE_RESET_REPOSITORY among them.
 SITE: dict[str, str] = {
     "SITE_PROJECT": "p1",
@@ -228,8 +237,9 @@ class Machine:
             folder.mkdir()
             return folder
         folder = make_work_tree(self.root / "checkout")
-        url = REPOSITORY_URL if kind == "work tree" else "https://repo.example.net/owner/other.git"
-        run_git(folder, "remote", "add", "origin", url)
+        url = ORIGINS[kind]
+        if url is not None:
+            run_git(folder, "remote", "add", "origin", url)
         return folder
 
     def _stand_ins(self, missing: frozenset[str], answers: Path, routes: Path) -> Path:
@@ -706,6 +716,61 @@ def test_the_identity_check_impersonates_when_the_site_says_so(
     assert len(lists) == 1
     impersonation = [word for word in lists[0] if word.startswith("--impersonate-service-account")]
     assert impersonation == flags
+
+
+@pytest.mark.parametrize(
+    ("changes", "flags"),
+    [
+        pytest.param(
+            site(SITE_IMPERSONATE=IMPERSONATE),
+            [f"--impersonate-service-account={IMPERSONATE}"],
+            id="set",
+        ),
+        pytest.param(site(), [], id="unset"),
+    ],
+)
+def test_the_secrets_and_job_checks_impersonate_when_the_site_says_so(
+    machine: Machine, changes: tuple[tuple[str, str | None], ...], flags: list[str]
+) -> None:
+    machine.run(Setup(changes=changes))
+    calls = [
+        call
+        for call in machine.gcloud_calls()
+        if gcloud_words(call)[:2] == ["secrets", "describe"]
+        or gcloud_words(call)[:3] == ["run", "jobs", "describe"]
+    ]
+    kinds = sorted(" ".join(gcloud_words(call)[:3]) for call in calls)
+    assert kinds == [
+        "run jobs describe",
+        f"secrets describe {HOSTING_NAME}",
+        f"secrets describe {MODEL_NAME}",
+    ]
+    for call in calls:
+        impersonation = [word for word in call if word.startswith("--impersonate-service-account")]
+        assert impersonation == flags, call
+
+
+@pytest.mark.parametrize(
+    ("checkout", "status", "detail"),
+    [
+        pytest.param(
+            "no origin",
+            "FAIL",
+            lambda d: "origin" in d and ("no origin" in d or "missing" in d),
+            id="no-origin",
+        ),
+        pytest.param("scp origin", "ok", lambda d: d == "", id="scp-form"),
+        pytest.param("origin without .git", "ok", lambda d: d == "", id="without-dot-git"),
+        pytest.param("lookalike origin", "FAIL", lambda d: d != "", id="lookalike-owner"),
+    ],
+)
+def test_the_checkout_check_reads_the_origin_url(
+    machine: Machine, checkout: str, status: str, detail: Callable[[str], bool]
+) -> None:
+    result = machine.run(Setup(checkout=checkout))
+    line = line_of(result.stdout, "checkout")
+    assert line.status == status, result.stdout
+    assert detail(line.detail), line.detail
 
 
 def test_the_tools_check_names_every_missing_tool(machine: Machine) -> None:

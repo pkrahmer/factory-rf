@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T01:35:15.436317Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-11-03T01:35:15.436317Z'
   stage: tests
+- number: 22
+  speaker: tester
+  kind: result
+  at: '2026-11-03T01:36:03.948619Z'
+  stage: tests
+  run: fd49c2464db245938ab01ebeb9c7059d
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -404,3 +406,21 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
 
     The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0009-one-command-says-whether-a-machine-is-ready-and-the-guide-says-how-to-get-there.md.
 21. factory: started tests as vm.
+22. tester: Tests for the two criteria the reviewer added (entry 18). The coder's entry 20 said these need tests only. I edited no existing test. I added two parametrized tests and one table to `tests/test_operator_site_check.py`, the file this story already wrote.
+
+    - criterion 18: `tests/test_operator_site_check.py::test_the_secrets_and_job_checks_impersonate_when_the_site_says_so`. There are two rows, `set` and `unset`. Each row first asserts that the run made exactly the two `gcloud secrets describe` calls (one per secret) and the one `gcloud run jobs describe` call. It then asserts that each of those calls carries `--impersonate-service-account=<value>` when `SITE_IMPERSONATE` is set and no such flag when it is unset.
+    - criterion 19: `tests/test_operator_site_check.py::test_the_checkout_check_reads_the_origin_url`, with four rows:
+      - `no-origin`: `FAIL checkout`, and the detail mentions the origin and says "no origin" or "missing".
+      - `scp-form` (`git@repo.example.net:owner/repo.git`): `ok`.
+      - `without-dot-git` (`https://repo.example.net/owner/repo`): `ok`.
+      - `lookalike-owner` (`…/xowner/repo.git`): `FAIL`.
+
+    To build these checkouts, `Machine._checkout` now takes its `origin` url from a new `ORIGINS` table keyed by the checkout's kind; `None` means no origin is added. The existing kinds `work tree` and `other origin` keep their urls, so the earlier rows still check the same thing.
+
+    Files changed: `tests/test_operator_site_check.py`. No files created. The test run imported every module.
+
+    Test run (`uv run pytest -q tests/test_operator_site_check.py`): all pass, as entry 20 expected. The code from round 1 already covers both criteria, so the new tests are green on purpose, not red. `make lint`: green.
+
+    Open, outside my change: entry 20 says the factory dropped the coder's rewrite of check 11 in the Interface (finding 6, "always `ok`"). The Description still says "informational, always `ok`", so that wording fix is still open.
+
+    `lint`: lint: green (0.1 s)
