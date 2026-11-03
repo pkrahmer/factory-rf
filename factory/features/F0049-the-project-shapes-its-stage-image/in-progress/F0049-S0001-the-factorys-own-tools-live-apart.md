@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T23:24:29.321055Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-03T23:24:29.321055Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T23:25:28.952186Z'
+  stage: review
+  run: 47c03b8530374815b8c2bd1649f9afd1
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -328,3 +330,41 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 19. factory: started review as vm.
+20. reviewer: Review, round 1. No findings, so the story passes to docs.
+
+    I read the work item, the diff stat and the diff of `vm/Dockerfile` and `tests/test_stage_image.py`. I also read the helpers the tests use in `tests/dockerfile_support.py`.
+
+    **Criteria 1 to 5:** each one now has a parametrized test with rows for both sides.
+    - Criterion 1: `test_the_factory_node_is_pinned_by_version_and_checksum` has the rows as-built, node-20, two-numbers, 63-digits and upper-case. The as-built checksum contains letters, so the upper-case row really changes the text.
+    - Criterion 2: `test_the_node_archive_is_checked_before_it_is_unpacked` has the rows no-check, check-after-unpack, piped-into-a-shell, not-curl, another-target and literal-checksum.
+    - Criterion 3: `test_the_apt_install_names_exactly_the_six_packages` has the nodejs and npm rows.
+    - Criterion 4, the commands: `test_each_runtime_command_runs_on_the_factory_node` has the rows no-arguments, bare-node and no-command, each for claude and opencode.
+    - Criterion 4, the installs: `test_the_runtimes_are_installed_by_the_factory_npm_into_its_prefix` has the rows bare-npm and other-prefix. Together with `test_each_tool_is_installed_once_at_its_pinned_version` it checks the pinned versions.
+    - Criterion 5: `test_the_factory_node_stays_off_the_path` has the rows node-link, npm-link, npm-created and env-path.
+
+    The round-0 findings (entry 12) are fixed by the rows the tester added in entry 16. The coder's `make check` was green (entry 18).
+
+    **`vm/Dockerfile` does what the Interface asks:**
+    - Node 22.23.4 is pinned with its SHA-256, downloaded with `curl -fsSL -o`, and checked with `sha256sum -c -` before `tar -C /opt/factory/node`. Nothing is piped into a shell.
+    - The `apt-get` line names the six packages.
+    - Both runtimes are installed by `/opt/factory/node/bin/npm --prefix /opt/factory` at their existing pins.
+    - The `printf` commands exec `/opt/factory/node/bin/node` with `"$@"`.
+    - There is no `ENV PATH` line and no `node` or `npm` in `/usr/local/bin`. The `export PATH` only lasts for its own build step.
+    - The `ENV FACTORY_*_VERSION` lines are unchanged.
+
+    **Architecture and security:** only `vm/` and tests changed. There are no secrets: the checksum is public, and the diff adds no baseline entry and no check-silencing marker. The download is verified before it is used.
+
+    **Quality and hygiene:** the comments explain why. The journal gives the main decision (start the runtimes through npm's bin links under `/opt/factory/bin`) and what was rejected (naming each package's entry file; `/opt/factory/bin` on the PATH). The Description matches what was built, and criterion 7 still says what the documenter must write.
+
+    **Not raised:**
+    - `test_each_tool_is_installed_once_at_its_pinned_version` repeats the `--prefix` value check that `_installed_by_the_factory_npm` now makes. This is a small overlap in a changed test, not a separated rule.
+    - Two risks stay open until the human's build (criterion 6). First, `NODE_SHA256` has not yet been checked against the real archive. Second, a runtime release whose bin is not a Node script would break its wrapper. The human's `--version` check after the build would show it.
+
+    Earlier tests:
+    - tests/test_stage_image.py: changed under the feature's leave for S0001 (feature.md, "A leave, for S0001"). The changes are:
+      - the Debian package rows (`STAGE_PACKAGES`, `eighth-package` renamed `seventh-package`);
+      - the npm install rows (`NPM_FLAGS`, `FACTORY_NPM` in the install and order tests, the `--prefix` value);
+      - the places of the runtimes (`/opt/factory` taken out of `ABSENT_WORDS`);
+      - the floating-reference test's rewrite of the npm path and prefix, which keeps it checking the npm pins.
+      
+      The new test functions are additions; none needed.
