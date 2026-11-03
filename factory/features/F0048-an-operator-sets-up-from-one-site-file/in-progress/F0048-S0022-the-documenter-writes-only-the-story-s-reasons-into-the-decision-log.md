@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 524
 comments_read: [6604990127]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T13:29:55.518987Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-03T13:29:48.899192Z'
   stage: doing
   run: 064ae3141984439b94423331aae8080a
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-03T13:29:55.518987Z'
+  stage: review
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -208,3 +217,4 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+15. factory: started review as vm.
