@@ -1,7 +1,7 @@
 ---
-stage: approval
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 526
@@ -150,6 +150,11 @@ journal:
   speaker: human
   kind: close
   at: '2026-11-03T23:30:45.056456Z'
+  stage: approval
+- number: 27
+  speaker: factory
+  kind: send_back
+  at: '2026-11-03T23:30:50.991465Z'
   stage: approval
 ---
 
@@ -466,3 +471,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     Open, and not a finding: criterion 6 leaves building the image to the human on the VM. The scripts run `/opt/factory/bin/claude` and `/opt/factory/bin/opencode` as Node scripts, and that only works if npm's installed commands are JavaScript entry points. Only that build can show it, together with `claude --version`, `opencode --version`, `command -v node` and the missing `EBADENGINE` warning. I did not run `make check`; the factory runs it as this stage's check.
 25. 2026-11-03 human: Sent back after a real build on factory-vm (podman build of this branch): the build passes with no EBADENGINE, but both wrappers fail. Claude Code 2.1.296 and opencode 1.19.3 install native executables (/opt/factory/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe, and opencode-ai/bin/opencode.exe, an ELF file), so running them with /opt/factory/node/bin/node gives ERR_UNKNOWN_FILE_EXTENSION and a SyntaxError. The human's correction (feature decision 6): the runtimes need Node only for npm's install, not to run. /usr/local/bin/claude and /usr/local/bin/opencode each exec the installed command under /opt/factory/bin directly, passing "$@" on; they do not name /opt/factory/node/bin/node. Criterion 4 changes accordingly: each wrapper execs /opt/factory/bin/<runtime> with "$@"; a wrapper that names a node binary is refused. Everything else stays: Node 22 under /opt/factory/node for the install, no node or npm on the PATH, the six packages. After the fix I build it again on the VM and check claude --version and opencode --version.
 26. 2026-11-03 human: closed the pull request.
+27. factory: sent back to doing, round 2.
