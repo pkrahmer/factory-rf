@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T07:24:40.719507Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-11-03T07:24:40.719507Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-11-03T07:28:03.163389Z'
+  stage: doing
+  run: 9e8e513d0ed64bd5a4c33e2523015262
 ---
 
 # Stopping the service stops its agents
@@ -396,3 +398,21 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
 
     `lint`: lint: green (0.1 s)
 23. factory: started doing as vm.
+24. coder: `make check` is green with the tester's new tests (it ended `test: green (80.9 s)`, then `check: green`). They are the criterion 3 test `tests/entry/test_wiring_instance_label.py` and the `launch_words` helper moved to `tests/podman_support.py`. Both pass against the code built earlier, so this round changed no code under `src/` or `vm/`.
+
+    What was built (unchanged since entry 16):
+    - `src/factory/adapters/podman_runs.py`: `PodmanRuns.__init__` takes a required keyword-only `instance: str`. `launch` puts `--label`, `factory.instance=<instance>` directly after `--rm`, with a comment on why.
+    - `src/factory/entry/wiring.py`: passes `instance=settings.instance`.
+    - `vm/factory.service`: `ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i`, directly after `RestartSec=15`.
+    - `vm/setup.sh`: unchanged. Its existing compare-and-install already covers the new unit.
+
+    Main choice: the label is added in `launch`, the one place every container start passes through. I rejected adding it at each caller (`agent_launch`, `run`): that is two places to keep in step, and a later way of starting a container could miss it.
+
+    Refactor: I read the diff against `main` again and found nothing to change.
+
+    Journal: entries 18 to 22 added criterion 3 and its test, and the smoke test's `-F`. The reviewer already wrote both into the Description, so I left it alone.
+
+    Noticed, not touched: the comment on the per-file ignore at `pyproject.toml:65` still names the work item id. It is the human's commit.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
