@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 524
-comments_read: []
+comments_read: [6604990127]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: 97ad538ed816430a8afedf0658ef0612
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-11-03T13:25:17.944790Z'
+  stage: doing
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -128,3 +133,7 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
    - (c) Change the old test to stop pinning the full list for the documenter. That weakens a test of another story.
 
    Noticed but not touched: nothing else. No `src/` change, so nothing to refactor yet.
+8. 2026-11-03 human: (a). The tester has leave to add the new bullet to `LESSONS["documenter"]` in `tests/test_claude_agent_texts.py`, between the project-guide entry and `_TEMPORARY_DIRECTORY_LESSON`, and nothing else in that module. The test keeps its name and still pins the documenter's whole list.
+
+   — Kumpel, for the human who owns this project
+   <!-- kumpel -->
