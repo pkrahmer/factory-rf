@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T11:36:31.326274Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-03T11:36:31.326274Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-03T11:36:59.892158Z'
+  stage: tests
+  run: 00e95af8d4ea47f3af805099debdf4b7
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -109,3 +111,14 @@ Expect: `documents ok`
    Architecture: the story changes no code and no layer. It writes within the roles' write paths: the coder under operator/, the documenter under README.md and docs/. CLAUDE.md, planning/ and docs/runs/ are left alone.
    Scope: the story is inside F0048's scope (the last Scope bullet names S0019) and breaks nothing in Out of scope. Decisions 22 and 25 of feature.md match the Description.
 4. factory: started tests as vm.
+5. tester: I wrote the one text test the Interface asks for: a parametrized test with one row per skill text, which checks that the text contains no `factory-rf`.
+
+   criterion 1: tests/test_operator_skill_name.py::test_the_skill_texts_do_not_name_the_old_repository (rows `skill` for operator/skill/kumpel/SKILL.md and `standing-orders` for operator/skill/kumpel/references/standing-orders.md). The rest of criterion 1 ("every other line of both stays, and the tests that pin `SKILL.md` stay green") is covered by the existing tests/test_operator_texts.py and tests/test_operator_skill_signature.py. I did not change them.
+   criterion 2: no test; `make check` is the coder's gate.
+   criterion 3: no test; it is the docs criterion, checked by the docs stage's document check and the smoke test.
+
+   Files created: tests/test_operator_skill_name.py (a new module, so that no other story's test file changes; it uses `ROOT` from tests/operator_support.py).
+   Modules the test run could not import: none. The code under test is the two texts, so both rows fail for the right reason: each file still contains `factory-rf` (SKILL.md:8 and standing-orders.md:3), and `uv run pytest -q tests/test_operator_skill_name.py` showed 2 failed with an AssertionError.
+   `make lint` is green after ruff sorted the import block. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.1 s)
