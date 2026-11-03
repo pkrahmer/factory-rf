@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 520
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T11:51:33.149591Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-03T11:51:33.149591Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-03T11:51:57.767089Z'
+  stage: intake
+  run: 03af1de5920a4139b6625250bb8c471b
 ---
 
 # The job's start script leaves no temporary folder behind
@@ -60,3 +62,9 @@ Expect: `0`, then `1`.
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names the one script and step (`vm/job-start.sh`, step `runc`, lines 104-110, where `mktemp -d` is followed by `rm -rf` as the last line) and the one guide sentence. No signatures are needed. The failure messages stay word for word (`runc: failed`, `runc: checksum does not match`).
+   Criteria: criterion 1 has four rows (success, failed download, checksum mismatch, failed install), each checked by whether a folder remains under the test's `TMPDIR`, and each failure row also checks the printed message. The criteria cover every way the step can end. A failed `mktemp` leaves no folder, so it needs no row. Criterion 2 is a property of the whole `make check` run rather than one test function. It follows from the rows of criterion 1 and is checked by running `make check`, so I accept it. Criterion 3 is the docs criterion.
+   Smoke test: one runnable `grep -c` command, with an `Expect:` line (`0`, then `1`) that the output can be checked against. It runs no pytest, so the `-q` rule does not apply.
+   Architecture: the change stays inside `vm/job-start.sh`, which is the coder's write path, and the tests stay under `tests/` beside the existing `vm/job-start.sh` tests. No Python layer is touched.
+   Scope: it matches S0020 in `feature.md` and decision 26. The grammar fix to the operator guide is named in the Description and in decision 26. It is not in the feature's Out of scope list. The story changes no test that another story wrote.
