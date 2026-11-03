@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229, 6600934999]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T10:17:46.465259Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-03T10:17:40.702360Z'
   stage: doing
   run: fb4d77df05654c32b86401d4ba5d1a47
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-03T10:17:46.465259Z'
+  stage: tests
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -217,3 +226,4 @@ Expect: `documents ok`
     The journal's answer adds no criterion and does not change the Description's meaning. It only allows that one test change.
 
     Noticed but not touched: nothing.
+14. factory: started tests as vm.
