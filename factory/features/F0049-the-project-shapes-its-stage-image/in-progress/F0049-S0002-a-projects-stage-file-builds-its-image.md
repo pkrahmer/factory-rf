@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T23:57:04.224086Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-03T23:56:58.507346Z'
   stage: intake
   run: d207184f90bf4141ab234c6c193c1052
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:57:04.224086Z'
+  stage: tests
 ---
 
 # A project's stage file builds the image its stages run in
@@ -125,3 +134,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
    - Smoke test: the three grep commands are runnable and do not run pytest. Each Expect line (`1`, `1`, the single line `"stage_image_failed"`) is checkable.
    - Architecture: the rule is in domain, the images interface is in application, and podman is reached only through its adapter wrapper, which matches the layers and R5. The wiring is in one place. The earlier `PATH` tests change under the feature's leave for S0002.
    - Scope: within F0049's S0002 scope. Rebuilding on a changed `main` is left to S0003, and nothing in the story touches the feature's out-of-scope items.
+7. factory: started tests as vm.
