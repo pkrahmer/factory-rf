@@ -55,11 +55,6 @@ get() {
   printf '%s\n' "$value"
 }
 
-# The keys `job.sh create` requires, and those of the hosting client.
-job_keys="SITE_PROJECT SITE_REGION SITE_RUN_AS SITE_CONNECTOR SITE_PROXY SITE_NO_PROXY SITE_JOB
-  SITE_INSTANCE SITE_REPOSITORY_URL SITE_CODE_URL SITE_CODE_REF SITE_HOSTING_SECRET
-  SITE_MODEL_SECRET SITE_MODEL_BASE_URL SITE_MODEL SITE_LOGIN_URL SITE_LOGIN_SCOPE
-  SITE_LOGIN_CLIENT_ID"
 hosting_keys="SITE_REPOSITORY SITE_CHECKOUT"
 newline='
 '
@@ -131,21 +126,9 @@ needs() {
   fi
 }
 
-# Every gcloud call names its project, and every Cloud Run call its region, as job.sh's do.
-site_gcloud() {
-  set -- "$@" "--project=$SITE_PROJECT"
-  if [ "$1" = run ]; then
-    set -- "$@" "--region=$SITE_REGION"
-  fi
-  if [ -n "${SITE_IMPERSONATE:-}" ]; then
-    set -- "$@" "--impersonate-service-account=$SITE_IMPERSONATE"
-  fi
-  gcloud "$@"
-}
-
 check_keys() {
   # The lists hold names only, so they are split into words on purpose.
-  missing=$(missing_keys $job_keys $hosting_keys)
+  missing=$(missing_keys $site_job_keys $hosting_keys)
   if [ -n "$missing" ]; then
     fail keys "missing $missing"
   else
@@ -217,7 +200,7 @@ names_repository() {
 
 check_identity() {
   needs identity SITE_PROJECT SITE_REGION || return 0
-  if message=$(site_gcloud run jobs list --limit=1 2>&1 >/dev/null); then
+  if message=$(site_gcloud_with gcloud run jobs list --limit=1 2>&1 >/dev/null); then
     pass identity
   else
     fail identity "$(first_line "${message:-gcloud run jobs list failed}")"
@@ -230,7 +213,7 @@ check_secrets() {
   unseen=
   for key in SITE_HOSTING_SECRET SITE_MODEL_SECRET; do
     secret=$(site_value "$key")
-    if ! site_gcloud secrets describe "$secret" >/dev/null 2>&1; then
+    if ! site_gcloud_with gcloud secrets describe "$secret" >/dev/null 2>&1; then
       unseen="${unseen:+$unseen, }$key ($secret)"
     fi
   done
@@ -271,7 +254,7 @@ is_commit_id() {
 check_no_proxy() {
   needs no_proxy SITE_NO_PROXY SITE_CODE_URL SITE_REPOSITORY_URL SITE_MODEL_BASE_URL || return 0
   faults=
-  for url in "$SITE_CODE_URL" "$SITE_REPOSITORY_URL" "${SITE_API_URL:-https://api.github.com}"; do
+  for url in "$SITE_CODE_URL" "$SITE_REPOSITORY_URL" "$(hosting_api_url)"; do
     host=$(url_host "$url")
     if covers "$host"; then
       faults="${faults:+$faults; }$host is a code host and must not be in SITE_NO_PROXY, since the job cannot resolve it"
@@ -315,7 +298,7 @@ covers() {
 # already fails for a broken login.
 check_job() {
   needs job SITE_PROJECT SITE_REGION SITE_JOB || return 0
-  if site_gcloud run jobs describe "$SITE_JOB" >/dev/null 2>&1; then
+  if site_gcloud_with gcloud run jobs describe "$SITE_JOB" >/dev/null 2>&1; then
     pass "job: $SITE_JOB exists"
   else
     pass "job: $SITE_JOB does not exist yet"

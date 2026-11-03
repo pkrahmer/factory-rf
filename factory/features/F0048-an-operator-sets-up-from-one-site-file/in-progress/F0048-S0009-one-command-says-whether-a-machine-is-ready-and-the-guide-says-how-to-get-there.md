@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T01:32:34.048929Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-11-03T01:32:34.048929Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-03T01:35:09.674496Z'
+  stage: doing
+  run: 7eea0fd2b95749af8d67a00f7342d307
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -375,3 +377,20 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
 
     Earlier tests: none changed. `git diff --name-status main...HEAD` lists the one test file, `tests/test_operator_site_check.py`, as `A`.
 19. factory: started doing as vm.
+20. coder: Round 1. I fixed review findings 3 to 6 (entry 18). Findings 1 and 2 add criteria that only need tests, so this goes to the tester: **criterion 18**, the `--impersonate-service-account=<value>` flag on both `gcloud secrets describe` calls and on `gcloud run jobs describe`, present when `SITE_IMPERSONATE` is set and absent when it is not; and **criterion 19**, the `checkout` check on the `origin` url, with no `origin` (a FAIL whose detail says the origin is missing), `git@<host>:owner/repo.git` and an origin without `.git` (both ok), and `/xowner/repo.git` (FAIL). The code already handles all of these (`site_gcloud_with` in `operator/lib/site.sh`; `check_checkout` and `names_repository` in `operator/bin/site`), so the new tests should pass without a code change.
+
+    What I changed:
+    - Finding 3: `operator/lib/site.sh` now holds the one gcloud helper, `site_gcloud_with RUNNER ARG...`. It adds `--project=`, `--region=` for `run` calls, and `--impersonate-service-account=` when `SITE_IMPERSONATE` is set, then runs RUNNER. In `operator/job/job.sh`, `gcloud_call` passes `print_call` as the runner for a dry run and `gcloud` otherwise, so the dry-run output is unchanged. `operator/bin/site` calls `site_gcloud_with gcloud` directly, and its own `site_gcloud` copy is gone.
+    - Finding 4: the job's key list now lives once, as `site_job_keys` in `operator/lib/site.sh`. `require_settings` in `job.sh` and `check_keys` in `site` both read it, and the `job_keys` copy is removed.
+    - Finding 5: `operator/lib/hosting.sh` has a new public `hosting_api_url`, which prints the default `https://api.github.com` or `SITE_API_URL`, without a trailing `/`. The client's `_hosting_curl_config` uses it, and so does the `no_proxy` check in `site`, so the check tests the host the client actually calls.
+    - Finding 6: in the work item's Interface, check 11 now reads "informational, `ok` whenever its keys are set (a missing `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB` fails it by the `needs` rule below)". This matches the human's confirmation in entry 14. No other part of the Description changed.
+
+    Main choice: I pass the runner as the helper's first argument, so `job.sh` keeps its dry run without the library knowing about it. I rejected two alternatives: a dry-run variable read inside `site.sh`, and a helper that only prints the flags, which shell cannot hand back safely as separate words.
+
+    Refactor pass: I read the diff. Once all three calls used `site_gcloud_with gcloud` directly, a one-line `site_gcloud` wrapper in `site` had nothing left to do, so I removed it. Nothing else needed changing.
+
+    Noticed, not touched: `docs/operator-guide.md` still says that `site check` does not exist yet. That is the documenter's work.
+
+    `check`: check: green (test: green, 80.6 s)
+
+    The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0009-one-command-says-whether-a-machine-is-ready-and-the-guide-says-how-to-get-there.md.

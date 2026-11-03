@@ -4,6 +4,7 @@
 #   hosting_api METHOD PATH [BODY]       the API call; print the body; return 0, 4 or 22
 #   hosting_repo_api METHOD PATH [BODY]  hosting_api on /repos/$SITE_REPOSITORY$PATH; also 2
 #   hosting_git ARG...                   git with the token for https remotes; git's status
+#   hosting_api_url                      print the API's base url, without a trailing '/'
 
 _hosting_newline='
 '
@@ -68,6 +69,11 @@ hosting_git() {
     git "$@"
 }
 
+hosting_api_url() {
+  _hosting_base=${SITE_API_URL:-https://api.github.com}
+  printf '%s' "${_hosting_base%/}"
+}
+
 _hosting_token_source() {
   if [ -n "${SITE_TOKEN_CMD:-}" ]; then
     sh -c "$SITE_TOKEN_CMD"
@@ -86,8 +92,7 @@ _hosting_no_token() {
 # Prints curl's configuration for METHOD PATH [BODY]; printf is a builtin, so the token it
 # writes is in no process's arguments.
 _hosting_curl_config() {
-  _hosting_base=${SITE_API_URL:-https://api.github.com}
-  printf 'url = "%s"\n' "$(_hosting_quote "${_hosting_base%/}$2")"
+  printf 'url = "%s"\n' "$(_hosting_quote "$(hosting_api_url)$2")"
   printf 'request = "%s"\n' "$(_hosting_quote "$1")"
   printf 'header = "Authorization: Bearer %s"\n' "$_hosting_bearer"
   printf 'header = "Accept: application/vnd.github+json"\n'

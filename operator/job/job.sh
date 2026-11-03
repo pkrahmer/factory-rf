@@ -25,21 +25,16 @@ usage() {
   exit 2
 }
 
-# Every call names its project, and every Cloud Run call its region, so gcloud's own defaults
-# never pick them. Cloud Logging has no region, and gcloud refuses the flag there.
 gcloud_call() {
-  set -- "$@" "--project=$SITE_PROJECT"
-  if [ "$1" = run ]; then
-    set -- "$@" "--region=$SITE_REGION"
-  fi
-  if [ -n "${SITE_IMPERSONATE:-}" ]; then
-    set -- "$@" "--impersonate-service-account=$SITE_IMPERSONATE"
-  fi
   if [ "$dry_run" = yes ]; then
-    printf '%s\n' gcloud "$@"
+    site_gcloud_with print_call "$@"
   else
-    gcloud "$@"
+    site_gcloud_with gcloud "$@"
   fi
+}
+
+print_call() {
+  printf '%s\n' gcloud "$@"
 }
 
 require_job() {
@@ -49,10 +44,8 @@ require_job() {
 
 require_settings() {
   site_load || exit
-  site_require SITE_PROJECT SITE_REGION SITE_RUN_AS SITE_CONNECTOR SITE_PROXY SITE_NO_PROXY \
-    SITE_JOB SITE_INSTANCE SITE_REPOSITORY_URL SITE_CODE_URL SITE_CODE_REF \
-    SITE_HOSTING_SECRET SITE_MODEL_SECRET SITE_MODEL_BASE_URL SITE_MODEL \
-    SITE_LOGIN_URL SITE_LOGIN_SCOPE SITE_LOGIN_CLIENT_ID || exit
+  # The list holds names only, so it is split into words on purpose.
+  site_require $site_job_keys || exit
 }
 
 # The instance's name becomes a path in the shell text the job runs, so it holds no shell syntax.
