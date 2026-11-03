@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-03T12:08:30.836621Z'
   stage: acceptance
   run: cf3072fab80a4fa4a54ade7870b9bfbd
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-03T12:16:34.244197Z'
+  stage: done
 stories: [F0048-S0001, F0048-S0002, F0048-S0003, F0048-S0004, F0048-S0005, F0048-S0006, F0048-S0007, F0048-S0008, F0048-S0009, F0048-S0010, F0048-S0011, F0048-S0012, F0048-S0013, F0048-S0014, F0048-S0015, F0048-S0016, F0048-S0017, F0048-S0018, F0048-S0019, F0048-S0020]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of An operator sets up from one site file
@@ -418,3 +423,4 @@ Human interventions: 38 questions answered (34 `question`, 1 `attempts_cap`, 3 `
    6 Decisions: the 26 decisions stand, and A0002's and A0003's items are unchanged. A0003's question is still open: does a prune without `-a` remove the cache's intermediate images on `vm`? New: whether S0021 removes the five unsourced "Rejected" options or keeps them is the human's choice. The two stories made two coder choices: only the name swapped, and the EXIT trap scoped to the step (it does not run when a signal ends the job, which matters nowhere). S0019 changed `tests/test_operator_skill_signature.py` and `tests/operator_skill_support.py` under the standing leave. S0020 changed no earlier test. Every earlier test changed in F0048 has its leave named.
    7 Slow checks: there is nothing beyond `make check`. It is green: test 84.1 s, 8629 tests, coverage 99.56 %. The slowest tests take 10 s, all ROOMY_LIMIT tests outside F0048. `test_vm_job_start.py` went from 6.5 to 7.0 s. Disk: 43.8 GB free at this acceptance's start and 43.7 GB now; the instance is unchanged at 1.3 GB, so there is no growth to explain.
    8 Cost: $91.87, 259 runs, 349.5 min. S0019 cost $2.52 in 10 runs (one review round), S0020 $1.12 in 6 runs. Over the feature, S0005, S0001 and S0003 still stand out. 38 questions (34 question, 1 attempts_cap, 3 round_cap) and 5.5 h of waiting, unchanged since A0003, because S0019 and S0020 asked nothing. S0001 still needed the human most (4 answers).
+3. factory: done (pull request merged); cost: 1 runs, 6.3 min, 30 turns, 108167 tokens in (1983278 more from cache), 27973 out, $1.82
