@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T23:25:34.554016Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-03T23:25:34.554016Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T23:26:10.279779Z'
+  stage: docs
+  run: 00be12f4a49d443991efa52fa64cfa0f
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -378,3 +380,23 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
       
       The new test functions are additions; none needed.
 21. factory: started docs as vm.
+22. documenter: Docs round 1. Only documents changed, so I did not run `make check`; the factory's checks run right after this stage.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The stage image*:
+      - The package list now has six names, with `xz-utils` named as the one for the Node archive.
+      - The "installs seven Debian packages" paragraph says six, and the sentence on what the test reports says "those six names".
+      - The pinned-tools sentence now includes Node.
+      - One new paragraph covers the criterion 7 points: the runtimes run on their own Node under `/opt/factory`, pinned by version and checksum and checked with `sha256sum -c` before unpacking. It also says that the image has no Node for projects, and how to change the pin (both `ARG`s, from nodejs.org's `SHASUMS256.txt`).
+      - *Update the pins* gained a line for the Node pin.
+    - `docs/decisions.md`: one new entry at the end, "The factory's tools live apart, under `/opt/factory`, with their own Node". It says that it supersedes the seven packages of "Debian's packages follow the base image's release" for `nodejs` and `npm`. Its Why comes from the Description and criterion 7: Claude Code asks for Node 22, Debian has 18, and a project's layer must not change the runtime. The story names no rejected option, so the entry has no "Rejected" line.
+
+    I read `vm/Dockerfile` against the Interface and found no mismatch, so there are no findings for the coder.
+
+    Cross-read and found current: `README.md`, `docs/project-guide/` (the grep found no Node or image-package text), and the rest of `docs/operator-guide.md` that mentions the image or the runtimes. I ran no commands. The examples I wrote are prose, and the human's build checks (criterion 6) are not run in this stage.
+
+    Stale text I saw and left alone: the entry "Every tool of the machine's image is pinned" in `docs/decisions.md` (around line 287) still says "eight Debian tools". It is a dated history entry that the 2026-11-01 entry already supersedes, and it is not this story's.
+
+    `check`: check: green (not run again: passed on tree b60c7ccd56bc at 2026-11-03T23:22:45Z)
+    `secrets`: secrets: green (2.3 s)
+    `documents`: documents ok

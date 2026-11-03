@@ -474,7 +474,7 @@ Every container of a v1.2 stage (the sync, the agent, the checks) starts from on
 
 It holds:
 
-- the pinned base image, and Debian's `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs` and `npm`, at the versions the base image's Debian release ships;
+- the pinned base image, and Debian's `git`, `make`, `curl`, `ca-certificates`, `procps` and `xz-utils` (for the Node archive), at the versions the base image's Debian release ships;
 - `uv`, Claude Code and opencode at exact versions, with the runtimes' environment: `DISABLE_AUTOUPDATER`, `UV_LINK_MODE`, `PYTHONDONTWRITEBYTECODE`, the two version records `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION`, and the opencode model ids `FACTORY_OPENCODE_MODELS`;
 - the agent files (`claude/agents` and `claude/settings.json`) at `/etc/factory/claude`, read-only.
 
@@ -490,16 +490,18 @@ podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> <the checkout>
 
 `--build-arg FACTORY_IMAGE=<ref>` sets the label `factory.image`; it defaults to `unlabelled`. The label is not the identity of the image. The settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, and you renew that file after every build. `vm/setup.sh` makes the file with a fresh uuid when it is missing or empty (see *The script*). Nothing in `make check` builds the image.
 
-`vm/Dockerfile` installs seven Debian packages by name alone: `git`, `make`, `curl`, `ca-certificates`, `procps`, `nodejs` and `npm`. Debian's mirror keeps only a package's current version, so an exact version stops building at the next point release, and a job rebuilds the image at every start. The base image's digest fixes the Debian release instead, and within one stable release Debian ships only security and serious fixes. Everything that shapes a result is still pinned: the base image is named with its digest, and `uv`, Claude Code and opencode have exact versions. A pin is changed in `vm/Dockerfile` alone and checked with `uv run pytest tests/test_stage_image.py`, which reports any reference that floats (a `FROM` without a digest, `latest`, a download piped into a shell, an `apt-get install` of anything but those seven names) and checks that each pin has its form.
+`vm/Dockerfile` installs six Debian packages by name alone: `git`, `make`, `curl`, `ca-certificates`, `procps` and `xz-utils`. Debian's mirror keeps only a package's current version, so an exact version stops building at the next point release, and a job rebuilds the image at every start. The base image's digest fixes the Debian release instead, and within one stable release Debian ships only security and serious fixes. Everything that shapes a result is still pinned: the base image is named with its digest, and `uv`, Node, Claude Code and opencode have exact versions. A pin is changed in `vm/Dockerfile` alone and checked with `uv run pytest tests/test_stage_image.py`, which reports any reference that floats (a `FROM` without a digest, `latest`, a download piped into a shell, an `apt-get install` of anything but those six names) and checks that each pin has its form.
 
 A VM's next rebuild takes the current packages of the same release.
+
+The agent runtimes run on a Node of their own. The image downloads Node 22 from nodejs.org, pinned by `NODE_VERSION` and `NODE_SHA256`, checks the archive with `sha256sum -c` before it unpacks it into `/opt/factory/node`, and installs Claude Code and opencode with that Node's npm under `/opt/factory`. The commands `/usr/local/bin/claude` and `/usr/local/bin/opencode` run the runtimes with `/opt/factory/node/bin/node` by its full path and pass their arguments on. The factory's Node is not on the `PATH`, and the image has no `node` or `npm` for projects: a project that needs one installs its own, and that cannot change the runtimes. To change the Node pin, set both `ARG`s in `vm/Dockerfile`: `NODE_VERSION` to a `22.<n>.<n>` release and `NODE_SHA256` to the SHA-256 that nodejs.org's `SHASUMS256.txt` lists for `node-v<NODE_VERSION>-linux-x64.tar.xz` (64 lowercase hex digits). A wrong checksum fails the build.
 
 #### Update the pins
 
 The Debian packages carry no version, so a security or point update needs no edit. Moving to a new Debian release is a deliberate change of the base image's digest. Edit the line in `vm/Dockerfile`, then run the test:
 
 - Base image: `podman pull <image>`, then take the digest from `podman inspect --format '{{index .RepoDigests 0}}'` and put it after `@sha256:` in the `BASE_IMAGE` default.
-- `uv`: the `UV_VERSION` default. Claude Code: the `CLAUDE_CODE_VERSION` default (three numbers). Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, with its auto-update off (`DISABLE_AUTOUPDATER=1`); the version is in the environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it.
+- `uv`: the `UV_VERSION` default. Node: `NODE_VERSION` and `NODE_SHA256` together (see above). Claude Code: the `CLAUDE_CODE_VERSION` default (three numbers). Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, with its auto-update off (`DISABLE_AUTOUPDATER=1`); the version is in the environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it.
 - opencode: the `OPENCODE_VERSION` default and the `FACTORY_OPENCODE_MODELS` value. Check the model ids with `opencode models anthropic`.
 
 After a change, rebuild the image and renew its id (see "The rebuild after a merge"); `vm/setup.sh` carries the pins into the environment file.

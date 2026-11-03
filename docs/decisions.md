@@ -1446,3 +1446,11 @@ Date: 2026-11-03 (F0048-S0022; decision 27 of the feature).
 - Decision: the shipped documenter writes a "Why" or a "Rejected" in `docs/decisions.md` only from what its story names: the Description, the Interface, the docs criterion and the journal, where the human's answers stand. It adds no reason or rejected option from its own reading of the code or the documents. Where the story names no rejected option, the entry has no "Rejected" line, and the documenter's journal entry names that entry. The rule is one lesson in `claude/agents/documenter.md`, and no other agent carries it. Existing entries stay as they are.
 - Why: F0048-S0019's documenter wrote seven entries, and five of their rejected options were named by no decision and no journal. Later agents cite the log as the human's reasons (R4), so an option the documenter invented reads as a decision the human made. F0048-S0021 had to repair those entries one by one.
 - Rejected: letting the documenter read `feature.md` for the reasons (its stage keeps it to the story).
+
+## The factory's tools live apart, under `/opt/factory`, with their own Node
+
+Date: 2026-11-03 (F0049-S0001; decision 2 of the feature).
+
+- Decision: the stage image downloads Node 22 (`NODE_VERSION`, `NODE_SHA256`), checks the archive with `sha256sum -c` and unpacks it into `/opt/factory/node`. Claude Code and opencode are installed by that Node's npm with `--prefix /opt/factory`, and `/usr/local/bin/claude` and `/usr/local/bin/opencode` run them with `/opt/factory/node/bin/node` by its full path. The factory's Node is not on the `PATH`, and the image has no `node` or `npm` for projects.
+- This supersedes the seven packages of "Debian's packages follow the base image's release" for `nodejs` and `npm`: the image installs six Debian packages, `xz-utils` in place of the two. The rest of that entry stands.
+- Why: Claude Code asks for Node 22 and Debian ships 18, so every build printed npm's `EBADENGINE` warning; and a project's layer must not change the runtime, which a project's own Node on the `PATH` would.
