@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T08:39:10.724717Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-03T08:39:10.724717Z'
   stage: smoke-test
+- number: 27
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T08:39:28.273375Z'
+  stage: smoke-test
+  run: 56a69b831f2d4cf1b76f47e31f1947a0
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -482,3 +484,16 @@ Expect: the single line `src/factory/domain/died_runs.py`.
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 26. factory: started smoke-test as vm.
+27. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` from the repository root, as written.
+
+    Command 1: `grep -rlF 'died: ' src/factory`
+
+    ```
+    src/factory/domain/died_runs.py
+    ```
+
+    Exit status 0. Met its `Expect:` line ("the single line `src/factory/domain/died_runs.py`"): `src/factory` has exactly one file containing `died: `, so the factory log line is built in one place, `died_line` in `src/factory/domain/died_runs.py`. It returns `run {run} of {work_item} ({stage}) died: {text}`, the format the Interface gives.
+
+    Checked against the acceptance criteria: the output contradicts none of them. I also read the docs criterion (12) against `docs/operator-guide.md`. At line 244, the paragraph **A run that ends `died`.** says that the factory log names the died run and quotes its error text, gives the text rules, and says this text is what `FACTORY_PROVIDER_LIMIT_MESSAGE` must match when a provider's limit is the cause. That matches the criterion. The smoke test itself does not cover criteria 1–10 (behaviour by runtime and by end reason) or 11 (`make check`); the tests and the factory's checks cover those.
+
+    Findings: none. Nothing fixed, nothing open.
