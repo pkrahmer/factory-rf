@@ -103,11 +103,14 @@ apt-get install -y --no-install-recommends podman uidmap nftables git make curl 
 
 step runc
 download=$(mktemp -d) || failed runc
+# Every stop below exits the script; the trap removes the folder on those ways out too.
+trap 'rm -rf "$download"' EXIT
 curl -fsSL -o "$download/runc.amd64" "https://github.com/opencontainers/runc/releases/download/v$runc_version/runc.amd64" || failed runc
 # The checksum is the script's own: one downloaded beside the binary would check nothing.
 printf '%s  %s\n' "$runc_sha256" "$download/runc.amd64" | sha256sum -c >/dev/null || stop 1 "runc: checksum does not match"
 install -m 0755 "$download/runc.amd64" "$prefix/usr/local/bin/runc" || failed runc
 rm -rf "$download"
+trap - EXIT
 
 step metadata
 mkdir -p "$root" || failed metadata

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 520
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T11:52:50.365926Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-03T11:52:50.365926Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-03T11:56:34.259074Z'
+  stage: doing
+  run: ad1afa1d03ae4fa38e3deb0c6bd32d80
 ---
 
 # The job's start script leaves no temporary folder behind
@@ -103,3 +105,15 @@ Expect: `0`, then `1`.
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: Built: `vm/job-start.sh`, step `runc`. Right after `mktemp -d` succeeds, the step sets `trap 'rm -rf "$download"' EXIT`. After its own `rm -rf "$download"` it clears that trap with `trap - EXIT`. Every stop in the step goes through `stop`/`failed`, which `exit`, so the trap removes the folder after a failed download, a checksum that does not match and a failed install. A success removes it as before. The messages are unchanged word for word, and nothing else in the script changed. Clearing the trap after the step keeps it from reaching any later step; the script set no other trap.
+
+   Main choice: an EXIT trap scoped to the step. I rejected a `cleanup_and_fail` helper that removes the folder and then calls `stop`. It would mean rewriting all three `|| failed runc` / `|| stop 1 ...` endings, and any later way out of the step that skipped it would leave the folder again. The trap covers every exit, including one that `set -e` causes.
+
+   Checks: `uv run pytest -q tests/test_vm_job_start.py`: all 46 pass, including the four rows of `test_the_runc_download_folder_is_removed_however_the_step_ends`. `make check`: check: green. I counted `/tmp/tmp.*` before and after `make check`: 0 and 0 (criterion 2).
+
+   Refactor: I read the diff again (two added lines and one comment) and found nothing to change.
+
+   Noticed but not touched: criterion 3, the guide's "fail it" → "fails it" in `docs/operator-guide.md`. Under `CLAUDE.md` *Docs* that file belongs to the documenter, so the docs stage makes that change. The journal did not change the meaning of the Description.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 42 known, 0 gone
