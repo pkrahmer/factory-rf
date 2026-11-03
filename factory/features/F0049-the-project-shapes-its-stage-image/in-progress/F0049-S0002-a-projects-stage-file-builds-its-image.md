@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 527
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T23:52:12.855066Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-03T23:52:12.855066Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-03T23:52:33.832065Z'
+  stage: intake
+  run: 76f3189141154e57a61fe7479ee00c1e
+  blocked: question
 ---
 
 # A project's stage file builds the image its stages run in
@@ -72,3 +75,14 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: The format check passed. Behaviours the Interface or Description states have no criterion yet, and two coders would read them differently:
+   1. `ImageBuild.output_tail` is "the build's last 20 lines". No criterion tests it: neither a build with more than 20 lines of output, nor one with fewer. I suggest adding a criterion to the podman adapter's tests (7) or to the stop's detail (6).
+   2. "The build's time limit is 30 minutes, one constant" has no criterion. Nothing checks that `build` gets 30 minutes from the wiring, and nothing checks that reaching the limit gives `passed=False`. Criterion 6 names the time limit only as a stop, without saying how the limit is detected. I suggest saying which side tests this: the adapter, or the stop through the fake.
+   3. `path(image)` falls back to `/usr/local/bin:/usr/bin:/bin` when the image sets no `PATH`. Criterion 5 tests that only through a fake image. Criterion 7 says only that the podman adapter "reads the configured PATH". Please add the adapter's case where the inspect output has no `PATH`, and a case where it has one.
+   4. Criterion 7 does not cover "rootless" in `build`. Please either add it to the adapter's argument list or drop it from the Interface.
+   5. "It ends with the next start of `factory-run`" has no criterion. A stop that stands after a failed build and is gone after a start with a valid file or no file is behaviour that needs a test.
+   6. "`factory-health` and `factory-watch` show it as they show the other stops" has no criterion. Please add one row per command, or say that the existing generic rendering of `RepositoryStopReason` already covers it, and name the test.
+   7. Criterion 1 says "each with its own reason", but the reasons' texts are not stated. I suggest the test checks only that the refusal is raised and that the reasons differ across rows. Please confirm, or give the texts.
+   8. Criterion 6 puts three different failures into one criterion: a rule break, a failed build and a time limit. The detail text differs between the rule break and the build failure (`the stage file did not build in <s> s:` plus the tail). Please state whether these are separate rows, and whether the time limit's detail is the same text as a failed build's.
+
+   I would choose to add one criterion for each of items 1 to 3, 5 and 6, and to confirm 4 and 7 as described.
