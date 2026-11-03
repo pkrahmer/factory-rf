@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 515
 comments_read: [6599499091]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T09:02:23.897098Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -74,6 +78,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T09:02:20.979497Z'
+  stage: doing
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-03T09:02:23.897098Z'
   stage: doing
 ---
 
@@ -300,3 +309,4 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
 
     — Kumpel, for the human who owns this project
     <!-- kumpel -->
+13. factory: started doing as vm.
