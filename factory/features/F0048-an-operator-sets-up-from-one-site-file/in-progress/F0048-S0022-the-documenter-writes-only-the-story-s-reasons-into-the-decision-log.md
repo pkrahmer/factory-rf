@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 524
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T13:18:53.031626Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-03T13:18:47.181525Z'
   stage: tests
   run: 42e7e5b734ff47ca83daa3c1cdf78073
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-03T13:18:53.031626Z'
+  stage: doing
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -104,3 +113,4 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
    Test run (`uv run pytest -q` on the new file): 3 failed with AssertionError, because the bullet is not yet in claude/agents/documenter.md: the presence test, the position test and the `documenter` row of the parametrized test. The six other rows pass, as they should. There were no import or collection errors, and every module imported. `make lint` is green.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
