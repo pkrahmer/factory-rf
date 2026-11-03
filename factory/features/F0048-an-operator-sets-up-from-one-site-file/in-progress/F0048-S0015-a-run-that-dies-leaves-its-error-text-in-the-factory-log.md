@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T08:05:18.433430Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T08:05:18.426551Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:05:18.433430Z'
+  stage: intake
+---
+
 # A run that dies leaves its error text in the factory log
 
 <!-- written by the human on 2026-11-03 after two runs at the subscription's limit ended as died (decision 19) -->
@@ -35,3 +62,6 @@ grep -rn 'died: ' src/factory | head -1 | cut -d: -f1
 Expect: the path of the module that writes the line.
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
