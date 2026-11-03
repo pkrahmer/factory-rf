@@ -969,7 +969,7 @@ sh operator/bin/site get SITE_REPOSITORY
 | `SITE_MEMORY` | the job's memory | 32Gi |
 | `SITE_TIMEOUT` | the job's task timeout, in seconds | 14400 |
 | `SITE_IDLE_MINUTES` | idle minutes after which the job ends itself | 60 |
-| `SITE_RESET_REPOSITORY` | the repository a trial resets, `owner/repo` | none |
+| `SITE_RESET_REPOSITORY` | the repository a trial resets, `owner/repo`; `reset-to-tag.sh` acts only when it equals `SITE_REPOSITORY` (see *Repeating a trial*) | none |
 | `SITE_SANITISE_RULES` | the file of rules that sanitise what leaves the site | `sanitise.rules` beside the site file |
 
 The skill's scripts (`operator/skill/kumpel/scripts/`) read `SITE_REPOSITORY` and `SITE_CHECKOUT` from the site file, or from the environment when it sets them, before they look at the skill's `settings.json`. When the site gives both, `settings.json` holds only the switches (`merge`, `answer`, `start_next`) and `settings.sh init` takes no argument; when it gives either one short, `init` needs `<owner/name> <checkout>` and the JSON file keeps them. A missing or faulty site file does not stop `settings.sh`: the JSON file answers, and a faulty file's message goes to standard error. The scripts reach the API and git only through `hosting_repo_api` and `hosting_git`, so a script with neither a token command nor a `gh` login stops with `hosting: the token command failed; see SITE_TOKEN_CMD in the site file`.
@@ -1069,6 +1069,27 @@ sh operator/bin/sanitise check "$d/clean.txt" | sed "s|$d|<d>|"
 ```
 
 This prints `one`, `at <company-host>`, then `<d>/raw.txt:2: 1`, then `sanitise: clean`.
+
+## Repeating a trial
+
+A trial repository can be set back to a starting point, so that a run is repeated from the same state. Tag the starting point once (`git tag starting-point <commit>` and push the tag), then run the skill's script:
+
+```bash
+sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point          # prints the plan, exits 1
+sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point --yes    # does it
+```
+
+The script works through the hosting API alone and needs no checkout. It resolves the tag (an annotated tag is followed to its commit), then, in this order, closes every open pull request whose head branch starts with `work-item/` (`closed #<n>`), deletes every branch under `work-item/` (`deleted <branch>`) and moves `main` to the tag's commit by force (`moved main to <7 characters>`). Nothing else is touched: no other branch, no tag, no other pull request. Without `--yes` it prints the counts and the target (`would close 2 open work-item pull request(s)`, `would delete 3 work-item branch(es)`, `would move main to <commit>`), then `run again with --yes`, and exits 1. A reset that finds nothing to close or delete still moves `main`.
+
+It refuses to run unless all three hold:
+
+1. **`--yes` is given.** Anything else as the second argument is a usage error (exit 2).
+2. **The site names the repository as resettable.** `SITE_RESET_REPOSITORY` is set and equals `SITE_REPOSITORY`, the repository the commands work on. The factory's own repository can therefore never be the target: it is not the trial repository. A difference exits 1 with `reset-to-tag.sh: <repository> is not the site's resettable repository`; an unset key exits 2 with the site loader's message (`site: missing SITE_RESET_REPOSITORY in <file>`).
+3. **The tag exists.** A missing tag exits 1 with `reset-to-tag.sh: no tag <tag>`. Any other failure of the lookup prints the hosting client's message.
+
+The force-push cannot be undone: the commits `main` held are no longer on any branch, and the closed pull requests and deleted branches are not restored. A failing call stops the script at that call with the hosting client's message and exit 1, so a half reset is visible: the lines printed so far are what was done. Run it again with `--yes` after fixing the cause. Only the first 100 open pull requests are listed (no paging).
+
+The same skill folder merges a story: `merge.sh <pr> <id>` (see *A merge archives the story*). It refuses a pull request that is not open, is a draft, is not labelled `stage:approval` or is not `work-item/<id>`; merges with a merge commit; then polls the latest 20 commits of `main` for `work item <id>: merged, archived` every `KUMPEL_POLL_SECONDS` seconds (15) for at most `KUMPEL_ARCHIVE_WAIT` seconds (300). It prints `merged #<pr>` and `archived <id>` and exits 0; if the archive commit does not come in time it exits 1 with `merge.sh: merged, but no archive commit for <id> after <N> s`. Start the next story only after `archived`.
 
 ## On Cloud Run
 
