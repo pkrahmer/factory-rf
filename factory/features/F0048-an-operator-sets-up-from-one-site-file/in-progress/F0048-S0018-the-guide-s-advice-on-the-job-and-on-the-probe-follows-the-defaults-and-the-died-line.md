@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229, 6600934999]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T10:18:16.476868Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-03T10:18:16.476868Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-03T10:21:41.329723Z'
+  stage: doing
+  run: 1dc419bbe7664e41b778dc9225f2a5b7
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -251,3 +253,21 @@ Expect: `documents ok`
 
     `lint`: lint: green (0.1 s)
 16. factory: started doing as vm.
+17. coder: `make check` is green now that the tester made the approved change to `tests/test_vm_job_start.py` (entry 15). I changed no code this round.
+
+    What I built (part B), all in `vm/job-start.sh`, step `image`:
+    - The build passes `--layers=false` (line 155).
+    - The next line runs `podman $JOB_PODMAN_OPTIONS image prune -f || failed image`, with no `-a` or `--all`. It has its own `# shellcheck disable=SC2086`, as the build line does (line 157).
+
+    Main choice: the prune runs right after the build and before the image-id line, so the build's leftovers leave the tmpfs as soon as the build is done. I rejected putting it at the end of the step: then a failure to write the image id would leave the leftovers in memory.
+
+    Refactor: I read the diff (two lines in `vm/job-start.sh`) and found nothing to change.
+
+    The journal changed nothing in the Description. Entry 11 only allowed the one test change, so the Description stays as it is.
+
+    Part A and the docs criterion are the documenter's (`docs/operator-guide.md`).
+
+    Noticed but not touched: nothing.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
