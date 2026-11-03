@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T08:32:38.472993Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-03T08:32:32.227691Z'
   stage: doing
   run: 5120793f7b384c9e808638df1112c969
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:32:38.472993Z'
+  stage: tests
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -330,3 +339,4 @@ Expect: the single line `src/factory/domain/died_runs.py`.
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 
     The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0015-a-run-that-dies-leaves-its-error-text-in-the-factory-log.md.
+18. factory: started tests as vm.
