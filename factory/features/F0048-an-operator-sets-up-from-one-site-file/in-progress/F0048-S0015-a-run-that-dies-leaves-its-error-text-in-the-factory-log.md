@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T08:38:30.069462Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-03T08:38:24.209877Z'
   stage: review
   run: b3f1abea47e5438a902e90d1bfcdfc5a
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:38:30.069462Z'
+  stage: docs
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -443,3 +452,4 @@ Expect: the single line `src/factory/domain/died_runs.py`.
     Notes:
     - `tests/adapters/test_runtime_died_text.py`: `test_a_run_that_died_never_quotes_the_login_shell_s_line` has the same shape as `test_a_run_that_died_without_a_reply_gives_its_standard_error_or_its_exit_status` (the standard error / exit fallback). Its two rows could be rows of that test.
     - `tests/adapters/test_runtime_died_text.py` imports the private `_budget_reply` and `_reply` from `claude_resume_support`. A public name in the support module would be cleaner.
+24. factory: started docs as vm.
