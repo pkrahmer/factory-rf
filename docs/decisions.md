@@ -1438,3 +1438,11 @@ Date: 2026-11-03 (decision 25 of F0048).
 - Decision: on 2026-11-03 the human renamed the repository from `pkrahmer/factory-rf` to `pkrahmer/kumpel-factory`. README, the operator guide, the project guide and the Kumpel skill's texts use the new name. History keeps the old one: archived work items, the earlier entries of this log, `planning/` and `docs/runs/`. `CLAUDE.md` is the human's.
 - Why: Kumpel is the product and this repository is one of its components. GitHub redirects the old URLs, but a text that names the old one misleads.
 - Rejected: rewriting history texts (they say what was true then).
+
+## The decision log holds only the human's reasons
+
+Date: 2026-11-03 (F0048-S0022; decision 27 of the feature).
+
+- Decision: the shipped documenter writes a "Why" or a "Rejected" in `docs/decisions.md` only from what its story names: the Description, the Interface, the docs criterion and the journal, where the human's answers stand. It adds no reason or rejected option from its own reading of the code or the documents. Where the story names no rejected option, the entry has no "Rejected" line, and the documenter's journal entry names that entry. The rule is one lesson in `claude/agents/documenter.md`, and no other agent carries it. Existing entries stay as they are.
+- Why: F0048-S0019's documenter wrote seven entries, and five of their rejected options were named by no decision and no journal. Later agents cite the log as the human's reasons (R4), so an option the documenter invented reads as a decision the human made. F0048-S0021 had to repair those entries one by one.
+- Rejected: letting the documenter read `feature.md` for the reasons (its stage keeps it to the story).

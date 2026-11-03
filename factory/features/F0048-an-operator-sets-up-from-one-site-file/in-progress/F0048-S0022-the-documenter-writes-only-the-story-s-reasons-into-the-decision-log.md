@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 524
 comments_read: [6604990127]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T13:30:25.670744Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-03T13:30:25.670744Z'
   stage: docs
+- number: 18
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T13:30:55.137670Z'
+  stage: docs
+  run: 016472a5244342c286535ba32af49328
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -247,3 +249,22 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
     Earlier tests:
     - tests/test_claude_agent_texts.py: the human's leave in journal entry 8. The diff only adds the new bullet to `LESSONS["documenter"]`, between the project-guide entry and `_TEMPORARY_DIRECTORY_LESSON`. Every test keeps its name.
 17. factory: started docs as vm.
+18. documenter: Documented the new documenter lesson. No findings: the bullet at claude/agents/documenter.md:75 matches the Interface, and the code and tests agree with it.
+
+    Files changed:
+    - `docs/decisions.md`: one new entry, "The decision log holds only the human's reasons". It states the rule and gives S0019's five unsourced "Rejected" options as the reason. Its rejected alternative is letting the documenter read `feature.md`, which the docs criterion names. I took every reason and rejected option from the story's Description and docs criterion. None is my own reading of the code.
+    - `docs/project-guide/agents.md`: the `## Lessons` paragraph now names the documenter's decision-log lesson, before the documents-only lesson.
+
+    The entry is a new decision and no existing entry lacks a "Rejected" line, so the lesson's "name the entry" step has nothing to report.
+
+    Cross-read and found current:
+    - `README.md` and `docs/operator-guide.md`: they say nothing about agent lessons, as the docs criterion says.
+    - The rest of `docs/project-guide/agents.md`: the claim that `tests/test_claude_agent_texts.py` checks the exact `## Lessons` bullets holds. The diff adds the bullet to `LESSONS["documenter"]` there.
+
+    I ran no examples, because I wrote none. I changed only documents, so I did not run `make check`. The factory's checks decide.
+
+    Stale text I saw but did not touch: none.
+
+    `check`: check: green (not run again: passed on tree d4bcb5556ee6 at 2026-11-03T13:28:13Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
