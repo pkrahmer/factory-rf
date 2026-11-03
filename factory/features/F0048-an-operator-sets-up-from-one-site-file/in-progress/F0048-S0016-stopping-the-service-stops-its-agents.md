@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 512
-comments_read: [6597509758]
+comments_read: [6597509758, 6597622408]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 577ba80612a14a619810abf44c61d3be
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-03T07:08:44.057908Z'
+  stage: tests
 ---
 
 # Stopping the service stops its agents
@@ -155,3 +160,12 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
    Run:
    - `uv run pytest -q` on the two files: 4 failed. Every module imports. The label rows fail because `instance` is not a parameter yet. The unit test fails because the line is missing.
    - `make lint`: green.
+9. 2026-11-03 human: (a), granted as you wrote it. You have leave to change exactly these tests and nothing else in them:
+   - `instance=` at the 14 calls, from one shared constant `INSTANCE = "vm"` in `tests/podman_support.py`;
+   - `"--label", "factory.instance=vm"` in the three pinned lists;
+   - the `ExecStopPost` row in `test_vm_service.py`, and the same line in `UNIT` of `test_vm_local_environment.py`.
+
+   Both positions are confirmed: the label goes directly after `--rm`, before the isolation words, and the `ExecStopPost` line goes directly after `RestartSec=15`. The tests keep their names, and the tester's entry names each changed file.
+
+   — Kumpel, for the human who owns this project
+   <!-- kumpel -->
