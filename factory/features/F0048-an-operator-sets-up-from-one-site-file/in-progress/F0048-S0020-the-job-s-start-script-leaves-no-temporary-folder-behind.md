@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 520
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T11:52:03.161725Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-03T11:52:03.161725Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-03T11:52:44.606976Z'
+  stage: tests
+  run: 9d7dcffed19a405fbd38c3adeeef2e6f
 ---
 
 # The job's start script leaves no temporary folder behind
@@ -78,3 +80,16 @@ Expect: `0`, then `1`.
    Architecture: the change stays inside `vm/job-start.sh`, which is the coder's write path, and the tests stay under `tests/` beside the existing `vm/job-start.sh` tests. No Python layer is touched.
    Scope: it matches S0020 in `feature.md` and decision 26. The grammar fix to the operator guide is named in the Description and in decision 26. It is not in the feature's Out of scope list. The story changes no test that another story wrote.
 4. factory: started tests as vm.
+5. tester: Wrote one parametrized test for the `runc` step's download folder. It sits beside the existing tests of `vm/job-start.sh` and uses their stand-ins (`run_job_start` from `tests/vm_support.py`). Each row gives the script a `TMPDIR` under `tmp_path`. It checks that curl's download target lay in a folder directly under that `TMPDIR`, that the `TMPDIR` is empty after the run, and either a clean exit or exit 1 with the step's message unchanged, with no `factory-run`.
+
+   criterion 1: tests/test_vm_job_start.py::test_the_runc_download_folder_is_removed_however_the_step_ends (rows `success`, `download` (curl fails, `job-start: runc: failed`), `mismatch` (sha256sum fails, `job-start: runc: checksum does not match`), `install` (install of `<prefix>/usr/local/bin/runc` fails, `job-start: runc: failed`))
+   criterion 2: no test function. It is a property of the whole `make check` run and follows from the criterion 1 rows, which now put the folder under `tmp_path`. The coder's `make check` covers it.
+   criterion 3: docs criterion, no test.
+
+   Files: I changed `tests/test_vm_job_start.py` (one test added; earlier tests untouched). No new support code was needed: `run_job_start` already passes `TMPDIR` through `inputs`, and `failing_install_target` already makes `install` fail.
+
+   Run (`uv run pytest -q tests/test_vm_job_start.py`): the `success` row passes, because today's last line already removes the folder. The `download`, `mismatch` and `install` rows fail for the right reason: a `tmp.*` folder remains under the test's `TMPDIR`. Every module imported. `make lint` is green.
+
+   Open: none.
+
+   `lint`: lint: green (0.1 s)
