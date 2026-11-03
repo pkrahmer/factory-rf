@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268, 6598279355]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T07:56:32.104743Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-03T07:56:26.054555Z'
   stage: review
   run: dd9c6366f15547bba3d0bb9344639362
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:56:32.104743Z'
+  stage: docs
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -272,3 +281,4 @@ Expect: `1`.
     Earlier tests:
     - `tests/test_claude_agent_texts_review_leave.py`: under the feature's leave for S0017 in `feature.md` (only the pinned sentence that counted an untested side as a finding). Only the last sentence of `_NOTES` changed.
     - `tests/test_claude_agent_texts_review_groups.py`: under the human's leave in journal entry 11. Only the body of `test_the_rest_of_the_reviewer_body_is_unchanged` changed: it now also swaps the three new sentences back to the old one before it takes the CRC. `_EARLIER_BODY_CRC32`, the test's name and the rest of the module are unchanged.
+20. factory: started docs as vm.
