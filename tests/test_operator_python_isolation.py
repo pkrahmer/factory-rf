@@ -9,7 +9,7 @@ import pytest
 from factory.adapters.process import ProcessResult
 from operator_job_support import TAG, job_runner, make_job_repository
 from operator_skill_support import PREFIX, make_operator, pull, status_routes
-from operator_support import ROOT, SITE_EXAMPLE
+from operator_support import ROOT, example_values
 from site_check_support import Machine, link_system
 
 PLANTED = 'open(__file__.replace("json.py", "imported"), "w").close()\n'
@@ -57,11 +57,8 @@ def site_check(root: Path) -> ProcessResult:
 
 
 def job_dry_run(root: Path) -> ProcessResult:
-    lines = SITE_EXAMPLE.read_text(encoding="utf-8").splitlines()
-    pairs = (line.partition("=") for line in lines if line.startswith("SITE_"))
-    values = {key: value for key, _, value in pairs}
     run = job_runner(root, make_job_repository(root / "repo"), root / "gcloud.jsonl")
-    return run(["create", "--dry-run"], values, SITE_CODE_REF=TAG)
+    return run(["create", "--dry-run"], example_values(), SITE_CODE_REF=TAG)
 
 
 @pytest.mark.parametrize(

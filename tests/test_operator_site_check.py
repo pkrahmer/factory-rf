@@ -363,6 +363,7 @@ DENIED = (
     "ERROR: (gcloud.run.jobs.describe) PERMISSION_DENIED: Permission 'run.jobs.get' denied\n"
     "This command is authenticated as deployer@p1.iam.gserviceaccount.com\n"
 )
+API_NOT_FOUND = f"ERROR: (gcloud.run.jobs.describe) NOT_FOUND: Resource '{JOB}' was not found\n"
 
 
 @pytest.mark.parametrize(
@@ -375,6 +376,13 @@ DENIED = (
             DENIED,
             f"ok job: {JOB} cannot be read: {DENIED.splitlines()[0]}",
             id="cannot-be-read",
+        ),
+        pytest.param(1, API_NOT_FOUND, f"ok job: {JOB} does not exist yet", id="api-not-found"),
+        pytest.param(
+            1,
+            "",
+            f"ok job: {JOB} cannot be read: gcloud run jobs describe failed",
+            id="no-error-text",
         ),
     ],
 )

@@ -12,6 +12,7 @@ from operator_support import (
     INTERFACE_KEYS,
     SITE_EXAMPLE,
     example_keys,
+    example_values,
     operator_environment,
     run_library,
     run_site,
@@ -36,13 +37,6 @@ def default_of(key: str) -> str:
     match = OPTIONAL_DEFAULT.search(comment_of(key))
     assert match is not None, comment_of(key)
     return match.group(1)
-
-
-def example_values() -> dict[str, str]:
-    """The example's `SITE_*=value` lines, in its order."""
-    lines = SITE_EXAMPLE.read_text(encoding="utf-8").splitlines()
-    pairs = (line.partition("=") for line in lines if line.startswith("SITE_"))
-    return {key: value for key, _, value in pairs}
 
 
 @pytest.fixture(scope="module")

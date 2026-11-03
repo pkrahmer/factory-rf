@@ -94,6 +94,13 @@ def example_keys() -> list[str]:
     return [match.group(1) for line in lines if (match := KEY_LINE.match(line))]
 
 
+def example_values() -> dict[str, str]:
+    """The example's `SITE_*=value` lines, in its order."""
+    lines = SITE_EXAMPLE.read_text(encoding="utf-8").splitlines()
+    pairs = (line.partition("=") for line in lines if line.startswith("SITE_"))
+    return {key: value for key, _, value in pairs}
+
+
 def make_work_tree(directory: Path) -> Path:
     """Make `directory` a fresh git work tree."""
     directory.mkdir(parents=True, exist_ok=True)
@@ -160,20 +167,18 @@ with open(os.environ["STAND_IN_RECORD"], "a", encoding="utf-8") as record:
 exit_status = int(os.environ.get("STAND_IN_CURL_EXIT", "0"))
 status = os.environ.get("STAND_IN_CURL_STATUS", "200") if exit_status == 0 else "000"
 body = os.environ.get("STAND_IN_CURL_BODY", "") if exit_status == 0 else ""
+url = next((value for name, value in options if name == "url"), "")
+route = re.sub(r"^[a-z]+://[^/]*", "", url)
 routes_file = os.environ.get("STAND_IN_CURL_ROUTES")
 if routes_file and exit_status == 0:
     with open(routes_file, encoding="utf-8") as source:
         routes = json.load(source)
-    url = next((value for name, value in options if name == "url"), "")
-    route = re.sub(r"^[a-z]+://[^/]*", "", url)
     answer = routes.get(route, routes.get(route.split("?")[0]))
     status, body = ("200", answer) if answer is not None else ("404", '{"message": "Not Found"}')
 failures_file = os.environ.get("STAND_IN_CURL_FAILURES")
 if failures_file and exit_status == 0 and os.path.exists(failures_file):
     with open(failures_file, encoding="utf-8") as source:
         failures = json.load(source)
-    url = next((value for name, value in options if name == "url"), "")
-    route = re.sub(r"^[a-z]+://[^/]*", "", url)
     if route in failures:
         status, body = failures[route]
 output_file = next((value for name, value in options if name in ("output", "o")), None)

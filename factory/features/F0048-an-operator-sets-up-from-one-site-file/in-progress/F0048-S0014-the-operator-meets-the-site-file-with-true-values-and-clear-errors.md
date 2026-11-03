@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 515
 comments_read: [6599499091]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T09:02:54.532461Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-03T09:02:54.532461Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-03T09:04:16.182468Z'
+  stage: tests
+  run: fc33ad334ae5408d97989ff6d9b6090d
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -334,3 +336,24 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
 
     Noticed, not touched: nothing new.
 15. factory: started tests as vm.
+16. tester: Mode: a test change the human approved (entry 12). I made the three test changes from the coder's entry 14 (the reviewer's findings 1 to 3) and nothing else. Findings 4 and 5 are approved and stay as they were.
+
+    - **Finding 1, criterion 14:** criterion 14 → `tests/test_operator_site_check.py::test_the_job_check_tells_whether_the_job_exists_and_never_fails`. I added two rows to it:
+      - `api-not-found`: the describe exits 1 with an error line containing `NOT_FOUND` and not `Cannot find job` (new constant `API_NOT_FOUND`). It expects `ok job: <name> does not exist yet`.
+      - `no-error-text`: the describe exits 1 with nothing on standard error. It expects `ok job: <name> cannot be read: gcloud run jobs describe failed`.
+      
+      Both rows keep the test's existing checks: the result is still `site: ready`, the exit status is 0, and there is one describe call. The `ok ` prefix is how `site check` already prints the job line in the existing rows.
+    - **Finding 2, standing leave to move a shared test helper:** I moved `example_values` from `tests/test_operator_site_example.py` to `tests/operator_support.py`, beside `example_keys`. `tests/test_operator_site_example.py` now imports it. In `tests/test_operator_python_isolation.py`, `job_dry_run` uses it in place of its own copy of the parsing, and the import of `SITE_EXAMPLE` there, now unused, is gone.
+    - **Finding 3:** in `tests/operator_support.py`, `CURL_STAND_IN` now computes `url` and `route` once, before the routes block. Both the routes block and the `STAND_IN_CURL_FAILURES` block use them.
+
+    Earlier test files I changed:
+    - `tests/operator_support.py` (the leave for finding 2, and finding 3)
+    - `tests/test_operator_site_example.py` (the leave)
+    - `tests/test_operator_python_isolation.py` (the leave)
+    - `tests/test_operator_site_check.py` (the rows for criterion 14)
+
+    Every earlier test keeps its name and checks the same thing. I created no new files.
+
+    `make lint` is green. The one run of the touched modules (`uv run pytest -q tests/test_operator_site_check.py tests/test_operator_site_example.py tests/test_operator_python_isolation.py tests/test_operator_skill_scripts.py`) passed, including both new rows: the code criterion 14 tests is already in `operator/bin/site`. The test run could import every module. I did not run the type check, as the stage says.
+
+    `lint`: lint: green (0.1 s)
