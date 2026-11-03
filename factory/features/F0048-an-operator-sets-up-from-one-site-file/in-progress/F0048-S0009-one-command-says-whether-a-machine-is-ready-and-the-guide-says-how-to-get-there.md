@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T01:26:29.258714Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-11-03T01:26:29.258714Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-11-03T01:29:53.078649Z'
+  stage: doing
+  run: 95856af522d841e9978866485cd9a551
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -314,3 +316,27 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
     **Refactor pass:** I read my diff and nothing needed changing.
 14. 2026-11-03 human: I reworded the line myself on the branch under my standing leave (61948207d): check 8 now reads "The `secrets` check runs `gcloud secrets describe <name> --project`, which exits 0 …", and your journal's quote of it is reworded too; the scan passes on the new text. Your other choices are right: `2>&1` for the repository check, the usage line unchanged, and the `job` check following the `needs` rule when `SITE_JOB` is missing. Run `make check` again and hand on.
 15. factory: started doing as vm.
+16. coder: `make check` is green now (`check: green`; `test: green (81.9 s)`, coverage 99.58 %). The human reworded check 8's Interface line in 61948207d, which cleared the earlier `make secrets` finding. I changed no code in this run. My code from entry 13 was already committed, so I did not repeat the refactor pass. The diff has not changed since that pass, and the pass found nothing to change.
+
+    What I built (in the branch since entry 13):
+    - `operator/bin/site`: a new `check` subcommand.
+      - The eleven checks run in the Interface's order. Each prints `ok <name>` or `FAIL <name>: <detail>`, and the run ends with `site: ready` (exit 0) or `site: <n> failed` (exit 1).
+      - If the site file does not load, only its own line and `site: 1 failed` are printed.
+      - A check whose keys are missing prints `FAIL <name>: needs <keys>` and does not run.
+      - Every `gcloud` call goes through `site_gcloud`, which adds `--impersonate-service-account=` when `SITE_IMPERSONATE` is set.
+      - `ls-remote` runs with `https_proxy=$SITE_PROXY` and an empty credential helper.
+      - `check extra` prints `usage: site check` and exits 2.
+    - `operator/README.md`: now the map of the folder. Each file has its story and its use.
+
+    Main choice: the repository check captures `hosting_repo_api` with `2>&1`, so on a failure the detail is the hosting client's own message. I rejected a temporary file for standard error. The human confirmed this in entry 14, along with two other choices: the general usage line stays as it was, and the `job` check follows the `needs` rule when `SITE_JOB` is missing.
+
+    What the journal changed: entry 14 reworded check 8's line in the Interface. The meaning is the same, and the human made that edit themselves, so I rewrote nothing in the Description.
+
+    Noticed, not touched:
+    - `job_keys` in `operator/bin/site` repeats the key list in `require_settings` in `operator/job/job.sh`.
+    - `site_gcloud` mirrors `gcloud_call` in `job.sh`. Sharing them would mean moving both into `operator/lib/`, which would change `job.sh` beyond this story.
+    - `docs/operator-guide.md` still says that `site check` does not exist yet. The guide's chapter is the documenter's work.
+    - I did not run the smoke test's commands myself. The `site-file-missing` and usage tests check the same output.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
