@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T11:46:17.784115Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-11-03T11:46:11.954796Z'
   stage: review
   run: 26ed59e5b1c94f41bfdcfc5ab1ffe6a0
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:46:17.784115Z'
+  stage: docs
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -282,3 +291,4 @@ Expect: `documents ok`
     Earlier tests:
     - tests/test_operator_skill_signature.py: changed under the standing leave to move a shared test helper. The `SKILL` constant moved to tests/operator_skill_support.py, and every test keeps its name and what it checks (entry 13).
     - tests/operator_skill_support.py: changed under the same standing leave. It is the shared place that now holds `SKILL`, and `SCRIPTS` is built from it with the same path.
+18. factory: started docs as vm.
