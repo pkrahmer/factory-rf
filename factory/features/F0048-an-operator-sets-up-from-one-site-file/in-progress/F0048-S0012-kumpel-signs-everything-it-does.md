@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 508
 comments_read: [6592252694]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T00:47:26.250550Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-03T00:47:26.250550Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T00:48:48.923503Z'
+  stage: review
+  run: aff693fea7e84f32984740dc5b02391d
 ---
 
 # Kumpel signs everything it does
@@ -109,8 +111,10 @@ Tests: `tests/test_operator_skill_signature.py`, with the `curl` stand-in of `te
 6. `status.sh` prints `verdict posted` for a newest comment whose body holds `<!-- kumpel verdict -->` followed by the signature line and `<!-- kumpel -->` (five lines after the verdict marker), and still prints `waits: <kind>` when that comment holds a factory marker of a known kind as well. Two more rows: a newest comment without the verdict marker does not print `verdict posted`; the marker at the top of a long body (more than three lines follow it) prints `verdict posted`.
 7. No file under `operator/skill/kumpel/` holds `gh pr comment` (a test over the folder's text).
 8. `SKILL.md`, `references/answering.md` and `references/approving.md` each contain `comment.sh` (a test over the three files).
-9. `make check` stays green.
-10. docs: `operator/README.md` (the scripts table: `comment.sh`; a sentence that Kumpel signs its comments, commits and merges); `docs/operator-guide.md`, the skill's part: how a reader tells Kumpel's acts from the human's (the signature line in a comment and in the journal, the commit author, the merge message); `README.md` and the other documents: none.
+9. A text that holds the signature line and the marker but does not end with them (more text follows) is signed: the body sent is the text, a blank line, the signature line and `<!-- kumpel -->`, so the signature appears twice. This and criterion 2 are rows of one parametrized test.
+10. `comment.sh` with three arguments prints `usage: comment.sh <pull request> <file>` and exits 2, sending no request (a row of criterion 3's test).
+11. `make check` stays green.
+12. docs: `operator/README.md` (the scripts table: `comment.sh`; a sentence that Kumpel signs its comments, commits and merges); `docs/operator-guide.md`, the skill's part: how a reader tells Kumpel's acts from the human's (the signature line in a comment and in the journal, the commit author, the merge message); `README.md` and the other documents: none.
 
 ## Smoke test
 
@@ -189,3 +193,15 @@ Expect: two lines, a number of at least `1`, then `0`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I read the scripts (`comment.sh`, `merge.sh`, `start-story.sh`, `status.sh`), the three references and every changed test file. The scripts match the Interface. JSON bodies are built from argv through `json.dumps`, so no string reaches a shell or a body unescaped. The start commit's identity is set for that one `git commit` only. `status.sh` still reads factory markers from the last three lines and now finds the verdict anywhere. The coder also replaced `gh pr merge` with `merge.sh` in `approving.md`. That fits the Description ("they no longer name `gh`"), and I accept it. The journal (entry 10) says `make check` was green.
+
+    Findings:
+    1. `tests/test_operator_skill_signature.py:33` (`sent`): this is a second copy of `Machine.requests()` in `tests/test_operator_merge_reset.py:126`, the same parsing of `curl.jsonl` for `url`, `request` and `data`. Fix: under the standing leave, the tester moves that parsing (with `Request`) into `tests/operator_skill_support.py`, and both modules use it from there.
+    2. `tests/test_operator_skill_scripts.py`, `test_the_newest_comment_decides_the_state`: the row `verdict-fourth-from-the-end` was deleted. That goes beyond the standing leave, and neither the story nor the journal holds the human's leave for it. The tester said so in entry 8. Fix: the coder ends with `question` and asks the human whether to delete the row or change its expectation to `verdict posted`. I would change it to `verdict posted`: that keeps the row and pins the new "anywhere" rule. Then the tester makes the change the human names.
+    3. criterion 9 added: it needs its test. It is the failing side of "already ends with the signature and the marker": a text with the signature and marker followed by more text is signed again. It goes in as a row beside criterion 2, in one parametrized test.
+    4. criterion 10 added: it needs its test. It is the upper side of "exactly two arguments": three arguments print the usage, exit 2, no request. It goes in as a row of criterion 3's test. The closing criteria are now 11 (`make check`) and 12 (docs).
+
+    Earlier tests:
+    - `tests/conftest.py`: under the standing leave to move a shared test helper (the `operator` fixture, now built by `make_operator` from `tests/operator_skill_support.py`).
+    - `tests/test_operator_skill_scripts.py`: under the standing leave for moving `Operator`, its constants and its helpers to `tests/operator_skill_support.py`. Every remaining test keeps its name and checks the same thing. The deleted row `verdict-fourth-from-the-end` has no leave (finding 2).
+    - `tests/test_operator_merge_reset.py`: `test_an_approved_pull_request_is_merged_and_its_archive_awaited` was changed under the human's leave in the story. Criterion 5, part of the story as the human wrote it (entry 1), names S0008's merge test and asks for a row per field.
