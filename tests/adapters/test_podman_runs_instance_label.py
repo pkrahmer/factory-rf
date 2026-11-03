@@ -7,17 +7,7 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.podman_runs import PodmanRuns
-from podman_support import IMAGE, Podman
-
-
-def _launch_words(runs: PodmanRuns, _podman: Podman) -> list[str]:
-    return runs.launch(
-        ["/bin/true"],
-        mounts=[],
-        environment={},
-        time_limit=timedelta(seconds=30),
-        working_directory="/work/checkout",
-    ).argv
+from podman_support import IMAGE, Podman, launch_words
 
 
 def _run_words(runs: PodmanRuns, podman: Podman) -> list[str]:
@@ -34,8 +24,10 @@ def _run_words(runs: PodmanRuns, podman: Podman) -> list[str]:
 @pytest.mark.parametrize(
     ("instance", "start"),
     [
-        pytest.param("vm", _launch_words, id="launch-vm"),
-        pytest.param("night", _launch_words, id="launch-night"),
+        pytest.param("vm", lambda runs, _: launch_words(runs, ["/bin/true"], []), id="launch-vm"),
+        pytest.param(
+            "night", lambda runs, _: launch_words(runs, ["/bin/true"], []), id="launch-night"
+        ),
         pytest.param("vm", _run_words, id="run-vm"),
     ],
 )

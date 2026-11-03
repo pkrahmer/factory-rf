@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T07:23:10.221628Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-11-03T07:23:10.221628Z'
   stage: tests
+- number: 22
+  speaker: tester
+  kind: result
+  at: '2026-11-03T07:24:34.394123Z'
+  stage: tests
+  run: 55b71a85351b489a9d20d4da26c589ce
 ---
 
 # Stopping the service stops its agents
@@ -361,3 +363,26 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
 
     Noticed, not touched: the comment on the per-file ignore at `pyproject.toml:65` still names the work item id. That was the human's commit (entry 16).
 21. factory: started tests as vm.
+22. tester: I made the two test changes the coder named in entry 20, which come from the reviewer's findings in entry 18.
+
+    1. **New test for criterion 3.** It follows `tests/entry/test_wiring_container_profile.py`. It builds `InstanceSettings` with a given `instance`, takes `build_boundaries(...).containers`, and checks two things: the adapter is a `PodmanRuns`, and its launch argv has `factory.instance=<instance>` directly after `--label`. It runs with two instance names (`factory-1`, `night`), so a wiring that passed a constant fails it.
+    2. **Helper moved.** Under CLAUDE.md's standing leave to move a shared test helper, `_launch_words` now lives in `tests/podman_support.py` as `launch_words(runs, command, mounts)`. Its body is unchanged from the old copy in `test_podman_runs_job_profile.py`: environment `A=1`, a 90 s limit, working directory `/work/checkout`.
+       - `test_podman_runs_job_profile.py` now calls `launch_words` and passes the same arguments as before.
+       - In `test_podman_runs_instance_label.py`, the two `launch` rows wrap it in a lambda, as the reviewer suggested. They now launch with the environment and limit of the shared helper (before: `{}` and 30 s). The test checks only the label, so it checks the same thing.
+       - Every test keeps its name.
+
+    Criterion → test:
+    - criterion 1: `tests/adapters/test_podman_runs_instance_label.py::test_a_container_start_carries_the_instance_label_after_rm` (unchanged in what it checks)
+    - criterion 2: `tests/test_vm_service.py`, the test written earlier (unchanged)
+    - criterion 3: `tests/entry/test_wiring_instance_label.py::test_the_container_adapter_labels_its_containers_with_the_setting_s_instance`
+
+    Files created: `tests/entry/test_wiring_instance_label.py`.
+
+    Earlier test files changed, under the standing leave to move a shared test helper:
+    - `tests/podman_support.py` (gained `launch_words`)
+    - `tests/adapters/test_podman_runs_job_profile.py`
+    - `tests/adapters/test_podman_runs_instance_label.py`
+
+    Test run: `uv run pytest -q` over the three test modules, all passed (23 passed). They pass because the code is already built. No module failed to import. `make lint`: green. As the stage says, I skipped the type check; the coder's `make check` covers it.
+
+    `lint`: lint: green (0.1 s)
