@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T11:41:36.497332Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-03T11:41:30.725832Z'
   stage: doing
   run: 0415260e0fff42839bc8439d7b9ea410
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:41:36.497332Z'
+  stage: tests
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -196,3 +205,4 @@ Expect: `documents ok`
     What the journal changed: nothing in the meaning of the task, so the Description stays as written.
 
     Noticed but not touched: the old name is still in README.md, docs/operator-guide.md and docs/project-guide/. Those files are the documenter's under part B.
+12. factory: started tests as vm.
