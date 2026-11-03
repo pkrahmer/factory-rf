@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T23:09:33.753676Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-03T23:09:33.753676Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-03T23:09:55.267111Z'
+  stage: intake
+  run: 21ff42fc4d3848b086c69f439bafde48
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -51,22 +53,23 @@ The stage image installs Debian's `nodejs` and `npm` (Node 18.20.4 on bookworm) 
 ## Interface
 
 - `vm/Dockerfile`:
-  - Two new pins, `ARG NODE_VERSION=22.<the current 22.x release>` and `ARG NODE_SHA256=<the SHA-256 of node-v<NODE_VERSION>-linux-x64.tar.xz>` from nodejs.org's `SHASUMS256.txt`, beside the existing pins.
+  - Two new pins, `ARG NODE_VERSION=22.<the current 22.x release>` and `ARG NODE_SHA256=<the SHA-256 of node-v<NODE_VERSION>-linux-x64.tar.xz>` from nodejs.org's `SHASUMS256.txt`.
   - The download of that archive with `curl`, checked with `sha256sum -c` before it is unpacked into `/opt/factory/node`; a mismatch fails the build. No download is piped into a shell.
   - Claude Code and opencode installed by `/opt/factory/node/bin/npm` with `--prefix /opt/factory`, at their existing pinned versions.
   - `/usr/local/bin/claude` and `/usr/local/bin/opencode`: each runs the runtime's installed command with `/opt/factory/node/bin/node` named by its full path, passing its arguments on unchanged. Nothing else of `/opt/factory` is on the `PATH`, and `/usr/local/bin/node` and `/usr/local/bin/npm` do not exist in the image.
   - The `apt-get install` line names `git`, `make`, `curl`, `ca-certificates`, `procps` and `xz-utils` (for the archive), and no longer `nodejs` and `npm`.
-- `vm/setup.sh` and `vm/job-start.sh` read the new pins as they read the others, if they need them; the `ENV FACTORY_CLAUDE_VERSION` and `ENV FACTORY_OPENCODE_VERSION` lines stay.
+- `vm/setup.sh` and `vm/job-start.sh` do not change; the `ENV FACTORY_CLAUDE_VERSION` and `ENV FACTORY_OPENCODE_VERSION` lines stay.
 - `tests/test_stage_image.py` (under the feature's leave): its rows follow the new package list, the two new pins and their form (a version `22.<n>.<n>`, a SHA-256 of 64 lowercase hex digits), the checked download, and the two commands.
 
 ## Acceptance criteria
 
 1. `vm/Dockerfile` pins `NODE_VERSION` as `22.<n>.<n>` and `NODE_SHA256` as 64 lowercase hex digits; rows: the file as built, a version `20.1.0`, a version `22.1`, a checksum of 63 digits and one in upper case are each refused by the stage-image test.
-2. The archive's download is checked with `sha256sum -c` against `NODE_SHA256` before it is unpacked, and no line pipes a download into a shell (`| sh`, `| bash`); the stage-image test refuses a Dockerfile in which either is broken.
+2. The archive's download is checked with `sha256sum -c` against `NODE_SHA256` before it is unpacked, and no line pipes a download into a shell (`| sh`, `| bash`); the archive is downloaded with `curl` and unpacked into `/opt/factory/node`; the stage-image test refuses a Dockerfile in which any of these is broken (rows: no `sha256sum -c`, a check after the unpack, a pipe into a shell, a download without `curl`, another unpack target).
 3. The `apt-get install` line names exactly `git`, `make`, `curl`, `ca-certificates`, `procps` and `xz-utils`; a line with `nodejs` or `npm` added is refused.
-4. Claude Code and opencode are installed by `/opt/factory/node/bin/npm` with `--prefix /opt/factory`, at the versions of `CLAUDE_CODE_VERSION` and `OPENCODE_VERSION`, and the Dockerfile creates `/usr/local/bin/claude` and `/usr/local/bin/opencode`, each naming `/opt/factory/node/bin/node`.
-5. `make check` stays green. No test builds the image: the tests run inside a check container. The human builds it on the VM after the merge and checks that `claude --version` and `opencode --version` report the pinned versions, that `command -v node` finds nothing, and that the build prints no `EBADENGINE` warning.
-6. docs: `docs/operator-guide.md`: in *The stage image*, the package list becomes six names, and one paragraph says that the agent runtimes run on a Node of their own under `/opt/factory`, pinned by version and checksum, that the image has no Node for projects, and how a Node pin is changed (both `ARG`s, from nodejs.org's `SHASUMS256.txt`). `docs/decisions.md`: one entry that the factory's tools live apart under `/opt/factory` with their own Node, why (Claude Code asks for Node 22, Debian has 18, and a project's layer must not change the runtime; feature decision 2), and that it supersedes the seven packages of "Debian's packages follow the base image's release" for `nodejs` and `npm`. `README.md` and the project guide: none.
+4. Claude Code and opencode are installed by `/opt/factory/node/bin/npm` with `--prefix /opt/factory`, at the versions of `CLAUDE_CODE_VERSION` and `OPENCODE_VERSION`, and the Dockerfile creates `/usr/local/bin/claude` and `/usr/local/bin/opencode`, each naming `/opt/factory/node/bin/node` and passing its arguments on with `"$@"`; the stage-image test refuses a wrapper without `"$@"`.
+5. The stage-image test refuses a Dockerfile that creates or links `node` or `npm` in `/usr/local/bin`, or that puts `/opt/factory` on an `ENV PATH` line.
+6. `make check` stays green. No test builds the image: the tests run inside a check container. The human builds it on the VM after the merge and checks that `claude --version` and `opencode --version` report the pinned versions, that `command -v node` finds nothing, and that the build prints no `EBADENGINE` warning.
+7. docs: `docs/operator-guide.md`: in *The stage image*, the package list becomes six names, and one paragraph says that the agent runtimes run on a Node of their own under `/opt/factory`, pinned by version and checksum, that the image has no Node for projects, and how a Node pin is changed (both `ARG`s, from nodejs.org's `SHASUMS256.txt`). `docs/decisions.md`: one entry that the factory's tools live apart under `/opt/factory` with their own Node, why (Claude Code asks for Node 22, Debian has 18, and a project's layer must not change the runtime; feature decision 2), and that it supersedes the seven packages of "Debian's packages follow the base image's release" for `nodejs` and `npm`. `README.md` and the project guide: none.
 
 ## Smoke test
 
@@ -98,3 +101,9 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
    - The scope matches S0001 in `feature.md`, and the test change falls under the feature's leave for S0001.
 4. 2026-11-03 human: Yes to all five, as you recommend: 1 and 2 become criteria (a wrapper without "$@" is refused; a Dockerfile that creates or links node or npm in /usr/local/bin, or puts /opt/factory on an ENV PATH line, is refused); 3 gets the two rows (the unpack target /opt/factory/node and the curl download); 4: neither vm/setup.sh nor vm/job-start.sh changes; 5: drop the placement.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answers (journal entry 4) written into the story. They are the human's edit carried in, not mine.
+   - Interface: concrete files and signatures: the `vm/Dockerfile` pins, `ARG`s, wrappers, `apt-get` line and `tests/test_stage_image.py`. Per entry 4 I wrote that `vm/setup.sh` and `vm/job-start.sh` do not change, and removed the "beside the existing pins" placement clause.
+   - Criteria: each is testable by one parametrized test, and each rule has a refused side. Criterion 1 has the pin rows, criterion 2 the checksum order, the pipe into a shell, `curl` and the unpack target, criterion 3 the package list, and criterion 4 the `"$@"` row. Per entry 4 I added the `"$@"` row to criterion 4 and the `curl` and unpack-target rows to criterion 2. I added a new criterion 5: node or npm in `/usr/local/bin`, or `/opt/factory` on an `ENV PATH` line, is refused. The closing two are now 6 (`make check`) and 7 (`docs:`).
+   - Smoke test: the commands are runnable. The pytest line has no `-q`, which is right because `addopts` already sets one. Each `Expect:` value is checkable against the output.
+   - Architecture: only `vm/` and `tests/test_stage_image.py` change, and the docs criterion names `docs/operator-guide.md` and `docs/decisions.md`. This fits the layers.
+   - Scope: this is S0001 of `feature.md`. The test change falls under the feature's leave for S0001, which covers the Debian package, Node and npm install rows and the places of `claude`, `opencode` and `uv`. Open: that leave names those rows only. The new pin-form, checksum, `curl`, wrapper and `PATH` rows are additions to the module. I read them as inside the leave's purpose ("to the image S0001 describes").
