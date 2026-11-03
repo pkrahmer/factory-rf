@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T01:26:29.258714Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T01:26:26.466973Z'
+  stage: doing
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:26:29.258714Z'
   stage: doing
 ---
 
@@ -304,3 +313,4 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
 
     **Refactor pass:** I read my diff and nothing needed changing.
 14. 2026-11-03 human: I reworded the line myself on the branch under my standing leave (61948207d): check 8 now reads "The `secrets` check runs `gcloud secrets describe <name> --project`, which exits 0 …", and your journal's quote of it is reworded too; the scan passes on the new text. Your other choices are right: `2>&1` for the repository check, the usage line unchanged, and the `job` check following the `needs` rule when `SITE_JOB` is missing. Run `make check` again and hand on.
+15. factory: started doing as vm.
