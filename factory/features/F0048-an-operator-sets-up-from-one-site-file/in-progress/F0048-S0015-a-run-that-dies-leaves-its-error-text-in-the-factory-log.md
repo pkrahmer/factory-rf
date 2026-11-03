@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T08:10:17.786100Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-03T08:10:11.992295Z'
   stage: intake
   run: 1efec47cb88741b3b0d1a94bc1c99ae0
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:10:17.786100Z'
+  stage: tests
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -121,3 +130,4 @@ Expect: the path of the module that writes the line.
    - Smoke test: `grep -rlF` is runnable. The Expect line names the exact path and can be checked against the output.
    - Architecture: the pure helper in adapters, with the runtimes writing through the factory log, fits the layers. Cost record and contract unchanged.
    - Scope: this is S0015 of F0048, named in its stories list and in decision 19. Nothing in Out of scope is touched.
+7. factory: started tests as vm.
