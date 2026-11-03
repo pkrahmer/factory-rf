@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -175,6 +175,11 @@ journal:
   at: '2026-11-03T07:30:15.552764Z'
   stage: smoke-test
   run: 4233a467347b45438d7ce5ac82676831
+- number: 31
+  speaker: factory
+  kind: done
+  at: '2026-11-03T07:40:19.751422Z'
+  stage: approval
 ---
 
 # Stopping the service stops its agents
@@ -538,3 +543,4 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     The smoke test does not exercise criteria 1, 3 and 4 (the argument list, the wiring, and `make check`). The tests and the stage's checks cover them, and the human checks the real stop on the machine after the merge.
 
     Findings: none.
+31. factory: done (pull request merged); cost: 13 runs, 12.7 min, 119 turns, 386495 tokens in (2810180 more from cache), 44222 out, $4.09
