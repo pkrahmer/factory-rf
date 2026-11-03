@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T02:05:14.033796Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-03T02:05:07.309292Z'
   stage: review
   run: 02b6639c03904a3fbf8229ad2a0afca8
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-03T02:05:14.033796Z'
+  stage: doing
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -190,3 +199,4 @@ Expect: one line that says the tests passed and names no failure.
     Earlier tests:
     - `tests/conftest.py`: standing leave to move a shared test helper. The fixtures `instance_settings` and `on_the_manual_clock` moved here from `tests/entry/test_run_idle_exit.py` unchanged.
     - `tests/entry/test_run_idle_exit.py`: standing leave to move a shared test helper. Only those two fixtures and the imports they alone used were removed; every test keeps its name and checks the same thing.
+13. factory: started doing as vm.
