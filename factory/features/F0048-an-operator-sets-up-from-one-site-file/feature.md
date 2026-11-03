@@ -18,13 +18,19 @@ Running the factory in a Cloud Run job, and driving it as the human in the loop,
 - In a job, a machine stop that stands for ten minutes ends the factory's process with status 1 (S0010).
 - The shipped reviewer judges all five groups of its checklist in every review (S0011, added during the build).
 - Kumpel signs its comments, its start commits and its merges, and posts only through `comment.sh` (S0012, added during the build).
+- The factory does not pause after a tick that found activity (S0013, added during the build, decision 17).
+- The example names the required keys and the job's defaults, the operator's texts name the site file, the scripts run Python isolated and fail a read with the hosting message, the `job` line tells a missing job from an unreadable one, and a space after `=` is a fault (S0014, from the first acceptance, decisions 18 and 21).
+- A run that dies leaves its error text in the factory log (S0015, added after the first acceptance, decision 19).
+- Stopping the service stops the instance's containers (S0016, added after the first acceptance, decision 20).
+- A missing test row for a side the code already handles is a note in review (S0017, decision 23).
+- The guide's advice follows the defaults and the died line, and the job keeps one image in memory (S0018, from the second acceptance, decision 24).
 
 ## Out of scope
 
 - Making the job's own surroundings: the project, the secrets, the connector, the service account, the network, the bot user of the code host. They are the platform's and the operator's; `site check` only says whether they can be seen.
 - The judgment of the operator skill (answering, approving), its switches and its references: unchanged.
 - Moving the skill to a repository of its own, and any other operating system than Linux and macOS with a POSIX shell and `python3`.
-- The factory's own code under `src/factory/`: nothing here changes it, except S0010's rule for a machine stop in a job.
+- The factory's own code under `src/factory/`: nothing here changes it, except S0010's rule for a machine stop in a job and the three changes the human added during the build (S0013, S0015, S0016).
 - Any company value in this repository, a test or a document: the example file, the tests and the documents use made-up names (`example.invalid`, `owner/repo`).
 
 ## Stories
