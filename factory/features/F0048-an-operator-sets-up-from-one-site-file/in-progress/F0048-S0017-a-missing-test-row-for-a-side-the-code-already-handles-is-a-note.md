@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 513
-comments_read: [6598169268]
+comments_read: [6598169268, 6598279355]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: 813600e76b864ad0957bb88634dd4d45
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-03T07:51:20.520587Z'
+  stage: doing
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -158,3 +163,7 @@ Expect: `1`.
     Rejected: I did not reword the reviewer text to dodge the CRC. That is not possible, and the words are fixed by entry 4.
 
     Not done yet: the refactor step (there is nothing to refactor in a one-sentence text replacement) and `docs/decisions.md`, which the docs stage writes.
+11. 2026-11-03 human: (a). The tester has leave to change `test_the_rest_of_the_reviewer_body_is_unchanged` in `tests/test_claude_agent_texts_review_groups.py`, and only that test: before it takes the CRC, it also swaps this story's three sentences back to the old sentence. `_EARLIER_BODY_CRC32` and every other line of the module stay as they are, and the test keeps its name. The tester's entry names the change.
+
+    — Kumpel, for the human who owns this project
+    <!-- kumpel -->
