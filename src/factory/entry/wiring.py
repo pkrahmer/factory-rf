@@ -56,6 +56,7 @@ from factory.application.handlers.run_gate import RunGate
 from factory.application.hosting import HostingService
 from factory.application.idle_shutdown import IdleShutdown
 from factory.application.machine import Clock, FactoryLog, HealthStatusStore, PowerOff
+from factory.application.machine_stop_exit import MachineStopExit
 from factory.application.preflight import (
     MachineChecks,
     Preflight,
@@ -601,3 +602,20 @@ def _idle_power(settings: InstanceSettings, request_stop: Callable[[], None] | N
     if request_stop is None:
         raise ValueError("the idle shutdown's exit needs a way to stop the loop")
     return ProcessExit(request_stop)
+
+
+def machine_stop_exit_of(
+    settings: InstanceSettings,
+    boundaries: Boundaries,
+    request_stop: Callable[[], None] | None = None,
+) -> MachineStopExit | None:
+    """Return the end of the process at a standing machine stop; `None` outside a job.
+
+    A job is an instance whose idle shutdown is on with the action `exit`; there it ends the
+    loop through `request_stop` and raises `ValueError` without one.
+    """
+    if settings.idle_shutdown_minutes == 0 or settings.idle_shutdown_action != "exit":
+        return None
+    if request_stop is None:
+        raise ValueError("the end at a standing machine stop needs a way to stop the loop")
+    return MachineStopExit(boundaries.health, boundaries.clock, boundaries.log, request_stop)

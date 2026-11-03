@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T01:56:19.531735Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-03T01:56:19.531735Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-03T02:03:21.647825Z'
+  stage: doing
+  run: 03f774929e4443f9be9f1b1c106875ef
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -139,3 +141,24 @@ Expect: one line that says the tests passed and names no failure.
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: Built the rule that, in a job, a machine stop standing for ten minutes ends the factory's process with status 1. `make check` is green.
+
+    - `src/factory/application/machine_stop_exit.py` (new): `MachineStopExit` with `MACHINE_STOP_LIMIT = timedelta(minutes=10)`. Its `observe()` reads the machine-scope stops from the health status. Once one has stood for the limit on the boundaries' clock, it writes `machine stop: standing for 10 minutes in a job, ending the factory's process: <reason>: <detail>`, sets `ended` and calls `request_stop`. It starts no process.
+    - `src/factory/entry/wiring.py`: `machine_stop_exit_of(settings, boundaries, request_stop)` returns the rule only when the idle shutdown is on with `exit`, and `None` otherwise. Like `_idle_power`, it raises `ValueError` when it gets no `request_stop`.
+    - `src/factory/entry/run.py`: `run_instance` wraps the scheduler's `prepare` and `tick` with `_observed_iteration`. `observe` then runs after every tick, or after a `prepare` that left no tick to run. After the loop it raises `MachineStopStood` if the rule ended it, and `main` turns that into status 1. The idle exit still returns 0.
+    - `src/factory/domain/errors.py`: `MachineStopStood(FactoryError)`.
+
+    Main choice: where the time is counted from. The tester flagged that the preflight raises its machine stop again on every failing tick, and `HealthStatus.with_stop` replaces the stop, so its `at` moves forward each tick. Counting naively from `at` would therefore never fire in production. `MachineStopExit` keeps, per reason, the earliest `at` of an unbroken stretch, and forgets it once the stop is lifted. So the count runs from the stop's own first time, and a new stop counts from its own time. I rejected changing `with_stop` to keep the standing stop's `at`: that would change what the health status and its other readers mean, beyond this story.
+
+    Second choice: how the check reaches the loop. I first added an `after_iteration` hook to `Scheduler`. Ruff refused six constructor arguments (PLR0913/PLR0917), so I left `Scheduler` untouched and composed the hook in `run_instance`.
+
+    Refactor: `observed_iteration` served only `run_instance`, so I made it private and took it out of `__all__`. Nothing else needed changing.
+
+    Noticed but not touched:
+    - `HealthStatus.with_stop` moves a re-raised stop's `at` forward, so the health file shows the last raise rather than the first. Whether that is intended is a question for another story.
+    - Two lines are uncovered: the observation after a `prepare` that is not ready (`run.py`, the `observe()` in `observed_prepare`), and the `ValueError` without `request_stop` in `wiring.py`. Coverage is 99.5 %, well above the 90 % minimum.
+
+    The journal did not change the meaning of the task. Its only change was the smoke test's dropped `-q`, which intake had already carried in.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
