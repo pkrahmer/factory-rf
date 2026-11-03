@@ -9,7 +9,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, JsonValue
 
 from factory.application.containers import ContainerRuns
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, Login
+from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, EndReason, Login
 from factory.domain.containers import WORK_CHECKOUT, read_only_at_own_path
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoint, KillPoints
@@ -375,6 +375,11 @@ def _text_lines(text: str) -> list[str]:
     return [line for line in stripped if line]
 
 
+def _stderr_lines(stderr: str) -> list[str]:
+    # The login shell's marker is the factory's own line, not a reason the run died.
+    return [line for line in _text_lines(stderr) if not line.startswith(LOGIN_USED_PREFIX)]
+
+
 def _cut(text: str) -> str:
     if len(text) <= DIED_TEXT_LENGTH:
         return text
@@ -386,7 +391,17 @@ def died_text(error_text: str | None, stderr: str, exit_status: int) -> str:
 
     Lines are stripped and joined on one line without the blank ones, and the text is cut short.
     """
-    lines = _text_lines(error_text or "") or _text_lines(stderr)[-DIED_STDERR_LINES:]
+    lines = _text_lines(error_text or "") or _stderr_lines(stderr)[-DIED_STDERR_LINES:]
     if not lines:
         return f"exit {exit_status}"
     return _cut(" / ".join(lines))
+
+
+def died_run_text(
+    end_reason: EndReason, error_text: str | None, stderr: str, exit_status: int | None
+) -> str | None:
+    """The `died_text` of a run that died, `None` for any other end."""
+    # A process that was stopped has no exit status, and a stopped run did not die.
+    if end_reason != "died" or exit_status is None:
+        return None
+    return died_text(error_text, stderr, exit_status)

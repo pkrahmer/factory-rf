@@ -32,7 +32,7 @@ from factory.adapters.agent_launch import (
     Starters,
     container_launch,
     denied_path,
-    died_text,
+    died_run_text,
     finished_run,
     login_argv,
     login_paths,
@@ -235,12 +235,9 @@ def _end_reason(
 
 
 def _died_text(end_reason: EndReason, process: ProcessResult, reply: _Reply | None) -> str | None:
-    # A process that was stopped has no exit status, and a stopped run did not die.
-    if end_reason != "died" or process.exit_status is None:
-        return None
     # The agent's own answer is never quoted: only an error reply's text.
     error_text = reply.result if reply is not None and reply.is_error else None
-    return died_text(error_text, process.stderr, process.exit_status)
+    return died_run_text(end_reason, error_text, process.stderr, process.exit_status)
 
 
 def _tokens(usage: _Usage | None) -> TokenCounts | None:

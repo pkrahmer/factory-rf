@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T08:28:27.104107Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-03T08:28:27.104107Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-03T08:32:32.227691Z'
+  stage: doing
+  run: 5120793f7b384c9e808638df1112c969
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -305,3 +307,26 @@ Expect: the single line `src/factory/domain/died_runs.py`.
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
 16. factory: started doing as vm.
+17. coder: Round 1: I fixed both of the reviewer's findings from entry 15. `make check` is green, and the last run came after the refactor. The new criterion needs its test rows, so I am sending the work item to the tester.
+
+    What I changed:
+    - `src/factory/adapters/agent_launch.py`:
+      - Finding 1: a new private `_stderr_lines` drops the stripped lines of standard error that start with `LOGIN_USED_PREFIX` before `died_text` takes the last three. A died run whose standard error holds only `factory-login-used: …` now gives `exit <status>`.
+      - Finding 2: a new `died_run_text(end_reason, error_text, stderr, exit_status)` holds the shared rule: `None` unless the end is `died` and there is an exit status, otherwise `died_text(...)`.
+    - `src/factory/adapters/claude_runtime.py`: `_died_text` now only picks the error reply's text (`reply.result` when `is_error`) and calls `died_run_text`.
+    - `src/factory/adapters/opencode_runtime.py`: its `_died_text` is gone. `_result` calls `died_run_text` with `_error_message(events)`.
+
+    Main choice: `died_run_text` takes `stderr` and `exit_status` as plain values. The reviewer suggested passing the `ProcessResult`. I tried that first, and two structural tests rejected it: `tests/test_agent_launch_search.py::test_the_launch_module_does_not_import_the_process_module` and `tests/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module`. `agent_launch` may not import `factory.adapters.process`, so I rejected that shape.
+
+    Description: I added the reviewer's criterion as criterion 10, before the two closing ones, which are now 11 and 12. It reads: "A `died` run whose standard error holds only the login shell's `factory-login-used:` line gives `exit <status>`, and that line is never quoted. Rows: each runtime." I also added one sentence to the Interface's text rules: the login shell's `factory-login-used:` line is never quoted.
+
+    For the tester: criterion 10 needs one row for each runtime in `tests/adapters/test_runtime_died_text.py`, where standard error holds only the login line and the expected text is `exit <status>`. A row in `tests/adapters/test_died_text.py` would also fit, with the login line among other stderr lines and not quoted. I changed no test.
+
+    Refactor: I read the diff and nothing more needed changing. Smoke test: `grep -rlF 'died: ' src/factory` still prints only `src/factory/domain/died_runs.py`.
+
+    Noticed, not touched: nothing new beyond entry 13.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
+
+    The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0015-a-run-that-dies-leaves-its-error-text-in-the-factory-log.md.

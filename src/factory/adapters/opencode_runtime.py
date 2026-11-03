@@ -32,7 +32,7 @@ from factory.adapters.agent_launch import (
     Starters,
     container_launch,
     denied_path,
-    died_text,
+    died_run_text,
     finished_run,
     login_argv,
     login_paths,
@@ -502,16 +502,6 @@ def _error_message(events: Sequence[_Event]) -> str | None:
     return messages[-1] if messages else None
 
 
-def _died_text(
-    end_reason: EndReason, process: ProcessResult, events: Sequence[_Event]
-) -> str | None:
-    # A process that was stopped has no exit status, and a stopped run did not die.
-    if end_reason != "died" or process.exit_status is None:
-        return None
-    # The agent's own text is never quoted: only an error event's message.
-    return died_text(_error_message(events), process.stderr, process.exit_status)
-
-
 def _result(request: AgentRunRequest, process: ProcessResult, watch: _Watch) -> AgentRunResult:
     # The duration is the whole run's, so `run` sets it once the call has ended.
     login = login_used(process.stderr)
@@ -537,7 +527,10 @@ def _result(request: AgentRunRequest, process: ProcessResult, watch: _Watch) -> 
         login=login,
         session=session,
         limit_wait=_limit_wait(end_reason, watch),
-        died_text=_died_text(end_reason, process, events),
+        # The agent's own text is never quoted: only an error event's message.
+        died_text=died_run_text(
+            end_reason, _error_message(events), process.stderr, process.exit_status
+        ),
     )
 
 
