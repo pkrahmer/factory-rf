@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268, 6598279355]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T07:57:01.931027Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-03T07:57:01.931027Z'
   stage: smoke-test
+- number: 23
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T07:57:16.410856Z'
+  stage: smoke-test
+  run: b03052b54cb14a6e800a853a9ce666db
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -307,3 +309,24 @@ Expect: `1`.
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
 22. factory: started smoke-test as vm.
+23. smoke-tester: I ran the smoke test from the repository root, exactly as written. I changed nothing.
+
+    Command 1: `grep -c 'handles that side' claude/agents/reviewer.md`
+
+    ```
+    1
+    ```
+
+    Expect: `1`. Met.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: `claude/agents/reviewer.md:66` holds the human's three sentences from journal entry 4, word for word. That includes "One exception holds from round 0". The old parenthetical "(an untested side of a stated limit among them)" is no longer in the file: a grep for "untested side" finds nothing.
+    - Criterion 2: the rest of the notes paragraph on line 66 reads as before. The text tests that pin it were green in the coder's `make check` (entry 17). I did not run them again: running them is not part of the smoke test.
+    - Criterion 3: the coder's `make check` was green (entry 17), and the docs stage reused that result (entry 21). I did not run it again.
+    - Criterion 4: `docs/decisions.md:1360` has the entry "A missing test row for a side the code handles is a note".
+
+    The smoke test contradicts no criterion.
+
+    Findings: none.
+
+    Open, not a finding (already raised by the reviewer and the documenter): the `CLAUDE.md` *Tests* line, the reviewer's lesson at line 85 and checklist item 1 at line 55 still state the general both-sides rule. `CLAUDE.md` is the human's to change with the merge, and rewording the other two is outside this story's Interface.
