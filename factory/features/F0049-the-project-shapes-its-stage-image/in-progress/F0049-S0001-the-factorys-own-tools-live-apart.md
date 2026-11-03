@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T23:37:45.230345Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -209,6 +205,12 @@ journal:
   kind: started
   at: '2026-11-03T23:37:45.230345Z'
   stage: docs
+- number: 37
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T23:38:22.618518Z'
+  stage: docs
+  run: 8f208a4374c34b809ad0b346ff9f60fb
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -631,3 +633,26 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
 
       This round renamed a test that this story added, which needs no leave. The other new test functions are additions and need none.
 36. factory: started docs as vm.
+37. documenter: Docs, round 2. I fixed the two passages the reviewer (entry 35) named, so they say what the corrected criterion 7 says. I changed only documents, so I did not run `make check`; the factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md` (*The stage image*, the Node paragraph): the runtimes are now "installed by a Node of their own", not "run on" it. `claude` and `opencode` exec `/opt/factory/bin/claude` and `/opt/factory/bin/opencode` directly and pass their arguments on. The paragraph says both runtimes install native executables, so the factory's Node serves the install alone. The rest of the paragraph stands: the pin by `NODE_VERSION` and `NODE_SHA256`, the checked download, no Node for projects, how to change the pin.
+    - `docs/decisions.md` (the new entry "The factory's tools live apart, under `/opt/factory`, with their own Node"): the Decision line says the commands exec the installed runtimes directly and that the factory's Node serves the install alone. The Why now adds that the runtimes are native executables that fail under Node (decision 6 of the feature), as criterion 7 asks. The supersession line is unchanged.
+
+    Cross-read and found current against the diff of `vm/Dockerfile`:
+    - The package list of six and the pin sentence in *The stage image*.
+    - The pin list in *Update the pins* (Node's two `ARG`s are in it).
+    - `docs/operator-guide.md` line 277, which says `opencode-ai` is installed from npm.
+    - The README and the project guide: nothing in them touches this story, and criterion 7 says none.
+
+    Open:
+    - The Dockerfile comment above the `export PATH` steps and the code match the docs. The Dockerfile installs with `--global --prefix /opt/factory`, and the docs say "under `/opt/factory`", which is true.
+    - The decisions entry has a "Why" and no "Rejected" line, because the story names no rejected option for it.
+
+    Stale text I saw and did not touch: `docs/decisions.md` line 1310 still says "seven Debian packages" in the older entry. The new entry says it supersedes that for `nodejs` and `npm`, as criterion 7 asks, so I left the old entry alone.
+
+    Findings: none. The Dockerfile matches the Interface as corrected in entry 25. The `NODE_SHA256` check against the real archive and the `claude --version` and `opencode --version` checks wait for the human's build on the VM (criterion 6).
+
+    `check`: check: green (not run again: passed on tree 75936223d8f9 at 2026-11-03T23:34:36Z)
+    `secrets`: secrets: green (2.3 s)
+    `documents`: documents ok
