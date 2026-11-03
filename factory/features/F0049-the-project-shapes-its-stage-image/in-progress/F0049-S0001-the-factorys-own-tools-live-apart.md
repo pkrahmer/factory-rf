@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948, 6618330636]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T23:41:47.011755Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -245,6 +249,11 @@ journal:
   at: '2026-11-03T23:41:40.934479Z'
   stage: smoke-test
   run: 2b67f30c395d467db11baf17bf3a63f4
+- number: 44
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:41:47.011755Z'
+  stage: doing
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -788,3 +797,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
 
     Findings:
     1. Command: `grep -cE 'install .*\b(nodejs|npm)\b' vm/Dockerfile`. Expected: `0`. Observed: `1`. The match is the comment at `vm/Dockerfile:28` ("…install native executables: the factory's Node serves npm's install alone…"), where the word `npm` comes after `install` on the same line. The Dockerfile installs neither `nodejs` nor `npm`, so no criterion is contradicted. The smoke test's expectation still fails as written, and `vm/Dockerfile` is the coder's file, not a document the documenter writes, so this goes to `doing`. A possible fix: reword that comment so that no `npm` or `nodejs` follows the word `install` on the line (for example "the factory's Node serves the runtimes' installation alone"). The other option is for the human to narrow the smoke test's pattern to the `apt-get install` line. I would choose rewording the comment, because the smoke test is the human's.
+44. factory: started doing as vm.
