@@ -25,10 +25,10 @@ RUN export PATH=/opt/factory/node/bin:${PATH} \
  && /opt/factory/node/bin/npm install --global --prefix /opt/factory --no-audit --no-fund @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 RUN export PATH=/opt/factory/node/bin:${PATH} \
  && /opt/factory/node/bin/npm install --global --prefix /opt/factory --no-audit --no-fund opencode-ai@${OPENCODE_VERSION}
-# The runtimes run on the factory's Node by its full path, whatever node a project puts on the PATH.
-RUN printf '#!/bin/sh\nexec /opt/factory/node/bin/node /opt/factory/bin/claude "$@"\n' > /usr/local/bin/claude \
+# The runtimes install native executables: the factory's Node serves npm's install alone, so the commands exec them directly.
+RUN printf '#!/bin/sh\nexec /opt/factory/bin/claude "$@"\n' > /usr/local/bin/claude \
  && chmod 0755 /usr/local/bin/claude
-RUN printf '#!/bin/sh\nexec /opt/factory/node/bin/node /opt/factory/bin/opencode "$@"\n' > /usr/local/bin/opencode \
+RUN printf '#!/bin/sh\nexec /opt/factory/bin/opencode "$@"\n' > /usr/local/bin/opencode \
  && chmod 0755 /usr/local/bin/opencode
 # The agent files, read-only; the sync container copies them into the dataset's home.
 COPY claude /etc/factory/claude

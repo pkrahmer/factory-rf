@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T23:32:34.727145Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -187,6 +183,12 @@ journal:
   kind: started
   at: '2026-11-03T23:32:34.727145Z'
   stage: doing
+- number: 33
+  speaker: coder
+  kind: result
+  at: '2026-11-03T23:36:16.364087Z'
+  stage: doing
+  run: 4206294299cd4666b20ad8b6c2dd356b
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -545,3 +547,21 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.1 s)
 32. factory: started doing as vm.
+33. coder: Round 2: fixed the two wrappers in `vm/Dockerfile` (lines 28 to 32), following the human's correction in entry 25 and the test the tester changed in entry 31. `make check` ended with `check: green`. `vm/Dockerfile` is the only file I changed.
+
+    - `/usr/local/bin/claude` and `/usr/local/bin/opencode` are still written by `printf`. They now run `exec /opt/factory/bin/claude "$@"` and `exec /opt/factory/bin/opencode "$@"`, and neither names a node binary.
+    - I rewrote the comment above them: the runtimes install native executables, so the factory's Node is used only for npm's install and the commands run the installed executables directly.
+    - The Node pin and the checked download, the six packages, the two `npm install` steps and the absence of any `ENV PATH` line are unchanged.
+    - The `export PATH=/opt/factory/node/bin:${PATH}` stays in the two `npm install` steps and lasts for those steps only. npm's own `#!/usr/bin/env node` still needs it.
+
+    Main choice: each wrapper runs npm's bin link under `/opt/factory/bin`, which the human named. I rejected naming each package's `bin/*.exe` directly, because that ties the wrappers to the packages' inner layout.
+
+    Refactor: I read the diff once (one comment and two `printf` lines) and found nothing to change.
+
+    Noticed, not touched:
+    - The Description and the Interface bullet for `/usr/local/bin/claude` and `/usr/local/bin/opencode` still say the runtimes run "with the factory's Node by its full path". Criterion 4 still says each wrapper names `/opt/factory/node/bin/node`. Entry 25 changed all of that, but the work item is outside the coder's write paths, so I did not rewrite it.
+    - The `docs/operator-guide.md` paragraph and the `docs/decisions.md` entry from entry 22 say the runtimes *run* on the factory's own Node. After entry 25 they should say that Node is only for the install. That is the documenter's work.
+    - Open until the human's build on the VM: `NODE_SHA256` against the real archive, and `claude --version` and `opencode --version` through the new wrappers.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
