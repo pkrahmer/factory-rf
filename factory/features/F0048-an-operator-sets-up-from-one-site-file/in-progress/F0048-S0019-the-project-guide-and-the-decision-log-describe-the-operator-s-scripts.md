@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T11:48:34.646275Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-11-03T11:48:34.646275Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T11:49:00.364759Z'
+  stage: smoke-test
+  run: 66d79d1063c04f81b5784db263016ca7
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -327,3 +329,52 @@ Expect: `documents ok`
     `secrets`: secrets: green (2.7 s)
     `documents`: documents ok
 20. factory: started smoke-test as vm.
+21. smoke-tester: I ran the five smoke-test commands from the repository root, in order and exactly as written. All five met their `Expect:` lines. I found nothing to report.
+
+    1. Command: `test -f docs/project-guide/operator.md && echo present; grep -c '`operator.md`' docs/project-guide/README.md`
+    ```
+    present
+    1
+    ```
+    Met: it prints `present`, then 1, which is at least 1.
+
+    2. Command: the loop over the ten support modules in `docs/project-guide/README.md`
+    ```
+    listed
+    ```
+    Met: it prints `listed` alone, with no `missing` line before it.
+
+    3. Command: `grep -c -i 'site file' …; grep -c -- '--layers=false' …; grep -c 'SITE_TOKEN_CMD' docs/decisions.md`
+    ```
+    4
+    1
+    1
+    ```
+    Met: it prints three numbers, each at least 1.
+
+    4. Command: `git grep -c 'factory-rf' -- README.md docs/operator-guide.md docs/project-guide operator src claude vm template; echo "exit $?"`
+    ```
+    exit 1
+    ```
+    Met: it prints `exit 1` alone, with no file listed.
+
+    5. Command: `uv run python -m factory.entry.check_documents`
+    ```
+    Bytecode compiled 4164 files in 45ms
+    documents ok
+    ```
+    Met: it prints `documents ok`. The line before it comes from uv, not from the check.
+
+    Acceptance criteria compared with what I saw:
+    - Criterion 1: neither skill text contains `factory-rf` (command 4 covers `operator/`). The diff changes one line in each file and nothing else.
+    - Criterion 2: I did not run `make check` myself. Entry 15 records it green, and entry 19 records that the factory reused that passed result.
+    - Criterion 3:
+      - `docs/project-guide/operator.md` has a title and the seven sections the criterion names: the layout, the site file and its loader, the hosting client, `job.sh`, the sanitiser, the skill's scripts, and the tests of the scripts.
+      - `docs/decisions.md` has the seven new entries the criterion lists, plus the rename entry (decision 25), at lines 1378–1434.
+      - The first line of `README.md` is `# kumpel-factory`.
+      - In `docs/operator-guide.md`, the four example URLs use `https://github.com/pkrahmer/kumpel-factory.git`, and the two "own" passages (lines 1806 and 1815) say "kumpel-factory's own". Line 138 also changed from "factory-rf's" to "kumpel-factory's".
+      - The diff of `README.md`, `docs/operator-guide.md` and `docs/project-guide/agents.md` shows only the rename. Nothing else changed in them for part B.
+
+    Nothing the smoke test showed goes against any criterion.
+
+    Still open: the documenter says in entry 19 that it took the "Why" and "Rejected" lines of the new decision entries from the scripts and the operator guide, not from `feature.md`. The human may want to compare them with the feature's decisions. The smoke test cannot check that.
