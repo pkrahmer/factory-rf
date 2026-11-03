@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T01:15:28.090101Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-11-03T01:15:22.259538Z'
   stage: tests
   run: 12340214e36a4eedb4862d3d54672219
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:15:28.090101Z'
+  stage: doing
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -250,3 +259,4 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
     Set aside: `test_site_check_makes_no_write` and `test_no_secret_value_is_read_or_printed` may pass already, because they assert on calls that do not happen yet. The README test (criterion 10) and the guide-keys test (criterion 19) read files that already exist. I cannot tell from the tail whether they pass or fail now.
 
     `lint`: lint: green (0.1 s)
+12. factory: started doing as vm.
