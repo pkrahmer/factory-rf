@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694, 6592430164]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T00:53:32.517586Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-03T00:53:27.316286Z'
   stage: doing
   run: ee07a838b3f04b5bb2a159392733b9b1
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:53:32.517586Z'
+  stage: tests
 ---
 
 # Kumpel signs everything it does
@@ -258,3 +267,4 @@ Expect: two lines, a number of at least `1`, then `0`.
     Description: intake and the reviewer already wrote criteria 9 and 10 in. The human's answer changes a test, not what the task means, so the Description stays as it is.
 
     Noticed, not touched: nothing beyond entry 10.
+18. factory: started tests as vm.
