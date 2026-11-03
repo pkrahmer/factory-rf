@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T01:06:13.682491Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-03T01:06:13.682491Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-03T01:06:35.749546Z'
+  stage: intake
+  run: afc8017aa8f04c3485c78370c4dde402
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -54,16 +56,16 @@ A fresh setup has failed in small ways: a token command that prints nothing, a s
 
 - The checks, in this order, each printing `ok <name>` or `FAIL <name>: <detail>` (the detail one line, never a value that is a secret; names and statuses only), then a last line `site: <n> failed` (n at least 1, exit 1) or `site: ready` (exit 0):
   1. `site file`: the file loads (a fault of the loader is the detail).
-  2. `keys`: every key of the job set (the required ones of S0005) and of the hosting set (`SITE_REPOSITORY`, `SITE_CHECKOUT`) is set; the detail names the missing ones.
+  2. `keys`: every key of the job set (exactly the keys `require_settings` in `operator/job/job.sh` requires: `SITE_PROJECT SITE_REGION SITE_RUN_AS SITE_CONNECTOR SITE_PROXY SITE_NO_PROXY SITE_JOB SITE_INSTANCE SITE_REPOSITORY_URL SITE_CODE_URL SITE_CODE_REF SITE_HOSTING_SECRET SITE_MODEL_SECRET SITE_MODEL_BASE_URL SITE_MODEL SITE_LOGIN_URL SITE_LOGIN_SCOPE SITE_LOGIN_CLIENT_ID`) and of the hosting set (`SITE_REPOSITORY`, `SITE_CHECKOUT`) is set; the detail names the missing ones.
   3. `tools`: `gcloud`, `curl`, `git` and `python3` are on the `PATH`; the detail names the missing ones.
   4. `token`: `hosting_token` succeeds (the detail is the hosting client's message).
-  5. `repository`: `GET /repos/$SITE_REPOSITORY` answers 200 and its `permissions.push` is true (details: the status and message, or `the token has no push permission`).
+  5. `repository`: `GET /repos/$SITE_REPOSITORY` answers 200 and its `permissions.push` is true (details: the hosting client's own message for a non-200 answer, for example `hosting: GET /repos/owner/repo: 404 Not Found`, or `the token has no push permission`).
   6. `checkout`: `$SITE_CHECKOUT` is a git work tree whose `origin` url names `$SITE_REPOSITORY` (the detail says which part fails).
-  7. `identity`: `gcloud run jobs list --project --region --limit=1` (with the impersonation flag when set) exits 0 (the detail is the first line of its error).
+  7. `identity`: `gcloud run jobs list --project --region --limit=1` (with `--impersonate-service-account=<value>` when `SITE_IMPERSONATE` is set, as in `job.sh`; the flag goes on every `gcloud` call of `site check`, checks 7, 8 and 11) exits 0 (the detail is the first line of its error).
   8. `secrets`: `gcloud secrets describe <name> --project` exits 0 for `SITE_HOSTING_SECRET` and for `SITE_MODEL_SECRET`; the detail names the one that fails. Neither secret's value is read.
   9. `code`: `git ls-remote $SITE_CODE_URL`, run with `https_proxy` set to `$SITE_PROXY` and no credential, exits 0 and, when `SITE_CODE_REF` is not 40 hexadecimal characters, lists that ref as a branch or tag (a commit id is accepted without a lookup).
   10. `no_proxy`: the hosts of `SITE_CODE_URL`, `SITE_REPOSITORY_URL` and `SITE_API_URL` are not covered by `SITE_NO_PROXY` (a domain `d` covers a host that equals `d` or ends in `.d`, a leading `.` ignored; the guide says `NO_PROXY` must not name a code host, since the job cannot resolve it), and the host of `SITE_MODEL_BASE_URL` is covered by it (opencode otherwise waits for the proxy to answer for an internal host). The detail names the host and the rule.
-  11. `job`: informational, always `ok`: `ok job: <name> exists` or `ok job: <name> does not exist yet`.
+  11. `job`: informational, always `ok`: runs `gcloud run jobs describe $SITE_JOB --project $SITE_PROJECT --region $SITE_REGION`, as `job_exists` in `operator/job/job.sh` does; exit 0 prints `ok job: <name> exists`, any other exit prints `ok job: <name> does not exist yet` (a missing job is not told from a failed call; check 7 catches a broken identity).
 - When the site file does not load (check 1 fails), no other check runs: the output is the `FAIL site file: <the loader's message>` line and `site: 1 failed`.
 - A check whose keys are missing prints `FAIL <name>: needs <keys>` and does not run; the others still run.
 - `site check` makes no write: no `gcloud` call other than `list` and `describe`, no `POST`, `PUT`, `PATCH` or `DELETE`, no `git push`.
@@ -84,8 +86,15 @@ Tests: `tests/test_operator_site_check.py`, with the stand-ins of the earlier st
 8. No secret value is read or printed: the stand-in `gcloud` fails the test if it is asked to `versions access`, and a token's text (`TOKENMARK`) is in no output line.
 9. `site check` with a command line argument other than none prints `usage: site check` and exits 2.
 10. `operator/README.md` names every file under `operator/lib/`, `operator/bin/`, `operator/job/` and `operator/skill/kumpel/scripts/` (a test over the folder and the text).
-11. `make check` stays green.
-12. docs: `docs/operator-guide.md` the chapter named in the Interface, and the site file's section's table of keys now covers every key of the example file (a test that every `SITE_` key of `operator/site.env.example` appears in the guide's text); `README.md` names the chapter in its pointers; the other documents: none.
+11. The `job` check, as rows of one parametrized test: `gcloud run jobs describe` succeeds (`ok job: <name> exists`); it fails (`ok job: <name> does not exist yet`, and the exit status stays 0).
+12. The `no_proxy` rows of criterion 4 include a covered-FAIL row for the host of `SITE_REPOSITORY_URL` and one for the host of `SITE_API_URL`.
+13. The `git ls-remote` stand-in sees `https_proxy` equal to `SITE_PROXY`, and sees no token and no credential configuration (no `GIT_CONFIG_*` authorization, no `http.extraHeader`).
+14. The impersonation flag, as rows on the `identity` check: `--impersonate-service-account=<value>` is in the `gcloud run jobs list` call when `SITE_IMPERSONATE` is set, and absent when it is not.
+15. A failing `gcloud run jobs list` whose stand-in writes a multi-line error has as detail the error's first line only.
+16. The `tools` check with two tools missing at once names both in its detail.
+17. A repository answering 404 has the detail `hosting: GET /repos/owner/repo: 404 Not Found` (the hosting client's message).
+18. `make check` stays green.
+19. docs: `docs/operator-guide.md` the chapter named in the Interface, and the site file's section's table of keys now covers every key of the example file (a test that every `SITE_` key of `operator/site.env.example` appears in the guide's text); `README.md` names the chapter in its pointers; the other documents: none.
 
 ## Smoke test
 
@@ -131,3 +140,9 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
    8. One tool's row stands for the rule, plus one row with two tools missing at once for the plural detail.
    9. The detail of a non-200 answer is the hosting client's own message, as in check 4 and in S0008, for example `hosting: GET /repos/owner/repo: 404 Not Found`.
 5. factory: started intake as vm.
+6. intake: accepted. I carried the human's answers (journal entry 4) into the story as their edit and added nothing of my own.
+   - Interface: it names `operator/bin/site check` and the eleven checks in order. Entry 4 fixed the gaps. I wrote in the job-set key list (the keys `require_settings` in `job.sh` requires), the `SITE_IMPERSONATE` flag on every `gcloud` call, the check 5 detail (the hosting client's own message) and the check 11 command and rule.
+   - Criteria: I added criteria 11 to 17 from answers 1, 3, 4, 5, 6, 8 and 9. They cover the `job` rows, the repository-URL and API-URL covered-FAIL rows, the `https_proxy` and no-credential checks on `ls-remote`, the impersonation flag on both sides, the first line of a multi-line error, the two-tools-missing detail and the 404 detail. `make check` is now 18 and `docs:` 19, still the last two. Each criterion is one test function. Every rule has its failing side.
+   - Smoke test: both commands are runnable, with no pytest `-q` issue. Each `Expect:` line is checkable against the output and the exit status.
+   - Architecture: the work is shell under `operator/`, plus the guide and README, all inside the coder's and documenter's write paths.
+   - Scope: it is within the feature's scope (S0009) and touches nothing in "Out of scope". The model API login is not tested here, as the Description says.
