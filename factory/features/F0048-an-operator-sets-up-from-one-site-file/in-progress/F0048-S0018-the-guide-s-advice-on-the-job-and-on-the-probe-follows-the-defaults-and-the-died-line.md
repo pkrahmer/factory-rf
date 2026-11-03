@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 517
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T09:51:33.745787Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-03T09:51:33.745787Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-03T09:51:54.289216Z'
+  stage: intake
+  run: 28839d9776b046faba41c27c450a5bdd
+  blocked: question
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -88,3 +91,7 @@ Expect: `documents ok`
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Interface, step `image`: "whose failure fails the step as a failed build does" is a stated rule, but no criterion tests its failing side. Criterion 1 only checks that the text holds the build with `--layers=false` and then the prune. Options: (a) add a criterion that the prune is followed by `|| failed image`, the way the build line is (I would choose this); (b) drop the clause from the Interface.
+   2. Interface: "It never removes a tagged image" has no criterion. `image prune -f` without `-a` already has that property. Options: (a) add a criterion that the prune line has no `-a` or `--all` flag (I would choose this); (b) delete the sentence, because podman guarantees it.
+   3. Criterion 2 ("Nothing under `src/`, `operator/`, `image/`, `template/` or `claude/` changes, and under `vm/` only `vm/job-start.sh`") cannot be tested by one test function. It would need a diff against `main`, and the Tests section defines no such helper. Options: (a) remove it, because the write paths already confine the coder (I would choose this); (b) say which test checks it and how.
+   4. Interface, the Interface's "Nothing else in the script changes": no criterion backs it. It is covered by item 3 only as far as the file is concerned. If you keep it, say whether it is a criterion or a description only. I would treat it as a description.
