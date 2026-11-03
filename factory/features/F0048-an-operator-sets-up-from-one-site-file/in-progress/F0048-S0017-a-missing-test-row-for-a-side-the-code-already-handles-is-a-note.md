@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T07:45:15.807964Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-03T07:45:09.766705Z'
   stage: intake
   run: 22eff09d79eb405fafa8e7f533008c84
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:45:15.807964Z'
+  stage: tests
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -99,3 +108,4 @@ Expect: `1`.
    - Smoke test: `grep -c 'handles that side' claude/agents/reviewer.md` is runnable. It prints 0 now, because the new text isn't in the file yet. Once the three sentences are copied in, it prints 1, because "handles that side" appears once. `Expect: 1` is checkable.
    - Architecture: only agent text and a text test change. Nothing under `src/` changes, so the layers are untouched.
    - Scope: this is within F0048 (the feature lists S0017 and decision 23). The change to the pinned sentence in the text test is covered by the feature's leave for S0017, and the tester changes nothing else in that module.
+7. factory: started tests as vm.
