@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T02:05:37.712753Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-03T02:05:37.712753Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-03T02:07:48.671159Z'
+  stage: tests
+  run: 884259bcabda44378bb3f576606416d8
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -226,3 +228,34 @@ Expect: one line that says the tests passed and names no failure.
 
     Refactor: there is no diff this round, so there was nothing to refactor.
 15. factory: started tests as vm.
+16. tester: Made the four test changes the reviewer listed in entry 12 and the coder named in entry 14. I did not change any code.
+
+    Mapping (every test is in `tests/entry/test_run_machine_stop_exit.py`):
+    - criterion 1: `test_a_machine_stop_standing_ten_minutes_in_a_job_ends_the_loop_and_main_returns_one`. Its iteration that runs no tick is covered by `test_a_machine_stop_ends_the_loop_after_iterations_that_ran_no_tick` (new; reviewer finding 3).
+      - In the new test, a repository URL that does not exist makes `prepare` return `False` on every iteration, while a machine stop written at T stands in the health status.
+      - The loop's sleep moves the manual clock forward and fails the test once the clock passes T + 30 minutes.
+      - The test expects every pause before T + 10 minutes, the loop ended at T + 10 minutes or later, no tick run, `main` returning 1, the stop's line written once, and that line last in the log.
+    - criterion 2: `test_a_machine_stop_ends_the_loop_from_ten_minutes_on` (rows `9-minutes-59-seconds`, `10-minutes`)
+    - criterion 3: `test_a_lifted_machine_stop_ends_nothing_and_a_new_one_counts_from_its_own_time`
+    - criterion 4: `test_a_standing_stop_ends_nothing_where_the_rule_does_not_hold` (rows `poweroff`, `idle-shutdown-off`, `repository-stop`)
+    - criterion 5: `test_the_idle_exit_without_a_stop_still_ends_the_loop_with_status_zero`
+    - criterion 6: `test_a_machine_stop_raised_again_on_every_tick_counts_from_its_first_raise` (new). The stop is raised again with that tick's time at T, T+5, T+9 and T+10. The loop should end after the fourth tick. Without the `min(...)` in `MachineStopExit.observe`, the T+10 raise would reset the count, so the test would fail.
+    - criterion 7: criterion 1's test now also checks that the log's last line ends with the stop's line. The no-tick test checks the same.
+    - criteria 8 and 9: no test (`make check`, and the docs for the docs stage).
+
+    Files:
+    - Created `tests/scripted_tick_support.py`.
+    - Changed `tests/entry/test_run_machine_stop_exit.py` (my own module from entry 8).
+    - Changed `tests/entry/test_run_idle_exit.py` under the standing leave to move a shared test helper (reviewer finding 4). Its `_ScriptedTick`, `_scripted`, `_run` and the inline `main` runner of `test_main_returns_zero_after_the_idle_exit_ends_the_loop` moved to the support module, under these names:
+      - `ScriptedTick`: now generic over a step's action, with a `play` function; the idle tests play the outcome itself.
+      - `installed`: the `build_tick` patch.
+      - `scripted`, `run_loop` and `run_main`.
+      - Every test in `tests/entry/test_run_idle_exit.py` keeps its name and checks the same thing. The stop tick in the new module is now a `ScriptedTick` with a play that raises, lifts or keeps the stop.
+
+    One change the move needed: `run_main`'s runner keeps each loop's stop event before the loop runs. This is because `run_instance` raises `MachineStopStood` and so returns no event. `run_loop` takes the event as an optional keyword argument.
+
+    Run: `uv run pytest -q tests/entry/test_run_machine_stop_exit.py tests/entry/test_run_idle_exit.py tests/test_shared_imports.py` passed all 30 tests. The code exists from round 0, so these tests are green, not red. Every module imported. `make lint` is green. Because the code exists, I also ran `make types`, and it is green.
+
+    Rejected: putting the no-tick case in as a row of criterion 1's test. It needs a different repository, a sleep that moves the clock, and no scripted ticks, so it is its own test.
+
+    `lint`: lint: green (0.1 s)
