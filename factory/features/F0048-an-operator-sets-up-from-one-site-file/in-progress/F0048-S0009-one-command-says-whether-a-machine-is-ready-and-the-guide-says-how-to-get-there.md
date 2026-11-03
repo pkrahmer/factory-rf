@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T01:35:15.436317Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-11-03T01:35:09.674496Z'
   stage: doing
   run: 7eea0fd2b95749af8d67a00f7342d307
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:35:15.436317Z'
+  stage: tests
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -394,3 +403,4 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
     `check`: check: green (test: green, 80.6 s)
 
     The factory left out changes outside the write paths: factory/features/F0048-an-operator-sets-up-from-one-site-file/in-progress/F0048-S0009-one-command-says-whether-a-machine-is-ready-and-the-guide-says-how-to-get-there.md.
+21. factory: started tests as vm.
