@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T23:37:45.230345Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -200,6 +204,11 @@ journal:
   at: '2026-11-03T23:37:39.722639Z'
   stage: review
   run: 98bd69b10d894537bc19052cfd3acb10
+- number: 36
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:37:45.230345Z'
+  stage: docs
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -621,3 +630,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
       - the floating-reference test's rewrite of the npm path and the prefix.
 
       This round renamed a test that this story added, which needs no leave. The other new test functions are additions and need none.
+36. factory: started docs as vm.
