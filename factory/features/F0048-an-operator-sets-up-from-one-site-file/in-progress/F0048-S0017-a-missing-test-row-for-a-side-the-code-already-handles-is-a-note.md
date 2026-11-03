@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268, 6598279355]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T07:57:01.931027Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-03T07:56:55.780770Z'
   stage: docs
   run: 8d40a351a3c74c5ebbd004b035eaedbc
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:57:01.931027Z'
+  stage: smoke-test
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -297,3 +306,4 @@ Expect: `1`.
     `check`: check: green (not run again: passed on tree fc98844c97fd at 2026-11-03T07:54:11Z)
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
+22. factory: started smoke-test as vm.
