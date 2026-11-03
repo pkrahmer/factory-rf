@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T08:26:35.090104Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-03T08:26:35.090104Z'
   stage: review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T08:28:21.348965Z'
+  stage: review
+  run: a98a6f57269947bfbf807000dd63ad89
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -100,15 +102,17 @@ journal:
 
 A run ends as `died` when the agent's process exits non-zero, gives no reply, or gives an error reply that is not a provider limit. The cost record then says `died` and nothing more, and the factory log has no line for it. On 2026-11-02 two documenter runs of S0008 met the subscription's usage limit. The provider-limit rule (`FACTORY_PROVIDER_LIMIT_MESSAGE`) did not match the text they saw, so they ended as `died`, and because nothing kept the text, nobody can learn what the pattern must match. The same holds for every other cause of a `died` run.
 
-This story makes a `died` run leave its error text behind: one line in the factory log that names the run and quotes what the agent runtime gave as the reason. The text is the error reply's text when there is one, otherwise the last lines of standard error, otherwise the process's exit status alone. It is cut to a short length and put on one line. The agent's own answer text is never quoted, as the provider-limit rule never searches it. Both runtimes do this. Nothing else about how a run ends, is retried or is recorded changes.
+This story makes a `died` run leave its error text behind: one line in the factory log that names the run and quotes what the agent runtime gave as the reason. The text is the error reply's text when there is one, otherwise the last lines of standard error, otherwise the process's exit status alone. It is cut to a short length and put on one line. The agent's own answer text is never quoted, as the provider-limit rule never searches it. Both runtimes give the text with the run's result, and the stage, which knows the run, its work item and its stage, writes the line. Nothing else about how a run ends, is retried or is recorded changes.
 
 ## Interface
 
 - When a run ends with `end_reason` `died`, the factory log gets one line: `run <run id> of <work item> (<stage>) died: <text>`.
-- `<text>` is, in this order of preference: the error reply's result text; the last non-empty lines of standard error; `exit <status>`. Line breaks become ` / `, and the text is cut to its first 300 characters, with `…` at the end when it was cut.
+- `<text>` is, in this order of preference: the error reply's result text; the last 3 non-empty lines of standard error; `exit <status>`. An error reply whose result text is empty or only whitespace falls to standard error. Each line is stripped of surrounding whitespace, blank lines are dropped, and the lines are joined with ` / `; the text is cut to its first 300 characters, with `…` at the end when it was cut. `<status>` is the raw exit status as the runtime reports it (negative for a signal).
 - The agent's own reply text (a reply that is not an error) is never quoted.
 - The cost record and its contract stay unchanged.
-- Both the `claude -p` runtime and the `opencode run` runtime write the line.
+- `AgentRunResult` (`factory.domain.agent_runs`) gains `died_text: str | None = None`. Both the `claude -p` runtime and the `opencode run` runtime fill it only when the run ends `died`; every other end leaves it `None`. The constructors and `AgentRunRequest` do not change.
+- `factory.adapters.agent_launch.died_text(error_text: str | None, stderr: str, exit_status: int) -> str`, called by both runtimes, holds every text rule above.
+- `factory.domain.died_runs.died_line(run: str, work_item: str, stage: str, text: str) -> str` returns the line; it does no I/O. The stage writes it through the factory log it already has when a run's result carries a `died_text`.
 
 ## Acceptance criteria
 
@@ -117,16 +121,20 @@ This story makes a `died` run leave its error text behind: one line in the facto
 3. A text of 301 characters is cut to 300 and ends with `…`; a text of exactly 300 characters is written whole. Rows of one test.
 4. A run that ends `completed`, `no_result`, `budget`, `time_limit` or `provider_limit` writes no such line. Rows: each end reason.
 5. A run whose reply is not an error but whose process exits non-zero does not quote the reply's text.
-6. `make check` stays green.
-7. docs: `docs/operator-guide.md`, where it describes a run that ends as `died` and the provider-limit rule: one paragraph saying that the factory log names the died run and quotes its error text, and that this text is what `FACTORY_PROVIDER_LIMIT_MESSAGE` must match when a provider's limit is the cause. `docs/decisions.md`, `README.md` and the project guide: none.
+6. A `died` run without a reply and with more than 3 non-empty lines on standard error quotes only the last three.
+7. With an error reply and a non-empty standard error, the reply's text is quoted; an error reply whose result text is empty or only whitespace falls to standard error. Rows of one test.
+8. An error reply with line breaks is quoted on one line joined by ` / `; each line is stripped of surrounding whitespace and blank lines are dropped. Rows of one test.
+9. The cost record of a `died` run is the same with and without its text.
+10. `make check` stays green.
+11. docs: `docs/operator-guide.md`, where it describes a run that ends as `died` and the provider-limit rule: one paragraph saying that the factory log names the died run and quotes its error text, and that this text is what `FACTORY_PROVIDER_LIMIT_MESSAGE` must match when a provider's limit is the cause. `docs/decisions.md`, `README.md` and the project guide: none.
 
 ## Smoke test
 
 ```bash
-grep -rn 'died: ' src/factory | head -1 | cut -d: -f1
+grep -rlF 'died: ' src/factory
 ```
 
-Expect: the path of the module that writes the line.
+Expect: the single line `src/factory/domain/died_runs.py`.
 
 ## Journal
 
@@ -269,3 +277,21 @@ Expect: the path of the module that writes the line.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 14. factory: started review as vm.
+15. reviewer: Review of `git diff main...HEAD -- . ':!factory'` against the work item. Groups 1 to 5 and item 6 checked.
+
+    Group 1, criteria: every criterion has a test that checks what it names. Criteria 1, 2, 4 and 5 are rows per runtime in `tests/adapters/test_runtime_died_text.py`. Criteria 3 and 6 to 8 are rows in `tests/adapters/test_died_text.py`. Criterion 9 is in `tests/application/test_costs_died_text.py`, and the stage's line is in `tests/application/test_stage_died_line.py`. Both limits are tested on both sides: 3 lines (rows `three-stderr-lines` and `last-three`) and 300 characters (rows `300-whole` and `301-cut`). The coder's `make check` was green (entry 13). The smoke test `grep -rlF 'died: ' src/factory` prints `src/factory/domain/died_runs.py`. Groups 2 to 4: layers, security and docstrings are fine apart from the findings below.
+
+    Findings:
+    1. `src/factory/adapters/agent_launch.py` `died_text` (standard error branch), called with the whole `process.stderr` from `claude_runtime.py` `_died_text` and `opencode_runtime.py` `_died_text`. The login shell (`LOGIN_SCRIPT`, `agent_launch.py:71/82/89/93`) writes `factory-login-used: …` to standard error on every run with login files. So in production, a died run with nothing else on standard error quotes `factory-login-used: subscription` instead of `exit <status>`, and in every other died run that line takes one of the 3 quoted lines. The Description says the line quotes "what the agent runtime gave as the reason", and this line is the factory's own marker, which `login_used` already reads. Fix: drop the lines that start with `LOGIN_USED_PREFIX` before taking the last 3. Add a criterion before the two closing ones: "a died run whose standard error holds only the login shell's `factory-login-used:` line gives `exit <status>`, and that line is never quoted". The tester then adds it as a row for each runtime.
+    2. `src/factory/adapters/claude_runtime.py:237` and `src/factory/adapters/opencode_runtime.py:505`: both `_died_text` functions repeat the same guard (`end_reason != "died" or process.exit_status is None`) and the same comment. `CLAUDE.md` *Architecture* says what the runtimes share lies in `factory.adapters.agent_launch`. Fix: one helper in `agent_launch` that takes the end reason, the `ProcessResult` and the error text, applies the guard and calls `died_text`. Each runtime then passes only its own error text (claude: `reply.result` when `is_error`; opencode: `_error_message(events)`).
+
+    Description corrections, as entry 9 asked of the reviewer:
+    - description corrected: "Both runtimes do this." -> "Both runtimes give the text with the run's result, and the stage, which knows the run, its work item and its stage, writes the line."
+    - description corrected: Interface "the last non-empty lines of standard error … Line breaks become ` / `" -> "the last 3 non-empty lines …", with the empty or whitespace-only reply falling to standard error, lines stripped and blank lines dropped before the ` / ` join, and `<status>` the raw exit status (entries 4 and 9).
+    - description corrected: Interface "Both the `claude -p` runtime and the `opencode run` runtime write the line." -> the runtimes fill `AgentRunResult.died_text` only when the run ends `died`; `agent_launch.died_text(error_text, stderr, exit_status)` holds the text rules; `domain.died_runs.died_line(run, work_item, stage, text)` returns the line, which the stage writes through its factory log (entry 9).
+    - description corrected: criteria 6 to 9 added from entry 4 (more than 3 lines of standard error; reply wins over standard error and an empty reply falls to it; line breaks and stripping in a reply; the cost record is unchanged); the closing criteria are now 10 and 11.
+    - description corrected: smoke test `grep -rn 'died: ' src/factory | head -1 | cut -d: -f1`, Expect "the path of the module that writes the line" -> `grep -rlF 'died: ' src/factory`, Expect the single line `src/factory/domain/died_runs.py` (entry 9).
+
+    Group 5: the coder's journal (entry 13) names the main choice (the stage writes the line whenever `died_text` is set) and what it rejected. The docs criterion (now 11) still says what the operator must know.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
