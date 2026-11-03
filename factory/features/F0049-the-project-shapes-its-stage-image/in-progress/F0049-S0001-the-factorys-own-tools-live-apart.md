@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T23:08:03.991582Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T23:08:03.984617Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:08:03.991582Z'
+  stage: intake
+---
+
 # The factory's own tools live apart under /opt/factory, with a Node of their own
 
 ## Description
@@ -37,3 +64,6 @@ uv run pytest tests/test_stage_image.py 2>&1 | tail -1
 Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
