@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T10:10:11.460227Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-03T10:10:11.460227Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-03T10:10:32.358678Z'
+  stage: intake
+  run: 83bb70814b0f44ad86b47677651f442d
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -69,9 +71,10 @@ Tests: a new text test over `vm/job-start.sh` (the step `image` holds the build 
 ## Acceptance criteria
 
 1. (B) The step `image` of `vm/job-start.sh` builds with `--layers=false` and then runs `podman $JOB_PODMAN_OPTIONS image prune -f`, in that order; a step without either, or with them in the other order, fails its row.
-2. Nothing under `src/`, `operator/`, `image/`, `template/` or `claude/` changes, and under `vm/` only `vm/job-start.sh`.
-3. `make check` stays green.
-4. docs: `docs/operator-guide.md`:
+2. (B) The prune line of the step `image` ends with `|| failed image`, as the build line does, so that its failure fails the step.
+3. (B) The prune line of the step `image` has neither `-a` nor `--all`, so that it never removes a tagged image.
+4. `make check` stays green.
+5. docs: `docs/operator-guide.md`:
    - *What the job needs*, **Size**: says that the job gets 4 vCPUs and 16 GiB of memory unless `SITE_CPU` and `SITE_MEMORY` say otherwise, and that memory is the limit to raise first, because the root file system, the tmpfs of the image layers, the checkout, the base copy and the workspace all count against it. The words "Eight vCPUs" and "at least" go. The rest of the bullet (the plain base copy, about 1.6 s per GiB for a reset) stays.
    - **The task timeout**: says that the default, 86400 seconds, is the platform's maximum of 24 hours and equals a daily schedule's interval, so a job executed every night sets `SITE_TIMEOUT` below it, such as `23h`. The sentence on two executions that must never overlap stays.
    - *The probe of the agent run*: the parenthesis after "a flag the pinned `claude` rejects" says that every real run would end `died`, each with its line `run <run id> of <work item> (<stage>) died: <text>` in the factory log, instead of "with no text that says why".
@@ -118,3 +121,9 @@ Expect: `documents ok`
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: Part A names no module (the documenter edits `docs/operator-guide.md`). Part B names `vm/job-start.sh`, step `image`, with the exact flag `--layers=false` and the exact command `podman $JOB_PODMAN_OPTIONS image prune -f`. The story is concrete enough. "Nothing else in the script changes" is a description only, as the human said in journal entry 4, item 4.
+   - Criteria: carried in from the human's answer (journal entry 4). Item 1 became criterion 2: the prune line ends with `|| failed image`, which is the failing side of the Interface's failure rule. Item 2 became criterion 3: the prune line has no `-a` and no `--all`, which backs "never removes a tagged image". Item 3 removed the old criterion 2, the diff-scope one, because it could not be tested by one test function. The closing `make check` and `docs:` criteria are now 4 and 5. Criterion 1 covers the order of build and prune, with a row for each missing part and for the reversed order. The docs criterion lists each passage and its wording. The smoke test checks the guide's text with `grep`.
+   - Smoke test: the commands are runnable. None runs pytest, so the `-q` rule does not apply. Each `Expect:` line is checkable: `0`, then `0`; at least `1`; `1`, then `1`; `documents ok`.
+   - Architecture: Part B stays in the VM's start script, and Part A is documentation only. Nothing touches the layers in `src/factory`.
+   - Scope: the story is listed in the feature's scope and stories (S0018, decision 24). It changes no default, and it touches nothing in the feature's Out of scope.
