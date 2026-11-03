@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 515
 comments_read: [6599499091]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T09:12:14.615738Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-11-03T09:12:08.560016Z'
   stage: docs
   run: 310560f80e1d4e7ab585cf9d18f29602
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-03T09:12:14.615738Z'
+  stage: smoke-test
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -465,3 +474,4 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
     `check`: check: green
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
+23. factory: started smoke-test as vm.
