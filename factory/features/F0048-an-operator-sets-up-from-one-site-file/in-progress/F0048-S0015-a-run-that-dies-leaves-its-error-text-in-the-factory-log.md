@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T08:20:11.931595Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-11-03T08:20:06.066166Z'
   stage: tests
   run: 106cd7ef1ecd4490a265498c97053ac2
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:20:11.931595Z'
+  stage: doing
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -222,3 +231,4 @@ Expect: the path of the module that writes the line.
     `test_runtime_died_text.py` and `test_costs_died_text.py` were collected; they will fail on the missing field. `make lint` is green. I skipped the type check, as the stage allows.
 
     `lint`: lint: green (0.1 s)
+12. factory: started doing as vm.
