@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 513
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T07:42:34.559287Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-03T07:42:34.559287Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-03T07:42:54.722578Z'
+  stage: intake
+  run: b209edc61ff5441194c85b7b35149e43
+  blocked: question
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -59,3 +62,7 @@ Expect: `1`.
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Criterion 1 says the text test pins the new rule "word for word", but neither the Interface nor the criteria give the words. The tester writes the pin before the coder writes `claude/agents/reviewer.md`, so it cannot know the wording. The only fixed fragment is `handles that side` (the smoke test). Please give the exact replacement sentence(s) for the one in `tests/test_claude_agent_texts_review_leave.py` lines 20-22 ("A point on an acceptance criterion (an untested side of a stated limit among them), ... is still a finding"). The sentence should cover: a side the code handles is a note with its location, the side and the missing row; a side the code does not handle, or handles otherwise, is a finding; and it holds from round 0. I would choose a sentence you write, which the coder copies and the tester pins.
+   2. The existing paragraph limits notes to "round 1 on", while the Interface says the new rule "holds from round 0". Please say whether the test pins the round-0 wording as a separate clause. I would choose yes, inside the sentence from question 1.
+   3. Criterion 1 also says the old sentence "no longer counts" a handled side as a finding. That is checkable only through the new wording from question 1, so no separate criterion is needed once you give it.
+   Everything else is fine: the Interface names concrete files, the smoke test runs and its `Expect: 1` can be checked, and the story fits the feature's scope and its leave for the test change. It also fits the architecture, because it touches no code under `src/`.
