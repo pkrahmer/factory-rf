@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229, 6600934999]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T10:21:47.428670Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-03T10:21:47.428670Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T10:22:19.013194Z'
+  stage: review
+  run: f83ef321f2a34a99bfb6651f260655cb
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -281,3 +283,14 @@ Expect: `documents ok`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 18. factory: started review as vm.
+19. reviewer: no findings
+
+    What I checked:
+    - Group 1, acceptance criteria. Criterion 1 is `tests/test_vm_job_start_image.py::test_the_image_step_builds_without_layers_and_then_prunes`. Its row `the-script` holds, and the rows `without-no-layers`, `without-prune` and `prune-before-build` each fail the rule, as the criterion asks. Criterion 2 is `test_a_failed_prune_fails_the_image_step`: there is at least one prune line, and every prune line ends with `|| failed image`. Criterion 3 is `test_the_prune_never_removes_a_tagged_image`, with one row for `-a` and one for `--all`. The Interface's rules are its failure rule (criterion 2) and its never-tagged rule (criterion 3). The human said in entry 4 that "Nothing else in the script changes" is a description only, so it needs no test. Entry 17 records that the factory's `make check` was green after the coder and that `duplicates` found 0 new.
+    - Group 2, architecture: the diff touches only `vm/job-start.sh` and the tests. No layer is involved.
+    - Group 3, security: the prune line uses no string-built command, and no suppression marker was added. The new `# shellcheck disable=SC2086` repeats the build line's own disable for the same reason, and that reason is stated beside it.
+    - Group 4, quality: `vm/job-start.sh:155-157` holds the build with `--layers=false` and then `podman $JOB_PODMAN_OPTIONS image prune -f || failed image`, without `-a`. The test module reuses `JOB_START` and `lines_with` from `tests/vm_support.py`. It also reuses `_uncommented` from `tests/dockerfile_support.py`, as `tests/test_vm_job_start.py` already does. There is no existing helper that cuts one step out of the job start script, because `step_texts` covers `setup.sh` only, so the new `_image_step` copies nothing.
+    - Group 5, work item hygiene: the journal explains the main choice and what was rejected (the prune runs right after the build, not at the end of the step). It also records the human's leave for the test change. The Description matches what was built. The docs criterion lists every guide passage the documenter must change, including what part B adds.
+
+    Earlier tests:
+    - tests/test_vm_job_start.py: changed under the human's leave in journal entry 11. The only change is `"--layers=false",` added after `"build",` in the expected argv of `test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options`, which keeps its name and its rows `given` and `default`.
