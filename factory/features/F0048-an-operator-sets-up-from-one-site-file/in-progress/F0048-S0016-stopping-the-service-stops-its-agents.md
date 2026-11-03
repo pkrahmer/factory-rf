@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T07:28:09.092063Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-03T07:28:09.092063Z'
   stage: review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T07:29:05.201622Z'
+  stage: review
+  run: 6de68300f1764914af645a2b22a462f1
 ---
 
 # Stopping the service stops its agents
@@ -426,3 +428,43 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 25. factory: started review as vm.
+26. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. I read the code itself and did not rely on the journal's account of it.
+
+    no findings
+
+    What I checked:
+    - **Acceptance criteria.**
+      - Criterion 1: `tests/adapters/test_podman_runs_instance_label.py` has three rows: `launch` with `vm`, `launch` with `night`, and `run` with `vm`. Each checks that `factory.instance=<instance>` follows `--label` and that `--label` comes after `--rm`.
+      - Criterion 2: `tests/test_vm_service_stop.py` checks the exact `ExecStopPost` line once, after `ExecStart`, and that every other line is unchanged.
+      - Criterion 3: `tests/entry/test_wiring_instance_label.py` builds settings with two instance names, `factory-1` and `night`, and checks the label on the adapter that `build_boundaries` builds.
+      - The Interface's rules on unlabelled containers, other instances' containers and a failing stop are covered by criterion 2's exact line (`label=…=%i` filter and `-` prefix), as the human ruled in entry 4.
+      - The journal's last `make check` (entry 24) was green.
+    - **Architecture.** The label is added only in `PodmanRuns.launch` (adapters), the one place every container start passes through. The instance comes from `factory.entry.wiring`. No layer is crossed.
+      - `ExecStopPost` runs as `User=factory`, because no `+` prefix overrides it. That matches the rootless containers it must stop.
+      - The `job` profile's global options are not in the stop line. That is correct: the operator guide says that profile runs in a Cloud Run job, not under `factory@.service`.
+    - **Security.** The label is one argv word. No shell, no string-built command, no new silencing marker in the diff.
+    - **Quality.**
+      - The docstring of `PodmanRuns.__init__` names the label.
+      - The comment at `src/factory/adapters/podman_runs.py:100` says why the label is there.
+      - `duplicates: 0 new`.
+    - **Work item hygiene.**
+      - The Description and Interface match what was built.
+      - The smoke test already carries `-F`, from entry 14 and round 0.
+      - The docs criterion still says what the documenter must write.
+
+    Earlier tests:
+    - `tests/adapters/test_podman_runs.py`: human's leave, entry 9.
+    - `tests/adapters/test_podman_runs_fence.py`: human's leave, entry 9.
+    - `tests/adapters/test_podman_runs_job_profile.py`: human's leave, entry 9. Also the standing leave to move a shared test helper: `_launch_words` moved to `tests/podman_support.py` as `launch_words` with its body unchanged, and every test keeps its name.
+    - `tests/adapters/test_podman_runs_results.py`: human's leave, entry 9.
+    - `tests/adapters/test_podman_timeout_status.py`: human's leave, entry 9.
+    - `tests/conftest.py`: human's leave, entry 9. It imports the shared `INSTANCE` as `PODMAN_INSTANCE` to avoid F811.
+    - `tests/container_extra_support.py`: human's leave, entry 9.
+    - `tests/podman_support.py`: human's leave, entry 9, for `INSTANCE`. Also the standing leave to move a shared test helper, for `launch_words`.
+    - `tests/test_vm_local_environment.py`: human's leave, entry 9.
+    - `tests/test_vm_service.py`: human's leave, entry 9.
+
+    Notes:
+    - `tests/entry/test_wiring_instance_label.py:22`: the `InstanceSettings(...)` block copies the one in `tests/entry/test_wiring_container_profile.py:31`. One builder in `tests/wiring_support.py` could serve both.
+    - `tests/test_vm_service_stop.py:6`: `EARLIER_LINES` is a second copy of the unit's text, beside `UNIT` in `tests/test_vm_local_environment.py`.
+    - Entry 22 names `tests/test_vm_service.py` as criterion 2's test. The test is `tests/test_vm_service_stop.py::test_the_unit_stops_the_instances_containers_after_its_start_line`.
