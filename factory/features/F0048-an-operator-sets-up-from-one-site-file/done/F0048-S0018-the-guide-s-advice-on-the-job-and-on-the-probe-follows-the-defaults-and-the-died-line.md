@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -136,6 +136,11 @@ journal:
   at: '2026-11-03T10:23:30.992751Z'
   stage: smoke-test
   run: 84d4ed1a153148d18b654d6a127d5fa3
+- number: 24
+  speaker: factory
+  kind: done
+  at: '2026-11-03T10:31:32.645510Z'
+  stage: approval
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -377,3 +382,4 @@ Expect: `documents ok`
     Note, not a finding: the guide's manual rebuild command still runs `podman build` without `--layers=false`. The criterion asks only for the prune there, so the guide matches the story.
 
     Open: nothing.
+24. factory: done (pull request merged); cost: 10 runs, 6.8 min, 56 turns, 241463 tokens in (897823 more from cache), 17064 out, $2.07
