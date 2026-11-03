@@ -20,7 +20,7 @@ project_commands:
 roles:
   intake: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
   tester: {write_paths: ["tests/*"], time_limit: 40, lease_duration: 60}
-  coder: {write_paths: ["src/*", "template/*", "claude/*", "vm/*", "operator/*"], time_limit: 40, lease_duration: 60}
+  coder: {write_paths: ["src/*", "template/*", "claude/*", "vm/*", "operator/bin/*", "operator/claude/*", "operator/job/*", "operator/lib/*", "operator/opencode/*", "operator/skill/*", "operator/site.env.example"], time_limit: 40, lease_duration: 60}
   reviewer: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
   documenter: {write_paths: ["README.md", "docs/*", "operator/README.md"], time_limit: 40, lease_duration: 60}
   smoke-tester: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
