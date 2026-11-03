@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T23:20:53.829779Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-03T23:20:53.829779Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-03T23:24:23.159147Z'
+  stage: doing
+  run: 0578edd142c64b90978486eef9f81d01
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -296,3 +298,23 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.1 s)
 17. factory: started doing as vm.
+18. coder: Round 1, after the tester's added rows (entry 16): no code change. `vm/Dockerfile` stays as round 0 left it (entry 10). The rows the tester added for the reviewer's three findings (entry 12) test behaviour that `vm/Dockerfile` already has. Those rows are the bare-node and no-command wrapper rows, the npm install test's bare-npm and other-prefix rows, and the literal-checksum row.
+
+    I ran `make check` on the committed tree with the new tests, and it ended with `check: green`.
+
+    Built: nothing new this round. The paths are the same as in round 0: `vm/Dockerfile`.
+
+    Main choice: change no code and send the work item to review. The alternative I rejected was touching `vm/Dockerfile` to make the new rows "count": they pass against the file as it is, and any change would go beyond the description.
+
+    Refactor: there is no diff of mine this round, so there was nothing to change.
+
+    Noticed, not touched (still open from entry 10):
+    - `NODE_SHA256` is first checked against the real archive when the human builds the image after the merge.
+    - A future runtime release whose bin is not a Node script would break its wrapper. The human's `--version` check after the build would show it.
+
+    The journal did not change the Description.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
