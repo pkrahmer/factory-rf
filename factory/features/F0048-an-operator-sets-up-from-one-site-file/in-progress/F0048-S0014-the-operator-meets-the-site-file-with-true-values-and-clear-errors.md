@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 515
 comments_read: [6599499091]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T09:04:22.013230Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-03T09:04:16.182468Z'
   stage: tests
   run: fc33ad334ae5408d97989ff6d9b6090d
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-03T09:04:22.013230Z'
+  stage: doing
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -357,3 +366,4 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
     `make lint` is green. The one run of the touched modules (`uv run pytest -q tests/test_operator_site_check.py tests/test_operator_site_example.py tests/test_operator_python_isolation.py tests/test_operator_skill_scripts.py`) passed, including both new rows: the code criterion 14 tests is already in `operator/bin/site`. The test run could import every module. I did not run the type check, as the stage says.
 
     `lint`: lint: green (0.1 s)
+17. factory: started doing as vm.
