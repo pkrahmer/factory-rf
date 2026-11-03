@@ -73,9 +73,9 @@ def _outcome(outcome: Outcome) -> bool:
 
 @pytest.mark.parametrize(
     ("idle_ticks", "seconds"),
-    [(0, 15), (1, 30), (2, 60), (3, 120), (4, 120), (10, 120)],
+    [(0, 0), (1, 30), (2, 60), (3, 120), (4, 120), (10, 120)],
 )
-def test_pause_doubles_from_fifteen_seconds_up_to_two_minutes(
+def test_pause_is_none_after_activity_and_doubles_from_thirty_seconds_up_to_two_minutes(
     idle_ticks: int, seconds: int
 ) -> None:
     assert pause_after(idle_ticks) == timedelta(seconds=seconds)
@@ -89,18 +89,9 @@ def test_negative_idle_count_is_refused() -> None:
 def test_each_iteration_prepares_then_ticks_and_the_first_comes_before_any_sleep() -> None:
     loop = Loop(prepares=[], ticks=[])
     loop.run(lambda loop: loop.count("tick") >= 3)
-    assert loop.calls == [
-        "prepare",
-        "tick",
-        "sleep",
-        "prepare",
-        "tick",
-        "sleep",
-        "prepare",
-        "tick",
-    ]
+    assert loop.calls == ["prepare", "tick", "prepare", "tick", "prepare", "tick"]
     assert loop.count("tick") == 3
-    assert loop.count("sleep") == 2
+    assert loop.count("sleep") == 0
 
 
 def test_stop_from_the_start_calls_nothing() -> None:
@@ -112,8 +103,8 @@ def test_stop_from_the_start_calls_nothing() -> None:
 @pytest.mark.parametrize(
     ("ticks", "sleeps"),
     [
-        ([True, False, False, False, False, False], [15.0, 30.0, 60.0, 120.0, 120.0]),
-        ([False, False, True, False], [30.0, 60.0, 15.0]),
+        ([True, False, False, False, False, False], [30.0, 60.0, 120.0, 120.0]),
+        ([False, False, True, False], [30.0, 60.0]),
     ],
 )
 def test_sleeps_follow_the_idle_count_since_the_last_activity(
@@ -128,7 +119,7 @@ def test_a_failed_preparation_skips_the_tick_and_counts_as_idle() -> None:
     loop = Loop(prepares=[False, True, True], ticks=[])
     loop.run(lambda loop: loop.count("prepare") >= 3)
     assert loop.count("tick") == 2
-    assert loop.sleeps == [30.0, 15.0]
+    assert loop.sleeps == [30.0]
 
 
 def test_an_exception_from_the_tick_is_logged_and_counts_as_idle() -> None:
@@ -145,6 +136,54 @@ def test_an_exception_from_the_preparation_is_logged_skips_the_tick_and_counts_a
     assert loop.log.lines == ["iteration failed: ValueError: boom"]
     assert loop.calls == ["prepare", "sleep", "prepare", "tick"]
     assert loop.sleeps == [30.0]
+
+
+def test_activity_iterations_do_not_sleep_and_an_idle_one_sleeps_thirty_seconds() -> None:
+    loop = Loop(prepares=[], ticks=[True, True, True, False])
+    loop.run(lambda loop: loop.count("sleep") >= 1)
+    assert loop.calls == ["prepare", "tick"] * 4 + ["sleep"]
+    assert loop.sleeps == [30.0]
+
+
+@pytest.mark.parametrize("raising_side", ["prepare", "tick"])
+def test_failed_iterations_each_sleep_growing_and_are_each_logged(raising_side: str) -> None:
+    errors: list[Outcome] = [ValueError("first"), OSError("second"), RuntimeError("third")]
+    if raising_side == "tick":
+        loop = Loop(prepares=[], ticks=errors)
+    else:
+        loop = Loop(prepares=errors, ticks=[])
+    loop.run(lambda loop: loop.count("sleep") >= 3)
+    assert loop.sleeps == [30.0, 60.0, 120.0]
+    assert loop.log.lines == [
+        "iteration failed: ValueError: first",
+        "iteration failed: OSError: second",
+        "iteration failed: RuntimeError: third",
+    ]
+
+
+def test_a_stop_requested_during_an_activity_iteration_ends_the_run_before_the_next_tick() -> None:
+    loop = Loop(prepares=[], ticks=[])
+    stop_requested = False
+
+    def tick() -> bool:
+        nonlocal stop_requested
+        found = loop.tick()
+        stop_requested = loop.count("tick") >= 2
+        return found
+
+    def should_stop() -> bool:
+        loop.calls.append("should_stop")
+        return stop_requested
+
+    Scheduler(
+        prepare=loop.prepare, tick=tick, sleep=loop.sleep, should_stop=should_stop, log=loop.log
+    ).run()
+    assert loop.count("tick") == 2
+    assert loop.count("sleep") == 0
+    assert loop.calls[-1] == "should_stop"
+    for index, call in enumerate(loop.calls):
+        if call == "prepare":
+            assert loop.calls[index - 1] == "should_stop"
 
 
 def test_an_injected_kill_from_the_tick_leaves_the_loop_unlogged() -> None:
@@ -171,8 +210,8 @@ _LOOP_ERRORS = [
 @pytest.mark.parametrize(
     ("raising_side", "calls"),
     [
-        ("tick", ["prepare", "tick", "sleep", "prepare", "tick", "sleep"]),
-        ("prepare", ["prepare", "sleep", "prepare", "tick", "sleep"]),
+        ("tick", ["prepare", "tick", "sleep", "prepare", "tick"]),
+        ("prepare", ["prepare", "sleep", "prepare", "tick"]),
     ],
 )
 @pytest.mark.parametrize(("error", "line"), _LOOP_ERRORS)
@@ -184,10 +223,10 @@ def test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle(
         loop = Loop(prepares=[], ticks=first_fails)
     else:
         loop = Loop(prepares=first_fails, ticks=[True])
-    loop.run(lambda loop: loop.count("sleep") >= 2)
+    loop.run(lambda loop: loop.count("prepare") >= 2)
     assert loop.log.lines == [line]
     assert loop.calls == calls
-    assert loop.sleeps == [30.0, 15.0]
+    assert loop.sleeps == [30.0]
 
 
 def _settings(remote: Path, checkout: Path) -> InstanceSettings:

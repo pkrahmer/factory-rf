@@ -16,18 +16,23 @@ from factory.domain.stops import RepositoryStop, RepositoryStopReason
 _UNAVAILABLE: RepositoryStopReason = "repository_unavailable"
 _ORIGIN_MAIN = f"{REMOTE}/{MAIN_BRANCH}"
 
-FIRST_PAUSE = timedelta(seconds=15)
+FIRST_IDLE_PAUSE = timedelta(seconds=30)
 MAX_PAUSE = timedelta(seconds=120)
 
 
 def pause_after(idle_ticks: int) -> timedelta:
-    """The pause after an iteration that left `idle_ticks` idle ticks since the last activity."""
+    """The pause after an iteration that left `idle_ticks` idle ticks since the last activity.
+
+    Zero after activity: the next tick has work, so there is nothing to wait for.
+    """
     if idle_ticks < 0:
         raise ValueError(f"idle_ticks must not be negative, got {idle_ticks}")
-    # Doubling step by step stops at the cap; `FIRST_PAUSE * 2**idle_ticks` overflows
+    if idle_ticks == 0:
+        return timedelta(0)
+    # Doubling step by step stops at the cap; `FIRST_IDLE_PAUSE * 2**(idle_ticks - 1)` overflows
     # timedelta after a long idle stretch.
-    pause = FIRST_PAUSE
-    for _ in range(idle_ticks):
+    pause = FIRST_IDLE_PAUSE
+    for _ in range(idle_ticks - 1):
         if pause >= MAX_PAUSE:
             break
         pause *= 2
@@ -35,7 +40,7 @@ def pause_after(idle_ticks: int) -> timedelta:
 
 
 class Scheduler:
-    """Runs one instance's iterations, prepare then tick, with a pause that follows activity."""
+    """Runs one instance's iterations, prepare then tick, pausing only after idle ones."""
 
     def __init__(
         self,
@@ -62,7 +67,8 @@ class Scheduler:
                 idle_ticks += 1
             if self._should_stop():
                 return
-            self._sleep(pause_after(idle_ticks).total_seconds())
+            if idle_ticks > 0:
+                self._sleep(pause_after(idle_ticks).total_seconds())
 
     def _iterate(self) -> bool:
         try:

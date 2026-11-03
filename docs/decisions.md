@@ -1329,3 +1329,12 @@ Date: 2026-11-02 (F0048-S0011).
 - Decision: the reviewer goes through all of the checklist's groups 1 to 5 in every review, also when an earlier group fails, and reports every finding of every group in one entry. Item 6 stays part of every review. The sentence before the checklist in `claude/agents/reviewer.md` says so; `tests/test_claude_agent_texts_review_groups.py` pins it.
 - Why: the reviewer used to stop at the first failing group, so a gap in group 1 showed the later groups only in a later round, and each round costs a coder run, a tester run and a review. In F0048, S0001, S0003 and S0005 reached the round cap this way (the night log of 2026-11-02).
 - This replaces "stops at the first failing group" in the entries *The reviewer names every earlier test the diff changes* (2026-10-18) and its predecessors; their wording "whichever group failed" is history. What counts as a finding or a note, the criteria the reviewer may add and the decision (`docs` with no finding, `doing` with any) are unchanged.
+
+## No pause after a tick that found activity
+
+Date: 2026-11-03 (F0048-S0013; decision 17 of the feature).
+
+- Decision: `pause_after(0)` is zero and `Scheduler.run` does not call `sleep` after an iteration whose tick found activity; it checks `should_stop` and starts the next iteration. The idle pauses are 30, 60, then 120 seconds from the first idle tick (`FIRST_IDLE_PAUSE`, which replaces `FIRST_PAUSE`). An iteration that fails still counts as idle and sleeps.
+- Why: a story is handed over between its stages about twenty times, and each hand-over cost 15 seconds, about five minutes of a story in pauses while the work was ready. The pause exists to keep an instance from asking the code host again and again while nothing changes; after activity the next tick has work.
+- This supersedes the 15-second pause after activity and `FIRST_PAUSE` in the entries of 2026-10-16 (F0010-S0002, F0010-S0004); their wording is history.
+- Rejected: calling `sleep(0)` (the Interface counts `sleep` calls); keeping 15 seconds as the base and special-casing zero.
