@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948, 6618330636]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T23:47:07.404671Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -287,6 +283,12 @@ journal:
   kind: started
   at: '2026-11-03T23:47:07.404671Z'
   stage: smoke-test
+- number: 51
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T23:47:40.277327Z'
+  stage: smoke-test
+  run: eee21d20952b42cfa1c2de34e2e88ecf
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -890,3 +892,44 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
 50. factory: started smoke-test as vm.
+51. smoke-tester: Ran the five smoke-test commands from the repository root, in order and as written. Every one met its `Expect:` line. Nothing was fixed.
+
+    1. `grep -cE '^ARG NODE_VERSION=22\.[0-9]+\.[0-9]+$' vm/Dockerfile`
+    ```
+    1
+    ```
+    Met (expected `1`).
+
+    2. `grep -cE '^ARG NODE_SHA256=[0-9a-f]{64}$' vm/Dockerfile`
+    ```
+    1
+    ```
+    Met (expected `1`).
+
+    3. `grep -c 'sha256sum -c' vm/Dockerfile`
+    ```
+    1
+    ```
+    Met (expected `1`).
+
+    4. `grep -cE 'install .*\b(nodejs|npm)\b' vm/Dockerfile`
+    ```
+    0
+    ```
+    Met (expected `0`; grep exits 1 when the count is zero, which is what the expectation asks for).
+
+    5. `uv run pytest tests/test_stage_image.py 2>&1 | tail -1`
+    ```
+    106 passed in 0.10s
+    ```
+    Met (the line ends in `passed` and has no `failed`).
+
+    Check against the acceptance criteria: I read `vm/Dockerfile` and the docs diff, and the smoke test contradicts no criterion.
+    - Criteria 1 and 2: the Dockerfile pins `NODE_VERSION=22.23.4` and a 64-digit lowercase `NODE_SHA256`. The archive is downloaded with `curl -o`, checked with `sha256sum -c -` before `tar -xJf … -C /opt/factory/node`, and no download is piped into a shell.
+    - Criterion 3: the `apt-get install` line names exactly `git make curl ca-certificates procps xz-utils`.
+    - Criterion 4: both runtimes are installed by `/opt/factory/node/bin/npm install --global --prefix /opt/factory` at `${CLAUDE_CODE_VERSION}` and `${OPENCODE_VERSION}`. The wrappers `/usr/local/bin/claude` and `/usr/local/bin/opencode` are `exec /opt/factory/bin/<runtime> "$@"` and name no node binary.
+    - Criterion 5: nothing creates or links `node` or `npm` in `/usr/local/bin`, and no `ENV PATH` line names `/opt/factory`. The `export PATH=/opt/factory/node/bin:…` sits inside the two npm `RUN` steps, where it lasts only for that step. It is not an `ENV PATH` line, so the criterion's refusal does not apply.
+    - Criterion 6: the factory runs `make check` as the gate; I did not run it, because it is not one of the smoke-test commands. The image build and the `--version` and `command -v node` checks are the human's, on the VM after the merge.
+    - Criterion 7: in *The stage image*, `docs/operator-guide.md` now lists six packages and adds the paragraph on the Node under `/opt/factory`: the runtimes exec'd directly, no Node for projects, and how to change the pin from `SHASUMS256.txt`. `docs/decisions.md` has the entry "The factory's tools live apart, under `/opt/factory`, with their own Node", and it says it supersedes the seven-package entry for `nodejs` and `npm`. `README.md` and the project guide are unchanged.
+
+    No findings. Open: none.
