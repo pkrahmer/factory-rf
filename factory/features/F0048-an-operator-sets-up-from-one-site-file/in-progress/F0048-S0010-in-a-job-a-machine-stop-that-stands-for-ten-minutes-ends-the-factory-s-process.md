@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T02:11:20.787649Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-11-03T02:11:14.822083Z'
   stage: doing
   run: 2726d4c8fb61454eb732465fc41bb2b2
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-03T02:11:20.787649Z'
+  stage: review
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -285,3 +294,4 @@ Expect: one line that says the tests passed and names no failure.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+19. factory: started review as vm.
