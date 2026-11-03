@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+import factory.entry.run as run_module
 from acceptance_walk import AcceptanceWalk
 from adapters.container_runtime_support import make_workspace
 from container_support import Dataset, container_dataset, fake_dataset
@@ -33,6 +34,7 @@ from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
+from factory.application.hosting import HostingService
 from factory.domain.disk import DiskRecord
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import WorkItemId
@@ -41,6 +43,7 @@ from factory.domain.known_results import ResultRecord
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.settings import InstanceSettings
 from factory.domain.stops import StopRecord
+from factory.entry.wiring import machine_log
 from git_support import (
     CHECKOUT,
     PIPELINE_YAML,
@@ -493,3 +496,39 @@ def environ(secret_file: Path, login_file: Path) -> dict[str, str]:
         "FACTORY_TOKEN_CLIENT_SECRET_FILE": str(secret_file),
         "FACTORY_API_LOGIN_FILE": str(login_file),
     }
+
+
+@pytest.fixture
+def instance_settings(tmp_path: Path, remote: Path, agent_home: Path) -> InstanceSettings:
+    """Return settings on `remote`, the idle shutdown at one minute, everything in `tmp_path`."""
+    token = tmp_path / "hosting-token"
+    token.write_text("example-value\n", encoding="utf-8")
+    state = tmp_path / "instance-state"
+    state.mkdir()
+    return with_dataset(
+        InstanceSettings(
+            repository_url=str(remote),
+            instance=INSTANCE,
+            checkout=tmp_path / "instance-checkout",
+            state_directory=state,
+            agent_home=agent_home,
+            claude_executable=str(tmp_path / "no-claude"),
+            token_file=token,
+            idle_shutdown_minutes=1,
+        ),
+        tmp_path,
+    )
+
+
+@pytest.fixture
+def on_the_manual_clock(clock: ManualClock, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Give the boundaries `run_instance` builds the test's clock and a log on it."""
+    original = run_module.build_boundaries
+
+    def built(
+        settings: InstanceSettings, token: str, *, hosting: HostingService | None = None
+    ) -> Boundaries:
+        boundaries = original(settings, token, hosting=hosting)
+        return replace(boundaries, clock=clock, log=machine_log(settings.state_directory, clock))
+
+    monkeypatch.setattr(run_module, "build_boundaries", built)

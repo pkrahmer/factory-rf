@@ -15,7 +15,7 @@ from factory.application.machine import Clock
 from factory.application.scheduler import CheckoutPreparer, RepositoryWaiter, Scheduler
 from factory.application.stops import StopService
 from factory.application.tick import Tick, TickOutcome
-from factory.domain.errors import SettingsInvalid
+from factory.domain.errors import MachineStopStood, SettingsInvalid
 from factory.domain.settings import STATE_DIRECTORY, InstanceSettings, named_state_directory
 from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.wiring import (
@@ -25,6 +25,7 @@ from factory.entry.wiring import (
     health_store,
     idle_shutdown_of,
     machine_log,
+    machine_stop_exit_of,
     read_environment_settings,
     read_hosting_token,
     system_clock,
@@ -43,6 +44,7 @@ __all__ = [
 ]
 
 _OK = 0
+_MACHINE_STOP_STOOD = 1
 _SETTINGS_INVALID = 2
 
 
@@ -68,6 +70,26 @@ def activity_tick(tick: Tick, idle: IdleShutdown | None = None) -> Callable[[], 
         return activity(outcome)
 
     return run
+
+
+def _observed_iteration(
+    prepare: Callable[[], bool], tick: Callable[[], bool], observe: Callable[[], None]
+) -> tuple[Callable[[], bool], Callable[[], bool]]:
+    # An iteration ends after its tick, or after a `prepare` that left no tick to run.
+
+    def observed_prepare() -> bool:
+        ready = prepare()
+        if not ready:
+            observe()
+        return ready
+
+    def observed_tick() -> bool:
+        try:
+            return tick()
+        finally:
+            observe()
+
+    return observed_prepare, observed_tick
 
 
 def install_stop_handlers(stop: threading.Event) -> None:
@@ -108,10 +130,11 @@ def run_instance(
 ) -> None:
     """Run the instance of `settings` until `should_stop`; `hosting` replaces PyGithub.
 
-    The idle shutdown's `exit` ends the loop through `request_stop`.
+    The idle shutdown's `exit` ends the loop through `request_stop`, and so does a machine
+    stop that stands too long under that setting.
 
-    Raises `SettingsInvalid` when the token file cannot be read, and `OSError` when the
-    health file cannot be written.
+    Raises `SettingsInvalid` when the token file cannot be read, `OSError` when the
+    health file cannot be written, and `MachineStopStood` after a machine stop ended the loop.
     """
     _write_an_empty_health_status_when_there_is_none(settings.state_directory)
     token = read_hosting_token(settings.token_file)
@@ -121,13 +144,22 @@ def run_instance(
     tick = build_tick(boundaries, settings)
     preparer = CheckoutPreparer(boundaries.git, settings)
     waiter = RepositoryWaiter(preparer, boundaries, StopService(boundaries))
+    prepare = waiter.prepare
+    scheduled_tick = activity_tick(tick, idle_shutdown_of(settings, boundaries, request_stop))
+    machine_stop_exit = machine_stop_exit_of(settings, boundaries, request_stop)
+    if machine_stop_exit is not None:
+        prepare, scheduled_tick = _observed_iteration(
+            prepare, scheduled_tick, machine_stop_exit.observe
+        )
     Scheduler(
-        prepare=waiter.prepare,
-        tick=activity_tick(tick, idle_shutdown_of(settings, boundaries, request_stop)),
+        prepare=prepare,
+        tick=scheduled_tick,
         sleep=sleep,
         should_stop=should_stop,
         log=boundaries.log,
     ).run()
+    if machine_stop_exit is not None and machine_stop_exit.ended:
+        raise MachineStopStood
 
 
 def _write_an_empty_health_status_when_there_is_none(state_directory: Path) -> None:
@@ -146,6 +178,8 @@ def main(
 ) -> int:
     """Read the settings, `environ` or the process's, and run the instance; 2 when invalid.
 
+    1 when a machine stop that stood too long in a job ended the instance.
+
     The stop of invalid settings goes to the state directory the environment names, else to
     `state_directory`.
     """
@@ -161,6 +195,9 @@ def main(
             system_clock() if clock is None else clock,
         )
         return _SETTINGS_INVALID
+    except MachineStopStood:
+        # The stop's line is already the log's last: a failed execution is the job's signal.
+        return _MACHINE_STOP_STOOD
     return _OK
 
 

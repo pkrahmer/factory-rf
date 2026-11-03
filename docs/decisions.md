@@ -1338,3 +1338,12 @@ Date: 2026-11-03 (F0048-S0013; decision 17 of the feature).
 - Why: a story is handed over between its stages about twenty times, and each hand-over cost 15 seconds, about five minutes of a story in pauses while the work was ready. The pause exists to keep an instance from asking the code host again and again while nothing changes; after activity the next tick has work.
 - This supersedes the 15-second pause after activity and `FIRST_PAUSE` in the entries of 2026-10-16 (F0010-S0002, F0010-S0004); their wording is history.
 - Rejected: calling `sleep(0)` (the Interface counts `sleep` calls); keeping 15 seconds as the base and special-casing zero.
+
+## In a job a machine stop ends the process
+
+Date: 2026-11-03 (F0048-S0010; decision 13 of the feature).
+
+- Decision: when the idle shutdown is on with the action `exit`, a machine stop that has stood for ten minutes ends the loop the way the idle exit does, and `factory-run` returns 1, not 0. The factory first writes `machine stop: standing for 10 minutes in a job, ending the factory's process: <reason>: <detail>`, the last line of the log. The ten minutes are fixed, not a setting. They count from the earliest time of an unbroken stretch of the stop, because the preflight raises it again on every tick with a new time; a lifted stop starts nothing, and a new one counts from its own time. `MachineStopExit` (`factory.application.machine_stop_exit`) reads the health status and the clock, is checked after each tick and each iteration without one, and `main` maps the domain error `MachineStopStood` to 1.
+- Why: on 2026-11-02 a run that stopped at the preflight (`tool:uv: uv is not on the PATH`) held its eight CPUs for over forty minutes and the platform showed it as running. A job has no machine to fix, so a stop never ends by itself; status 1 makes the execution fail, which is the signal an operator and the platform both read.
+- A VM, and a stop of scope `repository`, keep today's behaviour: the operator fixes the machine, and a push to `main` lifts a repository stop.
+- Rejected: a setting for the minutes (nothing to tune); counting from the stop's latest `at` (a stop raised every tick would never stand); changing `HealthStatus.with_stop` to keep the first time (it is the health file's record of the last raise); a hook in `Scheduler` (the entry composes the observer around the existing callbacks).

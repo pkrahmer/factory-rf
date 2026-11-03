@@ -233,3 +233,7 @@ class SettingsInvalid(FactoryError):
         super().__init__(f"{variable}: {fault}")
         self.variable = variable
         self.fault = fault
+
+
+class MachineStopStood(FactoryError):
+    """In a job, a machine stop stood long enough to end the factory's process."""
