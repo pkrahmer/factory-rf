@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T13:17:30.797353Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T13:17:30.791116Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T13:17:30.797353Z'
+  stage: intake
+---
+
 # The documenter writes only the story's reasons into the decision log
 
 <!-- proposed by feature acceptance of 2026-11-03; refine before starting -->
@@ -43,3 +70,6 @@ uv run pytest tests/test_claude_agent_texts_decision_log.py 2>&1 | tail -1
 Expect: a line that ends `passed` with no `failed` in it, for example `8 passed in 0.31s`
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
