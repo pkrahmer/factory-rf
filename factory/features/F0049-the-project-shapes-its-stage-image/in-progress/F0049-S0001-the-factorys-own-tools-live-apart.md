@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948, 6618330636]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T23:41:09.955088Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -233,6 +237,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T23:41:06.619733Z'
+  stage: smoke-test
+- number: 42
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:41:09.955088Z'
   stage: smoke-test
 ---
 
@@ -731,3 +740,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     Open: the coder has two ways out. One is to reword the comment on line 28 so that no "install" comes before "npm" on it, for example "the factory's Node serves only the npm step". The other, if the human prefers, is to narrow the smoke-test command to the `apt-get` line. The smoke test is the human's, so that second way would be a `question`. I would reword the comment.
 40. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 41. 2026-11-03 human: Reword the comment on vm/Dockerfile line 28 so that no "install" comes before "npm" on it, as the smoke tester recommends (for example: "The runtimes are native executables: the factory's Node serves only the npm step, so the commands exec them directly."). The smoke test stays as written. Nothing else changes.
+42. factory: started smoke-test as vm.
