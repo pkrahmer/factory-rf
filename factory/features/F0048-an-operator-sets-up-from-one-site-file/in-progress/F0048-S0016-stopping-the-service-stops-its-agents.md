@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T07:29:55.513286Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-11-03T07:29:55.513286Z'
   stage: smoke-test
+- number: 30
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T07:30:15.552764Z'
+  stage: smoke-test
+  run: 4233a467347b45438d7ce5ac82676831
 ---
 
 # Stopping the service stops its agents
@@ -513,3 +515,26 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     `secrets`: secrets: green (2.4 s)
     `documents`: documents ok
 29. factory: started smoke-test as vm.
+30. smoke-tester: I ran the smoke test from the repository root, with the commands exactly as written and in order. Both met their `Expect:` line. I fixed nothing.
+
+    Command 1: `grep -c '^ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i$' vm/factory.service`
+    ```
+    1
+    ```
+    Met: `1` (exit 0).
+
+    Command 2: `grep -rlF 'factory.instance' src/factory`
+    ```
+    src/factory/adapters/podman_runs.py
+    ```
+    Met: the single line `src/factory/adapters/podman_runs.py` (exit 0).
+
+    Check against the acceptance criteria: nothing the smoke test showed contradicts a criterion.
+    - `vm/factory.service`: the `ExecStopPost` line appears once, after `ExecStart`. The other lines of the unit are still there. The diff against `origin/main` changes the unit by exactly one added line.
+    - `src/factory/adapters/podman_runs.py`: puts `--label` and `factory.instance={self._instance}` next to each other in `launch`. `src/factory/entry/wiring.py` changed too.
+    - `docs/operator-guide.md`, line 868: has the stop paragraph, which says how the new unit is installed by hand (`install -m 0644`, `daemon-reload`).
+    - `docs/decisions.md`, line 1355: has the decision entry.
+
+    The smoke test does not exercise criteria 1, 3 and 4 (the argument list, the wiring, and `make check`). The tests and the stage's checks cover them, and the human checks the real stop on the machine after the merge.
+
+    Findings: none.
