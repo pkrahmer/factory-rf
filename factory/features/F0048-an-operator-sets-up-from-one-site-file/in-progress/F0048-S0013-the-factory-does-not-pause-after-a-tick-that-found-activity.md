@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 507
 comments_read: [6591979242]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T00:24:51.750512Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-03T00:24:51.750512Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-03T00:29:53.390405Z'
+  stage: doing
+  run: f1f102da0b3c490d9b6a6ad69c873f75
 ---
 
 # The factory does not pause after a tick that found activity
@@ -156,3 +158,21 @@ Expect: `0.0 30.0`.
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: Built: `src/factory/application/scheduler.py` only.
+    - `pause_after(0)` now returns `timedelta(0)`. For 1 and more idle ticks it starts at `FIRST_IDLE_PAUSE` (30 s, renamed from `FIRST_PAUSE`, which was 15 s) and doubles `idle_ticks - 1` times, capped at `MAX_PAUSE`. The result is 30, 60, then 120 s, as before. A negative count still raises `ValueError`.
+    - `Scheduler.run` still checks `should_stop` after each iteration. It calls `sleep` only when `idle_ticks > 0`. A failed iteration still counts as idle, so it sleeps and the pause grows as before.
+
+    Main choice: `run` skips the `sleep` call after activity instead of calling `sleep(0)`. The Interface says it does not call `sleep`, and criterion 2 counts the calls. I rejected keeping 15 s as the base and adding a special case for 0 in the doubling. Starting the doubling at the first idle pause states the rule directly.
+
+    Test run: the first `make test` had 7 failures in `tests/application/test_scheduler.py`, all from the 15 s pause after activity. All of them pass now.
+
+    Refactor: in my own diff I changed the docstring to say "Zero after activity" and updated the overflow comment to the new exponent. Nothing else needed changing.
+
+    `make check` is green: test green (80.6 s), check green.
+
+    The journal did not change the meaning of the task. Entry 6 approved changing the four earlier tests, and the tester did that. The Description stays as it is.
+
+    Noticed but not touched: `docs/decisions.md` line 265 and the operator guide still describe the 15 s pause after activity. The docs stage covers them under criterion 6.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
