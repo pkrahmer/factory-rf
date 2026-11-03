@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 507
 comments_read: [6591979242]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T00:23:46.566972Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -41,6 +45,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T00:23:28.282625Z'
+  stage: tests
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:23:46.566972Z'
   stage: tests
 ---
 
@@ -111,3 +120,4 @@ Expect: `0.0 30.0`.
    - `make lint` is green.
    - I skipped the type check, as the stage says.
 6. 2026-11-03 human: (a), as you propose: change the four earlier tests so they keep their names and check the same thing under the new rule, including the last one stopping at its second tick so it cannot hang. The renamed table test is fine.
+7. factory: started tests as vm.
