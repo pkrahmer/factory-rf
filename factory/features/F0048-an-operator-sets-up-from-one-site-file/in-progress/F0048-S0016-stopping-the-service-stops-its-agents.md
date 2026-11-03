@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T07:22:48.523892Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-11-03T07:22:48.523892Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-03T07:23:04.323181Z'
+  stage: doing
+  run: d82910295c58402d9760ba6e4c4f0ea1
 ---
 
 # Stopping the service stops its agents
@@ -332,3 +334,20 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     - `tests/test_vm_local_environment.py`: the human's leave, entry 9.
     - `tests/test_vm_service.py`: the human's leave, entry 9.
 19. factory: started doing as vm.
+20. coder: Both of the reviewer's findings in entry 18 are test changes, so this round changes no code. The work goes back to the tester for two things:
+
+    1. **Criterion 3 needs its test.** The reviewer added this criterion: the wiring gives `PodmanRuns` the settings' instance. No code change is needed, because `src/factory/entry/wiring.py` already passes `instance=settings.instance`. The new test follows `tests/entry/test_wiring_container_profile.py`. It builds settings with a given `instance`, calls `factory.entry.wiring.build_boundaries(...).containers.launch(...)`, and asserts that the argument list holds `--label`, `factory.instance=<that instance>` next to each other.
+    2. **Move the copied helper.** `_launch_words` exists twice: in `tests/adapters/test_podman_runs_instance_label.py:13` and in `tests/adapters/test_podman_runs_job_profile.py:31`. The tester moves it to `tests/podman_support.py` and changes both modules to use it from there. CLAUDE.md's standing leave to move a shared test helper covers this. Both tests keep their names and check the same things.
+
+    What I built is unchanged since entry 16:
+    - `src/factory/adapters/podman_runs.py`: the label, placed in `launch`.
+    - `src/factory/entry/wiring.py`: passes the instance.
+    - `vm/factory.service`: the `ExecStopPost` line.
+
+    The main choice also stands: the label goes in `launch`, the one place every container start passes through. I rejected adding it at each caller, because a later way of starting a container could miss it.
+
+    There is no refactor and I did not run `make check` this round, because nothing under `src/` or `vm/` changed. The last full run (entry 16) ended `check: green`.
+
+    The journal did not change the task's meaning beyond what the Description already holds. The reviewer has already written criterion 3 and the smoke test's `-F` into the Description.
+
+    Noticed, not touched: the comment on the per-file ignore at `pyproject.toml:65` still names the work item id. That was the human's commit (entry 16).
