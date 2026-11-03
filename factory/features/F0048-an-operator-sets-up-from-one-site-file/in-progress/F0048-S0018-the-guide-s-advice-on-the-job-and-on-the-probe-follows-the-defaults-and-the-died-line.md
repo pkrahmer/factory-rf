@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 517
 comments_read: [6600797229]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T10:11:27.431229Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-03T10:11:27.431229Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-03T10:13:28.503581Z'
+  stage: doing
+  run: be5a9f1ffb95456da52fddac167a66f6
+  blocked: question
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -162,3 +165,23 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: An earlier test conflicts with the Interface. I stopped here because changing that test needs your word.
+
+    What I built (left in the working tree): the step `image` in `vm/job-start.sh` now builds with `--layers=false`. Right after the build it runs `podman $JOB_PODMAN_OPTIONS image prune -f || failed image`. That line has no `-a` or `--all` and has its own `# shellcheck disable=SC2086`, as the build line does. I put the prune straight after the build, before the image-id line, so the leftovers go as soon as the build is done. The new tests in `tests/test_vm_job_start_image.py` pass.
+
+    The contradiction: `make check` is red on `tests/test_vm_job_start.py::test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options[given]` and `[default]`. Both compare the build's argv exactly, as `[*JOB_PODMAN_OPTIONS, "build", "--network=host", "-f", "vm/Dockerfile", ...]`. The Interface requires `--layers=false` in that build, so the exact list can no longer match. From the failed run:
+    ```
+    E   AssertionError: assert [['--runtime=...k=host', ...]] == [['--runtime=...', '-f', ...]]
+    E     At index 0 diff: [..., 'build', '--layers=false', '--network=host', '-f', 'vm/Dockerfile', ...] != [..., 'build', '--network=host', '-f', 'vm/Dockerfile', ...]
+    ```
+    (tests/test_vm_job_start.py:377, the `assert builds == [...]`). The prune itself does not trip this test: it collects only the podman calls with `build` in their argv.
+
+    The standing leave in `CLAUDE.md` covers only moving shared helpers, so changing this test needs your word. Options:
+    (a) The tester adds `"--layers=false",` after `"build",` in that expected argv, and the test still checks the same build. I would choose this.
+    (b) Drop `--layers=false` from the Interface and criterion 1 and keep only the prune. The cache's intermediate images would then be removed by the prune anyway, because they are untagged, but the build would still write them to the tmpfs first, so peak memory would be higher.
+
+    If you choose (a), I end the next round with `tests` and name exactly that change.
+
+    Refactor: not done yet. I do it once `make check` is green.
+
+    Noticed but not touched: nothing else.
