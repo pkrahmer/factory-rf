@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T07:08:49.233410Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T07:08:44.057908Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:08:49.233410Z'
   stage: tests
 ---
 
@@ -169,3 +178,4 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
 
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
+10. factory: started tests as vm.
