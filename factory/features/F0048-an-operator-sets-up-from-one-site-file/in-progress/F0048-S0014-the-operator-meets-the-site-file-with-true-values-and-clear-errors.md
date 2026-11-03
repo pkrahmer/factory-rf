@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 515
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T08:47:43.707132Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-03T08:47:38.006721Z'
   stage: intake
   run: e104c71b35114c50b447ef49b4dd25d2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:47:43.707132Z'
+  stage: tests
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -135,3 +144,4 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
    Smoke test: the commands are runnable and use no pytest. `grep -c` gives 18 once the 8 new lines exist. The two grep lines match the new comments. `site` with no command exits 2 with the usage. `imported: 1` follows from `test -e` failing when `-I` is in place. All four Expect parts are checkable against the output.
    Architecture: all changes are in the operator's shell and example files and in tests. The README is left to the documenter (decision 22), and the coder's write paths cover the rest. Nothing touches `src/factory/`.
    Scope: it matches F0048's S0014 entry and decisions 18, 21 and 22. Nothing in the feature's "Out of scope" is touched.
+4. factory: started tests as vm.
