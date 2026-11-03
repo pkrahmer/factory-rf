@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T23:17:41.379020Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-03T23:17:41.379020Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T23:19:32.875013Z'
+  stage: review
+  run: 3466c01ca6d94bdd9b9795ed0a059712
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -204,3 +206,24 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: Review, round 0. I read the work item, the change to `vm/Dockerfile` and the change to `tests/test_stage_image.py`, and checked the tests against criteria 1 to 5 and the Interface. The Dockerfile does what the Interface asks:
+    - Node 22 is pinned by version and SHA-256 and downloaded with `curl`.
+    - `sha256sum -c -` runs before `tar -C /opt/factory/node`, and nothing is piped into a shell.
+    - The `apt-get` line holds the six packages.
+    - Both runtimes are installed by `/opt/factory/node/bin/npm --prefix /opt/factory`.
+    - The `printf` wrappers start `/opt/factory/node/bin/node` with `"$@"`.
+    - No `ENV PATH` line and nothing named `node` or `npm` is placed in `/usr/local/bin`. The `export PATH` lasts for its build step only.
+
+    The coder's `make check` was green (entry 10). Architecture, security, quality and hygiene: nothing to report. Group 1 has three gaps. In each one the code handles the refused side correctly, but the rule is not a limit, so the missing row is a finding and not a note.
+
+    1. tests/test_stage_image.py:540 (`test_each_runtime_command_runs_on_the_factory_node`): the helper requires that each wrapper exists and names `/opt/factory/node/bin/node` (Interface; criterion 4), but no row fails either check. The only refused row drops `"$@"`. Fix: add two rows expected `False`. `bare-node` replaces `/opt/factory/node/bin/node /opt/factory/bin/` with `node /opt/factory/bin/`. `no-command` drops the wrapper's `RUN`.
+    2. tests/test_stage_image.py:254 (`test_each_tool_is_installed_once_at_its_pinned_version`): the Interface says the runtimes are installed by `/opt/factory/node/bin/npm` with `--prefix /opt/factory` (criterion 4), but the test only has rows for the file as built. Nothing shows that a bare `npm install` or another `--prefix` is refused. Fix: one parametrized test of the npm install with rows `as-built` (accepted), `bare-npm` (`/opt/factory/node/bin/npm` replaced by `npm`) and `other-prefix` (`--prefix /usr/local`), both refused.
+    3. tests/test_stage_image.py:480 (`test_the_node_archive_is_checked_before_it_is_unpacked`): criterion 2 says the check runs "against `NODE_SHA256`", and `_node_archive_is_checked` tests that through `checked_runs`. But no row has a `sha256sum -c` that does not name `NODE_SHA256`. Fix: add a row expected `False` that replaces `${NODE_SHA256}` in the check with a literal low-entropy value (`"a" * 64`).
+
+    Not raised:
+    - The floating-reference test rewrites the npm path and the `--prefix` before it calls `floating_references`. That works around the shared helper in `tests/dockerfile_support.py`, which is outside the leave. The tester stated the reason, and the test still checks the npm pins.
+    - The coder could not verify `NODE_SHA256` against the archive itself. That check is the human's build after the merge (criterion 6).
+    - If a future release ships `/opt/factory/bin/claude` or `/opt/factory/bin/opencode` as something other than a Node script, the wrappers would fail. The Interface asks for exactly these wrappers, and the human's `--version` check after the build covers it.
+
+    Earlier tests:
+    - tests/test_stage_image.py: under the feature's leave for S0001 (feature.md, "A leave, for S0001"). Changed: the Debian package rows (`STAGE_PACKAGES`, the id `eighth-package` renamed `seventh-package`); the npm install rows (`NPM_FLAGS`, the `FACTORY_NPM` rows, the opencode-after-Claude-Code order); the place of the runtimes (`/opt/factory` taken out of `ABSENT_WORDS`); and the floating-reference test's rewrite of the npm path and the prefix, which keeps that test checking the npm pins. The new test functions are additions and need no leave.
