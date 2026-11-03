@@ -1435,3 +1435,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 01:47 F0048-S0009 archived. Started F0048-S0010 (in a job a machine stop that stands for ten minutes ends the factory's process), the last story; vm is rebuilt after its merge.
 - 01:51 F0048-S0010 (stop ends job) PR #510 intake question 3: granted (a), the smoke test's pytest command drops -q (addopts already sets it).
 - 02:15 F0048-S0010 (stop ends job) PR #510 merged after the six checks: files in scope, earlier tests changed only under the shared-helper leave, smoke test met both Expect lines, no findings, no new markers; 11 runs, $4.64. Touches src/: vm rebuild next.
+- 02:21 F0048-S0010 archived; all 13 stories done. vm rebuilt at 56c90383d (S0010 in); preflight green, no stops. The factory started F0048's acceptance by itself at 02:20.
