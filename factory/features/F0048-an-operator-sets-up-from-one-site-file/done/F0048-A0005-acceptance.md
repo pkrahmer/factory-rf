@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-03T12:57:42.768734Z'
   stage: acceptance
   run: cbbd14bcbb51424ea78752130415b5b8
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-03T13:03:43.906004Z'
+  stage: done
 stories: [F0048-S0001, F0048-S0002, F0048-S0003, F0048-S0004, F0048-S0005, F0048-S0006, F0048-S0007, F0048-S0008, F0048-S0009, F0048-S0010, F0048-S0011, F0048-S0012, F0048-S0013, F0048-S0014, F0048-S0015, F0048-S0016, F0048-S0017, F0048-S0018, F0048-S0019, F0048-S0020, F0048-S0021]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of An operator sets up from one site file
@@ -275,3 +280,4 @@ Human interventions: 38 questions answered (34 `question`, 1 `attempts_cap`, 3 `
    6 Decisions: the 27 decisions stand as built. A0004's item is settled by decision 27. Three new items: the real-git sentence placed in "Why", the coder leaving the log to the documenter, and for S0022 no "Rejected" line versus `Rejected: none recorded.`. S0021 changed no earlier test.
    7 Slow checks: nothing beyond `make check`, which is green: 83.5 s, 99.56 % coverage, 8629 tests summing to 709.2 s. The slowest tests are ROOMY_LIMIT tests outside the feature. Free disk fell from 43.7 to 43.6 GB with the instance's use unchanged at 1.3 GB, so there is no growth to explain.
    8 Cost: 265 runs, 353.3 min, $92.72. S0021 cost 6 runs, 3.8 min, $0.85 with no rework. S0005, S0001 and S0003 still stand out. 38 questions were answered and the stories waited 5.5 h, unchanged since A0004; S0001 needed the human most.
+3. factory: done (pull request merged); cost: 1 runs, 4.3 min, 20 turns, 75655 tokens in (1055295 more from cache), 16963 out, $1.16
