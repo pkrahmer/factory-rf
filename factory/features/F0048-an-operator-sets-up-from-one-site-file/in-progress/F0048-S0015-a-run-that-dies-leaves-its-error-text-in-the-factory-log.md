@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T08:33:24.506494Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-03T08:33:24.506494Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-03T08:36:59.197615Z'
+  stage: doing
+  run: 74b49f9ea0c242bbaab2ff10898c2745
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -371,3 +373,23 @@ Expect: the single line `src/factory/domain/died_runs.py`.
 
     `lint`: lint: green (0.1 s)
 20. factory: started doing as vm.
+21. coder: Round 1, second pass: I changed no code. My earlier round-1 pass (entry 17) fixed both of the reviewer's findings from entry 15. The tester's new test for criterion 10, `tests/adapters/test_runtime_died_text.py::test_a_run_that_died_never_quotes_the_login_shell_s_line`, passes against that code. I confirmed the fix is in the committed tree. `make check` is green.
+
+    What is built, as committed:
+    - `src/factory/adapters/agent_launch.py`:
+      - `_stderr_lines` drops the login shell's `factory-login-used:` lines before `died_text` takes the last three lines of standard error (finding 1).
+      - `died_run_text(end_reason, error_text, stderr, exit_status)` holds the guard both runtimes share (finding 2).
+    - `src/factory/adapters/claude_runtime.py` and `src/factory/adapters/opencode_runtime.py` call `died_run_text`. Each passes only its own error text.
+
+    Main choice: as in entry 17, `died_run_text` takes `stderr` and `exit_status` as plain values, not the `ProcessResult` the reviewer suggested. Two structural tests stop `agent_launch` from importing `factory.adapters.process`: `tests/test_agent_launch_search.py` and `tests/test_wrapper_search.py`.
+
+    Refactor: I read the diff against main again. Nothing needs changing.
+
+    Noticed, not touched:
+    - The factory dropped the Description edits from both the coder (entry 17) and the tester (entry 19), because the work item is outside our write paths. So the Description still lacks criterion 10 ("A `died` run whose standard error holds only the login shell's `factory-login-used:` line gives `exit <status>`, and that line is never quoted. Rows: each runtime.") and the Interface sentence "The login shell's `factory-login-used:` line is never quoted." The reviewer, who carried the earlier corrections, needs to add them.
+    - `opencode_runtime.py` `_end_reason`: the `return "time_limit"` line was already uncovered before this story.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
