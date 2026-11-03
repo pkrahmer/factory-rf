@@ -51,6 +51,7 @@ from git_support import (
     make_remote,
 )
 from human_clone import HumanClone
+from operator_skill_support import Operator, make_operator
 from podman_support import IMAGE, Podman, PodmanPlan, write_podman
 from proof_support import World, build_world, start_story
 from run_layout_support import Layout, build_layout
@@ -150,6 +151,12 @@ def checkout(tmp_path: Path, remote: Path, kill_points: KillPoints) -> GitCli:
 def human(tmp_path: Path, remote: Path) -> HumanClone:
     """Return the human's own clone of `remote`, at `tmp_path / "human"`."""
     return HumanClone(tmp_path / "human", remote)
+
+
+@pytest.fixture
+def operator(tmp_path: Path) -> Operator:
+    """The operator's machine with a full site file (a token command, no `gh`) and no answers."""
+    return make_operator(tmp_path)
 
 
 @pytest.fixture

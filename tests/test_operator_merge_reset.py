@@ -209,12 +209,27 @@ MERGE_FAST = {"KUMPEL_POLL_SECONDS": "0", "KUMPEL_ARCHIVE_WAIT": "60"}
 BROKEN: list[tuple[int, object]] = [(500, {"message": "Server Error"})]
 
 
-def test_an_approved_pull_request_is_merged_and_its_archive_awaited(machine: Machine) -> None:
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        pytest.param("merge_method", "merge", id="merge-method"),
+        pytest.param("commit_title", f"Merge pull request #5 from work-item/{ITEM}", id="title"),
+        pytest.param(
+            "commit_message", "Merged by Kumpel after the six approval checks.", id="message"
+        ),
+    ],
+)
+def test_an_approved_pull_request_is_merged_and_its_archive_awaited(
+    machine: Machine, field: str, value: str
+) -> None:
     machine.answer(merge_answers())
     result = machine.run("merge.sh", "5", ITEM, **MERGE_FAST)
     assert result.exit_status == 0, result.stderr
     puts = [request for request in machine.requests() if request.method == "PUT"]
-    assert puts == [Request("PUT", "/pulls/5/merge", {"merge_method": "merge"})]
+    assert [request.route for request in puts] == ["/pulls/5/merge"]
+    body = puts[0].body
+    assert isinstance(body, dict)
+    assert body[field] == value
     routes = [request.route for request in machine.requests()]
     assert "/commits?per_page=20" in routes[routes.index("/pulls/5/merge") :]
     assert in_order("\n".join(printed(result)), ["merged #5", f"archived {ITEM}"])

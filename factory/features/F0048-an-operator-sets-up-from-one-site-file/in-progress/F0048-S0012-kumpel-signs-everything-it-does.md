@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T00:40:29.410854Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-03T00:40:29.410854Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-03T00:43:10.321861Z'
+  stage: tests
+  run: a59e41e79ac0464ca5ef4cd7c253757c
 ---
 
 # Kumpel signs everything it does
@@ -121,3 +123,29 @@ Expect: two lines, a number of at least `1`, then `0`.
    - Architecture: scripts and references under `operator/skill/kumpel/`, a test under `tests/` with the shared stand-ins. Nothing in `src/factory/` changes.
    - Scope: this is S0012 of the feature's scope and its stories list, and not in its Out of scope.
 7. factory: started tests as vm.
+8. tester: Wrote the tests of every criterion. `make lint` is green. I skipped the type check, as this stage's instructions say.
+
+   Criterion → test:
+   - criterion 1: tests/test_operator_skill_signature.py::test_a_comment_is_posted_with_the_signature_and_the_marker
+   - criterion 2: tests/test_operator_skill_signature.py::test_a_signed_text_is_posted_unchanged
+   - criterion 3: tests/test_operator_skill_signature.py::test_a_comment_that_cannot_be_posted_is_refused. Rows: missing-file, empty-file, 404, none, one.
+   - criterion 4: tests/test_operator_skill_signature.py::test_the_start_commit_is_kumpels_and_the_clone_keeps_its_identity. The run's environment carries no GIT_AUTHOR_*/GIT_COMMITTER_* variables, so the identity has to come from the script. The clone has its own `user.name`/`user.email`, and the test checks they are unchanged afterwards.
+   - criterion 5: tests/test_operator_merge_reset.py::test_an_approved_pull_request_is_merged_and_its_archive_awaited (S0008's merge test, as the criterion names it). It is now parametrized with one row per field: merge-method, title (`Merge pull request #5 from work-item/F0001-S0001`), message. The PUT is still checked to go to `/pulls/5/merge` once.
+   - criterion 6: tests/test_operator_skill_signature.py::test_a_verdict_marker_anywhere_in_the_newest_comment_is_a_posted_verdict. Rows: signed-verdict (five lines after the verdict marker), signed-verdict-and-factory-marker (`waits: question`), no-verdict-marker (`working`), verdict-marker-at-the-top.
+   - criterion 7: tests/test_operator_skill_signature.py::test_no_file_of_the_skill_posts_with_gh
+   - criterion 8: tests/test_operator_skill_signature.py::test_the_skill_names_the_comment_script (one row per file)
+
+   Files created:
+   - tests/test_operator_skill_signature.py
+   - tests/operator_skill_support.py, a shared support module.
+
+   Earlier test files I changed:
+   - tests/test_operator_skill_scripts.py, under CLAUDE.md's standing leave to move a shared test helper. Its `Operator` machine, the constants SCRIPTS/REPOSITORY/PREFIX/API_URL/ACCESS_COMMAND/GIT_VARIABLES/ARCHIVE and the helpers `make_bare_remote`, `pull`, `comment_routes`, `commits`, `status_routes` moved to tests/operator_skill_support.py. Its `operator` fixture moved to tests/conftest.py, which builds it with `make_operator`. Every test there keeps its name and checks the same thing.
+   - tests/test_operator_skill_scripts.py, beyond that leave: I removed the row `verdict-fourth-from-the-end` from `test_the_newest_comment_decides_the_state`. It expected `working` for a verdict marker with three lines after it. The Interface's new rule ("anywhere in its body") says that case is `verdict posted`, and criterion 6's verdict-marker-at-the-top row now covers it. If you want that row kept and turned to `verdict posted` instead, say so.
+   - tests/test_operator_merge_reset.py: the change to S0008's merge test described under criterion 5, which the criterion names.
+
+   The run, `uv run pytest -q` on the three files, failed as expected. Criteria 1–3 fail because the script `comment.sh` does not exist. Criterion 4 fails on the old author. Criterion 5 fails in the title and message rows. Criterion 6 fails in the top-of-body row. Criterion 8 fails because the skill's three files don't mention `comment.sh` yet. Every module imported; the test runner had no import errors.
+
+   Open: none.
+
+   `lint`: lint: green (0.1 s)
