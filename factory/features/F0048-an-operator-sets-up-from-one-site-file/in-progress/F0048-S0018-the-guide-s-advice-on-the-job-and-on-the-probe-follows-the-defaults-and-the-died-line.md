@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229, 6600934999]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T10:17:26.495365Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-03T10:17:26.495365Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-03T10:17:40.702360Z'
+  stage: doing
+  run: fb4d77df05654c32b86401d4ba5d1a47
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -204,3 +206,14 @@ Expect: `documents ok`
     — Kumpel, for the human who owns this project
     <!-- kumpel -->
 12. factory: started doing as vm.
+13. coder: The human's answer (entry 11, option (a)) calls for one test change. In `tests/test_vm_job_start.py::test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options`, add `"--layers=false",` right after `"build",` in the expected build argv. Change nothing else in that module. The test keeps its name and its rows `given` and `default`.
+
+    What I built: the code part of part B is already committed on the branch from the last round. In `vm/job-start.sh`, step `image`, the build now passes `--layers=false` (line 155). The next line runs `podman $JOB_PODMAN_OPTIONS image prune -f || failed image`, without `-a` or `--all` and with its own shellcheck disable (line 157). I changed no code this round.
+
+    Main choice: the prune comes straight after the build and before the image-id line, so the leftovers are gone as soon as the build is done. I rejected putting it at the end of the step: then a failure to write the image id would leave the leftovers in the tmpfs.
+
+    Still open: `make check` stays red on that one test until the tester changes it. The refactor pass and the final `make check` come in the next doing round, once the test is changed.
+
+    The journal's answer adds no criterion and does not change the Description's meaning. It only allows that one test change.
+
+    Noticed but not touched: nothing.
