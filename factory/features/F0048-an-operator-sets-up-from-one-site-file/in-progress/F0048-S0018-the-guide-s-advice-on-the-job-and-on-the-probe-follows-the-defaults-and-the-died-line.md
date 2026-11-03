@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229, 6600934999]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T10:18:16.476868Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-03T10:18:10.623798Z'
   stage: tests
   run: dea8a093ada94a0e898ce74cc12610d3
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-03T10:18:16.476868Z'
+  stage: doing
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -241,3 +250,4 @@ Expect: `documents ok`
     - One run, `uv run pytest -q tests/test_vm_job_start.py`: all 42 tests pass. `make lint` is green.
 
     `lint`: lint: green (0.1 s)
+16. factory: started doing as vm.
