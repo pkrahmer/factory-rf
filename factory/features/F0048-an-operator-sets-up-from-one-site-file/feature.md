@@ -48,6 +48,7 @@ The build order; start one at a time, the next when the one before is archived i
 - S0017: A missing test row for a side the code already handles is a note
 - S0015: A run that dies leaves its error text in the factory log
 - S0014: The operator meets the site file, with true values and clear errors
+- S0018: The guide's advice on the job and on the probe follows the defaults and the died line
 
 ## The human's changes
 
@@ -84,3 +85,4 @@ A leave, for S0017 (2026-11-03): its tester may change, in `tests/test_claude_ag
 21. **The acceptance's decisions, answered (2026-11-03).** Kept as built: the proxy and login keys are required for every job; a job needs the `https://` URL; a sanitiser replacement is literal except `\1` to `\99`; the hosting client needs curl 7.63 or later and says `no answer` for a failed transfer. Changed, in S0014: the job's defaults become the example's, 4 CPUs, 16Gi, 24 hours (86400 s) and 30 idle minutes (part A); `site check`'s `job` line still never fails but tells a missing job from one it cannot read (part D); a space directly after `=` in the site file is a fault (part E) (the human, 2026-11-03).
 22. **`operator/README.md` is the documenter's alone.** One owner, like `README.md` and `docs/`; the coder's write paths name the rest of `operator/` instead of `operator/*`. A story's README change is part of its docs criterion (the human, 2026-11-03).
 23. **A missing test row for a side the code already handles is a note (S0017, built right after S0016).** The human gave this answer three times in F0048; written into the reviewer's text and the decision log, it stops costing a question or a round. The reviewer still reads the code, and a side the code does not handle stays a finding (the human, 2026-11-03).
+24. **The job keeps one image in memory, and a machine keeps one per instance (S0018, part B).** The job's podman storage is a tmpfs, so the build's leftover layers took memory the 16Gi default needs; the job builds with `--layers=false` and prunes after the build. On vm every rebuild left the old stage image behind, 26 GB by 2026-11-03; the guide's rebuild routine prunes untagged, unused images, which keeps another instance's tagged image and running containers safe. The cost is a slower next build (the human, 2026-11-03).
