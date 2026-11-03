@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T01:52:27.166605Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-03T01:52:27.166605Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-03T01:52:45.004087Z'
+  stage: intake
+  run: 7d9fa92636d949688f02a13ee7c7be48
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -77,7 +79,7 @@ grep -n "standing for 10 minutes in a job" docs/operator-guide.md | head -1 | cu
 Expect: one line, `1`.
 
 ```bash
-uv run pytest -q tests/entry/test_run_idle_exit.py 2>&1 | tail -n 1
+uv run pytest tests/entry/test_run_idle_exit.py 2>&1 | tail -n 1
 ```
 
 Expect: one line that says the tests passed and names no failure.
@@ -91,3 +93,9 @@ Expect: one line that says the tests passed and names no failure.
    The format check passed. The Interface, the criteria (both sides of the ten minutes, the lifted stop, the three non-holding cases, the idle exit), the scope and the architecture are otherwise fine. The first smoke test block is runnable but is only decidable once the docs stage has run.
 4. 2026-11-03 human: (a), as you propose: drop `-q` from the second smoke test command; the Expect stays.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: the rule's conditions (minutes above 0, action `exit`), the fixed ten minutes counted from the stop's `at`, the exact log line, return status 1, the lifted and renewed stop, and the unchanged idle exit are all stated. The placement is left to the coder within the layers, and the story says it reads the health status and the boundary clock and starts no process.
+   - Criteria: criteria 1 to 5 each fit one test function. Criterion 1 covers the main path, the log line with reason and detail, no tick after it, and `main` returning 1. Criterion 2 covers both sides of the ten minutes. Criterion 3 covers the lifted stop and the renewed stop counting from its own time. Criterion 4 covers the three cases where the rule does not hold (`poweroff`, minutes 0, scope `repository`). Criterion 5 covers the idle exit returning 0. Criteria 6 and 7 close the list as the form requires.
+   - Smoke test: I carried in the human's answer from journal entry 4 and dropped `-q` from the second command, because `pyproject.toml` already sets `-q` in `addopts`. The `Expect:` line is unchanged. The first block (a grep for the guide's line, expecting `1`) is runnable and checkable once the docs stage has run.
+   - Architecture: the rule needs no new layer. It reads the stops the factory already keeps and acts through the existing loop exit, so it fits the layers in `CLAUDE.md`.
+   - Scope: the story matches `feature.md` (S0010, decision 13). `src/factory/` is touched only for the machine-stop rule in a job, which the feature's out-of-scope section allows.
