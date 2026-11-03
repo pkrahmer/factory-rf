@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T00:40:29.410854Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-03T00:40:23.750123Z'
   stage: intake
   run: 44324a0e74c344db9e2dd14b3b2ae243
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:40:29.410854Z'
+  stage: tests
 ---
 
 # Kumpel signs everything it does
@@ -111,3 +120,4 @@ Expect: two lines, a number of at least `1`, then `0`.
    - Smoke test: both commands are runnable, and the `Expect:` line (a number of at least 1, then 0) can be checked against the output. Neither runs pytest.
    - Architecture: scripts and references under `operator/skill/kumpel/`, a test under `tests/` with the shared stand-ins. Nothing in `src/factory/` changes.
    - Scope: this is S0012 of the feature's scope and its stories list, and not in its Out of scope.
+7. factory: started tests as vm.
