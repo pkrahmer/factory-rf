@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T11:40:43.579583Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-03T11:40:43.579583Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T11:41:10.600209Z'
+  stage: review
+  run: 2448efc442c34a408c696752665da186
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -158,3 +160,12 @@ Expect: `documents ok`
    `check`: check: green
    `duplicates`: duplicates: 0 new, 42 known, 0 gone
 8. factory: started review as vm.
+9. reviewer: 1. tests/test_operator_skill_name.py:9: `SKILL_DIRECTORY = ROOT / "operator" / "skill" / "kumpel"` is a second copy of the constant `SKILL` at tests/test_operator_skill_signature.py:22, which is the same skill directory. This is the kind of copy the Description says the feature already holds too many of. Fix (the tester's, under the standing leave): move the skill directory constant to tests/operator_skill_support.py, which already holds `SCRIPTS` under that directory, and have both test modules import it from there. Each earlier test keeps its name and what it checks.
+
+   What I checked and found sound:
+   - Criterion 1 has one parametrized test with one row per file (`skill`, `standing-orders`). Each row fails while `factory-rf` is present (the tester's run before the code change shows this) and passes now. The coder's `make check` was green (journal entry 7).
+   - The diff changes exactly one line in each skill text, and the line keeps its dates.
+   - `git grep factory-rf` finds nothing left under operator/, src/, claude/, vm/ or template/. The only remaining hits are in README.md and docs/, which the documenter changes under part B.
+   - Architecture: no change under src/. Security: no secrets and no suppression markers. Work item: the Description, Interface and docs criterion match what was built.
+
+   Earlier tests: none. The diff only adds tests/test_operator_skill_name.py and changes no test file that `main` holds.
