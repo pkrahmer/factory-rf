@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T10:10:38.148874Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-03T10:10:32.358678Z'
   stage: intake
   run: 83bb70814b0f44ad86b47677651f442d
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-03T10:10:38.148874Z'
+  stage: tests
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -127,3 +136,4 @@ Expect: `documents ok`
    - Smoke test: the commands are runnable. None runs pytest, so the `-q` rule does not apply. Each `Expect:` line is checkable: `0`, then `0`; at least `1`; `1`, then `1`; `documents ok`.
    - Architecture: Part B stays in the VM's start script, and Part A is documentation only. Nothing touches the layers in `src/factory`.
    - Scope: the story is listed in the feature's scope and stories (S0018, decision 24). It changes no default, and it touches nothing in the feature's Out of scope.
+7. factory: started tests as vm.
