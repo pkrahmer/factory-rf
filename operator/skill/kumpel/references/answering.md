@@ -21,4 +21,4 @@ The factory posts on a work item's pull request when it needs the human. Each po
 
 ## How to post
 
-Write the answer to a temporary file and post it: `gh pr comment <n> --repo <owner/name> --body-file <file>`. Then log it.
+Write the answer to a temporary file and post it: `sh scripts/comment.sh <n> <file>`. It signs the comment, so that the human and the journal can tell your answer from the human's; never post another way. Then log it.

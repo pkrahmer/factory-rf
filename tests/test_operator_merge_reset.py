@@ -10,6 +10,7 @@ import pytest
 
 from factory.adapters.process import ProcessResult
 from git_support import write_executable
+from operator_skill_support import Request, recorded_requests
 from operator_support import CURL_STAND_IN, ROOT, hosting_env, run_script
 from vm_support import in_order
 
@@ -64,15 +65,6 @@ sys.exit(completed.returncode)
 """
 
 
-@dataclass(frozen=True)
-class Request:
-    """One request the `curl` stand-in recorded: its method, its path and query, its JSON body."""
-
-    method: str
-    route: str
-    body: object
-
-
 Answers = dict[str, list[tuple[int, object]]]
 
 
@@ -125,21 +117,7 @@ class Machine:
 
     def requests(self) -> list[Request]:
         """Every request the `curl` stand-in recorded, in order, its route without the prefix."""
-        path = self.records / "curl.jsonl"
-        if not path.exists():
-            return []
-        found = []
-        for line in path.read_text(encoding="utf-8").splitlines():
-            configuration = str(json.loads(line)["stdin"])
-            url = re.search(r'^url = "([^"]*)"$', configuration, re.MULTILINE)
-            method = re.search(r'^request = "([^"]*)"$', configuration, re.MULTILINE)
-            data = re.search(r'^data = (".*")$', configuration, re.MULTILINE)
-            assert url is not None
-            assert method is not None
-            route = url.group(1).removeprefix(API_URL).removeprefix(PREFIX)
-            body = json.loads(json.loads(data.group(1))) if data else None
-            found.append(Request(method.group(1), route, body))
-        return found
+        return recorded_requests(self.records)
 
     def changes(self) -> list[Request]:
         """The recorded requests that change something, in order."""
@@ -209,12 +187,27 @@ MERGE_FAST = {"KUMPEL_POLL_SECONDS": "0", "KUMPEL_ARCHIVE_WAIT": "60"}
 BROKEN: list[tuple[int, object]] = [(500, {"message": "Server Error"})]
 
 
-def test_an_approved_pull_request_is_merged_and_its_archive_awaited(machine: Machine) -> None:
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        pytest.param("merge_method", "merge", id="merge-method"),
+        pytest.param("commit_title", f"Merge pull request #5 from work-item/{ITEM}", id="title"),
+        pytest.param(
+            "commit_message", "Merged by Kumpel after the six approval checks.", id="message"
+        ),
+    ],
+)
+def test_an_approved_pull_request_is_merged_and_its_archive_awaited(
+    machine: Machine, field: str, value: str
+) -> None:
     machine.answer(merge_answers())
     result = machine.run("merge.sh", "5", ITEM, **MERGE_FAST)
     assert result.exit_status == 0, result.stderr
     puts = [request for request in machine.requests() if request.method == "PUT"]
-    assert puts == [Request("PUT", "/pulls/5/merge", {"merge_method": "merge"})]
+    assert [request.route for request in puts] == ["/pulls/5/merge"]
+    body = puts[0].body
+    assert isinstance(body, dict)
+    assert body[field] == value
     routes = [request.route for request in machine.requests()]
     assert "/commits?per_page=20" in routes[routes.index("/pulls/5/merge") :]
     assert in_order("\n".join(printed(result)), ["merged #5", f"archived {ITEM}"])

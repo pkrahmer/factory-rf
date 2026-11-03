@@ -3,7 +3,8 @@
 #   #<n> <work item> stage:<stage> <waits: <kind>|verdict posted|working>
 # and a last line with the newest archive commit on main. Works for an instance on a VM or in a job.
 # The factory marks its posts with `<!-- factory key=<id>:<kind>:<n> -->`; a comment without that
-# marker is the human's (or the operator's), and ends the factory's wait.
+# marker is the human's (or the operator's), and ends the factory's wait. Kumpel's verdict holds
+# `<!-- kumpel verdict -->` anywhere in its body, since its signature follows the verdict.
 set -eu
 here=$(cd "$(dirname "$0")" && pwd -P)
 . "$here/../../../lib/site.sh"
@@ -42,7 +43,7 @@ while read -r number item stage; do
   case "$kind" in
     question|attempts_cap|round_cap|crash_cap|stall|expiry|error) state="waits: $kind" ;;
     *)
-      if printf '%s\n' "$last" | grep -q '<!-- kumpel verdict -->'; then state="verdict posted"
+      if printf '%s\n' "$comment" | grep -q '<!-- kumpel verdict -->'; then state="verdict posted"
       elif [ "$stage" = "stage:approval" ]; then state="waits: approval"
       else state="working"
       fi ;;

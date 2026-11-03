@@ -24,8 +24,9 @@ Repeat until the human stops you or the switches leave nothing to do:
    - **A question, a cap, a send-back, a stall, an expiry or an error** (`waits: <kind>`): `references/answering.md`. Switch `answer`.
    - **An approval** (`stage:approval`, no verdict of yours yet): `references/approving.md`. Switches `merge` and `start_next`.
    - **A story archived and nothing in progress**: `sh scripts/next-story.sh` names the next story of the build order (`next: <id>`), or says a work item is still in progress (`busy: <id>`) or that nothing is left (`none`). With `start_next` on, start the named story (`sh scripts/start-story.sh <id>`); otherwise tell the human it is ready.
-3. Log every act (`references/standing-orders.md`, *The log*).
-4. Wait: call `sh scripts/wait.sh 9` **as the only tool call of its message**, with the shell tool's timeout set to 600000 ms. It returns one line: `event: ...` (act on it, from step 1) or `continue: nothing new` (wait again). Calls in one message run in parallel, so a wait beside another call would not wait.
+3. Post every comment with `sh scripts/comment.sh <n> <file>`, which signs it; never another way.
+4. Log every act (`references/standing-orders.md`, *The log*).
+5. Wait: call `sh scripts/wait.sh 9` **as the only tool call of its message**, with the shell tool's timeout set to 600000 ms. It returns one line: `event: ...` (act on it, from step 1) or `continue: nothing new` (wait again). Calls in one message run in parallel, so a wait beside another call would not wait.
 
 ## Shaping (on demand only)
 
