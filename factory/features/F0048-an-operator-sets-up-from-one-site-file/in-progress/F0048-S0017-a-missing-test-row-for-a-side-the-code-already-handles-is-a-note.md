@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T07:45:53.564942Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-03T07:45:47.495187Z'
   stage: tests
   run: 9264cc5771e4454b8fbf142dc633fc95
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:45:53.564942Z'
+  stage: doing
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -124,3 +133,4 @@ Expect: `1`.
    Rejected: a separate test that the old parenthetical is absent from the file. The adjacency test already rules it out of the paragraph, and the leave covers only the pinned sentence, not new tests in that module.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
