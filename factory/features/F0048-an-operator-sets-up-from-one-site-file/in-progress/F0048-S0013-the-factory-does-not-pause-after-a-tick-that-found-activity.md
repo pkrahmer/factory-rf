@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 507
 comments_read: [6591979242]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T00:32:14.138762Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-03T00:31:53.665607Z'
   stage: docs
   run: 8ba28379eddf46b691b93ea81ab82589
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:32:14.138762Z'
+  stage: smoke-test
 ---
 
 # The factory does not pause after a tick that found activity
@@ -240,3 +249,4 @@ Expect: `0.0 30.0`.
     `check`: check: green (not run again: passed on tree d5a566d5a04c at 2026-11-03T00:28:21Z)
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
+15. factory: started smoke-test as vm.
