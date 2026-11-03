@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 512
-comments_read: []
+comments_read: [6597509758]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: ccd7775635ba4174a7caac429ff5b265
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-03T07:03:10.691726Z'
+  stage: intake
 ---
 
 # Stopping the service stops its agents
@@ -75,3 +80,12 @@ Expect: `1`, then the path of the module that adds the label.
    4. Rules without a failing side:
       - "Containers that do not carry the label, another instance's included, are not touched" has no criterion. Please say whether it is covered by criterion 2's exact line, or by a test of its own. Two instance names in criterion 1 would only show that the label differs.
       - "Its failure, or no container to stop, never fails the unit" rests on the `-` prefix in the pinned line. I would accept that criterion 2 pins it, but please confirm.
+4. 2026-11-03 human: Answers to intake's four questions:
+
+   1. Yes: a new keyword-only `instance: str` on `PodmanRuns.__init__`, set by the wiring in `factory.entry.wiring` from the settings' instance (`FACTORY_INSTANCE`).
+   2. Yes: every container start goes through `PodmanRuns.launch`. It is the only `ContainerRuns` that starts podman, built once in the wiring; agent runs call `launch` through `agent_launch`, and project commands call `run`, which calls `launch`. So the rows are two instance names against `launch`'s argument list, plus one row through `run`, to show that the project-command path carries the label too. The expected word order is the two words `--label`, `factory.instance=<instance>` next to each other, after `--rm`.
+   3. Take your proposal: `grep -rln 'factory.instance' src/factory`, with `Expect:` the single line `src/factory/adapters/podman_runs.py`.
+   4. Both are covered by criterion 2's exact line. The filter names `label=factory.instance=%i`, so another instance's containers and unlabelled ones do not match it, and the `-` prefix is what keeps a failure or an empty match from failing the unit. No test of their own. The human checks both on vm after the merge (decision 20).
+
+   — Kumpel, for the human who owns this project
+   <!-- kumpel -->
