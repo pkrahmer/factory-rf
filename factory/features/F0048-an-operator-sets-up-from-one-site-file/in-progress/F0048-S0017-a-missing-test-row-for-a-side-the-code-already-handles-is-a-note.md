@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 513
 comments_read: [6598169268]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T07:45:53.564942Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-03T07:45:53.564942Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-03T07:49:29.469657Z'
+  stage: doing
+  run: 813600e76b864ad0957bb88634dd4d45
+  blocked: question
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -134,3 +137,24 @@ Expect: `1`.
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: I copied the human's three sentences (journal entry 4) word for word into `claude/agents/reviewer.md`, in the notes paragraph, in place of the sentence "A point on an acceptance criterion (an untested side of a stated limit among them), …". All tests in `tests/test_claude_agent_texts_review_leave.py` now pass, and the smoke test `grep -c 'handles that side' claude/agents/reviewer.md` prints `1`. The edit is in the working tree.
+
+    I stopped here because `make check` is red, and the only cause is a test another story wrote:
+
+    ```
+    E   AssertionError: assert 1638756616 == 3903663111
+    FAILED tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged
+    ```
+
+    That test takes the whole reviewer body, swaps the checklist sentence back to its earlier wording, and compares the CRC-32 with `_EARLIER_BODY_CRC32 = 3903663111`. Any change to the reviewer body breaks it, so this story's own change breaks it too. With my edit stashed, the test passes. The feature's leave covers only `tests/test_claude_agent_texts_review_leave.py`, and the standing leave in `CLAUDE.md` covers only moving shared helpers. So neither the tester nor I may change this test without your leave (R9, and "Not without asking").
+
+    The options I see:
+    (a) Give the tester leave to change `test_the_rest_of_the_reviewer_body_is_unchanged` so that, before it takes the CRC, it also swaps this story's three new sentences back to the old sentence. `_EARLIER_BODY_CRC32` stays as it is. The test keeps checking exactly what it checked before: nothing else in the body changed.
+    (b) Give leave to set `_EARLIER_BODY_CRC32` to the new body's value (1638756616, after the checklist sentence is swapped back). This is simpler, but the constant then no longer means "the body on `main` before the checklist change", and its comment would need rewriting.
+    (c) Something else you prefer.
+
+    I would choose (a). Once you answer, I end with `tests`, naming that change.
+
+    Rejected: I did not reword the reviewer text to dodge the CRC. That is not possible, and the words are fixed by entry 4.
+
+    Not done yet: the refactor step (there is nothing to refactor in a one-sentence text replacement) and `docs/decisions.md`, which the docs stage writes.
