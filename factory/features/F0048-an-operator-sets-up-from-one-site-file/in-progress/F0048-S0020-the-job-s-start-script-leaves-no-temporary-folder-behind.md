@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 520
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T11:57:41.995932Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-03T11:57:36.433301Z'
   stage: docs
   run: 87dd26c2e81644e492f5a1a9cb688cd5
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:57:41.995932Z'
+  stage: smoke-test
 ---
 
 # The job's start script leaves no temporary folder behind
@@ -167,3 +176,4 @@ Expect: `0`, then `1`.
     `check`: check: green (not run again: passed on tree 676ce2a5aa50 at 2026-11-03T11:54:59Z)
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
