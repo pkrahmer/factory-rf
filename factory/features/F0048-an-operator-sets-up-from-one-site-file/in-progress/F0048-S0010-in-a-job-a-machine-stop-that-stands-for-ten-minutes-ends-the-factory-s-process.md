@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 510
-comments_read: []
+comments_read: [6593349810]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 2c16476198aa479e8bd2ed2806c47089
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-03T01:52:24.305779Z'
+  stage: intake
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -75,3 +80,4 @@ Expect: one line that says the tests passed and names no failure.
 3. intake: 1. Smoke test, second block: `uv run pytest -q tests/entry/test_run_idle_exit.py 2>&1 | tail -n 1` passes `-q`, but `pyproject.toml` line 100 already sets `addopts = "-q --strict-markers ..."`. That makes `-qq`, and pytest prints no summary line. The `Expect:` ("says the tests passed and names no failure") cannot be met. Options: (a) drop `-q` from the command, which is what I would choose; (b) change the Expect to the exit status, for example `; echo $?` with `Expect: 0`. Please pick one.
 
    The format check passed. The Interface, the criteria (both sides of the ten minutes, the lifted stop, the three non-holding cases, the idle exit), the scope and the architecture are otherwise fine. The first smoke test block is runnable but is only decidable once the docs stage has run.
+4. 2026-11-03 human: (a), as you propose: drop `-q` from the second smoke test command; the Expect stays.
