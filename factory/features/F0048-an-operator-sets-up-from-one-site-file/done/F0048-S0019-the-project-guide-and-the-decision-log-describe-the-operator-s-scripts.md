@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-11-03T11:49:00.364759Z'
   stage: smoke-test
   run: 66d79d1063c04f81b5784db263016ca7
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-11-03T11:50:54.932760Z'
+  stage: approval
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -378,3 +383,4 @@ Expect: `documents ok`
     Nothing the smoke test showed goes against any criterion.
 
     Still open: the documenter says in entry 19 that it took the "Why" and "Rejected" lines of the new decision entries from the scripts and the operator guide, not from `feature.md`. The human may want to compare them with the feature's decisions. The smoke test cannot check that.
+22. factory: done (pull request merged); cost: 10 runs, 8.2 min, 69 turns, 289631 tokens in (1612344 more from cache), 28091 out, $2.52
