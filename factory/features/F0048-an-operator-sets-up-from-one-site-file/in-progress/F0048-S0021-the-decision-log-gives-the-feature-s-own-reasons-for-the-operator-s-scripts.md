@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 522
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T12:47:14.336852Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-03T12:47:08.343309Z'
   stage: doing
   run: e6076e247e3f4917b436b4e87d333ffe
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-03T12:47:14.336852Z'
+  stage: review
 ---
 
 # The decision log gives the feature's own reasons for the operator's scripts
@@ -144,3 +153,4 @@ Expect: `documents ok`
 
    `check`: check: green (not run again: passed on tree 676ce2a5aa50 at 2026-11-03T11:54:59Z)
    `duplicates`: duplicates: 0 new, 42 known, 0 gone
+8. factory: started review as vm.
