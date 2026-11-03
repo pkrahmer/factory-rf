@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T02:03:27.853199Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-03T02:03:27.853199Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T02:05:07.309292Z'
+  stage: review
+  run: 02b6639c03904a3fbf8229ad2a0afca8
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -98,8 +100,10 @@ Tests (the tester writes them): a new module under `tests/entry/` beside `tests/
 3. A machine stop lifted at T + 5 minutes ends nothing, and a second machine stop raised at T + 8 minutes ends the loop only at T + 18 minutes.
 4. The rule does not hold, as rows of one parametrized test, and the loop runs on past T + 30 minutes with the stop standing: `poweroff`; minutes 0 with `exit`; a stop of scope `repository` with `exit`.
 5. The idle exit is unchanged: idle ticks with no stop end the loop after the idle stretch and `main` returns 0.
-6. `make check` stays green.
-7. docs: `docs/operator-guide.md`: in the idle shutdown's paragraph *In a job*, that a machine stop which stands for ten minutes ends the process with status 1, so the execution ends as failed and the job's log names the stop, and that a VM keeps waiting for a fix; in the list of stops or the preflight's part, the same in one sentence. `docs/decisions.md`: an entry *In a job a machine stop ends the process*, from the feature's decision 13. `README.md`: none.
+6. A machine stop raised again on every tick with its `at` at that tick's time, as the preflight raises it (raises at T, T + 5 and T + 9 minutes), ends the loop at the first tick at T + 10 minutes or later: the count runs from the first raise of an unbroken stretch, not from the latest `at`.
+7. When a machine stop ends the loop, the line of the Interface is the last line of the factory log.
+8. `make check` stays green.
+9. docs: `docs/operator-guide.md`: in the idle shutdown's paragraph *In a job*, that a machine stop which stands for ten minutes ends the process with status 1, so the execution ends as failed and the job's log names the stop, and that a VM keeps waiting for a fix; in the list of stops or the preflight's part, the same in one sentence. `docs/decisions.md`: an entry *In a job a machine stop ends the process*, from the feature's decision 13. `README.md`: none.
 
 ## Smoke test
 
@@ -172,3 +176,17 @@ Expect: one line that says the tests passed and names no failure.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: Findings:
+
+    1. Criterion 6 added: it needs its test. The preflight raises its stop again on every failing tick. `StopService.raise_stop` and `HealthStatus.with_stop` then replace the stop, so its `at` moves forward. `MachineStopExit.observe` in `src/factory/application/machine_stop_exit.py` keeps the earliest `at` of an unbroken stretch in `_since`, but every test in `tests/entry/test_run_machine_stop_exit.py` writes `at` only once. If the `min(...)` were removed, every test would still pass, and the rule would never fire in production. The fix is a test whose tick raises the stop again with the tick's time at T, T+5 and T+9, and that expects the loop to end at T+10. The Interface's words "counted from the stop's own time `at`" now mean the first raise of the stretch, as the coder chose (journal entry 10).
+    2. Criterion 7 added: it needs its test. The Description says "the stop's line is the last the log shows", and the code does this: nothing is written after `observe`, and the comment on the `except MachineStopStood` branch in `main` says so. No criterion named it, and the tester left it out on purpose (journal entry 8). The fix is to check, in criterion 1's test, that the log's last line is `_line("preflight_failed")`.
+    3. The test for criterion 1 (`tests/entry/test_run_machine_stop_exit.py::test_a_machine_stop_standing_ten_minutes_in_a_job_ends_the_loop_and_main_returns_one`) does not test what the Interface rule and criterion 1 promise for "an iteration that ran no tick". The path where `prepare` returns `False` (`observed_prepare` in `_observed_iteration`, `src/factory/entry/run.py`) runs in no test; the coder reported this line as uncovered. The fix is a case, either a row of that test or a test of its own, in which `prepare` returns `False` while a machine stop stands, for example a remote whose `main` lacks the pipeline definition so that `RepositoryWaiter` holds `repository_unavailable`, with the stop written into the health status. It should expect the loop to end at the first iteration at T+10 or later and `main` to return 1.
+    4. `_StopTick` in `tests/entry/test_run_machine_stop_exit.py` copies `_ScriptedTick` from `tests/entry/test_run_idle_exit.py`: `_start`, `_steps`, `runs`, `exhausted` and the clock advance to each step's time. `_RunMain.__call__` also copies the `build_tick` patch from `_scripted` and the `runner` from `test_main_returns_zero_after_the_idle_exit_ends_the_loop`. The fix is to move `_ScriptedTick` and `_scripted` to a `tests/*_support.py` module under the standing leave, and to build the stop tick and the `main` runner on them.
+
+    Architecture: holds. `MachineStopExit` is in `factory.application`, reads only `HealthStatusStore`, `Clock` and `FactoryLog`, and starts no process. The wiring is in `factory.entry.wiring`, and the composition is in `factory.entry.run`.
+    Security: clean. There are no markers, no secrets and no strings handed to a shell.
+    Description: matches what was built. The docs criterion (now 9) still describes what the reader must know.
+
+    Earlier tests:
+    - `tests/conftest.py`: standing leave to move a shared test helper. The fixtures `instance_settings` and `on_the_manual_clock` moved here from `tests/entry/test_run_idle_exit.py` unchanged.
+    - `tests/entry/test_run_idle_exit.py`: standing leave to move a shared test helper. Only those two fixtures and the imports they alone used were removed; every test keeps its name and checks the same thing.
