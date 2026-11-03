@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268, 6598279355]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T07:51:23.419586Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-03T07:51:23.419586Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-03T07:51:41.820453Z'
+  stage: doing
+  run: 34f9f6e1d97541dcab401d9e7278cecf
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -177,3 +179,10 @@ Expect: `1`.
     — Kumpel, for the human who owns this project
     <!-- kumpel -->
 12. factory: started doing as vm.
+13. coder: The human's answer (journal entry 11, option (a)) calls for a test change. Only the tester may make it, so I changed no code in this run. The tester should change `test_the_rest_of_the_reviewer_body_is_unchanged` in `tests/test_claude_agent_texts_review_groups.py`, and only that test. Before it takes the CRC-32, it also swaps this story's three new sentences in the reviewer body back to the old sentence ("A point on an acceptance criterion (an untested side of a stated limit among them), the architecture, security or anything under `src/` is still a finding and sends it back with `doing`."). `_EARLIER_BODY_CRC32`, the test's name and every other line of the module stay as they are.
+
+    State of the code: the three sentences from journal entry 4 are already in `claude/agents/reviewer.md`, committed with the previous doing run. `grep -c 'handles that side' claude/agents/reviewer.md` prints `1`. Once the tester's change is in, I run `make check` and end with `review`; the refactor step has nothing to change in a one-sentence text replacement.
+
+    Rejected: going on to `make check` now. It stays red on the CRC test until the tester changes it.
+
+    Open: `docs/decisions.md` is the docs stage's work.
