@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T08:09:44.421083Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T08:09:41.548301Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:09:44.421083Z'
   stage: intake
 ---
 
@@ -96,3 +105,4 @@ Expect: the path of the module that writes the line.
 
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
+5. factory: started intake as vm.
