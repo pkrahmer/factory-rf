@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T23:13:00.248970Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-03T23:12:54.206398Z'
   stage: tests
   run: 7608e5a52b7e477d8e8d4e97f0486593
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:13:00.248970Z'
+  stage: doing
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -151,3 +160,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
    - The existing one-COPY rule still holds, so a `COPY <<EOF` heredoc cannot be used for the wrappers.
 
    `lint`: lint: green (0.2 s)
+9. factory: started doing as vm.
