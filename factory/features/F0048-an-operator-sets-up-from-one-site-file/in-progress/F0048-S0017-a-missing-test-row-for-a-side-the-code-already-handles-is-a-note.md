@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T07:44:49.155102Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T07:44:46.168201Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:44:49.155102Z'
   stage: intake
 ---
 
@@ -81,3 +90,4 @@ Expect: `1`.
 
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
+5. factory: started intake as vm.
