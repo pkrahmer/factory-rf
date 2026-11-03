@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 515
 comments_read: [6599499091]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T09:09:38.220149Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-03T09:09:38.220149Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T09:12:08.560016Z'
+  stage: docs
+  run: 310560f80e1d4e7ab585cf9d18f29602
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -441,3 +443,25 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
     - `tests/test_operator_site_check.py`: the standing leave (the machine, stand-ins, constants and helpers moved unchanged to `tests/site_check_support.py`, apart from the added `describe_error`); the human's leave in `feature.md` and criteria 11 and 14 for the rows of the `job`-line test and its `site: ready` check.
     - `tests/test_operator_skill_scripts.py`: none needed (it only adds `test_status_stops_at_a_failing_read_with_the_hosting_message`).
 21. factory: started docs as vm.
+22. documenter: Docs stage, round 1. I wrote what docs criterion 16 asks for. I found no code finding: I read `operator/bin/site`, `operator/lib/site.sh` and `operator/job/job.sh` in the diff, and they do what the Interface says. I changed only documents, so I did not run `make check`; the factory's checks run after this stage.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The site file*:
+      - The intro no longer says "the stories to come make the other keys live".
+      - *The format*: a space or tab directly after `=` is now a fault, like one before it. A space inside a value, or at its end, is kept.
+      - *The `site` command*: the usage line now ends with `| check`.
+      - *The keys*: the sentence "confirmed as the stories land" is replaced by one saying that the example's comments and the table name the same required keys and defaults, and that a test keeps them equal to the code. Defaults are now CPU 4, memory 16Gi, timeout 86400 and idle minutes 30. The `SITE_TIMEOUT` row says "seconds, or a duration such as `4h`".
+    - `docs/operator-guide.md`, *Creating the job*: the optional-keys row of the table has the new defaults.
+    - `docs/operator-guide.md`, *The checks*: the `job` row says what the line prints in each case: exists; does not exist yet; or `cannot be read: <first line of gcloud's error>`, which is `gcloud run jobs describe failed` when gcloud printed nothing. The row says the line never fails.
+    - `docs/decisions.md`: a new entry, "The operator's scripts start Python isolated". It gives why: the working folder may hold files an agent wrote, and `-I` keeps it off the import path. It also records the rejected alternatives (`cd` to the script's folder before each call, and trusting the folder) and the `status.sh` assign-then-parse change.
+    - `operator/README.md`:
+      - *Installing* now starts with the site file (`site init`, fill in, `site check`) and points to the guide's *Setting up an operator's machine*. The sentence saying the skill's first act asks for the repository and the checkout is gone. In its place: when the site file gives both, `settings.json` holds only the switches and `settings.sh init` takes no argument; otherwise the skill asks.
+      - *Needs* names `git`, `curl`, `python3`, a POSIX shell, a token from `SITE_TOKEN_CMD` or else a `gh` login, and `gcloud` for a Cloud Run job. "`gh` logged in" is gone.
+
+    Cross-read and found current: step 9 of *Setting up an operator's machine* (it points to *Installing*, which now has what it needs), *Token source*, *The checks* apart from the `job` row, the `@`-refusal list in *Creating the job*, and the rest of the keys table. The README at the root and the project guide need no change, as the criterion says. I ran no new examples; the only commands I added are `site init` and `site check`, which the guide already shows.
+
+    Stale text I noticed and did not touch: none that is unrelated to this story. The reviewer's note about duplicate helpers in the test support modules (`gcloud_words`, `JOB` and `IMPERSONATE`) is the tester's, not a document. Also open from the coder's entry 18: gcloud's real wording for a missing job was never checked against gcloud. If it matches neither `Cannot find job` nor `NOT_FOUND`, a missing job prints `cannot be read: ...`, which the guide's row now describes.
+
+    `check`: check: green
+    `secrets`: secrets: green (2.6 s)
+    `documents`: documents ok

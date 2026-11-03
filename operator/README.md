@@ -34,6 +34,8 @@ Kumpel signs everything it does. A comment ends with the line `— Kumpel, for t
 
 ## Installing (for the trial)
 
+First the site file: `sh operator/bin/site init`, fill in the values (at least `SITE_REPOSITORY` and `SITE_CHECKOUT`), then `sh operator/bin/site check`. The file never enters a repository. The whole setup of a machine is in `docs/operator-guide.md`, *Setting up an operator's machine*.
+
 Both tools read Claude Code's skill folder, so one copy serves both:
 
 ```bash
@@ -41,8 +43,10 @@ mkdir -p ~/.claude/skills
 ln -s "$(pwd)/operator/skill/kumpel" ~/.claude/skills/kumpel
 ```
 
-Then the command: for opencode `cp operator/opencode/command/kumpel.md ~/.config/opencode/command/`, for Claude Code `cp operator/claude/commands/kumpel.md ~/.claude/commands/`. Start the tool again, so that it reads the skill list. The first act of the skill asks for the repository and the checkout and writes `~/.config/kumpel/settings.json`, which never enters a repository.
+Then the command: for opencode `cp operator/opencode/command/kumpel.md ~/.config/opencode/command/`, for Claude Code `cp operator/claude/commands/kumpel.md ~/.claude/commands/`. Start the tool again, so that it reads the skill list.
+
+The skill takes the repository and the checkout from the site file. When it gives both, `~/.config/kumpel/settings.json` holds only the switches (`sh operator/skill/kumpel/scripts/settings.sh init` takes no argument); otherwise the skill asks for both.
 
 ## Needs
 
-`gh` logged in for the project's GitHub, `git`, `python3`, and a POSIX shell. For an instance in a Cloud Run job, `gcloud` for the job's log when a stop needs its reason; status itself comes from GitHub alone.
+`git`, `curl`, `python3` and a POSIX shell; a hosting-service token from `SITE_TOKEN_CMD` or, without it, a `gh` login; for an instance in a Cloud Run job, `gcloud` (the job, and its log when a stop needs its reason; status itself comes from GitHub alone).

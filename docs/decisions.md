@@ -1365,3 +1365,12 @@ Date: 2026-11-03 (F0048-S0017; decision 23 of the feature).
 - Why: the human gave the same answer three times in F0048 (S0001 entry 33, S0003 entry 30, S0005 entry 26), and each time the question cost a wait or a round, for a row that tested a side the code already got right. The rule was written nowhere lasting.
 - The tester's rule to test every stated limit on both sides is unchanged; only what the reviewer sends back changes. The lesson on a limit tested on one side only and checklist item 1 in `reviewer.md` keep their wording and are limited by this exception. The line in `CLAUDE.md` (*Tests*) that the reviewer counts an untested side as a finding is the human's to change.
 - Rejected: sending every missing row back as a finding, which cost a round each time for no fault in the code.
+
+## The operator's scripts start Python isolated
+
+Date: 2026-11-03 (F0048-S0014).
+
+- Decision: every `python3` the operator's scripts start (`operator/bin/site`, `operator/job/job.sh` and the skill's `status.sh`, `settings.sh`, `approval.sh`, `comment.sh`, `merge.sh`, `reset-to-tag.sh`) passes `-I` as its first option, for `-c` and for a program on standard input alike. `tests/test_operator_python_isolation.py` pins it.
+- Why: `python3 -c` and `python3 -` put the working folder first on the import path. The skill runs from a project checkout, where the factory's agents write files, so a planted `json.py` would replace the standard library and run with the operator's environment, the site's token command included. `-I` drops the working folder and the `PYTHON*` variables.
+- Rejected: `cd` to the script's folder before each call (it changes the folder the script's relative paths mean, and one forgotten call is open again); trusting the folder because only the operator writes there (an agent's pull request is exactly what the operator checks out).
+- `status.sh` also assigns each hosting read to a variable before parsing it, as `merge.sh` and `reset-to-tag.sh` do, so a failing read ends with the hosting client's message and not a traceback.

@@ -903,7 +903,7 @@ sudo systemctl start factory@vm
 
 ## The site file
 
-The values that belong to one site (a project, a region, a proxy, the names of secrets, two repositories, a token command) live in one plain file, `site.env`, and one loader, `operator/lib/site.sh`, reads it for every operator script. The file is where company values go, so it lies outside every repository. `operator/job/job.sh` reads it for the job (*Creating the job*), and the skill's scripts use the hosting library (*The token source*); the stories to come make the other keys live.
+The values that belong to one site (a project, a region, a proxy, the names of secrets, two repositories, a token command) live in one plain file, `site.env`, and one loader, `operator/lib/site.sh`, reads it for every operator script. The file is where company values go, so it lies outside every repository. `operator/job/job.sh` reads it for the job (*Creating the job*), and the skill's scripts use the hosting library (*The token source*).
 
 ### Its place
 
@@ -915,7 +915,7 @@ The loader refuses a file that lies inside a git work tree (status 3), and `site
 
 The file is a list of lines, each blank, a comment (the first non-blank character is `#`) or `SITE_NAME=value`:
 
-- `NAME` is capitals, digits and `_`, at least one character. A space before the `=` is a fault; a space after it belongs to the value.
+- `NAME` is capitals, digits and `_`, at least one character. A space or a tab before the `=` or directly after it is a fault (`SITE_PROXY= http://p` would otherwise carry a leading space into the value); a space inside a value, or at its end, is kept as before.
 - The value is everything after the first `=`, with trailing whitespace removed. One pair of single or double quotes around the whole value is removed and keeps the whitespace inside; a quote that is not matched stays.
 - A value is stored literally: `$`, a backtick, `;` and `\` mean nothing, and the file is never executed. `SITE_A=$(touch x)` is the text `$(touch x)`.
 - A variable that is already set in the environment, even to the empty string, keeps its value. Of a key that appears twice, the first line wins.
@@ -933,7 +933,7 @@ Run it as `sh operator/bin/site`:
 | `site get SITE_X` | prints the value; when it is unset or empty, `site: SITE_X is not set` and status 1 |
 | `site check` | the read-only checks of a machine, one line each (see *Setting up an operator's machine*) |
 
-`show` and `get` load the file first and pass on the loader's failure: status 1 for a missing file (`run: site init`), 2 for a fault, 3 for a file in a git work tree. Any other command line prints `usage: site path | init | show | get SITE_X` and exits 2; `site check` with an argument prints `usage: site check` and exits 2. `site init` prints `site: wrote <path>; edit it, then run: site check`.
+`show` and `get` load the file first and pass on the loader's failure: status 1 for a missing file (`run: site init`), 2 for a fault, 3 for a file in a git work tree. Any other command line prints `usage: site path | init | show | get SITE_X | check` and exits 2; `site check` with an argument prints `usage: site check` and exits 2. `site init` prints `site: wrote <path>; edit it, then run: site check`.
 
 ```bash
 export FACTORY_SITE="$HOME/.config/kumpel/site.env"
@@ -944,7 +944,7 @@ sh operator/bin/site get SITE_REPOSITORY
 
 ### The keys
 
-`operator/site.env.example` holds every key with a comment and a made-up value; it is the first place to look. The table gives the same by the use that reads it. The defaults are those of the example's comments and are confirmed as the stories that read each key land.
+`operator/site.env.example` holds every key with a comment and a made-up value; it is the first place to look. The table gives the same by the use that reads it. The example's comments and this table name the same required keys and the same defaults, and a test keeps them equal to what `operator/lib/site.sh` and `operator/job/job.sh` do.
 
 | Key | Meaning | Default |
 |---|---|---|
@@ -973,10 +973,10 @@ sh operator/bin/site get SITE_REPOSITORY
 | `SITE_LOGIN_URL` | the login service that issues the provider's tokens | required for a job |
 | `SITE_LOGIN_SCOPE` | the scope asked of the login service | required for a job |
 | `SITE_LOGIN_CLIENT_ID` | the client id given to the login service | required for a job |
-| `SITE_CPU` | the job's CPUs | 8 |
-| `SITE_MEMORY` | the job's memory | 32Gi |
-| `SITE_TIMEOUT` | the job's task timeout, in seconds | 14400 |
-| `SITE_IDLE_MINUTES` | idle minutes after which the job ends itself | 60 |
+| `SITE_CPU` | the job's CPUs | 4 |
+| `SITE_MEMORY` | the job's memory | 16Gi |
+| `SITE_TIMEOUT` | the job's task timeout, as `gcloud run jobs --task-timeout` takes it: seconds, or a duration such as `4h` | 86400 (24 hours) |
+| `SITE_IDLE_MINUTES` | idle minutes after which the job ends itself | 30 |
 | `SITE_RESET_REPOSITORY` | the repository a trial resets, `owner/repo`; `reset-to-tag.sh` acts only when it equals `SITE_REPOSITORY` (see *Repeating a trial*) | none |
 | `SITE_SANITISE_RULES` | the file of rules that sanitise what leaves the site | `sanitise.rules` beside the site file |
 
@@ -1154,7 +1154,7 @@ A missing piece shows up in step 5 or later as a failed check, not as a message 
 | `secrets` | `gcloud secrets describe` finds `SITE_HOSTING_SECRET` and `SITE_MODEL_SECRET`; it never reads a version | the detail names the secret that failed: wrong name, or your identity cannot see it |
 | `code` | `git ls-remote $SITE_CODE_URL` through `SITE_PROXY`, with no credential, works, and `SITE_CODE_REF` is listed as a branch or tag (a 40-digit commit id is taken without a lookup) | the proxy does not reach the code host, the repository needs a credential, or the ref does not exist |
 | `no_proxy` | `SITE_NO_PROXY` covers the model API's host and none of the hosts of `SITE_CODE_URL`, `SITE_REPOSITORY_URL` and `SITE_API_URL` | the detail names the host and the rule. A domain `d` covers `d` and every host ending in `.d`, a leading `.` ignored. The job cannot resolve a code host itself, so it must go through the proxy; a model host that is not covered makes opencode wait for the proxy to answer for an internal host |
-| `job` | informational: `ok job: <name> exists` or `ok job: <name> does not exist yet` | only a missing `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB`. A missing job is not told from a failed call; `identity` catches a broken identity |
+| `job` | informational: `ok job: <name> exists`, `ok job: <name> does not exist yet` (gcloud answered that the job is not found) or `ok job: <name> cannot be read: <first line of gcloud's error>` (any other failure, for instance `PERMISSION_DENIED`; `gcloud run jobs describe failed` when gcloud printed nothing) | only a missing `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB`. The line never fails, even when the job cannot be read; read its text, because a rights problem otherwise shows only when `job.sh` runs |
 
 A check that depends on a failed tool or token fails with it, so one fault can print several `FAIL` lines: a missing `gcloud` fails `tools`, `identity` and `secrets` (`site: 3 failed`), and an empty token fails `token` and `repository`. Fix the first line and run it again.
 
@@ -1260,7 +1260,7 @@ sh operator/job/job.sh status
 | Command | Keys it reads |
 |---|---|
 | `create`, `update` (required) | `SITE_PROJECT`, `SITE_REGION`, `SITE_RUN_AS`, `SITE_CONNECTOR`, `SITE_PROXY`, `SITE_NO_PROXY`, `SITE_JOB`, `SITE_INSTANCE`, `SITE_REPOSITORY_URL`, `SITE_CODE_URL`, `SITE_CODE_REF`, `SITE_HOSTING_SECRET`, `SITE_MODEL_SECRET`, `SITE_MODEL_BASE_URL`, `SITE_MODEL`, `SITE_LOGIN_URL`, `SITE_LOGIN_SCOPE`, `SITE_LOGIN_CLIENT_ID` |
-| `create`, `update` (optional) | `SITE_IMPERSONATE` (none), `SITE_CPU` (`8`), `SITE_MEMORY` (`32Gi`), `SITE_TIMEOUT` (`14400`, seconds), `SITE_IDLE_MINUTES` (`60`), `SITE_MODEL_INPUT_COST` and `SITE_MODEL_OUTPUT_COST` (`0`) |
+| `create`, `update` (optional) | `SITE_IMPERSONATE` (none), `SITE_CPU` (`4`), `SITE_MEMORY` (`16Gi`), `SITE_TIMEOUT` (`86400`; seconds or a duration), `SITE_IDLE_MINUTES` (`30`), `SITE_MODEL_INPUT_COST` and `SITE_MODEL_OUTPUT_COST` (`0`) |
 | `execute`, `delete`, `log`, `status` | `SITE_PROJECT`, `SITE_REGION`, `SITE_JOB` (and `SITE_IMPERSONATE` when set) |
 
 Missing required keys are all named in one line, `site: missing <keys> in <path>`, with status 2 and no `gcloud` call.
