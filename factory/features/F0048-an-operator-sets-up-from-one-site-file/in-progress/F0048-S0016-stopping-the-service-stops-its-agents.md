@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T07:21:31.420400Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-11-03T07:21:25.067425Z'
   stage: doing
   run: 31f8ea737a264be4a21dfe37f94fcbf9
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:21:31.420400Z'
+  stage: review
 ---
 
 # Stopping the service stops its agents
@@ -290,3 +299,4 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+17. factory: started review as vm.
