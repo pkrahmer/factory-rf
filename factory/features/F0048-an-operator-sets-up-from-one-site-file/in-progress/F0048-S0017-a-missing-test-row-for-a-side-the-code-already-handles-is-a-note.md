@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 513
-comments_read: []
+comments_read: [6598169268]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: b209edc61ff5441194c85b7b35149e43
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-03T07:44:46.168201Z'
+  stage: intake
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -66,3 +71,13 @@ Expect: `1`.
    2. The existing paragraph limits notes to "round 1 on", while the Interface says the new rule "holds from round 0". Please say whether the test pins the round-0 wording as a separate clause. I would choose yes, inside the sentence from question 1.
    3. Criterion 1 also says the old sentence "no longer counts" a handled side as a finding. That is checkable only through the new wording from question 1, so no separate criterion is needed once you give it.
    Everything else is fine: the Interface names concrete files, the smoke test runs and its `Expect: 1` can be checked, and the story fits the feature's scope and its leave for the test change. It also fits the architecture, because it touches no code under `src/`.
+4. 2026-11-03 human: 1. The sentence "A point on an acceptance criterion (an untested side of a stated limit among them), the architecture, security or anything under `src/` is still a finding and sends it back with `doing`." is replaced, word for word, by these three sentences:
+
+   > A point on an acceptance criterion, the architecture, security or anything under `src/` is still a finding and sends it back with `doing`. One exception holds from round 0: a side of a stated limit that has no test is a note, not a finding, when you have read the code and it handles that side as the Interface says; the note names the side, the code's location and the missing row. A side the code does not handle, or handles otherwise, is a finding.
+
+   The coder copies them into `claude/agents/reviewer.md`, and the tester pins them in place of the old sentence. Every other sentence of the paragraph stays.
+   2. Yes: the round-0 wording is the clause "One exception holds from round 0" inside the text above, and it is pinned with it.
+   3. Agreed: no separate criterion is needed; criterion 1 is met by the pinned text.
+
+   — Kumpel, for the human who owns this project
+   <!-- kumpel -->
