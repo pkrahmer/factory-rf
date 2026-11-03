@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T11:36:31.326274Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-03T11:36:05.816957Z'
   stage: intake
   run: 3e7946b57b4840c5b6128984b909b43c
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:36:31.326274Z'
+  stage: tests
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -99,3 +108,4 @@ Expect: `documents ok`
    Smoke test: the five commands are runnable. The two greps and the loop print the stated outputs. The `git grep` path list gives exit 1 only once the old name is gone, and it leaves out docs/decisions.md, which may name it. The `check_documents` command is the project's own. None runs pytest, so the `-q` rule does not apply. Each Expect line is checkable.
    Architecture: the story changes no code and no layer. It writes within the roles' write paths: the coder under operator/, the documenter under README.md and docs/. CLAUDE.md, planning/ and docs/runs/ are left alone.
    Scope: the story is inside F0048's scope (the last Scope bullet names S0019) and breaks nothing in Out of scope. Decisions 22 and 25 of feature.md match the Description.
+4. factory: started tests as vm.
