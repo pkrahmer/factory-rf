@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694, 6592430164]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T00:58:14.551722Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-03T00:58:14.551722Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T00:59:12.984364Z'
+  stage: review
+  run: 3aee635f7e8940acb1c5309c8c0d9a12
 ---
 
 # Kumpel signs everything it does
@@ -329,3 +331,25 @@ Expect: two lines, a number of at least `1`, then `0`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 22. factory: started review as vm.
+23. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. I read `comment.sh`, `merge.sh`, `start-story.sh`, `status.sh`, `SKILL.md`, both references and every changed or added test file. Round 0 had four findings, and all four are settled:
+    - finding 1: `recorded_requests` is now shared in `tests/operator_skill_support.py`, and `sent` is gone.
+    - finding 2: the row `verdict-fourth-from-the-end` is back and expects `verdict posted`, with the human's leave in entry 15.
+    - findings 3 and 4: criterion 9 is a row (`signed-then-more-text`) of the parametrized `test_a_text_is_signed_unless_it_ends_signed`, beside criterion 2's row. Criterion 10 is the row `three` of the refusal test.
+
+    Group 1, the criteria: every criterion from 1 to 10 has a test named after it, and each test checks what its criterion says. The Interface's limits are tested on both sides:
+    - arguments: 0, 1 and 3 refused, 2 accepted;
+    - the file: missing or empty refused, non-empty posted;
+    - the signature: ending signed is sent unchanged, signed with more text after is signed again;
+    - the verdict marker: at the top, at the end and absent, plus the factory marker taking precedence.
+
+    Entry 21 records `make check` green. Group 2, architecture: nothing under `src/` changed, and the scripts reach the host only through `hosting_repo_api`. Group 3, security: both JSON bodies are built with `json.dumps` from argv. The hosting client quotes the URL and the body in its curl configuration (`operator/lib/hosting.sh:90-98`), so the `<pr>` argument cannot inject anything. The identity is set for the one `git commit` only. There are no secrets and no silencing markers. Group 4, quality: the script comments explain why. Group 5, hygiene: the Description matches what was built, and no file of the skill names `gh` any more. The coder's swap of `gh pr merge` for `merge.sh` in `approving.md` fits "they no longer name `gh`", and I accepted it in round 0. Criterion 12 (docs) still describes what the reader needs to know.
+
+    no findings
+
+    Earlier tests:
+    - `tests/conftest.py`: the standing leave to move a shared test helper. The `operator` fixture moved here and is built with `make_operator` from `tests/operator_skill_support.py`.
+    - `tests/test_operator_skill_scripts.py`: the standing leave covers moving `Operator`, its constants and its helpers to `tests/operator_skill_support.py`, with every test keeping its name. The human's answer in journal entry 15, option (a), covers the row `verdict-fourth-from-the-end`, which now expects `verdict posted`.
+    - `tests/test_operator_merge_reset.py`: criterion 5 is the human's leave in the story for `test_an_approved_pull_request_is_merged_and_its_archive_awaited`, now one row per field. The standing leave covers moving `Request` and the `curl.jsonl` parsing to `recorded_requests` in the support module. `Machine.requests()` keeps its name and what it returns.
+
+    Notes:
+    - `tests/operator_skill_support.py`, `Operator.urls()`: it still parses `curl.jsonl` itself, for URLs only, beside `recorded_requests` in the same module. It could be built on top of that parsing.
