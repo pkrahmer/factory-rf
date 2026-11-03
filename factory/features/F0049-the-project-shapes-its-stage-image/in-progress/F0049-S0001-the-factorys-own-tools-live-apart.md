@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948, 6618330636]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T23:41:47.011755Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -254,6 +250,12 @@ journal:
   kind: started
   at: '2026-11-03T23:41:47.011755Z'
   stage: doing
+- number: 45
+  speaker: coder
+  kind: result
+  at: '2026-11-03T23:45:43.670571Z'
+  stage: doing
+  run: 069d56d986d0487ba0c3dfe74cd3108a
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -798,3 +800,18 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     Findings:
     1. Command: `grep -cE 'install .*\b(nodejs|npm)\b' vm/Dockerfile`. Expected: `0`. Observed: `1`. The match is the comment at `vm/Dockerfile:28` ("…install native executables: the factory's Node serves npm's install alone…"), where the word `npm` comes after `install` on the same line. The Dockerfile installs neither `nodejs` nor `npm`, so no criterion is contradicted. The smoke test's expectation still fails as written, and `vm/Dockerfile` is the coder's file, not a document the documenter writes, so this goes to `doing`. A possible fix: reword that comment so that no `npm` or `nodejs` follows the word `install` on the line (for example "the factory's Node serves the runtimes' installation alone"). The other option is for the human to narrow the smoke test's pattern to the `apt-get install` line. I would choose rewording the comment, because the smoke test is the human's.
 44. factory: started doing as vm.
+45. coder: I reworded the comment on `vm/Dockerfile:28`, the one change the human asked for in entry 41. It now reads: "# The runtimes are native executables: the factory's Node serves only the npm step, so the commands exec them directly." `vm/Dockerfile` is the only file I changed, and the code is the same as round 2 left it.
+
+    - Smoke-test command 4, `grep -cE 'install .*\b(nodejs|npm)\b' vm/Dockerfile`, now prints `0`. I also checked line 23 ("npm and the runtimes' install scripts find node…"): "npm" comes before "install" there and no "npm" or "nodejs" follows it, so it does not match.
+    - `make check` ended with `check: green`.
+
+    Main choice: I used the human's own example wording. I rejected narrowing the smoke test's pattern to the `apt-get` line, because the human said the smoke test stays as written.
+
+    Refactor: the diff is one comment line, so there was nothing to change.
+
+    Noticed, not touched: these stay open until the human builds the image on the VM (criterion 6): `NODE_SHA256` checked against the real archive, and `claude --version` and `opencode --version` through the wrappers. The journal did not change the Description this round.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
