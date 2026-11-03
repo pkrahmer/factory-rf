@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 507
 comments_read: [6591979242]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T00:31:27.972433Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-03T00:31:07.505100Z'
   stage: review
   run: 9458fccd5c2740daa64ef6d6a5390ca7
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:31:27.972433Z'
+  stage: docs
 ---
 
 # The factory does not pause after a tick that found activity
@@ -213,3 +222,4 @@ Expect: `0.0 30.0`.
     - tests/application/test_scheduler.py, changed under the human's leave in journal entry 6. Option (a) changed four earlier tests, each keeping its name: `test_each_iteration_prepares_then_ticks_and_the_first_comes_before_any_sleep`, `test_sleeps_follow_the_idle_count_since_the_last_activity`, `test_a_failed_preparation_skips_the_tick_and_counts_as_idle` and `test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle`.
       - That last test now stops after its second iteration instead of at its second tick; on the prepare side the second iteration holds the first tick. This matches the intent of option (a): it cannot hang.
       - The table test was renamed to `test_pause_is_none_after_activity_and_doubles_from_thirty_seconds_up_to_two_minutes`. Criterion 1 allows changing it, and entry 6 approves the new name.
+13. factory: started docs as vm.
