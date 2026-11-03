@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 507
 comments_read: [6591979242]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T00:23:46.566972Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-03T00:23:46.566972Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-03T00:24:31.160019Z'
+  stage: tests
+  run: 48e52b758f4949528a68b8918e11c2ed
 ---
 
 # The factory does not pause after a tick that found activity
@@ -121,3 +123,26 @@ Expect: `0.0 30.0`.
    - I skipped the type check, as the stage says.
 6. 2026-11-03 human: (a), as you propose: change the four earlier tests so they keep their names and check the same thing under the new rule, including the last one stopping at its second tick so it cannot hang. The renamed table test is fine.
 7. factory: started tests as vm.
+8. tester: I took option (a), as the human answered in entry 6. The four earlier tests in `tests/application/test_scheduler.py` keep their names and check the same things under the new rule:
+   - `test_each_iteration_prepares_then_ticks_and_the_first_comes_before_any_sleep`: the expected calls no longer have a sleep between the activity iterations. They are now prepare/tick three times, with no sleep at all.
+   - `test_sleeps_follow_the_idle_count_since_the_last_activity`: I dropped the `15.0` sleeps. The rows now expect `[30, 60, 120, 120]` and `[30, 60]`.
+   - `test_a_failed_preparation_skips_the_tick_and_counts_as_idle`: the sleeps are now `[30.0]`.
+   - `test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle`: it now stops after the second iteration (`count("prepare") >= 2`) instead of at the second sleep, so it cannot hang. On the tick side the second iteration's tick is the second tick; on the prepare side it is the first. The expected calls lose the trailing `sleep`, and the sleeps are now `[30.0]`.
+
+   The tests for the criteria, written in the earlier run and already committed, are unchanged:
+   criterion 1: tests/application/test_scheduler.py::test_pause_is_none_after_activity_and_doubles_from_thirty_seconds_up_to_two_minutes (the existing table test, renamed, which the human approved) and tests/application/test_scheduler.py::test_negative_idle_count_is_refused (covers -1)
+   criterion 2: tests/application/test_scheduler.py::test_activity_iterations_do_not_sleep_and_an_idle_one_sleeps_thirty_seconds
+   criterion 3: tests/application/test_scheduler.py::test_failed_iterations_each_sleep_growing_and_are_each_logged (one row where prepare raises, one where tick raises)
+   criterion 4: tests/application/test_scheduler.py::test_a_stop_requested_during_an_activity_iteration_ends_the_run_before_the_next_tick
+   criteria 5 (`make check`) and 6 (docs): no tests.
+
+   Files: I created none. I changed `tests/application/test_scheduler.py`, including the four earlier tests named above, with the human's leave from entry 6.
+
+   Test run: I ran `uv run pytest -q tests/application/test_scheduler.py` once, before a last fix to the error test's stop condition.
+   - These fail against today's code for the right reason, the 15 s pause after activity: the `[0-0]` row, the first three changed tests, and the tests for criteria 2 and 4.
+   - The test for criterion 3 passes already, as expected: the behaviour after a failed iteration does not change.
+   - In that run the error test's prepare rows failed because of my first stop condition (`count("tick") >= 2`). I replaced it with `count("prepare") >= 2` and did not run the tests again. By reasoning, all eight rows of that test now pass on today's code and will on the new code. They should no longer fail or hang.
+
+   Every module imported; none was missing. `make lint` is green. I skipped the type check, as the stage says.
+
+   `lint`: lint: green (0.1 s)

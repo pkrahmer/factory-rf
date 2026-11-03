@@ -89,18 +89,9 @@ def test_negative_idle_count_is_refused() -> None:
 def test_each_iteration_prepares_then_ticks_and_the_first_comes_before_any_sleep() -> None:
     loop = Loop(prepares=[], ticks=[])
     loop.run(lambda loop: loop.count("tick") >= 3)
-    assert loop.calls == [
-        "prepare",
-        "tick",
-        "sleep",
-        "prepare",
-        "tick",
-        "sleep",
-        "prepare",
-        "tick",
-    ]
+    assert loop.calls == ["prepare", "tick", "prepare", "tick", "prepare", "tick"]
     assert loop.count("tick") == 3
-    assert loop.count("sleep") == 2
+    assert loop.count("sleep") == 0
 
 
 def test_stop_from_the_start_calls_nothing() -> None:
@@ -112,8 +103,8 @@ def test_stop_from_the_start_calls_nothing() -> None:
 @pytest.mark.parametrize(
     ("ticks", "sleeps"),
     [
-        ([True, False, False, False, False, False], [15.0, 30.0, 60.0, 120.0, 120.0]),
-        ([False, False, True, False], [30.0, 60.0, 15.0]),
+        ([True, False, False, False, False, False], [30.0, 60.0, 120.0, 120.0]),
+        ([False, False, True, False], [30.0, 60.0]),
     ],
 )
 def test_sleeps_follow_the_idle_count_since_the_last_activity(
@@ -128,7 +119,7 @@ def test_a_failed_preparation_skips_the_tick_and_counts_as_idle() -> None:
     loop = Loop(prepares=[False, True, True], ticks=[])
     loop.run(lambda loop: loop.count("prepare") >= 3)
     assert loop.count("tick") == 2
-    assert loop.sleeps == [30.0, 15.0]
+    assert loop.sleeps == [30.0]
 
 
 def test_an_exception_from_the_tick_is_logged_and_counts_as_idle() -> None:
@@ -219,8 +210,8 @@ _LOOP_ERRORS = [
 @pytest.mark.parametrize(
     ("raising_side", "calls"),
     [
-        ("tick", ["prepare", "tick", "sleep", "prepare", "tick", "sleep"]),
-        ("prepare", ["prepare", "sleep", "prepare", "tick", "sleep"]),
+        ("tick", ["prepare", "tick", "sleep", "prepare", "tick"]),
+        ("prepare", ["prepare", "sleep", "prepare", "tick"]),
     ],
 )
 @pytest.mark.parametrize(("error", "line"), _LOOP_ERRORS)
@@ -232,10 +223,10 @@ def test_every_kind_of_error_the_loop_meets_is_logged_once_and_counts_as_idle(
         loop = Loop(prepares=[], ticks=first_fails)
     else:
         loop = Loop(prepares=first_fails, ticks=[True])
-    loop.run(lambda loop: loop.count("sleep") >= 2)
+    loop.run(lambda loop: loop.count("prepare") >= 2)
     assert loop.log.lines == [line]
     assert loop.calls == calls
-    assert loop.sleeps == [30.0, 15.0]
+    assert loop.sleeps == [30.0]
 
 
 def _settings(remote: Path, checkout: Path) -> InstanceSettings:
