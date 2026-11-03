@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T02:05:14.033796Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-03T02:05:14.033796Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-03T02:05:32.047337Z'
+  stage: doing
+  run: b2c0c26ff2c043199bce0a867c25f984
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -200,3 +202,17 @@ Expect: one line that says the tests passed and names no failure.
     - `tests/conftest.py`: standing leave to move a shared test helper. The fixtures `instance_settings` and `on_the_manual_clock` moved here from `tests/entry/test_run_idle_exit.py` unchanged.
     - `tests/entry/test_run_idle_exit.py`: standing leave to move a shared test helper. Only those two fixtures and the imports they alone used were removed; every test keeps its name and checks the same thing.
 13. factory: started doing as vm.
+14. coder: Round 1: I changed no code. All four of the reviewer's findings (entry 12) are test changes, and the code they test is already in place from my round-0 entry (10). For the tester:
+
+    1. Criterion 6 needs its test, in `tests/entry/test_run_machine_stop_exit.py`. A tick raises the machine stop again, with `at` set to that tick's time, at T, T + 5 and T + 9 minutes. The test expects the loop to end at the first tick at T + 10 minutes or later. This test fails if `MachineStopExit.observe` (`src/factory/application/machine_stop_exit.py`) dropped the `min(...)` that keeps the earliest `at` of an unbroken stretch.
+    2. Criterion 7 needs its test. In criterion 1's test (`test_a_machine_stop_standing_ten_minutes_in_a_job_ends_the_loop_and_main_returns_one`), also check that the stop's line from the Interface is the last line of the factory log.
+    3. Criterion 1's "an iteration that ran no tick" needs a case, either a row of criterion 1's test or a test of its own. In it, `prepare` returns `False` while a machine stop stands in the health status, for example a remote whose `main` lacks the pipeline definition. The case expects the loop to end at the first iteration at T + 10 minutes or later, and `main` to return 1. The path it covers is `observed_prepare` in `_observed_iteration`, `src/factory/entry/run.py`.
+    4. A shared test helper moves, under the standing leave. Move `_ScriptedTick` and `_scripted` from `tests/entry/test_run_idle_exit.py` to a new `tests/*_support.py` module. Build `_StopTick` and `_RunMain` in `tests/entry/test_run_machine_stop_exit.py` on them, including the `build_tick` patch and the `main` runner of `test_main_returns_zero_after_the_idle_exit_ends_the_loop`. Every earlier test keeps its name and checks the same thing.
+
+    Main choice: I end with `tests` and change no code. The alternative I rejected was adding code to fit the coverage gap of finding 3: the path exists and only lacks its test.
+
+    The journal changed the meaning of the task: the reviewer added criteria 6 and 7, which the Description already holds, and the work item is outside my write paths, so I did not rewrite anything.
+
+    Noticed but not touched: `HealthStatus.with_stop` still moves a re-raised stop's `at` forward, so the health file shows the last raise rather than the first. This is unchanged from my round-0 entry.
+
+    Refactor: there is no diff this round, so there was nothing to refactor.
