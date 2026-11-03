@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T11:40:43.579583Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-03T11:40:35.873920Z'
   stage: doing
   run: 3636e6408d594364ab0ef3b37c8ab4d9
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:40:43.579583Z'
+  stage: review
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -148,3 +157,4 @@ Expect: `documents ok`
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 42 known, 0 gone
+8. factory: started review as vm.
