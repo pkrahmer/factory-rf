@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694, 6592430164]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T01:00:00.443449Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-03T01:00:00.443449Z'
   stage: smoke-test
+- number: 27
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T01:00:22.345944Z'
+  stage: smoke-test
+  run: 70eacb19ef1248179ca954084177efa8
 ---
 
 # Kumpel signs everything it does
@@ -392,3 +394,20 @@ Expect: two lines, a number of at least `1`, then `0`.
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 26. factory: started smoke-test as vm.
+27. smoke-tester: Ran the two smoke test commands from the repository root, in order, exactly as written.
+
+    Command 1: `grep -c "Kumpel <kumpel@noreply.invalid>" operator/skill/kumpel/scripts/start-story.sh`
+    ```
+    1
+    ```
+    Command 2: `grep -rl "gh pr comment" operator/skill/kumpel | wc -l`
+    ```
+    0
+    ```
+    Both exited 0. Expect (two lines: a number of at least `1`, then `0`): met.
+
+    What I saw: the one line that matches in `start-story.sh` is the header comment (line 3). The setting itself is at lines 20–21: `GIT_AUTHOR_NAME=Kumpel GIT_AUTHOR_EMAIL=kumpel@noreply.invalid` and `GIT_COMMITTER_NAME/EMAIL` are set as environment variables for that one commit. The clone's configuration is not touched, which is what criterion 4 asks for, so this does not contradict it. The smoke test's grep passes because of the comment, not because of the code.
+
+    Checked against the acceptance criteria: no criterion is contradicted. `operator/skill/kumpel/scripts/comment.sh` exists. `SKILL.md`, `references/answering.md` and `references/approving.md` each contain `comment.sh` (criterion 8). No file under `operator/skill/kumpel/` holds `gh pr comment` (criterion 7). The behaviour of `comment.sh`, `merge.sh` and `status.sh` (criteria 1–6, 9, 10) is outside what the smoke test runs; the tests cover it, and the factory runs `make check` as the gate.
+
+    Findings: none.
