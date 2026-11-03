@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T23:38:28.582987Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -211,6 +215,11 @@ journal:
   at: '2026-11-03T23:38:22.618518Z'
   stage: docs
   run: 8f208a4374c34b809ad0b346ff9f60fb
+- number: 38
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:38:28.582987Z'
+  stage: smoke-test
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -656,3 +665,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     `check`: check: green (not run again: passed on tree 75936223d8f9 at 2026-11-03T23:34:36Z)
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
+38. factory: started smoke-test as vm.
