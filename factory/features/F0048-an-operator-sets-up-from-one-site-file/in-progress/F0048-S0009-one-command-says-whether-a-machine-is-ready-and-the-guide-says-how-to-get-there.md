@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T01:09:51.656850Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T01:09:46.791026Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:09:51.656850Z'
   stage: tests
 ---
 
@@ -191,3 +200,4 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
    - Criterion 16 removes `gcloud` and `curl`. It checks only that the `tools` detail names both, not the total.
    - To make a tool missing, the test builds a `PATH` of symlinks to the system's programs without `gcloud`, `curl`, `git`, `python3` and `gh`, with the stand-ins first.
 9. 2026-11-03 human: Both (a), as you propose. 1: keep the Interface; the gcloud row expects `site: 3 failed` and the token row `site: 2 failed`, exit 1, each checking its own FAIL line and that every other check still prints its line. 2: the git stand-in answers `ls-remote` itself and passes the local reads (`rev-parse`, `remote get-url`, `config --get` or `config <key>`) to the real git; criterion 7 asserts every git call is one of those and none is a push. Your three own choices are right.
+10. factory: started tests as vm.
