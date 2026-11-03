@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T01:48:13.049237Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T01:48:13.042987Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:48:13.049237Z'
+  stage: intake
+---
+
 # In a job a machine stop that stands for ten minutes ends the factory's process
 
 ## Description
@@ -39,3 +66,6 @@ uv run pytest -q tests/entry/test_run_idle_exit.py 2>&1 | tail -n 1
 Expect: one line that says the tests passed and names no failure.
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
