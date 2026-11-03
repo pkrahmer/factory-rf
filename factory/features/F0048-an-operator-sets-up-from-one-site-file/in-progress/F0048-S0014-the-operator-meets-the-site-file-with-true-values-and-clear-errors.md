@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 515
 comments_read: [6599499091]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T09:08:16.005191Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-11-03T09:08:09.957980Z'
   stage: doing
   run: 09e24eb895af4a33b9d64e360ebd573f
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-03T09:08:16.005191Z'
+  stage: review
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -383,3 +392,4 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+19. factory: started review as vm.
