@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211, 6591823542]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T00:13:28.646595Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -257,6 +253,12 @@ journal:
   kind: started
   at: '2026-11-03T00:13:28.646595Z'
   stage: smoke-test
+- number: 45
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T00:14:13.933907Z'
+  stage: smoke-test
+  run: d25d44b8c6d14cb39627766ab6a14035
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -680,3 +682,22 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 44. factory: started smoke-test as vm.
+45. smoke-tester: Smoke test, round 2. I ran both commands under `## Smoke test` from the repository root, as written and in order, and changed nothing. Each command's `trap` removed its temporary directory; I checked that `/tmp/tmp.ui1cnZdKRc` was gone afterwards.
+
+    Command 1: `SITE_REPOSITORY=owner/repo`, `SITE_RESET_REPOSITORY=owner/other`, then `reset-to-tag.sh starting-point --yes`:
+    ```
+    reset-to-tag.sh: owner/repo is not the site's resettable repository
+    exit 1
+    ```
+    Met its `Expect:` line. Two lines, the refusal message and `exit 1`. Running the command again with `2>/dev/null` printed only `exit 1`, so the message goes to standard error.
+
+    Command 2: `SITE_REPOSITORY=owner/repo`, with `SITE_RESET_REPOSITORY` unset, then `reset-to-tag.sh starting-point --yes`:
+    ```
+    site: missing SITE_RESET_REPOSITORY in /tmp/tmp.ui1cnZdKRc/site.env
+    exit 2
+    ```
+    Met its `Expect:` line. The path is the temporary file's own path, and the exit code is 2. With `2>/dev/null` only `exit 2` was left, so this message also goes to standard error. (I printed the file's path a second time on standard error only to compare it with the message; that line is not part of the command's output.)
+
+    Against the acceptance criteria: the smoke test exercises two rows of criterion 5 (the repositories differ; `SITE_RESET_REPOSITORY` unset). In both the script exits as the Interface says and makes no request: nothing reached the hosting service, since it stopped before resolving the tag. Neither output contradicts any other criterion. The smoke test does not exercise the other criteria (merge.sh, the plan, `--yes` ordering, the docs criterion); the tests and the factory's checks cover those.
+
+    Findings: none.
