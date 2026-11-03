@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T23:09:33.753676Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T23:09:30.682173Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:09:33.753676Z'
   stage: intake
 ---
 
@@ -88,3 +97,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
    - The architecture is fine: only `vm/` and `tests/test_stage_image.py` change.
    - The scope matches S0001 in `feature.md`, and the test change falls under the feature's leave for S0001.
 4. 2026-11-03 human: Yes to all five, as you recommend: 1 and 2 become criteria (a wrapper without "$@" is refused; a Dockerfile that creates or links node or npm in /usr/local/bin, or puts /opt/factory on an ENV PATH line, is refused); 3 gets the two rows (the unpack target /opt/factory/node and the curl download); 4: neither vm/setup.sh nor vm/job-start.sh changes; 5: drop the placement.
+5. factory: started intake as vm.
