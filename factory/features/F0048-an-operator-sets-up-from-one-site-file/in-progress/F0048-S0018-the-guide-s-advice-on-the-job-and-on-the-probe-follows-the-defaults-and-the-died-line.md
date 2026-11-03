@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229, 6600934999]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T10:23:09.644429Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-03T10:23:09.644429Z'
   stage: smoke-test
+- number: 23
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T10:23:30.992751Z'
+  stage: smoke-test
+  run: 84d4ed1a153148d18b654d6a127d5fa3
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -333,3 +335,45 @@ Expect: `documents ok`
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 22. factory: started smoke-test as vm.
+23. smoke-tester: Ran the four smoke-test commands from the repository root, as written and in order. All four outputs met their `Expect:` lines. No findings.
+
+    1. `grep -c 'Eight vCPUs' docs/operator-guide.md; grep -c 'no text that says why' docs/operator-guide.md`
+    ```
+    0
+    0
+    ```
+    Met (`0`, then `0`).
+
+    2. `sed -n '/^### What the job needs/,/^### The environment/p' docs/operator-guide.md | grep -c 'SITE_TIMEOUT'`
+    ```
+    1
+    ```
+    Met (at least `1`).
+
+    3. `grep -c -- '--layers=false' vm/job-start.sh; grep -c 'image prune -f' vm/job-start.sh`
+    ```
+    1
+    1
+    ```
+    Met (`1`, then `1`).
+
+    4. `uv run python -m factory.entry.check_documents`
+    ```
+    Bytecode compiled 4164 files in 47ms
+    documents ok
+    ```
+    Met (`documents ok`; the first line is uv's own output).
+
+    Checked against the acceptance criteria: I read `git diff origin/main` for `vm/job-start.sh` and `docs/operator-guide.md`. The smoke test contradicts no criterion.
+    - Criteria 1–3: in `vm/job-start.sh`, the step `image` runs the build with `--layers=false` (line 155) and then `podman $JOB_PODMAN_OPTIONS image prune -f || failed image` (line 157). The prune line has no `-a` and no `--all`.
+    - Criterion 4: I did not run `make check` again. Entry 17 records it green after the coder. The documenter changed only `docs/operator-guide.md`.
+    - Criterion 5:
+      - **Size**: now says 4 vCPUs and 16 GiB unless `SITE_CPU` and `SITE_MEMORY` say otherwise, and that memory is the limit to raise first. It also says the 2.4 GB stage image sits in memory because podman's storage is a tmpfs, and that the job removes the build's leftovers. The plain base copy and the 1.6 s per GiB stay.
+      - **The task timeout**: says the default of 86400 seconds equals a daily interval, so a nightly job sets `SITE_TIMEOUT` below it, such as `23h`. The sentence on overlapping executions stays.
+      - *The probe of the agent run*: the parenthesis now names the line `run <run id> of <work item> (<stage>) died: <text>`.
+      - *The rebuild after a merge*: gains `podman image prune -f` with the paragraph the criterion asks for, including that the next build is slower.
+      - The diff touches no other passage.
+
+    Note, not a finding: the guide's manual rebuild command still runs `podman build` without `--layers=false`. The criterion asks only for the prune there, so the guide matches the story.
+
+    Open: nothing.
