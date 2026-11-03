@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T23:31:48.741422Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -167,6 +171,11 @@ journal:
   at: '2026-11-03T23:31:35.227722Z'
   stage: doing
   run: e3b29874c3974e409a98ac7e419763b0
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:31:48.741422Z'
+  stage: tests
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -504,3 +513,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     Noticed, not touched:
     - Entry 25 changes the meaning of criterion 4 and of the Interface bullet for `/usr/local/bin/claude` and `/usr/local/bin/opencode`, which still says "runs the runtime's installed command with `/opt/factory/node/bin/node`". The Description also says the commands "run the runtimes with the factory's Node by its full path". The work item is outside the coder's write paths, so I did not rewrite them. They need rewriting to say that Node 22 is only for npm's install and that the wrappers exec the installed command directly.
     - The `docs/operator-guide.md` paragraph and the `docs/decisions.md` entry from entry 22 say that the runtimes *run* on the factory's own Node. After entry 25 they should say that Node is only for the install. That is the documenter's work.
+30. factory: started tests as vm.
