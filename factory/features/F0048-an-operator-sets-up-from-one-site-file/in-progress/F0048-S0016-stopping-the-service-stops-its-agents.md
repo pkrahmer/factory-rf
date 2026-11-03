@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T07:22:48.523892Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-11-03T07:22:42.803316Z'
   stage: review
   run: cc32cdee18d547348e9ee08f57d4b693
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:22:48.523892Z'
+  stage: doing
 ---
 
 # Stopping the service stops its agents
@@ -322,3 +331,4 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     - `tests/podman_support.py`: the human's leave, entry 9 (the shared constant `INSTANCE = "vm"`).
     - `tests/test_vm_local_environment.py`: the human's leave, entry 9.
     - `tests/test_vm_service.py`: the human's leave, entry 9.
+19. factory: started doing as vm.
