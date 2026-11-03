@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T11:41:36.497332Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-03T11:41:36.497332Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-11-03T11:42:04.743285Z'
+  stage: tests
+  run: fb3d3cb265db408488c71520285420ad
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -206,3 +208,20 @@ Expect: `documents ok`
 
     Noticed but not touched: the old name is still in README.md, docs/operator-guide.md and docs/project-guide/. Those files are the documenter's under part B.
 12. factory: started tests as vm.
+13. tester: I moved the copied helper that the reviewer found (entry 9), as the coder named it in entry 11. CLAUDE.md's standing leave covers this move.
+
+    - tests/operator_skill_support.py now defines `SKILL = ROOT / "operator" / "skill" / "kumpel"`, and `SCRIPTS` is built from it as `SKILL / "scripts"`.
+    - tests/test_operator_skill_signature.py is an earlier story's test file, changed under the standing leave. It now imports `SKILL` from operator_skill_support instead of defining it. I removed `ROOT` from its operator_support import because nothing else in the module used it. Every test keeps its name and still checks the same thing.
+    - tests/test_operator_skill_name.py imports `SKILL` from operator_skill_support in place of its own `SKILL_DIRECTORY`.
+
+    I left the separate `SKILL` constant in tests/test_operator_texts.py alone. It is the path to SKILL.md, not to the directory, and neither the reviewer nor the coder named it.
+
+    The criterion mapping is the same as in entry 5:
+    - criterion 1: tests/test_operator_skill_name.py::test_the_skill_texts_do_not_name_the_old_repository, with rows `skill` and `standing-orders`.
+    - criteria 2 and 3: no test. `make check` is the gate for criterion 2, and the docs stage checks criterion 3.
+
+    Files created: none this round. Changed: tests/operator_skill_support.py, tests/test_operator_skill_signature.py, tests/test_operator_skill_name.py. Modules the test run could not import: none.
+
+    `uv run pytest -q tests/test_operator_skill_name.py tests/test_operator_skill_signature.py`: all 20 tests passed. `make lint`: lint: green.
+
+    `lint`: lint: green (0.1 s)

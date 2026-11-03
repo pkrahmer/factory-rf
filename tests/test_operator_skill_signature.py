@@ -11,15 +11,15 @@ from git_support import clone, run_git
 from operator_skill_support import (
     PREFIX,
     SCRIPTS,
+    SKILL,
     Operator,
     make_bare_remote,
     pull,
     recorded_requests,
     status_routes,
 )
-from operator_support import ROOT, hosting_env, run_script
+from operator_support import hosting_env, run_script
 
-SKILL = ROOT / "operator" / "skill" / "kumpel"
 SIGNATURE = "— Kumpel, for the human who owns this project"
 MARKER = "<!-- kumpel -->"
 ANSWER = "Yes, as you propose."

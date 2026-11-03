@@ -4,17 +4,15 @@ from pathlib import Path
 
 import pytest
 
-from operator_support import ROOT
-
-SKILL_DIRECTORY = ROOT / "operator" / "skill" / "kumpel"
+from operator_skill_support import SKILL
 
 
 @pytest.mark.parametrize(
     "text",
     [
-        pytest.param(SKILL_DIRECTORY / "SKILL.md", id="skill"),
+        pytest.param(SKILL / "SKILL.md", id="skill"),
         pytest.param(
-            SKILL_DIRECTORY / "references" / "standing-orders.md",
+            SKILL / "references" / "standing-orders.md",
             id="standing-orders",
         ),
     ],
