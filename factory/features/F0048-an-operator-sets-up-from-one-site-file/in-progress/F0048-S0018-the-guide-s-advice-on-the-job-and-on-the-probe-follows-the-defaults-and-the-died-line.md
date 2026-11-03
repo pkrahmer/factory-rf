@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229, 6600934999]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-03T10:22:24.938817Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-03T10:22:19.013194Z'
   stage: review
   run: f83ef321f2a34a99bfb6651f260655cb
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-03T10:22:24.938817Z'
+  stage: docs
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -294,3 +303,4 @@ Expect: `documents ok`
 
     Earlier tests:
     - tests/test_vm_job_start.py: changed under the human's leave in journal entry 11. The only change is `"--layers=false",` added after `"build",` in the expected argv of `test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options`, which keeps its name and its rows `given` and `default`.
+20. factory: started docs as vm.
