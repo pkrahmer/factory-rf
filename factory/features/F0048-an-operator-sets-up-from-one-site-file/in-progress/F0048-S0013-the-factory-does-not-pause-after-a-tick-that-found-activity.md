@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 507
 comments_read: [6591979242]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T00:30:13.835586Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-03T00:29:53.390405Z'
   stage: doing
   run: f1f102da0b3c490d9b6a6ad69c873f75
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:30:13.835586Z'
+  stage: review
 ---
 
 # The factory does not pause after a tick that found activity
@@ -176,3 +185,4 @@ Expect: `0.0 30.0`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+11. factory: started review as vm.
