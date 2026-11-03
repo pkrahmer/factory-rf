@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 507
-comments_read: []
+comments_read: [6591979242]
 handed_over: null
 claim: null
 journal:
@@ -37,6 +37,11 @@ journal:
   stage: tests
   run: 6c51bcc484ce445a9c7dd61eecfcc610
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-11-03T00:23:28.282625Z'
+  stage: tests
 ---
 
 # The factory does not pause after a tick that found activity
@@ -105,3 +110,4 @@ Expect: `0.0 30.0`.
    - Every module imported; nothing was missing.
    - `make lint` is green.
    - I skipped the type check, as the stage says.
+6. 2026-11-03 human: (a), as you propose: change the four earlier tests so they keep their names and check the same thing under the new rule, including the last one stopping at its second tick so it cannot hang. The renamed table test is fine.
