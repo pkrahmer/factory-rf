@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T02:13:18.940941Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-11-03T02:13:12.774416Z'
   stage: docs
   run: db0ac835fcd64b8786cd4120bbdd114d
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-03T02:13:18.940941Z'
+  stage: smoke-test
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -366,3 +375,4 @@ Expect: one line that says the tests passed and names no failure.
     `check`: check: green (not run again: passed on tree ceed9adf0207 at 2026-11-03T02:09:41Z)
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
+23. factory: started smoke-test as vm.
