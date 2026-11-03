@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 509
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T01:01:53.478624Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-03T01:01:53.478624Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-03T01:02:15.556378Z'
+  stage: intake
+  run: 1e69e63922dd4fe6a58b4fc73d4e0894
+  blocked: question
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -89,3 +92,16 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. Questions, none answered by me:
+
+   1. Check 11 `job` has no criterion. The Interface says it prints `ok job: <name> exists` or `ok job: <name> does not exist yet`, and criterion 1 only shows a generic `ok`. Please add a criterion with a row for each variant. I recommend one row where the stand-in `gcloud run jobs describe` succeeds and one where it reports the job as missing.
+   2. The Interface does not say which command check 11 runs, or how a missing job differs from a failed call. Criterion 7 lists `gcloud run jobs describe` as allowed, but the Interface names only `jobs list` and `secrets describe`. Please state the command and the rule: exit 0 means it exists, and what means "does not exist yet"? Also say whether any other error still prints `ok` (the check is "always ok").
+   3. Check 10 (`no_proxy`) says `SITE_REPOSITORY_URL` and `SITE_API_URL` must not be covered, but criterion 4 only has rows for the code host and the model host. Please add a covered-FAIL row for each of those two hosts.
+   4. Check 9 (`code`) says `ls-remote` runs with `https_proxy` set to `$SITE_PROXY` and no credential. No criterion tests either clause. Please add one that the stand-in `git` sees `https_proxy` equal to `SITE_PROXY`, and one that it sees no token or credential configuration.
+   5. Check 7 (`identity`) says the impersonation flag is added "when set". Please add criteria for both sides: the flag is in the `gcloud run jobs list` call when the impersonation key is set, and absent when it is not. Name the key, because the Interface does not.
+   6. Check 7 says the detail is "the first line of its error". Criterion 2 only says "a `gcloud run jobs list` that fails". Please say that the row's detail is checked as the first line of a multi-line stderr.
+   7. Check 2 (`keys`) says the job set means "the required ones of S0005". Please list the key names in this Interface, or name the exact place in S0005 that fixes them. Criterion 2's "a missing key" row cannot be written without knowing which keys are required.
+   8. Check 3 (`tools`) names four tools, but criterion 2 has a row only for `gcloud`. If you want a row per tool, say so. Otherwise confirm that one tool's row stands for the rule "the detail names the missing ones", and add a row with two tools missing at once, so the plural detail is tested.
+   9. Check 5 (`repository`) has the detail "the status and message" for a non-200 answer. Criterion 2 has a 404 row only. Please state the exact detail format, for example `HTTP 404: Not Found`, so the test can check it.
+
+   My recommendation for 1 to 9 is to add the criteria and Interface lines as above. The architecture and scope are fine: the work is shell under `operator/`, inside the feature's scope and inside the coder's write paths.
