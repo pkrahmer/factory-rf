@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 507
 comments_read: [6591979242]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T00:24:51.750512Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-03T00:24:31.160019Z'
   stage: tests
   run: 48e52b758f4949528a68b8918e11c2ed
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:24:51.750512Z'
+  stage: doing
 ---
 
 # The factory does not pause after a tick that found activity
@@ -146,3 +155,4 @@ Expect: `0.0 30.0`.
    Every module imported; none was missing. `make lint` is green. I skipped the type check, as the stage says.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
