@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T23:20:02.815485Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-03T23:19:55.713639Z'
   stage: doing
   run: 95715bd6b25745028951cd3a2aa667e3
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:20:02.815485Z'
+  stage: tests
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -258,3 +267,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     Noticed, not touched:
     - Entry 10's open points still stand. `NODE_SHA256` is checked against the real archive only when the human builds the image. A runtime whose bin is not a Node script would break its wrapper.
     - The journal did not change the Description.
+15. factory: started tests as vm.
