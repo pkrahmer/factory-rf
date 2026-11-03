@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T01:39:41.391763Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-03T01:39:41.391763Z'
   stage: review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T01:41:40.119290Z'
+  stage: review
+  run: 35f639ca7df145a0baa23a8c5dfb93cc
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -174,7 +176,7 @@ A fresh setup has failed in small ways: a token command that prints nothing, a s
   8. The `secrets` check runs `gcloud secrets describe <name> --project`, which exits 0 for `SITE_HOSTING_SECRET` and for `SITE_MODEL_SECRET`; the detail names the one that fails. Neither secret's value is read.
   9. `code`: `git ls-remote $SITE_CODE_URL`, run with `https_proxy` set to `$SITE_PROXY` and no credential, exits 0 and, when `SITE_CODE_REF` is not 40 hexadecimal characters, lists that ref as a branch or tag (a commit id is accepted without a lookup).
   10. `no_proxy`: the hosts of `SITE_CODE_URL`, `SITE_REPOSITORY_URL` and `SITE_API_URL` are not covered by `SITE_NO_PROXY` (a domain `d` covers a host that equals `d` or ends in `.d`, a leading `.` ignored; the guide says `NO_PROXY` must not name a code host, since the job cannot resolve it), and the host of `SITE_MODEL_BASE_URL` is covered by it (opencode otherwise waits for the proxy to answer for an internal host). The detail names the host and the rule.
-  11. `job`: informational, always `ok`: runs `gcloud run jobs describe $SITE_JOB --project $SITE_PROJECT --region $SITE_REGION`, as `job_exists` in `operator/job/job.sh` does; exit 0 prints `ok job: <name> exists`, any other exit prints `ok job: <name> does not exist yet` (a missing job is not told from a failed call; check 7 catches a broken identity).
+  11. `job`: informational, `ok` whenever its keys are set (a missing `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB` fails it by the `needs` rule below): runs `gcloud run jobs describe $SITE_JOB --project $SITE_PROJECT --region $SITE_REGION`, as `job_exists` in `operator/job/job.sh` does; exit 0 prints `ok job: <name> exists`, any other exit prints `ok job: <name> does not exist yet` (a missing job is not told from a failed call; check 7 catches a broken identity).
 - When the site file does not load (check 1 fails), no other check runs: the output is the `FAIL site file: <the loader's message>` line and `site: 1 failed`.
 - A check whose keys are missing prints `FAIL <name>: needs <keys>` and does not run; the others still run.
 - `site check` makes no write: no `gcloud` call other than `list` and `describe`, no `POST`, `PUT`, `PATCH` or `DELETE`, no `git push`.
@@ -186,12 +188,12 @@ Tests: `tests/test_operator_site_check.py`, with the stand-ins of the earlier st
 ## Acceptance criteria
 
 1. With every key set and every stand-in answering well, `site check` prints `ok <name>` for the eleven checks in the order of the Interface, then `site: ready`, and exits 0.
-2. Each check's failure, as rows of one parametrized test (a missing site file ends the run after its own line, as the Interface says): a missing file; a missing key (`SITE_RESET_REPOSITORY` is not one of the required); a `gcloud` that is not on the `PATH`; a token command that prints nothing; a repository answering 404; a token without push permission; a checkout that is not a work tree and one whose `origin` names another repository; a `gcloud run jobs list` that fails; a `gcloud secrets describe` that fails for the second secret only (the detail names it); a `git ls-remote` that fails; a ref that is not listed. Each prints its `FAIL <name>: <detail>` line (the detail checked), the other checks still run, the last line is `site: 1 failed` and the exit status is 1.
+2. Each check's failure, as rows of one parametrized test (a missing site file ends the run after its own line, as the Interface says): a missing file; a missing key (`SITE_RESET_REPOSITORY` is not one of the required); a `gcloud` that is not on the `PATH`; a token command that prints nothing; a repository answering 404; a token without push permission; a checkout that is not a work tree and one whose `origin` names another repository; a `gcloud run jobs list` that fails; a `gcloud secrets describe` that fails for the second secret only (the detail names it); a `git ls-remote` that fails; a ref that is not listed. Each prints its `FAIL <name>: <detail>` line (the detail checked), the other checks still run, the last line is `site: 1 failed` (`site: 3 failed` for the missing `gcloud`, which `identity` and `secrets` need too, and `site: 2 failed` for the empty token, which `repository` needs too) and the exit status is 1.
 3. Two failures give `site: 2 failed`.
 4. The `no_proxy` rules, as rows of one parametrized test: `SITE_NO_PROXY=.example.invalid` with a model host `llm.example.invalid` and a code host `code.example.net` is `ok`; the code host `code.example.invalid` covered is `FAIL`; the model host not covered is `FAIL`; a `NO_PROXY` of `example.invalid` covers `a.b.example.invalid` and does not cover `badexample.invalid`; a leading dot is ignored.
 5. A check whose key is missing prints `FAIL <name>: needs <keys>` and is not run (the stand-in for it is not called), while the checks whose keys are set run.
 6. A 40-character hexadecimal `SITE_CODE_REF` is accepted without a lookup (the `git` stand-in is asked for `ls-remote` once, without a ref argument); a branch name is looked up and found or not (rows).
-7. `site check` makes no write: a test over every call of the stand-ins finds only `gcloud run jobs list`, `gcloud run jobs describe`, `gcloud secrets describe`, `GET` requests and `git ls-remote`.
+7. `site check` makes no write: a test over every call of the stand-ins finds only `gcloud run jobs list`, `gcloud run jobs describe`, `gcloud secrets describe`, `GET` requests, `git ls-remote` and git's local reads (`rev-parse`, `remote get-url`, `config --get` or `config <key>`), and no `git push`.
 8. No secret value is read or printed: the stand-in `gcloud` fails the test if it is asked to `versions access`, and a token's text (`TOKENMARK`) is in no output line.
 9. `site check` with a command line argument other than none prints `usage: site check` and exits 2.
 10. `operator/README.md` names every file under `operator/lib/`, `operator/bin/`, `operator/job/` and `operator/skill/kumpel/scripts/` (a test over the folder and the text).
@@ -463,3 +465,23 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 25. factory: started review as vm.
+26. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`: `operator/bin/site` (`check`), `operator/lib/site.sh` (`site_gcloud_with`, `site_job_keys`), `operator/lib/hosting.sh` (`hosting_api_url`), `operator/job/job.sh`, `operator/README.md` and `tests/test_operator_site_check.py`.
+
+    - Criteria: each of criteria 1 to 19 and 21 has a test that checks what it says. Criteria 18 and 19, which I added in round 0, are now `test_the_secrets_and_job_checks_impersonate_when_the_site_says_so` and `test_the_checkout_check_reads_the_origin_url`. Both sides of the commit-id rule are tested (39, 40 and 41 hex characters, and non-hex). The coder's `make check` was green (entry 24).
+    - Round-0 findings 3 to 5 are fixed. `site_gcloud_with RUNNER` is now the one gcloud helper, and `job.sh` keeps its dry run through `print_call`. The key list exists once, as `site_job_keys`. The `no_proxy` check reads the API host from `hosting_api_url`, which the client also uses.
+    - Security: no write calls. Secret names are printed, never their values. `ls-remote` runs with an empty credential helper. The origin url is not echoed. No suppression markers. No change under `src/`.
+
+    no findings
+
+    Description corrections. The coder and tester could not make these, because the work item is outside their write paths. The lines are in the Interface and the criteria, not under `## Description`. I made them under my write path because the human's answers settle each one word for word, and no behaviour or test changes:
+    - description corrected: Interface check 11 "`job`: informational, always `ok`" -> "`job`: informational, `ok` whenever its keys are set (a missing `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB` fails it by the `needs` rule below)". This is round-0 finding 6, as the human confirmed in entry 14 and `check_job` does.
+    - description corrected: criterion 2 "the last line is `site: 1 failed`" -> the same, plus "(`site: 3 failed` for the missing `gcloud`, which `identity` and `secrets` need too, and `site: 2 failed` for the empty token, which `repository` needs too)". This follows the human's entry 9, answer 1.
+    - description corrected: criterion 7 "finds only … `GET` requests and `git ls-remote`" -> "… `GET` requests, `git ls-remote` and git's local reads (`rev-parse`, `remote get-url`, `config --get` or `config <key>`), and no `git push`". This follows the human's entry 9, answer 2.
+
+    Open for the docs stage: `docs/operator-guide.md` still says `site check` does not exist yet, at line 928 (the `site` command's paragraph, which also gives the old usage line) and at line 1215.
+
+    Notes:
+    - `tests/test_operator_site_check.py:698-750`: `test_the_identity_check_impersonates_when_the_site_says_so` and `test_the_secrets_and_job_checks_impersonate_when_the_site_says_so` repeat the same set/unset parametrization. One test over all four gcloud calls would cover both.
+    - `tests/test_operator_site_check.py:521-527`: the `no_proxy` FAIL rows check that the detail names the host, not that it names the rule the Interface asks for.
+
+    Earlier tests: none changed. `git diff --name-status main...HEAD` lists the one test file, `tests/test_operator_site_check.py`, as `A`.
