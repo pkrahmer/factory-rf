@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 515
 comments_read: [6599499091]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T09:02:54.532461Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-03T09:02:48.903391Z'
   stage: doing
   run: de1caa48bbc6470eaf4b5bf39915aa7f
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-03T09:02:54.532461Z'
+  stage: tests
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -324,3 +333,4 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
     The Description is unchanged: the human's answer approves two test changes and does not change what the task means.
 
     Noticed, not touched: nothing new.
+15. factory: started tests as vm.
