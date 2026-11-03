@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T11:45:39.402078Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-03T11:45:39.402078Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T11:46:11.954796Z'
+  stage: review
+  run: 26ed59e5b1c94f41bfdcfc5ab1ffe6a0
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -108,7 +110,7 @@ journal:
 
 ## Description
 
-F0048 added `operator/`: the site loader (`operator/bin/site`, `operator/lib/site.sh`), the hosting client (`operator/lib/hosting.sh`), `operator/job/job.sh`, the sanitiser (`operator/bin/sanitise`) and the skill's scripts under `operator/skill/kumpel/scripts/`. It also added twelve test modules `tests/test_operator_*.py` with their support modules. The operator guide describes all of this for the operator. The agents' documents do not, because no story's docs criterion named them for `operator/`. The project guide (`docs/project-guide/`) has no file for this domain, and its index names no file under `operator/`. So an agent whose story touches the scripts finds no domain file to read first, which is what `CLAUDE.md` tells it to do. The index's list of support modules ("Every module `tests/*.py` whose name does not start with `test_`") misses ten modules. Five of them are this feature's: `operator_support.py`, `operator_job_support.py`, `operator_skill_support.py`, `site_check_support.py` and `scripted_tick_support.py`. Five are older: `command_words_support.py`, `container_extra_support.py`, `opencode_provider_support.py`, `power_support.py` and `token_support.py`. A tester who looks there for a helper does not find them, and the feature already holds copies made that way (`gcloud_words` beside `words`, and `JOB` and `IMPERSONATE` defined twice). The decision log (`docs/decisions.md`) has entries for the feature's code-side decisions (10, 13, 15, 17, 20, 23 and the `-I` rule) but none for the site file's design (decisions 1 to 9, 11, 12 and 14 of `feature.md`), the died line (19) or the job's one image (24). Their reasons live only in an archived `feature.md`. This story writes those documents. It changes no code and no test; the copied test helpers stay as they are.
+F0048 added `operator/`: the site loader (`operator/bin/site`, `operator/lib/site.sh`), the hosting client (`operator/lib/hosting.sh`), `operator/job/job.sh`, the sanitiser (`operator/bin/sanitise`) and the skill's scripts under `operator/skill/kumpel/scripts/`. It also added twelve test modules `tests/test_operator_*.py` with their support modules. The operator guide describes all of this for the operator. The agents' documents do not, because no story's docs criterion named them for `operator/`. The project guide (`docs/project-guide/`) has no file for this domain, and its index names no file under `operator/`. So an agent whose story touches the scripts finds no domain file to read first, which is what `CLAUDE.md` tells it to do. The index's list of support modules ("Every module `tests/*.py` whose name does not start with `test_`") misses ten modules. Five of them are this feature's: `operator_support.py`, `operator_job_support.py`, `operator_skill_support.py`, `site_check_support.py` and `scripted_tick_support.py`. Five are older: `command_words_support.py`, `container_extra_support.py`, `opencode_provider_support.py`, `power_support.py` and `token_support.py`. A tester who looks there for a helper does not find them, and the feature already holds copies made that way (`gcloud_words` beside `words`, and `JOB` and `IMPERSONATE` defined twice). The decision log (`docs/decisions.md`) has entries for the feature's code-side decisions (10, 13, 15, 17, 20, 23 and the `-I` rule) but none for the site file's design (decisions 1 to 9, 11, 12 and 14 of `feature.md`), the died line (19) or the job's one image (24). Their reasons live only in an archived `feature.md`. Part A writes those documents. It changes no code and no test; the copied test helpers named here stay as they are.
 
 **Part B: the repository's new name.** On 2026-11-03 the human renamed the repository from `pkrahmer/factory-rf` to `pkrahmer/kumpel-factory` (decision 25). GitHub redirects the old URLs, but the current texts still give the old name: the README's title, the operator guide's example URLs and its "factory-rf's own" passages, the project guide's opening and its template line, and two texts of the Kumpel skill. Part B gives them the new name. History keeps the old one: archived work items, the decision log's earlier entries, `planning/` and `docs/runs/` stay as they are. `CLAUDE.md` is the human's and is changed by the human.
 
@@ -265,3 +267,18 @@ Expect: `documents ok`
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 16. factory: started review as vm.
+17. reviewer: no findings
+
+    I read the work item and `git diff main...HEAD -- . ':!factory'`. The diff touches five files: the two skill texts, tests/operator_skill_support.py, tests/test_operator_skill_signature.py and the new tests/test_operator_skill_name.py.
+
+    - Criterion 1: tests/test_operator_skill_name.py::test_the_skill_texts_do_not_name_the_old_repository is one parametrized test with one row per file (`skill`, `standing-orders`). It checks that the old name is absent. The failing side, the old name present, was seen red in the tester's run (entry 5). Each skill text changes in exactly one line (SKILL.md:8, standing-orders.md:3); every other line stays and standing-orders.md keeps its dates. `git grep factory-rf` over operator, src, claude, vm, template and tests now hits only the test's own assertion.
+    - Criterion 2: the coder's `make check` was green (entry 15). `duplicates`: 0 new.
+    - Round-0 finding (the copied skill directory constant): fixed. `SKILL` now lives only in tests/operator_skill_support.py:13, and `SCRIPTS` is built from it. test_operator_skill_signature.py and test_operator_skill_name.py both import it. The `ROOT` import dropped from test_operator_skill_signature.py was used for nothing else.
+    - Architecture and security: nothing under src/ changed, and the diff adds no secrets and no suppression markers.
+    - Hygiene: the journal names the main choice (only the name was swapped, rewording was rejected). The docs criterion still describes what the documenter must write for part A and part B.
+
+    description corrected: "This story writes those documents. It changes no code and no test; the copied test helpers stay as they are." -> "Part A writes those documents. It changes no code and no test; the copied test helpers named here stay as they are." (Part B changes the two skill texts and adds a test, as the Interface says, and the review moved one copied constant.)
+
+    Earlier tests:
+    - tests/test_operator_skill_signature.py: changed under the standing leave to move a shared test helper. The `SKILL` constant moved to tests/operator_skill_support.py, and every test keeps its name and what it checks (entry 13).
+    - tests/operator_skill_support.py: changed under the same standing leave. It is the shared place that now holds `SKILL`, and `SCRIPTS` is built from it with the same path.
