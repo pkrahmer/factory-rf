@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T00:48:54.772237Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-03T00:48:48.923503Z'
   stage: review
   run: aff693fea7e84f32984740dc5b02391d
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:48:54.772237Z'
+  stage: doing
 ---
 
 # Kumpel signs everything it does
@@ -205,3 +214,4 @@ Expect: two lines, a number of at least `1`, then `0`.
     - `tests/conftest.py`: under the standing leave to move a shared test helper (the `operator` fixture, now built by `make_operator` from `tests/operator_skill_support.py`).
     - `tests/test_operator_skill_scripts.py`: under the standing leave for moving `Operator`, its constants and its helpers to `tests/operator_skill_support.py`. Every remaining test keeps its name and checks the same thing. The deleted row `verdict-fourth-from-the-end` has no leave (finding 2).
     - `tests/test_operator_merge_reset.py`: `test_an_approved_pull_request_is_merged_and_its_archive_awaited` was changed under the human's leave in the story. Criterion 5, part of the story as the human wrote it (entry 1), names S0008's merge test and asks for a row per field.
+13. factory: started doing as vm.
