@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 522
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T12:45:20.200450Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-03T12:45:12.348407Z'
   stage: tests
   run: c4d6c7a4ac564f5bb928914b5963c341
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-03T12:45:20.200450Z'
+  stage: doing
 ---
 
 # The decision log gives the feature's own reasons for the operator's scripts
@@ -123,3 +132,4 @@ Expect: `documents ok`
    Files created: none. Modules the test run could not import: none, because no test was added, so I did not run the tests. `make lint` is green.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
