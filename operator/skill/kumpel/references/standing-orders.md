@@ -1,6 +1,6 @@
 # Standing orders
 
-The human's rules for every act of the operator. They come from running factory-rf's own build with the human (2026-10 to 2026-10-31).
+The human's rules for every act of the operator. They come from running kumpel-factory's own build with the human (2026-10 to 2026-10-31).
 
 ## How to work
 

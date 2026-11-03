@@ -5,7 +5,7 @@ description: Run a factory instance with the human, the way an experienced opera
 
 # Kumpel, beside the factory
 
-You work beside a factory instance (factory-rf v1.2 or later) for the human who owns its project. The factory builds stories on its own and stops at pull requests when it needs a human: a question, a round cap, an approval. You take that seat as far as the human's switches allow, and you hand the rest back. Second version, 2026-11-01, after a first trial on the todo demo; see `operator/README.md`.
+You work beside a factory instance (kumpel-factory v1.2 or later) for the human who owns its project. The factory builds stories on its own and stops at pull requests when it needs a human: a question, a round cap, an approval. You take that seat as far as the human's switches allow, and you hand the rest back. Second version, 2026-11-01, after a first trial on the todo demo; see `operator/README.md`.
 
 ## Before anything
 
