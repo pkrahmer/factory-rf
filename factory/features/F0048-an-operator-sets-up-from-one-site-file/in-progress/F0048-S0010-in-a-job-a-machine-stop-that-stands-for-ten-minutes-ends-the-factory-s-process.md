@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T02:11:20.787649Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-03T02:11:20.787649Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T02:12:16.967405Z'
+  stage: review
+  run: 87a147142dc74e55b37606b9c897a4da
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -295,3 +297,40 @@ Expect: one line that says the tests passed and names no failure.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 19. factory: started review as vm.
+20. reviewer: no findings
+
+    I re-read the whole diff (`src/factory/application/machine_stop_exit.py`, `src/factory/entry/run.py`, `src/factory/entry/wiring.py`, `src/factory/domain/errors.py`, `tests/scripted_tick_support.py`, `tests/entry/test_run_machine_stop_exit.py`, `tests/conftest.py`, `tests/entry/test_run_idle_exit.py`) against the work item. All four of my round-0 findings (entry 12) are fixed.
+
+    - Acceptance criteria:
+      - Criterion 1: `test_a_machine_stop_standing_ten_minutes_in_a_job_ends_the_loop_and_main_returns_one` covers it, ticks at T and T+9 included. It checks that the loop ends at T+10, that no tick runs after the stop (runs 4, script not exhausted), and that `main` returns 1. The no-tick side is `test_a_machine_stop_ends_the_loop_after_iterations_that_ran_no_tick`, where `prepare` is False on every iteration. It checks that every pause comes before T+10, that the loop ends at T+10 or later and that `main` returns 1.
+      - Criterion 2: both sides are rows of one parametrized test (9:59 and 10:00).
+      - Criterion 3: the stop is lifted at T+5 and raised again at T+8. The 17:59 tick runs on and the loop ends at 18:00.
+      - Criterion 4: three rows. Each runs past T+30 and returns 0.
+      - Criterion 5: the idle exit returns 0 and writes no machine-stop line.
+      - Criterion 6: the stop is raised again at T, T+5, T+9 and T+10, and the loop ends after the T+10 tick. The test would fail without the `min(...)` in `MachineStopExit.observe`.
+      - Criterion 7: the last log line is checked in criterion 1's test and in the no-tick test.
+      - Interface rules: every failing side is tested (minutes 0, `poweroff`, scope `repository`, a lifted stop). The ten-minute limit is tested on both sides.
+      - The coder's `make check` is green (entry 18).
+    - Architecture holds:
+      - `MachineStopExit` is in `factory.application`. It reads `HealthStatusStore`, `Clock` and `FactoryLog` only and starts no process.
+      - Wiring is in `factory.entry.wiring` (`machine_stop_exit_of`, the same pattern as `_idle_power`).
+      - The composition is in `factory.entry.run`. `MachineStopStood` is a domain error and `main` maps it to 1.
+    - Security: no markers, no secrets, no strings built for a shell.
+    - Quality:
+      - Names and docstrings fit. Comments say why (the re-raise moves `at` forward; the stop's line stays the last one).
+      - `duplicates: 0 new`.
+    - Hygiene:
+      - The Description matches what was built.
+      - The journal gives the main choice and what was rejected: the earliest `at` of an unbroken stretch, and not changing `with_stop` or adding a `Scheduler` hook.
+      - The docs criterion (9) still says what the reader needs.
+
+    Earlier tests:
+    - `tests/conftest.py`: standing leave to move a shared test helper. The fixtures `instance_settings` and `on_the_manual_clock` moved here unchanged from `tests/entry/test_run_idle_exit.py`.
+    - `tests/entry/test_run_idle_exit.py`: standing leave to move a shared test helper.
+      - `_ScriptedTick`, `_scripted`, `_run` and the `main` runner moved to `tests/scripted_tick_support.py`, along with the two fixtures to `tests/conftest.py`.
+      - The helper was made generic over a step's play so the new module can share it, as reviewer finding 4 in entry 12 asked.
+      - Every test keeps its name and checks the same thing.
+
+    Notes:
+    - `tests/entry/test_run_machine_stop_exit.py` `_log`: repeats `_log` of `tests/entry/test_run_idle_exit.py` (it reads `factory.log` from a state directory, not from settings). It could go in `tests/scripted_tick_support.py`.
+    - `tests/entry/test_run_machine_stop_exit.py` `_Outcome`: copies `MainRun`'s fields one by one. It could hold the `MainRun` itself.
