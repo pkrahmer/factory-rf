@@ -45,7 +45,17 @@ sys.exit(0 if any(c["commit"]["message"].split("\n")[0] == subject for c in json
 pull=$(hosting_repo_api GET "/pulls/$pr") || exit 1
 reason=$(printf '%s' "$pull" | refusal)
 [ -z "$reason" ] || { echo "merge.sh: $reason" >&2; exit 1; }
-hosting_repo_api PUT "/pulls/$pr/merge" '{"merge_method":"merge"}' >/dev/null || exit 1
+branch=$(printf '%s' "$pull" | python3 -c 'import json, sys; print(json.load(sys.stdin)["head"]["ref"])')
+# The merge commit says Kumpel merged it, since the human's token makes it.
+body=$(python3 -c '
+import json, sys
+print(json.dumps({
+    "merge_method": "merge",
+    "commit_title": f"Merge pull request #{sys.argv[1]} from {sys.argv[2]}",
+    "commit_message": "Merged by Kumpel after the six approval checks.",
+}))
+' "$pr" "$branch")
+hosting_repo_api PUT "/pulls/$pr/merge" "$body" >/dev/null || exit 1
 echo "merged #$pr"
 # The clock, not a sum of the pauses, ends the wait, so a pause of 0 still ends it.
 start=$(date +%s)

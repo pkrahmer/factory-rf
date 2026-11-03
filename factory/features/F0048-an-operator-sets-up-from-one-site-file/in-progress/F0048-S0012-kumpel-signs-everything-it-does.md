@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T00:43:16.431688Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-03T00:43:16.431688Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-03T00:47:20.073533Z'
+  stage: doing
+  run: f29bd96b37624eaf8687b68d7905e568
 ---
 
 # Kumpel signs everything it does
@@ -159,3 +161,21 @@ Expect: two lines, a number of at least `1`, then `0`.
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: Built the signing of Kumpel's acts. Every test of the story passes and `make check` is green.
+
+    - `operator/skill/kumpel/scripts/comment.sh` (new): posts the file's text through `hosting_repo_api POST /issues/<pr>/comments`. It adds a blank line, the signature line and `<!-- kumpel -->` unless the text (trailing newlines stripped) already ends with them. It prints `commented #<pr>`. A missing or empty file is refused before any request (exit 1). Wrong arguments print the usage (exit 2). A failing request leaves the hosting client's message (exit 1).
+    - `operator/skill/kumpel/scripts/start-story.sh`: the start commit gets `GIT_AUTHOR_*`/`GIT_COMMITTER_*` set to `Kumpel <kumpel@noreply.invalid>` for that one `git commit` only, so the clone's `user.name` and `user.email` stay as they were.
+    - `operator/skill/kumpel/scripts/merge.sh`: it takes `head.ref` from the pull request it already reads. The PUT body adds `commit_title` (`Merge pull request #<pr> from <head.ref>`) and `commit_message` (`Merged by Kumpel after the six approval checks.`).
+    - `operator/skill/kumpel/scripts/status.sh`: the verdict is now looked for anywhere in the newest comment. Factory markers are still read from its last three lines.
+    - `operator/skill/kumpel/references/answering.md` (*How to post*), `references/approving.md` (the verdict and a real finding) and `SKILL.md` (a new step 3 of the loop) now name `sh scripts/comment.sh <n> <file>`.
+
+    Main choice: `comment.sh` builds the JSON body with `python3 -c` and `json.dumps`, as `merge.sh` and `status.sh` already do. I rejected escaping the text into JSON in shell: it is fragile for quotes, backslashes and the em dash. `merge.sh` builds its body the same way.
+
+    One step beyond the Interface's wording: in `approving.md` I also replaced `gh pr merge <n> --repo <owner/name> --merge` with `sh scripts/merge.sh <n> <id>`. The Description says the references no longer name `gh`, and a `gh` merge would not carry Kumpel's merge message. No test covers that line; the reviewer may want to confirm it.
+
+    Refactor pass: I read the diff and found nothing to change.
+
+    Not touched: `status.sh` still reads factory markers only from the last three lines, as the Interface keeps that rule. The docs criterion (`operator/README.md`, `docs/operator-guide.md`) is left to the docs stage. The journal changed nothing in the Description beyond what intake already wrote in.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone

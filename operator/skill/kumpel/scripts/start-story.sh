@@ -1,6 +1,7 @@
 #!/bin/sh
 # Start story <id>: move it from its feature's backlog/ to in-progress/ on main, commit "<id>: start",
-# pull and push. The factory claims it at its next tick.
+# pull and push, with Kumpel <kumpel@noreply.invalid> as its author. The factory claims it at its
+# next tick.
 #   start-story.sh <id>
 set -eu
 [ $# -eq 1 ] || { echo "usage: start-story.sh <story id, e.g. F0047-S0003>" >&2; exit 2; }
@@ -15,7 +16,10 @@ file=$(ls factory/features/*/backlog/"$1"-*.md 2>/dev/null | head -n 1)
 folder=$(dirname "$(dirname "$file")")
 mkdir -p "$folder/in-progress"
 git mv "$file" "$folder/in-progress/"
-git commit -q -m "$1: start"
+# Kumpel is the commit's author, for this one commit: the clone's own identity is the human's.
+GIT_AUTHOR_NAME=Kumpel GIT_AUTHOR_EMAIL=kumpel@noreply.invalid \
+  GIT_COMMITTER_NAME=Kumpel GIT_COMMITTER_EMAIL=kumpel@noreply.invalid \
+  git commit -q -m "$1: start"
 hosting_git pull -q --no-rebase
 hosting_git push -q
 git log --oneline -1
