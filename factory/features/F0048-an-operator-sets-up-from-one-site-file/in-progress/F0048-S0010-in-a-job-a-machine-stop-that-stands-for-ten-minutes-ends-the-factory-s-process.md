@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T02:13:18.940941Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-11-03T02:13:18.940941Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T02:13:39.433614Z'
+  stage: smoke-test
+  run: 567609b05e414cecbf1f370210b57a90
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -376,3 +378,26 @@ Expect: one line that says the tests passed and names no failure.
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
 23. factory: started smoke-test as vm.
+24. smoke-tester: Smoke test, round 1. I ran both commands under `## Smoke test` from the repository root, in order and as written. Both met their `Expect:` lines and I fixed nothing.
+
+    1. `grep -n "standing for 10 minutes in a job" docs/operator-guide.md | head -1 | cut -d: -f1 | grep -c .`
+    ```
+    1
+    ```
+    Expected one line, `1`. **Met** (exit status 0).
+
+    2. `uv run pytest tests/entry/test_run_idle_exit.py 2>&1 | tail -n 1`
+    ```
+    7 passed in 0.19s
+    ```
+    Expected one line that says the tests passed and names no failure. **Met** (exit status 0).
+
+    Against the acceptance criteria: the smoke test contradicts none of them. On the docs criterion (9), I also read the rest of what it names:
+    - `docs/operator-guide.md:837`, under *A machine stop in a job*, gives status 1, an execution that ends as failed, the stop's line as the last line of the log, and that a VM keeps waiting for a fix.
+    - `docs/operator-guide.md:1568`, in the list of stops, says the same in one sentence.
+    - `docs/decisions.md:1342` holds the entry *In a job a machine stop ends the process*.
+    - `README.md` is not changed on the branch.
+
+    The commands do not test criteria 1–7 (the behaviour of the loop) directly. Command 2 only shows that the existing idle-exit tests still pass, which supports criterion 5. I did not run `make check` for criterion 8; the factory runs it as the stage's check.
+
+    Findings: none.
