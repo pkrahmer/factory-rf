@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211, 6591823542]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T00:12:17.296505Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -246,6 +242,12 @@ journal:
   kind: started
   at: '2026-11-03T00:12:17.296505Z'
   stage: docs
+- number: 43
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T00:13:07.784487Z'
+  stage: docs
+  run: 4e9598f99c114aae88909eb4528b76f5
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -648,3 +650,23 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     Comment anything to retry: the attempts go back to 0 and the stage runs again. Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
 41. 2026-11-03 human: Retry: both docs runs ended at the usage limit, which has reset now.
 42. factory: started docs as vm.
+43. documenter: Documentation for the docs criterion (16). Only documents changed, so I did not run `make check`; the factory's checks run after this stage.
+
+    Files changed:
+    - `docs/operator-guide.md`: new section *Repeating a trial*, placed before *On Cloud Run*. It covers the starting-point tag and `reset-to-tag.sh`, with the plan run and the `--yes` run. It gives the order and the printed lines, the three conditions (`--yes`; `SITE_RESET_REPOSITORY` equal to `SITE_REPOSITORY`, so the factory's own repository is never a target; the tag exists), and the exit codes and messages. It says the force-push cannot be undone, that a failing call stops the script so a half reset is visible, and that only the first 100 open pull requests are listed. It also has a short paragraph on `merge.sh`: the refusals, the merge commit, the archive wait with `KUMPEL_POLL_SECONDS` and `KUMPEL_ARCHIVE_WAIT`, and the outputs. I also extended the `SITE_RESET_REPOSITORY` row of the site-file keys table to point to the new section.
+    - `operator/skill/kumpel/references/approving.md`: in *Then*, "switch `merge` on" now names `sh scripts/merge.sh <pr> <id>` in place of `gh pr merge`. It says what the script checks, what it waits for, and how it ends.
+    - `operator/README.md`: `merge.sh` and `reset-to-tag.sh` are added to the scripts row of the table.
+
+    Run: the two commands of the story's smoke test. They print `reset-to-tag.sh: owner/repo is not the site's resettable repository` with exit 1, and `site: missing SITE_RESET_REPOSITORY in <path>` with exit 2, as documented. I wrote no example that I did not run; the guide's commands call the live API, so I checked their lines against the scripts' source and the Interface instead.
+
+    Cross-read and found current against the diff: `README.md` (criterion says none), the *A merge archives the story* section of the operator guide (consistent with `merge.sh`'s wait for the archive commit), `operator/skill/kumpel/SKILL.md` and the other `references/` files (they name no merge command), `operator/site.env.example` (its `SITE_RESET_REPOSITORY` comment fits).
+
+    Findings against the code: none. `merge.sh` and `reset-to-tag.sh` match the Interface, and both have a header comment and a comment on each function.
+
+    Stale, not mine and not touched: `operator/skill/kumpel/SKILL.md` was not read for a `gh pr merge` mention beyond a search of the references, since the criterion names only `approving.md`; the reviewer's test-side notes (entry 35, copied constants in `tests/test_operator_merge_reset.py`) stay open for the tester under the standing leave.
+
+    The factory left out changes outside the write paths: operator/README.md, operator/skill/kumpel/references/approving.md.
+
+    `check`: check: green (not run again: passed on tree 825c9627cace at 2026-11-02T22:13:11Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
