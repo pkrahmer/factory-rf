@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229, 6600934999]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T10:21:47.428670Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-03T10:21:41.329723Z'
   stage: doing
   run: 1dc419bbe7664e41b778dc9225f2a5b7
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-03T10:21:47.428670Z'
+  stage: review
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -271,3 +280,4 @@ Expect: `documents ok`
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+18. factory: started review as vm.
