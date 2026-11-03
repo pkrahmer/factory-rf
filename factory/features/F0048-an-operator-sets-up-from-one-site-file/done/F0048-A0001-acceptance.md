@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -30,8 +30,13 @@ journal:
   at: '2026-11-03T02:31:42.051095Z'
   stage: acceptance
   run: ba67ca6b621e4c7b9d8af49d3406b356
+- number: 5
+  speaker: factory
+  kind: done
+  at: '2026-11-03T06:30:38.183705Z'
+  stage: done
 stories: [F0048-S0001, F0048-S0002, F0048-S0003, F0048-S0004, F0048-S0005, F0048-S0006, F0048-S0007, F0048-S0008, F0048-S0009, F0048-S0010, F0048-S0011, F0048-S0012, F0048-S0013]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of An operator sets up from one site file
@@ -313,3 +318,4 @@ Human interventions: 28 questions answered: 24 questions, 1 `attempts_cap`, 3 `r
    7 Slow checks: none beyond make check (green, test 81.8 s). The slowest tests are 10 s ROOMY_LIMIT tests outside the feature; the feature's tests take 46.5 s. Free disk fell 2.5 GB with the instance's used space unchanged; the feature does not explain it.
    8 Cost: $69.70 over 187 runs. S0005 ($9.15), S0001 ($8.48) and S0003 ($7.92) stand out: their reviews stopped at the first failing group until S0011. 28 questions (24 questions, 1 attempts_cap, 3 round_cap) and 4.3 h waited. S0001 needed the human most (4 questions, 57 min). The longest single wait was S0008's 121 min, at a provider usage limit.
    Open: a second acceptance run kept writing in this dataset after the crash recorded at 02:20:30. It wrote the three backlog stories at 02:26 and a whole report of its own. I checked its stories with factory-check-story (all ok) and kept them, removed its duplicate report, and took over its one finding I had missed (guide line 943), which changed my recommendation from accepted with stories to not accepted. The human may want to look into why the crashed run went on writing. My temporary script folder /tmp/acc-smoke-script could not be removed: the rm was denied.
+5. factory: done (pull request merged); cost: 1 runs, 11.1 min, 49 turns, 154875 tokens in (4734970 more from cache), 43838 out, $3.06
