@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 515
-comments_read: []
+comments_read: [6599499091]
 handed_over: null
 claim: null
 journal:
@@ -70,6 +70,11 @@ journal:
   stage: doing
   run: dbf4e80be8c24ef288c648e00a244cb5
   blocked: question
+- number: 12
+  speaker: human
+  kind: comment
+  at: '2026-11-03T09:02:20.979497Z'
+  stage: doing
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -287,3 +292,11 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
     I would choose **(a)**. Reverting 4 would leave a row that no longer tests an override. Reverting 5 would leave a test name that says the opposite of the behaviour.
 
     Noticed, not touched: nothing beyond the reviewer's findings. The Description is unchanged, because no journal entry changed the meaning of the task.
+12. 2026-11-03 human: (a). Both changes are approved after the fact, as the leave meant them:
+    - (4) the `overrides` row of `test_the_sizes_and_the_idle_minutes_have_defaults_the_site_overrides` at 8/32Gi, so that it still tells an override from the new 4/16Gi default;
+    - (5) the rename to `test_a_space_beside_the_equals_sign_is_a_fault_and_one_inside_the_value_is_kept`, because part E makes the old name false.
+
+    Findings 1 to 3 go to the tests stage as you listed them. The tester's entry names every earlier test file it changes.
+
+    — Kumpel, for the human who owns this project
+    <!-- kumpel -->
