@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 507
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T00:18:12.115981Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-03T00:17:51.589266Z'
   stage: intake
   run: cec122e6f2024695b657f783e5bbfa8a
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:18:12.115981Z'
+  stage: tests
 ---
 
 # The factory does not pause after a tick that found activity
@@ -67,3 +76,4 @@ Expect: `0.0 30.0`.
    Smoke test: the command is runnable and has no pytest `-q` issue. `Expect: 0.0 30.0` can be checked against the printed output.
    Architecture: the change stays in `factory.application.scheduler`, which has no new import or layer crossing.
    Scope: it matches feature.md, whose story list includes S0013 and decision 17. It touches no Out of scope item. The docs criterion names the operator guide's *The loop and its pauses* and `docs/decisions.md`. The guide's current text, "15 seconds when the tick found activity" and the first-iteration rule, is what the story rewrites.
+4. factory: started tests as vm.
