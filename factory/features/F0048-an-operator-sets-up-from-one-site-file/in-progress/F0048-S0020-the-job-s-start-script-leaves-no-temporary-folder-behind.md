@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 520
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T11:57:15.814547Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-03T11:57:15.814547Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T11:57:36.433301Z'
+  stage: docs
+  run: 87dd26c2e81644e492f5a1a9cb688cd5
 ---
 
 # The job's start script leaves no temporary folder behind
@@ -151,3 +153,17 @@ Expect: `0`, then `1`.
    Earlier tests:
    - `tests/test_vm_job_start.py`: none needed. The diff only adds one test and leaves every earlier test in the file unchanged.
 10. factory: started docs as vm.
+11. documenter: Changed `docs/operator-guide.md` only, so I did not run `make check`. The factory's checks run right after this stage.
+
+    - Line 1377: "cannot be written fail it" is now "cannot be written fails it", as the docs criterion asks.
+    - Line 1221 (the `runc` step in the list of the job's steps): I added one sentence, "The download folder is removed whenever the step ends, by success or by a stop." The diff makes this true: `vm/job-start.sh` now removes the folder through an EXIT trap.
+
+    Smoke test command: the first `grep -c` printed 0 and the second printed 1, as expected.
+
+    I read the diff (`vm/job-start.sh`, `tests/test_vm_job_start.py`) against the guide. The failure messages are unchanged, and the guide's `job-start: runc: checksum does not match`, status 1, still matches. `README.md`, `docs/project-guide/` and `docs/decisions.md` need no change; I cross-read the project guide and README for mentions of the `runc` step and found none.
+
+    No findings for the coder. I saw nothing stale that is unrelated to this story.
+
+    `check`: check: green (not run again: passed on tree 676ce2a5aa50 at 2026-11-03T11:54:59Z)
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok
