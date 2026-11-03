@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 512
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T06:34:18.379856Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-03T06:34:18.379856Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-03T06:34:43.819654Z'
+  stage: intake
+  run: ccd7775635ba4174a7caac429ff5b265
+  blocked: question
 ---
 
 # Stopping the service stops its agents
@@ -61,3 +64,14 @@ Expect: `1`, then the path of the module that adds the label.
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: The format check passed. I have four questions before the story can move on:
+
+   1. Interface: it names no Python module or signature for the label. `PodmanRuns.launch` in `src/factory/adapters/podman_runs.py` builds the `podman run` argument list. Its `__init__(executable, image, workspace, *, time_limit, profile)` has no instance. Please name how the instance reaches it. I would choose a new keyword-only `instance: str` on `PodmanRuns.__init__`, set by the wiring in `factory.entry` from the settings' `FACTORY_INSTANCE`, with `launch` adding `--label factory.instance=<instance>`. Should the parameter be required or have a default? Without this, two coders will write two different constructors and the tester cannot write the test.
+
+   2. Criterion 1: "the two kinds of start, agent run and project command" is not testable as written. Does every agent call and every project command go through `PodmanRuns.launch`? If not, name the other construction sites. If so, say that. Then the rows would be two instance names against `launch`'s argv. Please also say which one word order is expected: `--label` followed by `factory.instance=<instance>` as separate words, or `--label=factory.instance=<instance>`.
+
+   3. Smoke test: the second command's `Expect:` ("the path of the module that adds the label") is not checkable. It gives `head -1` of an unordered recursive grep, so the path is not fixed. I would choose `grep -rln 'factory.instance' src/factory` with `Expect:` the single line `src/factory/adapters/podman_runs.py`, or whichever module you intend.
+
+   4. Rules without a failing side:
+      - "Containers that do not carry the label, another instance's included, are not touched" has no criterion. Please say whether it is covered by criterion 2's exact line, or by a test of its own. Two instance names in criterion 1 would only show that the label differs.
+      - "Its failure, or no container to stop, never fails the unit" rests on the `-` prefix in the pinned line. I would accept that criterion 2 pins it, but please confirm.
