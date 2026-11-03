@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T01:52:50.442397Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-03T01:52:50.442397Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-03T01:56:13.607668Z'
+  stage: tests
+  run: 7e37009ea8424aa691d71dadff3db83c
 ---
 
 # In a job a machine stop that stands for ten minutes ends the factory's process
@@ -109,3 +111,21 @@ Expect: one line that says the tests passed and names no failure.
    - Architecture: the rule needs no new layer. It reads the stops the factory already keeps and acts through the existing loop exit, so it fits the layers in `CLAUDE.md`.
    - Scope: the story matches `feature.md` (S0010, decision 13). `src/factory/` is touched only for the machine-stop rule in a job, which the feature's out-of-scope section allows.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for criteria 1 to 5 in a new module beside `tests/entry/test_run_idle_exit.py`. Every test drives `main` with a runner that calls `run_instance`, the way the existing idle-exit test of `main` does. The ticks are scripted and run on the manual clock, with no sleep. The scripted tick raises, keeps or lifts one stop in the health status (`health_store` of the state directory) at the step's time, so the stop's `at` is T. While the stop stands, the tick returns `TickOutcome(stopped=<reason>)`. The environment names `FACTORY_STATE` as the instance's state directory, so the coder may choose how `main` learns the status: an exception through the runner, or what the state directory holds.
+
+   - criterion 1: tests/entry/test_run_machine_stop_exit.py::test_a_machine_stop_standing_ten_minutes_in_a_job_ends_the_loop_and_main_returns_one
+   - criterion 2: tests/entry/test_run_machine_stop_exit.py::test_a_machine_stop_ends_the_loop_from_ten_minutes_on (rows `9-minutes-59-seconds`, `10-minutes`)
+   - criterion 3: tests/entry/test_run_machine_stop_exit.py::test_a_lifted_machine_stop_ends_nothing_and_a_new_one_counts_from_its_own_time
+   - criterion 4: tests/entry/test_run_machine_stop_exit.py::test_a_standing_stop_ends_nothing_where_the_rule_does_not_hold (rows `poweroff`, `idle-shutdown-off`, `repository-stop`)
+   - criterion 5: tests/entry/test_run_machine_stop_exit.py::test_the_idle_exit_without_a_stop_still_ends_the_loop_with_status_zero
+   - criteria 6 and 7: no test (`make check`, and docs for the docs stage).
+
+   Files: I created `tests/entry/test_run_machine_stop_exit.py`. Under the standing leave to move a shared test helper, I moved the fixtures `instance_settings` and `on_the_manual_clock` from `tests/entry/test_run_idle_exit.py` to `tests/conftest.py`. I changed `tests/entry/test_run_idle_exit.py` only to drop those two fixtures and the imports they alone used; every test in it keeps its name and checks the same thing.
+
+   Run: `uv run pytest -q tests/entry/test_run_machine_stop_exit.py tests/entry/test_run_idle_exit.py` failed exactly the three tests where the loop should end: criterion 1, criterion 2's `10-minutes` row and criterion 3. The other new tests and every idle-exit test passed. The runner imported every module; nothing is missing, because the behaviour does not exist yet and the failures are wrong results. After that run I changed only the fixture's and helper's arguments to keyword-only, which ruff's PLR0917 asked for. `make lint` is green. I skipped the type check, as the stage says.
+
+   Rejected: checking that the stop's line is the last line of the log. The Description says it but criterion 1 does not, so I left it out.
+
+   Open, for the coder: `StopService.raise_stop` puts each raise into the health status through `with_stop`, which replaces a standing stop of the same reason. The preflight raises again on every failing tick with `at=clock.now()`, so as the code stands now the stop's `at` moves forward on each tick. The rule counts from the stop's own `at`, and these tests write `at` once.
+
+   `lint`: lint: green (0.1 s)

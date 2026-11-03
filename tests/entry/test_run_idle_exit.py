@@ -2,7 +2,6 @@
 
 import os
 import threading
-from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 from typing import override
@@ -13,14 +12,10 @@ import factory.entry.run as run_module
 from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
-from factory.application.hosting import HostingService
 from factory.application.tick import Tick, TickOutcome
 from factory.domain.settings import InstanceSettings
 from factory.entry.run import main, run_instance, run_until_stopped
-from factory.entry.wiring import machine_log
 from power_support import IDLE, OTHER
-from stage_run_support import INSTANCE
-from wiring_support import with_dataset
 
 LINE = "idle shutdown: idle for 1 minutes, powering the machine off"
 EXIT_LINE = "idle shutdown: idle for 1 minutes, ending the factory's process"
@@ -51,42 +46,6 @@ class _ScriptedTick(Tick):
             self._start + timedelta(minutes=minutes, seconds=seconds) - self._clock.now()
         )
         return outcome
-
-
-@pytest.fixture
-def instance_settings(tmp_path: Path, remote: Path, agent_home: Path) -> InstanceSettings:
-    """Return settings on `remote`, the idle shutdown at one minute, everything in `tmp_path`."""
-    token = tmp_path / "hosting-token"
-    token.write_text("example-value\n", encoding="utf-8")
-    state = tmp_path / "instance-state"
-    state.mkdir()
-    return with_dataset(
-        InstanceSettings(
-            repository_url=str(remote),
-            instance=INSTANCE,
-            checkout=tmp_path / "instance-checkout",
-            state_directory=state,
-            agent_home=agent_home,
-            claude_executable=str(tmp_path / "no-claude"),
-            token_file=token,
-            idle_shutdown_minutes=1,
-        ),
-        tmp_path,
-    )
-
-
-@pytest.fixture
-def on_the_manual_clock(clock: ManualClock, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Give the boundaries `run_instance` builds the test's clock and a log on it."""
-    original = run_module.build_boundaries
-
-    def built(
-        settings: InstanceSettings, token: str, *, hosting: HostingService | None = None
-    ) -> Boundaries:
-        boundaries = original(settings, token, hosting=hosting)
-        return replace(boundaries, clock=clock, log=machine_log(settings.state_directory, clock))
-
-    monkeypatch.setattr(run_module, "build_boundaries", built)
 
 
 def _scripted(
