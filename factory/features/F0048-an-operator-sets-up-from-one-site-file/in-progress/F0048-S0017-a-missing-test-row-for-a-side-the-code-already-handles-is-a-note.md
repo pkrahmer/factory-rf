@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268, 6598279355]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T07:56:32.104743Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-03T07:56:32.104743Z'
   stage: docs
+- number: 21
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T07:56:55.780770Z'
+  stage: docs
+  run: 8d40a351a3c74c5ebbd004b035eaedbc
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -282,3 +284,16 @@ Expect: `1`.
     - `tests/test_claude_agent_texts_review_leave.py`: under the feature's leave for S0017 in `feature.md` (only the pinned sentence that counted an untested side as a finding). Only the last sentence of `_NOTES` changed.
     - `tests/test_claude_agent_texts_review_groups.py`: under the human's leave in journal entry 11. Only the body of `test_the_rest_of_the_reviewer_body_is_unchanged` changed: it now also swaps the three new sentences back to the old one before it takes the CRC. `_EARLIER_BODY_CRC32`, the test's name and the rest of the module are unchanged.
 20. factory: started docs as vm.
+21. documenter: I changed one file, `docs/decisions.md`. I appended one entry, *A missing test row for a side the code handles is a note*, as docs criterion 4 asks. It states the rule (a handled side with no test is a note; an unhandled side is still a finding; it holds from round 0). It names the three answers it comes from (S0001 entry 33, S0003 entry 30, S0005 entry 26). It says the tester's both-sides rule is unchanged. It gives the rejected alternative: sending every missing row back, which cost a round each time. It also records that the reviewer's lesson on one-side-tested limits and checklist item 1 keep their wording and are limited by the exception. I wrote only documents, so I did not run `make check`; the factory's checks decide.
+
+    Cross-read and found current: README.md, docs/operator-guide.md and docs/project-guide/ (a grep for "untested side" and "both sides" found no mention of the rule). The diff touches only the one sentence in `claude/agents/reviewer.md` and two text tests, so no names, behaviours or examples in those documents moved. I checked the smoke test: `grep -c 'handles that side' claude/agents/reviewer.md` prints 1 per the coder's run.
+
+    Stale text I saw and did not touch:
+    - `CLAUDE.md` (*Tests*) still says "the reviewer counts an untested side as a finding". It is the human's file, changed with the merge, as the story says.
+    - `claude/agents/reviewer.md` line 85 (the lesson "Count as a finding a stated limit tested on one side only") and checklist item 1 at line 55 still state the general rule. The new sentence calls itself an exception, but rewording these is outside the story's Interface. The reviewer already flagged this to the human.
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree fc98844c97fd at 2026-11-03T07:54:11Z)
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok
