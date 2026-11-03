@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T07:44:49.155102Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-03T07:44:49.155102Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-03T07:45:09.766705Z'
+  stage: intake
+  run: 22eff09d79eb405fafa8e7f533008c84
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -54,7 +56,7 @@ The reviewer must still read the code and confirm that it handles the side; a si
 
 ## Interface
 
-- `claude/agents/reviewer.md`, the paragraph on notes: a stated limit's side that has no test is a note, not a finding, when the reviewer has read the code and it handles that side as the Interface says; the note names the side, the code's location and the missing row. A side the code does not handle, or handles otherwise, is still a finding. This holds from round 0. Every other sentence of the paragraph stays.
+- `claude/agents/reviewer.md`, the paragraph on notes: a stated limit's side that has no test is a note, not a finding, when the reviewer has read the code and it handles that side as the Interface says; the note names the side, the code's location and the missing row. A side the code does not handle, or handles otherwise, is still a finding. This holds from round 0. Every other sentence of the paragraph stays. The sentence "A point on an acceptance criterion (an untested side of a stated limit among them), the architecture, security or anything under `src/` is still a finding and sends it back with `doing`." is replaced, word for word, by these three (journal entry 4): "A point on an acceptance criterion, the architecture, security or anything under `src/` is still a finding and sends it back with `doing`. One exception holds from round 0: a side of a stated limit that has no test is a note, not a finding, when you have read the code and it handles that side as the Interface says; the note names the side, the code's location and the missing row. A side the code does not handle, or handles otherwise, is a finding." The coder copies them into `claude/agents/reviewer.md`; the text test pins them, the clause "One exception holds from round 0" included.
 - `tests/test_claude_agent_texts_review_leave.py` pins the new text in place of the sentence it changes (the human's leave in `feature.md`).
 
 ## Acceptance criteria
@@ -91,3 +93,9 @@ Expect: `1`.
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: names concrete files (`claude/agents/reviewer.md` notes paragraph, line 66; `tests/test_claude_agent_texts_review_leave.py` `_NOTES`). Carrying in the human's answer (journal entry 4), I wrote the replacement three sentences into the Interface word for word, replacing the old sentence at the end of `_NOTES`. That is the human's edit, not mine. The Description needed no change.
+   - Criteria: criterion 1 is testable by one text-pin test now that the words are fixed, and the round-0 clause "One exception holds from round 0" is pinned with them (answer 2). Criterion 2 is testable: every other sentence of `_NOTES` stays pinned. The rule's failing side ("a side the code does not handle, or handles otherwise, is a finding") is in the pinned text. Criteria 3 and 4 are the closing ones. The criterion for the docs entry is checkable by reading `docs/decisions.md`.
+   - Smoke test: `grep -c 'handles that side' claude/agents/reviewer.md` is runnable. It prints 0 now, because the new text isn't in the file yet. Once the three sentences are copied in, it prints 1, because "handles that side" appears once. `Expect: 1` is checkable.
+   - Architecture: only agent text and a text test change. Nothing under `src/` changes, so the layers are untouched.
+   - Scope: this is within F0048 (the feature lists S0017 and decision 23). The change to the pinned sentence in the text test is covered by the feature's leave for S0017, and the tester changes nothing else in that module.
