@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 522
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T12:47:14.336852Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-03T12:47:14.336852Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T12:47:32.549148Z'
+  stage: review
+  run: 7ae41c228b6143ddb588f3874303ddb5
 ---
 
 # The decision log gives the feature's own reasons for the operator's scripts
@@ -154,3 +156,14 @@ Expect: `documents ok`
    `check`: check: green (not run again: passed on tree 676ce2a5aa50 at 2026-11-03T11:54:59Z)
    `duplicates`: duplicates: 0 new, 42 known, 0 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. That fits the Interface: documents only, with no script, module under `src/factory/` or test changing, and the decision log's seven F0048 entries left to the documenter.
+   - 1, acceptance criteria: criterion 1 (`make check` stays green) holds. The coder's entry 7 records `check: green`, with coverage at 99.56 %. Criterion 2 is the docs criterion, and the documenter writes it next. The Interface says no new test is needed, because the document check and the smoke test check the change. The Interface states no rule with a failing side and no limit, so no test is missing and the story has no gap.
+   - 2, architecture: nothing under `src/` changed.
+   - 3, security: nothing changed outside the work item. No markers, no baseline entries.
+   - 4, quality: no code to judge. `duplicates: 0 new`.
+   - 5, work item hygiene: the coder's entry 7 explains why it built nothing (the decision log belongs to the documenter) and names what it rejected (writing the entries itself). The tester's entry 5 explains why it wrote no tests. The Description still matches what the branch holds, since the documenter stage does the work. The docs criterion names, entry by entry, each reason, rejection and rewording the reader must find, so the documenter can work from it.
+   - Still open for the documenter: all of criterion 2. Intake's point also stands: the smoke test's `did not see` probe already counts 1 on `main`, so it proves little.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
