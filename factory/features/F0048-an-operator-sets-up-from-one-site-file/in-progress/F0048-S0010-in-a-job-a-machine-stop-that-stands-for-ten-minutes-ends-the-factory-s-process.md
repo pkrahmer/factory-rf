@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 510
 comments_read: [6593349810]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T01:52:27.166605Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T01:52:24.305779Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:52:27.166605Z'
   stage: intake
 ---
 
@@ -81,3 +90,4 @@ Expect: one line that says the tests passed and names no failure.
 
    The format check passed. The Interface, the criteria (both sides of the ten minutes, the lifted stop, the three non-holding cases, the idle exit), the scope and the architecture are otherwise fine. The first smoke test block is runnable but is only decidable once the docs stage has run.
 4. 2026-11-03 human: (a), as you propose: drop `-q` from the second smoke test command; the Expect stays.
+5. factory: started intake as vm.
