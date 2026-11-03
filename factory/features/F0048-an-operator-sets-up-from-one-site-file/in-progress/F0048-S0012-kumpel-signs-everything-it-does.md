@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 508
-comments_read: [6592252694]
+comments_read: [6592252694, 6592430164]
 handed_over: null
 claim: null
 journal:
@@ -87,6 +87,11 @@ journal:
   stage: doing
   run: 2e692e85c97a45c597795c530da51190
   blocked: question
+- number: 15
+  speaker: human
+  kind: comment
+  at: '2026-11-03T00:53:07.298288Z'
+  stage: doing
 ---
 
 # Kumpel signs everything it does
@@ -231,3 +236,4 @@ Expect: two lines, a number of at least `1`, then `0`.
       - findings 3 and 4: the rows for criterion 9 (beside criterion 2's row) and criterion 10 (in criterion 3's test).
 
     Noticed, not touched: nothing new beyond entry 10.
+15. 2026-11-03 human: (a), as you propose: keep the row `verdict-fourth-from-the-end` and change its expectation to `verdict posted`. Then hand the three changes to the tester as you list them.
