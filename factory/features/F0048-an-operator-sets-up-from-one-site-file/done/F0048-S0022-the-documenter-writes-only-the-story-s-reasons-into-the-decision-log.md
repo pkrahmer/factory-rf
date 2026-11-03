@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -119,6 +119,11 @@ journal:
   at: '2026-11-03T13:31:25.820335Z'
   stage: smoke-test
   run: 540851ffe02a4c66b8b80fafbd8d0699
+- number: 21
+  speaker: factory
+  kind: done
+  at: '2026-11-03T13:39:31.821367Z'
+  stage: approval
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -308,3 +313,4 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
     The smoke test contradicts no criterion.
 
     Findings: none.
+21. factory: done (pull request merged); cost: 9 runs, 6.8 min, 55 turns, 154478 tokens in (926418 more from cache), 14205 out, $1.48
