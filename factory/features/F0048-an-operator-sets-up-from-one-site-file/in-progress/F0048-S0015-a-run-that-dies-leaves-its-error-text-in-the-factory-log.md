@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T08:09:44.421083Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-03T08:09:44.421083Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-03T08:10:11.992295Z'
+  stage: intake
+  run: 1efec47cb88741b3b0d1a94bc1c99ae0
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -106,3 +108,16 @@ Expect: the path of the module that writes the line.
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
 5. factory: started intake as vm.
+6. intake: accepted. I carried the human's answer (journal entry 4) into the story. I added the helper signature and rules 2, 3, 4 and 6 to the Interface. I added criteria 6 to 9 before the two closing ones, which are now 10 and 11. I changed the smoke test to `grep -rlF 'died: ' src/factory` with the single expected path.
+   - Interface: `factory.adapters.agent_launch.died_line(run, work_item, stage, error_text, stderr, exit_status) -> str` is named. It does no I/O and both runtimes call it. The line is the Interface's format. The stderr rule (last 3 non-empty lines), the empty-reply fallback, the stripping and blank-line rule, and the raw exit status are all stated. The layers fit, because the helper lies in adapters.
+   - Criteria: each is testable by one parametrized test.
+     - 1 and 2 cover the reply, stderr and exit paths for each runtime.
+     - 3 covers the 300/301 cut.
+     - 4 covers the non-quoting end reasons and 5 the non-error reply.
+     - 6 covers more than 3 stderr lines, 7 the reply-over-stderr order and the empty-reply fallback, and 8 line breaks and stripping.
+     - 9 covers the unchanged cost record.
+     - Both sides of each rule have a criterion.
+     - Open point for the tester, which I did not add as a criterion: the negative exit status for a signal has no row of its own. I left it because the human's answer asked for no such row.
+   - Smoke test: `grep -rlF` is runnable. The Expect line names the exact path and can be checked against the output.
+   - Architecture: the pure helper in adapters, with the runtimes writing through the factory log, fits the layers. Cost record and contract unchanged.
+   - Scope: this is S0015 of F0048, named in its stories list and in decision 19. Nothing in Out of scope is touched.
