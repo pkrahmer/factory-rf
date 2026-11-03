@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268, 6598279355]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T07:51:47.407253Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-03T07:51:41.820453Z'
   stage: doing
   run: 34f9f6e1d97541dcab401d9e7278cecf
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:51:47.407253Z'
+  stage: tests
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -186,3 +195,4 @@ Expect: `1`.
     Rejected: going on to `make check` now. It stays red on the CRC test until the tester changes it.
 
     Open: `docs/decisions.md` is the docs stage's work.
+14. factory: started tests as vm.
