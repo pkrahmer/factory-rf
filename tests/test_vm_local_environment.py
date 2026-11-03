@@ -26,6 +26,7 @@ EnvironmentFile=-/srv/factory/%i/factory.local.env
 ExecStart=/srv/factory/%i/factory/.venv/bin/factory-run
 Restart=always
 RestartSec=15
+ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i
 
 [Install]
 WantedBy=multi-user.target

@@ -19,7 +19,7 @@ from factory.adapters.podman_runs import PodmanRuns
 from factory.application.stage_environment import ContainerEnvironment
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.domain.git import CommitId
-from podman_support import IMAGE
+from podman_support import IMAGE, INSTANCE
 
 PROXY = "http://proxy.example.invalid:3128"
 OTHER = "OTHER_HOST_NAME"
@@ -36,7 +36,7 @@ class WordsRuns(FakeContainerRuns):
     def __init__(self, workspace: Path) -> None:
         """Play `/work` as `workspace`; the words are those of `PodmanRuns` on it."""
         super().__init__(workspace)
-        self._podman = PodmanRuns("podman", IMAGE, workspace)
+        self._podman = PodmanRuns("podman", IMAGE, workspace, instance=INSTANCE)
         self.words: list[list[str]] = []
 
     def _record(

@@ -59,15 +59,18 @@ class PodmanRuns(ContainerRuns):
         image: str,
         workspace: Path,
         *,
+        instance: str,
         time_limit: timedelta = PODMAN_TIME_LIMIT,
         profile: ContainerProfileName = "rootless",
     ) -> None:
         """Start containers of `image` through `executable`, `workspace` mounted at `/work`.
 
-        `time_limit` bounds the queries `version` and `image_exists`. `profile` `job` starts them
-        as root in a managed sandbox, with podman's global options before every command.
+        Every container carries the label `factory.instance=<instance>`. `time_limit` bounds the
+        queries `version` and `image_exists`. `profile` `job` starts them as root in a managed
+        sandbox, with podman's global options before every command.
         """
         self._executable = executable
+        self._instance = instance
         self._profile = profile
         self._global_options = list(JOB_PODMAN_OPTIONS) if profile == "job" else []
         self._image = image
@@ -94,6 +97,10 @@ class PodmanRuns(ContainerRuns):
             *self._podman(),
             "run",
             "--rm",
+            # The service's unit stops the containers by this label: rootless podman places them
+            # outside the service's cgroup, so a stop of the service alone would not end them.
+            "--label",
+            f"factory.instance={self._instance}",
             *_isolation_words(self._profile),
             "--timeout",
             str(math.ceil(time_limit.total_seconds())),

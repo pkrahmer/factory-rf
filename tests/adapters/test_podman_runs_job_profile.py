@@ -11,7 +11,7 @@ from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.process import ProcessResult
 from factory.domain.containers import Mount
 from factory.domain.errors import ContainerError
-from podman_support import IMAGE, Podman, PodmanPlan
+from podman_support import IMAGE, INSTANCE, Podman, PodmanPlan, launch_words
 from run_process_recorder import Recorder
 
 WORKSPACE = Path("/srv/factory/vm/work")
@@ -26,25 +26,15 @@ MOUNT_PROGRAM_WORDS = ("mount_program", "fuse-overlayfs")
 @pytest.fixture
 def job_runs(podman: Podman) -> PodmanRuns:
     """A `PodmanRuns` of the job profile over the stand-in `podman`."""
-    return PodmanRuns(str(podman.path), IMAGE, WORKSPACE, profile="job")
-
-
-def _launch_words(runs: PodmanRuns, command: list[str], mounts: list[Mount]) -> list[str]:
-    return runs.launch(
-        command,
-        mounts=mounts,
-        environment={"A": "1"},
-        time_limit=timedelta(seconds=90),
-        working_directory="/work/checkout",
-    ).argv
+    return PodmanRuns(str(podman.path), IMAGE, WORKSPACE, profile="job", instance=INSTANCE)
 
 
 def test_the_default_profile_launches_as_the_rootless_one(podman: Podman) -> None:
     mounts = [Mount(source=Path("/srv/upstream"), target="/upstream", read_only=True)]
-    default = PodmanRuns(str(podman.path), IMAGE, WORKSPACE)
-    rootless = PodmanRuns(str(podman.path), IMAGE, WORKSPACE, profile="rootless")
+    default = PodmanRuns(str(podman.path), IMAGE, WORKSPACE, instance=INSTANCE)
+    rootless = PodmanRuns(str(podman.path), IMAGE, WORKSPACE, profile="rootless", instance=INSTANCE)
 
-    assert _launch_words(default, ["make", "check"], mounts) == _launch_words(
+    assert launch_words(default, ["make", "check"], mounts) == launch_words(
         rootless, ["make", "check"], mounts
     )
 
@@ -68,6 +58,8 @@ def test_a_job_launch_puts_the_global_options_first_and_runs_on_the_host_network
         *JOB_WORDS,
         "run",
         "--rm",
+        "--label",
+        "factory.instance=vm",
         "--http-proxy=false",
         "--network=host",
         "--timeout",
@@ -95,7 +87,7 @@ def test_a_job_launch_puts_the_global_options_first_and_runs_on_the_host_network
 
 
 def test_a_job_launch_maps_no_user(job_runs: PodmanRuns) -> None:
-    words = _launch_words(job_runs, ["make", "check"], [])
+    words = launch_words(job_runs, ["make", "check"], [])
 
     assert "--userns=keep-id" not in words
     assert "--user" not in words
@@ -115,7 +107,7 @@ def test_a_job_launch_refuses_no_command_or_a_mount_on_the_dataset(
     mounts = [] if target is None else [Mount(source=tmp_path / "source", target=target)]
 
     with pytest.raises(ValueError):  # noqa: PT011 - the interface names no message
-        _launch_words(job_runs, command, mounts)
+        launch_words(job_runs, command, mounts)
 
 
 def _version(runs: PodmanRuns) -> object:
@@ -127,7 +119,7 @@ def _image_exists(runs: PodmanRuns) -> object:
 
 
 def _launched_words(runs: PodmanRuns, _podman: Podman) -> list[str]:
-    return _launch_words(runs, ["make", "check"], [])
+    return launch_words(runs, ["make", "check"], [])
 
 
 def _version_words(runs: PodmanRuns, podman: Podman) -> list[str]:
@@ -156,7 +148,7 @@ def test_a_job_runner_names_no_mount_program(
     podman: Podman, tmp_path: Path, words: Callable[[PodmanRuns, Podman], list[str]]
 ) -> None:
     # The queries run podman in the workspace, so it must exist.
-    job_runs = PodmanRuns(str(podman.path), IMAGE, tmp_path, profile="job")
+    job_runs = PodmanRuns(str(podman.path), IMAGE, tmp_path, profile="job", instance=INSTANCE)
 
     assert [
         word
@@ -203,7 +195,7 @@ def test_a_job_runner_s_queries_carry_the_global_options(
     expected: object,
 ) -> None:
     # The queries run podman in the workspace, so it must exist.
-    job_runs = PodmanRuns(str(podman.path), IMAGE, tmp_path, profile="job")
+    job_runs = PodmanRuns(str(podman.path), IMAGE, tmp_path, profile="job", instance=INSTANCE)
     podman.plan(plan)
 
     if expected is None:

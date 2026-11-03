@@ -1,3 +1,182 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 512
+comments_read: [6597509758, 6597622408, 6597751272]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T06:34:18.373268Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T06:34:18.379856Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-03T06:34:43.819654Z'
+  stage: intake
+  run: ccd7775635ba4174a7caac429ff5b265
+  blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-03T07:03:10.691726Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:03:13.586532Z'
+  stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-03T07:03:39.207501Z'
+  stage: intake
+  run: 3077e67d5ead40dfb6f464d249de34a0
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:03:44.798660Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-03T07:04:52.265846Z'
+  stage: tests
+  run: 577ba80612a14a619810abf44c61d3be
+  blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-03T07:08:44.057908Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:08:49.233410Z'
+  stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-03T07:10:06.688722Z'
+  stage: tests
+  run: 5ef8f44045d24e4e92893e1cf6a526e8
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:10:12.635235Z'
+  stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-11-03T07:11:55.599436Z'
+  stage: doing
+  run: 2e257068f5f14c7581b3a3ef6d63ae45
+  blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-11-03T07:17:52.549314Z'
+  stage: doing
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:17:55.508644Z'
+  stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-11-03T07:21:25.067425Z'
+  stage: doing
+  run: 31f8ea737a264be4a21dfe37f94fcbf9
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:21:31.420400Z'
+  stage: review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T07:22:42.803316Z'
+  stage: review
+  run: cc32cdee18d547348e9ee08f57d4b693
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:22:48.523892Z'
+  stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-03T07:23:04.323181Z'
+  stage: doing
+  run: d82910295c58402d9760ba6e4c4f0ea1
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:23:10.221628Z'
+  stage: tests
+- number: 22
+  speaker: tester
+  kind: result
+  at: '2026-11-03T07:24:34.394123Z'
+  stage: tests
+  run: 55b71a85351b489a9d20d4da26c589ce
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:24:40.719507Z'
+  stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-11-03T07:28:03.163389Z'
+  stage: doing
+  run: 9e8e513d0ed64bd5a4c33e2523015262
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:28:09.092063Z'
+  stage: review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T07:29:05.201622Z'
+  stage: review
+  run: 6de68300f1764914af645a2b22a462f1
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:29:10.930204Z'
+  stage: docs
+- number: 28
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T07:29:49.959814Z'
+  stage: docs
+  run: da1902f34e00421da7ca3b7d43868e59
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:29:55.513286Z'
+  stage: smoke-test
+- number: 30
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T07:30:15.552764Z'
+  stage: smoke-test
+  run: 4233a467347b45438d7ce5ac82676831
+---
+
 # Stopping the service stops its agents
 
 <!-- written by the human on 2026-11-03 from what the acceptance F0048-A0001 met (decision 20) -->
@@ -10,24 +189,352 @@ This story makes a stop of the service stop the instance's containers. Every con
 
 ## Interface
 
-- Every container the factory starts, for an agent run and for a project command, carries the label `factory.instance=<FACTORY_INSTANCE>`.
+- Every container the factory starts, for an agent run and for a project command, carries the label `factory.instance=<FACTORY_INSTANCE>`. All starts go through `PodmanRuns.launch` in `src/factory/adapters/podman_runs.py` (agent runs through `agent_launch`, project commands through `run`, which calls `launch`). `PodmanRuns.__init__` gains a required keyword-only `instance: str`, set by `factory.entry.wiring` from the settings' instance; `launch` puts the two words `--label`, `factory.instance=<instance>` next to each other, after `--rm`.
 - `vm/factory.service` gains `ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i`, so that systemd runs it as the user `factory` after every end of `factory-run` (a stop, a crash before the restart). Its failure, or no container to stop, never fails the unit. Every other line of the unit stays.
 - `vm/setup.sh` installs the new unit as it installs it today (a machine whose installed unit differs from the checkout gets the existing message, which names the operator guide's *The rebuild after a merge*).
 
 ## Acceptance criteria
 
-1. The argument list of a container start, for an agent run and for a project command, holds `--label` `factory.instance=<instance>` with the instance of the factory's settings. Rows: the two kinds of start, and two instance names.
+1. The argument list of a container start, for an agent run and for a project command, holds the two words `--label`, `factory.instance=<instance>` next to each other, after `--rm`, with the instance given to `PodmanRuns`. Rows: `launch` with two instance names, and one row through `run`, to show that the project-command path carries the label too.
 2. `vm/factory.service` holds the `ExecStopPost` line of the Interface exactly once, after `ExecStart`, and every line it held before is unchanged.
-3. `make check` stays green. No test starts a real container: the tests run inside a check container. The human checks the stop on the machine after the merge (decision 20).
-4. docs: `docs/operator-guide.md`: where it describes stopping or rebuilding the service, one paragraph saying that a stop ends the instance's running agent and check containers, that a stage cut off this way is taken up again by the next start, and that a machine set up before this story installs the new `vm/factory.service` by hand (`install -m 0644` to `/etc/systemd/system/factory@.service`, then `systemctl daemon-reload`). `docs/decisions.md`: one entry stating that the instance's containers carry a label and the unit stops them after every end of the service, and why (rootless podman puts the containers outside the service's cgroup), with the rejected alternatives (`KillMode`, which cannot reach a scope of another systemd; a stop handler in `factory-run`, which does not run after a crash). `README.md` and the project guide: none.
+3. The wiring gives `PodmanRuns` the settings' instance: the container adapter that `factory.entry.wiring.build_boundaries` builds from settings whose `instance` is a given name starts containers whose argument list holds `--label`, `factory.instance=<that name>` next to each other.
+4. `make check` stays green. No test starts a real container: the tests run inside a check container. The human checks the stop on the machine after the merge (decision 20).
+5. docs: `docs/operator-guide.md`: where it describes stopping or rebuilding the service, one paragraph saying that a stop ends the instance's running agent and check containers, that a stage cut off this way is taken up again by the next start, and that a machine set up before this story installs the new `vm/factory.service` by hand (`install -m 0644` to `/etc/systemd/system/factory@.service`, then `systemctl daemon-reload`). `docs/decisions.md`: one entry stating that the instance's containers carry a label and the unit stops them after every end of the service, and why (rootless podman puts the containers outside the service's cgroup), with the rejected alternatives (`KillMode`, which cannot reach a scope of another systemd; a stop handler in `factory-run`, which does not run after a crash). `README.md` and the project guide: none.
 
 ## Smoke test
 
 ```bash
 grep -c '^ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i$' vm/factory.service
-grep -rn 'factory.instance' src/factory | head -1 | cut -d: -f1
+grep -rlF 'factory.instance' src/factory
 ```
 
-Expect: `1`, then the path of the module that adds the label.
+Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
+3. intake: The format check passed. I have four questions before the story can move on:
+
+   1. Interface: it names no Python module or signature for the label. `PodmanRuns.launch` in `src/factory/adapters/podman_runs.py` builds the `podman run` argument list. Its `__init__(executable, image, workspace, *, time_limit, profile)` has no instance. Please name how the instance reaches it. I would choose a new keyword-only `instance: str` on `PodmanRuns.__init__`, set by the wiring in `factory.entry` from the settings' `FACTORY_INSTANCE`, with `launch` adding `--label factory.instance=<instance>`. Should the parameter be required or have a default? Without this, two coders will write two different constructors and the tester cannot write the test.
+
+   2. Criterion 1: "the two kinds of start, agent run and project command" is not testable as written. Does every agent call and every project command go through `PodmanRuns.launch`? If not, name the other construction sites. If so, say that. Then the rows would be two instance names against `launch`'s argv. Please also say which one word order is expected: `--label` followed by `factory.instance=<instance>` as separate words, or `--label=factory.instance=<instance>`.
+
+   3. Smoke test: the second command's `Expect:` ("the path of the module that adds the label") is not checkable. It gives `head -1` of an unordered recursive grep, so the path is not fixed. I would choose `grep -rln 'factory.instance' src/factory` with `Expect:` the single line `src/factory/adapters/podman_runs.py`, or whichever module you intend.
+
+   4. Rules without a failing side:
+      - "Containers that do not carry the label, another instance's included, are not touched" has no criterion. Please say whether it is covered by criterion 2's exact line, or by a test of its own. Two instance names in criterion 1 would only show that the label differs.
+      - "Its failure, or no container to stop, never fails the unit" rests on the `-` prefix in the pinned line. I would accept that criterion 2 pins it, but please confirm.
+4. 2026-11-03 human: Answers to intake's four questions:
+
+   1. Yes: a new keyword-only `instance: str` on `PodmanRuns.__init__`, set by the wiring in `factory.entry.wiring` from the settings' instance (`FACTORY_INSTANCE`).
+   2. Yes: every container start goes through `PodmanRuns.launch`. It is the only `ContainerRuns` that starts podman, built once in the wiring; agent runs call `launch` through `agent_launch`, and project commands call `run`, which calls `launch`. So the rows are two instance names against `launch`'s argument list, plus one row through `run`, to show that the project-command path carries the label too. The expected word order is the two words `--label`, `factory.instance=<instance>` next to each other, after `--rm`.
+   3. Take your proposal: `grep -rln 'factory.instance' src/factory`, with `Expect:` the single line `src/factory/adapters/podman_runs.py`.
+   4. Both are covered by criterion 2's exact line. The filter names `label=factory.instance=%i`, so another instance's containers and unlabelled ones do not match it, and the `-` prefix is what keeps a failure or an empty match from failing the unit. No test of their own. The human checks both on vm after the merge (decision 20).
+
+   — Kumpel, for the human who owns this project
+   <!-- kumpel -->
+5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: after the human's answer (journal entry 4) it names `PodmanRuns.launch` in `src/factory/adapters/podman_runs.py`, a required keyword-only `instance: str` on `PodmanRuns.__init__` set by `factory.entry.wiring`, the word order (`--label`, `factory.instance=<instance>` after `--rm`), the unit line and the `vm/setup.sh` behaviour. I wrote the first two into the Interface from entry 4 (the human's edit carried in, not mine).
+   - Criteria: 1 now has rows for `launch` with two instance names and one through `run`, each checkable against the argument list (also from entry 4). 2 pins the exact `ExecStopPost` line once, after `ExecStart`, with the other lines unchanged. That covers the Interface's rules that other instances' and unlabelled containers are untouched, and that a failure never fails the unit, both through the `-` prefix and the `label=…=%i` filter. Entry 4 says so, and the human checks both on vm after the merge (decision 20). Criterion 3 is the check, and 4 is the docs criterion.
+   - Smoke test: commands are runnable. The second is now `grep -rln 'factory.instance' src/factory`, and its Expect is the single line `src/factory/adapters/podman_runs.py` (from entry 4). The first has Expect `1`.
+   - Architecture: the label is added in the adapters layer, the one wrapper that starts podman. The instance comes from the entry-layer wiring, so the layers stay intact. The unit change is under `vm/`.
+   - Scope: within F0048 (decision 20, built first). Nothing in "Out of scope" is touched, and no existing test is changed.
+7. factory: started tests as vm.
+8. tester: I wrote the tests for criteria 1 and 2. Both fail for the right reason. I stopped there: the Interface cannot be met unless tests written by other stories change. Intake's entry said "no existing test is changed", and that does not hold. CLAUDE.md says I may change those tests only with your leave, so I am asking.
+
+   What breaks once the Interface is built:
+   - A required keyword-only `instance` on `PodmanRuns.__init__` makes every call that leaves it out raise `TypeError`. There are 14 such calls: `tests/conftest.py:446` (fixture `runs`), `tests/container_extra_support.py:39`, `tests/adapters/test_podman_timeout_status.py:44`, `tests/adapters/test_podman_runs_fence.py:76`, `tests/adapters/test_podman_runs.py:130`, `tests/adapters/test_podman_runs_results.py:28,161,201,202`, and `tests/adapters/test_podman_runs_job_profile.py:29,44,45,159,206`.
+   - Three tests pin the whole `podman run` argument list. The label words make each of them fail:
+     - `test_podman_runs.py::test_launch_pins_the_podman_command_line`
+     - the list at `test_podman_runs_fence.py:43`
+     - the list at `test_podman_runs_job_profile.py:67`
+   - Two tests pin the unit, and the `ExecStopPost` line fails both:
+     - `tests/test_vm_service.py::test_each_section_holds_exactly_its_keys[service]` lists the Service keys exactly.
+     - `tests/test_vm_local_environment.py::test_the_unit_reads_the_local_file_after_the_environment_file_and_nothing_else` asserts `text == UNIT`.
+
+   Options:
+   (a) You give me leave to change exactly these tests:
+      - Pass `instance=` at each of the 14 calls. The value would be one shared constant `INSTANCE = "vm"` in `tests/podman_support.py`.
+      - Put `"--label", "factory.instance=vm"` in the three pinned lists, directly after `"--rm"`.
+      - Add `("ExecStopPost", "-/usr/bin/podman stop --filter label=factory.instance=%i")` after `RestartSec` in the Service row of `test_vm_service.py`.
+      - Add the same line to `UNIT` in `test_vm_local_environment.py`, after the `RestartSec=15` line.
+      The tests keep their names and check the same things otherwise. This also decides two exact positions:
+      - The label goes directly after `--rm`, before the isolation words. The Interface only says "after `--rm`", but the pinned lists need one exact place.
+      - The `ExecStopPost` line goes directly after `RestartSec=15`. The Interface only says "after `ExecStart`".
+      Please confirm both positions or name others.
+   (b) Make `instance` optional with a default. This contradicts the Interface ("required") and still leaves five pinned tests red.
+   I would choose (a).
+
+   Tests written so far:
+   - Criterion 1: `tests/adapters/test_podman_runs_instance_label.py::test_a_container_start_carries_the_instance_label_after_rm`. Rows: `launch` with `vm`, `launch` with `night`, and `run` with `vm` (read from the stand-in podman's recorded call). It checks that `--label` comes after `--rm` and that the next word is `factory.instance=<instance>`.
+   - Criterion 2: `tests/test_vm_service_stop.py::test_the_unit_stops_the_instances_containers_after_its_start_line`. It checks the exact `ExecStopPost` line once, after `ExecStart`, and that the remaining lines equal the unit's current lines in order.
+   - Criterion 3 (`make check` green) and criterion 4 (docs) have no tests.
+
+   Files created: `tests/adapters/test_podman_runs_instance_label.py`, `tests/test_vm_service_stop.py`.
+
+   Run:
+   - `uv run pytest -q` on the two files: 4 failed. Every module imports. The label rows fail because `instance` is not a parameter yet. The unit test fails because the line is missing.
+   - `make lint`: green.
+9. 2026-11-03 human: (a), granted as you wrote it. You have leave to change exactly these tests and nothing else in them:
+   - `instance=` at the 14 calls, from one shared constant `INSTANCE = "vm"` in `tests/podman_support.py`;
+   - `"--label", "factory.instance=vm"` in the three pinned lists;
+   - the `ExecStopPost` row in `test_vm_service.py`, and the same line in `UNIT` of `test_vm_local_environment.py`.
+
+   Both positions are confirmed: the label goes directly after `--rm`, before the isolation words, and the `ExecStopPost` line goes directly after `RestartSec=15`. The tests keep their names, and the tester's entry names each changed file.
+
+   — Kumpel, for the human who owns this project
+   <!-- kumpel -->
+10. factory: started tests as vm.
+11. tester: I made the test changes the human granted in entry 9, and only those. I kept the two tests from entry 8 unchanged.
+
+    Criterion to test:
+    - criterion 1: `tests/adapters/test_podman_runs_instance_label.py::test_a_container_start_carries_the_instance_label_after_rm`. Rows: `launch-vm`, `launch-night`, `run-vm`.
+    - criterion 2: `tests/test_vm_service_stop.py::test_the_unit_stops_the_instances_containers_after_its_start_line`
+    - criterion 3 (`make check` green): no test of its own.
+    - criterion 4 (docs): no test of its own.
+
+    Earlier test files I changed under the human's leave (entry 9):
+    - `tests/podman_support.py`: new shared constant `INSTANCE = "vm"`.
+    - `instance=INSTANCE` added at all 14 `PodmanRuns(...)` calls, in:
+      - `tests/conftest.py` (fixture `runs`)
+      - `tests/container_extra_support.py`
+      - `tests/adapters/test_podman_timeout_status.py`
+      - `tests/adapters/test_podman_runs_fence.py`
+      - `tests/adapters/test_podman_runs.py`
+      - `tests/adapters/test_podman_runs_results.py` (4 calls)
+      - `tests/adapters/test_podman_runs_job_profile.py` (5 calls)
+    - In `tests/conftest.py` the constant is imported as `INSTANCE as PODMAN_INSTANCE`. The name `INSTANCE` was already taken there by `stage_run_support.INSTANCE` ("factory-1"), and ruff flags the redefinition (F811). The value is the same shared constant.
+    - `"--label", "factory.instance=vm"` added directly after `"--rm"` in the three pinned argument lists: `test_podman_runs.py::test_launch_pins_the_podman_command_line`, `test_podman_runs_fence.py`, and `test_podman_runs_job_profile.py`.
+    - `("ExecStopPost", "-/usr/bin/podman stop --filter label=factory.instance=%i")` added after `RestartSec` in the Service row of `tests/test_vm_service.py`.
+    - The same line added after `RestartSec=15` in `UNIT` of `tests/test_vm_local_environment.py`.
+    - Every test keeps its name and otherwise checks the same things. A few calls were rewrapped by `ruff format`.
+
+    Files created (in entry 8): `tests/adapters/test_podman_runs_instance_label.py`, `tests/test_vm_service_stop.py`.
+
+    Modules the test run could not import: none. Every module imports.
+
+    Run: one `uv run pytest -q` over the two new files and the seven changed test modules. It fails for the right reason. `PodmanRuns` does not accept `instance` yet, so the fixture and test calls raise `TypeError` (shown as errors in setup and failures in the tests). The unit tests fail because `vm/factory.service` has no `ExecStopPost` line yet.
+
+    `make lint`: green. I skipped the type check, as the stage says.
+
+    `lint`: lint: green (0.1 s)
+12. factory: started doing as vm.
+13. coder: I built the Interface and stopped before handing on: `make lint` fails on one rule, and its fix lies outside my write paths.
+
+    Built (in the working tree):
+    - `src/factory/adapters/podman_runs.py`: `PodmanRuns.__init__` gains a required keyword-only `instance: str`. `launch` puts `--label`, `factory.instance=<instance>` directly after `--rm`, with a comment on why: rootless podman places the containers outside the service's cgroup. Agent runs and project commands both go through `launch`, so both carry the label.
+    - `src/factory/entry/wiring.py`: passes `instance=settings.instance`.
+    - `vm/factory.service`: `ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i` directly after `RestartSec=15`. `vm/setup.sh` needs no change: its `cmp`/`install` already covers the new unit.
+
+    Ran: `ruff format --check`, `mypy --strict` on the two modules, and pytest on the podman adapter tests, the unit tests and `tests/entry`: all green. `ruff check` has one finding left: `src/factory/adapters/podman_runs.py:56:9: PLR0913 Too many arguments in function definition (6 > 5)`. `make check` therefore stops at lint, and I have not run it to the end.
+
+    Question: the Interface pins six constructor arguments (executable, image, workspace, instance, time_limit, profile), and `max-args = 5`. The four earlier cases (`claude_runtime.py`, `opencode_runtime.py`, `make_commands.py`, `oauth_token.py`) each have a per-file ignore in `pyproject.toml`. That file is not in the coder's write paths.
+    - (a) You add `"src/factory/adapters/podman_runs.py" = ["PLR0913"]  # the instance label joins the constructor; no noqa in the source` under `[tool.ruff.lint.per-file-ignores]`. Nothing else changes. I would choose (a): it follows the four earlier cases.
+    - (b) I put `# noqa: PLR0913` on the constructor. No module in `src` carries a noqa today except the allowed exception in `process.py`, and the existing entries say "no noqa in the source".
+    - (c) I fold `time_limit` and `profile` into an options object. That changes the Interface and the tests' calls (a test change).
+
+    Noticed, not touched: the smoke test's `grep -rln 'factory.instance' src/factory` is a regex, and its `.` matches any character. It also lists `src/factory/application/scheduler.py` and `src/factory/domain/settings.py`, whose module docstrings say "factory instance". The Expect (the single line `podman_runs.py`) therefore fails whatever this story does. `grep -rlnF` would print only `src/factory/adapters/podman_runs.py`. Please say whether the smoke test should change to `-F`.
+
+    Refactor step not reached, because check is not green. Journal: entries 4 and 9 already carried into the Description by intake and tester; nothing further changed its meaning.
+14. 2026-11-03 human: (a). The per-file ignore is on `main` as commit 6e00f08ce, exactly as you wrote it, with its reason: `"src/factory/adapters/podman_runs.py" = ["PLR0913"]`. The factory merges `main` into the branch when it reopens the work item, so your next run has it. Nothing else changes.
+
+    The smoke test: yes, it changes to `grep -rlF 'factory.instance' src/factory`, with `Expect:` the single line `src/factory/adapters/podman_runs.py`. The coder may not write the work item, so the reviewer writes the `-F` into the smoke test and names it in its entry.
+
+    — Kumpel, for the human who owns this project
+    <!-- kumpel -->
+15. factory: started doing as vm.
+16. coder: `make check` is green, so the work item can go to review. The code is the same as in entry 13; this run did not change it. The human's per-file ignore (commit 6e00f08ce) is now merged into the branch. With it, the `PLR0913` finding is gone, and the whole check passed: lint, types, layers, sast, secrets, licenses and test, ending with `check: green`.
+
+    What was built (already committed from the previous run):
+    - `src/factory/adapters/podman_runs.py`: `PodmanRuns.__init__` has a new required keyword-only `instance: str`. `launch` puts `--label` and `factory.instance=<instance>` directly after `--rm`, before the isolation words. A comment there explains why: rootless podman puts the containers outside the service's cgroup. Agent runs and project commands both start through `launch`, so both carry the label.
+    - `src/factory/entry/wiring.py`: passes `instance=settings.instance`.
+    - `vm/factory.service`: `ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i`, directly after `RestartSec=15`.
+    - `vm/setup.sh`: unchanged. It already compares the installed unit with the checkout and installs or reports as before.
+
+    Main choice: the label is added in the one place that starts every container, `launch`, so no caller can forget it. I rejected passing the label in from each caller (`agent_launch` and `run`). That would give two places to keep in step, and a later way of starting a container could miss it.
+
+    Refactor: I read the diff again and found nothing to change.
+
+    Smoke test, run by hand:
+    - The `grep -c` on the unit prints `1`.
+    - `grep -rlF 'factory.instance' src/factory` prints only `src/factory/adapters/podman_runs.py`.
+    - As the human said in entry 14, the reviewer still has to write the `-F` into the work item's smoke test.
+
+    The journal did not change what the task means beyond what intake and the tester had already written into the Description, so I left the Description alone.
+
+    Noticed, not touched: the per-file ignore's comment in `pyproject.toml:65` names the work item id (`F0048-S0016`). The repository's rule keeps work item ids out of code and configuration. It is the human's commit, so I left it.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
+17. factory: started review as vm.
+18. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. The code meets the Interface. `PodmanRuns.__init__` takes a required keyword-only `instance`. `launch` puts `--label`, `factory.instance=<instance>` directly after `--rm` and explains why in a comment. The wiring passes `settings.instance`. The unit has the `ExecStopPost` line after `RestartSec=15`. The coder's `make check` was green (entry 16). Architecture: the label lives in the one podman wrapper (adapters), and the wiring stays in entry. Security: the label is one argv word, with no shell and no silencing marker. Docs criterion: it still says what the documenter must write.
+
+    Findings:
+    1. criterion 3 added: it needs its test. The Interface says `factory.entry.wiring` sets the instance from the settings' instance, but no test checks it. A wiring that passed a constant or the wrong field would keep every test green, and the unit's `label=factory.instance=%i` filter would then match nothing. The test can follow `tests/entry/test_wiring_container_profile.py`: build settings with a given `instance`, call `build_boundaries(...).containers.launch(...)`, and assert `--label`, `factory.instance=<that instance>` in the argv. No change under `src/` is needed. The old criteria 3 and 4 are now 4 and 5.
+    2. `tests/adapters/test_podman_runs_instance_label.py:13` `_launch_words` copies the helper `_launch_words` in `tests/adapters/test_podman_runs_job_profile.py:31` (`runs.launch(...).argv` with `working_directory="/work/checkout"`). Fix: the tester moves one helper to `tests/podman_support.py` under the standing leave, and both modules use it (the parametrized row can wrap it in a lambda).
+
+    Smoke test corrected on the human's word (entry 14): `grep -rln 'factory.instance' src/factory` -> `grep -rlF 'factory.instance' src/factory`. The Expect is unchanged.
+
+    Earlier tests:
+    - `tests/adapters/test_podman_runs.py`: the human's leave, entry 9.
+    - `tests/adapters/test_podman_runs_fence.py`: the human's leave, entry 9.
+    - `tests/adapters/test_podman_runs_job_profile.py`: the human's leave, entry 9.
+    - `tests/adapters/test_podman_runs_results.py`: the human's leave, entry 9.
+    - `tests/adapters/test_podman_timeout_status.py`: the human's leave, entry 9.
+    - `tests/conftest.py`: the human's leave, entry 9. The `INSTANCE as PODMAN_INSTANCE` import is the same shared constant, renamed only to avoid F811.
+    - `tests/container_extra_support.py`: the human's leave, entry 9.
+    - `tests/podman_support.py`: the human's leave, entry 9 (the shared constant `INSTANCE = "vm"`).
+    - `tests/test_vm_local_environment.py`: the human's leave, entry 9.
+    - `tests/test_vm_service.py`: the human's leave, entry 9.
+19. factory: started doing as vm.
+20. coder: Both of the reviewer's findings in entry 18 are test changes, so this round changes no code. The work goes back to the tester for two things:
+
+    1. **Criterion 3 needs its test.** The reviewer added this criterion: the wiring gives `PodmanRuns` the settings' instance. No code change is needed, because `src/factory/entry/wiring.py` already passes `instance=settings.instance`. The new test follows `tests/entry/test_wiring_container_profile.py`. It builds settings with a given `instance`, calls `factory.entry.wiring.build_boundaries(...).containers.launch(...)`, and asserts that the argument list holds `--label`, `factory.instance=<that instance>` next to each other.
+    2. **Move the copied helper.** `_launch_words` exists twice: in `tests/adapters/test_podman_runs_instance_label.py:13` and in `tests/adapters/test_podman_runs_job_profile.py:31`. The tester moves it to `tests/podman_support.py` and changes both modules to use it from there. CLAUDE.md's standing leave to move a shared test helper covers this. Both tests keep their names and check the same things.
+
+    What I built is unchanged since entry 16:
+    - `src/factory/adapters/podman_runs.py`: the label, placed in `launch`.
+    - `src/factory/entry/wiring.py`: passes the instance.
+    - `vm/factory.service`: the `ExecStopPost` line.
+
+    The main choice also stands: the label goes in `launch`, the one place every container start passes through. I rejected adding it at each caller, because a later way of starting a container could miss it.
+
+    There is no refactor and I did not run `make check` this round, because nothing under `src/` or `vm/` changed. The last full run (entry 16) ended `check: green`.
+
+    The journal did not change the task's meaning beyond what the Description already holds. The reviewer has already written criterion 3 and the smoke test's `-F` into the Description.
+
+    Noticed, not touched: the comment on the per-file ignore at `pyproject.toml:65` still names the work item id. That was the human's commit (entry 16).
+21. factory: started tests as vm.
+22. tester: I made the two test changes the coder named in entry 20, which come from the reviewer's findings in entry 18.
+
+    1. **New test for criterion 3.** It follows `tests/entry/test_wiring_container_profile.py`. It builds `InstanceSettings` with a given `instance`, takes `build_boundaries(...).containers`, and checks two things: the adapter is a `PodmanRuns`, and its launch argv has `factory.instance=<instance>` directly after `--label`. It runs with two instance names (`factory-1`, `night`), so a wiring that passed a constant fails it.
+    2. **Helper moved.** Under CLAUDE.md's standing leave to move a shared test helper, `_launch_words` now lives in `tests/podman_support.py` as `launch_words(runs, command, mounts)`. Its body is unchanged from the old copy in `test_podman_runs_job_profile.py`: environment `A=1`, a 90 s limit, working directory `/work/checkout`.
+       - `test_podman_runs_job_profile.py` now calls `launch_words` and passes the same arguments as before.
+       - In `test_podman_runs_instance_label.py`, the two `launch` rows wrap it in a lambda, as the reviewer suggested. They now launch with the environment and limit of the shared helper (before: `{}` and 30 s). The test checks only the label, so it checks the same thing.
+       - Every test keeps its name.
+
+    Criterion → test:
+    - criterion 1: `tests/adapters/test_podman_runs_instance_label.py::test_a_container_start_carries_the_instance_label_after_rm` (unchanged in what it checks)
+    - criterion 2: `tests/test_vm_service.py`, the test written earlier (unchanged)
+    - criterion 3: `tests/entry/test_wiring_instance_label.py::test_the_container_adapter_labels_its_containers_with_the_setting_s_instance`
+
+    Files created: `tests/entry/test_wiring_instance_label.py`.
+
+    Earlier test files changed, under the standing leave to move a shared test helper:
+    - `tests/podman_support.py` (gained `launch_words`)
+    - `tests/adapters/test_podman_runs_job_profile.py`
+    - `tests/adapters/test_podman_runs_instance_label.py`
+
+    Test run: `uv run pytest -q` over the three test modules, all passed (23 passed). They pass because the code is already built. No module failed to import. `make lint`: green. As the stage says, I skipped the type check; the coder's `make check` covers it.
+
+    `lint`: lint: green (0.1 s)
+23. factory: started doing as vm.
+24. coder: `make check` is green with the tester's new tests (it ended `test: green (80.9 s)`, then `check: green`). They are the criterion 3 test `tests/entry/test_wiring_instance_label.py` and the `launch_words` helper moved to `tests/podman_support.py`. Both pass against the code built earlier, so this round changed no code under `src/` or `vm/`.
+
+    What was built (unchanged since entry 16):
+    - `src/factory/adapters/podman_runs.py`: `PodmanRuns.__init__` takes a required keyword-only `instance: str`. `launch` puts `--label`, `factory.instance=<instance>` directly after `--rm`, with a comment on why.
+    - `src/factory/entry/wiring.py`: passes `instance=settings.instance`.
+    - `vm/factory.service`: `ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i`, directly after `RestartSec=15`.
+    - `vm/setup.sh`: unchanged. Its existing compare-and-install already covers the new unit.
+
+    Main choice: the label is added in `launch`, the one place every container start passes through. I rejected adding it at each caller (`agent_launch`, `run`): that is two places to keep in step, and a later way of starting a container could miss it.
+
+    Refactor: I read the diff against `main` again and found nothing to change.
+
+    Journal: entries 18 to 22 added criterion 3 and its test, and the smoke test's `-F`. The reviewer already wrote both into the Description, so I left it alone.
+
+    Noticed, not touched: the comment on the per-file ignore at `pyproject.toml:65` still names the work item id. It is the human's commit.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
+25. factory: started review as vm.
+26. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. I read the code itself and did not rely on the journal's account of it.
+
+    no findings
+
+    What I checked:
+    - **Acceptance criteria.**
+      - Criterion 1: `tests/adapters/test_podman_runs_instance_label.py` has three rows: `launch` with `vm`, `launch` with `night`, and `run` with `vm`. Each checks that `factory.instance=<instance>` follows `--label` and that `--label` comes after `--rm`.
+      - Criterion 2: `tests/test_vm_service_stop.py` checks the exact `ExecStopPost` line once, after `ExecStart`, and that every other line is unchanged.
+      - Criterion 3: `tests/entry/test_wiring_instance_label.py` builds settings with two instance names, `factory-1` and `night`, and checks the label on the adapter that `build_boundaries` builds.
+      - The Interface's rules on unlabelled containers, other instances' containers and a failing stop are covered by criterion 2's exact line (`label=…=%i` filter and `-` prefix), as the human ruled in entry 4.
+      - The journal's last `make check` (entry 24) was green.
+    - **Architecture.** The label is added only in `PodmanRuns.launch` (adapters), the one place every container start passes through. The instance comes from `factory.entry.wiring`. No layer is crossed.
+      - `ExecStopPost` runs as `User=factory`, because no `+` prefix overrides it. That matches the rootless containers it must stop.
+      - The `job` profile's global options are not in the stop line. That is correct: the operator guide says that profile runs in a Cloud Run job, not under `factory@.service`.
+    - **Security.** The label is one argv word. No shell, no string-built command, no new silencing marker in the diff.
+    - **Quality.**
+      - The docstring of `PodmanRuns.__init__` names the label.
+      - The comment at `src/factory/adapters/podman_runs.py:100` says why the label is there.
+      - `duplicates: 0 new`.
+    - **Work item hygiene.**
+      - The Description and Interface match what was built.
+      - The smoke test already carries `-F`, from entry 14 and round 0.
+      - The docs criterion still says what the documenter must write.
+
+    Earlier tests:
+    - `tests/adapters/test_podman_runs.py`: human's leave, entry 9.
+    - `tests/adapters/test_podman_runs_fence.py`: human's leave, entry 9.
+    - `tests/adapters/test_podman_runs_job_profile.py`: human's leave, entry 9. Also the standing leave to move a shared test helper: `_launch_words` moved to `tests/podman_support.py` as `launch_words` with its body unchanged, and every test keeps its name.
+    - `tests/adapters/test_podman_runs_results.py`: human's leave, entry 9.
+    - `tests/adapters/test_podman_timeout_status.py`: human's leave, entry 9.
+    - `tests/conftest.py`: human's leave, entry 9. It imports the shared `INSTANCE` as `PODMAN_INSTANCE` to avoid F811.
+    - `tests/container_extra_support.py`: human's leave, entry 9.
+    - `tests/podman_support.py`: human's leave, entry 9, for `INSTANCE`. Also the standing leave to move a shared test helper, for `launch_words`.
+    - `tests/test_vm_local_environment.py`: human's leave, entry 9.
+    - `tests/test_vm_service.py`: human's leave, entry 9.
+
+    Notes:
+    - `tests/entry/test_wiring_instance_label.py:22`: the `InstanceSettings(...)` block copies the one in `tests/entry/test_wiring_container_profile.py:31`. One builder in `tests/wiring_support.py` could serve both.
+    - `tests/test_vm_service_stop.py:6`: `EARLIER_LINES` is a second copy of the unit's text, beside `UNIT` in `tests/test_vm_local_environment.py`.
+    - Entry 22 names `tests/test_vm_service.py` as criterion 2's test. The test is `tests/test_vm_service_stop.py::test_the_unit_stops_the_instances_containers_after_its_start_line`.
+27. factory: started docs as vm.
+28. documenter: I wrote the two documents the docs criterion names and found no finding for the coder. The code matches the Interface.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The rebuild after a merge*: one paragraph after the stop command. It says that a stop ends the instance's agent and check containers through the label filter, that other instances' and unlabelled containers are left alone, and that a cut-off stage is a crash the next start takes up again (it links to *A restart during a stage*). It also says how a machine set up earlier installs the new unit by hand: `install -m 0644` to `/etc/systemd/system/factory@.service`, then `systemctl daemon-reload`. The stage's `make check` was not run.
+    - `docs/decisions.md`: a new entry at the end, "A stop of the service stops the instance's containers". It gives the decision, why (rootless podman puts the containers outside the service's cgroup; the acceptance F0048-A0001 met it), and the rejected alternatives: `KillMode`, a stop handler in `factory-run`, and the label passed from each caller.
+
+    I ran the smoke test's two commands. The `grep -c` on the unit prints `1`. `grep -rlF 'factory.instance' src/factory` prints only `src/factory/adapters/podman_runs.py`.
+
+    I changed only documents, so I did not run `make check` (the stage's rule). The factory's checks decide.
+
+    Cross-read and found current:
+    - `README.md`: it has nothing on stopping or on containers.
+    - `docs/project-guide/`: I did not search it. The criterion says none, and I did not read the rest of the guide against the diff.
+    - The operator guide passages *A restart during a stage* and *On GCP, step by step* step 12. They describe a stop during a stage as a crash and need no change.
+    - The operator guide's *The two passes* section, which I checked only for the installed unit's message. The message still matches `vm/setup.sh`, which is unchanged.
+
+    Stale text I saw and did not touch:
+    - `pyproject.toml:65` names the work item id in the comment on the per-file ignore. That is the human's commit; the coder noted it too.
+    - The reviewer's note that entry 22 names the wrong test file for criterion 2 is a journal slip. It is not mine.
+
+    `check`: check: green (not run again: passed on tree bc17833f377e at 2026-11-03T07:26:30Z)
+    `secrets`: secrets: green (2.4 s)
+    `documents`: documents ok
+29. factory: started smoke-test as vm.
+30. smoke-tester: I ran the smoke test from the repository root, with the commands exactly as written and in order. Both met their `Expect:` line. I fixed nothing.
+
+    Command 1: `grep -c '^ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i$' vm/factory.service`
+    ```
+    1
+    ```
+    Met: `1` (exit 0).
+
+    Command 2: `grep -rlF 'factory.instance' src/factory`
+    ```
+    src/factory/adapters/podman_runs.py
+    ```
+    Met: the single line `src/factory/adapters/podman_runs.py` (exit 0).
+
+    Check against the acceptance criteria: nothing the smoke test showed contradicts a criterion.
+    - `vm/factory.service`: the `ExecStopPost` line appears once, after `ExecStart`. The other lines of the unit are still there. The diff against `origin/main` changes the unit by exactly one added line.
+    - `src/factory/adapters/podman_runs.py`: puts `--label` and `factory.instance={self._instance}` next to each other in `launch`. `src/factory/entry/wiring.py` changed too.
+    - `docs/operator-guide.md`, line 868: has the stop paragraph, which says how the new unit is installed by hand (`install -m 0644`, `daemon-reload`).
+    - `docs/decisions.md`, line 1355: has the decision entry.
+
+    The smoke test does not exercise criteria 1, 3 and 4 (the argument list, the wiring, and `make check`). The tests and the stage's checks cover them, and the human checks the real stop on the machine after the merge.
+
+    Findings: none.

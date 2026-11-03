@@ -359,6 +359,7 @@ def _container_adapters(settings: InstanceSettings) -> _ContainerAdapters:
             settings.podman_executable,
             settings.stage_image,
             workspace,
+            instance=settings.instance,
             profile=settings.container_profile,
         ),
     )

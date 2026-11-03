@@ -1,13 +1,17 @@
 """A stand-in `podman` that records each call, then plays its plan or runs the container's words."""
 
 from dataclasses import dataclass
+from datetime import timedelta
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
+from factory.adapters.podman_runs import PodmanRuns
+from factory.domain.containers import Mount
 from run_layout_support import read_records, write_script
 
 IMAGE = "factory-stage:1"
+INSTANCE = "vm"
 CALLS = "podman-calls.jsonl"
 PLAN = "podman-plan.json"
 
@@ -90,3 +94,14 @@ def write_podman(folder: Path, plan: PodmanPlan | None = None) -> Podman:
     podman = Podman(path=write_script(folder / "podman", PODMAN_SCRIPT), folder=folder)
     podman.plan(PodmanPlan() if plan is None else plan)
     return podman
+
+
+def launch_words(runs: PodmanRuns, command: list[str], mounts: list[Mount]) -> list[str]:
+    """The argument list `runs` launches `command` with, over `mounts`."""
+    return runs.launch(
+        command,
+        mounts=mounts,
+        environment={"A": "1"},
+        time_limit=timedelta(seconds=90),
+        working_directory="/work/checkout",
+    ).argv

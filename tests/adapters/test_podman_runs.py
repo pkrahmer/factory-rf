@@ -8,7 +8,7 @@ import pytest
 from factory.adapters.podman_runs import PodmanRuns
 from factory.application.containers import ContainerRuns
 from factory.domain.containers import Mount
-from podman_support import IMAGE, Podman
+from podman_support import IMAGE, INSTANCE, Podman
 
 
 def test_launch_pins_the_podman_command_line(runs: PodmanRuns, podman: Podman) -> None:
@@ -35,6 +35,8 @@ def test_launch_pins_the_podman_command_line(runs: PodmanRuns, podman: Podman) -
         str(podman.path),
         "run",
         "--rm",
+        "--label",
+        "factory.instance=vm",
         "--userns=keep-id",
         "--timeout",
         "2400",
@@ -127,7 +129,7 @@ def test_a_mount_on_the_dataset_or_no_command_is_refused(
     target: str | None,
     refused: bool,
 ) -> None:
-    runs = PodmanRuns(str(podman.path), IMAGE, tmp_path)
+    runs = PodmanRuns(str(podman.path), IMAGE, tmp_path, instance=INSTANCE)
     mounts = [] if target is None else [Mount(source=tmp_path / "source", target=target)]
 
     if refused:

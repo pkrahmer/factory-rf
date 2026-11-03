@@ -35,6 +35,7 @@ def _unit() -> configparser.ConfigParser:
                 ("ExecStart", "/srv/factory/%i/factory/.venv/bin/factory-run"),
                 ("Restart", "always"),
                 ("RestartSec", "15"),
+                ("ExecStopPost", "-/usr/bin/podman stop --filter label=factory.instance=%i"),
             ],
             id="service",
         ),

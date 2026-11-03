@@ -8,7 +8,7 @@ import pytest
 from factory.adapters import podman_runs
 from factory.adapters.podman_runs import MEMORY_LIMIT, PIDS_LIMIT, PodmanRuns
 from factory.domain.containers import Mount
-from podman_support import IMAGE, Podman
+from podman_support import IMAGE, INSTANCE, Podman
 
 FENCE = [
     "--cap-drop=all",
@@ -44,6 +44,8 @@ def test_launch_drops_every_right_and_limits_the_container(
         str(podman.path),
         "run",
         "--rm",
+        "--label",
+        "factory.instance=vm",
         "--userns=keep-id",
         "--timeout",
         "2400",
@@ -73,7 +75,7 @@ def test_launch_drops_every_right_and_limits_the_container(
 def test_a_run_starts_its_container_without_rights_and_within_limits(
     tmp_path: Path, podman: Podman
 ) -> None:
-    runs = PodmanRuns(str(podman.path), IMAGE, tmp_path)
+    runs = PodmanRuns(str(podman.path), IMAGE, tmp_path, instance=INSTANCE)
 
     runs.run(
         ["/bin/true"],

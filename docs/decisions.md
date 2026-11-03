@@ -1347,3 +1347,12 @@ Date: 2026-11-03 (F0048-S0010; decision 13 of the feature).
 - Why: on 2026-11-02 a run that stopped at the preflight (`tool:uv: uv is not on the PATH`) held its eight CPUs for over forty minutes and the platform showed it as running. A job has no machine to fix, so a stop never ends by itself; status 1 makes the execution fail, which is the signal an operator and the platform both read.
 - A VM, and a stop of scope `repository`, keep today's behaviour: the operator fixes the machine, and a push to `main` lifts a repository stop.
 - Rejected: a setting for the minutes (nothing to tune); counting from the stop's latest `at` (a stop raised every tick would never stand); changing `HealthStatus.with_stop` to keep the first time (it is the health file's record of the last raise); a hook in `Scheduler` (the entry composes the observer around the existing callbacks).
+
+## A stop of the service stops the instance's containers
+
+Date: 2026-11-03 (F0048-S0016; decision 20 of the feature).
+
+- Decision: every container the factory starts, an agent run and a project command alike, carries the label `factory.instance=<instance>`, set in `PodmanRuns.launch`, the one place that starts podman; the instance comes from the settings through `factory.entry.wiring`. `vm/factory.service` has `ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i`, which systemd runs as the user `factory` after every end of `factory-run`, a stop or a crash before the restart. The `-` keeps a failure, or no container to stop, from failing the unit.
+- Why: rootless podman with systemd's cgroup manager puts the container and its `conmon` in a scope of the user's own systemd, outside the cgroup of `factory@<instance>`. A stop of the service ended `factory-run` and the `podman run` client, but the container went on, and the restarted factory found the stage without an owner and started a second agent on the same dataset (the acceptance F0048-A0001, 2026-11-03). The filter names the instance, so other instances' containers and unlabelled ones are not touched.
+- Rejected: `KillMode` (it acts on the service's cgroup and cannot reach a scope of another systemd); a stop handler in `factory-run` (it does not run after a crash); passing the label from each caller (`agent_launch`, `run`), which would leave two places to keep in step.
+- A machine set up earlier installs the new unit by hand; `vm/setup.sh` reports a differing unit and leaves it.

@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.podman_runs import PodmanRuns
-from podman_support import IMAGE, Podman, PodmanPlan
+from podman_support import IMAGE, INSTANCE, Podman, PodmanPlan
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 ROOMY_SECONDS = ROOMY_LIMIT.total_seconds()
@@ -41,7 +41,7 @@ def test_podman_s_timeout_status_at_the_limit_is_a_timed_out_run(
     workspace = tmp_path / "work"
     workspace.mkdir()
     podman.plan(plan)
-    runs = PodmanRuns(str(podman.path), IMAGE, workspace)
+    runs = PodmanRuns(str(podman.path), IMAGE, workspace, instance=INSTANCE)
     started = time.monotonic()
 
     result = runs.run(
