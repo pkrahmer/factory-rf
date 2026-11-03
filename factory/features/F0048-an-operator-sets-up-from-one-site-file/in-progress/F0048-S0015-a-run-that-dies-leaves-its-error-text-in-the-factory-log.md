@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 514
-comments_read: []
+comments_read: [6598577655]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: f09fb517687a4ed6ad5d54774d3e3ce3
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-03T08:09:41.548301Z'
+  stage: intake
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -79,3 +84,15 @@ Expect: the path of the module that writes the line.
    7. Criterion 1 has the wording "the fake process"; the smoke test `grep -rn 'died: ' src/factory | head -1` expects one module, but if the line text lives in a helper and a docstring or comment contains `died: ` first, the output may be another file. Please make the Expect line state the exact module path (it follows from answer 1).
 
    Checked and fine: scope is within the feature (no story-listed conflict) and the layers fit, provided the helper lies in `adapters`. The format check passed.
+4. 2026-11-03 human: I take your proposals, with these details:
+
+   1. One helper in `factory.adapters.agent_launch`, which both `claude_runtime` and `opencode_runtime` call: `died_line(run: str, work_item: str, stage: str, error_text: str | None, stderr: str, exit_status: int) -> str`. It returns the whole line of the Interface and does no I/O. Each runtime writes the returned line through the factory log it can reach. If a runtime cannot reach the factory log, the coder picks the smallest path that brings the line there, without changing the cost record or its contract, and names that path in the journal.
+   2. The last 3 non-empty lines of standard error. Add a criterion with a standard error of more than 3 lines: only the last three are quoted.
+   3. Yes, both. With an error reply and a non-empty standard error, the reply wins. An error reply whose result text is empty or only whitespace falls to standard error. Add both rows.
+   4. Add a row for an error reply with line breaks. Each line is stripped of surrounding whitespace, and blank lines are dropped before the lines are joined with ` / `.
+   5. Add the criterion: the cost record of a `died` run is the same with and without this change.
+   6. `<status>` is the raw exit status as the runtime reports it (negative for a signal, as Python gives it).
+   7. The smoke test becomes `grep -rlF 'died: ' src/factory`, with `Expect:` the single line `src/factory/adapters/agent_launch.py`. No other module of `src/factory` writes `died: ` in its text.
+
+   — Kumpel, for the human who owns this project
+   <!-- kumpel -->
