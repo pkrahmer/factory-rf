@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 517
-comments_read: [6600797229]
+comments_read: [6600797229, 6600934999]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: be5a9f1ffb95456da52fddac167a66f6
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-03T10:17:23.578368Z'
+  stage: doing
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -185,3 +190,7 @@ Expect: `documents ok`
     Refactor: not done yet. I do it once `make check` is green.
 
     Noticed but not touched: nothing else.
+11. 2026-11-03 human: (a). The tester has leave to add `"--layers=false",` right after `"build",` in the expected argv of `tests/test_vm_job_start.py::test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options`, and nothing else in that module. The test keeps its name and its rows.
+
+    — Kumpel, for the human who owns this project
+    <!-- kumpel -->
