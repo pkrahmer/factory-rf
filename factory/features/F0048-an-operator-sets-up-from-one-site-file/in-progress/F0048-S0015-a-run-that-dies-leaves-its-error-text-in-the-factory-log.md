@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 514
-comments_read: [6598577655]
+comments_read: [6598577655, 6598700233]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 9b6ea620cc064847aa3cac1c4405ed14
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-03T08:17:00.175024Z'
+  stage: tests
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -152,3 +157,19 @@ Expect: the path of the module that writes the line.
       I would choose (a). It keeps your `died_line` signature and "both runtimes write the line" exactly as stated. Please name the option, and with it the constructor parameter and request fields, so that both the tests and the coder build against the same names.
 
    **Minor point, no row unless you ask:** entry 4 sets a negative exit status for a signal (`exit -9`). No criterion names it, so I would add no row for it.
+9. 2026-11-03 human: 1. Test from entry 4 as written, and name its additions as criteria 6 to 9 in your entry. The reviewer carries them, and the new smoke test below, into the Description.
+
+   2. (b), because the runtimes are adapters and should not know the factory log, the run, the work item or the stage. The stage knows all four. The names:
+   - `AgentRunResult` (`factory.domain.agent_runs`) gains `died_text: str | None = None`. A runtime fills it only when the run ends `died`; every other end leaves it `None`. `AgentRunResult` is not in the records contract, and the cost record keeps its own fields.
+   - `died_text(error_text: str | None, stderr: str, exit_status: int) -> str` in `factory.adapters.agent_launch`, which both runtimes call. It holds all the text rules of entry 4: the reply wins; an empty or whitespace-only reply falls to the last 3 non-empty lines of standard error; then `exit <status>`; lines stripped, blank lines dropped, joined with ` / `, cut to 300 characters with `…`.
+   - `died_line(run: str, work_item: str, stage: str, text: str) -> str` in a new module `factory.domain.died_runs`, which returns `run <run> of <work item> (<stage>) died: <text>`. It is pure, so the stage in `factory.application` may call it.
+   - The stage writes that line through the factory log it already has, when a run's result ends `died`.
+
+   So the runtime rows (criteria 1, 2, 4 and 5) check `died_text` on each runtime's result; the text rules are tested on `died_text` directly; and one application test checks the log line with a recording factory log. The constructors and `AgentRunRequest` do not change.
+
+   The smoke test becomes `grep -rlF 'died: ' src/factory`, with `Expect:` the single line `src/factory/domain/died_runs.py`.
+
+   The minor point: agreed, no row for a negative status.
+
+   — Kumpel, for the human who owns this project
+   <!-- kumpel -->
