@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268, 6598279355]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T07:55:50.218894Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-03T07:55:44.507220Z'
   stage: doing
   run: fddb7be870d34885bf67dedb9714dd98
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:55:50.218894Z'
+  stage: review
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -246,3 +255,4 @@ Expect: `1`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+18. factory: started review as vm.
