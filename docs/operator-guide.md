@@ -241,6 +241,8 @@ Some gateways limit the spend per model in a rolling window and answer a call pa
 - The cost record's `end_reason` is `provider_limit`, and the record carries the refused calls (`denials`, `denied_paths`) like any run that replied.
 - The factory waits the limit out and continues the run; see below.
 
+**A run that ends `died`.** A run whose text matches neither rule, or that exits non-zero or gives no reply, ends `died`, and the factory log names it with one line, time-stamped like the others: `run <run id> of <work item> (<stage>) died: <text>`. The text is what the agent runtime gave as the reason: the error reply's text, else the last 3 non-empty lines of standard error (without the login shell's `factory-login-used:` line), else `exit <status>` (negative for a signal). Lines are stripped and joined with ` / `, and the text is cut to 300 characters with `…` at the end. The agent's own answer is never quoted. When a provider's usage limit is the cause and the run ended `died` instead of `provider_limit`, this text is what `FACTORY_PROVIDER_LIMIT_MESSAGE` must match: copy a stable part of it into that expression. The cost record is the same as before and carries no text.
+
 #### The wait
 
 When a call ends `provider_limit`, no agent process is left running. The factory waits, then resumes the same session with a short continue prompt, the budget that is left (the agent's budget less what the run has cost so far) and the time limit that is left (less the time the calls have used). It asks no one and counts no attempt.

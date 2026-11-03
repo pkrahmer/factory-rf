@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T08:38:30.069462Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-03T08:38:30.069462Z'
   stage: docs
+- number: 25
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T08:39:04.466778Z'
+  stage: docs
+  run: 8e85cfba0a414e6590cf633ec3e46465
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -453,3 +455,20 @@ Expect: the single line `src/factory/domain/died_runs.py`.
     - `tests/adapters/test_runtime_died_text.py`: `test_a_run_that_died_never_quotes_the_login_shell_s_line` has the same shape as `test_a_run_that_died_without_a_reply_gives_its_standard_error_or_its_exit_status` (the standard error / exit fallback). Its two rows could be rows of that test.
     - `tests/adapters/test_runtime_died_text.py` imports the private `_budget_reply` and `_reply` from `claude_resume_support`. A public name in the support module would be cleaner.
 24. factory: started docs as vm.
+25. documenter: Docs stage, round 1. I wrote the one paragraph the docs criterion asks for and found no findings for the coder.
+
+    Changed:
+    - `docs/operator-guide.md`, in "A provider's spend limit", after the list of what the limit rule matches: a paragraph "A run that ends `died`". It gives the factory-log line `run <run id> of <work item> (<stage>) died: <text>`. It gives the order of the text: the error reply, else the last 3 non-empty lines of standard error without the `factory-login-used:` line, else `exit <status>`. It gives the joining with ` / ` and the 300-character cut with `…`. It says the agent's own answer is never quoted and the cost record is unchanged. It says this text is what `FACTORY_PROVIDER_LIMIT_MESSAGE` must match when a provider's limit ended a run as `died`. I ran no example, because the paragraph has none. I did not run `make check`, as only a document changed; the factory's checks run after this stage.
+
+    Checked against the diff, no change needed:
+    - The code matches the Interface:
+      - `died_line` in `src/factory/domain/died_runs.py` and the stage's write in `src/factory/application/stage.py`.
+      - The reviewer ran the smoke test `grep -rlF 'died: ' src/factory` and reported only `src/factory/domain/died_runs.py`; I did not run it again.
+    - Cross-read and found current: `README.md` (the criterion says none), `docs/decisions.md` (none), the project guide (none), and the rest of `docs/operator-guide.md`. I read its factory-log and cost-record passages: the `died` mentions in the preflight probe, the stall causes and the bill (lines ~1372, ~1616 and ~2033) stay true, since the end reason, retries and the cost record are unchanged.
+
+    Stale text I noticed and did not touch:
+    - The preflight probe paragraph (around line 1372) says a rejected flag makes every real run end `died` "with no text that says why". That is now partly out of date, because the factory log quotes the error text. It is not mine to change under the story's docs criterion, which names only the one paragraph. The human may decide whether to reword it.
+
+    `check`: check: green (not run again: passed on tree d76dff894cb2 at 2026-11-03T08:35:23Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
