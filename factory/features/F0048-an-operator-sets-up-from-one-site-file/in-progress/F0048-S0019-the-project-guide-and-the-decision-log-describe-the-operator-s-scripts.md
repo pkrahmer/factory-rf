@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T11:41:16.363816Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-03T11:41:10.600209Z'
   stage: review
   run: 2448efc442c34a408c696752665da186
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:41:16.363816Z'
+  stage: doing
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -169,3 +178,4 @@ Expect: `documents ok`
    - Architecture: no change under src/. Security: no secrets and no suppression markers. Work item: the Description, Interface and docs criterion match what was built.
 
    Earlier tests: none. The diff only adds tests/test_operator_skill_name.py and changes no test file that `main` holds.
+10. factory: started doing as vm.
