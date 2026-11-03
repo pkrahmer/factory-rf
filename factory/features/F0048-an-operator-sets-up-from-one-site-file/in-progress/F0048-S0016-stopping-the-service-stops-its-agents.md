@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T07:24:40.719507Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-11-03T07:24:34.394123Z'
   stage: tests
   run: 55b71a85351b489a9d20d4da26c589ce
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:24:40.719507Z'
+  stage: doing
 ---
 
 # Stopping the service stops its agents
@@ -386,3 +395,4 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     Test run: `uv run pytest -q` over the three test modules, all passed (23 passed). They pass because the code is already built. No module failed to import. `make lint`: green. As the stage says, I skipped the type check; the coder's `make check` covers it.
 
     `lint`: lint: green (0.1 s)
+23. factory: started doing as vm.
