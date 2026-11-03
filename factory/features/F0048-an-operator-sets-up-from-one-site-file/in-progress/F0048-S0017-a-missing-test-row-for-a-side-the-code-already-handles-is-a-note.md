@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 513
 comments_read: [6598169268, 6598279355]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T07:51:47.407253Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-03T07:51:47.407253Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-03T07:52:20.367801Z'
+  stage: tests
+  run: 306579f893974285b2bf2388c4d9fa6b
 ---
 
 # A missing test row for a side the code already handles is a note
@@ -196,3 +198,18 @@ Expect: `1`.
 
     Open: `docs/decisions.md` is the docs stage's work.
 14. factory: started tests as vm.
+15. tester: I made the test change the human approved in journal entry 11, option (a), and the coder named it in entry 13. It is in `tests/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged`, and only in that test.
+
+    The test already swapped the checklist sentence back to its earlier wording. Now, before it takes the CRC-32, it also swaps this story's three new sentences (journal entry 4) back to the old sentence: "A point on an acceptance criterion (an untested side of a stated limit among them), the architecture, security or anything under `src/` is still a finding and sends it back with `doing`." Both texts are local values inside the test body, so nothing at module level changed. `_EARLIER_BODY_CRC32`, the test's name and every other line of the module stay as they were. The test still checks the same thing: nothing else in the reviewer body changed.
+
+    Why: the human's answer in entry 11. This story's change to the reviewer body broke the CRC, and the test was meant to watch only the rest of the body.
+
+    Mapping to criteria: none. This change only keeps an earlier story's guard green beside criterion 1. The criteria stay mapped as in entry 8.
+
+    Files created: none. Changed: `tests/test_claude_agent_texts_review_groups.py`, the body of `test_the_rest_of_the_reviewer_body_is_unchanged` only, under the human's leave in entry 11.
+
+    Modules the test run could not import: none. `uv run pytest -q tests/test_claude_agent_texts_review_groups.py` passes all 9 tests, because the reviewer text is already in place. `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
+
+    `lint`: lint: green (0.2 s)
