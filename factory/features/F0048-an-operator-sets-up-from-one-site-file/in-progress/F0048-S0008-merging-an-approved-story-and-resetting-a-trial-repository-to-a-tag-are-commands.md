@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 506
 comments_read: [6588966186, 6589156211, 6591823542]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T00:13:28.646595Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -248,6 +252,11 @@ journal:
   at: '2026-11-03T00:13:07.784487Z'
   stage: docs
   run: 4e9598f99c114aae88909eb4528b76f5
+- number: 44
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:13:28.646595Z'
+  stage: smoke-test
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -670,3 +679,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     `check`: check: green (not run again: passed on tree 825c9627cace at 2026-11-02T22:13:11Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+44. factory: started smoke-test as vm.
