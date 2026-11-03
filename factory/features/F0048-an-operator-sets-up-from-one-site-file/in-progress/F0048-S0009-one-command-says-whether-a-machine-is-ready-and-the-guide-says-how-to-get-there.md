@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T01:36:09.669143Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-11-03T01:36:09.669143Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-11-03T01:39:35.761655Z'
+  stage: doing
+  run: e0101d5474a54274ab7a6b70213a685d
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -434,3 +436,20 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
 
     `lint`: lint: green (0.1 s)
 23. factory: started doing as vm.
+24. coder: Round 1, after the tester. I changed nothing in this run. The tester added the tests for criteria 18 and 19 (entry 22) in `tests/test_operator_site_check.py`. They pass against the round-1 code as it stands, and `make check` is green on the branch (`check: green`; `test: green (79.9 s)`, coverage 99.58 %). `git status` shows nothing uncommitted.
+
+    What this round built (my entry 20 has the details):
+    - `operator/lib/site.sh`: `site_gcloud_with RUNNER ARG...` is now the one gcloud helper, used by `operator/job/job.sh` and `operator/bin/site`. `site_job_keys` holds the job's key list once (findings 3 and 4).
+    - `operator/lib/hosting.sh`: `hosting_api_url` gives the base URL for both the client and the `no_proxy` check (finding 5).
+    - `operator/bin/site`: `check` uses the three helpers above.
+
+    Main choice: the runner is passed as the helper's first argument, so `job.sh` keeps its dry run without the library knowing about it. I rejected a dry-run variable read inside `site.sh`.
+
+    Refactor pass: I did not repeat it. The diff is the same as at entry 20, where I last did it.
+
+    Open, not touched: finding 6 is still not done. Check 11 in the Interface still says "informational, always `ok`", but the code fails it by the `needs` rule when `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB` is missing, as the human confirmed in entry 14. I rewrote that clause in round 1, but the factory dropped the change because the work item is outside my write paths (entry 20). Someone who may edit the Description (the reviewer or the human) needs to make that change. I also noticed that `docs/operator-guide.md` still says `site check` does not exist yet. That is the documenter's work.
+
+    What the journal changed: entries 18 to 22 added criteria 18 and 19 (now tested) and the check 11 wording above. I could not write either into the Description myself.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
