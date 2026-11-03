@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T07:17:55.508644Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-11-03T07:17:55.508644Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-11-03T07:21:25.067425Z'
+  stage: doing
+  run: 31f8ea737a264be4a21dfe37f94fcbf9
 ---
 
 # Stopping the service stops its agents
@@ -265,3 +267,26 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     — Kumpel, for the human who owns this project
     <!-- kumpel -->
 15. factory: started doing as vm.
+16. coder: `make check` is green, so the work item can go to review. The code is the same as in entry 13; this run did not change it. The human's per-file ignore (commit 6e00f08ce) is now merged into the branch. With it, the `PLR0913` finding is gone, and the whole check passed: lint, types, layers, sast, secrets, licenses and test, ending with `check: green`.
+
+    What was built (already committed from the previous run):
+    - `src/factory/adapters/podman_runs.py`: `PodmanRuns.__init__` has a new required keyword-only `instance: str`. `launch` puts `--label` and `factory.instance=<instance>` directly after `--rm`, before the isolation words. A comment there explains why: rootless podman puts the containers outside the service's cgroup. Agent runs and project commands both start through `launch`, so both carry the label.
+    - `src/factory/entry/wiring.py`: passes `instance=settings.instance`.
+    - `vm/factory.service`: `ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i`, directly after `RestartSec=15`.
+    - `vm/setup.sh`: unchanged. It already compares the installed unit with the checkout and installs or reports as before.
+
+    Main choice: the label is added in the one place that starts every container, `launch`, so no caller can forget it. I rejected passing the label in from each caller (`agent_launch` and `run`). That would give two places to keep in step, and a later way of starting a container could miss it.
+
+    Refactor: I read the diff again and found nothing to change.
+
+    Smoke test, run by hand:
+    - The `grep -c` on the unit prints `1`.
+    - `grep -rlF 'factory.instance' src/factory` prints only `src/factory/adapters/podman_runs.py`.
+    - As the human said in entry 14, the reviewer still has to write the `-F` into the work item's smoke test.
+
+    The journal did not change what the task means beyond what intake and the tester had already written into the Description, so I left the Description alone.
+
+    Noticed, not touched: the per-file ignore's comment in `pyproject.toml:65` names the work item id (`F0048-S0016`). The repository's rule keeps work item ids out of code and configuration. It is the human's commit, so I left it.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
