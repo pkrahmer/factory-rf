@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T01:06:13.682491Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T01:06:10.660287Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:06:13.682491Z'
   stage: intake
 ---
 
@@ -121,3 +130,4 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
    7. The job set is exactly the keys `require_settings` in `operator/job/job.sh` requires: `SITE_PROJECT SITE_REGION SITE_RUN_AS SITE_CONNECTOR SITE_PROXY SITE_NO_PROXY SITE_JOB SITE_INSTANCE SITE_REPOSITORY_URL SITE_CODE_URL SITE_CODE_REF SITE_HOSTING_SECRET SITE_MODEL_SECRET SITE_MODEL_BASE_URL SITE_MODEL SITE_LOGIN_URL SITE_LOGIN_SCOPE SITE_LOGIN_CLIENT_ID`. Name them in the Interface.
    8. One tool's row stands for the rule, plus one row with two tools missing at once for the plural detail.
    9. The detail of a non-200 answer is the hosting client's own message, as in check 4 and in S0008, for example `hosting: GET /repos/owner/repo: 404 Not Found`.
+5. factory: started intake as vm.
