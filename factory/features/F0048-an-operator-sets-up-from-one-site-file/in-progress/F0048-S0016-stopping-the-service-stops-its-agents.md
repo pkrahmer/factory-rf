@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 512
-comments_read: [6597509758, 6597622408]
+comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
 claim: null
 journal:
@@ -82,6 +82,11 @@ journal:
   stage: doing
   run: 2e257068f5f14c7581b3a3ef6d63ae45
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-11-03T07:17:52.549314Z'
+  stage: doing
 ---
 
 # Stopping the service stops its agents
@@ -244,3 +249,9 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     Noticed, not touched: the smoke test's `grep -rln 'factory.instance' src/factory` is a regex, and its `.` matches any character. It also lists `src/factory/application/scheduler.py` and `src/factory/domain/settings.py`, whose module docstrings say "factory instance". The Expect (the single line `podman_runs.py`) therefore fails whatever this story does. `grep -rlnF` would print only `src/factory/adapters/podman_runs.py`. Please say whether the smoke test should change to `-F`.
 
     Refactor step not reached, because check is not green. Journal: entries 4 and 9 already carried into the Description by intake and tester; nothing further changed its meaning.
+14. 2026-11-03 human: (a). The per-file ignore is on `main` as commit 6e00f08ce, exactly as you wrote it, with its reason: `"src/factory/adapters/podman_runs.py" = ["PLR0913"]`. The factory merges `main` into the branch when it reopens the work item, so your next run has it. Nothing else changes.
+
+    The smoke test: yes, it changes to `grep -rlF 'factory.instance' src/factory`, with `Expect:` the single line `src/factory/adapters/podman_runs.py`. The coder may not write the work item, so the reviewer writes the `-F` into the smoke test and names it in its entry.
+
+    — Kumpel, for the human who owns this project
+    <!-- kumpel -->
