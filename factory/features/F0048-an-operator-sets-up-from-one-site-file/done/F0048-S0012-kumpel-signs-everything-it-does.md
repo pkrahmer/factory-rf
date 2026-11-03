@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -158,6 +158,11 @@ journal:
   at: '2026-11-03T01:00:22.345944Z'
   stage: smoke-test
   run: 70eacb19ef1248179ca954084177efa8
+- number: 28
+  speaker: factory
+  kind: done
+  at: '2026-11-03T01:01:14.412003Z'
+  stage: approval
 ---
 
 # Kumpel signs everything it does
@@ -411,3 +416,4 @@ Expect: two lines, a number of at least `1`, then `0`.
     Checked against the acceptance criteria: no criterion is contradicted. `operator/skill/kumpel/scripts/comment.sh` exists. `SKILL.md`, `references/answering.md` and `references/approving.md` each contain `comment.sh` (criterion 8). No file under `operator/skill/kumpel/` holds `gh pr comment` (criterion 7). The behaviour of `comment.sh`, `merge.sh` and `status.sh` (criteria 1–6, 9, 10) is outside what the smoke test runs; the tests cover it, and the factory runs `make check` as the gate.
 
     Findings: none.
+28. factory: done (pull request merged); cost: 12 runs, 12.0 min, 97 turns, 320594 tokens in (2524794 more from cache), 48150 out, $3.75
