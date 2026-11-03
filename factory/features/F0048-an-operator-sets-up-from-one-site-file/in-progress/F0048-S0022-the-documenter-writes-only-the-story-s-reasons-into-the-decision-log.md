@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 524
 comments_read: [6604990127]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T13:31:02.107518Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-03T13:31:02.107518Z'
   stage: smoke-test
+- number: 20
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T13:31:25.820335Z'
+  stage: smoke-test
+  run: 540851ffe02a4c66b8b80fafbd8d0699
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -278,3 +280,31 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 19. factory: started smoke-test as vm.
+20. smoke-tester: Smoke test passed. I ran the three commands from the repository root in order, exactly as written, and every one met its `Expect:` line. I fixed nothing.
+
+    1. `grep -c 'write a "Why" or a "Rejected" only from what the story names' claude/agents/documenter.md`
+       ```
+       1
+       ```
+       Met `Expect: 1`.
+
+    2. `grep -l 'write a "Why" or a "Rejected" only from what the story names' claude/agents/*.md`
+       ```
+       claude/agents/documenter.md
+       ```
+       Met `Expect: one line, claude/agents/documenter.md`. No other shipped agent holds the bullet.
+
+    3. `uv run pytest tests/test_claude_agent_texts_decision_log.py 2>&1 | tail -1`
+       ```
+       9 passed in 0.02s
+       ```
+       Met the expectation: the line ends `passed` and has no `failed` in it.
+
+    Checked against the acceptance criteria (read again after the commands):
+    - Criteria 1 to 3: in `git diff main...HEAD`, the bullet at `claude/agents/documenter.md:75` matches the Interface's text word for word. It stands right after the project-guide bullet and right before the temporary-directory bullet, and the documents-only bullet is still last. The 9 passing tests are the presence test, the position test and the 7 rows of the parametrized test.
+    - Criterion 4: I did not run `make check` again here. It was green in journal entry 14.
+    - Criterion 5 (docs): `docs/decisions.md` has the new entry "The decision log holds only the human's reasons". It cites decision 27 of F0048, gives S0019's five unsourced "Rejected" options as its reason, and rejects letting the documenter read `feature.md`. In `docs/project-guide/agents.md`, the `## Lessons` paragraph names the new documenter lesson. `README.md` and the operator guide are unchanged, as the criterion says.
+
+    The smoke test contradicts no criterion.
+
+    Findings: none.
