@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T08:17:03.459265Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-03T08:17:03.459265Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-03T08:20:06.066166Z'
+  stage: tests
+  run: 106cd7ef1ecd4490a265498c97053ac2
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -183,3 +185,40 @@ Expect: the path of the module that writes the line.
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
 10. factory: started tests as vm.
+11. tester: I wrote the tests from the Interface and criteria 1 to 5. Criteria 6 to 9 are the additions from your answer in entry 4, and I tested them through the names you gave in entry 9 (option b). Per entry 9, the reviewer carries criteria 6 to 9 and the new smoke test into the Description.
+
+    Criterion → test:
+    - criterion 1 (an error reply's text, for each runtime): `tests/adapters/test_runtime_died_text.py::test_a_run_that_died_with_an_error_reply_gives_the_reply_s_text`. The line itself is checked in `tests/domain/test_died_runs.py::test_the_died_line_names_the_run_its_work_item_and_stage_and_quotes_the_text` and, written by the stage, in `tests/application/test_stage_died_line.py::test_a_died_run_writes_its_line_in_the_factory_log_and_no_other_run_does` (row `died`).
+    - criterion 2 (three stderr lines joined by ` / `, or `exit <status>`, for each runtime): `tests/adapters/test_runtime_died_text.py::test_a_run_that_died_without_a_reply_gives_its_standard_error_or_its_exit_status`. The text rule alone is checked by the rows `three-stderr-lines`, `empty-stderr` and `blank-stderr` of `tests/adapters/test_died_text.py::test_the_died_text_prefers_the_reply_then_standard_error_then_the_exit_status`.
+    - criterion 3 (300 characters kept whole, 301 cut): `tests/adapters/test_died_text.py::test_a_died_text_past_300_characters_is_cut_with_an_ellipsis`.
+    - criterion 4 (no line for completed, no_result, budget, time_limit or provider_limit; one row per end reason and runtime): `tests/adapters/test_runtime_died_text.py::test_a_run_that_did_not_die_gives_no_died_text`. At the stage, the `completed` row of `tests/application/test_stage_died_line.py::test_a_died_run_writes_its_line_in_the_factory_log_and_no_other_run_does` checks there is no line.
+    - criterion 5 (a reply that is not an error, process exits non-zero): `tests/adapters/test_runtime_died_text.py::test_a_reply_that_is_no_error_is_not_quoted_when_its_process_exits_non_zero`.
+    - criterion 6 (more than 3 stderr lines: only the last three): row `last-three` of `tests/adapters/test_died_text.py::test_the_died_text_prefers_the_reply_then_standard_error_then_the_exit_status`.
+    - criterion 7 (the reply wins over stderr; an empty or whitespace-only reply falls to stderr): rows `reply-wins-over-stderr`, `empty-reply-falls-to-stderr`, `blank-reply-falls-to-stderr` and `empty-reply-and-stderr` of the same test.
+    - criterion 8 (line breaks in a reply; stripping; blank lines dropped): rows `reply-lines` and `blanks` of the same test.
+    - criterion 9 (the cost record is the same with and without the text): `tests/application/test_costs_died_text.py::test_a_died_run_s_text_leaves_its_cost_record_as_it_was`.
+
+    Files created:
+    - `tests/domain/test_died_runs.py`
+    - `tests/adapters/test_died_text.py`
+    - `tests/adapters/test_runtime_died_text.py`
+    - `tests/application/test_stage_died_line.py`
+    - `tests/application/test_costs_died_text.py`
+
+    I changed no earlier test file.
+
+    How I read three points:
+    - **opencode's error reply** is its `error` event's `error.data.message`. That is the same text the provider-limit rule reads. The criterion 1 row uses status 500, so the event is not read as a limit.
+    - **The cut** keeps the first 300 characters and then adds `…`, so a cut text is 301 characters long. This follows "cut to its first 300 characters" in the Interface.
+    - **Criterion 5's expected text** is `exit 1`, because stderr is empty. The test checks that exact value.
+
+    I added no row for a negative exit status, as agreed in entry 9.
+
+    Test run (`uv run pytest -q` on the five files, once): collection fails, for the reasons the tests expect:
+    - `factory.domain.died_runs` does not exist yet.
+    - `factory.adapters.agent_launch` has no `died_text` yet.
+    - `AgentRunResult` refuses the unknown field `died_text`. This stops `test_stage_died_line.py` at import.
+
+    `test_runtime_died_text.py` and `test_costs_died_text.py` were collected; they will fail on the missing field. `make lint` is green. I skipped the type check, as the stage allows.
+
+    `lint`: lint: green (0.1 s)
