@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T11:42:10.684298Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-03T11:42:10.684298Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-11-03T11:45:31.323520Z'
+  stage: doing
+  run: 1d63cd24fc6448f48fae18e59991732c
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -235,3 +237,21 @@ Expect: `documents ok`
 
     `lint`: lint: green (0.1 s)
 14. factory: started doing as vm.
+15. coder: Round 1 had one finding, the copied skill directory constant. The tester fixed it in entry 13 by moving it to tests/operator_skill_support.py as `SKILL`, so there was nothing left for me to change in code this round.
+
+    What I built is still what entry 7 describes: one line changed in each skill text, operator/skill/kumpel/SKILL.md:8 ("kumpel-factory v1.2 or later") and operator/skill/kumpel/references/standing-orders.md:3 ("kumpel-factory's own build", dates kept).
+
+    Main choice: I swapped only the name and kept the rest of each sentence word for word. I rejected rewording the sentences (for example "the factory's own build"), because the Interface asks only for the new name.
+
+    I ran `make check` on the tester's changed tests (tests/operator_skill_support.py, tests/test_operator_skill_signature.py, tests/test_operator_skill_name.py) together with my two text changes, and it is green: test: green, check: green.
+
+    Refactor: no new diff this round, so nothing to change.
+
+    The journal did not change the meaning of the task, so the Description stays as written.
+
+    Noticed but not touched: the old name is still in README.md, docs/operator-guide.md and docs/project-guide/. Those files are the documenter's under part B. tests/test_operator_texts.py has its own `SKILL` constant, but it is the path to SKILL.md, not to the directory, so it is not a copy of the moved one.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
