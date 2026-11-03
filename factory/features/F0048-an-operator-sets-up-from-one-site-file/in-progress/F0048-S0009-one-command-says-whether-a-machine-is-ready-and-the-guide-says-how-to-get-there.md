@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T01:41:45.719151Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-03T01:41:45.719151Z'
   stage: docs
+- number: 28
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T01:43:02.626926Z'
+  stage: docs
+  run: c1437a7a857247e3a6949bb638ed9aa8
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -495,3 +497,25 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
 
     Earlier tests: none changed. `git diff --name-status main...HEAD` lists the one test file, `tests/test_operator_site_check.py`, as `A`.
 27. factory: started docs as vm.
+28. documenter: Docs, round 1. I changed only documents, so I did not run `make check`; the factory runs it after this stage. `make documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/operator-guide.md`: new chapter *Setting up an operator's machine* before *On Cloud Run*, and a line for it in the contents list. It has three parts. The first lists what the platform must provide first. The second is the ten steps in order, each with what it proves and what its failure means. The third is a table of the eleven `site check` checks, with what each proves and what a `FAIL` means. It also covers the dependent failures (`site: 3 failed` for a missing `gcloud`, `site: 2 failed` for an empty token).
+    - `docs/operator-guide.md`, *The `site` command*: I added the `site check` row to the command table. I replaced "`site check` does not exist yet" with the real usage behaviour (`usage: site check`, exit 2).
+    - `docs/operator-guide.md`, *Creating the job*: the first-start list said `site check` does not exist yet. It now points to the new chapter.
+    - `README.md`: the pointer to the operator guide names the new chapter and `operator/README.md`.
+
+    I ran the two smoke commands, and the output matches the Smoke test section. With a missing site file they print `FAIL site file: site: no site file at <path>; run: site init`, then `site: 1 failed`, and exit 1. `site check extra` prints `usage: site check` and exits 2.
+
+    Cross-read and found current:
+    - `operator/README.md`. It already has the map table with a row for every file under `operator/lib/`, `operator/bin/`, `operator/job/` and `operator/skill/kumpel/scripts/`. The table in *The keys* covers every `SITE_` key of `operator/site.env.example`, which I checked with a loop.
+    - *The site file* and *Creating the job*, against the diff in `operator/job/job.sh` and `operator/lib/site.sh`.
+
+    Stale text I saw and did not touch, because it is unrelated to this story:
+    - The defaults in *The keys* do not match the comments in `operator/site.env.example`. The guide says `SITE_CPU` 8, `SITE_MEMORY` 32Gi, `SITE_TIMEOUT` 14400, and `SITE_INSTANCE` and `SITE_CODE_REF` required. The example says 4, 16Gi, 24h, and that `SITE_INSTANCE` and `SITE_CODE_REF` have defaults. This belongs to the stories that confirm each key's default (the table itself says defaults are confirmed as those stories land).
+    - The generic usage line (`usage: site path | init | show | get SITE_X`, `operator/bin/site:15`) does not name `check`. This is code, so it is not mine to change. The guide states the behaviour as it is. It is a small point for a later story and not a finding against the Interface, which does not say what the line contains.
+    - *What the job needs* says "Eight vCPUs and 16 GiB at least", while the `SITE_MEMORY` default is 32Gi. This is also unrelated to this story.
+
+    `check`: check: green (not run again: passed on tree de1b85f8416e at 2026-11-03T01:38:02Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
