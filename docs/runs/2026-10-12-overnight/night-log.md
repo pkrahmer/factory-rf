@@ -1422,3 +1422,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 00:16 F0048-S0008 archived. Started F0048-S0013 (the factory does not pause after a tick that found activity); vm is rebuilt after its merge.
 - 00:21 F0048-S0013 (no pause after activity) PR #507 tests question 5: granted (a), the tester changes the four earlier scheduler tests that expect a sleep after activity, keeping their names.
 - 00:33 F0048-S0013 (no pause after activity) PR #507 merged after the six checks: files in scope, the four earlier scheduler tests changed under the leave of entry 6, smoke test met (0.0 30.0), no findings, no new markers; 7 runs, $1.77, first-pass review. Touches src/: vm rebuild next.
+- 00:37 vm rebuilt at 2539d4df4 (S0013 in: no pause after activity); preflight green, no stops. Started F0048-S0012 (Kumpel signs everything it does).
