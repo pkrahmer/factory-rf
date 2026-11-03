@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 507
 comments_read: [6591979242]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T00:32:14.138762Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-03T00:32:14.138762Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T00:32:33.620340Z'
+  stage: smoke-test
+  run: 62c77b3d4d6941d1bbfa18dbf925a7c3
 ---
 
 # The factory does not pause after a tick that found activity
@@ -250,3 +252,21 @@ Expect: `0.0 30.0`.
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
 15. factory: started smoke-test as vm.
+16. smoke-tester: I ran the one command under `## Smoke test` from the repository root, exactly as written. I fixed nothing.
+
+    Command 1:
+    ```bash
+    uv run python -c "from factory.application.scheduler import pause_after; print(pause_after(0).total_seconds(), pause_after(1).total_seconds())" 2>/dev/null
+    ```
+    Output (the exit status was 0):
+    ```
+    0.0 30.0
+    ```
+    Expect: `0.0 30.0`. Met.
+
+    Against the acceptance criteria:
+    - Criterion 1: the output agrees with it. 0 idle ticks gives 0 s, and 1 gives 30 s, which is unchanged.
+    - Criteria 2 to 5: the output does not contradict any of them. The command does not exercise `Scheduler.run`, so for `run` I relied on the earlier stages: the reviewer's checks (entry 12) and the green `make check` (entries 10 and 14).
+    - Criterion 6: I read `docs/operator-guide.md:123`. It now says there is no pause after activity, that idle pauses are 30, 60 and 120 seconds, and that a failed iteration counts as idle. That agrees with the output.
+
+    Findings: none.
