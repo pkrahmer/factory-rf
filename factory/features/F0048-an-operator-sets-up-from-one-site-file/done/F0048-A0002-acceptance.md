@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-03T09:25:41.215637Z'
   stage: acceptance
   run: 844407f8c67c4ec9a5896c537ecb399b
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-03T09:31:42.748464Z'
+  stage: done
 stories: [F0048-S0001, F0048-S0002, F0048-S0003, F0048-S0004, F0048-S0005, F0048-S0006, F0048-S0007, F0048-S0008, F0048-S0009, F0048-S0010, F0048-S0011, F0048-S0012, F0048-S0013, F0048-S0014, F0048-S0015, F0048-S0016, F0048-S0017]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of An operator sets up from one site file
@@ -358,3 +363,4 @@ Human interventions: 36 questions answered (32 `question`, 1 `attempts_cap`, 3 `
    7 Slow checks: there is nothing beyond make check. make check is green: test 83.5 s, coverage 99.56 %, slowest tests 10 s, all ROOMY_LIMIT tests outside this feature. Disk: free space fell from 18.0 to 15.4 GB, and from 30.2 GB at A0001, while the instance stays at 1.3 GB used. The feature does not explain this. It is unexplained, for the human to check on vm (8 distinct stage images and no pruning are a candidate I did not measure).
    8 Cost: $86.16, 233 runs, 330.5 min. S0014 to S0017 cost $16.46 in 46 runs, and none of them stands out. Over the whole feature S0005, S0001 and S0003 stand out, because their reviews stopped at the first failing group until S0011. There were 36 questions (32 question, 1 attempts_cap, 3 round_cap) and 5.2 h of waiting. S0001 needed the human most (4 answers); among the later stories S0016 needed 3.
    Open: I could not remove my temporary folder /tmp/tmp.a2xnsrUGeM (smoke script and output): rm was denied.
+3. factory: done (pull request merged); cost: 1 runs, 8.7 min, 48 turns, 130047 tokens in (3799117 more from cache), 41592 out, $2.63
