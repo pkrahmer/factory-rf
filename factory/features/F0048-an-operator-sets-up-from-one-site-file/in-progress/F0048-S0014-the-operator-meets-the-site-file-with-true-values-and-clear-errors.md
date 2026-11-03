@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 515
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T08:52:42.195554Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-03T08:52:36.425091Z'
   stage: tests
   run: d06f7b4cb3894ea58c23c86495936aed
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:52:42.195554Z'
+  stage: doing
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -186,3 +195,4 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
    - The failing status.sh read answers `500` with `{"message": "Server Error"}`, so the test expects `hosting: GET /repos/owner/repo/<path>: 500 Server Error` as the last line on standard error.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
