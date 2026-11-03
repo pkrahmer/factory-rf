@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 509
 comments_read: [6592609715]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T01:06:41.134646Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-03T01:06:41.134646Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-03T01:07:58.006789Z'
+  stage: tests
+  run: ae9f74736bc640588b1213177100a1fe
+  blocked: question
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -156,3 +159,29 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
    - Architecture: the work is shell under `operator/`, plus the guide and README, all inside the coder's and documenter's write paths.
    - Scope: it is within the feature's scope (S0009) and touches nothing in "Out of scope". The model API login is not tested here, as the Description says.
 7. factory: started tests as vm.
+8. tester: I stopped before writing tests. I read the work item, `operator/bin/site`, `operator/lib/site.sh`, `operator/lib/hosting.sh`, `operator/site.env.example` and the stand-ins in `tests/operator_support.py` and `tests/test_operator_job.py`. Criterion 2 contradicts the Interface in two rows, and criterion 7 cannot hold as written. No files were created.
+
+   1. **Criterion 2: two rows cannot end in `site: 1 failed`.**
+      - *`gcloud` not on the `PATH`.* The `tools` check fails. Checks 7 (`identity`) and 8 (`secrets`) still run `gcloud`, so they fail too. The Interface only skips a check for missing keys, not for a missing tool. Check 11 stays `ok`.
+      - *A token command that prints nothing.* The `token` check fails. Check 5 (`repository`) calls the hosting client, which asks for the token again, so it fails too.
+
+      The options I see:
+      - **(a)** Keep the Interface. These two rows check their own `FAIL` line and that every other check still prints its line. They expect the true counts: `site: 3 failed` for `gcloud` and `site: 2 failed` for the token, exit 1. The details of the follow-on failures are not checked. The other rows stay at `site: 1 failed`.
+      - **(b)** Add an Interface rule: a check whose tool or token is missing prints `FAIL <name>: needs <gcloud|token>` and does not run. It still counts as failed, so the counts are the same as in (a).
+      - **(c)** Add an Interface rule: such a check is skipped and not counted. This needs a new line form, for example `skip identity: needs gcloud`, so these rows can stay at `site: 1 failed`.
+
+      I would choose (a).
+
+   2. **Criterion 7: "only `git ls-remote`" cannot hold.** The loader already runs `git -C <folder> rev-parse --is-inside-work-tree` (`_site_in_work_tree` in `operator/lib/site.sh`). Check 6 has to ask `git` about the checkout and its `origin` url.
+
+      My plan: the `git` stand-in answers `ls-remote` itself. It passes local reads to the real `git`: `rev-parse`, `remote get-url`, and `config --get` or `config <key>` with one key. It records every call. The criterion 7 test then asserts that every `git` call is `ls-remote` or one of those local reads, and that there is no `push`. The `gcloud` and `curl` calls stay as written (`run jobs list`, `run jobs describe`, `secrets describe`, `GET` only). The options:
+      - **(a)** this plan;
+      - **(b)** allow only `ls-remote` and `rev-parse`, which ties the coder to `rev-parse` for check 6 too;
+      - **(c)** assert only that no `git` call is a `push`.
+
+      I would choose (a).
+
+   **Choices I made myself (tell me if any is wrong).**
+   - The missing-key row of criterion 2 removes a key that only check 2 reads, such as `SITE_CONNECTOR`, so the count stays at 1.
+   - Criterion 16 removes `gcloud` and `curl`. It checks only that the `tools` detail names both, not the total.
+   - To make a tool missing, the test builds a `PATH` of symlinks to the system's programs without `gcloud`, `curl`, `git`, `python3` and `gh`, with the stand-ins first.
