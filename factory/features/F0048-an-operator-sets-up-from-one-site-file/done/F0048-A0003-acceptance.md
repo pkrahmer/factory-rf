@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-03T10:38:56.595636Z'
   stage: acceptance
   run: 6ca4c5c0141b4db08d65aef598c4c6ad
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-03T10:44:57.982255Z'
+  stage: done
 stories: [F0048-S0001, F0048-S0002, F0048-S0003, F0048-S0004, F0048-S0005, F0048-S0006, F0048-S0007, F0048-S0008, F0048-S0009, F0048-S0010, F0048-S0011, F0048-S0012, F0048-S0013, F0048-S0014, F0048-S0015, F0048-S0016, F0048-S0017, F0048-S0018]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of An operator sets up from one site file
@@ -409,3 +414,4 @@ Human interventions: 38 questions answered (34 `question`, 1 `attempts_cap`, 3 `
    6 Decisions: the 24 decisions stand, and A0002's 7 items are unchanged. New from S0018: intake's four answered choices, and the prune placed before the image-id line. Also new: whether `podman image prune` without `-a` removes the cache's intermediate images is unchecked on `vm`, which decides whether the guide's "next build is slower" is true. `tests/test_vm_job_start.py` was changed by one line under the leave in S0018 entry 11. Every earlier test changed in F0048 has its leave named.
    7 Slow checks: there is nothing beyond `make check`. It is green: test 84.8 s, 8622 tests, coverage 99.56 %, slowest tests 10 s, all ROOMY_LIMIT tests outside F0048. Disk: free space rose from 15.4 to 43.9 GB, with the instance unchanged at 1.3 GB. This is explained by the 26 GB of old stage images pruned on `vm` (decision 24), which also explains A0002's unexplained fall.
    8 Cost: $88.23, 243 runs, 337.3 min. S0018 cost $2.07 in 10 runs. Over the feature, S0005, S0001 and S0003 still stand out, because their reviews stopped at the first failing group until S0011. 38 questions (34 question, 1 attempts_cap, 3 round_cap) and 5.5 h of waiting; S0018 added 2 questions and 0.3 h. S0001 still needed the human most (4 answers).
+3. factory: done (pull request merged); cost: 1 runs, 7.2 min, 41 turns, 120855 tokens in (3167213 more from cache), 26203 out, $2.12
