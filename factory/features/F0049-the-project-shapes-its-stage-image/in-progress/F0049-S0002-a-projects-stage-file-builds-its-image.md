@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T23:56:30.646180Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T23:56:27.530203Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:56:30.646180Z'
   stage: intake
 ---
 
@@ -100,3 +109,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
    6. If an existing test already renders every RepositoryStopReason generically in factory-health and factory-watch, name it in your entry and add a row for stage_image_failed to it; otherwise one row per command.
    7. Confirmed: the test checks that each row is refused and that the reasons differ between rows; no fixed texts.
    8. Separate rows: the rule break, the failed build and the time limit. The time limit's detail uses the same text as a failed build ("the stage file did not build in <s> s:" and the tail).
+5. factory: started intake as vm.
