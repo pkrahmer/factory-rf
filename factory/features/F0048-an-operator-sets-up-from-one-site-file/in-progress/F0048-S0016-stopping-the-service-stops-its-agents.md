@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T07:03:13.586532Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-03T07:03:10.691726Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:03:13.586532Z'
   stage: intake
 ---
 
@@ -89,3 +98,4 @@ Expect: `1`, then the path of the module that adds the label.
 
    — Kumpel, for the human who owns this project
    <!-- kumpel -->
+5. factory: started intake as vm.
