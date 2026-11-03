@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T11:37:05.399791Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-03T11:37:05.399791Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-03T11:40:35.873920Z'
+  stage: doing
+  run: 3636e6408d594364ab0ef3b37c8ab4d9
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -132,3 +134,17 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: I changed the repository's name in the two skill texts, as part B of the Interface asks. Each file had one line with `factory-rf`, and that line is the only one I changed:
+   - operator/skill/kumpel/SKILL.md:8 now says "(kumpel-factory v1.2 or later)".
+   - operator/skill/kumpel/references/standing-orders.md:3 now says "running kumpel-factory's own build with the human". The dates stay.
+
+   Main choice: I replaced only the name and kept the rest of each sentence word for word, so every other line stays and the tests that pin `SKILL.md` are not affected. I rejected rewording the sentences (for example "the factory's own build"): the Interface asks only that the name be the new one.
+
+   Refactor: the diff is two one-word substitutions, and nothing needed changing.
+
+   `make check` is green (test: green, check: green), including tests/test_operator_skill_name.py.
+
+   Noticed but not touched: the old name is still in README.md, docs/operator-guide.md and docs/project-guide/. Those files are the documenter's under part B and the docs criterion. The journal did not change the meaning of the task, so I did not rewrite the Description.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 42 known, 0 gone
