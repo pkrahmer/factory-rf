@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 519
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T11:46:17.784115Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-03T11:46:17.784115Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T11:48:28.792478Z'
+  stage: docs
+  run: 58241fe08ae641b08b35e632f5cdda56
 ---
 
 # The project guide and the decision log describe the operator's scripts
@@ -292,3 +294,26 @@ Expect: `documents ok`
     - tests/test_operator_skill_signature.py: changed under the standing leave to move a shared test helper. The `SKILL` constant moved to tests/operator_skill_support.py, and every test keeps its name and what it checks (entry 13).
     - tests/operator_skill_support.py: changed under the same standing leave. It is the shared place that now holds `SKILL`, and `SCRIPTS` is built from it with the same path.
 18. factory: started docs as vm.
+19. documenter: Part A and part B of the docs criterion are written, and `uv run python -m factory.entry.check_documents` prints `documents ok`. I changed only documents, so I did not run `make check`; the factory's checks run right after this stage.
+
+    Files changed:
+    - `docs/project-guide/operator.md` (new): the layout, the site file and its loader, the hosting client, `job.sh`, the sanitiser, the skill's scripts and the tests of the scripts. I wrote each section from the scripts as they are today and from the test support modules. It says `operator/README.md` is the documenter's (decision 22).
+    - `docs/project-guide/README.md`: a line for `operator.md` under *The files*, and one line for each of the ten support modules under the list of `tests/*_support.py` modules (five of F0048, five older). Each line was read from the module. "factory-rf" became "kumpel-factory" in its opening.
+    - `docs/project-guide/agents.md`: one `factory-rf` in the `template/Makefile` line became `kumpel-factory` (part B).
+    - `docs/decisions.md`: eight new entries at the end: the site file as data outside every repository; the token command and no token in an argument list; `job.sh` (no guessing, no overlap, the start script from `SITE_CODE_REF`); the three things a reset needs; the sanitiser's rules as the site's; the died line; the job's one image with the prune after a rebuild; the rename (decision 25, which names the old name).
+    - `README.md`: the title is now `# kumpel-factory`.
+    - `docs/operator-guide.md`: the three example URLs now use `kumpel-factory.git`, and the three passages that said "factory-rf's" now say "kumpel-factory's" (lines 138, 1806 and 1815).
+
+    I read the stage's limits strictly: I did not open `feature.md` or other work items. So I took the reasons and rejected options in the decision entries from the scripts, their comments, the operator guide and this story's Description, not from the feature's numbered decisions. The decisions, "Why" and "Rejected" lines of the entries on the site file, the token, `job.sh`, the reset, the sanitiser and the image are therefore my reading of the code and not the feature's wording. Please check them against `feature.md` decisions 1 to 9, 11, 12, 14, 19, 24 and 25.
+
+    Cross-read against the diff and found current: the story's code diff is two one-word substitutions in the skill texts plus tests. `operator/README.md` and the operator guide's sections on the site file, `job.sh` and the sanitiser agree with the scripts where I compared them. `operator/README.md` holds no old name.
+
+    Smoke checks I ran: all ten support modules are listed in the project guide index. `git grep factory-rf` over `README.md`, `docs/operator-guide.md`, `docs/project-guide`, `operator`, `src`, `claude`, `vm` and `template` finds nothing. In `docs/decisions.md`, the greps for `site file`, `--layers=false` and `SITE_TOKEN_CMD` each find at least one line.
+
+    Stale but not touched: none found. `docs/decisions.md` still names the old name in earlier entries, which the story leaves as history.
+
+    Findings for the coder: none.
+
+    `check`: check: green (not run again: passed on tree be5df71f4f96 at 2026-11-03T11:43:55Z)
+    `secrets`: secrets: green (2.7 s)
+    `documents`: documents ok

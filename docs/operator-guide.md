@@ -135,7 +135,7 @@ A folder with files and no `.git` is still refused: git will not clone into a no
 
 The factory runs a project's build through make and calls four targets: `check` (the full gate, which must be green before a stage hands forward), `lint` (run after the tester stage), `test` and `sync`. `sync` is the fourth: it brings a checkout's tools up to date after a checkout, `uv sync --frozen` in a Python project and the project's own command in another stack. The stage environment runs it before every agent run and before every check, and no stage lists it in `checks` or `reports`. A project must define them in the Makefile at the root of its checkout. Each is judged by its exit status alone, and a target that does not exist counts as a failed command. A target that runs past its time limit is killed and counts as failed for that reason; the factory reads only the exit status, the last line and the last 30 lines of the output.
 
-The factory does not remove ignored paths (`.venv`, the caches). The checks run on a rolled-back copy of the dataset, and only the paths the role may write reach the checkout. Each target should build what it needs (factory-rf's and the template's `uv run` create `.venv` from `uv.lock`; the first check after a rebuild of the image downloads the packages once), and a target that relies on an ignored file another stage left fails.
+The factory does not remove ignored paths (`.venv`, the caches). The checks run on a rolled-back copy of the dataset, and only the paths the role may write reach the checkout. Each target should build what it needs (kumpel-factory's and the template's `uv run` create `.venv` from `uv.lock`; the first check after a rebuild of the image downloads the packages once), and a target that relies on an ignored file another stage left fails.
 
 A project whose `check` scans for secrets, with the template's `make secrets` or a scanner of its own, must leave out the factory's cost records (`*.costs.jsonl`, beside each work item), or the first agent run of every work item makes `check` red.
 
@@ -515,7 +515,7 @@ Some projects live on a host of their own, such as a company's enterprise host, 
 ```bash
 sudo sh vm/setup.sh --device /dev/sdb \
   --repository-url https://git.company.example/team/project.git \
-  --code-url https://github.com/pkrahmer/factory-rf.git
+  --code-url https://github.com/pkrahmer/kumpel-factory.git
 ```
 
 - **The code is cloned without a credential.** The clone of `/srv/factory/<instance>/factory` runs with `GIT_TERMINAL_PROMPT=0` and without `GIT_ASKPASS` and `core.askPass`, after the wait for the secrets, in the same pass as the install of the helper and the unit. A code repository that asks for a credential fails the clone: `setup: checkout: cannot clone <url> without a credential; the code repository must be readable without a token`, exit status 1. `--code-url` equal to `--repository-url`, or absent, keeps the checkout as it was, with the token.
@@ -717,7 +717,7 @@ This is the machine of the decisions of 2026-10-24: instance `vm`, an `e2-standa
 
    ```bash
    sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
-     --repository-url https://github.com/pkrahmer/factory-rf.git --code-ref <the tag or branch to run>
+     --repository-url https://github.com/pkrahmer/kumpel-factory.git --code-ref <the tag or branch to run>
    ```
 
    It installs the packages and makes the pool, the user `factory`, the datasets, the delegation and the folders. Then it stops with `setup: checkout: waiting for /home/factory/.secrets/hosting-token` and exit status 0: the private repository needs the token (see *The script*, "The two passes"). On a VM that the prototype of `planning/overnight/gcp-runbook-2026-10-24.md` already prepared, the script finds those steps done and reports `found`.
@@ -737,7 +737,7 @@ This is the machine of the decisions of 2026-10-24: instance `vm`, an `e2-standa
 
    ```bash
    sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
-     --repository-url https://github.com/pkrahmer/factory-rf.git --code-ref <the tag or branch to run>
+     --repository-url https://github.com/pkrahmer/kumpel-factory.git --code-ref <the tag or branch to run>
    ```
 
 10. Build the stage image as `factory`, from the checkout the script made. `<ref>` labels the image; any text will do.
@@ -898,7 +898,7 @@ On the VM from your own account, run the script and start the instance again:
 
 ```bash
 sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
-  --repository-url https://github.com/pkrahmer/factory-rf.git --code-ref <the same ref>
+  --repository-url https://github.com/pkrahmer/kumpel-factory.git --code-ref <the same ref>
 sudo systemctl start factory@vm
 ```
 
@@ -1803,7 +1803,7 @@ project_commands:
 
 A pattern that cannot name a path inside the checkout (empty, starting with `/` or `~`, holding a `..` segment, or holding `{` or `}`) stops the definition from loading: `project command lint: not_read /etc/* must be a path pattern inside the checkout`. `not_read` is what lets a known result survive a change: the paths it names are left out of the tree that the key holds (see "The known results"), so a change only there is no reason to run the command again. List only what the command does not read at all. A linter, formatter or type checker that walks the whole tree reads every source file in every folder, so leave out file types it does not read, never a whole folder. A forgotten path costs one run; a path listed by mistake can let a reused `check` pass a fault.
 
-factory-rf's own definition, `factory/pipeline.yml`, takes this, and only Markdown and JSON Lines files, because `make lint` reads every Python file of the tree, wherever it lies:
+kumpel-factory's own definition, `factory/pipeline.yml`, takes this, and only Markdown and JSON Lines files, because `make lint` reads every Python file of the tree, wherever it lies:
 
 ```yaml
 project_commands:
@@ -1812,7 +1812,7 @@ project_commands:
 
 Two warnings:
 
-- A project whose `check` scans changed files for secrets keeps a scan of the left-out files only if something else runs it. factory-rf's docs stage runs `secrets` as a check of its own, with nothing left out.
+- A project whose `check` scans changed files for secrets keeps a scan of the left-out files only if something else runs it. kumpel-factory's docs stage runs `secrets` as a check of its own, with nothing left out.
 - A command whose result depends on anything outside the tree and the image, such as dependencies fetched at run time with unpinned versions, is reused safely only when those versions are pinned in the tree (for example by a lockfile). Otherwise leave `not_read` empty and do not rely on reuse for it.
 
 The rules you meet most often:

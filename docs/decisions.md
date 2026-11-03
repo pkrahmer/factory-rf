@@ -1374,3 +1374,67 @@ Date: 2026-11-03 (F0048-S0014).
 - Why: `python3 -c` and `python3 -` put the working folder first on the import path. The skill runs from a project checkout, where the factory's agents write files, so a planted `json.py` would replace the standard library and run with the operator's environment, the site's token command included. `-I` drops the working folder and the `PYTHON*` variables.
 - Rejected: `cd` to the script's folder before each call (it changes the folder the script's relative paths mean, and one forgotten call is open again); trusting the folder because only the operator writes there (an agent's pull request is exactly what the operator checks out).
 - `status.sh` also assigns each hosting read to a variable before parsing it, as `merge.sh` and `reset-to-tag.sh` do, so a failing read ends with the hosting client's message and not a traceback.
+
+## The site file is data and lies outside every repository
+
+Date: 2026-11-03 (F0048-S0001, S0014; decisions 1, 2, 3 and 11 of the feature).
+
+- Decision: an operator's own values (project, region, token command, repository, proxy, model) live in one site file, `~/.config/kumpel/site.env` (`$FACTORY_SITE` or `$XDG_CONFIG_HOME` move it), read by one loader, `operator/lib/site.sh`. The loader stores each `KEY=value` line literally and never sources or evaluates the file. Only `SITE_` keys are accepted, a variable that is already set wins over the file, and a path inside a git work tree is refused (status 3). A missing file is status 1 and a faulty line status 2, and the whole file is checked before any value is exported.
+- Why: the values are a company's names and endpoints, which must not enter a repository's history, and a file the scripts executed would run whatever it holds with the operator's login. As data it can be checked line by line, with the line number in the message. Letting the environment win lets a test or an operator change one value for one run.
+- Rejected: a file the shell sources (code from a file an agent's checkout could sit beside); keeping the values in the repository, as an ignored file (one `git add -f` from a leak); a second source of defaults inside the scripts, which would guess where the file is silent.
+
+## The hosting token comes from a command the site names and is never in an argument list
+
+Date: 2026-11-03 (F0048-S0003; decisions 4, 5 and 14 of the feature).
+
+- Decision: `hosting_token` (`operator/lib/hosting.sh`) runs `SITE_TOKEN_CMD`; without it, and when `gh` is installed, `gh auth token`. The client passes the token to curl in curl's configuration on standard input and to git through `GIT_CONFIG_COUNT` and `GIT_CONFIG_KEY_n`/`GIT_CONFIG_VALUE_n`, with an empty `credential.helper`. A failing source gives one fixed message and its output is never repeated.
+- Why: a company often has its own way to get a token (a secret manager, a broker) and `gh` is not always there. An argument list is shown by `ps` to every user of the machine, and a source's error text can hold the secret.
+- Rejected: a token stored in the site file (a second copy of a secret); `curl -H "Authorization: ..."` and `git -c http.extraHeader=...` (the token in the arguments); the `gh` tool for the whole client (not installed everywhere, and `CLAUDE.md` rejects it for the factory itself).
+
+## `job.sh` works from the site's values, never guesses, never overlaps, and runs the start script of the code it clones
+
+Date: 2026-11-03 (F0048-S0005; decisions 6, 7 and 12 of the feature).
+
+- Decision: `operator/job/job.sh` builds the Cloud Run job from the site's values alone; a missing required key stops it, naming the key, and only the cpu, memory, timeout and idle minutes have defaults. `execute` refuses while an execution of the job is running. The job's start script is `vm/job-start.sh` read from `SITE_CODE_REF` with `git show` and carried in the job's arguments, so the wrapper and the code it starts are one version.
+- Why: a guessed project or region creates a job in the wrong place. Two executions of one instance share its repository and its pull requests. A start script from the working tree could belong to another version than the code the job clones.
+- Rejected: defaults for the site's names; leaving the overlap to the platform (it runs both); reading the script from the working tree or from the code host at run time (a version that nobody chose).
+
+## A reset to a tag needs three things
+
+Date: 2026-11-03 (F0048-S0008; decision 8 of the feature).
+
+- Decision: `reset-to-tag.sh <tag> [--yes]` acts only when the tag exists, when `--yes` is given, and when `SITE_REPOSITORY` is the same repository as `SITE_RESET_REPOSITORY`. Without `--yes` it prints the plan (pull requests to close, branches to delete, the commit `main` moves to) and exits 1.
+- Why: the move of `main` by force cannot be undone, and the skill runs the script for a human who may point it at the wrong repository. The site names the one repository that may be reset, so a changed `SITE_REPOSITORY` alone is no reset.
+- Rejected: a prompt on the terminal (the skill has none); a reset with only the flag.
+
+## The sanitiser's rules are the site's
+
+Date: 2026-11-03 (F0048-S0006; decision 9 of the feature).
+
+- Decision: `operator/bin/sanitise` carries three built-in rules (ANSI escapes, JWTs, GitHub tokens). Every other pattern, the site's own names, is in a rules file beside the site file (`sanitise.rules`, or `SITE_SANITISE_RULES`). `sanitise check FILE...` proves a file clean against all rules and names the file, line and rule of a hit, never the text.
+- Why: what is sensitive is the company's names, which cannot be in a repository. A check that quotes the match would leak it into a report.
+- Rejected: patterns kept in the repository; a check that prints the matched text.
+
+## A run that dies leaves its text in the factory log
+
+Date: 2026-11-03 (F0048-S0015; decision 19 of the feature).
+
+- Decision: a run that ends `died` is named in the factory log by one line, `run <run id> of <work item> (<stage>) died: <text>`. The text is the error reply's text, else the last three non-empty lines of standard error, else `exit <status>`, joined with ` / ` and cut to 300 characters. The agent's own answer is never quoted, and the cost record is unchanged.
+- Why: in a job the log is the only place the operator can read. A run that died left only the reason `died`, so the cause (a provider's usage limit, a login that failed) was unknown without a session on the machine.
+- Rejected: quoting the agent's answer (it may hold work content); putting the text in the cost record, which is metadata.
+
+## The job keeps one image in memory, and a machine prunes after a rebuild
+
+Date: 2026-11-03 (F0048; decision 24 of the feature).
+
+- Decision: `vm/job-start.sh` builds the stage image with `--layers=false` and then runs `podman image prune -f`, so the job's container storage (a tmpfs) holds the one image. A machine that rebuilds the image by hand runs `podman image prune -f` after the build, as `docs/operator-guide.md` says.
+- Why: the job's storage is memory. Layers kept for a cache, and the untagged image a rebuild leaves, take memory the stage needs.
+- Rejected: keeping the layer cache in a job (its rebuild is a fresh start anyway); pruning with `-a`, which would remove the tagged images of other instances on a machine.
+
+## The repository is called kumpel-factory
+
+Date: 2026-11-03 (decision 25 of F0048).
+
+- Decision: on 2026-11-03 the human renamed the repository from `pkrahmer/factory-rf` to `pkrahmer/kumpel-factory`. README, the operator guide, the project guide and the Kumpel skill's texts use the new name. History keeps the old one: archived work items, the earlier entries of this log, `planning/` and `docs/runs/`. `CLAUDE.md` is the human's.
+- Why: Kumpel is the product and this repository is one of its components. GitHub redirects the old URLs, but a text that names the old one misleads.
+- Rejected: rewriting history texts (they say what was true then).
