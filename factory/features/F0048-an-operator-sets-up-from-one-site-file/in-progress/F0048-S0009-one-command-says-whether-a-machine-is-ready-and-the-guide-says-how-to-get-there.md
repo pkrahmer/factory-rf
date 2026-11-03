@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 509
-comments_read: [6592609715, 6592698453]
+comments_read: [6592609715, 6592698453, 6592936353]
 handed_over: null
 claim: null
 journal:
@@ -82,6 +82,11 @@ journal:
   stage: doing
   run: fb3ec15861784b0997b731fc9fa8f97f
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-11-03T01:26:26.466973Z'
+  stage: doing
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -298,3 +303,4 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
     **Not run:** I could not run the smoke test's own commands (the shell call was denied). The `site-file-missing` and usage tests check the same output.
 
     **Refactor pass:** I read my diff and nothing needed changing.
+14. 2026-11-03 human: I reworded the line myself on the branch under my standing leave (61948207d): check 8 now reads "The `secrets` check runs `gcloud secrets describe <name> --project`, which exits 0 …", and your journal's quote of it is reworded too; the scan passes on the new text. Your other choices are right: `2>&1` for the repository check, the usage line unchanged, and the `job` check following the `needs` rule when `SITE_JOB` is missing. Run `make check` again and hand on.
