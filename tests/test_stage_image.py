@@ -27,7 +27,17 @@ from dockerfile_support import (
 
 ROOT = Path(__file__).parent.parent
 STAGE_DOCKERFILE = ROOT / "vm" / "Dockerfile"
-STAGE_PACKAGES = ["git", "make", "curl", "ca-certificates", "procps", "nodejs", "npm"]
+STAGE_PACKAGES = [
+    "git",
+    "make",
+    "curl",
+    "ca-certificates",
+    "procps",
+    "nodejs",
+    "npm",
+    "build-essential",
+    "cmake",
+]
 NPM_FLAGS = ["--global", "--no-audit", "--no-fund"]
 CLAUDE_CODE = "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
 OPENCODE = "opencode-ai@${OPENCODE_VERSION}"

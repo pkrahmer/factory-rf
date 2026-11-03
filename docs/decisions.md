@@ -1446,3 +1446,10 @@ Date: 2026-11-03 (F0048-S0022; decision 27 of the feature).
 - Decision: the shipped documenter writes a "Why" or a "Rejected" in `docs/decisions.md` only from what its story names: the Description, the Interface, the docs criterion and the journal, where the human's answers stand. It adds no reason or rejected option from its own reading of the code or the documents. Where the story names no rejected option, the entry has no "Rejected" line, and the documenter's journal entry names that entry. The rule is one lesson in `claude/agents/documenter.md`, and no other agent carries it. Existing entries stay as they are.
 - Why: F0048-S0019's documenter wrote seven entries, and five of their rejected options were named by no decision and no journal. Later agents cite the log as the human's reasons (R4), so an option the documenter invented reads as a decision the human made. F0048-S0021 had to repair those entries one by one.
 - Rejected: letting the documenter read `feature.md` for the reasons (its stage keeps it to the story).
+
+## The stage image carries a C toolchain
+
+- Date: 2026-11-03
+- Context: a project in C (the ESP32 template, `pkrahmer`'s own) builds its logic and its tests on the host, and its `make sync` and `make check` run in the stage image, which had no compiler and no CMake.
+- Decision: the stage image installs Debian's `build-essential` and `cmake` too, by name like the other seven packages; the firmware's own toolchain (ESP-IDF) stays out of the factory.
+- Rejected: the project installing a compiler through uv in its `sync` (zig's clang through `ziglang`), which is not the compiler the device uses and an uncommon setup (the human, 2026-11-03).
