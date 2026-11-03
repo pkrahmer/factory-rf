@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T11:35:40.819882Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T11:35:40.812641Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:35:40.819882Z'
+  stage: intake
+---
+
 # The project guide and the decision log describe the operator's scripts
 
 <!-- proposed by feature acceptance of 2026-11-03; the human added part B on 2026-11-03 (decision 25) -->
@@ -61,3 +88,6 @@ uv run python -m factory.entry.check_documents
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
