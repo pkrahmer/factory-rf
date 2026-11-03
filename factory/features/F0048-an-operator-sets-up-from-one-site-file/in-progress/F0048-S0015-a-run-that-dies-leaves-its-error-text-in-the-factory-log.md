@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 514
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T08:05:18.433430Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-03T08:05:18.433430Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-03T08:05:47.010320Z'
+  stage: intake
+  run: f09fb517687a4ed6ad5d54774d3e3ce3
+  blocked: question
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -65,3 +68,14 @@ Expect: the path of the module that writes the line.
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: Questions before this story can be built:
+
+   1. Interface names no concrete module or signature. Which module and function write the line (for example one shared helper in `factory.adapters.agent_launch` that both `claude_runtime` and `opencode_runtime` call), and what is its signature (inputs: run id, work item, stage, error reply, stderr, exit status; output)? Two coders would put it in different places. I would choose a single helper in `agent_launch`, called from both runtimes, with the line written through the existing factory-log logger. Please name it.
+   2. "The last non-empty lines of standard error": how many lines? Criterion 2 tests three, but the rule gives no number. I would choose "the last 3 non-empty lines", and add a criterion for a stderr of more than 3 lines (only the last three are quoted).
+   3. Interface says the error reply's text is preferred over stderr, and stderr over `exit <status>`, but no criterion covers the order when both exist. I would add one with an error reply and non-empty stderr (reply wins). Also what happens when an error reply has an empty result text: does it fall to stderr? I would say yes, and add a row.
+   4. "Line breaks become ` / `" has no criterion for an error reply with line breaks (criterion 2 covers stderr only). Add a row for it. Also, are blank lines or surrounding whitespace in the text dropped or kept?
+   5. The rule "the cost record and its contract stay unchanged" has no criterion. I would add one: the cost record of a `died` run is identical with and without this change (a test of the record's fields).
+   6. Criterion 2 says `exit <status>`: what is `<status>` when the process was killed by a signal, or has no status? I would say the raw returncode as the runtime reports it. Please confirm or name the rule.
+   7. Criterion 1 has the wording "the fake process"; the smoke test `grep -rn 'died: ' src/factory | head -1` expects one module, but if the line text lives in a helper and a docstring or comment contains `died: ` first, the output may be another file. Please make the Expect line state the exact module path (it follows from answer 1).
+
+   Checked and fine: scope is within the feature (no story-listed conflict) and the layers fit, provided the helper lies in `adapters`. The format check passed.
