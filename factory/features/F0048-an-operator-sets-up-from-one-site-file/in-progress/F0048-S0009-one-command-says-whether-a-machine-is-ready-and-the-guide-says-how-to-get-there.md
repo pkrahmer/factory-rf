@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 509
 comments_read: [6592609715, 6592698453]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T01:09:51.656850Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-03T01:09:51.656850Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-03T01:15:22.259538Z'
+  stage: tests
+  run: 12340214e36a4eedb4862d3d54672219
 ---
 
 # One command says whether a machine is ready, and the guide says how to get there
@@ -201,3 +203,50 @@ Expect: two lines, `usage: site check` (standard error) and `exit 2`.
    - To make a tool missing, the test builds a `PATH` of symlinks to the system's programs without `gcloud`, `curl`, `git`, `python3` and `gh`, with the stand-ins first.
 9. 2026-11-03 human: Both (a), as you propose. 1: keep the Interface; the gcloud row expects `site: 3 failed` and the token row `site: 2 failed`, exit 1, each checking its own FAIL line and that every other check still prints its line. 2: the git stand-in answers `ls-remote` itself and passes the local reads (`rev-parse`, `remote get-url`, `config --get` or `config <key>`) to the real git; criterion 7 asserts every git call is one of those and none is a push. Your three own choices are right.
 10. factory: started tests as vm.
+11. tester: I wrote the tests for `site check` in one new file, `tests/test_operator_site_check.py`. I took the human's answers in entry 9 as given: the `gcloud`-missing row expects `site: 3 failed`, the empty-token row expects `site: 2 failed`, and the `git` stand-in answers `ls-remote` itself and passes the local reads to the real `git`.
+
+    Criterion → test (all in `tests/test_operator_site_check.py`):
+    - criterion 1: `test_a_ready_machine_passes_every_check_in_order`
+    - criterion 2: `test_each_failing_check_names_its_fault_and_the_others_still_run` (12 rows: site-file-missing, key-missing, gcloud-not-on-the-path, token-command-prints-nothing, repository-not-found, no-push-permission, checkout-not-a-work-tree, checkout-of-another-repository, jobs-list-fails-with-a-multi-line-error, second-secret-not-visible, ls-remote-fails, ref-not-listed)
+    - criterion 3: `test_two_failures_are_counted`
+    - criterion 4: `test_no_proxy_bypasses_the_model_host_and_never_a_code_host`
+    - criterion 5: `test_a_check_without_its_keys_says_what_it_needs_and_does_not_run` (rows: secrets, code, repository)
+    - criterion 6: `test_a_commit_id_is_accepted_without_lookup_and_a_name_must_be_listed` (rows: 40 hex chars accepted with one `ls-remote` call and no ref argument; 39 and 41 hex chars and 40 non-hex chars are looked up; branch found and not found; tag found)
+    - criterion 7: `test_site_check_makes_no_write`
+    - criterion 8: `test_no_secret_value_is_read_or_printed`
+    - criterion 9: `test_an_argument_after_check_prints_the_usage`
+    - criterion 10: `test_the_operator_readme_names_every_script_and_library`
+    - criterion 11: `test_the_job_check_tells_whether_the_job_exists_and_never_fails`
+    - criterion 12: `test_no_proxy_bypasses_the_model_host_and_never_a_code_host[repository-host-covered]` and `[api-host-covered]`
+    - criterion 13: `test_ls_remote_runs_through_the_proxy_without_a_credential`
+    - criterion 14: `test_the_identity_check_impersonates_when_the_site_says_so`
+    - criterion 15: `test_each_failing_check_names_its_fault_and_the_others_still_run[jobs-list-fails-with-a-multi-line-error]` (a three-line error; the detail must be exactly its first line)
+    - criterion 16: `test_the_tools_check_names_every_missing_tool`
+    - criterion 17: `test_each_failing_check_names_its_fault_and_the_others_still_run[repository-not-found]` (exact detail `hosting: GET /repos/owner/repo: 404 Not Found`)
+    - criterion 18: no test (`make check`)
+    - criterion 19: `test_the_guide_names_every_key_of_the_example_site_file`
+
+    How the tests are built:
+    - **Machine:** each test gets a site file, a real git checkout and per-test stand-ins for `gcloud`, `git` and `curl`. The `curl` stand-in reuses `CURL_STAND_IN` from `tests/operator_support.py`, with a routes file.
+    - **Answers:** the record and answers file paths are written into each stand-in, so the stand-ins do not depend on environment variables reaching them.
+    - **PATH:** the per-test stand-ins folder plus a module-scoped folder of links to the system's programs, leaving out `gcloud`, `curl`, `git`, `python3` and `gh`. A tool is removed from a row by leaving its stand-in out.
+    - **Token:** the token command builds `TOKENMARK` at run time, so the mark is in no file the test writes.
+    - **No-write allow-list (criterion 7):** `gcloud` may only run `run jobs list`, `run jobs describe` and `secrets describe`. Every `curl` config must hold `request = "GET"`. Every `git` call must be `ls-remote`, `rev-parse`, `remote get-url`, or `config --get`/`config <key>`, and none may be `push`.
+
+    Where the Interface gives no exact detail text, I check only the smallest thing its wording implies. The reviewer or the human may want to look at these:
+    - checkout not a work tree: the detail contains `work tree`;
+    - other origin: the detail contains `origin`;
+    - `ls-remote` fails: the detail is not empty;
+    - ref not listed: the detail names the ref;
+    - `no_proxy` FAIL rows: the detail contains the host;
+    - a `needs` line: it starts with `needs ` and names the missing key.
+
+    Check lines and the summary line are read from standard output, and the usage line from standard error, as the smoke test shows.
+
+    Run: `uv run pytest -q tests/test_operator_site_check.py | tail -5` showed only FAILED lines (the job, ls-remote, identity and tools tests). That is the right reason: `operator/bin/site` has no `check` subcommand yet, so it prints its usage and exits 2. The tail showed no import or collection errors. `make lint` is green.
+
+    Files created: `tests/test_operator_site_check.py`. Modules the test run could not import: none. The code under test is the shell command `operator/bin/site check`, which does not exist yet.
+
+    Set aside: `test_site_check_makes_no_write` and `test_no_secret_value_is_read_or_printed` may pass already, because they assert on calls that do not happen yet. The README test (criterion 10) and the guide-keys test (criterion 19) read files that already exist. I cannot tell from the tail whether they pass or fail now.
+
+    `lint`: lint: green (0.1 s)
