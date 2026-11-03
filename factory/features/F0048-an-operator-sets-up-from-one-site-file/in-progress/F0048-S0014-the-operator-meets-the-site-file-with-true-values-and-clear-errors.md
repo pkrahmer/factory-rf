@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 515
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T08:59:49.094270Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,13 @@ journal:
   kind: started
   at: '2026-11-03T08:59:49.094270Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: question
+  at: '2026-11-03T09:00:28.769335Z'
+  stage: doing
+  run: dbf4e80be8c24ef288c648e00a244cb5
+  blocked: question
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -262,3 +265,25 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
    - tests/test_operator_site_check.py: the standing leave (the machine, stand-ins, constants and line helpers moved unchanged to `tests/site_check_support.py`, apart from the added `describe_error`), and the human's leave in `feature.md` for the `job`-line rows.
    - tests/test_operator_skill_scripts.py: none needed (it only adds `test_status_stops_at_a_failing_read_with_the_hosting_message`).
 10. factory: started doing as vm.
+11. coder: Round 1: all five of the reviewer's findings are changes to tests. None of them needs a code change, so I changed no code. The code for criterion 14 is already in place: `is_not_found` in `operator/bin/site` matches `NOT_FOUND`, and when gcloud's standard error is empty the check falls back to `gcloud run jobs describe failed`. Only the tests for it are missing.
+
+    Findings 1 to 3 can go to the tester as they are:
+    - **1:** criterion 14 needs two new rows in `tests/test_operator_site_check.py::test_the_job_check_tells_whether_the_job_exists_and_never_fails`.
+    - **2:** move `example_values` to `tests/operator_support.py` under the standing leave, and use it from `tests/test_operator_site_example.py` and `tests/test_operator_python_isolation.py`.
+    - **3:** in `tests/operator_support.py`, compute `CURL_STAND_IN`'s `url` and `route` once.
+
+    Findings 4 and 5 go beyond the leave in `feature.md`. Only you can approve them, so I am asking before I send anything to the tests stage. That way the tester gets every change in one round.
+
+    **Question.** Do you approve these two test changes that the tester made?
+
+    - **(4)** In `tests/test_operator_job.py`, the `overrides` row of `test_the_sizes_and_the_idle_minutes_have_defaults_the_site_overrides` changed from 4/16Gi to 8/32Gi. The new defaults are 4/16Gi. If the row stays at 4/16Gi, it can no longer tell an override from the default.
+    - **(5)** In `tests/test_operator_site.py`, `test_a_space_before_the_equals_sign_is_a_fault_and_one_after_it_is_the_value` was renamed to `test_a_space_beside_the_equals_sign_is_a_fault_and_one_inside_the_value_is_kept`. Part E makes the old name false.
+
+    Options:
+    - **(a)** Approve both. The test changes for findings 1 to 3 then go to the tests stage, and 4 and 5 stay as they are.
+    - **(b)** Undo one or both. The tester reverts the row to 4/16Gi, or puts back the old name, or both.
+    - **(c)** Approve one and undo the other.
+
+    I would choose **(a)**. Reverting 4 would leave a row that no longer tests an override. Reverting 5 would leave a test name that says the opposite of the behaviour.
+
+    Noticed, not touched: nothing beyond the reviewer's findings. The Description is unchanged, because no journal entry changed the meaning of the task.
