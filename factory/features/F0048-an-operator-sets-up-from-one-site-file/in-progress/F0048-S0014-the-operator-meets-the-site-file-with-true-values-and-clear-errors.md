@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 515
 comments_read: [6599499091]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T09:08:16.005191Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-03T09:08:16.005191Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T09:09:32.434627Z'
+  stage: review
+  run: 0039bfea67054b8c98b4b7f651f433f8
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -393,3 +395,39 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 19. factory: started review as vm.
+20. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` against the work item. I read the code, not the journal's account of it.
+
+    What I checked:
+    - **Part A.** The 15 comment lines in `operator/site.env.example` match the Interface word for word, and no `SITE_*=value` line changed. In `operator/job/job.sh`, a missing key now gives `--cpu=4`, `--memory=16Gi`, `--task-timeout=86400` and `FACTORY_IDLE_SHUTDOWN_MINUTES=30`.
+    - **Part B.** The usage line in `operator/bin/site:15` now includes `check`. In `SKILL.md`, only step 1 of *Before anything* changed.
+    - **Part D.** `check_job`/`is_not_found` in `operator/bin/site:297-315` keep only gcloud's standard error. A message containing `Cannot find job` or `NOT_FOUND` prints `does not exist yet`. Any other failure prints `cannot be read: <first line>`, with a fixed text when gcloud prints no error. The line always passes.
+    - **Part E.** `_site_parse_line` in `operator/lib/site.sh:125-128` now refuses a space or a tab directly after `=`, with the same message as for a space before `=`.
+    - **Part C.** I grepped the eight files: every `python3` start is now `python3 -I` (the 20 places the Description names). The only remaining `python3` words are the tools loop in `site` and a comment. `status.sh` stores its three reads before parsing them, ends each with `|| exit 1`, and also stops when `newest_comment` fails.
+
+    Criteria:
+    - Criteria 1 to 14 each have a test that checks what the criterion says.
+    - Criterion 8: the isolation test runs every script with the planted folder as its working folder (`run_script` with `cwd=tmp_path` in `Operator.run`, `job_runner` and `Machine.run`), so the test checks what it claims.
+    - Criterion 14 is now pinned by the `api-not-found` and `no-error-text` rows.
+    - Part E's trailing-space side is covered by the existing `trailing-spaces` row.
+    - Criterion 6's three cases are rows of the existing usage test.
+    - The coder's entry 18 reports `make check` green.
+
+    Other groups:
+    - Architecture and security: nothing touches `src/`, and the diff adds no silencing marker.
+    - Description: it still matches what was built.
+    - Journal: it gives the main choice for D (matching gcloud's error text) and what was rejected (a second `jobs list` call).
+    - Docs criterion: 16 still covers what the documenter must write.
+
+    no findings
+
+    Notes:
+    1. `tests/site_check_support.py:893` `gcloud_words` is the same function as `words` in `tests/operator_job_support.py:21`, and `JOB` and `IMPERSONATE` are defined in both support modules. All of them came over unchanged from the earlier test modules. A later move could keep one copy of each in one place.
+
+    Earlier test files the diff changes:
+    - `tests/operator_job_support.py`: the standing leave (`GCLOUD_STAND_IN`, `TAG`, `INSTANCE`, `JOB_ROOT`, `WRAPPER`, `START`, `START_SCRIPT`, `RunJob`, `wrapper_of`, `provider_text` and the fixture bodies moved from `tests/test_operator_job.py`).
+    - `tests/operator_skill_support.py`: none needed (it only adds `Operator.fail` and the `STAND_IN_CURL_FAILURES` variable).
+    - `tests/operator_support.py`: the standing leave (`INTERFACE_KEYS` and `example_values` moved there), plus the human's answer in entry 12 for computing `url`/`route` once in `CURL_STAND_IN` (finding 3). The `STAND_IN_CURL_FAILURES` block only adds.
+    - `tests/test_operator_job.py`: the standing leave for the moves; the human's leave in `feature.md` for the `defaults` row and the `job_flags`/`env_list` defaults; entry 12 for the `overrides` row at 8/32Gi.
+    - `tests/test_operator_site.py`: the human's leave in `feature.md` for `USAGE` and the space-after row; criterion 12 for the new rows; the standing leave for moving `INTERFACE_KEYS`; entry 12 for the rename to `test_a_space_beside_the_equals_sign_is_a_fault_and_one_inside_the_value_is_kept`.
+    - `tests/test_operator_site_check.py`: the standing leave (the machine, stand-ins, constants and helpers moved unchanged to `tests/site_check_support.py`, apart from the added `describe_error`); the human's leave in `feature.md` and criteria 11 and 14 for the rows of the `job`-line test and its `site: ready` check.
+    - `tests/test_operator_skill_scripts.py`: none needed (it only adds `test_status_stops_at_a_failing_read_with_the_hosting_message`).
