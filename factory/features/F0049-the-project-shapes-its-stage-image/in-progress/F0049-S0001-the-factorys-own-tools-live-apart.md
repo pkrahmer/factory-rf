@@ -1,17 +1,13 @@
 ---
 stage: smoke-test
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T23:38:28.582987Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -220,6 +216,19 @@ journal:
   kind: started
   at: '2026-11-03T23:38:28.582987Z'
   stage: smoke-test
+- number: 39
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T23:39:15.140211Z'
+  stage: smoke-test
+  run: 286efed48a8c43e8a3f51f9b291b7877
+- number: 40
+  speaker: factory
+  kind: question
+  at: '2026-11-03T23:39:15.140211Z'
+  stage: smoke-test
+  run: 286efed48a8c43e8a3f51f9b291b7877
+  blocked: round_cap
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -666,3 +675,53 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
 38. factory: started smoke-test as vm.
+39. smoke-tester: Smoke test, round 2. I ran the five commands under `## Smoke test` from the repository root, in order and as written. Four met their `Expect:` line and one did not, so the decision is `doing`. I fixed nothing.
+
+    1. `grep -cE '^ARG NODE_VERSION=22\.[0-9]+\.[0-9]+$' vm/Dockerfile`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    2. `grep -cE '^ARG NODE_SHA256=[0-9a-f]{64}$' vm/Dockerfile`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    3. `grep -c 'sha256sum -c' vm/Dockerfile`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    4. `grep -cE 'install .*\b(nodejs|npm)\b' vm/Dockerfile`
+    ```
+    1
+    ```
+    Expect `0`: **not met**. To find the matching line I ran `grep -nE` with the same pattern. The match is the comment on `vm/Dockerfile:28`, not the `apt-get install` line:
+    ```
+    28:# The runtimes install native executables: the factory's Node serves npm's install alone, so the commands exec them directly.
+    ```
+    The `apt-get install` line itself (`vm/Dockerfile:15`) names only `git make curl ca-certificates procps xz-utils`. The two npm install lines (25 and 27) do not match the pattern, because "npm" comes before "install" on them.
+
+    5. `uv run pytest tests/test_stage_image.py 2>&1 | tail -1`
+    ```
+    106 passed in 0.10s
+    ```
+    Expect a line that ends in `passed` with no `failed`: met.
+
+    I read the acceptance criteria again against these results. Criteria 1 to 5 are not contradicted:
+    - The pins have the right form.
+    - The download is checked with `sha256sum -c` before the unpack.
+    - The apt line names the six packages.
+    - Both runtimes are installed with `/opt/factory/node/bin/npm --prefix /opt/factory`.
+    - The stage-image test passes.
+
+    Criterion 6's checks of the built image (`claude --version`, `command -v node`, no `EBADENGINE`) are the human's, after the merge. The smoke test does not reach them.
+
+    Findings:
+    1. Command: `grep -cE 'install .*\b(nodejs|npm)\b' vm/Dockerfile`. Expected: `0`. Observed: `1`. The match is the comment at `vm/Dockerfile:28`, which has "install" followed later by "npm's". No criterion is contradicted: the code meets criterion 3. But the command does not meet its expectation, and the line belongs to the coder (`vm/Dockerfile` is not a document the documenter writes), so it goes to `doing`.
+
+    Open: the coder has two ways out. One is to reword the comment on line 28 so that no "install" comes before "npm" on it, for example "the factory's Node serves only the npm step". The other, if the human prefers, is to narrow the smoke-test command to the `apt-get` line. The smoke test is the human's, so that second way would be a `question`. I would reword the comment.
+40. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
