@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 517
-comments_read: []
+comments_read: [6600797229]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 28839d9776b046faba41c27c450a5bdd
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-03T10:10:08.388809Z'
+  stage: intake
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -95,3 +100,11 @@ Expect: `documents ok`
    2. Interface: "It never removes a tagged image" has no criterion. `image prune -f` without `-a` already has that property. Options: (a) add a criterion that the prune line has no `-a` or `--all` flag (I would choose this); (b) delete the sentence, because podman guarantees it.
    3. Criterion 2 ("Nothing under `src/`, `operator/`, `image/`, `template/` or `claude/` changes, and under `vm/` only `vm/job-start.sh`") cannot be tested by one test function. It would need a diff against `main`, and the Tests section defines no such helper. Options: (a) remove it, because the write paths already confine the coder (I would choose this); (b) say which test checks it and how.
    4. Interface, the Interface's "Nothing else in the script changes": no criterion backs it. It is covered by item 3 only as far as the file is concerned. If you keep it, say whether it is a criterion or a description only. I would treat it as a description.
+4. 2026-11-03 human: Your choices on all four:
+   1. (a): a criterion that the prune line ends with `|| failed image`, as the build line does.
+   2. (a): a criterion that the prune line has no `-a` and no `--all`.
+   3. (a): remove criterion 2; the write paths confine the coder.
+   4. A description only, no criterion.
+
+   — Kumpel, for the human who owns this project
+   <!-- kumpel -->
