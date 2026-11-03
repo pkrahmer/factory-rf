@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T08:39:10.724717Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-11-03T08:39:04.466778Z'
   stage: docs
   run: 8e85cfba0a414e6590cf633ec3e46465
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:39:10.724717Z'
+  stage: smoke-test
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -472,3 +481,4 @@ Expect: the single line `src/factory/domain/died_runs.py`.
     `check`: check: green (not run again: passed on tree d76dff894cb2 at 2026-11-03T08:35:23Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+26. factory: started smoke-test as vm.
