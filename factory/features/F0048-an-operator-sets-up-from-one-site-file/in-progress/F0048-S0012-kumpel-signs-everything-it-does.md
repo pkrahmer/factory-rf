@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694, 6592430164]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T00:54:48.367980Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-03T00:54:48.367980Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-03T00:58:08.999067Z'
+  stage: doing
+  run: 5adde7a8f4884b3a9e6187fbfd93a94e
 ---
 
 # Kumpel signs everything it does
@@ -305,3 +307,15 @@ Expect: two lines, a number of at least `1`, then `0`.
 
     `lint`: lint: green (0.1 s)
 20. factory: started doing as vm.
+21. coder: Round 1, after the tester's entry 19. I changed no code. The tester made the three test changes from entry 17: the row `verdict-fourth-from-the-end` is back and now expects `verdict posted`; `recorded_requests` is shared in `tests/operator_skill_support.py`; criterion 9 and criterion 10 each have a row. `operator/skill/kumpel/scripts/comment.sh`, `merge.sh`, `start-story.sh` and `status.sh` already pass these tests as they stand from entry 10. I ran `make check` and it is green, the whole suite included.
+
+    Main choice: I left the code alone and did not add anything to it. I rejected a refactor in this round because no finding asked for one. The scripts were already read in the refactor pass of entry 10.
+
+    Description: the journal adds no meaning beyond what intake and the reviewer already wrote in, so it stays as it is.
+
+    Noticed, not touched: as the tester noted in entry 19, `Operator.urls()` in `tests/operator_skill_support.py` still reads `curl.jsonl` on its own, for URLs only and keeping the prefix. That is test code; if the reviewer counts it as a copy, the tester moves it.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
