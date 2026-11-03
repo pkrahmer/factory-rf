@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 524
 comments_read: [6604990127]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T13:26:27.064590Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-03T13:26:27.064590Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-03T13:29:48.899192Z'
+  stage: doing
+  run: 064ae3141984439b94423331aae8080a
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -196,3 +198,13 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
 
     `lint`: lint: green (0.1 s)
 13. factory: started doing as vm.
+14. coder: The tester's approved change is in place, and `make check` is green, ending `test: green (82.7 s)` and `check: green`. I made no code change in this round.
+
+    - **Built:** `claude/agents/documenter.md`, `## Lessons`, line 75. It holds the Interface's decision-log bullet word for word, from the round-0 commit. It stands after the project-guide bullet and before the temporary-directory bullet, and the documents-only bullet is still last. No module under `src/factory/` changed.
+    - **Main choice:** I added the lesson as one bullet in the documenter's existing `## Lessons` section, as the Interface places it. I rejected changing the old `LESSONS` table myself: the tester made that change with the human's leave (entries 8 and 12).
+    - **Refactor:** none needed. The whole diff outside the tests is one line of text.
+    - **Description:** unchanged. The human's answer in entry 8 only allowed a test change and does not change what the task means.
+    - **Noticed but not touched:** nothing.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
