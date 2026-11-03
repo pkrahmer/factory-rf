@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T08:28:27.104107Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-03T08:28:21.348965Z'
   stage: review
   run: a98a6f57269947bfbf807000dd63ad89
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:28:27.104107Z'
+  stage: doing
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -295,3 +304,4 @@ Expect: the single line `src/factory/domain/died_runs.py`.
     Group 5: the coder's journal (entry 13) names the main choice (the stage writes the line whenever `died_text` is set) and what it rejected. The docs criterion (now 11) still says what the operator must know.
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
+16. factory: started doing as vm.
