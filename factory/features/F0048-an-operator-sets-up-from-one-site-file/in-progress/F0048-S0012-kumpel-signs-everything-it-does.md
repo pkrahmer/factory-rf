@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694, 6592430164]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T00:53:32.517586Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-03T00:53:32.517586Z'
   stage: tests
+- number: 19
+  speaker: tester
+  kind: result
+  at: '2026-11-03T00:54:42.916133Z'
+  stage: tests
+  run: 4711ba73a3964166af407ebb6c42ac3d
 ---
 
 # Kumpel signs everything it does
@@ -268,3 +270,28 @@ Expect: two lines, a number of at least `1`, then `0`.
 
     Noticed, not touched: nothing beyond entry 10.
 18. factory: started tests as vm.
+19. tester: Round 1. I made the three test changes from the coder's entry 17. The first has the human's leave (entry 15), the second falls under the standing leave, and the third adds rows for criteria the reviewer added.
+
+    - Review finding 2 (the human's leave, option (a)): in `tests/test_operator_skill_scripts.py`, `test_the_newest_comment_decides_the_state`, I put the row `verdict-fourth-from-the-end` back where it stood, before `no-comments`. Its expectation is now `verdict posted` instead of `working`. Nothing else in the file changed.
+    - Review finding 1 (standing leave to move a shared test helper): `Request` and the parsing of `curl.jsonl` now live in `tests/operator_skill_support.py` as `recorded_requests(records)`. It returns each route without `API_URL` and without `PREFIX`. Earlier test file changed: `tests/test_operator_merge_reset.py`. Its own `Request` class is gone, and `Machine.requests()` now returns `recorded_requests(self.records)`. Every test keeps its name and checks the same thing. In `tests/test_operator_skill_signature.py` (this story's file) the copy `sent` is gone and the file uses `recorded_requests`. It compares the route against `ROUTE = "/issues/7/comments"`; `COMMENTS` (with the prefix) stays for the answers and the 404 message.
+    - Review findings 3 and 4: the rows for criteria 9 and 10. Criterion 2's test `test_a_signed_text_is_posted_unchanged` became the parametrized `test_a_text_is_signed_unless_it_ends_signed`. Its rows are `ends-signed` (criterion 2) and `signed-then-more-text` (criterion 9: signed again, two signatures). `test_a_comment_that_cannot_be_posted_is_refused` gained the row `three` (criterion 10).
+
+    Not changed: `Operator.urls()` in the support module also reads `curl.jsonl`, for URLs only and keeping the prefix. No finding named it, so I left it as it was.
+
+    Criterion → test (all in `tests/test_operator_skill_signature.py` unless named otherwise):
+    criterion 1: test_a_comment_is_posted_with_the_signature_and_the_marker
+    criterion 2: test_a_text_is_signed_unless_it_ends_signed[ends-signed]
+    criterion 3: test_a_comment_that_cannot_be_posted_is_refused[missing-file, empty-file, 404, none, one]
+    criterion 4: test_the_start_commit_is_kumpels_and_the_clone_keeps_its_identity
+    criterion 5: tests/test_operator_merge_reset.py::test_an_approved_pull_request_is_merged_and_its_archive_awaited (unchanged in this round)
+    criterion 6: test_a_verdict_marker_anywhere_in_the_newest_comment_is_a_posted_verdict
+    criterion 7: test_no_file_of_the_skill_posts_with_gh
+    criterion 8: test_the_skill_names_the_comment_script
+    criterion 9: test_a_text_is_signed_unless_it_ends_signed[signed-then-more-text]
+    criterion 10: test_a_comment_that_cannot_be_posted_is_refused[three]
+
+    Files changed: `tests/operator_skill_support.py`, `tests/test_operator_skill_signature.py`, `tests/test_operator_skill_scripts.py`, `tests/test_operator_merge_reset.py`. No files created. Every module imported.
+
+    Results: one run of `uv run pytest -q` over the three test files passed. The code already meets criteria 9 and 10 (entry 14). `make lint`: green.
+
+    `lint`: lint: green (0.1 s)

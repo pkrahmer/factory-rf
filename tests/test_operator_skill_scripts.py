@@ -111,6 +111,12 @@ VERDICT = "Verdict: approve.\n\n<!-- kumpel verdict -->"
             )
         ),
         pytest.param("stage:doing", [VERDICT], "verdict posted", id="verdict"),
+        pytest.param(
+            "stage:doing",
+            ["Verdict: approve.\n<!-- kumpel verdict -->\none\ntwo\nthree"],
+            "verdict posted",
+            id="verdict-fourth-from-the-end",
+        ),
         pytest.param("stage:doing", [], "working", id="no-comments"),
         pytest.param("stage:approval", [], "waits: approval", id="no-comments-at-approval"),
         pytest.param(

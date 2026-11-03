@@ -1,8 +1,6 @@
 """The skill signs its acts: its comments, its start commits; the state reads a signed verdict."""
 
-import json
 import os
-import re
 from collections.abc import Callable
 from pathlib import Path
 
@@ -11,12 +9,12 @@ import pytest
 from factory.adapters.process import ProcessResult
 from git_support import clone, run_git
 from operator_skill_support import (
-    API_URL,
     PREFIX,
     SCRIPTS,
     Operator,
     make_bare_remote,
     pull,
+    recorded_requests,
     status_routes,
 )
 from operator_support import ROOT, hosting_env, run_script
@@ -25,34 +23,17 @@ SKILL = ROOT / "operator" / "skill" / "kumpel"
 SIGNATURE = "— Kumpel, for the human who owns this project"
 MARKER = "<!-- kumpel -->"
 ANSWER = "Yes, as you propose."
-COMMENTS = f"{PREFIX}/issues/7/comments"
+ROUTE = "/issues/7/comments"
+COMMENTS = f"{PREFIX}{ROUTE}"
 KUMPEL = "Kumpel <kumpel@noreply.invalid>"
 FEATURE = "factory/features/F0001-example"
 
 
-def sent(operator: Operator) -> list[tuple[str, str, object]]:
-    """Every request the `curl` stand-in recorded: its method, its path, its JSON body or None."""
-    path = operator.records / "curl.jsonl"
-    if not path.exists():
-        return []
-    found: list[tuple[str, str, object]] = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        configuration = str(json.loads(line)["stdin"])
-        url = re.search(r'^url = "([^"]*)"$', configuration, re.MULTILINE)
-        method = re.search(r'^request = "([^"]*)"$', configuration, re.MULTILINE)
-        data = re.search(r'^data = (".*")$', configuration, re.MULTILINE)
-        assert url is not None
-        assert method is not None
-        body = json.loads(json.loads(data.group(1))) if data else None
-        found.append((method.group(1), url.group(1).removeprefix(API_URL), body))
-    return found
-
-
 def posted_body(operator: Operator) -> str:
     """The `body` of the one request sent, which must be a `POST` of a comment on #7."""
-    requests = sent(operator)
-    assert [(method, route) for method, route, _ in requests] == [("POST", COMMENTS)]
-    body = requests[0][2]
+    requests = recorded_requests(operator.records)
+    assert [(request.method, request.route) for request in requests] == [("POST", ROUTE)]
+    body = requests[0].body
     assert isinstance(body, dict)
     text = body["body"]
     assert isinstance(text, str)
@@ -81,14 +62,30 @@ def test_a_comment_is_posted_with_the_signature_and_the_marker(answering: Operat
     assert posted_body(answering).rstrip("\n") == f"{ANSWER}\n\n{SIGNATURE}\n{MARKER}"
 
 
-def test_a_signed_text_is_posted_unchanged(answering: Operator) -> None:
-    signed = f"{ANSWER}\n\n{SIGNATURE}\n{MARKER}"
-    path = write_text(answering, f"{signed}\n")
+SIGNED_ANSWER = f"{ANSWER}\n\n{SIGNATURE}\n{MARKER}"
+
+
+@pytest.mark.parametrize(
+    ("text", "expected", "signatures"),
+    [
+        pytest.param(SIGNED_ANSWER, SIGNED_ANSWER, 1, id="ends-signed"),
+        pytest.param(
+            f"{SIGNED_ANSWER}\nMore.",
+            f"{SIGNED_ANSWER}\nMore.\n\n{SIGNATURE}\n{MARKER}",
+            2,
+            id="signed-then-more-text",
+        ),
+    ],
+)
+def test_a_text_is_signed_unless_it_ends_signed(
+    answering: Operator, text: str, expected: str, signatures: int
+) -> None:
+    path = write_text(answering, f"{text}\n")
     result = answering.run("comment.sh", "7", str(path))
     assert result.exit_status == 0, result.stderr
     body = posted_body(answering)
-    assert body.rstrip("\n") == signed
-    assert body.count(SIGNATURE) == 1
+    assert body.rstrip("\n") == expected
+    assert body.count(SIGNATURE) == signatures
 
 
 def missing(operator: Operator) -> list[str]:
@@ -115,6 +112,13 @@ def refused(operator: Operator) -> list[str]:
         pytest.param(refused, 1, f"hosting: POST {COMMENTS}: 404 Not Found", 1, id="404"),
         pytest.param(lambda _: [], 2, "usage: comment.sh <pull request> <file>", 0, id="none"),
         pytest.param(lambda _: ["7"], 2, "usage: comment.sh <pull request> <file>", 0, id="one"),
+        pytest.param(
+            lambda operator: ["7", str(write_text(operator, f"{ANSWER}\n")), "extra"],
+            2,
+            "usage: comment.sh <pull request> <file>",
+            0,
+            id="three",
+        ),
     ],
 )
 def test_a_comment_that_cannot_be_posted_is_refused(
@@ -130,7 +134,7 @@ def test_a_comment_that_cannot_be_posted_is_refused(
     assert result.exit_status == exit_status
     expected = message.format(file=words[-1] if words else "")
     assert expected in result.stderr.splitlines()
-    assert len(sent(answering)) == requests
+    assert len(recorded_requests(answering.records)) == requests
 
 
 def run_start_story(operator: Operator, story: str) -> ProcessResult:

@@ -10,6 +10,7 @@ import pytest
 
 from factory.adapters.process import ProcessResult
 from git_support import write_executable
+from operator_skill_support import Request, recorded_requests
 from operator_support import CURL_STAND_IN, ROOT, hosting_env, run_script
 from vm_support import in_order
 
@@ -64,15 +65,6 @@ sys.exit(completed.returncode)
 """
 
 
-@dataclass(frozen=True)
-class Request:
-    """One request the `curl` stand-in recorded: its method, its path and query, its JSON body."""
-
-    method: str
-    route: str
-    body: object
-
-
 Answers = dict[str, list[tuple[int, object]]]
 
 
@@ -125,21 +117,7 @@ class Machine:
 
     def requests(self) -> list[Request]:
         """Every request the `curl` stand-in recorded, in order, its route without the prefix."""
-        path = self.records / "curl.jsonl"
-        if not path.exists():
-            return []
-        found = []
-        for line in path.read_text(encoding="utf-8").splitlines():
-            configuration = str(json.loads(line)["stdin"])
-            url = re.search(r'^url = "([^"]*)"$', configuration, re.MULTILINE)
-            method = re.search(r'^request = "([^"]*)"$', configuration, re.MULTILINE)
-            data = re.search(r'^data = (".*")$', configuration, re.MULTILINE)
-            assert url is not None
-            assert method is not None
-            route = url.group(1).removeprefix(API_URL).removeprefix(PREFIX)
-            body = json.loads(json.loads(data.group(1))) if data else None
-            found.append(Request(method.group(1), route, body))
-        return found
+        return recorded_requests(self.records)
 
     def changes(self) -> list[Request]:
         """The recorded requests that change something, in order."""

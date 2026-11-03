@@ -26,6 +26,34 @@ GIT_VARIABLES = {
 
 
 @dataclass(frozen=True)
+class Request:
+    """One request the `curl` stand-in recorded: its method, its path and query, its JSON body."""
+
+    method: str
+    route: str
+    body: object
+
+
+def recorded_requests(records: Path) -> list[Request]:
+    """Every request the `curl` stand-in recorded in `records`, its route without the prefix."""
+    path = records / "curl.jsonl"
+    if not path.exists():
+        return []
+    found = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        configuration = str(json.loads(line)["stdin"])
+        url = re.search(r'^url = "([^"]*)"$', configuration, re.MULTILINE)
+        method = re.search(r'^request = "([^"]*)"$', configuration, re.MULTILINE)
+        data = re.search(r'^data = (".*")$', configuration, re.MULTILINE)
+        assert url is not None
+        assert method is not None
+        route = url.group(1).removeprefix(API_URL).removeprefix(PREFIX)
+        body = json.loads(json.loads(data.group(1))) if data else None
+        found.append(Request(method.group(1), route, body))
+    return found
+
+
+@dataclass(frozen=True)
 class Operator:
     """The operator's machine in `tmp_path`: a site file, the `curl` stand-in and a checkout."""
 
