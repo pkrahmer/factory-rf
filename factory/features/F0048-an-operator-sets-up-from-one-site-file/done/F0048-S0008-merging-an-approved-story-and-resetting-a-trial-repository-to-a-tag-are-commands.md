@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -259,6 +259,11 @@ journal:
   at: '2026-11-03T00:14:13.933907Z'
   stage: smoke-test
   run: d25d44b8c6d14cb39627766ab6a14035
+- number: 46
+  speaker: factory
+  kind: done
+  at: '2026-11-03T00:16:37.923367Z'
+  stage: approval
 ---
 
 # Merging an approved story and resetting a trial repository to a tag are commands
@@ -701,3 +706,4 @@ Expect: two lines, `site: missing SITE_RESET_REPOSITORY in <the file's path>` (s
     Against the acceptance criteria: the smoke test exercises two rows of criterion 5 (the repositories differ; `SITE_RESET_REPOSITORY` unset). In both the script exits as the Interface says and makes no request: nothing reached the hosting service, since it stopped before resolving the tag. Neither output contradicts any other criterion. The smoke test does not exercise the other criteria (merge.sh, the plan, `--yes` ordering, the docs criterion); the tests and the factory's checks cover those.
 
     Findings: none.
+46. factory: done (pull request merged); cost: 20 runs, 28.2 min, 163 turns, 625300 tokens in (4197588 more from cache), 88267 out, $7.12
