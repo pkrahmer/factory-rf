@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159, 6618142948]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T23:30:57.024136Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -156,6 +160,11 @@ journal:
   kind: send_back
   at: '2026-11-03T23:30:50.991465Z'
   stage: approval
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:30:57.024136Z'
+  stage: doing
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -472,3 +481,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
 25. 2026-11-03 human: Sent back after a real build on factory-vm (podman build of this branch): the build passes with no EBADENGINE, but both wrappers fail. Claude Code 2.1.296 and opencode 1.19.3 install native executables (/opt/factory/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe, and opencode-ai/bin/opencode.exe, an ELF file), so running them with /opt/factory/node/bin/node gives ERR_UNKNOWN_FILE_EXTENSION and a SyntaxError. The human's correction (feature decision 6): the runtimes need Node only for npm's install, not to run. /usr/local/bin/claude and /usr/local/bin/opencode each exec the installed command under /opt/factory/bin directly, passing "$@" on; they do not name /opt/factory/node/bin/node. Criterion 4 changes accordingly: each wrapper execs /opt/factory/bin/<runtime> with "$@"; a wrapper that names a node binary is refused. Everything else stays: Node 22 under /opt/factory/node for the install, no node or npm on the PATH, the six packages. After the fix I build it again on the VM and check claude --version and opencode --version.
 26. 2026-11-03 human: closed the pull request.
 27. factory: sent back to doing, round 2.
+28. factory: started doing as vm.
