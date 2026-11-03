@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T00:37:52.423165Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T00:37:52.416522Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:37:52.423165Z'
+  stage: intake
+---
+
 # Kumpel signs everything it does
 
 ## Description
@@ -44,3 +71,6 @@ grep -rl "gh pr comment" operator/skill/kumpel | wc -l
 Expect: two lines, a number of at least `1`, then `0`.
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
