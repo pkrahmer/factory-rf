@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 514
 comments_read: [6598577655, 6598700233]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-03T08:37:06.743563Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-03T08:36:59.197615Z'
   stage: doing
   run: 74b49f9ea0c242bbaab2ff10898c2745
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-03T08:37:06.743563Z'
+  stage: review
 ---
 
 # A run that dies leaves its error text in the factory log
@@ -393,3 +402,4 @@ Expect: the single line `src/factory/domain/died_runs.py`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
+22. factory: started review as vm.
