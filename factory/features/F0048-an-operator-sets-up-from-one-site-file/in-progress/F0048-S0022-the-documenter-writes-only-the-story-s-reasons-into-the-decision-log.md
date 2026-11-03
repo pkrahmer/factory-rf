@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 524
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T13:18:15.726390Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-03T13:18:15.726390Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-03T13:18:47.181525Z'
+  stage: tests
+  run: 42e7e5b734ff47ca83daa3c1cdf78073
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -91,3 +93,14 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
    - Architecture: the change is a text in the shipped agent files under `claude/`, covered by the coder's write paths (`claude/*`). Its test sits at the `tests/` root with the other agent-text tests. No layer is touched.
    - Scope: within F0048 (decision 27, the decision log holds only the human's reasons). It changes nothing from "Out of scope" (no `src/factory/` change, no other agent's text). The Description's "the other lessons stay" matches the Interface. Nothing is carried in from a journal answer.
 4. factory: started tests as vm.
+5. tester: Wrote the tests for criteria 1 to 3. They fail now because the bullet is not in the documenter's text yet.
+   - criterion 1: tests/test_claude_agent_texts_decision_log.py::test_documenter_lessons_hold_the_decision_log_bullet. The Interface's bullet, word for word, must be one line of the documenter's `## Lessons` section.
+   - criterion 2: tests/test_claude_agent_texts_decision_log.py::test_decision_log_bullet_stands_between_the_guide_and_temporary_bullets. The line just before the bullet must be the project guide bullet and the line just after it the temporary-directory bullet. The section's last line must still be the documents-only bullet. The test matches those three neighbours by how their lines start.
+   - criterion 3: tests/test_claude_agent_texts_decision_log.py::test_only_the_documenter_holds_the_decision_log_bullet. Parametrized over `SHIPPED_NAMES`, one row per agent: the documenter's body must hold the bullet and the six others must not.
+   - criteria 4 and 5: no tests (`make check` and the docs criterion).
+
+   Files created: tests/test_claude_agent_texts_decision_log.py. It reuses `section_text` and `shipped_agents.agent_body`/`SHIPPED_NAMES`, as tests/test_claude_agent_texts_review_leave.py does. The lesson lines are a fixture shared by the first two tests.
+
+   Test run (`uv run pytest -q` on the new file): 3 failed with AssertionError, because the bullet is not yet in claude/agents/documenter.md: the presence test, the position test and the `documenter` row of the parametrized test. The six other rows pass, as they should. There were no import or collection errors, and every module imported. `make lint` is green.
+
+   `lint`: lint: green (0.1 s)
