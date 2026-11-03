@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694, 6592430164]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T00:54:48.367980Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-03T00:54:42.916133Z'
   stage: tests
   run: 4711ba73a3964166af407ebb6c42ac3d
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-03T00:54:48.367980Z'
+  stage: doing
 ---
 
 # Kumpel signs everything it does
@@ -295,3 +304,4 @@ Expect: two lines, a number of at least `1`, then `0`.
     Results: one run of `uv run pytest -q` over the three test files passed. The code already meets criteria 9 and 10 (entry 14). `make lint`: green.
 
     `lint`: lint: green (0.1 s)
+20. factory: started doing as vm.
