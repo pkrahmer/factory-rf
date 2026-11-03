@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694, 6592430164]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T01:00:00.443449Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-11-03T00:59:54.904314Z'
   stage: docs
   run: b36ce2f4c84d46e8b9a24a7965103e3d
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-03T01:00:00.443449Z'
+  stage: smoke-test
 ---
 
 # Kumpel signs everything it does
@@ -382,3 +391,4 @@ Expect: two lines, a number of at least `1`, then `0`.
     `check`: check: green (not run again: passed on tree 534ed5c4cd87 at 2026-11-03T00:56:36Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+26. factory: started smoke-test as vm.
