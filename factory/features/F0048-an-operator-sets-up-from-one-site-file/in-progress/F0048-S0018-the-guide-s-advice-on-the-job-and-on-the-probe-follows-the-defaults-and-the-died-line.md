@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-03T10:10:38.148874Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-03T10:10:38.148874Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-03T10:11:21.122942Z'
+  stage: tests
+  run: b6e60bf8d07a4bf4a6442fa40a57c740
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -137,3 +139,16 @@ Expect: `documents ok`
    - Architecture: Part B stays in the VM's start script, and Part A is documentation only. Nothing touches the layers in `src/factory`.
    - Scope: the story is listed in the feature's scope and stories (S0018, decision 24). It changes no default, and it touches nothing in the feature's Out of scope.
 7. factory: started tests as vm.
+8. tester: Wrote the text tests for part B over `vm/job-start.sh`. They sit beside the script's existing tests and read the uncommented script from the line `step image` to the next `step` line. Part A is documentation only, and criteria 4 and 5 are the checks and the documenter's job, so no test covers them.
+
+   - criterion 1: tests/test_vm_job_start_image.py::test_the_image_step_builds_without_layers_and_then_prunes. One parametrized test with four rows: the script itself must hold. Three variants built from the script's own step must fail: without `--layers=false`, without the prune line, and with the prune before the build.
+   - criterion 2: tests/test_vm_job_start_image.py::test_a_failed_prune_fails_the_image_step. There is at least one line with `podman $JOB_PODMAN_OPTIONS image prune -f`, and every such line ends with `|| failed image`.
+   - criterion 3: tests/test_vm_job_start_image.py::test_the_prune_never_removes_a_tagged_image. Parametrized over `-a` and `--all`; neither may be a word of the prune line.
+
+   Files created: tests/test_vm_job_start_image.py. It reuses `JOB_START` and `lines_with` from tests/vm_support.py and `_uncommented` from tests/dockerfile_support.py. No earlier test file changed.
+
+   Import problems: none. The test reads the script as text.
+
+   One run, `uv run pytest -q tests/test_vm_job_start_image.py`: 4 tests fail for the right reason and 3 pass. The failing ones are the `the-script` row of criterion 1, criterion 2, and both rows of criterion 3; each fails because the step has no `--layers=false` build and no prune line yet. The 3 that pass are the variants of criterion 1 that must fail its rule. `make lint` is green.
+
+   `lint`: lint: green (0.1 s)
