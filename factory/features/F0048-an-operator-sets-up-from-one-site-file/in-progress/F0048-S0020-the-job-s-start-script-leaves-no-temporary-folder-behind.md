@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 520
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T11:56:39.974451Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-03T11:56:39.974451Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T11:57:10.081077Z'
+  stage: review
+  run: cd8804c537954c8886e76c87bec35380
 ---
 
 # The job's start script leaves no temporary folder behind
@@ -127,3 +129,15 @@ Expect: `0`, then `1`.
    `check`: check: green
    `duplicates`: duplicates: 0 new, 42 known, 0 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   Read: the work item, `git diff main...HEAD -- . ':!factory'` (`vm/job-start.sh` +3, `tests/test_vm_job_start.py` +40), and the existing runc tests and `run_job_start` in `tests/vm_support.py` that the new test relies on.
+
+   1. Acceptance criteria: criterion 1 is tested by `tests/test_vm_job_start.py::test_the_runc_download_folder_is_removed_however_the_step_ends`, a parametrized test with four rows: `success`, `download`, `mismatch` and `install`. Each row sets `TMPDIR` to a folder under `tmp_path`. It checks that curl's target lay in a folder directly under that `TMPDIR` (so the test cannot pass by never downloading) and that the `TMPDIR` is empty afterwards. A failure row also checks exit 1, the step's message as a whole stderr line (`job-start: runc: failed` or `job-start: runc: checksum does not match`) and that no `factory-run` was called. The tester reported that the three failure rows failed before the change and the success row passed, which is what we'd expect. Criterion 2: the coder's `make check` was green (journal 7), and the coder counted `/tmp/tmp.*` before and after: 0 and 0. With the trap, even the earlier tests that hit a runc failure with the default `TMPDIR` (`test_runc_without_a_matching_checksum_stops_the_script`, row `mismatch`) leave no folder now. Criterion 3 is the docs criterion: the sentence still reads "fail it" at `docs/operator-guide.md:1377`, and the documenter fixes it from that criterion. The Interface sets no limit with two sides. Its one rule ("removed whenever the step ends, messages word for word") has every way out covered by a row.
+   2. Architecture: no Python changed. The shell change stays inside `vm/job-start.sh`, and `vm/setup.sh:112` already uses the same `trap ... EXIT` pattern.
+   3. Security: no secrets, and no command built from strings. The trap's `"$download"` is quoted inside a single-quoted trap text, so it is expanded only when the trap runs. No silencing markers were added.
+   4. Quality: two lines and one comment. The comment says why the trap is there. `trap - EXIT` after the step's own `rm -rf` keeps the trap from reaching any later step, and the script sets no other trap. The test reuses `RUNC_URL`, `RUNC_VERSION`, `_downloaded`, `run_job_start` and `failing_install_target` and copies no helper.
+   5. Work item hygiene: the coder's entry explains the EXIT trap and why the rejected `cleanup_and_fail` helper was dropped. The Description matches what was built, and the docs criterion still says what the documenter must change.
+
+   Earlier tests:
+   - `tests/test_vm_job_start.py`: none needed. The diff only adds one test and leaves every earlier test in the file unchanged.
