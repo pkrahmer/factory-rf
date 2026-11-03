@@ -6,16 +6,29 @@ Kumpel is the product; kumpel-factory, this repository, is one of its components
 
 ## What is here
 
-| Path | What |
-|---|---|
-| `skill/kumpel/SKILL.md` | the skill: what to read first, the loop, the switches |
-| `skill/kumpel/references/` | the standing orders, how to answer, how to approve, how to shape |
-| `skill/kumpel/scripts/` | `settings.sh` (the switches), `status.sh` (the state from GitHub), `wait.sh` (wait for the next event), `approval.sh` (the six checks' facts), `next-story.sh` (the next story of the build order), `start-story.sh`, `comment.sh` (post a signed comment), `merge.sh` (merge an approved story and wait for its archive), `reset-to-tag.sh` (reset a trial repository to a tag) |
-| `opencode/command/kumpel.md` | the command `/kumpel [<switch> on|off]` for opencode |
-| `claude/commands/kumpel.md` | the same command for Claude Code |
-| `bin/site` | the command for the site file: `path`, `init`, `show`, `get` |
-| `lib/site.sh` | the loader every operator script sources: `site_path`, `site_load`, `site_require` |
-| `site.env.example` | every key of the site file, each with a comment and a made-up value |
+The map of the folder: each file, the story that made or last reshaped it (the skill's own scripts came before the factory built this folder), and its use.
+
+| Path | Story | Use |
+|---|---|---|
+| `site.env.example` | F0048-S0001 | every key of the site file, each with a comment and a made-up value |
+| `lib/site.sh` | F0048-S0001 | the loader every operator script sources: `site_path`, `site_load`, `site_require`, `site_value` |
+| `lib/hosting.sh` | F0048-S0003 | the hosting client: `hosting_token`, `hosting_api`, `hosting_repo_api`, `hosting_git`, with the token from `SITE_TOKEN_CMD` or `gh` |
+| `bin/site` | F0048-S0001, F0048-S0009 | the command for the site file: `path`, `init`, `show`, `get`, and `check`, the read-only checks that say whether a machine is ready |
+| `bin/sanitise` | F0048-S0006 | strips the site's names and the tokens from text that leaves the machine; `sanitise check FILE...` proves a file clean |
+| `job/job.sh` | F0048-S0005 | the factory's Cloud Run job: `create`, `update`, `execute`, `delete`, `log`, `status` |
+| `skill/kumpel/SKILL.md` | | the skill: what to read first, the loop, the switches |
+| `skill/kumpel/references/` | | the standing orders, how to answer, how to approve, how to shape |
+| `skill/kumpel/scripts/settings.sh` | | the switches, and the repository and checkout when the site file does not give them |
+| `skill/kumpel/scripts/status.sh` | | the state of the work items' pull requests, from the hosting service |
+| `skill/kumpel/scripts/wait.sh` | | waits for the next event |
+| `skill/kumpel/scripts/approval.sh` | | the six approval checks' facts |
+| `skill/kumpel/scripts/next-story.sh` | | the next story of the build order |
+| `skill/kumpel/scripts/start-story.sh` | | starts a story |
+| `skill/kumpel/scripts/comment.sh` | F0048-S0012 | posts a signed comment |
+| `skill/kumpel/scripts/merge.sh` | F0048-S0008 | merges an approved story and waits for its archive |
+| `skill/kumpel/scripts/reset-to-tag.sh` | F0048-S0008 | resets a trial repository to a tag |
+| `opencode/command/kumpel.md` | | the command `/kumpel [<switch> on\|off]` for opencode |
+| `claude/commands/kumpel.md` | | the same command for Claude Code |
 
 Kumpel signs everything it does. A comment ends with the line `— Kumpel, for the human who owns this project` and the marker `<!-- kumpel -->`, a start commit has the author `Kumpel <kumpel@noreply.invalid>`, and a merge commit says `Merged by Kumpel after the six approval checks.` So a reader of the pull request, the journal or the history can tell Kumpel's acts from the human's, although both use the human's token.
 

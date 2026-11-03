@@ -5,6 +5,14 @@
 #   site_require NAME...  return 0, or 2 naming every NAME that is unset or empty
 #   site_value NAME       print the variable's value, nothing when it is unset
 #   site_refuse_repository PATH  return 3 with a message when PATH lies in a git work tree
+#   site_gcloud_with RUNNER ARG...  run RUNNER with the gcloud ARGs and the site's project, region
+#                         and impersonation flags
+#   site_job_keys         the keys the job's settings require, separated by spaces
+
+site_job_keys="SITE_PROJECT SITE_REGION SITE_RUN_AS SITE_CONNECTOR SITE_PROXY SITE_NO_PROXY SITE_JOB
+  SITE_INSTANCE SITE_REPOSITORY_URL SITE_CODE_URL SITE_CODE_REF SITE_HOSTING_SECRET
+  SITE_MODEL_SECRET SITE_MODEL_BASE_URL SITE_MODEL SITE_LOGIN_URL SITE_LOGIN_SCOPE
+  SITE_LOGIN_CLIENT_ID"
 
 site_path() {
   if [ -n "${FACTORY_SITE:-}" ]; then
@@ -57,6 +65,21 @@ site_require() {
     echo "site: missing $_site_missing in $(site_path)" >&2
     return 2
   fi
+}
+
+# Every call names its project, and every Cloud Run call its region, so gcloud's own defaults
+# never pick them. Cloud Logging has no region, and gcloud refuses the flag there.
+site_gcloud_with() {
+  _site_runner=$1
+  shift
+  set -- "$@" "--project=$SITE_PROJECT"
+  if [ "$1" = run ]; then
+    set -- "$@" "--region=$SITE_REGION"
+  fi
+  if [ -n "${SITE_IMPERSONATE:-}" ]; then
+    set -- "$@" "--impersonate-service-account=$SITE_IMPERSONATE"
+  fi
+  "$_site_runner" "$@"
 }
 
 # A path's folder may not exist yet (site init), so ask git from its nearest existing ancestor.

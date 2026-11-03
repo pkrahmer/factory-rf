@@ -10,6 +10,7 @@ The guide for the person who runs the factory this repository implements: how to
 - "The agent runtime"
 - "The machine"
 - "The site file"
+- "Setting up an operator's machine"
 - "On Cloud Run"
 - "The preflight and the health check"
 - "The factory log and the health status file"
@@ -924,8 +925,9 @@ Run it as `sh operator/bin/site`:
 | `site init` | makes the folder and writes `operator/site.env.example` to the path, mode 0600; it never overwrites (status 1) |
 | `site show` | one line `SITE_X=set` or `SITE_X=unset` for each key of the example, in its order; a key set to the empty string is `unset`; never a value |
 | `site get SITE_X` | prints the value; when it is unset or empty, `site: SITE_X is not set` and status 1 |
+| `site check` | the read-only checks of a machine, one line each (see *Setting up an operator's machine*) |
 
-`show` and `get` load the file first and pass on the loader's failure: status 1 for a missing file (`run: site init`), 2 for a fault, 3 for a file in a git work tree. Any other command line prints `usage: site path | init | show | get SITE_X` and exits 2. `site init` prints `site: wrote <path>; edit it, then run: site check`; `site check` does not exist yet.
+`show` and `get` load the file first and pass on the loader's failure: status 1 for a missing file (`run: site init`), 2 for a fault, 3 for a file in a git work tree. Any other command line prints `usage: site path | init | show | get SITE_X` and exits 2; `site check` with an argument prints `usage: site check` and exits 2. `site init` prints `site: wrote <path>; edit it, then run: site check`.
 
 ```bash
 export FACTORY_SITE="$HOME/.config/kumpel/site.env"
@@ -1102,6 +1104,65 @@ The skill acts with the human's own token, so GitHub shows the human's account o
 `git log --format='%an: %s'` shows the author of each commit. A comment, commit or merge without these marks is the human's.
 
 
+## Setting up an operator's machine
+
+This chapter takes a machine with nothing on it to a factory job that runs and a skill that drives it. Follow the steps in order; each says what it proves and what its failure means. The commands are in `operator/` (its `README.md` is the map of the folder), and all read the site file (*The site file*).
+
+### What the platform must provide first
+
+The operator's scripts create the job and nothing around it. Before step 1 you need, from whoever runs the platform:
+
+- the cloud project and region, and a network connector whose proxy reaches the code host and the model API (*What the job needs*);
+- the service account the job runs as, and, when you work through another account, one you may impersonate (`SITE_IMPERSONATE`);
+- two secrets, one holding the hosting-service token and one the model provider's key; only their names go into the site file;
+- the code host's bot user (the owner of the hosting token) with push access to the project's repository, and read access to the factory's code repository.
+
+A missing piece shows up in step 5 or later as a failed check, not as a message of its own.
+
+### The steps
+
+1. **Install the tools.** `gcloud`, `git`, `curl` and `python3` on the `PATH`, and a POSIX shell. Proves nothing yet; check 3 of step 5 names whichever is missing.
+2. **Get the repository.** Clone this repository; the scripts run from its `operator/` folder as `sh operator/bin/site ...`. The checkout you name in the site file is the factory's *project* repository, which may be another one.
+3. **Write the site file.** `sh operator/bin/site init` writes `operator/site.env.example` to the path `site path` prints, mode 0600, and never overwrites. Edit the file: every key is in the table of *The keys*, and a job needs all that table marks required. A failure here is the loader's: no file (status 1), a fault in a line (status 2), a file inside a git work tree (status 3).
+4. **Check the file.** `sh operator/bin/site show` lists which keys are set, without a value. Use it to find what you forgot before the next step.
+5. **Check the machine.** `sh operator/bin/site check`. See *The checks* below. It reads and writes nothing in any system, and ends with `site: ready` (status 0) or `site: <n> failed` (status 1). Repeat until it is ready; do not go on with a `FAIL`.
+6. **Create the job.** `sh operator/job/job.sh create`. Proves that the project, region, connector and run-as account accept the job. A refusal is `gcloud`'s own text and its status (*Creating the job*).
+7. **Start it.** `sh operator/job/job.sh execute`. It prints the execution's name. The job needs a few minutes to install, clone and build before the factory runs (*Starts, restarts and the end of an execution*).
+8. **Watch it.** `sh operator/job/job.sh log` and `sh operator/job/job.sh status` (*Watching the job*). A stop the factory printed is read with *The stops*. The model API's login is not tested by `site check`, since that needs the secret's value: the job's preflight proves it at the first start, and its failure shows in the log.
+9. **Drive a story.** Install the skill (`operator/README.md`, *Installing*) and start `/kumpel`. The first story shows that the whole chain works: the factory opens its pull request, you or the skill answer and approve it.
+10. **Take the job away.** `sh operator/job/job.sh delete --yes` deletes the job and stops a running execution. Leave out `--yes` to see what it would do.
+
+### The checks
+
+`site check` runs eleven checks in this order and prints `ok <name>` or `FAIL <name>: <detail>` for each. The detail is one line of names and statuses and never a secret's value. A check whose keys are not set prints `FAIL <name>: needs <keys>` and does not run; the rest still do. If the site file does not load, nothing else runs.
+
+| Check | It proves | What a `FAIL` means |
+|---|---|---|
+| `site file` | the file loads | the loader's message: run `site init`, or fix the line it names |
+| `keys` | every key a job needs, and `SITE_REPOSITORY` and `SITE_CHECKOUT`, is set | the detail names the missing keys |
+| `tools` | `gcloud`, `curl`, `git` and `python3` are on the `PATH` | the detail names those that are not |
+| `token` | the token command (`SITE_TOKEN_CMD`, else `gh auth token`) prints a token | the hosting client's message, for instance an empty output |
+| `repository` | `GET /repos/$SITE_REPOSITORY` answers 200 and the token may push | `hosting: GET /repos/owner/repo: 404 Not Found` (wrong name, or a token that cannot see it), or `the token has no push permission` |
+| `checkout` | `SITE_CHECKOUT` is a git work tree whose `origin` names `SITE_REPOSITORY` (the `https` and the `git@host:` forms, with or without `.git`) | the detail says which part: not a work tree, no origin, or another repository |
+| `identity` | `gcloud run jobs list` works for your login or `SITE_IMPERSONATE` | the first line of `gcloud`'s error |
+| `secrets` | `gcloud secrets describe` finds `SITE_HOSTING_SECRET` and `SITE_MODEL_SECRET`; it never reads a version | the detail names the secret that failed: wrong name, or your identity cannot see it |
+| `code` | `git ls-remote $SITE_CODE_URL` through `SITE_PROXY`, with no credential, works, and `SITE_CODE_REF` is listed as a branch or tag (a 40-digit commit id is taken without a lookup) | the proxy does not reach the code host, the repository needs a credential, or the ref does not exist |
+| `no_proxy` | `SITE_NO_PROXY` covers the model API's host and none of the hosts of `SITE_CODE_URL`, `SITE_REPOSITORY_URL` and `SITE_API_URL` | the detail names the host and the rule. A domain `d` covers `d` and every host ending in `.d`, a leading `.` ignored. The job cannot resolve a code host itself, so it must go through the proxy; a model host that is not covered makes opencode wait for the proxy to answer for an internal host |
+| `job` | informational: `ok job: <name> exists` or `ok job: <name> does not exist yet` | only a missing `SITE_PROJECT`, `SITE_REGION` or `SITE_JOB`. A missing job is not told from a failed call; `identity` catches a broken identity |
+
+A check that depends on a failed tool or token fails with it, so one fault can print several `FAIL` lines: a missing `gcloud` fails `tools`, `identity` and `secrets` (`site: 3 failed`), and an empty token fails `token` and `repository`. Fix the first line and run it again.
+
+```bash
+sh operator/bin/site check
+```
+
+Run on a machine without a site file it prints, and exits 1:
+
+```text
+FAIL site file: site: no site file at <path>; run: site init
+site: 1 failed
+```
+
 ## On Cloud Run
 
 A Cloud Run job runs the factory without a VM. The job starts bare: the root file system is memory, nothing is installed and nothing persists, so every start installs the tools, clones the code and builds the stage image again. `vm/job-start.sh` is the job's command. It is a POSIX `sh` script that turns a bare `debian:trixie-slim` into a running instance and ends in `exec factory-run`. Creating the job, its secrets and its schedule is yours; this chapter says what to give it. The pieces it uses are described under *The job profile*, *The metadata server in a job*, *Without ZFS* and *The idle shutdown*.
@@ -1212,7 +1273,7 @@ The job's command is one line of shell that decodes a script (base64, gzip). The
 
 A first start goes in this order:
 
-1. `site check`, to prove the site file (it does not exist yet; until it does, `site show` lists the keys that are set).
+1. `site check`, to prove the site file and the machine (*Setting up an operator's machine*).
 2. `sh operator/job/job.sh create`.
 3. `sh operator/job/job.sh execute`.
 

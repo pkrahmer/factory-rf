@@ -25,7 +25,7 @@ The factory runs as a service on a Linux VM with ZFS and rootless Podman, and ev
 
 ## Where to look next
 
-- `docs/operator-guide.md`: install, configure, the stops and what to do about each
+- `docs/operator-guide.md`: install, configure, the stops and what to do about each; the chapter *Setting up an operator's machine* takes a new machine to a running job, and `operator/README.md` is the map of the operator's scripts
 - `docs/project-guide/README.md`: the guide for agents working on this code, an index of its files by domain
 - `docs/decisions.md`: lasting decisions and what was rejected
 - `docs/operator-playbook.md`: how the human runs the factory day to day

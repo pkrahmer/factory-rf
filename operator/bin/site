@@ -4,6 +4,8 @@
 #   site init             write the example to the path, mode 0600
 #   site show             print SITE_X=set or SITE_X=unset for every key of the example
 #   site get SITE_X       print one value
+#   site check            the machine's setup, read-only: `ok NAME` or `FAIL NAME: DETAIL` per check,
+#                         then `site: ready` (exit 0) or `site: N failed` (exit 1)
 set -u
 operator=$(dirname "$0")/..
 example=$operator/site.env.example
@@ -53,6 +55,256 @@ get() {
   printf '%s\n' "$value"
 }
 
+hosting_keys="SITE_REPOSITORY SITE_CHECKOUT"
+newline='
+'
+
+check() {
+  failed=0
+  # The load runs once in a subshell for its message, then here for its values.
+  if ! message=$(site_load 2>&1 >/dev/null); then
+    fail "site file" "$(first_line "$message")"
+    finish
+  fi
+  site_load 2>/dev/null
+  pass "site file"
+  . "$operator/lib/hosting.sh"
+  check_keys
+  check_tools
+  check_token
+  check_repository
+  check_checkout
+  check_identity
+  check_secrets
+  check_code
+  check_no_proxy
+  check_job
+  finish
+}
+
+pass() {
+  echo "ok $1"
+}
+
+fail() {
+  echo "FAIL $1: $2"
+  failed=$((failed + 1))
+}
+
+finish() {
+  if [ "$failed" -eq 0 ]; then
+    echo "site: ready"
+    exit 0
+  fi
+  echo "site: $failed failed"
+  exit 1
+}
+
+first_line() {
+  printf '%s\n' "${1%%"$newline"*}"
+}
+
+# Prints the unset or empty keys of the list, separated by ", ".
+missing_keys() {
+  missing=
+  for key in "$@"; do
+    if [ -z "$(site_value "$key")" ]; then
+      missing="${missing:+$missing, }$key"
+    fi
+  done
+  printf '%s' "$missing"
+}
+
+# Fails the check NAME when one of the KEYs is missing, so that it does not run.
+needs() {
+  name=$1
+  shift
+  missing=$(missing_keys "$@")
+  if [ -n "$missing" ]; then
+    fail "$name" "needs $missing"
+    return 1
+  fi
+}
+
+check_keys() {
+  # The lists hold names only, so they are split into words on purpose.
+  missing=$(missing_keys $site_job_keys $hosting_keys)
+  if [ -n "$missing" ]; then
+    fail keys "missing $missing"
+  else
+    pass keys
+  fi
+}
+
+check_tools() {
+  absent=
+  for tool in gcloud curl git python3; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+      absent="${absent:+$absent, }$tool"
+    fi
+  done
+  if [ -n "$absent" ]; then
+    fail tools "not on the PATH: $absent"
+  else
+    pass tools
+  fi
+}
+
+check_token() {
+  if message=$(hosting_token 2>&1 >/dev/null); then
+    pass token
+  else
+    fail token "$(first_line "$message")"
+  fi
+}
+
+# On a failure the client prints nothing on standard output, so the captured text is its message.
+check_repository() {
+  needs repository SITE_REPOSITORY || return 0
+  if ! answer=$(hosting_repo_api GET "" 2>&1); then
+    fail repository "$(first_line "$answer")"
+  elif ! printf '%s' "$answer" | python3 -c '
+import json, sys
+
+sys.exit(0 if json.load(sys.stdin).get("permissions", {}).get("push") is True else 1)
+' 2>/dev/null; then
+    fail repository "the token has no push permission"
+  else
+    pass repository
+  fi
+}
+
+# The origin's url is not repeated, since it may carry a credential.
+check_checkout() {
+  needs checkout SITE_CHECKOUT SITE_REPOSITORY || return 0
+  if [ "$(git -C "$SITE_CHECKOUT" rev-parse --is-inside-work-tree 2>/dev/null)" != true ]; then
+    fail checkout "SITE_CHECKOUT is not a git work tree"
+  elif ! origin=$(git -C "$SITE_CHECKOUT" remote get-url origin 2>/dev/null); then
+    fail checkout "the checkout has no origin"
+  elif ! names_repository "$origin"; then
+    fail checkout "the checkout's origin does not name $SITE_REPOSITORY"
+  else
+    pass checkout
+  fi
+}
+
+# Whether URL ends in owner/repo, after a '/' or a ':', with or without '.git'.
+names_repository() {
+  path=${1%/}
+  path=${path%.git}
+  case $path in
+    */"$SITE_REPOSITORY" | *:"$SITE_REPOSITORY") return 0 ;;
+  esac
+  return 1
+}
+
+check_identity() {
+  needs identity SITE_PROJECT SITE_REGION || return 0
+  if message=$(site_gcloud_with gcloud run jobs list --limit=1 2>&1 >/dev/null); then
+    pass identity
+  else
+    fail identity "$(first_line "${message:-gcloud run jobs list failed}")"
+  fi
+}
+
+# Only the secrets' metadata is asked for; their values are never read.
+check_secrets() {
+  needs secrets SITE_PROJECT SITE_HOSTING_SECRET SITE_MODEL_SECRET || return 0
+  unseen=
+  for key in SITE_HOSTING_SECRET SITE_MODEL_SECRET; do
+    secret=$(site_value "$key")
+    if ! site_gcloud_with gcloud secrets describe "$secret" >/dev/null 2>&1; then
+      unseen="${unseen:+$unseen, }$key ($secret)"
+    fi
+  done
+  if [ -n "$unseen" ]; then
+    fail secrets "the identity cannot see $unseen"
+  else
+    pass secrets
+  fi
+}
+
+# The job fetches its code through the proxy and without a token, so the check does the same; the
+# empty helper keeps a stored credential from answering.
+check_code() {
+  needs code SITE_CODE_URL SITE_CODE_REF || return 0
+  if is_commit_id "$SITE_CODE_REF"; then
+    set -- "$SITE_CODE_URL"
+  else
+    set -- --exit-code "$SITE_CODE_URL" "refs/heads/$SITE_CODE_REF" "refs/tags/$SITE_CODE_REF"
+  fi
+  message=$(https_proxy=${SITE_PROXY:-} GIT_TERMINAL_PROMPT=0 \
+    GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=credential.helper GIT_CONFIG_VALUE_0= \
+    git ls-remote "$@" 2>&1 >/dev/null)
+  status=$?
+  case $status in
+    0) pass code ;;
+    2) fail code "$SITE_CODE_REF is no branch or tag of SITE_CODE_URL" ;;
+    *) fail code "$(first_line "${message:-git ls-remote exited $status}")" ;;
+  esac
+}
+
+is_commit_id() {
+  case $1 in
+    *[!0123456789abcdefABCDEF]*) return 1 ;;
+  esac
+  [ "${#1}" -eq 40 ]
+}
+
+check_no_proxy() {
+  needs no_proxy SITE_NO_PROXY SITE_CODE_URL SITE_REPOSITORY_URL SITE_MODEL_BASE_URL || return 0
+  faults=
+  for url in "$SITE_CODE_URL" "$SITE_REPOSITORY_URL" "$(hosting_api_url)"; do
+    host=$(url_host "$url")
+    if covers "$host"; then
+      faults="${faults:+$faults; }$host is a code host and must not be in SITE_NO_PROXY, since the job cannot resolve it"
+    fi
+  done
+  host=$(url_host "$SITE_MODEL_BASE_URL")
+  if ! covers "$host"; then
+    faults="${faults:+$faults; }$host is the model host and must be in SITE_NO_PROXY, since opencode waits for the proxy otherwise"
+  fi
+  if [ -n "$faults" ]; then
+    fail no_proxy "$faults"
+  else
+    pass no_proxy
+  fi
+}
+
+url_host() {
+  host=${1#*://}
+  host=${host%%/*}
+  host=${host##*@}
+  printf '%s' "${host%:*}" | tr '[:upper:]' '[:lower:]'
+}
+
+# A domain covers a host that equals it or ends in '.' and it; a leading '.' is ignored.
+covers() {
+  rest=$SITE_NO_PROXY,
+  while [ -n "$rest" ]; do
+    domain=${rest%%,*}
+    rest=${rest#*,}
+    domain=$(_site_trim_trailing "$(_site_trim_leading "$domain")")
+    domain=$(printf '%s' "${domain#.}" | tr '[:upper:]' '[:lower:]')
+    [ -n "$domain" ] || continue
+    case $1 in
+      "$domain" | *."$domain") return 0 ;;
+    esac
+  done
+  return 1
+}
+
+# A missing job is not told from a failed call, as in `job.sh create`; the identity check
+# already fails for a broken login.
+check_job() {
+  needs job SITE_PROJECT SITE_REGION SITE_JOB || return 0
+  if site_gcloud_with gcloud run jobs describe "$SITE_JOB" >/dev/null 2>&1; then
+    pass "job: $SITE_JOB exists"
+  else
+    pass "job: $SITE_JOB does not exist yet"
+  fi
+}
+
 case ${1:-} in
   path) [ $# -eq 1 ] || usage; site_path ;;
   init) [ $# -eq 1 ] || usage; init ;;
@@ -64,6 +316,13 @@ case ${1:-} in
       *) usage ;;
     esac
     get "$2"
+    ;;
+  check)
+    if [ $# -ne 1 ]; then
+      echo "usage: site check" >&2
+      exit 2
+    fi
+    check
     ;;
   *) usage ;;
 esac
