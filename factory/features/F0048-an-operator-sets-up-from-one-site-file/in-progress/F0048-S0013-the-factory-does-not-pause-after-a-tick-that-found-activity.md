@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 507
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-03T00:17:32.166646Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-03T00:17:32.166646Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-03T00:17:51.589266Z'
+  stage: intake
+  run: cec122e6f2024695b657f783e5bbfa8a
 ---
 
 # The factory does not pause after a tick that found activity
@@ -59,3 +61,9 @@ Expect: `0.0 30.0`.
 
 1. 2026-11-03 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: `src/factory/application/scheduler.py` names `pause_after` and `Scheduler.run`. I compared them with the code: `pause_after(0)` is 15 s today and 1, 2, 3 and up give 30, 60 and 120 s, so "unchanged from 1" is true. The negative `ValueError` exists. `run` sleeps after every iteration today, so the change is concrete. Both stated behaviours (0 gives zero, no sleep after activity) have a criterion.
+   Criteria: all testable by one test function each. 1 is the existing parametrized test with its rows changed, including the -1 refusal. 2 pins the activity-then-idle sleep count and the 30 s value. 3 covers the failing side: an iteration that raises still sleeps with growth, and logs the line. 4 covers `should_stop` before each iteration. 5 and 6 are the closing criteria in order. Each rule has both its passing and failing side.
+   Smoke test: the command is runnable and has no pytest `-q` issue. `Expect: 0.0 30.0` can be checked against the printed output.
+   Architecture: the change stays in `factory.application.scheduler`, which has no new import or layer crossing.
+   Scope: it matches feature.md, whose story list includes S0013 and decision 17. It touches no Out of scope item. The docs criterion names the operator guide's *The loop and its pauses* and `docs/decisions.md`. The guide's current text, "15 seconds when the tick found activity" and the first-iteration rule, is what the story rewrites.
