@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 522
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T12:44:58.330927Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-03T12:44:52.694432Z'
   stage: intake
   run: 0bd46d9614b343c0ae41b534ea0cc8cb
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-03T12:44:58.330927Z'
+  stage: tests
 ---
 
 # The decision log gives the feature's own reasons for the operator's scripts
@@ -105,3 +114,4 @@ Expect: `documents ok`
    - Architecture: the change touches only the decision log, which the documenter owns. No layer is involved.
    - Scope: within F0048's scope line for S0021 (decision 27 of `feature.md`). It touches none of the feature's Out of scope items. Earlier entries, code and the other documents stay as they are.
    The story names no test. Tests is the only forward decision available, so I am ending with it.
+4. factory: started tests as vm.
