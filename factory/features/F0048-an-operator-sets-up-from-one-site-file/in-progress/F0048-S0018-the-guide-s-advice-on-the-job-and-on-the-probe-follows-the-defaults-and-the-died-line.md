@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-03T10:11:27.431229Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-03T10:11:21.122942Z'
   stage: tests
   run: b6e60bf8d07a4bf4a6442fa40a57c740
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-03T10:11:27.431229Z'
+  stage: doing
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -152,3 +161,4 @@ Expect: `documents ok`
    One run, `uv run pytest -q tests/test_vm_job_start_image.py`: 4 tests fail for the right reason and 3 pass. The failing ones are the `the-script` row of criterion 1, criterion 2, and both rows of criterion 3; each fails because the step has no `--layers=false` build and no prune line yet. The 3 that pass are the variants of criterion 1 that must fail its rule. `make lint` is green.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
