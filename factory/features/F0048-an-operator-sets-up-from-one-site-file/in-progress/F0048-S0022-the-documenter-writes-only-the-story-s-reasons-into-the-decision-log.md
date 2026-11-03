@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 524
 comments_read: [6604990127]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-03T13:31:02.107518Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-11-03T13:30:55.137670Z'
   stage: docs
   run: 016472a5244342c286535ba32af49328
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-03T13:31:02.107518Z'
+  stage: smoke-test
 ---
 
 # The documenter writes only the story's reasons into the decision log
@@ -268,3 +277,4 @@ Expect: a line that ends `passed` with no `failed` in it, for example `8 passed 
     `check`: check: green (not run again: passed on tree d4bcb5556ee6 at 2026-11-03T13:28:13Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+19. factory: started smoke-test as vm.
