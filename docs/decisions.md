@@ -1380,32 +1380,32 @@ Date: 2026-11-03 (F0048-S0014).
 Date: 2026-11-03 (F0048-S0001, S0014; decisions 1, 2, 3 and 11 of the feature).
 
 - Decision: an operator's own values (project, region, token command, repository, proxy, model) live in one site file, `~/.config/kumpel/site.env` (`$FACTORY_SITE` or `$XDG_CONFIG_HOME` move it), read by one loader, `operator/lib/site.sh`. The loader stores each `KEY=value` line literally and never sources or evaluates the file. Only `SITE_` keys are accepted, a variable that is already set wins over the file, and a path inside a git work tree is refused (status 3). A missing file is status 1 and a faulty line status 2, and the whole file is checked before any value is exported.
-- Why: the values are a company's names and endpoints, which must not enter a repository's history, and a file the scripts executed would run whatever it holds with the operator's login. As data it can be checked line by line, with the line number in the message. Letting the environment win lets a test or an operator change one value for one run.
-- Rejected: a file the shell sources (code from a file an agent's checkout could sit beside); keeping the values in the repository, as an ignored file (one `git add -f` from a leak); a second source of defaults inside the scripts, which would guess where the file is silent.
+- Why: the values are a company's names and endpoints, which must not enter a repository's history, and a file the scripts executed would run whatever it holds with the operator's login. As data it can be checked line by line, with the line number in the message: a name that is not a `SITE_` key is refused there, so a typo or a pasted secret does not pass silently. Letting the environment win lets a test or an operator change one value for one run. `~/.config/kumpel/` holds the site file, its sanitiser rules and the skill's `settings.json`, and `job.sh`'s state file lies in `~/.local/state/kumpel/`, because Kumpel is the product and one folder holds what one machine knows.
+- Rejected: a file the shell sources (code from a file an agent's checkout could sit beside); keeping the values in the repository, as an ignored file (one `git add -f` from a leak) (the human, 2026-11-03); defaults for the site's names (project, region, job, repository): the job's sizes are the only defaults, and the example's comments name them (decision 21); collecting the pairs in one pass and exporting them at the end, because POSIX `sh` would need a list joined by a delimiter, and that breaks on values that contain the delimiter, so the loader reads the file twice, once to check and once to export (S0001).
 
 ## The hosting token comes from a command the site names and is never in an argument list
 
 Date: 2026-11-03 (F0048-S0003; decisions 4, 5 and 14 of the feature).
 
 - Decision: `hosting_token` (`operator/lib/hosting.sh`) runs `SITE_TOKEN_CMD`; without it, and when `gh` is installed, `gh auth token`. The client passes the token to curl in curl's configuration on standard input and to git through `GIT_CONFIG_COUNT` and `GIT_CONFIG_KEY_n`/`GIT_CONFIG_VALUE_n`, with an empty `credential.helper`. A failing source gives one fixed message and its output is never repeated.
-- Why: a company often has its own way to get a token (a secret manager, a broker) and `gh` is not always there. An argument list is shown by `ps` to every user of the machine, and a source's error text can hold the secret.
-- Rejected: a token stored in the site file (a second copy of a secret); `curl -H "Authorization: ..."` and `git -c http.extraHeader=...` (the token in the arguments); the `gh` tool for the whole client (not installed everywhere, and `CLAUDE.md` rejects it for the factory itself).
+- Why: a company often has its own way to get a token (a secret manager, a broker) and `gh` is not always there; the skill's scripts called `gh`, whose login did not see the project's repository at work. With `SITE_TOKEN_CMD` unset, `gh auth token` keeps the home setup as it is. The tests of the scripts use the real `git`, and what `hosting_git` gives git is read back through `git config` and git's own trace, not through a stand-in. An argument list is shown by `ps` to every user of the machine, and a source's error text can hold the secret.
+- Rejected: a token stored in the site file (a second copy of a secret) (the human, 2026-11-03); `curl -H "Authorization: ..."` and `git -c http.extraHeader=...` (the token in the arguments); the `gh` tool for the whole client (not installed everywhere, and `CLAUDE.md` rejects it for the factory itself).
 
 ## `job.sh` works from the site's values, never guesses, never overlaps, and runs the start script of the code it clones
 
 Date: 2026-11-03 (F0048-S0005; decisions 6, 7 and 12 of the feature).
 
-- Decision: `operator/job/job.sh` builds the Cloud Run job from the site's values alone; a missing required key stops it, naming the key, and only the cpu, memory, timeout and idle minutes have defaults. `execute` refuses while an execution of the job is running. The job's start script is `vm/job-start.sh` read from `SITE_CODE_REF` with `git show` and carried in the job's arguments, so the wrapper and the code it starts are one version.
-- Why: a guessed project or region creates a job in the wrong place. Two executions of one instance share its repository and its pull requests. A start script from the working tree could belong to another version than the code the job clones.
-- Rejected: defaults for the site's names; leaving the overlap to the platform (it runs both); reading the script from the working tree or from the code host at run time (a version that nobody chose).
+- Decision: `operator/job/job.sh` builds the Cloud Run job from the site's values alone; a missing required key stops it, naming the key, and only the cpu, memory, timeout and idle minutes have defaults. `execute` refuses while an execution of the job is running. `create` refuses a job that exists. The job's start script is `vm/job-start.sh` read from `SITE_CODE_REF` with `git show` and carried in the job's arguments, so the wrapper and the code it starts are one version. The job's wrapper only writes the provider file and hands over to `vm/job-start.sh`; the `PATH` and the private token folder are fixed in that script, so the job's arguments carry no logic.
+- Why: a guessed project or region creates a job in the wrong place. Two executions of one instance share its repository and its pull requests, and a platform that cannot cancel an execution makes an overlap expensive. A start script from the working tree could belong to another version than the code the job clones.
+- Rejected: defaults for the site's names; leaving the overlap to the platform (it runs both); reading the start script from any source other than `SITE_CODE_REF`: the working tree, or the code host at run time (the script would not be of the commit the job runs; decision 12); the wrapper calling `python3` inside the job, because the job's image, `debian:trixie-slim`, has no `python3`, and `provider_json` runs on the operator's machine (S0005).
 
 ## A reset to a tag needs three things
 
 Date: 2026-11-03 (F0048-S0008; decision 8 of the feature).
 
 - Decision: `reset-to-tag.sh <tag> [--yes]` acts only when the tag exists, when `--yes` is given, and when `SITE_REPOSITORY` is the same repository as `SITE_RESET_REPOSITORY`. Without `--yes` it prints the plan (pull requests to close, branches to delete, the commit `main` moves to) and exits 1.
-- Why: the move of `main` by force cannot be undone, and the skill runs the script for a human who may point it at the wrong repository. The site names the one repository that may be reset, so a changed `SITE_REPOSITORY` alone is no reset.
-- Rejected: a prompt on the terminal (the skill has none); a reset with only the flag.
+- Why: the move of `main` by force cannot be undone, and the skill runs the script for a human who may point it at the wrong repository. The site names the one repository that may be reset, so a changed `SITE_REPOSITORY` alone is no reset. The factory's own repository must never be its target.
+- Rejected: a prompt on the terminal (the skill has none) (the human, 2026-11-03); a reset with only the flag.
 
 ## The sanitiser's rules are the site's
 

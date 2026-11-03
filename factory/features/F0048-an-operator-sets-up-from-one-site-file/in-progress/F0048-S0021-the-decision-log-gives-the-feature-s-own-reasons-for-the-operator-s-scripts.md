@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 522
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T12:47:38.881061Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-03T12:47:38.881061Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T12:48:41.745935Z'
+  stage: docs
+  run: 43591e4b9a524ec28713028d4991ac73
 ---
 
 # The decision log gives the feature's own reasons for the operator's scripts
@@ -177,3 +179,36 @@ Expect: `documents ok`
 
    Earlier tests: none. The diff changes, renames or deletes no test file.
 10. factory: started docs as vm.
+11. documenter: Documents only, so I did not run `make check`. The factory's checks follow this stage.
+
+    Changed file: `docs/decisions.md`, in the F0048 entries S0019 wrote. Every heading and every "Decision" opening is kept. Other lines are unchanged except where listed here.
+    - *The site file is data and lies outside every repository*:
+      - "Why" now says a name that is not a `SITE_` key is refused, so a typo or a pasted secret does not pass silently. It also names the one folder that holds what one machine knows: `~/.config/kumpel/`, with `~/.local/state/kumpel/` for `job.sh`'s state file.
+      - "Rejected" gains the one-pass collection and its delimiter, with the two-pass loader that follows from it.
+      - "Rejected" gains `(the human, 2026-11-03)` on the ignored-file option.
+      - The "second source of defaults" option is replaced by the given wording about defaults for the site's names (decision 21).
+    - *The hosting token ...*:
+      - "Why" names `gh`'s login that did not see the project's repository at work, and the home setup that `gh auth token` keeps when `SITE_TOKEN_CMD` is unset.
+      - "Why" also names the real `git` in the tests, read back through `git config` and git's trace.
+      - The stored-token option gains `(the human, 2026-11-03)`.
+    - *`job.sh` ...*:
+      - "Decision" names `create` refusing a job that exists, and the wrapper that only writes the provider file and hands over to `vm/job-start.sh`.
+      - "Why" names the platform that cannot cancel an execution.
+      - "Rejected" reads "any source other than `SITE_CODE_REF`" as given in the Description.
+      - "Rejected" gains `python3` in the job's image `debian:trixie-slim`.
+    - *A reset to a tag needs three things*: "Why" says the factory's own repository must never be the target. The terminal-prompt option gains `(the human, 2026-11-03)`.
+
+    Run:
+    - `uv run python -m factory.entry.check_documents` prints `documents ok`.
+    - All eight probe phrases count at least 1.
+    - `a second source of defaults` counts 0.
+    - `other than `SITE_CODE_REF`` counts 1.
+    - `(the human, 2026-11-03)` counts 3.
+
+    Read against the code: I checked only `operator/job/job.sh`, where `create` is refused when the job exists and `provider_json` carries the "no python3" comment. Both match the new text. I did not open `README.md`, `docs/operator-guide.md` or the project guide, as the criterion says none change. The story changes no code, so I read no diff beyond the work item.
+
+    Stale text noticed but not touched: none. One note: the smoke test's `did not see` probe counted 1 on `main` already (it now counts 2), so it proves little. The intake and reviewer entries already say so.
+
+    `check`: check: green (not run again: passed on tree 676ce2a5aa50 at 2026-11-03T11:54:59Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok
