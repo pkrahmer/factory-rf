@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-03T12:49:11.762192Z'
   stage: smoke-test
   run: eef0c9debd0d4808b301ad3b1f9cf2a0
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-03T12:53:08.966562Z'
+  stage: approval
 ---
 
 # The decision log gives the feature's own reasons for the operator's scripts
@@ -271,3 +276,4 @@ Expect: `documents ok`
     - Criterion 1 is the factory's gate. Entries 7 and 11 record `check: green`.
 
     Open: none. As intake noted, the `did not see` probe already counted 1 on `main`, so it proves little on its own. The diff shows the new sentence is present.
+14. factory: done (pull request merged); cost: 6 runs, 3.8 min, 30 turns, 103530 tokens in (441373 more from cache), 8978 out, $0.85
