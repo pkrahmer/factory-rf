@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-03T07:21:31.420400Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-11-03T07:21:31.420400Z'
   stage: review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T07:22:42.803316Z'
+  stage: review
+  run: cc32cdee18d547348e9ee08f57d4b693
 ---
 
 # Stopping the service stops its agents
@@ -129,14 +131,15 @@ This story makes a stop of the service stop the instance's containers. Every con
 
 1. The argument list of a container start, for an agent run and for a project command, holds the two words `--label`, `factory.instance=<instance>` next to each other, after `--rm`, with the instance given to `PodmanRuns`. Rows: `launch` with two instance names, and one row through `run`, to show that the project-command path carries the label too.
 2. `vm/factory.service` holds the `ExecStopPost` line of the Interface exactly once, after `ExecStart`, and every line it held before is unchanged.
-3. `make check` stays green. No test starts a real container: the tests run inside a check container. The human checks the stop on the machine after the merge (decision 20).
-4. docs: `docs/operator-guide.md`: where it describes stopping or rebuilding the service, one paragraph saying that a stop ends the instance's running agent and check containers, that a stage cut off this way is taken up again by the next start, and that a machine set up before this story installs the new `vm/factory.service` by hand (`install -m 0644` to `/etc/systemd/system/factory@.service`, then `systemctl daemon-reload`). `docs/decisions.md`: one entry stating that the instance's containers carry a label and the unit stops them after every end of the service, and why (rootless podman puts the containers outside the service's cgroup), with the rejected alternatives (`KillMode`, which cannot reach a scope of another systemd; a stop handler in `factory-run`, which does not run after a crash). `README.md` and the project guide: none.
+3. The wiring gives `PodmanRuns` the settings' instance: the container adapter that `factory.entry.wiring.build_boundaries` builds from settings whose `instance` is a given name starts containers whose argument list holds `--label`, `factory.instance=<that name>` next to each other.
+4. `make check` stays green. No test starts a real container: the tests run inside a check container. The human checks the stop on the machine after the merge (decision 20).
+5. docs: `docs/operator-guide.md`: where it describes stopping or rebuilding the service, one paragraph saying that a stop ends the instance's running agent and check containers, that a stage cut off this way is taken up again by the next start, and that a machine set up before this story installs the new `vm/factory.service` by hand (`install -m 0644` to `/etc/systemd/system/factory@.service`, then `systemctl daemon-reload`). `docs/decisions.md`: one entry stating that the instance's containers carry a label and the unit stops them after every end of the service, and why (rootless podman puts the containers outside the service's cgroup), with the rejected alternatives (`KillMode`, which cannot reach a scope of another systemd; a stop handler in `factory-run`, which does not run after a crash). `README.md` and the project guide: none.
 
 ## Smoke test
 
 ```bash
 grep -c '^ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i$' vm/factory.service
-grep -rln 'factory.instance' src/factory
+grep -rlF 'factory.instance' src/factory
 ```
 
 Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
@@ -300,3 +303,22 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 42 known, 0 gone
 17. factory: started review as vm.
+18. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` against the work item. The code meets the Interface. `PodmanRuns.__init__` takes a required keyword-only `instance`. `launch` puts `--label`, `factory.instance=<instance>` directly after `--rm` and explains why in a comment. The wiring passes `settings.instance`. The unit has the `ExecStopPost` line after `RestartSec=15`. The coder's `make check` was green (entry 16). Architecture: the label lives in the one podman wrapper (adapters), and the wiring stays in entry. Security: the label is one argv word, with no shell and no silencing marker. Docs criterion: it still says what the documenter must write.
+
+    Findings:
+    1. criterion 3 added: it needs its test. The Interface says `factory.entry.wiring` sets the instance from the settings' instance, but no test checks it. A wiring that passed a constant or the wrong field would keep every test green, and the unit's `label=factory.instance=%i` filter would then match nothing. The test can follow `tests/entry/test_wiring_container_profile.py`: build settings with a given `instance`, call `build_boundaries(...).containers.launch(...)`, and assert `--label`, `factory.instance=<that instance>` in the argv. No change under `src/` is needed. The old criteria 3 and 4 are now 4 and 5.
+    2. `tests/adapters/test_podman_runs_instance_label.py:13` `_launch_words` copies the helper `_launch_words` in `tests/adapters/test_podman_runs_job_profile.py:31` (`runs.launch(...).argv` with `working_directory="/work/checkout"`). Fix: the tester moves one helper to `tests/podman_support.py` under the standing leave, and both modules use it (the parametrized row can wrap it in a lambda).
+
+    Smoke test corrected on the human's word (entry 14): `grep -rln 'factory.instance' src/factory` -> `grep -rlF 'factory.instance' src/factory`. The Expect is unchanged.
+
+    Earlier tests:
+    - `tests/adapters/test_podman_runs.py`: the human's leave, entry 9.
+    - `tests/adapters/test_podman_runs_fence.py`: the human's leave, entry 9.
+    - `tests/adapters/test_podman_runs_job_profile.py`: the human's leave, entry 9.
+    - `tests/adapters/test_podman_runs_results.py`: the human's leave, entry 9.
+    - `tests/adapters/test_podman_timeout_status.py`: the human's leave, entry 9.
+    - `tests/conftest.py`: the human's leave, entry 9. The `INSTANCE as PODMAN_INSTANCE` import is the same shared constant, renamed only to avoid F811.
+    - `tests/container_extra_support.py`: the human's leave, entry 9.
+    - `tests/podman_support.py`: the human's leave, entry 9 (the shared constant `INSTANCE = "vm"`).
+    - `tests/test_vm_local_environment.py`: the human's leave, entry 9.
+    - `tests/test_vm_service.py`: the human's leave, entry 9.
