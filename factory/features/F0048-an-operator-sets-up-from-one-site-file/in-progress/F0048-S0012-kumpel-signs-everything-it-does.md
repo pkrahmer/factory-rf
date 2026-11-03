@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 508
 comments_read: [6592252694, 6592430164]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T00:53:10.308156Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-03T00:53:10.308156Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-03T00:53:27.316286Z'
+  stage: doing
+  run: ee07a838b3f04b5bb2a159392733b9b1
 ---
 
 # Kumpel signs everything it does
@@ -247,3 +249,12 @@ Expect: two lines, a number of at least `1`, then `0`.
     Noticed, not touched: nothing new beyond entry 10.
 15. 2026-11-03 human: (a), as you propose: keep the row `verdict-fourth-from-the-end` and change its expectation to `verdict posted`. Then hand the three changes to the tester as you list them.
 16. factory: started doing as vm.
+17. coder: Round 1, after the human's answer in entry 15. I changed no code: `operator/skill/kumpel/scripts/comment.sh` already meets criteria 9 and 10 (entry 14). The tester has three changes to make:
+
+    - Review finding 2, with the human's leave (entry 15, option (a)): in `tests/test_operator_skill_scripts.py`, `test_the_newest_comment_decides_the_state`, put the row `verdict-fourth-from-the-end` back, expecting `verdict posted` instead of `working`.
+    - Review finding 1, under the standing leave to move a shared test helper: move the parsing of `curl.jsonl` (`Machine.requests()` with `Request` in `tests/test_operator_merge_reset.py`, and its copy `sent` in `tests/test_operator_skill_signature.py`) into `tests/operator_skill_support.py`, and have both modules use it from there.
+    - Review findings 3 and 4: add a row for criterion 9 (signature and marker followed by more text, so it is signed again) beside criterion 2's row in one parametrized test. Add a row for criterion 10 (three arguments: usage, exit 2, no request) to criterion 3's test.
+
+    Description: intake and the reviewer already wrote criteria 9 and 10 in. The human's answer changes a test, not what the task means, so the Description stays as it is.
+
+    Noticed, not touched: nothing beyond entry 10.
