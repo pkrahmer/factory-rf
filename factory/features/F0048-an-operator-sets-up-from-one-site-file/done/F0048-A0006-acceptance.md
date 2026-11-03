@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -30,8 +30,13 @@ journal:
   at: '2026-11-03T13:46:46.566115Z'
   stage: acceptance
   run: 1b6b6a35703f4ecda795946bfda762d7
+- number: 5
+  speaker: factory
+  kind: done
+  at: '2026-11-03T13:52:47.976520Z'
+  stage: done
 stories: [F0048-S0001, F0048-S0002, F0048-S0003, F0048-S0004, F0048-S0005, F0048-S0006, F0048-S0007, F0048-S0008, F0048-S0009, F0048-S0010, F0048-S0011, F0048-S0012, F0048-S0013, F0048-S0014, F0048-S0015, F0048-S0016, F0048-S0017, F0048-S0018, F0048-S0019, F0048-S0020, F0048-S0021, F0048-S0022]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of An operator sets up from one site file
@@ -317,3 +322,4 @@ None. The items left are the human's bookkeeping in `feature.md` and an open che
    6 Decisions: the 27 decisions stand as built. A0005's item 3 was settled: no "Rejected" line. New: add S0022 to `feature.md`, and the leave for `LESSONS["documenter"]` was given during the build (entry 8). The one earlier test changed has that leave named.
    7 Slow checks: nothing beyond `make check`, which is green: 83.8 s, 99.56 % coverage, 8639 tests summing to 708.6 s. The slowest tests are ROOMY_LIMIT tests outside the feature. Free disk fell from 45.9 to 43.5 GB while the instance's use stayed at 1.3 GB. The feature's changes do not explain that; the human can check it with `podman system df` on vm.
    8 Cost: 274 runs, 360.1 min, $94.20. S0022 cost 9 runs, 6.8 min and $1.48, two of those runs because of the leave question. 39 questions were answered and the stories waited 5.6 h; S0001 still needed the human most. This acceptance's first run crashed and is not counted.
+5. factory: done (pull request merged); cost: 1 runs, 4.3 min, 15 turns, 62967 tokens in (707163 more from cache), 16753 out, $0.98
