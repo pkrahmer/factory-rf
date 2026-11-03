@@ -1,3 +1,87 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 522
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T12:44:26.901103Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T12:44:26.907736Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-03T12:44:52.694432Z'
+  stage: intake
+  run: 0bd46d9614b343c0ae41b534ea0cc8cb
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-03T12:44:58.330927Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-03T12:45:12.348407Z'
+  stage: tests
+  run: c4d6c7a4ac564f5bb928914b5963c341
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-03T12:45:20.200450Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-03T12:47:08.343309Z'
+  stage: doing
+  run: e6076e247e3f4917b436b4e87d333ffe
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-03T12:47:14.336852Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-03T12:47:32.549148Z'
+  stage: review
+  run: 7ae41c228b6143ddb588f3874303ddb5
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-03T12:47:38.881061Z'
+  stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T12:48:41.745935Z'
+  stage: docs
+  run: 43591e4b9a524ec28713028d4991ac73
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-03T12:48:47.553597Z'
+  stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T12:49:11.762192Z'
+  stage: smoke-test
+  run: eef0c9debd0d4808b301ad3b1f9cf2a0
+---
+
 # The decision log gives the feature's own reasons for the operator's scripts
 
 <!-- proposed by feature acceptance of 2026-11-03; refined with the human's answers of 2026-11-03 (decision 27) -->
@@ -66,3 +150,124 @@ uv run python -m factory.entry.check_documents
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: documents only. It names the one file (`docs/decisions.md`) and the seven F0048 entries from S0019, and says that no script, module or test changes. No signatures are needed. I confirmed the entries exist (the log's lines ~1384 to 1408).
+   - Criteria: the docs criterion lists each entry, the reason or rejection it must gain, and the three kinds of "Rejected" handling, each with its wording. Each is checkable by grep. The Interface states no rule with a failing side. `make check` is the first criterion and `docs:` is last.
+   - Smoke test: the commands are runnable (`grep -c`, `git diff --stat`, and `check_documents`, which exists in `src/factory/entry`). Each `Expect:` is a count or a literal output. The current log gives 0 for `pasted secret`, `what one machine knows`, `home setup`, `cannot cancel`, `trixie-slim`, `delimiter` and `factory's own repository`, so those probes fail before the work and can pass after it. `did not see` is already 1, so that probe proves little, but it is not wrong. `a second source of defaults` is 1 now and must reach 0.
+   - Architecture: the change touches only the decision log, which the documenter owns. No layer is involved.
+   - Scope: within F0048's scope line for S0021 (decision 27 of `feature.md`). It touches none of the feature's Out of scope items. Earlier entries, code and the other documents stay as they are.
+   The story names no test. Tests is the only forward decision available, so I am ending with it.
+4. factory: started tests as vm.
+5. tester: No tests written: the story changes only documents.
+   - criterion 1 (`make check` stays green): no test of its own. The coder's `make check` checks it.
+   - criterion 2 (docs: the seven F0048 entries of `docs/decisions.md`): no test. The Interface says "No new test: the change is checked by the document check and the smoke test". The documenter's `make documents` and the smoke test's greps check it.
+   Files created: none. Modules the test run could not import: none, because no test was added, so I did not run the tests. `make lint` is green.
+
+   `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
+7. coder: No code built. The story changes only documents. Its Interface says that no script, no module under `src/factory/` and no test changes, and the tester wrote no tests. So the doing stage had nothing to make pass.
+   - What I did: ran `make check` on the branch as it is. It ends `test: green (83.0 s)` and `check: green` (coverage 99.56 %), so criterion 1 holds.
+   - Main choice: I left `docs/decisions.md` alone, though the work is to rewrite its seven F0048 entries. The rejected alternative was to write those entries myself in this stage. I rejected it because `CLAUDE.md` gives the decision log to the documenter stage, which keeps the docs from each story's docs criterion. The coder does not write the docs. Criterion 2 (every reason, rejection and rewording the Description lists) is therefore still open for the documenter.
+   - Refactor: there is no diff to refactor.
+   - Description: no journal entry changed the meaning of the task, so I left it as it is.
+   - Noticed, not touched: intake noted that the smoke test's `did not see` probe already counts 1 on `main`, so it proves little. I left it as it is.
+
+   `check`: check: green (not run again: passed on tree 676ce2a5aa50 at 2026-11-03T11:54:59Z)
+   `duplicates`: duplicates: 0 new, 42 known, 0 gone
+8. factory: started review as vm.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. That fits the Interface: documents only, with no script, module under `src/factory/` or test changing, and the decision log's seven F0048 entries left to the documenter.
+   - 1, acceptance criteria: criterion 1 (`make check` stays green) holds. The coder's entry 7 records `check: green`, with coverage at 99.56 %. Criterion 2 is the docs criterion, and the documenter writes it next. The Interface says no new test is needed, because the document check and the smoke test check the change. The Interface states no rule with a failing side and no limit, so no test is missing and the story has no gap.
+   - 2, architecture: nothing under `src/` changed.
+   - 3, security: nothing changed outside the work item. No markers, no baseline entries.
+   - 4, quality: no code to judge. `duplicates: 0 new`.
+   - 5, work item hygiene: the coder's entry 7 explains why it built nothing (the decision log belongs to the documenter) and names what it rejected (writing the entries itself). The tester's entry 5 explains why it wrote no tests. The Description still matches what the branch holds, since the documenter stage does the work. The docs criterion names, entry by entry, each reason, rejection and rewording the reader must find, so the documenter can work from it.
+   - Still open for the documenter: all of criterion 2. Intake's point also stands: the smoke test's `did not see` probe already counts 1 on `main`, so it proves little.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file.
+10. factory: started docs as vm.
+11. documenter: Documents only, so I did not run `make check`. The factory's checks follow this stage.
+
+    Changed file: `docs/decisions.md`, in the F0048 entries S0019 wrote. Every heading and every "Decision" opening is kept. Other lines are unchanged except where listed here.
+    - *The site file is data and lies outside every repository*:
+      - "Why" now says a name that is not a `SITE_` key is refused, so a typo or a pasted secret does not pass silently. It also names the one folder that holds what one machine knows: `~/.config/kumpel/`, with `~/.local/state/kumpel/` for `job.sh`'s state file.
+      - "Rejected" gains the one-pass collection and its delimiter, with the two-pass loader that follows from it.
+      - "Rejected" gains `(the human, 2026-11-03)` on the ignored-file option.
+      - The "second source of defaults" option is replaced by the given wording about defaults for the site's names (decision 21).
+    - *The hosting token ...*:
+      - "Why" names `gh`'s login that did not see the project's repository at work, and the home setup that `gh auth token` keeps when `SITE_TOKEN_CMD` is unset.
+      - "Why" also names the real `git` in the tests, read back through `git config` and git's trace.
+      - The stored-token option gains `(the human, 2026-11-03)`.
+    - *`job.sh` ...*:
+      - "Decision" names `create` refusing a job that exists, and the wrapper that only writes the provider file and hands over to `vm/job-start.sh`.
+      - "Why" names the platform that cannot cancel an execution.
+      - "Rejected" reads "any source other than `SITE_CODE_REF`" as given in the Description.
+      - "Rejected" gains `python3` in the job's image `debian:trixie-slim`.
+    - *A reset to a tag needs three things*: "Why" says the factory's own repository must never be the target. The terminal-prompt option gains `(the human, 2026-11-03)`.
+
+    Run:
+    - `uv run python -m factory.entry.check_documents` prints `documents ok`.
+    - All eight probe phrases count at least 1.
+    - `a second source of defaults` counts 0.
+    - `other than `SITE_CODE_REF`` counts 1.
+    - `(the human, 2026-11-03)` counts 3.
+
+    Read against the code: I checked only `operator/job/job.sh`, where `create` is refused when the job exists and `provider_json` carries the "no python3" comment. Both match the new text. I did not open `README.md`, `docs/operator-guide.md` or the project guide, as the criterion says none change. The story changes no code, so I read no diff beyond the work item.
+
+    Stale text noticed but not touched: none. One note: the smoke test's `did not see` probe counted 1 on `main` already (it now counts 2), so it proves little. The intake and reviewer entries already say so.
+
+    `check`: check: green (not run again: passed on tree 676ce2a5aa50 at 2026-11-03T11:54:59Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok
+12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test run from the repository root, every command as written and in order. All four met their `Expect:` lines. No findings.
+
+    1. The phrase probes:
+    ```
+    pasted secret: 1
+    what one machine knows: 1
+    did not see: 2
+    home setup: 1
+    cannot cancel: 1
+    trixie-slim: 1
+    delimiter: 1
+    factory's own repository: 1
+    ```
+    Met: eight lines, each count at least 1.
+
+    2. The "Rejected" probes:
+    ```
+    0
+    1
+    3
+    ```
+    Met: `0`, then at least `1`, then at least `3`.
+
+    3. `git diff --stat main...HEAD -- docs README.md`:
+    ```
+     docs/decisions.md | 18 +++++++++---------
+     1 file changed, 9 insertions(+), 9 deletions(-)
+    ```
+    Met: one changed file, `docs/decisions.md`.
+
+    4. `uv run python -m factory.entry.check_documents`:
+    ```
+    Bytecode compiled 4164 files in 49ms
+    documents ok
+    ```
+    Met: `documents ok`. The first line is uv's bytecode notice, not output of the check.
+
+    Criteria checked again against `git diff main...HEAD -- docs/decisions.md`:
+    - Criterion 2 holds. The diff stays inside four of the seven F0048 entries (site file, hosting token, `job.sh`, reset to a tag), and every heading is unchanged.
+      - The site file "Why" names the typo or pasted secret, `~/.config/kumpel/` and `~/.local/state/kumpel/`. Its "Rejected" names the one-pass collection and its delimiter. The ignored-file option carries `(the human, 2026-11-03)`. The "second source of defaults" option is replaced by the given wording (decision 21).
+      - The token "Why" names `gh`'s login that did not see the repository at work, the home setup, and the real `git` read back through `git config` and git's trace. The stored-token option carries `(the human, 2026-11-03)`.
+      - The `job.sh` "Decision" names `create` refusing a job that exists and the wrapper that only writes the provider file and hands over. Its "Why" names the platform that cannot cancel an execution. Its "Rejected" has the `SITE_CODE_REF` wording as given and `python3` missing from `debian:trixie-slim`.
+      - The reset "Why" says the factory's own repository must never be its target. The terminal-prompt option carries `(the human, 2026-11-03)`.
+      - No other line of the log changed. Existing "Decision" lines only gained sentences, which the criterion asks for in the `job.sh` entry.
+    - Criterion 1 is the factory's gate. Entries 7 and 11 record `check: green`.
+
+    Open: none. As intake noted, the `did not see` probe already counted 1 on `main`, so it proves little on its own. The diff shows the new sentence is present.
