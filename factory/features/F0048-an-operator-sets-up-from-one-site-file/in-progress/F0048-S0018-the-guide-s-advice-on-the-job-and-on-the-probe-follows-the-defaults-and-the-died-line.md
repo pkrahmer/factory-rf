@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 517
 comments_read: [6600797229, 6600934999]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-03T10:22:24.938817Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-03T10:22:24.938817Z'
   stage: docs
+- number: 21
+  speaker: documenter
+  kind: result
+  at: '2026-11-03T10:23:03.915685Z'
+  stage: docs
+  run: 0e9ca5373274405b9b75416aa1c4dc44
 ---
 
 # The guide's advice on the job and on the probe follows the defaults and the died line
@@ -304,3 +306,20 @@ Expect: `documents ok`
     Earlier tests:
     - tests/test_vm_job_start.py: changed under the human's leave in journal entry 11. The only change is `"--layers=false",` added after `"build",` in the expected argv of `test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options`, which keeps its name and its rows `given` and `default`.
 20. factory: started docs as vm.
+21. documenter: Changed `docs/operator-guide.md` only, in four places:
+    - *On Cloud Run*, *What the job needs*, **Size**: "Eight vCPUs ... at least" is gone. It now says the job gets 4 vCPUs and 16 GiB unless `SITE_CPU` and `SITE_MEMORY` say otherwise, and that memory is the limit to raise first (root file system, image layers, checkout, base copy and workspace all count against it). It also says the 2.4 GB stage image sits in memory because podman's storage is a tmpfs, and that the job builds without the layer cache and removes the build's untagged leftovers. The plain base copy and the 1.6 s per GiB remain.
+    - **The task timeout**: says the default 86400 s is the platform maximum and equals a daily interval, so a nightly job sets `SITE_TIMEOUT` below it, such as `23h`. The sentence on overlapping executions stays.
+    - *The probe of the agent run*: the parenthesis now says every real run would end `died`, each with its line `run <run id> of <work item> (<stage>) died: <text>` in the factory log.
+    - *The rebuild after a merge*: added `podman image prune -f` after the build in the command block, plus a paragraph. It removes the previous stage image and the build's leftovers, only untagged images no container uses, so another instance's tagged image and running containers are safe. It also says the next build is slower without the cache.
+
+    The code matches the Interface: `vm/job-start.sh` lines 155-157 hold the build with `--layers=false` and then the prune ending `|| failed image`, with no `-a`.
+
+    I ran `uv run python -m factory.entry.check_documents`; it printed `documents ok`. I did not run `make check`, because only a document changed. I did not run the guide's rebuild commands, since they need the VM.
+
+    Cross-read and found current: the *The job profile* and *The site file* keys table (`SITE_TIMEOUT` default 86400 (24 hours)) and the paragraph *A run that ends `died`*.
+
+    Stale text I noticed and did not touch: none that relates to this story. One grammar slip at `docs/operator-guide.md` in the probe paragraph, "A state directory that cannot be written fail it", predates this story.
+
+    `check`: check: green (not run again: passed on tree 5940cd35f228 at 2026-11-03T10:20:06Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
