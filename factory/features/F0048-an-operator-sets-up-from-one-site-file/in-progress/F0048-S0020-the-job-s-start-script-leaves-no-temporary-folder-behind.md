@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-03T11:51:33.149591Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-03T11:51:33.142867Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-03T11:51:33.149591Z'
+  stage: intake
+---
+
 # The job's start script leaves no temporary folder behind
 
 <!-- written by the human on 2026-11-03 from what the acceptances F0048-A0002 and F0048-A0003 noticed (decision 26) -->
@@ -30,3 +57,6 @@ grep -c 'cannot be written fail it' docs/operator-guide.md; grep -c 'cannot be w
 Expect: `0`, then `1`.
 
 ## Journal
+
+1. 2026-11-03 human: created.
+2. factory: started intake as vm.
