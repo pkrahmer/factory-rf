@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 520
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-03T11:57:41.995932Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-03T11:57:41.995932Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-03T11:58:00.553715Z'
+  stage: smoke-test
+  run: 4b7b66f4287c4210ab3b947036ad626d
 ---
 
 # The job's start script leaves no temporary folder behind
@@ -177,3 +179,20 @@ Expect: `0`, then `1`.
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test: I ran the one command from the repository root, as written.
+
+    Command 1: `grep -c 'cannot be written fail it' docs/operator-guide.md; grep -c 'cannot be written fails it' docs/operator-guide.md`
+    ```
+    0
+    1
+    ```
+    Expect: `0`, then `1`. Met.
+
+    Criteria check: I read `## Acceptance criteria` again against the branch's diff (`git diff main...HEAD -- vm docs`).
+    - Criterion 1: in step `runc` of `vm/job-start.sh`, the script sets `trap 'rm -rf "$download"' EXIT` right after `mktemp -d`. It clears the trap with `trap - EXIT` after the step's own `rm -rf`. The `failed runc` and `stop 1 "runc: checksum does not match"` lines are unchanged, so the messages stay word for word. The smoke test does not contradict this criterion.
+    - Criterion 2: the smoke test does not exercise it. Journal 7 reports `check: green` and 0 `/tmp/tmp.*` folders before and after `make check`. Nothing I saw contradicts that.
+    - Criterion 3: the guide's sentence now reads "fails it" (the command above confirms it). The documenter also added one sentence to the `runc` step in the guide's list of the job's steps, and the diff bears it out.
+
+    Findings: none.
+
+    Open: none.
