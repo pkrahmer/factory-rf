@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 515
 comments_read: [6599499091]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T09:04:22.013230Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-03T09:04:22.013230Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-03T09:08:09.957980Z'
+  stage: doing
+  run: 09e24eb895af4a33b9d64e360ebd573f
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -367,3 +369,17 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
 
     `lint`: lint: green (0.1 s)
 17. factory: started doing as vm.
+18. coder: Round 1, after the tester's entry 16. The reviewer's five findings are all settled. The human approved findings 4 and 5 in entry 12. The tester made findings 1 to 3 in tests: the two criterion 14 rows `api-not-found` and `no-error-text` in `tests/test_operator_site_check.py`, `example_values` moved to `tests/operator_support.py`, and `url`/`route` computed once in `CURL_STAND_IN`. None of these needs a code change. The behaviour criterion 14 tests was already in `operator/bin/site`: the `*NOT_FOUND*` match in `is_not_found`, and the `gcloud run jobs describe failed` fallback when gcloud's standard error is empty. So this stage changed no file, and the working tree is clean.
+
+    What I built is unchanged from entry 7 (`operator/site.env.example`, `operator/job/job.sh`, `operator/bin/site`, `operator/lib/site.sh`, `operator/skill/kumpel/SKILL.md`, `operator/skill/kumpel/scripts/{status,settings,approval,comment,merge,reset-to-tag}.sh`), and so is its main choice. To tell a missing job from one it cannot read, the check matches gcloud's error text; I rejected a second gcloud call (`jobs list --filter`).
+
+    Refactor pass: this round has no diff of its own, so there is nothing to change.
+
+    `make check` is green with the new rows (test: green, 83.2 s; check: green).
+
+    The Description is unchanged. The journal approved two test changes and added test rows, and neither changes what the task means.
+
+    Noticed, not touched: as in entry 7, gcloud's real wording for a missing job was never checked against gcloud itself. If it matches neither `Cannot find job` nor `NOT_FOUND`, a missing job prints `cannot be read: …`. The line still passes and the check's result stays the same. The docs criterion 16 is still open for the documenter.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 42 known, 0 gone
