@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 522
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T12:45:20.200450Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-03T12:45:20.200450Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-03T12:47:08.343309Z'
+  stage: doing
+  run: e6076e247e3f4917b436b4e87d333ffe
 ---
 
 # The decision log gives the feature's own reasons for the operator's scripts
@@ -133,3 +135,12 @@ Expect: `documents ok`
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: No code built. The story changes only documents. Its Interface says that no script, no module under `src/factory/` and no test changes, and the tester wrote no tests. So the doing stage had nothing to make pass.
+   - What I did: ran `make check` on the branch as it is. It ends `test: green (83.0 s)` and `check: green` (coverage 99.56 %), so criterion 1 holds.
+   - Main choice: I left `docs/decisions.md` alone, though the work is to rewrite its seven F0048 entries. The rejected alternative was to write those entries myself in this stage. I rejected it because `CLAUDE.md` gives the decision log to the documenter stage, which keeps the docs from each story's docs criterion. The coder does not write the docs. Criterion 2 (every reason, rejection and rewording the Description lists) is therefore still open for the documenter.
+   - Refactor: there is no diff to refactor.
+   - Description: no journal entry changed the meaning of the task, so I left it as it is.
+   - Noticed, not touched: intake noted that the smoke test's `did not see` probe already counts 1 on `main`, so it proves little. I left it as it is.
+
+   `check`: check: green (not run again: passed on tree 676ce2a5aa50 at 2026-11-03T11:54:59Z)
+   `duplicates`: duplicates: 0 new, 42 known, 0 gone
