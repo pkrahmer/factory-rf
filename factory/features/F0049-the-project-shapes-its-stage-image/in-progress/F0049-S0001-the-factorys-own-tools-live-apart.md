@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 526
 comments_read: [6617813159]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T23:10:01.221004Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-03T23:09:55.267111Z'
   stage: intake
   run: 21ff42fc4d3848b086c69f439bafde48
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-03T23:10:01.221004Z'
+  stage: tests
 ---
 
 # The factory's own tools live apart under /opt/factory, with a Node of their own
@@ -107,3 +116,4 @@ Expect: `1`, `1`, `1`, `0`, then a line that ends in `passed` with no `failed`.
    - Smoke test: the commands are runnable. The pytest line has no `-q`, which is right because `addopts` already sets one. Each `Expect:` value is checkable against the output.
    - Architecture: only `vm/` and `tests/test_stage_image.py` change, and the docs criterion names `docs/operator-guide.md` and `docs/decisions.md`. This fits the layers.
    - Scope: this is S0001 of `feature.md`. The test change falls under the feature's leave for S0001, which covers the Debian package, Node and npm install rows and the places of `claude`, `opencode` and `uv`. Open: that leave names those rows only. The new pin-form, checksum, `curl`, wrapper and `PATH` rows are additions to the module. I read them as inside the leave's purpose ("to the image S0001 describes").
+7. factory: started tests as vm.
