@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 515
 comments_read: [6599499091]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-03T09:02:23.897098Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-03T09:02:23.897098Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-03T09:02:48.903391Z'
+  stage: doing
+  run: de1caa48bbc6470eaf4b5bf39915aa7f
 ---
 
 # The operator meets the site file, with true values and clear errors
@@ -310,3 +312,15 @@ Expect: `18`; the two lines `# The job's CPUs. Optional; the default is 4.` and 
     — Kumpel, for the human who owns this project
     <!-- kumpel -->
 13. factory: started doing as vm.
+14. coder: Round 1, after the human's answer (entry 12). The human chose (a): the `overrides` row at 8/32Gi in `tests/test_operator_job.py` and the rename of `test_a_space_beside_the_equals_sign_is_a_fault_and_one_inside_the_value_is_kept` in `tests/test_operator_site.py` are approved and stay. That settles findings 4 and 5.
+
+    The three test changes left for the tester (the reviewer's findings 1 to 3):
+    - **1 (criterion 14):** add two rows to `tests/test_operator_site_check.py::test_the_job_check_tells_whether_the_job_exists_and_never_fails`. In the first, the describe's error line contains `NOT_FOUND` (and not `Cannot find job`), and the check prints `job: <name> does not exist yet`. In the second, the describe fails with an empty standard error, and the check prints `job: <name> cannot be read: gcloud run jobs describe failed`. In both rows the check's result stays as it was.
+    - **2:** move `example_values` from `tests/test_operator_site_example.py` to `tests/operator_support.py`, beside `example_keys`. Use it from `tests/test_operator_site_example.py`, and in place of the copy in `tests/test_operator_python_isolation.py` (`job_dry_run`). This falls under the standing leave.
+    - **3:** in `tests/operator_support.py`, `CURL_STAND_IN` should compute `url` and `route` once, before the routes block and the `STAND_IN_CURL_FAILURES` block, instead of once in each.
+
+    I changed no code, because none of the three needs it. The code criterion 14 tests is already in `operator/bin/site`: the `NOT_FOUND` match in `is_not_found`, and the `gcloud run jobs describe failed` text used when gcloud's error is empty. I did not run `make check`, because the working tree has no change from this stage.
+
+    The Description is unchanged: the human's answer approves two test changes and does not change what the task means.
+
+    Noticed, not touched: nothing new.
