@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 512
 comments_read: [6597509758, 6597622408, 6597751272]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-03T07:23:10.221628Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-11-03T07:23:04.323181Z'
   stage: doing
   run: d82910295c58402d9760ba6e4c4f0ea1
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-03T07:23:10.221628Z'
+  stage: tests
 ---
 
 # Stopping the service stops its agents
@@ -351,3 +360,4 @@ Expect: `1`, then the single line `src/factory/adapters/podman_runs.py`.
     The journal did not change the task's meaning beyond what the Description already holds. The reviewer has already written criterion 3 and the smoke test's `-F` into the Description.
 
     Noticed, not touched: the comment on the per-file ignore at `pyproject.toml:65` still names the work item id. That was the human's commit (entry 16).
+21. factory: started tests as vm.
