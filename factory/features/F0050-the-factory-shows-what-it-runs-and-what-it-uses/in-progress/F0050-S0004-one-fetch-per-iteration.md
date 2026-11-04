@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T15:23:24.572329Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T15:23:20.892601Z'
+  stage: doing
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:23:24.572329Z'
   stage: doing
 ---
 
@@ -292,3 +301,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 18. 2026-11-04 human: Answer of the human: **A** "the tester changes only `recording_tick` at `tests/entry/test_run.py:287` to `def recording_tick(tick: Tick, idle: IdleShutdown | None = None, *, fetched: bool = False) -> Callable[[], bool]:` and makes it return `original_tick(tick, idle, fetched=fetched)`."
 
     Leave for the tester: only that function in `tests/entry/test_run.py`; nothing else in that module. If the tester finds any further test double that only needs the same signature for `fetched`, the same leave covers it (the signature and the passing on of `fetched`, nothing else), and its entry names each one, so that no further question is needed for this kind.
+19. factory: started doing as vm.
