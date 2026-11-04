@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T16:08:54.777801Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T16:08:51.875802Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T16:08:54.777801Z'
   stage: tests
 ---
 
@@ -173,3 +182,4 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
    - The docs criterion no longer names the days setting; it says that removing old transcripts is the site's (a `tmpfiles.d` rule on a VM, a lifecycle rule on a bucket).
 
    Leave for the intake (or, if the story has moved on, the reviewer): make exactly these edits to the Description, Interface, criteria and smoke test. Everything else of the answer above stands.
+10. factory: started tests as vm.
