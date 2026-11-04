@@ -461,3 +461,37 @@ What worked, to keep: the intake asked no question (every criterion had a check)
 ### 3. Carried over
 
 Confirmed: 2 and 27 (finding 2: a full `make check` where none was needed; now four docs-only stories at 106 to 145 s of doing), 34 (the coder runs the full suite for a diff with no code; here the diff was empty), 12 (the work item is read in full by each of the six runs, 45.7 KB in all: 3.5, 5.0, 6.3, 8.3, 10.2 and 12.3 KB, growing as the journal grows; A0002 reads earlier reports in full too, finding 4), 26 (the crashed A0002 run has no record). Not seen in these two: 3, 4, 5, 6 and 37 (S0012 had no question at all), 24 (S0012's smoke test was right as written). A0002's cost ($1.75, 31 turns) is in line with F0049's A0003 and A0004 ($1.76 and $1.38, 37 and 30 turns).
+
+## F0050-S0013 (a push reason leaves out git's "failed to push some refs" line) and F0050-S0014 (the decision log marks the tool-time entry superseded), 2026-11-05 UTC
+
+These are two small stories, read together. Transcripts were read from the cost records and tool-call lists of the main runs.
+
+### 1. Totals
+
+| | S0013 | S0014 |
+|---|---|---|
+| runs | 10 (intake, tests, doing, review, doing, tests, doing, review, docs, smoke-test) | 6 (intake, tests, doing, review, docs, smoke-test) |
+| turns | 58 | 30 |
+| tokens: input / output | 92 / 17,612 | 44 / 6,615 |
+| tokens: cache read / cache creation | 1,031,644 / 185,688 | 425,198 / 95,684 |
+| cost | $1.83 | $0.80 |
+| wall time / model time | 508 s / 224 s | 226 s / 89 s |
+| not model | 284 s, of which 266 s is two `make check` calls | 137 s, of which about 130 s is one `make check` |
+
+### 2. Findings, ordered by saving
+
+**1. (confirms 8, 1 and 2; the clearest case so far) One copied fixture cost 39% of S0013.** Evidence: the first tester `3f89554a` ran `cat tests/application/test_push_retry_reason.py` (with the helper file) at 23:31:26 and then wrote a new module with its own `result_case`, a word-for-word copy of the one it had just read. The reviewer `ecd44f4b` found exactly that one finding. The repair went through doing `89ba15dd` (15 s, $0.160, no change: "I changed no code and no test"), tests `bfd76446` (35 s, $0.233, the move into `tests/conftest.py`), doing `cd592342` (139 s, $0.086, no change, one `make check` of 132 s) and review `5d3c8380` ($0.237). Together $0.72 and 211 s of the story's $1.83 and 508 s; without the copy the story would have cost about $1.11 and 5 minutes. The standing leave to move a helper already existed in `CLAUDE.md`, so the tester knew it could share the fixture; it copied anyway. Saving: about $0.70 and 3.5 minutes in a story like this. Change: a tester rule that before it writes a helper or fixture it greps `tests/` for the same name, and reuses or moves it (candidate 8's fix), with the grep result named in its entry.
+
+**2. (confirms 1 and 2) Two relay coder runs, and one of them ran the full `make check` on an unchanged tree.** Evidence: `89ba15dd` was a relay that ended in 15 s but still created 16,215 cache tokens ($0.160, more than the next-round coder's $0.086). `cd592342` read the work item (17.6 KB), checked `git status --short`, and ran `make check`, 23:39:07 to 23:41:19, 132 s of its 139 s; the factory's own gate then reused a passed result for the docs stage ("not run again: passed on tree 066290be"), so that check was the only full run on that tree besides the coder's. The first real coder run `700f6111` also ran one `make check` of 134 s (23:32:29 to 23:34:43) of its 154 s. Saving: $0.25 and about 150 s per relay if the review could send a test-only finding to `tests` and `tests` could return to `review` (candidate 1).
+
+**3. (confirms 2, 34 and 46; new numbers) S0014 is a docs-only story and paid for three empty stages again.** Evidence: tester `d24fff0d` wrote no test ("No module under `src/factory/` changes, and no test is written"), $0.121, 16 s; coder `c4624e32` built nothing (`docs/decisions.md` is outside its write paths) but ran `make check` at 23:53:03 and waited until 23:55:17, 148 s, $0.189; reviewer `ed0eb3f9` "no findings", $0.154. Those three stages are $0.46 (58%) and 183 s (81%) of the story's $0.80 and 226 s. The coder also spent three greps on `factory/pipeline.yml` to learn that it may not write the file, which the intake already knew. Saving: about $0.46 and 3 minutes. Change: candidate 46's route straight from intake to `docs`; the intake can see the criteria, since criterion 5 and the Interface both said docs only.
+
+**4. (new, small) The coder reads the whole work item first, and in S0013's relay runs that was the biggest single result.** Evidence: `cd592342` call 1 returned 17.6 KB, `700f6111` 9.0 KB; `3f89554a` 6.9 KB. In the second round the item holds the reviewer's long findings and the tester's long entry, none of which a no-change relay needs. Saving: small (about $0.02 a run); belongs to candidate 12's fix (a slice of the item in the prompt).
+
+**5. (new, small) The intake of both stories asked nothing and was cheap ($0.083, $0.091, 12 s and 14 s); the smoke-test of each cost $0.15 to $0.19 for two commands.** Evidence: `76e490b8` 5 turns, 19,588 cache-creation tokens; `3d9ef734` 4 turns, 15,755. The cache creation per run (16 to 24 thousand tokens, the same prompt set each time) is 20% to 60% of each small run's cost; nothing to change, but it is why small stories cost at least $0.80 however little they do.
+
+What worked, to keep: the tester ended with a clear mapping of criteria to tests; the reviewer's finding was precise and named the leave; the documenter skipped `make check` on documents and said so; the smoke tests ran the story's own commands and both were right.
+
+### 3. Carried over
+
+Confirmed: 1 (relay coder, twice in S0013), 2 (`make check` on an unchanged tree: 132 s in S0013's relay, about 130 s in S0014), 8 (the copied fixture, with the reading and the copy in one run), 12 (the item read in full by each run), 46 (S0014 docs-only: 58% of cost, 81% of time in empty stages), 34. Not seen: no question, no denial, no retry after a tool error, no hung test in either story (candidates 3, 4, 11, 28).
