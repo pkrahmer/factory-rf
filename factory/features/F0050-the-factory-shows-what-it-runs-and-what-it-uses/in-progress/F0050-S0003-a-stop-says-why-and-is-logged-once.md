@@ -2,16 +2,12 @@
 stage: doing
 blocked: null
 round: 1
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T13:53:42.052290Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,19 @@ journal:
   kind: started
   at: '2026-11-04T13:53:42.052290Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-04T13:57:19.718761Z'
+  stage: doing
+  run: 805f37af5e7a4763acf9e9e24d6d6f32
+- number: 19
+  speaker: factory
+  kind: stall
+  at: '2026-11-04T13:57:19.884285Z'
+  stage: doing
+  run: 805f37af5e7a4763acf9e9e24d6d6f32
+  reason: check_red
 ---
 
 # A stop says why, and is logged once
@@ -274,3 +283,32 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.2 s)
 17. factory: started doing as vm.
+18. coder: Round 1, after the tester's change. I changed no code this time. The fixes for review findings 1 and 3 went in on this round's first pass (entry 14) and are committed: `src/factory/entry/run.py:277`, where `_ProjectImageStart._choose` now passes `stop_requested` into the boundaries it builds, and `src/factory/application/preflight.py` `_ended`, which now picks "with" or "by" from `command_ending`. Finding 2 is covered by the tester's new test `tests/entry/test_run_stop_requested.py::test_the_tick_built_after_the_image_is_chosen_sees_the_factorys_own_stop`. It passes against that wiring.
+
+    The factory dropped the tester's temporary edit to `src/factory/entry/run.py`, as entry 16 records. The file still holds the committed fix, and `git status` was clean when this stage started.
+
+    Main decision: I made no further change. All three findings were already handled, so any new edit would have gone beyond the findings. The alternative I rejected was writing the reviewer's proposed wiring criterion into `## Description`: the human has not asked for it, and the Interface line already states the rule that the new test checks.
+
+    Refactor: no diff this round, so there was nothing to change.
+
+    Journal: the journal changed nothing in the meaning of the task.
+
+    Noticed, not touched: `make duplicates` reported 3 new dead-code findings in `src/factory/domain/cost_records.py:41-43` on the earlier runs (entries 10 and 14). This story does not touch that file. I did not run `make duplicates` this round.
+
+    `check`: check: green
+19. factory: Stage doing stalled (attempt 1 of 2): a check is red after the stage: `check`
+    src/factory/entry/check_story.py                   92      1     18      1    98%   161
+    src/factory/entry/contract.py                      28      1      6      1    94%   41
+    src/factory/entry/health.py                        33      1     10      1    95%   48
+    src/factory/entry/refresh_token.py                 93      1     12      1    98%   136
+    src/factory/entry/run.py                          165      2     24      2    98%   285, 355
+    src/factory/entry/watch.py                         52      1      6      1    97%   87
+    src/factory/entry/wiring.py                       335      6     56      5    97%   286, 371, 423, 478, 507, 830
+    -------------------------------------------------------------------------------------------
+    TOTAL                                           10284     35   2046     37    99%
+
+    130 files skipped due to complete coverage.
+    Required test coverage of 90.0% reached. Total coverage: 99.42%
+    ======================================================================================= short test summary info ========================================================================================
+    FAILED tests/adapters/test_process_streaming.py::test_callback_saying_stop_on_standard_output_kills_the_group_at_once[before-a-sleep] - OSError: [Errno 22] Invalid argument
+    make: *** [Makefile:84: test] Error 1
