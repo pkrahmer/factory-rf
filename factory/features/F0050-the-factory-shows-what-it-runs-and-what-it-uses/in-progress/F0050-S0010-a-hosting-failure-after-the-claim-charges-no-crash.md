@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T22:50:38.288251Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-11-04T22:50:32.846721Z'
   stage: review
   run: fa030a0163fa436bb90a26317f3c3b04
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-11-04T22:50:38.288251Z'
+  stage: docs
 ---
 
 # A hosting failure after the claim charges no crash
@@ -437,3 +446,4 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
       - Human's leave, journal 14: `test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_run` was deleted, and so was the `branch_state` import that the deletion left unused.
       - Standing leave to move a shared test helper (journal 26): the fixture `failed_after_claim` moved to `tests/conftest.py`, and the `import pytest` it left unused went too. `test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick` keeps its name and what it checks.
     - `tests/conftest.py`: standing leave to move a shared test helper. It only gains the moved fixture `failed_after_claim`, with the same body and docstring, and the `run_ticks` import it needs.
+31. factory: started docs as vm.
