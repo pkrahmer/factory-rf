@@ -22,24 +22,12 @@ from factory.entry.wiring import health_store
 from git_support import remote_commit
 from human_clone import HumanClone
 from log_support import state_log_lines
+from stage_image_support import BASE_IDENTITY, FIRST, SECOND, StageSeen, built_path
 
-BASE_IDENTITY = "sha256-base"
-FIRST = "ARG FACTORY_BASE\nFROM ${FACTORY_BASE}\nRUN echo first\n"
-SECOND = "ARG FACTORY_BASE\nFROM ${FACTORY_BASE}\nRUN echo second\n"
 THIRD = "ARG FACTORY_BASE\nFROM ${FACTORY_BASE}\nRUN echo third\n"
 PASSED = ImageBuild(passed=True, duration=timedelta(seconds=3), output_tail="done")
 FAILED = ImageBuild(passed=False, duration=timedelta(seconds=4), output_tail="error: no package")
 MARK = "stage image:"
-
-
-@dataclass(frozen=True)
-class StageSeen:
-    """What one tick ran with, and how many builds had been asked for when it ended."""
-
-    image: str | None
-    identity: str | None
-    path: str
-    builds: int
 
 
 class ScriptedImages(FakeImages):
@@ -65,11 +53,6 @@ class ScriptedImages(FakeImages):
         if image in self._tags:
             return built_path(self._passed)
         return SYSTEM_PATH
-
-
-def built_path(build: int) -> str:
-    """The `PATH` the `build`-th passed build configures."""
-    return f"/opt/build-{build}/bin:{SYSTEM_PATH}"
 
 
 class RecordingTick(Tick):
@@ -107,19 +90,6 @@ class Run:
     stages: list[StageSeen]
     commits: list[str]
     lines: list[str]
-
-
-@pytest.fixture
-def settings(instance_settings: InstanceSettings) -> InstanceSettings:
-    """The instance settings with the base image's identity."""
-    return instance_settings.model_copy(update={"image": BASE_IDENTITY})
-
-
-@pytest.fixture
-def base(settings: InstanceSettings) -> str:
-    """The base image the settings name."""
-    assert settings.stage_image is not None
-    return settings.stage_image
 
 
 def _commit(remote: Path) -> str:
@@ -208,14 +178,14 @@ class World:
 
 @pytest.fixture
 def world(
-    settings: InstanceSettings,
+    base_identity_settings: InstanceSettings,
     hosting: FakeHostingService,
     human: HumanClone,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> World:
     """The test's instance on its remote, the human's clone beside it."""
-    return World(settings, hosting, human, tmp_path, monkeypatch)
+    return World(base_identity_settings, hosting, human, tmp_path, monkeypatch)
 
 
 def _identity(text: str) -> str:
@@ -235,7 +205,7 @@ def _stops(settings: InstanceSettings) -> list[tuple[str, str]]:
     "stage_file", [pytest.param(FIRST, id="same-digest"), pytest.param(None, id="no-file")]
 )
 def test_a_new_main_that_leaves_the_stage_file_as_it_is_builds_nothing_and_logs_nothing(
-    world: World, base: str, stage_file: str | None
+    world: World, base_image: str, stage_file: str | None
 ) -> None:
     if stage_file is not None:
         world.human.push_file("main", STAGE_FILE, stage_file)
@@ -245,10 +215,10 @@ def test_a_new_main_that_leaves_the_stage_file_as_it_is_builds_nothing_and_logs_
 
     builds = 0 if stage_file is None else 1
     if stage_file is None:
-        expected = StageSeen(image=base, identity=BASE_IDENTITY, path=SYSTEM_PATH, builds=0)
+        expected = StageSeen(image=base_image, identity=BASE_IDENTITY, path=SYSTEM_PATH, builds=0)
     else:
         expected = StageSeen(
-            image=project_image_tag(base),
+            image=project_image_tag(base_image),
             identity=_identity(stage_file),
             path=built_path(1),
             builds=1,
@@ -259,14 +229,14 @@ def test_a_new_main_that_leaves_the_stage_file_as_it_is_builds_nothing_and_logs_
 
 
 def test_a_changed_stage_file_is_built_once_before_the_next_stage_and_taken_by_every_later_one(
-    world: World, base: str
+    world: World, base_image: str
 ) -> None:
     world.human.push_file("main", STAGE_FILE, FIRST)
     images = ScriptedImages([PASSED, PASSED])
 
     run = world.run(images, [world.write(SECOND), world.touch_other()])
 
-    tag = project_image_tag(base)
+    tag = project_image_tag(base_image)
     old = StageSeen(image=tag, identity=_identity(FIRST), path=built_path(1), builds=1)
     new = StageSeen(image=tag, identity=_identity(SECOND), path=built_path(2), builds=2)
     assert run.stages == [old, new, new]
@@ -274,22 +244,25 @@ def test_a_changed_stage_file_is_built_once_before_the_next_stage_and_taken_by_e
 
 
 def test_a_stage_file_added_to_a_project_without_one_is_built_and_taken(
-    world: World, base: str
+    world: World, base_image: str
 ) -> None:
     images = ScriptedImages([PASSED])
 
     run = world.run(images, [world.write(FIRST)])
 
     assert run.stages == [
-        StageSeen(image=base, identity=BASE_IDENTITY, path=SYSTEM_PATH, builds=0),
+        StageSeen(image=base_image, identity=BASE_IDENTITY, path=SYSTEM_PATH, builds=0),
         StageSeen(
-            image=project_image_tag(base), identity=_identity(FIRST), path=built_path(1), builds=1
+            image=project_image_tag(base_image),
+            identity=_identity(FIRST),
+            path=built_path(1),
+            builds=1,
         ),
     ]
 
 
 def test_a_removed_stage_file_returns_to_the_base_and_builds_nothing(
-    world: World, base: str
+    world: World, base_image: str
 ) -> None:
     world.human.push_file("main", STAGE_FILE, FIRST)
     images = ScriptedImages([PASSED])
@@ -297,22 +270,22 @@ def test_a_removed_stage_file_returns_to_the_base_and_builds_nothing(
     run = world.run(images, [world.remove(), world.touch_other()])
 
     project = StageSeen(
-        image=project_image_tag(base), identity=_identity(FIRST), path=built_path(1), builds=1
+        image=project_image_tag(base_image), identity=_identity(FIRST), path=built_path(1), builds=1
     )
-    back = StageSeen(image=base, identity=BASE_IDENTITY, path=SYSTEM_PATH, builds=1)
+    back = StageSeen(image=base_image, identity=BASE_IDENTITY, path=SYSTEM_PATH, builds=1)
     assert run.stages == [project, back, back]
     assert run.lines == [f"stage image: back to the base at {run.commits[0]}"]
 
 
 def test_a_main_that_moves_during_a_stage_changes_its_image_only_from_the_next_stage(
-    world: World, base: str
+    world: World, base_image: str
 ) -> None:
     world.human.push_file("main", STAGE_FILE, FIRST)
     images = ScriptedImages([PASSED, PASSED])
 
     run = world.run(images, [lambda: None], during=[world.write(SECOND)])
 
-    tag = project_image_tag(base)
+    tag = project_image_tag(base_image)
     assert run.stages == [
         StageSeen(image=tag, identity=_identity(FIRST), path=built_path(1), builds=1),
         StageSeen(image=tag, identity=_identity(SECOND), path=built_path(2), builds=2),
@@ -392,7 +365,7 @@ def _base_seen(builds: int) -> Callable[[str], StageSeen]:
     ],
 )
 def test_a_failed_rebuild_stands_as_a_stop_until_main_brings_another_stage_file(
-    world: World, base: str, after: AfterFailure
+    world: World, base_image: str, after: AfterFailure
 ) -> None:
     world.human.push_file("main", STAGE_FILE, FIRST)
     images = ScriptedImages(after.results)
@@ -400,8 +373,8 @@ def test_a_failed_rebuild_stands_as_a_stop_until_main_brings_another_stage_file(
     run = world.run(images, [world.write(SECOND), after.push(world)])
 
     failed_at, second_at = run.commits
-    old = _project(FIRST, 1, 1)(base)
-    last = None if after.last is None else after.last(base)
+    old = _project(FIRST, 1, 1)(base_image)
+    last = None if after.last is None else after.last(base_image)
     failed_stops = [
         detail for reason, detail in _stops(world.settings) if reason == "stage_image_failed"
     ]
@@ -423,15 +396,15 @@ def test_a_failed_rebuild_stands_as_a_stop_until_main_brings_another_stage_file(
 
 
 def test_a_passed_rebuild_builds_under_the_same_tag_so_the_previous_image_is_removed(
-    world: World, base: str
+    world: World, base_image: str
 ) -> None:
     world.human.push_file("main", STAGE_FILE, FIRST)
     images = ScriptedImages([PASSED, PASSED])
 
     world.run(images, [world.write(SECOND)])
 
-    tag = project_image_tag(base)
+    tag = project_image_tag(base_image)
     assert images.builds == [
-        BuildCall(stage_layer(FIRST, BASE_IDENTITY), base, tag, IMAGE_BUILD_TIME_LIMIT),
-        BuildCall(stage_layer(SECOND, BASE_IDENTITY), base, tag, IMAGE_BUILD_TIME_LIMIT),
+        BuildCall(stage_layer(FIRST, BASE_IDENTITY), base_image, tag, IMAGE_BUILD_TIME_LIMIT),
+        BuildCall(stage_layer(SECOND, BASE_IDENTITY), base_image, tag, IMAGE_BUILD_TIME_LIMIT),
     ]

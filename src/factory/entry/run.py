@@ -19,7 +19,7 @@ from factory.application.machine import Clock
 from factory.application.scheduler import CheckoutPreparer, RepositoryWaiter, Scheduler
 from factory.application.stops import StopService
 from factory.application.tick import Tick, TickOutcome
-from factory.domain.errors import MachineStopStood, SettingsInvalid
+from factory.domain.errors import FetchFailed, MachineStopStood, SettingsInvalid
 from factory.domain.settings import STATE_DIRECTORY, InstanceSettings, named_state_directory
 from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.wiring import (
@@ -217,22 +217,38 @@ class _ProjectImageStart:
     def prepare(self) -> bool:
         if not self._waiter.prepare():
             return False
-        self._follow_main()
+        if not self._follow_main():
+            return False
         return self._tick is not None
 
     def tick(self) -> bool:
         return self._tick is not None and self._tick()
 
-    def _follow_main(self) -> None:
-        git = self._inputs.boundaries.git
-        git.fetch()
-        stage_file = stage_file_on_main(git)
+    def _follow_main(self) -> bool:
+        boundaries = self._inputs.boundaries
+        stops = StopService(boundaries)
+        try:
+            boundaries.git.fetch()
+        except FetchFailed as error:
+            # The same stop as the tick's fetch: the health status, not a log line, tells the
+            # operator that nothing runs.
+            stop = RepositoryStop(
+                scope="repository",
+                reason="fetch_failed",
+                detail=str(error),
+                at=boundaries.clock.now(),
+            )
+            stops.raise_stop(stop)
+            return False
+        stops.clear_stop("fetch_failed")
+        stage_file = stage_file_on_main(boundaries.git)
         # The same file again builds nothing, and one that failed is not tried again.
         if self._followed and stage_file == self._stage_file:
-            return
+            return True
         self._followed = True
         self._stage_file = stage_file
         self._choose(stage_file is not None)
+        return True
 
     def _choose(self, has_stage_file: bool) -> None:
         inputs = self._inputs
