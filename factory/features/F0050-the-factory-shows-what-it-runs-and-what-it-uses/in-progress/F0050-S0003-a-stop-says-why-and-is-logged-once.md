@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T14:03:05.002659Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -137,6 +141,11 @@ journal:
   at: '2026-11-04T14:02:58.316338Z'
   stage: review
   run: 93ee0b9fe14640e58e7263e17f2e83c5
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-04T14:03:05.002659Z'
+  stage: doing
 ---
 
 # A stop says why, and is logged once
@@ -385,3 +394,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     - `tests/domain/test_command_ending.py:22-29` and `tests/application/test_preflight_stop_detail.py:16-24` (`_ended`) each build the same no-output `CheckResult` from an exit status.
 
     Earlier tests: none. The diff only adds test files (`tests/application/test_preflight_stop_detail.py`, `tests/application/test_stop_log_once.py`, `tests/domain/test_command_ending.py`, `tests/entry/test_run_stop_requested.py`).
+24. factory: started doing as vm.
