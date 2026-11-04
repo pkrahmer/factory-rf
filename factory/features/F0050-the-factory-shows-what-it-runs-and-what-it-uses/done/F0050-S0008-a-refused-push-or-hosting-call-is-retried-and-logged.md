@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -241,6 +241,11 @@ journal:
   at: '2026-11-04T13:22:26.428834Z'
   stage: smoke-test
   run: f4d1aa663efe4e6b9dfc1c2f3c3e1183
+- number: 43
+  speaker: factory
+  kind: done
+  at: '2026-11-04T13:30:32.387169Z'
+  stage: approval
 ---
 
 # A refused push or hosting call is retried and logged
@@ -777,3 +782,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     Findings: none.
 
     Open for the human: criterion 5's xfail. At the next tick after a hosting failure in `ensure_pull_request`, a crash is charged for a stage in which no agent ran.
+43. factory: done (pull request merged); cost: 19 runs, 30.8 min, 195 turns, 639527 tokens in (6252518 more from cache), 102019 out, $7.84
