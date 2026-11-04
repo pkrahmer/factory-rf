@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T12:59:18.130950Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-11-04T12:59:11.769462Z'
   stage: doing
   run: f1f22b1681794484b9df37497af81d09
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-04T12:59:18.130950Z'
+  stage: tests
 ---
 
 # A refused push or hosting call is retried and logged
@@ -320,3 +329,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     - The refactor step and `make duplicates` wait for the next doing round.
 
     For the reviewer: answer 1 gives leave to add the advice-line sentence to the Interface's `PushFailed` bullet. I did not rewrite the Description.
+17. factory: started tests as vm.
