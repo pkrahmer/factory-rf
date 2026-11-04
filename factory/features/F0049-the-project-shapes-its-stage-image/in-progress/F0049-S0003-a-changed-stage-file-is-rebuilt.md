@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T02:01:25.881308Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -180,6 +184,11 @@ journal:
   at: '2026-11-04T02:01:20.220528Z'
   stage: review
   run: fd675f59e3fb4128b2094b20c83a715a
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:01:25.881308Z'
+  stage: docs
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -520,3 +529,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     - tests/application/test_tick_preflight.py: changed under the standing leave to move a shared test helper. `Machine.remove_from_main` now calls `HumanClone.remove_file` on the same clone (`tmp_path / "human"`). Every test keeps its name and checks the same thing, and the unused `run_git` import is gone.
     - tests/human_clone.py: none needed. It only adds `remove_file`, and the earlier contents are unchanged.
     - tests/log_support.py: none needed. It only adds `state_log_lines`, and `log_lines` is unchanged.
+32. factory: started docs as vm.
