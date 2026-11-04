@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 534
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T03:11:51.297850Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-04T03:11:45.554079Z'
   stage: intake
   run: 8afe29d66481488cba5825320a86071f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:11:51.297850Z'
+  stage: tests
 ---
 
 # The stops table and the test helper index follow the stage image
@@ -70,3 +79,4 @@ Expect: `0`, then `listed`, then `listed`, then `documents ok`.
    - Smoke test: the greps and `uv run python -m factory.entry.check_documents` are runnable, and the Expect line (`0`, `listed`, `listed`, `documents ok`) matches their output. The story has no pytest command, so the `-q` rule does not apply. The first grep prints `0` but exits 1; this is harmless as a manual check.
    - Architecture: docs only, which fits CLAUDE.md's split. The documenter keeps `docs/*`, and the story edits no code, no test and nothing in `factory/`.
    - Scope: this is a follow-up to F0049-S0003 (no restart) and S0004 (support module), within the feature's stage-image topic. It is not in "Out of scope". It does not touch `README.md`, `docs/decisions.md` or any test.
+4. factory: started tests as vm.
