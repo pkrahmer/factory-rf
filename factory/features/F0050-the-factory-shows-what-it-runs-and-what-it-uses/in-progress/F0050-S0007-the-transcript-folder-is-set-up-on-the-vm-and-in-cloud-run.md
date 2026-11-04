@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T20:03:37.451213Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-04T20:03:37.451213Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-11-04T20:04:07.890063Z'
+  stage: tests
+  run: 9281512048f647bd8b57a173cf073567
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -209,3 +211,22 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
     `make check`: green (test 87.1 s, `check: green`).
 12. factory: started tests as vm.
+13. tester: Test change from the coder's entry 11, which carries the reviewer's finding 2 from entry 9. In `tests/test_vm_job_start_transcripts.py` I merged `test_a_writable_or_unset_transcript_folder_starts_the_factory_as_before` and `test_a_transcript_folder_that_cannot_be_written_ends_the_start` into one parametrized test, `test_the_factory_starts_only_with_a_writable_or_unset_transcript_folder`. The finding said the sides of one rule belong in rows of one test, so they are now four rows:
+    - writable: the factory starts, and the folder is left empty.
+    - unset: the factory starts as before.
+    - missing: the start ends.
+    - read-only: the start ends. This row is still skipped when the tests run as root.
+
+    A `starts` column holds the expected outcome. When it is true, the test checks status 0, no "cannot be written" text and one factory-run. When it is false, it checks a status that is not 0, the text `transcript folder <path> cannot be written` and no factory-run. The checks are the same as before; only the shape changed.
+
+    Mapping:
+    - criterion 2: tests/test_vm_job_start_transcripts.py::test_the_factory_starts_only_with_a_writable_or_unset_transcript_folder
+    - criterion 1: tests/test_vm_setup_transcripts.py, unchanged
+
+    Files changed: tests/test_vm_job_start_transcripts.py. No files created, and no earlier story's test was changed. Modules the test run could not import: none.
+
+    Run (`uv run pytest -q tests/test_vm_job_start_transcripts.py`): 4 passed, which is expected because `vm/job-start.sh` already behaves as every row expects.
+
+    `make lint`: lint: green.
+
+    `lint`: lint: green (0.2 s)
