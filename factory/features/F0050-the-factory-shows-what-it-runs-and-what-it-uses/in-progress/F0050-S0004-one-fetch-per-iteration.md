@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947, 6634929291]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T15:41:08.997357Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -179,6 +175,12 @@ journal:
   kind: started
   at: '2026-11-04T15:41:08.997357Z'
   stage: doing
+- number: 31
+  speaker: coder
+  kind: result
+  at: '2026-11-04T15:41:53.936346Z'
+  stage: doing
+  run: 11f295005d7c4dc281dafd5c4520bb38
 ---
 
 # One fetch per iteration
@@ -464,3 +466,19 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
     Leave for the tester: in `tests/application/test_tick_docstrings.py`, `TICK_RUN` gets exactly the sentence "With `fetched`, the caller has already fetched in this iteration and raised or cleared `fetch_failed`: the tick skips its own fetch." after its first sentence; nothing else in that module. Do all four changes in one tests round, as you propose.
 30. factory: started doing as vm.
+31. coder: Test changes for round 1, following the human's answer A in entry 29. There are four, all for one tests round:
+    1. `tests/application/test_tick_docstrings.py`: in `TICK_RUN`, insert exactly the sentence " With `fetched`, the caller has already fetched in this iteration and raised or cleared `fetch_failed`: the tick skips its own fetch." after its first sentence, which ends "…preflight, dispatch.". Nothing else in that module changes (the human's leave, entry 29).
+    2. Reviewer finding 1, under the standing leave: move `Outage` (`tests/entry/test_run_fetch_before_tick.py:70-95`) and its copy, `Instance.__init__`/`go_away`/`come_back` (`tests/entry/test_run_one_fetch.py:70-91`), to one shared support module under `tests/`. Both modules then use it from there.
+    3. Reviewer finding 2, under the standing leave: move the `_fetch_failed` filter (`tests/entry/test_run_fetch_before_tick.py:156`, copied at `tests/entry/test_run_one_fetch.py:152`) into the same shared module, taking a list of stops.
+    4. Reviewer finding 3, under the standing leave: move `_move_remote_away` (`tests/application/test_tick.py:178-181`) to a shared support module under `tests/`, and use it in `tests/application/test_tick_own_fetch.py:65-66` in place of the inline rename.
+
+    The code change for reviewer finding 4 is in the working tree:
+    - `src/factory/application/tick.py`: the docstring of `Tick.run` now has, after its summary line, the paragraph "With `fetched`, the caller has already fetched in this iteration and raised or cleared `fetch_failed`: the tick skips its own fetch."
+    - I removed the one-line comment above the skipped `_fetch()`, because the docstring now gives the reason.
+    - Nothing else in the code changed.
+
+    Checks: `ruff check` and `ruff format --check` pass on `tick.py`. I did not run `make check`. `tests/application/test_tick_docstrings.py::test_the_docstrings_say_what_the_code_does[tick-run]` is red until change 1 is made, and nothing else should be red. When the work item comes back, I run `make check` and do the refactor step.
+
+    Main choice: the reason for the skip now lives in the public docstring, where finding 4 asked for it. I rejected keeping it only as a code comment (option B in entry 28), because then the docstring would be wrong for `fetched=True`.
+
+    Noticed, not touched: the 3 new `make duplicates` findings in `src/factory/domain/cost_records.py:41-43`, which are outside this story.

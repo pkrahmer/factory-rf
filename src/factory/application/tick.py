@@ -97,6 +97,9 @@ class Tick:
     def run(self, *, fetched: bool = False) -> TickOutcome:
         """Check the disk, fetch, load, restore, publish the stop records, preflight, dispatch.
 
+        With `fetched`, the caller has already fetched in this iteration and raised or cleared
+        `fetch_failed`: the tick skips its own fetch.
+
         Before the dispatch, the stale branches are deleted and the remote is evaluated. A stop
         ends the tick.
 
@@ -105,7 +108,6 @@ class Tick:
         """
         try:
             self._check_disk()
-            # A caller that fetched in the same iteration has raised or cleared `fetch_failed`.
             if not fetched:
                 self._fetch()
             definition = self._load()
