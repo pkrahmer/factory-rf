@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T21:28:15.400434Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-04T21:28:09.150296Z'
   stage: tests
   run: 9e618c004616419aa38ff27ffbf92389
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:28:15.400434Z'
+  stage: doing
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -257,3 +266,4 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
     As the coder expected, the new test passes against the round-0 code (`results.setdefault`). My one run of the module showed all 18 tests passing. `make lint`: lint: green (0.1 s).
 
     `lint`: lint: green (0.1 s)
+17. factory: started doing as vm.
