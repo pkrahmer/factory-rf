@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 549
 comments_read: [6643408151]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T22:11:52.197603Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-04T22:11:52.197603Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-04T22:13:02.667120Z'
+  stage: tests
+  run: 35246e0f8d6b43069a51aeea2cb645d1
+  blocked: question
 ---
 
 # A hosting failure after the claim charges no crash
@@ -118,3 +121,15 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
    - Architecture: the change sits in `factory.application`, using the `Claims` and push helpers that already exist. No new layer or dependency.
    - Scope: within F0050 (S0010 is listed in the feature) and not in "Out of scope". The cap of three stays, as the feature requires. The change to S0008's test is limited to the `xfail` mark, with the human's leave.
 7. factory: started tests as vm.
+8. tester: I stopped before writing any test. Criterion 3 cannot hold together with the Interface as written, and I need the human to choose.
+
+   **The conflict.** The handler's error count is kept per event key and per *remote state* (`factory.domain.tick_status.record_error`: "A new remote state starts the key's count again at 1"). For a work item that has a branch, the event's remote state is the branch head (`factory.domain.evaluation._event`: `remote_state = snapshot.branch_commit`). Under approach (a), every failing tick pushes two new commits to the branch: the claim and the release. So the next tick sees a new branch head, and its count starts again at `1 of 3`. Three failing ticks in a row would log `1 of 3` three times and never reach the cap. That contradicts criterion 3's "three failing ticks in a row reach it". It also contradicts the Description's "The handler's error count and its cap of three stay as they are": the code would stay the same, but the count would no longer add up.
+
+   **Options:**
+   - (A) Rewrite criterion 3 to match how the code counts. The failed tick logs `handler error run:<id> 1 of 3: HostingServiceError: ...`. Because each release moves the branch, the count restarts at 1 on every failing tick, so a long outage never reaches the cap and never posts an error stop. The factory just retries every tick until the hosting service is back. Rows: one failing tick logs `1 of 3`; three failing ticks in a row log `1 of 3` each time and post no error stop. Nothing in the domain changes.
+   - (B) Keep "three failing ticks reach the cap". The count would then have to survive the claim and release commits, for example by keying a run event's count on the branch commit before the claim, or by ignoring claim and release commits. That is a domain change (`tick_status`/`evaluation`) that the Interface does not name, so it would need its own Interface line and criterion.
+   - (C) Leave the branch head unchanged by the release, by resetting the branch to the pre-claim commit instead of adding a commit. That needs a force push, which contradicts the Interface's "one commit, pushed through `push_with_retries`" and criterion 7.
+
+   I would choose (A). It keeps the scope as the human set it, and it matches the story's goal: an outage costs nothing and wakes on its own when hosting returns. The new criterion 3 would read: "The failed tick's handler error is logged as S0008 built it (`handler error <event key> 1 of 3: HostingServiceError: ...`); because the release moves the branch, each failing tick counts from 1 again: three failing ticks in a row each log `1 of 3`, and no error stop is posted."
+
+   **For when the tests are written:** criterion 2's "refused four times" fits `push_with_retries`, which makes 1 try plus 3 retries (`RETRY_WAITS`). I plan to refuse only the release push with a pre-receive hook on the world's bare remote that checks for the release subject. No files created, no test run, no module imports checked yet.
