@@ -615,9 +615,10 @@ sudo sh vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner
 | `--runtime claude\|opencode` | `claude` | The agent runtime. |
 | `--sudoers` | off | Reach `zfs` through `sudo` (see below). |
 | `--idle-shutdown <minutes>` | off | Let the factory power the machine off after that many idle minutes: a whole number of ASCII digits, at least 1 (`0`, `x`, `-5`, `1.5` and an empty value are refused). Gives `factory` the power-off right (step 9) and adds `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>` to the environment file (step 14). See *The idle shutdown*. |
+| `--transcript-days <n>` | `30` | Keep transcripts for that many days: a whole number of ASCII digits, `0` or more (`x`, `-1`, `1.5` and an empty value are refused). Makes the transcript folder, adds `FACTORY_TRANSCRIPT_DIR` to the environment file (step 14) and writes the `tmpfiles.d` rule with `<n>d` (step 16). `0` writes neither the line nor the rule, makes no folder and keeps no transcript. See *Transcripts*. |
 | `--help` | | Print the usage to standard output and exit 0. |
 
-A missing required option, an option without its value, an `--idle-shutdown` value that is not a whole number of at least 1, an unknown word or a runtime other than the two prints `setup.sh: <what is wrong>` and the usage to standard error and exits 2. When the user is not root it prints `setup.sh: run as root` and exits 2. Nothing is made or changed before either exit.
+A missing required option, an option without its value, an `--idle-shutdown` value that is not a whole number of at least 1, a `--transcript-days` value that is not a whole number, an unknown word or a runtime other than the two prints `setup.sh: <what is wrong>` and the usage to standard error and exits 2. When the user is not root it prints `setup.sh: run as root` and exits 2. Nothing is made or changed before either exit.
 
 #### The steps
 
@@ -636,8 +637,9 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 11. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
 12. `checkout`: the factory at `--code-ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
 13. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `vm/git-credential-factory` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
-14. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`). With `--idle-shutdown` its last line is `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>`; without the option the file holds no such line, so a run without it takes the setting back.
+14. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`). With `--idle-shutdown` its last line is `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>`; without the option the file holds no such line, so a run without it takes the setting back. Unless `--transcript-days 0` is given, it holds `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` before that line.
 15. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
+16. `transcripts`: unless `--transcript-days 0`, the folder `/srv/factory/<instance>/transcripts` (owner `factory`, mode `0700`), made only when it is not already so, and `/etc/tmpfiles.d/factory-<instance>-transcripts.conf` with the one line `d /srv/factory/<instance>/transcripts 0700 factory factory <n>d`, written only when its text differs. If the folder is a link, the script prints `setup: transcripts: ... is a link; remove it and run this script again` to standard error and exits 1. With `--transcript-days 0` the line says `setup: transcripts: not asked; no transcript is kept` and nothing is made. A rule file an earlier run wrote stays; remove it yourself if you want it gone. See *Transcripts*.
 
 The script writes the files under `/srv/factory/<instance>` (`image-id`, the askpass script and `factory.env`) as `factory`, with `cat` from its own standard input, because a process started by `runuser` may not reopen root's `/dev/stdin`.
 
@@ -724,6 +726,7 @@ The environment file holds these variables, which *Configuration* explains:
 | `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION`, `FACTORY_OPENCODE_MODELS` | the pins of `vm/Dockerfile` |
 | `PATH` | `/srv/factory/<instance>/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin` (`/usr/sbin` holds `zfs`) |
 | `XDG_RUNTIME_DIR` | `/run/user/<uid of factory>`, where rootless Podman finds its runtime folder |
+| `FACTORY_TRANSCRIPT_DIR` | `/srv/factory/<instance>/transcripts`, unless `--transcript-days 0` |
 | `FACTORY_IDLE_SHUTDOWN_MINUTES` | `--idle-shutdown`, only when it is given |
 
 ### On GCP, step by step
@@ -1274,6 +1277,7 @@ The job's environment is the instance's configuration. The script reads these va
 | `RUNC_VERSION`, `RUNC_SHA256` | optional, default `1.5.2` and its checksum, both constants of the script. Give both or neither: `RUNC_VERSION` without `RUNC_SHA256` stops with `job-start: RUNC_SHA256 is not set`, status 2, because a version without its checksum would not be checked. |
 | `FACTORY_TOKEN_URL` and its companions | optional: when set, the token refresher runs (see *A bearer token for the model API*) |
 | `FACTORY_IDLE_SHUTDOWN_MINUTES` | optional, yours: unset means no idle shutdown (see below) |
+| `FACTORY_TRANSCRIPT_DIR` | optional, yours: the transcript folder (see *Transcripts*, *In a Cloud Run job*). When set, the script checks that the folder exists and that a file can be made and removed in it; if not, it stops with `job-start: transcript folder <path> cannot be written`, status 1. Unset changes nothing. |
 | `FACTORY_JOB_PREFIX` | for the script's tests: put in front of `/etc`, `/usr/local/bin` and `/var/lib/containers`. Leave it unset. |
 
 Beside these the job carries the settings of any instance (the hosting token's companions, the agent runtime's login, `FACTORY_CONTAINER_ENV`, `FACTORY_CA_BUNDLE`, `FACTORY_OPENCODE_MODELS`); the script never changes those.
@@ -1284,7 +1288,7 @@ The script sets the following only where the job gave no value: `FACTORY_SNAPSHO
 
 The script prints `job-start: <step>` on standard output at each step, in this order:
 
-1. `inputs`: the checks above and the derived variables; the copy of a token whose folder is not private; then `PATH` becomes `<root>/tools/bin` followed by the `PATH` the script was started with, so the preflight finds `uv` and the factory's commands that the `tools` step builds there.
+1. `inputs`: the checks above and the derived variables; the copy of a token whose folder is not private; the check of the transcript folder, when `FACTORY_TRANSCRIPT_DIR` is set (it prints no step line of its own); then `PATH` becomes `<root>/tools/bin` followed by the `PATH` the script was started with, so the preflight finds `uv` and the factory's commands that the `tools` step builds there.
 2. `proxy`: with a proxy set, exports the four spellings and writes `/etc/apt/apt.conf.d/99proxy`.
 3. `packages`: `apt-get update`, then one `apt-get install` of `podman`, `uidmap`, `nftables`, `git`, `make`, `curl`, `ca-certificates`, `rsync`, `python3` and `python3-venv`, at the versions of the Debian release.
 4. `runc`: downloads `runc.amd64` of the release, checks it with `sha256sum -c` against the script's own checksum, and installs it as `/usr/local/bin/runc`. A mismatch stops with `job-start: runc: checksum does not match`, status 1. A checksum downloaded beside the binary would check nothing, so there is none. The download folder is removed whenever the step ends, by success or by a stop.
@@ -1630,6 +1634,53 @@ A transcript that cannot be found or copied (no session, no transcript file, a f
 
 - The folder must sit where only the site's own people can read it. The factory sets the file modes, but a mounted bucket or a shared disk has its own access rules.
 - The factory deletes no transcript. Removing old ones is the site's: a `tmpfiles.d` rule on a VM, a lifecycle rule on a bucket.
+
+### On a VM
+
+`vm/setup.sh` sets this up (steps 14 and 16 of *The steps*). It makes `/srv/factory/<instance>/transcripts`, owned by `factory`, mode `0700`; writes `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` into `factory.env`; and writes `/etc/tmpfiles.d/factory-<instance>-transcripts.conf` with the one line
+
+```
+d /srv/factory/<instance>/transcripts 0700 factory factory 30d
+```
+
+systemd's daily `systemd-tmpfiles-clean` runs the rule and removes the folder's files older than 30 days. A second run of the script finds all of it in place and changes nothing.
+
+`--transcript-days <n>` sets another age (`--transcript-days 7` writes `7d`). `--transcript-days 0` writes neither the line nor the rule, makes no folder and keeps no transcript; a value that is not a whole number is refused with the option's name. Read a transcript as `factory` or root: `zcat /srv/factory/<instance>/transcripts/<work item>/<run id>.jsonl.gz`.
+
+### In a Cloud Run job
+
+The folder is a Cloud Storage bucket of your own project, mounted into the job as a volume. You make it once; the factory needs no Cloud Storage client and no new right, and `vm/job-start.sh` only checks that the folder can be written.
+
+1. Make a bucket in the job's project and region, with uniform bucket-level access and public access prevented:
+
+   ```bash
+   gcloud storage buckets create gs://<bucket> --project=<project-id> --location=<region> \
+     --uniform-bucket-level-access --public-access-prevention
+   ```
+
+2. Add a lifecycle rule that deletes objects after 30 days. Save `{"rule": [{"action": {"type": "Delete"}, "condition": {"age": 30}}]}` as `lifecycle.json` and run:
+
+   ```bash
+   gcloud storage buckets update gs://<bucket> --lifecycle-file=lifecycle.json
+   ```
+
+3. Give the job's service account `roles/storage.objectUser` on that bucket only, not on the project:
+
+   ```bash
+   gcloud storage buckets add-iam-policy-binding gs://<bucket> \
+     --member=serviceAccount:<job-service-account> --role=roles/storage.objectUser
+   ```
+
+4. Mount the bucket into the job and name the path:
+
+   ```bash
+   gcloud run jobs update <job> \
+     --add-volume name=transcripts,type=cloud-storage,bucket=<bucket> \
+     --add-volume-mount volume=transcripts,mount-path=<path> \
+     --update-env-vars FACTORY_TRANSCRIPT_DIR=<path>
+   ```
+
+`<path>` is absolute and none of the four places *The setting* names. The bucket stays inside your site: only the job's service account and the people you allow read it. At these sizes (about 5 MB per feature) it costs a few cents a month. These commands create things in your cloud; they are not run by the factory or its tests.
 
 ## The stops
 

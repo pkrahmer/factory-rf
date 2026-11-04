@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T20:08:41.456419Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-04T20:08:41.456419Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T20:09:40.273067Z'
+  stage: docs
+  run: d5d765f921e7433e988c1470b2c8129d
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -297,3 +299,25 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
     Earlier tests: none. The diff only adds test files (status `A`); no test file on `main` is changed, renamed or deleted.
 18. factory: started docs as vm.
+19. documenter: Docs for the transcript folder on a VM and in Cloud Run. I changed only `docs/operator-guide.md`, so I did not run `make check` (the factory's checks decide). `make documents` says `documents ok`.
+
+    Files changed (all in `docs/operator-guide.md`):
+    - *The options* table of `vm/setup.sh`: a new row for `--transcript-days <n>` (default 30, `0` keeps none, what is refused). The paragraph on refused values also names it.
+    - *The steps*: step 14 (`environment`) now mentions the `FACTORY_TRANSCRIPT_DIR` line. A new step 16 `transcripts` describes the folder, the `tmpfiles.d` rule, the link refusal and the `0` case. It sits last, after `service`, as built.
+    - The environment-file table: a `FACTORY_TRANSCRIPT_DIR` row.
+    - The Cloud Run job's variable table: a `FACTORY_TRANSCRIPT_DIR` row with the check and the message `job-start: transcript folder <path> cannot be written`, status 1. Step 1 of the job's steps notes the check, which prints no step line.
+    - *Transcripts*: two new subsections. *On a VM* covers the folder, owner and mode, the `factory.env` line, the rule with `30d`, systemd's daily clean, the option and `zcat`. *In a Cloud Run job* gives the four steps the operator takes once: the bucket (uniform access, public access prevented), the 30-day lifecycle rule, `roles/storage.objectUser` on that bucket only, and the volume mount with `FACTORY_TRANSCRIPT_DIR=<path>`. It also states the cost (a few cents a month, about 5 MB per feature) and says the factory and its tests do not run these commands.
+
+    I did not run the `gcloud` commands: they create things in a cloud. I wrote the flags from my knowledge of `gcloud`, and the mount command follows the docs criterion. The operator should check them on first use.
+
+    Cross-read and found current: `README.md`, `docs/project-guide/` and `docs/decisions.md` (the criterion says none). The rest of `docs/operator-guide.md` against the `vm/setup.sh` and `vm/job-start.sh` diff: the `FACTORY_TRANSCRIPT_DIR` row in the settings table and the rest of *Transcripts* needed no change.
+
+    Findings for the coder: none. The code matches the Interface.
+
+    Noted, not changed: with `--transcript-days 0`, a rule file an earlier run wrote stays in `/etc/tmpfiles.d/`. This is the human's open point from the journal. I documented it in step 16 as "remove it yourself" rather than inventing a behaviour.
+
+    `docs/decisions.md`: no entry written, so no "Why" or "Rejected" lines to name.
+
+    `check`: check: green (not run again: passed on tree 279e875c843b at 2026-11-04T20:06:11Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
