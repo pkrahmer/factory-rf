@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T13:04:37.627853Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-11-04T13:04:37.627853Z'
   stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T13:06:48.126081Z'
+  stage: review
+  run: f89b02c6fc7e4ce79a7d6fdda8986749
 ---
 
 # A refused push or hosting call is retried and logged
@@ -141,7 +143,7 @@ GitHub's partial outage of 2026-11-04 (about 09:36 to 10:05 UTC) was analysed in
 
 - `Dispatcher._count` (or wherever a handler error is counted) writes one log line per counted error: `handler error <event key> <n> of <cap>: <exception type>: <text>`, the text on one line and at most 300 characters. Nothing else about the counting or the cap changes.
 - The push of a stage's result (`StageFinisher._commit_and_push`) and of a recorded change (`WorkItemRecorder.publish`), on a push that is refused or cannot reach the remote, waits 5, 15 and 45 s and pushes again, then raises `PushFailed` as today. Each retry writes `push: retry <n> of 3 in <s> s: <reason>`. No force, no rebase, no new commit between the tries. The waits go through the factory's clock or sleeper interface, so the tests wait no real time.
-- `PushFailed` carries git's reason: the last non-empty lines of git's output (at most three, at most 300 characters), in its message and so in every report and log line that names it.
+- `PushFailed` carries git's reason: the last non-empty lines of git's output (at most three, at most 300 characters), in its message and so in every report and log line that names it. The reason is built by the pure function `push_reason(output)` in `factory.domain.git`. Before it takes the last three lines, it leaves out git's advice lines: exactly `Please make sure you have the correct access rights` and `and the repository exists.` (after stripping), and any line that starts with `hint:`.
 - The PyGithub client is created with a retry that backs off and covers `PATCH` as well as the default methods: `GithubRetry(total=5, backoff_factor=2, allowed_methods=<the default methods plus PATCH>)` or its equivalent in the installed version, in the one place the client is built.
 - Only a server refusal (`! [remote rejected]`) and an unreachable remote are retried; `! [rejected]` with `non-fast-forward` or `fetch first` fails at once, no wait, no retry line. The reason's 300 characters are for the whole reason (the up to three lines joined), cut at the end. The stall push in `stalls.py` stays without a retry. The retry is built in `factory.adapters.pygithub_hosting`, used by `pygithub_service(repository, token)`.
 - A test of what happens when the hosting service fails after a stage's claim (in `ensure_pull_request`, called at the stage's start): it pins today's behaviour. If that behaviour charges a crash for a stage in which no agent ran, the test is marked with `pytest.mark.xfail(strict=True, reason=...)` naming that, and the story's entry names it for the human; the fix is not part of this story.
@@ -407,3 +409,27 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
 21. factory: started review as vm.
+22. reviewer: Review of round 0. I read the work item and the diff (`src/`, `tests/`). The factory's `make check` after the coder was green (entry 20). I checked the code paths behind the tests: `GitCli._failed_push` and `_is_rejected`, `opening.ensure_pull_request`, and the dispatcher's wiring in `tick.py`. Production passes the log there, so the handler error line is written.
+
+    Criteria 1, 3, 4, 6, 7, 8, 9 and 10 each have a test that tests what it is named after. Every limit has both sides tested: 300/301 for the error text and the reason, and 3/4/5 lines. Architecture holds:
+    - `push_reason`, `push_is_retried` and `handler_error_line` are pure functions in the domain.
+    - `pushes.py` sits in application and waits through `boundaries.waiter`.
+    - The new `Git.last_push_output` is abstract, and `GitCli` implements it.
+    - The retry is built only in `pygithub_hosting`.
+
+    Security is clean: no marker, no new baseline entry, and the test token is a low-entropy value. The stall push stays without a retry, as the Interface says.
+
+    Findings:
+    1. `tests/application/test_hosting_failure_after_claim.py:9-21`. **What is wrong:** the `xfail(strict=True)` mark also covers the asserts after the first tick (claim pushed, `agent_runtime.requests() == []`). If no claim were pushed, or an agent ran, the test would still xfail. So criterion 5's "no agent run was started" is not pinned. **Fix:** assert the state after the first tick in a test that passes, or in a fixture it shares with the xfail test. Keep only the next-tick asserts (journal `crash`, `crashes == 0`) under the strict xfail mark.
+    2. `tests/application/test_push_retry.py:150-170`. **What is wrong:** the two sides of the three-retry cap are separate test functions: `test_a_push_refused_twice_is_pushed_on_the_third_try_without_a_crash` and `test_a_push_refused_four_times_raises_push_failed_after_three_retries`. The boundary row is missing: refused three times, pushed on the fourth try after three retries and waits of 5, 15 and 45 s. The code handles that row as the Interface says (`src/factory/application/pushes.py:27-34`). **Fix:** one parametrized test over 2, 3 and 4 failures, each row giving the number of tries, the waits and whether `PushFailed` is raised.
+
+    Interface corrected, under the human's leave in entry 14 (answer 1), with the module from entry 9 (answer 1). I added to the `PushFailed` bullet that `push_reason(output)` in `factory.domain.git` builds the reason. It first leaves out git's advice lines (the two exact lines, and lines starting with `hint:`), then takes the last three.
+
+    Open for the human (criterion 5, as entry 11 reports): a crash is charged at the next tick for a stage in which no agent ran. The test pins this as xfail, and the fix is not part of this story.
+
+    Earlier tests:
+    - `tests/application/test_dispatcher.py`: the human's leave, entry 14 answer 4. Only the four named tests are changed, and only by the `handler error ` filter.
+    - `tests/application/test_git_interface.py`: the human's leave, entry 14 answer 3 (renamed to twenty-two).
+    - `tests/application/test_interfaces.py`: the human's leave, entry 14 answer 3 (renamed to twenty-two).
+    - `tests/git_interface_support.py`: the human's leave, entry 14 answer 3. `OPERATIONS` is the name list that only those two tests read.
+    - `tests/test_checkout_hygiene_removed.py`: the human's leave, entry 14 answer 3 (the count is 22, the row id `git-twenty-two`).
