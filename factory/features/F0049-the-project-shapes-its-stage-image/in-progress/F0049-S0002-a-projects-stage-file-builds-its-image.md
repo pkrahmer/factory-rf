@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T00:00:11.897268Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,13 @@ journal:
   kind: started
   at: '2026-11-04T00:00:11.897268Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: question
+  at: '2026-11-04T00:04:24.865472Z'
+  stage: tests
+  run: d1038cfc2d8b4df0bf0d1699c2787433
+  blocked: question
 ---
 
 # A project's stage file builds the image its stages run in
@@ -185,3 +188,34 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
    4. machine scope, as preflight_failed. Leave (feature decision 7): you may add stage_image_failed to the tuple of machine-scoped reasons in tests/entry/test_health.py for criterion 12, and nothing else in that module.
    5. 65536 bytes of the UTF-8 encoding; the non-UTF-8 row is tested at the start's reading of the file (b"\xff" on main gives stage_image_failed), not in stage_layer.
 10. factory: started tests as vm.
+11. tester: I wrote the tests for criteria 1–4, 6–9, 11 and 12. I stopped before criteria 5 and 13: the answers so far don't give either one a seam or an expected output, and any test I wrote now would fix my own guess as the coder's specification.
+
+    Mapping so far:
+    - criterion 1: tests/domain/test_stage_layer.py::test_a_stage_file_within_the_rule_is_accepted (template, FROM alone, lower case, comment and blank line, 64 KiB) and ::test_a_stage_file_that_breaks_the_rule_is_refused (debian, AS, --platform, second FROM, no FROM, RUN before, ARG OTHER before, 64 KiB + 1). The refusal reasons are checked to differ in ::test_each_broken_rule_gives_its_own_reason. The two padded files are checked to be 65536 and 65537 bytes in ::test_the_padded_files_lie_on_both_sides_of_64_kib. The bytes that are not UTF-8 are tested at the start (criterion 6), as entry 9, item 5 says.
+    - criterion 2: tests/domain/test_stage_layer.py::test_the_digest_follows_every_byte_and_the_identity_is_stable. `STAGE_FILE` and `project_image_tag` are checked in ::test_the_stage_file_and_the_project_image_tag_are_named_once.
+    - criterion 3: tests/entry/test_wiring_project_image.py::test_a_start_without_a_stage_file_builds_nothing_and_keeps_the_base
+    - criterion 4: tests/entry/test_wiring_project_image.py::test_a_start_with_a_valid_stage_file_builds_it_once_and_takes_the_project_image. It checks the build's base, tag and time limit, and that the returned settings carry `stage_image` = the project tag and `image` = the layer's identity.
+    - criterion 6: tests/entry/test_wiring_project_image.py::test_a_stage_file_that_does_not_build_stands_as_a_stop (rows failed and time-limit), ::test_a_stage_file_that_breaks_the_rule_stands_as_a_stop_and_builds_nothing (rows rule and not-utf-8, `b"\xff"` on main), and ::test_no_stage_starts_while_the_stage_image_stop_stands (run_instance with `images=`: only the stop stands, one build).
+    - criterion 7: tests/adapters/test_podman_images.py::test_the_build_passes_the_base_the_network_the_tag_and_an_empty_context. It uses a stand-in podman that records the arguments and what the last argument's folder holds. It checks that `image prune -f` comes after the build.
+    - criterion 8: tests/adapters/test_podman_images.py::test_the_output_tail_is_the_last_twenty_lines_in_order (rows 25 and 5). A failed build gives passed=False in ::test_a_build_that_fails_has_not_passed.
+    - criterion 9: tests/adapters/test_podman_images.py::test_a_build_that_reaches_its_time_limit_has_not_passed (ROOMY_LIMIT, ROOMY_BOUND_SECONDS). The 30-minute constant is checked in tests/entry/test_wiring_project_image.py::test_the_build_time_limit_is_thirty_minutes, and that the wiring passes it, in criterion 4's test.
+    - criterion 10: tests/adapters/test_podman_images.py::test_path_is_the_images_configured_path_or_the_base_default (rows with-path and without-path; the inspect arguments are pinned as in entry 9).
+    - criterion 11: tests/entry/test_wiring_project_image.py::test_the_next_start_ends_a_stage_image_stop (rows valid and none)
+    - criterion 12: the row `stage_image_failed` in tests/entry/test_health.py::test_every_stop_reason_makes_the_check_fail_until_it_is_cleared. I also added the reason to the tuple of machine-scoped reasons there, under the leave of entry 9, item 4. Nothing else in that module changed; ruff format split the scope line over several lines.
+    - criteria 5 and 13: not written; see the questions below.
+
+    Files created: tests/domain/test_stage_layer.py, tests/adapters/test_podman_images.py, tests/entry/test_wiring_project_image.py. Changed: tests/entry/test_health.py (one row and the tuple). The wiring tests use a recording `Images` subclass of their own rather than `FakeImages`, because the shape of `FakeImages.builds` was never fixed.
+
+    The run `uv run pytest -q <those files>` stopped with collection errors only: ModuleNotFoundError for `factory.domain.stage_layer`, `factory.adapters.podman_images` and `factory.application.images`. `project_image_settings` and run_instance's `images` keyword don't exist yet either. Because collection stopped, the new health row was not run. `make lint` is green.
+
+    Questions:
+    1. **Criterion 5: where the image's `PATH` enters.** Entry 9 says "the PATHs from images.path of the image in use", but no function takes that path. Today `SYNC_ENVIRONMENT` is a constant in `factory.application.stage_environment`, and `agent_environment(scripts, home)` adds the fixed `_SYSTEM_PATH`. Options:
+       (a) `build_boundaries(settings, token, *, hosting=None, images=None)` sets a new field `Boundaries.image_path: str` (default `/usr/local/bin:/usr/bin:/bin`) from `images.path(settings.stage_image)`. `stage_environment_of(boundaries)` gives the sync run `{"PATH": boundaries.image_path, "HOME": WORK_HOME}`, and `agent_environment(scripts, home, path)` gains a third parameter that the handler wiring fills from `boundaries.image_path`. The test builds boundaries with `FakeImages(paths={IMAGE: "/opt/jdk/bin:..."})`, runs a sync through `FakeContainerRuns` and reads the PATH of the recorded call, then calls `agent_environment` with that path.
+       (b) Only the explicit parameters: `stage_environment_of(boundaries, path)` and `agent_environment(scripts, home, path)`, with the caller in the wiring choosing the path. This tests the joining but not the wiring.
+       I would choose (a).
+    2. **Criterion 13: what factory-watch prints for a stop.** `factory-watch` shows no stop of any reason today. `run_watch` writes the event line and the board, and neither `Watcher` nor `BoardReader` reads the health status. So "as it shows the other stops" gives the test nothing to expect. Options:
+       (a) Drop criterion 13: watch shows no stop, and `stage_image_failed` is no exception.
+       (b) New behaviour: `run_watch` prints each standing stop as `factory-health` does (`<reason> (<scope>): <detail> (since <at>)`) before the event line. That would show every reason, which goes beyond this story.
+       I would choose (a).
+
+    Once these are answered I'll write the remaining tests and end with `doing`.
