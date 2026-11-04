@@ -1,17 +1,13 @@
 ---
-stage: smoke-test
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T09:27:43.039332Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-04T09:27:43.039332Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T09:28:24.910211Z'
+  stage: smoke-test
+  run: 025dbcf1136249dfae9d81d04d4fa80c
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -498,3 +500,45 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     `secrets`: secrets: green (2.5 s)
     `documents`: documents ok
 30. factory: started smoke-test as vm.
+31. smoke-tester: Smoke test run from the repository root, in order, as written. Three of the four commands met their expectation. The first one did not, so this ends with `doing`.
+
+    **Command 1:** `grep -cE '^ARG AGENT_RUNTIME$' vm/Dockerfile`
+    ```
+    3
+    ```
+    Expected `1`. **Not met.**
+
+    **Command 2:** `grep -cE '^ARG CLAUDE_CODE_VERSION=2\.1\.318$|^ARG OPENCODE_VERSION=1\.19\.5$' vm/Dockerfile`
+    ```
+    2
+    ```
+    Expected `2`. Met.
+
+    **Command 3:** `grep -c 'AGENT_RUNTIME=\$FACTORY_AGENT_RUNTIME' vm/job-start.sh`
+    ```
+    1
+    ```
+    Expected `1`. Met.
+
+    **Command 4:** `uv run pytest tests/test_stage_image.py tests/test_vm_job_start.py 2>&1 | tail -1`
+    ```
+    190 passed in 6.46s
+    ```
+    Expected a line ending in `passed` with no `failed`. Met.
+
+    **Acceptance criteria re-read.** The smoke test contradicts no other criterion:
+    - `vm/Dockerfile:1` names `--build-arg AGENT_RUNTIME=<claude|opencode>`.
+    - `vm/job-start.sh:158` passes `--build-arg "AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME"`.
+    - No `npm` line comes after the final `FROM` (`vm/Dockerfile:40`).
+    - The final stage's only `COPY --from` is `/opt/runtime/${AGENT_RUNTIME}`.
+    - The final stage clears the apt lists, `/var/cache/debconf/*-old`, `/var/log/*.log` and `/tmp/*`.
+
+    The image builds named in criterion 9 are the human's on factory-vm. This stage did not run them.
+
+    **Findings**
+
+    1. **Command:** `grep -cE '^ARG AGENT_RUNTIME$' vm/Dockerfile`
+       - **Expected:** `1`
+       - **Observed:** `3`. The bare `ARG AGENT_RUNTIME` line appears at `vm/Dockerfile:5` (before the first `FROM`), `vm/Dockerfile:11` (in the `install` stage) and `vm/Dockerfile:41` (in the final stage).
+       - **Criterion:** none contradicted. The Interface asks only for `ARG AGENT_RUNTIME` without a default, and all three lines have none.
+       - **Note for the next stage:** Docker scopes an `ARG` declared before `FROM` so that each stage must declare it again to use it. Both stages use `${AGENT_RUNTIME}`, so the three lines look necessary, and the `Expect:` count of `1` may be what is wrong rather than the Dockerfile. The `## Smoke test` section belongs to the human. If removing the redeclarations would break the build, the coder should probably ask the human to change the expectation to `3`, not change the Dockerfile.
