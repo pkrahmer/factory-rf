@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T12:11:29.662265Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -271,6 +267,12 @@ journal:
   kind: started
   at: '2026-11-04T12:11:29.662265Z'
   stage: doing
+- number: 48
+  speaker: coder
+  kind: result
+  at: '2026-11-04T12:15:12.943350Z'
+  stage: doing
+  run: 03e8169fe2b844bc897bf7143d024ea4
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -772,3 +774,19 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.1 s)
 47. factory: started doing as vm.
+48. coder: Round 2, second doing run. In entry 46 the tester added the two tests that reviewer findings 1 and 2 (entry 42) asked for: `tests/entry/test_wiring_machine_inputs.py::test_the_built_boundaries_read_the_image_store_and_the_cgroup_slice` and `tests/entry/test_run_image_sizes.py::test_a_run_without_a_stage_file_logs_the_base_size_only_at_its_start`. They pass against the code that was already there: `src/factory/entry/wiring.py:358-359` (`machine=CgroupMachineReadings(...)`, `image_store=images.store_path()`) and `src/factory/entry/run.py:261` (`told = report if has_stage_file or at_start else None`). That means both findings are met. I changed no code and no test in this run.
+
+    Main choice: I left the code as it is. The other option was to rework `run.py:261` or the wiring so the new tests had something to drive, and I rejected it because the code already does what criteria 4, 7 and 8 say.
+
+    `make check` is green: `check: green`, coverage 99.42 %.
+
+    Refactor: no code change in this round, so there was nothing to refactor.
+
+    The journal does not change the meaning of the task, so the Description stays as it is.
+
+    Noticed and not touched (test code, so it is the tester's call):
+    - `tests/cost_image_support.py` still has a private `_launch` that `tests/application/test_cost_record_machine_measures.py` imports.
+    - The project-image-smaller-than-base case is still tested twice in `tests/entry/test_wiring_stage_image_sizes.py`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 3 new, 43 known, 0 gone
