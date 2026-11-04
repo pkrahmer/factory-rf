@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T19:13:26.791001Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-11-04T19:13:20.695485Z'
   stage: doing
   run: 46e5481dcb994eec9b3c369aab3ad2ef
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-04T19:13:26.791001Z'
+  stage: review
 ---
 
 # The cost record sums up the run's tool calls
@@ -319,3 +328,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
+19. factory: started review as vm.
