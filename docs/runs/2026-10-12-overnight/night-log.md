@@ -1503,3 +1503,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 02:23Z: F0049-S0004 (failed fetch stands as stop) PR #530 intake question 3: add the criterion that another GitError is not turned into fetch_failed (as proposed).
 - 02:30Z: F0049-S0004 PR #530 coder question 10: (a) the test checks the first line of the multi-line detail; detail stays str(error).
 - 02:48Z: F0049-S0004 (failed fetch stands as stop) merged #530 (14 runs, $3.66; earlier tests changed only by the helper-move leave) and archived 8f336e9f5; vm's code at 8f336e9f5 (uv sync), factory@vm restarted. F0049-S0005 (documents true) started.
+- 02:53Z: F0049-S0005 (documents true) merged #531 (6 runs, $0.86; documents only, read by me) and archived. No code change, no rebuild. F0049-S0006 (tests share helpers) started.
