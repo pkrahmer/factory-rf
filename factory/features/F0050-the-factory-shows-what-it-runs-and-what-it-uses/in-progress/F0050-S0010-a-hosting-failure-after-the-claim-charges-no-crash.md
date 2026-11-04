@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T22:49:33.422126Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-11-04T22:49:28.035120Z'
   stage: doing
   run: ba2b932ac56b4f77a61830b615424504
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-04T22:49:33.422126Z'
+  stage: review
 ---
 
 # A hosting failure after the claim charges no crash
@@ -399,3 +408,4 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
 
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
+29. factory: started review as vm.
