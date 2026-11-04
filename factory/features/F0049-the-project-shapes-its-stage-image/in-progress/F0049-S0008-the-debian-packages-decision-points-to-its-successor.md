@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 536
 comments_read: [6621759488]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T03:33:57.510832Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-04T03:33:57.510832Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T03:34:35.484705Z'
+  stage: review
+  run: 14eb7e4447ce4f56872fc1b924ba5ac5
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -146,3 +148,17 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
     `check`: check: green (not run again: passed on tree c75cce644896 at 2026-11-04T02:57:19Z)
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: no findings
+
+    I reviewed `git diff main...HEAD -- . ':!factory'`. It is empty: the branch changes only the work item and its `.costs.jsonl` sidecar. That matches the story. The Description and the Interface rule out code and test changes, and the one bullet in `docs/decisions.md` belongs to the documenter (`CLAUDE.md`, *Docs*). The coder rightly left it for the docs stage (entry 10).
+
+    - Group 1, acceptance criteria: criterion 1 has no test. That follows the human's answer in entry 6, option (a): the smoke test and the reviewer check it. Nothing is on the branch for me to check yet, so the docs stage writes it, and the smoke test checks it after the docs stage. Criteria 2 and 3 are the closing ones. The Interface states no rule with a failing side and no limit. The coder's `make check` ended `check: green`, reused on tree c75cce644896 (entry 10).
+    - Groups 2 to 4, architecture, security and quality: no code changed, so nothing applies. `duplicates: 0 new`.
+    - Group 5, work item hygiene: I checked the Description's claims against `main`, and they hold:
+      - `docs/decisions.md:1306`, the entry *Debian's packages follow the base image's release*, still lists seven packages, ends with its `Rejected:` bullet and has no forward pointer.
+      - `docs/decisions.md:1450`, the entry *The factory's tools live apart, under `/opt/factory`, with their own Node*, says it supersedes the old entry for `nodejs` and `npm`.
+      - `STAGE_PACKAGES` in `tests/test_stage_image.py:32` lists the six names, `xz-utils` among them.
+      - `docs/decisions.md:291` uses the same `Superseded in part by "<entry>": ...` form as the bullet the Interface names.
+      
+      The journal gives the main choice (the documenter adds the line) and what was rejected (the coder adding it). Criterion 3 tells the documenter exactly what to write.
+    - Item 6, earlier tests: the diff changes, renames or deletes no test file.
