@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -306,6 +306,11 @@ journal:
   at: '2026-11-04T12:18:43.833097Z'
   stage: smoke-test
   run: 96a423203c834a0696deae107f82965b
+- number: 55
+  speaker: factory
+  kind: done
+  at: '2026-11-04T12:22:43.951532Z'
+  stage: approval
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -900,3 +905,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     - The smoke test does not reach criteria 2, 3 and 6 to 13, and nothing in it contradicts them.
 
     Findings: none.
+55. factory: done (pull request merged); cost: 21 runs, 52.4 min, 287 turns, 865960 tokens in (11692725 more from cache), 153065 out, $11.83
