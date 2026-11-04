@@ -5,7 +5,7 @@ round: 0
 attempts: 0
 crashes: 0
 pull_request: 543
-comments_read: [6635484197, 6635579714]
+comments_read: [6635484197, 6635579714, 6635598534]
 handed_over: null
 claim: null
 journal:
@@ -71,6 +71,11 @@ journal:
   stage: tests
   run: 9206d7470f7c407bb1e5b107fb58eb5f
   blocked: question
+- number: 12
+  speaker: human
+  kind: comment
+  at: '2026-11-04T16:10:12.809325Z'
+  stage: tests
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -212,3 +217,14 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
        I would choose (a). Please also say which home path the stage passes to `read_transcript`: `settings.agent_home` or the dataset's home path.
     2. Opencode, the second row of criterion 2: which files under `.local/share/opencode` make up session S, and what must the gathered content hold? I would choose every file under `.local/share/opencode/storage` whose path names S (`session/*/S.json`, `message/S/*`, and those messages' parts). The test would then check that the gathered content holds each of those files' text. If this opencode version keeps sessions in `opencode.db`, please name that layout instead.
     3. Criterion 7: with `transcript_dir` set, I would check two things. No mount of any container started through the fake containers contains the folder's path, and no `AgentRunRequest.prompt` the fake runtime recorded contains it. Is that the check you want?
+12. 2026-11-04 human: Answers of the human (read together with the correction just above: the factory deletes no old transcripts):
+
+    0. Because of the correction, the tester removes again what it wrote for the deletion: `test_the_transcript_days_are_read_or_refused`, `test_only_files_strictly_older_than_the_days_are_removed` and `test_removing_old_transcripts_logs_a_line_only_when_it_removed_any`. Criterion 6 is gone.
+
+    1. **(a)** `Boundaries` gains `transcripts: TranscriptStore | None = None` (None when `FACTORY_TRANSCRIPT_DIR` is unset or empty); the stage builds the `TranscriptKeeper` from it and `boundaries.log`. `ScriptedRun` in the fake runtime gains `transcript: Transcript | None = None`, which the fake's `read_transcript` returns for the result's session. The home the stage passes to `read_transcript` is the agent's home on the dataset as the host sees it: `settings.workspace / "home"` (the container's `WORK_HOME`, `/work/home`, is the dataset's `home`). Not `settings.agent_home`, which holds the read-only agent files.
+
+    2. Falls away with the correction: `activity_tick` does not change in this story.
+
+    3. opencode: no file layout. The opencode wrapper already reads the run's JSON event stream as it runs; that stream, one event per line as printed, is the transcript (`extension` `jsonl`). `read_transcript(home, session)` returns the lines of the last run of that session, or `None` when the wrapper saw none. The test scripts a stream and checks that the content is its lines. Put this into the Interface.
+
+    4. Yes, exactly that check.
