@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947, 6634929291]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T15:42:01.068996Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -181,6 +185,11 @@ journal:
   at: '2026-11-04T15:41:53.936346Z'
   stage: doing
   run: 11f295005d7c4dc281dafd5c4520bb38
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:42:01.068996Z'
+  stage: tests
 ---
 
 # One fetch per iteration
@@ -482,3 +491,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     Main choice: the reason for the skip now lives in the public docstring, where finding 4 asked for it. I rejected keeping it only as a code comment (option B in entry 28), because then the docstring would be wrong for `fetched=True`.
 
     Noticed, not touched: the 3 new `make duplicates` findings in `src/factory/domain/cost_records.py:41-43`, which are outside this story.
+32. factory: started tests as vm.
