@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 547
-comments_read: []
+comments_read: [6642379279]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: acfdc82cfd3b41f4a886e6c35eaf12ba
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-04T21:20:14.917374Z'
+  stage: intake
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -96,3 +101,8 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
    3. The Interface's Tests line leaves two options open: add rows to `tests/domain/test_tool_uses.py` (which needs the human's leave in `feature.md`), or a new module `tests/domain/test_tool_uses_replayed_lines.py`. I would choose the new module, which needs no leave. Please confirm, so the tester doesn't have to decide.
 
    Checked and fine: the pytest `addopts` already sets `-q`, and the smoke test command passes none; the second smoke test is runnable and its Expect line can be checked.
+4. 2026-11-04 human: Answers of the human: all three as you propose.
+
+   1. Yes, add that criterion, with the two rows (second line later, second line `null`).
+   2. Yes, add that criterion, with the two rows (the blob line before the `user` line, and after it).
+   3. Yes: a new module `tests/domain/test_tool_uses_replayed_lines.py`; no earlier test changes. If a shared fixture of `tests/domain/test_tool_uses.py` is needed, the standing leave to move a shared helper covers it.
