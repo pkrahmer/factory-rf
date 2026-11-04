@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T18:23:39.083121Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-04T18:23:39.083121Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-11-04T18:26:24.241231Z'
+  stage: doing
+  run: 053c62c802f146e890df9f30594b9551
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -515,3 +517,20 @@ Expect: the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: no
     - tests/domain/test_contract_version_4.py: the human's leave, journal 4 (the `"4.2"` pins -> `"4.3"`)
     - tests/domain/test_contract_version_4_2.py: the human's leave, journal 4 (the `"4.2"` pins -> `"4.3"`)
 27. factory: started doing as vm.
+28. coder: Round 1. I fixed the reviewer's two code findings from journal 26. The rest of its findings are changes to tests, so I end with `tests`. `make check` is green after my change (`check: green`).
+
+    Code changes:
+    - Finding 1, `src/factory/adapters/claude_runtime.py`: `read_transcript` now returns `None` for a session that is not one plain file name. That means an empty session, `.`, `..`, or a session containing `/`, `\`, `*`, `?`, `[` or `]`. The new private helper `_is_plain_session` and the constant `_SESSION_REFUSED_CHARACTERS` do the check before the glob runs. Main choice: refuse such a session (no transcript) instead of escaping it with `glob.escape`. Escaping would still let a `/` or `..` reach outside `.claude/projects`. Refusing stops both risks with one rule, and a real Claude Code session id (a UUID) never contains these characters.
+    - Finding 2, `src/factory/adapters/opencode_runtime.py`: the per-session dict `_streams` is replaced by `_last_stream: tuple[str, str] | None`, which holds the session and event stream of the latest run only. `read_transcript` returns `None` for any other session. The stage keeps the transcript right after its run, so nothing reads an older stream. I rejected the other fix the reviewer offered, dropping a stream once it is read: it would make `read_transcript` change state, and a stream the stage never reads (no transcript folder set) would still stay in memory.
+
+    Test changes for the tester (findings 1 and 3 to 8 of journal 26):
+    1. `tests/adapters/test_claude_runtime_transcript.py`: make the found and missing cases rows of one parametrized test (finding 5). Assert `transcript.extension == "jsonl"` on the found row (finding 4). Add refused rows where a session file exists but the session asked for is `../<session>`, `*` or `a/b`, and expect `None` (finding 1).
+    2. `tests/adapters/test_opencode_runtime_transcript.py`: make the "its run's stream" and "never seen" cases rows of one parametrized test (finding 6). Add rows for a budget-resumed run, whose transcript holds the first call's events and the resume's, using the stand-in's `over_budget` step and its resume, and for two runs in a row, where the second run's transcript leaves out the first run's lines (finding 3). With the change above, a row that asks for the first run's session after a second run of another session now gets `None`.
+    3. `_sha256` in `tests/application/test_stage_transcripts.py:121` and `tests/application/test_transcript_keeper.py:23`: move it to one `*_support.py` module under `tests/` and use it from both files (finding 7). Both are this story's tester's files.
+    4. `tests/application/test_stage_transcripts.py`: fold `test_a_later_run_of_an_earlier_session_names_its_own_file` and `test_a_later_run_whose_copy_fails_names_no_earlier_file` into one parametrized test, or give them a shared fixture (finding 8).
+
+    Refactor: I read the round's diff and found nothing more to change.
+
+    Description: the reviewer already rewrote it in journal 26, and this round changes nothing in it.
+
+    Noticed, not touched: nothing new.

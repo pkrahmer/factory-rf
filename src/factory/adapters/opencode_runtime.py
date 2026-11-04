@@ -582,8 +582,9 @@ class OpencodeRuntime(AgentRuntime):
         self._starters = Starters(login_files=LoginFiles(api=api_login_file))
         self._provider_limit = ProviderLimit() if provider_limit is None else provider_limit
         self._provider_file = provider_file
-        # The event streams of each session's last run, which are its transcript.
-        self._streams: dict[str, str] = {}
+        # The session and event stream of the latest run only: the stage keeps a transcript
+        # right after its run, so an older stream would only grow a long-lived instance.
+        self._last_stream: tuple[str, str] | None = None
         # What the calls of the current run printed, the first call's and its resume's.
         self._printed: list[str] = []
 
@@ -614,7 +615,7 @@ class OpencodeRuntime(AgentRuntime):
             if result.end_reason == "budget" and result.session is not None:
                 result = self._resume(request, files, model, result, started)
             if result.session is not None:
-                self._streams[result.session] = "".join(self._printed)
+                self._last_stream = (result.session, "".join(self._printed))
             return finished_run(result, started, self._kill_points)
         finally:
             files.remove()
@@ -622,12 +623,14 @@ class OpencodeRuntime(AgentRuntime):
     def read_transcript(self, home: Path, session: str) -> Transcript | None:
         """The JSON events the last run of `session` printed, one per line, whatever `home`.
 
-        `None` when this runtime ran no call of that session.
+        `None` when the latest run of this runtime was not of that session.
         """
         # The wrapper read the stream as the call printed it; opencode's own files are not read.
         del home
-        stream = self._streams.get(session)
-        if stream is None:
+        if self._last_stream is None:
+            return None
+        last_session, stream = self._last_stream
+        if last_session != session:
             return None
         return Transcript(extension="jsonl", content=stream.encode("utf-8"))
 

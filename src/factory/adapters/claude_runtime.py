@@ -87,6 +87,9 @@ BUDGET_SUBTYPE = "error_max_budget_usd"
 _PATH_KEYS = ("file_path", "notebook_path")
 # Claude Code keeps its sessions under its configuration folder, `$HOME/.claude`.
 _SESSION_FOLDER = ".claude/projects"
+# A session id comes from the runtime's output and becomes part of a glob pattern; a separator,
+# a parent step or a glob character in it could reach another session's file or leave the folder.
+_SESSION_REFUSED_CHARACTERS = frozenset("/\\*?[]")
 
 
 # A negative count or cost is no measure: such a reply does not parse, so the call is `died`.
@@ -310,6 +313,12 @@ def _result(
     )
 
 
+def _is_plain_session(session: str) -> bool:
+    if session in {"", ".", ".."}:
+        return False
+    return not _SESSION_REFUSED_CHARACTERS.intersection(session)
+
+
 def _request_of(started: Launch, cwd: Path) -> ProcessRequest:
     return ProcessRequest(
         argv=started.argv, cwd=cwd, env=started.env, time_limit=started.time_limit
@@ -389,8 +398,10 @@ class ClaudeCodeRuntime(AgentRuntime):
     def read_transcript(self, home: Path, session: str) -> Transcript | None:
         """The session's `.claude/projects/<folder>/<session>.jsonl` under `home`.
 
-        `None` when no project folder holds it.
+        `None` when no project folder holds it, or when `session` is not one plain file name.
         """
+        if not _is_plain_session(session):
+            return None
         for found in sorted(home.glob(f"{_SESSION_FOLDER}/*/{session}.jsonl")):
             return Transcript(extension="jsonl", content=found.read_bytes())
         return None
