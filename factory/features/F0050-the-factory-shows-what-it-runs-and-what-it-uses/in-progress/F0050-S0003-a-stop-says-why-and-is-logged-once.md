@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 541
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T13:31:38.562307Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-04T13:31:38.562307Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-04T13:32:01.447180Z'
+  stage: intake
+  run: e6064427b7024619b55adaad0fe96f49
+  blocked: question
 ---
 
 # A stop says why, and is logged once
@@ -59,3 +62,10 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. Questions before the story is buildable:
+
+   1. Interface, empty detail: the first Interface line says that no stop with an empty or blank detail reaches the log, the health status or the stop records, for every stop. Criterion 1 tests only the probe of `main` (`main_branch_failing`). Other stops are built from failed commands too (for example `repository fetch_failed`, preflight stops), and no criterion covers them. Options: (a) limit the Interface line to `main_branch_failing`, which I would choose; (b) add a criterion that `StopService.raise_stop` refuses or replaces an empty or blank detail, with rows for an empty and a blank detail, and name where the command text and its ending come from; (c) list the other stops that need a row.
+   2. Interface, the home of the rule: "The coder decides where this is filled in" leaves the signature open. No module or function is named for the command's result (for example the DTO that carries the exit status or signal, and how the output is tested for blank). The tester cannot write a test against a seam nobody has named. Please name the seam, or say that the tests go through the probe of `main` only (in which case say so in the Interface).
+   3. Interface and criterion 2, how "the factory itself is stopping" is known: it says only "the service manager's stop, SIGTERM to the factory". What the factory looks at is not stated: a flag set by its own SIGTERM handler, or the signal number of the ended command. A command ended by signal 15 from anything else (for example an out-of-memory kill or a timeout) must still be judged, and that side has no criterion. Please add a row where a probe is ended by signal 15 while the factory is not stopping, and say which of them raises `main_branch_failing`.
+   4. Criterion 2 covers only the probe of `main`; the Interface says "a command". Does the rule hold for all project commands (the checks of a stage, `make check`), or only for the probe of `main`? If all, each needs a row. If only the probe, change the Interface to say so.
+   5. Criterion 3, "after a clear, the next raise writes it again": the Interface also says the log line `stop cleared <reason>` is unchanged, and criterion 4 says the records note only the first raise and the clear. Please say whether a raise with another detail while the stop stands adds a record. I read "unchanged" as no new record, and would like a row that pins it.
