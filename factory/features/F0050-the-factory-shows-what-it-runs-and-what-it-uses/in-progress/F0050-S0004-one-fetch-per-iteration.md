@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T14:31:58.485851Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-04T14:31:52.155648Z'
   stage: intake
   run: 674bc08686514862aed357edc80cbb89
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-04T14:31:58.485851Z'
+  stage: tests
 ---
 
 # One fetch per iteration
@@ -107,3 +116,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
    - Smoke test: runnable. `addopts` already sets `-q`, so `tail -1` shows the summary line. The Expect line is checkable: a count not larger than 3 (answer 2 confirms it), then a line ending in `passed` with no `failed`.
    - Architecture: the entry layer fetches and the application tick receives the flag, so no layer rule is broken. No new interface or dependency.
    - Scope: within S0004 of `feature.md` and not in its Out of scope. The Description is unchanged in meaning.
+7. factory: started tests as vm.
