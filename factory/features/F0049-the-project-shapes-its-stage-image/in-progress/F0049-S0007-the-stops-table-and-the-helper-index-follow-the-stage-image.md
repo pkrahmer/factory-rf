@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 534
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T03:12:20.021341Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-04T03:12:13.913652Z'
   stage: tests
   run: 34b45c1e6ff1428484507aac7d489a56
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:12:20.021341Z'
+  stage: doing
 ---
 
 # The stops table and the test helper index follow the stage image
@@ -92,3 +101,4 @@ Expect: `0`, then `listed`, then `listed`, then `documents ok`.
    Open: none. The coder has no code to write. The doc edits belong to the documenter, as CLAUDE.md's *Docs* section says.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
