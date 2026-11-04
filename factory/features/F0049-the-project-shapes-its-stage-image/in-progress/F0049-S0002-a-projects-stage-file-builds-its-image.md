@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T01:10:21.014452Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -220,6 +224,11 @@ journal:
   at: '2026-11-04T01:10:14.539515Z'
   stage: doing
   run: 11b245c29da949a0abdb900531348272
+- number: 39
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:10:21.014452Z'
+  stage: tests
 ---
 
 # A project's stage file builds the image its stages run in
@@ -665,3 +674,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     Noticed, not touched: the reviewer's notes in entry 36. `STAND_IN` in tests/adapters/test_podman_images.py copies `PODMAN_SCRIPT`/`PodmanPlan` from tests/podman_support. There is no row for inspect printing `null`. `SYSTEM_PATH` is defined again in that test. Entry 17's notes still stand as well: the timed-out build's detail is podman's no-end text, the inspect failure falls back to the default `PATH`, and `image=None` reuses no stamp.
 
     Description: unchanged in this run. The reviewer already brought it up to date with entry 28.
+39. factory: started tests as vm.
