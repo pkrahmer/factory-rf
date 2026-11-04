@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 532
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T02:54:11.863846Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-04T02:54:05.693191Z'
   stage: intake
   run: dedeb7b499f246449967edb6a2c29d36
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:54:11.863846Z'
+  stage: tests
 ---
 
 # The stage image's tests share their helpers and pin the image without an environment
@@ -72,3 +81,4 @@ Expect: `0`, `0`, then a line that ends in `passed` with no `failed`.
    - Smoke test: the grep and pytest commands are runnable. `pyproject.toml` already sets `-q` in `addopts` and the command passes none, so `tail -1` prints the summary line. Each `Expect:` (`0`, `0`, a line ending in `passed` with no `failed`) can be checked against the output.
    - Architecture: tests only, in the folders that mirror the package. Shared helpers go into support modules, as `CLAUDE.md` requires.
    - Scope: within F0049 as a follow-up of the S0002/S0003 reviewer notes. Nothing is in the feature's "Out of scope", and the story leaves `STAND_IN` alone.
+4. factory: started tests as vm.
