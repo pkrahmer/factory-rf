@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T02:37:01.299874Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-04T02:37:01.299874Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T02:38:05.355313Z'
+  stage: review
+  run: 7a0a9e9a22df442fac01849d811b82c5
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -268,3 +270,20 @@ Expect: a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 18. factory: started review as vm.
+19. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (`src/factory/entry/run.py`, `tests/entry/test_run_fetch_before_tick.py`) against the work item.
+
+    The code holds. `_follow_main` catches only `FetchFailed`. It raises `RepositoryStop(scope="repository", reason="fetch_failed", detail=str(error), at=clock.now())` through `StopService`, then returns `False` before it reads the stage file. After a fetch that passes it calls `clear_stop("fetch_failed")`. `prepare` returns `False` when `_follow_main` does. Any other `GitError` still reaches the scheduler. This matches the Interface and mirrors `Tick._fetch` (`src/factory/application/tick.py:139`).
+
+    Criteria 1 to 4 each have a parametrized test that checks what the criterion says. The Interface states no numeric limit. The coder's `make check` was green (entry 17). Architecture and security are clean: the change stays in `factory.entry`, imports only from lower layers, and adds no marker that silences a check. The journal names the main choice (catch in `_follow_main`, not in `prepare`) and what was rejected. The Description and the docs criterion match what was built.
+
+    Findings:
+
+    1. `tests/entry/test_run_fetch_before_tick.py:29-57,158-169`: the file holds second copies of helpers that `tests/entry/test_run_project_image_rebuild.py` already has:
+       - the `StageSeen` dataclass (rebuild file line 35), the same fields;
+       - `built_path` (line 69), the same body;
+       - the fixtures `settings` and `base` (lines 109-118), the same code;
+       - the constants `BASE_IDENTITY`, `FIRST` and `SECOND` (lines 26-28).
+
+       Fix: under the standing leave to move a shared test helper, the tester moves `StageSeen`, `built_path` and the three constants to one support module under `tests/` (for example `tests/stage_image_support.py`). It moves the two fixtures to `tests/conftest.py` under names that clash with no other `settings` fixture. Both test modules then use them from there, and every earlier test keeps its name and what it checks.
+
+    Earlier tests: none. The diff only adds `tests/entry/test_run_fetch_before_tick.py` (status `A`) and changes no test file that `main` holds.
