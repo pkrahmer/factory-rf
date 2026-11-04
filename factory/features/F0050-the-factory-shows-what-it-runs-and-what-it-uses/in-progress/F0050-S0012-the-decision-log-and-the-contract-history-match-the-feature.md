@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 550
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T23:02:51.531192Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-04T23:02:46.041810Z'
   stage: review
   run: 1e01b6a8eee046f3b17f12a3589e4edf
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:02:51.531192Z'
+  stage: docs
 ---
 
 # The decision log and the contract's history match the feature
@@ -138,3 +147,4 @@ Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
    - Group 6 (earlier tests): none. The diff changes no test file.
 
    description corrected: "A run's transcript is kept in the transcript folder" (`docs/decisions.md:1523`) -> "A run's transcript is kept in a folder the site names, never on GitHub" (`docs/decisions.md:1533`). The new title is the entry's heading as it stands in the log. The new line number is the one intake entry 3 gives.
+10. factory: started docs as vm.
