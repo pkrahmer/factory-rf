@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T01:49:47.660768Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-04T01:49:42.377090Z'
   stage: review
   run: 45d2c5ce71e6491fbdbf88349a1524b3
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:49:47.660768Z'
+  stage: doing
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -311,3 +320,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     5. Work item, criterion 9: it asks for "the four log lines", but the Interface and the smoke test name three (`built`, `back to the base at`, `failed at`). The documenter writes from this criterion. Fix: change it to "the three log lines".
 
     Earlier tests: none. The diff adds `tests/entry/test_run_project_image_rebuild.py` and changes no test file that `main` holds.
+20. factory: started doing as vm.
