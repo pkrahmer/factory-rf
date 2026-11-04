@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-11-04T02:45:58.687119Z'
   stage: smoke-test
   run: dade819c34a94968ba79127ff2c3b8fd
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-11-04T02:46:51.301321Z'
+  stage: approval
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -480,3 +485,4 @@ Expect: a line that ends in `passed` with no `failed`.
     The smoke test contradicts none of the criteria. It does not exercise criterion 5 (`make check`) or criterion 6 (`docs:`); the factory checks those itself.
 
     Findings: none.
+32. factory: done (pull request merged); cost: 14 runs, 13.9 min, 108 turns, 328563 tokens in (2546380 more from cache), 42652 out, $3.66
