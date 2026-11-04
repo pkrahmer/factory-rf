@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 539
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T10:12:34.648884Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-04T10:12:34.648884Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-04T10:13:28.161841Z'
+  stage: intake
+  run: 6e70f038875745769734c3dc9db62f8b
+  blocked: question
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -75,3 +78,16 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (format check passed):
+
+   1. Smoke test, third command: `uv run pytest tests/domain -q 2>&1 | tail -1`. `pyproject.toml` already sets `addopts = "-q ..."`, so the extra `-q` gives `-qq` and pytest prints no summary line. The `Expect:` ("a line that ends in `passed`") cannot be met. Proposed: drop the `-q` from the command.
+
+   2. Interface: `store_free_bytes`, `dataset_free_bytes` and `memory_total_bytes` each state a source and a behaviour, but no criterion tests their values. Criterion 2 covers only the `None` side, and criterion 4 covers the peak and the CPU and wait fields. Proposed: add a criterion with a row per field. `store_free_bytes` is the free space of the file system holding podman's image store, `dataset_free_bytes` is the free space of `FACTORY_WORKSPACE`, and `memory_total_bytes` is `MemTotal` of `/proc/meminfo`, converted from kB.
+
+   3. Interface: the log line shows "<GB> GB" with two decimals, but not whether a GB is 10^9 or 2^30 bytes. Two coders will read it two ways and both will pass any test. The Description's "2.4 GB" gives no hint. Proposed: 10^9 bytes, with a criterion row such as 1_580_000_000 giving `1.58`.
+
+   4. Criterion 6 names rows only for the warnings count. The Interface also states a second log line, `stage image: base <GB> GB`, for an instance without a stage file, and the `built ... in <s> s, ... at <commit>` fields. The base-only line needs its own criterion row (the form, and that it is written at the factory's start).
+
+   5. The Interface says the image sizes are measured "when the factory builds or adopts an image". Criterion 3 only says they change after a build or a return to the base. Adopting an image (reusing an existing one with no build) has no criterion. Proposed: add a row where an adopted image gives the sizes without a build.
+
+   6. The warnings rule has no criterion for case-insensitivity ("WARN" or "warning", case ignored) beyond the three listed rows. For example, a lowercase `warn` line and a mixed-case `Warning` line. Proposed: one row for each.
