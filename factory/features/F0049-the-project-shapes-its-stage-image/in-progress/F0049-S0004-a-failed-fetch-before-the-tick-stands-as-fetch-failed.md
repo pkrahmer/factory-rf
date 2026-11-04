@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T02:25:14.577147Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T02:25:11.270142Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:25:14.577147Z'
   stage: intake
 ---
 
@@ -84,3 +93,4 @@ Expect: a line that ends in `passed` with no `failed`.
    - Architecture: the change sits in `factory.entry`, which wires the stop service, and calls `StopService` and `clear_stop`, so no layer is crossed.
    - Scope: it follows S0003's accepted-for-now behaviour and stays inside F0049's rebuild scope, and nothing in the feature's Out of scope is touched.
 4. 2026-11-04 human: Yes, add that criterion before the two closing ones, as you propose.
+5. factory: started intake as vm.
