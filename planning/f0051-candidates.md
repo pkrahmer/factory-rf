@@ -71,6 +71,10 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 
 45. **A question run does not hand on what it learned.** S0010: the tester's rerun after its question read nine of the same files again (77 KB) and missed a helper it had found in the first run, which became a review finding; about $0.20 and 40 s, and one finding. Fix: a question entry ends with "Found so far", the helpers, fixtures and files the stage will reuse, with their paths, and the rerun starts from that list.
 
+46. **A docs-only story pays for three stages that produce nothing.** S0012 (and F0049-S0005, S0007, S0008): tests, doing and review made nothing and cost $0.44 (53 %) and 192 s (77 %) of the run time. Fix: the intake may send a story whose Interface touches only documents straight to `docs` (`factory/pipeline.yml`, `intake.md`).
+47. **The acceptance runs `make check` on a tree the gate already passed.** A0002: 127 s, 27 % of its run. Fix: the factory puts the known result (`passed on tree ...`) into the acceptance prompt, and the agent runs `make check` only when there is none.
+48. **My restart killed a running stage.** At 23:13Z the human's restart of factory@vm (moving its code to main after S0012's merge) killed A0002's first run, which had started at once: 111 s and up to about $0.40 with no record (candidate 26). Fix for the playbook: before a restart, check that no claim is held (`factory-watch`), and restart between stages only, as the playbook's rebuild rule already says.
+
 ## The repository is easier to navigate (the human, 2026-11-04)
 
 38. **`claude/` becomes `agents/`.** It holds the factory's agent files and `settings.json` in Claude Code's format, which the opencode runtime translates per run (decision of 2026-10-19, F0020-S0004); the name says one runtime. Touches `vm/Dockerfile`, the wiring, the coder's write paths in `factory/pipeline.yml`, the docs and tests.
