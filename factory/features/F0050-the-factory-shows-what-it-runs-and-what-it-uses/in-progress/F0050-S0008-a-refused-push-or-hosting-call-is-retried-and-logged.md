@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T12:45:47.161275Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-11-04T12:45:40.725068Z'
   stage: tests
   run: 97005f8c0cc942d8851a90f9728c2805
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T12:45:47.161275Z'
+  stage: doing
 ---
 
 # A refused push or hosting call is retried and logged
@@ -202,3 +211,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     Test run: I ran the test files once. Collection stopped on `ImportError: cannot import name 'push_reason' from 'factory.domain.git'`, which is the expected missing name. Because collection stopped there, that run did not show the other files' failures. I did not run them again (stage rule). `make lint` is green. The type check was skipped, as this stage allows.
 
     `lint`: lint: green (0.1 s)
+12. factory: started doing as vm.
