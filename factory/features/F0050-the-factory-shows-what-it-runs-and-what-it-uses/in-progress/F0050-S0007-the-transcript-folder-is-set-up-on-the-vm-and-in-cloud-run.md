@@ -1,7 +1,7 @@
 ---
-stage: approval
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 545
@@ -138,6 +138,11 @@ journal:
   speaker: human
   kind: close
   at: '2026-11-04T20:14:40.990082Z'
+  stage: approval
+- number: 25
+  speaker: factory
+  kind: send_back
+  at: '2026-11-04T20:14:46.041783Z'
   stage: approval
 ---
 
@@ -393,3 +398,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     Leave for the reviewer: make exactly these edits to the Description, Interface, criteria and docs criterion on its next run. The coder and the tester follow them in this round: the coder takes out what the option and the rule added to `vm/setup.sh`; the tester takes out the tests of the option and the rule, and still makes finding 2's change.
 23. 2026-11-04 human: Sent back by the human: the decision above (no retention on the VM; drop the tmpfiles.d rule and --transcript-days) came in after the review, so the branch still holds them. Apply it in this round, as the comment above says; the reviewer edits the story under its leave.
 24. 2026-11-04 human: closed the pull request.
+25. factory: sent back to doing, round 2.
