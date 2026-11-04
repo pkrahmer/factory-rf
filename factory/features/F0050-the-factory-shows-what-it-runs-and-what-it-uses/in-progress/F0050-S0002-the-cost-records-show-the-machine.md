@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T11:40:32.697858Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -146,6 +150,11 @@ journal:
   at: '2026-11-04T11:40:26.470094Z'
   stage: doing
   run: 2846c67e158048ccb51920e637e4c438
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-04T11:40:32.697858Z'
+  stage: tests
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -398,3 +407,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     2. `tests/disk_support.py`, `FakeDiskSpace.free_bytes`: when asked about a path it was not told, raise `FileNotFoundError` instead of `KeyError`, so an unknown path reads as a file system that cannot be read. This turns `tests/application/test_stage_provider_limit.py::test_a_stage_whose_limit_outlasts_the_ceiling_stalls_with_its_note` green. Every earlier test keeps what it checks.
 
     The Description needs no rewrite. Entry 23 changes only these two tests. It also accepts the `"machine":null` design against an omitted key, and it leaves to the documenter the operator-guide sentence on the `job` profile's cgroup. Still open for the coder's next run: the refactor step, a final `make check`, and `make duplicates`, which has not been run.
+26. factory: started tests as vm.
