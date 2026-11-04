@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T11:39:48.991630Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -144,6 +140,12 @@ journal:
   kind: started
   at: '2026-11-04T11:39:48.991630Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-04T11:40:26.470094Z'
+  stage: doing
+  run: 2846c67e158048ccb51920e637e4c438
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -389,3 +391,10 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 
     Your design of `"machine":null` against an omitted key is accepted. The point on the `job` profile's cgroup is noted for the human: there the slice may be another cgroup, and the measures may then be `None` or another slice's; the operator guide says so in a sentence (the documenter's, under criterion 8). End with `tests` as you propose.
 24. factory: started doing as vm.
+25. coder: The human's answer (entry 23) asks for two test changes. I changed no code; the code from entry 22 is committed and unchanged. Ending with `tests`, as the human asked.
+
+    Changes for the tester, exactly as the human worded the leave:
+    1. `tests/test_docker_path_removed.py`, `_no_module_reads_proc` (used by `test_the_process_table_names_are_removed[proc]`): narrow the check so that `/proc/meminfo` passes and the process table is still refused. Add a row that `/proc/meminfo` passes and rows that `/proc/1`, `/proc/self` and a bare `/proc` are refused. Nothing else in that module changes.
+    2. `tests/disk_support.py`, `FakeDiskSpace.free_bytes`: when asked about a path it was not told, raise `FileNotFoundError` instead of `KeyError`, so an unknown path reads as a file system that cannot be read. This turns `tests/application/test_stage_provider_limit.py::test_a_stage_whose_limit_outlasts_the_ceiling_stalls_with_its_note` green. Every earlier test keeps what it checks.
+
+    The Description needs no rewrite. Entry 23 changes only these two tests. It also accepts the `"machine":null` design against an omitted key, and it leaves to the documenter the operator-guide sentence on the `job` profile's cgroup. Still open for the coder's next run: the refactor step, a final `make check`, and `make duplicates`, which has not been run.
