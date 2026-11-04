@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T13:19:05.599412Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -217,6 +213,12 @@ journal:
   kind: started
   at: '2026-11-04T13:19:05.599412Z'
   stage: review
+- number: 38
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T13:19:40.955736Z'
+  stage: review
+  run: 1d2a63aed275446c9cb81dd09d37c987
 ---
 
 # A refused push or hosting call is retried and logged
@@ -665,3 +667,35 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
 37. factory: started review as vm.
+38. reviewer: Round 2 review. I read the work item, the diff's stat and the whole diff under `src/` and `tests/`. The factory's `make check` after the coder was green (entry 36: `check: green`, coverage 99.41 %).
+
+    Round 1's only finding (entry 30, criterion 11 added) is fixed. `tests/domain/test_push_reason.py::test_the_reason_leaves_out_gits_advice_lines` is one parametrized test with three rows:
+    - the two advice lines with leading spaces after a cause line;
+    - three `hint:` lines after a cause line;
+    - `remote: Please make sure you have the correct access rights`, which is kept.
+
+    The first two rows compare the reason with the cause line exactly, so a kept advice or hint line fails them. The third row pins the "exactly" side of `_is_reason_line` (`src/factory/domain/git.py:165-168`).
+
+    The code has not changed since rounds 0 and 1. I checked it again against groups 1 to 5:
+    - Every criterion, 1 to 11, has a test that checks what it is named after.
+    - Both sides of each limit are tested: 300/301 characters for the error text and for the reason, 3/4/5 lines, and 2/3/4 refusals against the cap of three retries.
+    - Criterion 5 is the strict-xfail case, and its first-tick asserts are in a test that passes.
+    - The architecture holds. `push_reason`, `push_is_retried` and `handler_error_line` are pure functions in the domain. `pushes.py` is in application and waits only through `boundaries.waiter`. `Git.last_push_output` is abstract and `GitCli` implements it. The `GithubRetry` is built only in `pygithub_hosting.hosting_retry`.
+    - Security: no silencing marker, no baseline entry, no string-built shell.
+    - Quality: names and docstrings fit, and I found no second copy of an existing helper.
+    - Hygiene: the Description and Interface match what was built, and the docs criterion (13) still describes what the reader must know.
+
+    no findings
+
+    Open for the human (criterion 5, as entries 11, 28 and 36 report): at the next tick a crash is charged for a stage in which no agent ran. The strict xfail test pins this. The fix is not part of this story.
+
+    Earlier tests:
+    - `tests/application/test_dispatcher.py`: the human's leave, entry 14 answer 4. Only the four named tests are changed, and only by the `handler error ` filter.
+    - `tests/application/test_git_interface.py`: the human's leave, entry 14 answer 3 (renamed to twenty-two).
+    - `tests/application/test_interfaces.py`: the human's leave, entry 14 answer 3 (renamed to twenty-two).
+    - `tests/git_interface_support.py`: the human's leave, entry 14 answer 3 (`last_push_output` added to `OPERATIONS`).
+    - `tests/test_checkout_hygiene_removed.py`: the human's leave, entry 14 answer 3 (the count is 22 and the row id is `git-twenty-two`).
+
+    Notes:
+    - `tests/domain/test_push_reason.py:85-89`: the constants of the new test sit in the middle of the module, not beside the other constants at the top.
+    - `tests/domain/test_push_reason.py:41-43`: the `advice-left-out` row of `test_the_reason_holds_gits_last_lines` overlaps with the new `advice-lines-left-out` row.
