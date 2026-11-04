@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T02:25:36.571414Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-04T02:25:30.368432Z'
   stage: intake
   run: 6df60ff5a5044772b884f55244368e78
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:25:36.571414Z'
+  stage: tests
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -103,3 +112,4 @@ Expect: a line that ends in `passed` with no `failed`.
    - Smoke test: the command runs pytest with no `-q`, and `addopts` already sets `-q`. So the last line ends in `passed`, and the Expect line can be checked.
    - Architecture: the change stays in `factory.entry`, which wires the stop service, and calls `StopService` and `clear_stop` from the layers below. No layer is crossed, and no new dependency.
    - Scope: it ends the "accepted for now" behaviour of F0049-S0003 inside F0049's rebuild scope. Nothing in the feature's Out of scope is touched. No existing test is changed.
+7. factory: started tests as vm.
