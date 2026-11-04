@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T14:49:20.687350Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-04T14:49:14.386835Z'
   stage: tests
   run: d8bef35f8c6746e7b8eef074bebc42b8
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-04T14:49:20.687350Z'
+  stage: doing
 ---
 
 # One fetch per iteration
@@ -151,3 +160,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
    Note for review: `Instance.go_away`/`come_back` in the new entry test repeat the same two methods of `Outage` in tests/entry/test_run_fetch_before_tick.py. I did not use the standing leave to move them into a shared helper. If the reviewer counts the copy as a finding, that move is the tester's to make.
 
    `lint`: lint: green (0.2 s)
+9. factory: started doing as vm.
