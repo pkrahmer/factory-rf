@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T13:53:42.052290Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-04T13:53:35.831644Z'
   stage: tests
   run: dcb3490fcea54a4fb427383b00fdb330
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:53:42.052290Z'
+  stage: doing
 ---
 
 # A stop says why, and is logged once
@@ -264,3 +273,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     The factory left out changes outside the write paths: src/factory/entry/run.py.
 
     `lint`: lint: green (0.2 s)
+17. factory: started doing as vm.
