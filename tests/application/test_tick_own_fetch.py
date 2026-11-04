@@ -12,6 +12,7 @@ from factory.application.tick import IdleHandler, Tick, TickOutcome
 from factory.domain.git import GitOptions
 from factory.domain.kill_points import KillPoints
 from git_support import CHECKOUT, TEST_IDENTITY
+from remote_outage_support import move_remote_away
 from stage_run_support import INSTANCE
 from tick_support import handlers_of
 
@@ -62,8 +63,7 @@ def test_a_tick_run_alone_whose_fetch_fails_stops_and_the_next_passed_one_clears
     boundaries: Boundaries, counting: CountingFetch, remote: Path, tmp_path: Path
 ) -> None:
     tick = _tick(boundaries, counting)
-    moved = tmp_path / "moved.git"
-    remote.rename(moved)
+    moved = move_remote_away(remote, tmp_path)
 
     failed = tick.run(fetched=False)
 

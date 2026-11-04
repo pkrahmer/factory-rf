@@ -31,6 +31,7 @@ from git_support import (
 )
 from human_clone import HumanClone
 from log_support import log_lines
+from remote_outage_support import move_remote_away
 from source_search import SRC
 from stage_run_support import INSTANCE
 from tick_support import handlers_of
@@ -175,12 +176,6 @@ def _texts(lines: list[str]) -> list[str]:
     return [line.split(" ", 1)[1] if " " in line else "" for line in lines]
 
 
-def _move_remote_away(remote: Path, tmp_path: Path) -> Path:
-    moved = tmp_path / "moved.git"
-    remote.rename(moved)
-    return moved
-
-
 def test_the_tick_fetches_before_it_reads_the_remote(
     boundaries: Boundaries, human: HumanClone, remote: Path
 ) -> None:
@@ -202,7 +197,7 @@ def test_a_failed_fetch_is_a_repository_stop_and_ends_the_tick(
     boundaries: Boundaries, remote: Path, tmp_path: Path, clock: ManualClock
 ) -> None:
     handler = Recording()
-    _move_remote_away(remote, tmp_path)
+    move_remote_away(remote, tmp_path)
 
     outcome = _tick(boundaries, {"idle": handler, "run": handler}).run()
 
@@ -221,7 +216,7 @@ def test_a_failed_fetch_is_a_repository_stop_and_ends_the_tick(
 def test_the_fetch_stop_is_logged_with_the_clock_stamp(
     boundaries: Boundaries, remote: Path, tmp_path: Path
 ) -> None:
-    _move_remote_away(remote, tmp_path)
+    move_remote_away(remote, tmp_path)
 
     _tick(boundaries, {"idle": IdleHandler()}).run()
 
@@ -234,7 +229,7 @@ def test_the_first_tick_after_the_remote_is_back_clears_the_fetch_stop(
     boundaries: Boundaries, remote: Path, tmp_path: Path
 ) -> None:
     tick = _tick(boundaries, {"idle": IdleHandler()})
-    moved = _move_remote_away(remote, tmp_path)
+    moved = move_remote_away(remote, tmp_path)
     tick.run()
     moved.rename(remote)
 

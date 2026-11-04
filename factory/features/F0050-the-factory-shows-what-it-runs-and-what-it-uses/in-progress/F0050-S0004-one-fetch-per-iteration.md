@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947, 6634929291]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T15:42:01.068996Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -190,6 +186,12 @@ journal:
   kind: started
   at: '2026-11-04T15:42:01.068996Z'
   stage: tests
+- number: 33
+  speaker: tester
+  kind: result
+  at: '2026-11-04T15:43:06.446796Z'
+  stage: tests
+  run: 08342a0039744b7cb3f9c632bd052654
 ---
 
 # One fetch per iteration
@@ -492,3 +494,20 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
     Noticed, not touched: the 3 new `make duplicates` findings in `src/factory/domain/cost_records.py:41-43`, which are outside this story.
 32. factory: started tests as vm.
+33. tester: Test changes for round 1, as the coder named them in entry 31: one under the human's leave in entry 29, three under the standing leave in `CLAUDE.md` (*Tests*).
+
+    1. `tests/application/test_tick_docstrings.py`: added to `TICK_RUN`, after its first sentence, exactly this sentence: "With `fetched`, the caller has already fetched in this iteration and raised or cleared `fetch_failed`: the tick skips its own fetch." Nothing else in that module changed (the human's leave, entry 29).
+    2. Reviewer finding 1: created the shared module `tests/remote_outage_support.py`. Its class `RemoteOutage` holds `remote`, `away`, `go_away` and `come_back`. `Outage` in `tests/entry/test_run_fetch_before_tick.py` and `Instance` in `tests/entry/test_run_one_fetch.py` now inherit from it instead of each holding its own copy.
+    3. Reviewer finding 2: `fetch_failed(stops: list[RepositoryStop])` is now in the same module. Both earlier `_fetch_failed` functions are removed. `test_run_fetch_before_tick.py` now calls `fetch_failed(run.stops)` and `test_run_one_fetch.py` calls `fetch_failed(...)`.
+    4. Reviewer finding 3: `move_remote_away(remote, tmp_path)` is now in the same module. It was removed from `tests/application/test_tick.py` (its three callers there now use the shared one). `tests/application/test_tick_own_fetch.py` uses it in place of the inline rename.
+
+    Every earlier test keeps its name and checks the same thing.
+
+    Files created: `tests/remote_outage_support.py`.
+    Earlier test files changed: `tests/application/test_tick_docstrings.py` (the human's leave, entry 29); `tests/entry/test_run_fetch_before_tick.py` and `tests/application/test_tick.py` (standing leave, helper moves); `tests/entry/test_run_one_fetch.py` and `tests/application/test_tick_own_fetch.py` (this story's own tests).
+
+    Rejected: a separate support module for `move_remote_away`. It makes the same remote unreachable, so it belongs with the outage helpers.
+
+    One run of `uv run pytest -q` over the five changed test files passed, and `make lint` is green. No module failed to import. I skipped the type check, as this stage says; the coder's `make check` covers it.
+
+    `lint`: lint: green (0.1 s)

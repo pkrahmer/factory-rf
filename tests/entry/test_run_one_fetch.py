@@ -23,6 +23,7 @@ from factory.entry.run import run_instance
 from factory.entry.wiring import health_store
 from git_support import remote_commit
 from human_clone import HumanClone
+from remote_outage_support import RemoteOutage, fetch_failed
 from tick_support import handlers_of
 
 # A work-item branch of no story: the tick has nothing to run on it and stays idle.
@@ -66,7 +67,7 @@ class Iterations:
     seen: list[Seen] = field(default_factory=list)
 
 
-class Instance:
+class Instance(RemoteOutage):
     """The test's instance on its remote: every fetch counted, a tick that records what it saw."""
 
     def __init__(
@@ -76,19 +77,10 @@ class Instance:
         remote: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
+        super().__init__(remote)
         self.settings = settings
         self.hosting = hosting
-        self.remote = remote
-        self.away = remote.with_name("remote-away.git")
         self.monkeypatch = monkeypatch
-
-    def go_away(self) -> None:
-        """Make the remote unreachable."""
-        self.remote.rename(self.away)
-
-    def come_back(self) -> None:
-        """Make the remote reachable again."""
-        self.away.rename(self.remote)
 
     def run(self, between: list[Callable[[], None]]) -> Iterations:
         """Run one iteration more than `between` has actions, one of them after each iteration."""
@@ -149,10 +141,6 @@ def instance(
     return Instance(base_identity_settings, hosting, remote, monkeypatch)
 
 
-def _fetch_failed(stops: list[RepositoryStop]) -> list[RepositoryStop]:
-    return [stop for stop in stops if stop.reason == "fetch_failed"]
-
-
 @pytest.mark.parametrize(
     "branch",
     [
@@ -187,6 +175,6 @@ def test_a_failed_fetch_in_an_iteration_stands_as_fetch_failed_and_the_next_pass
     assert iterations.ticked == [True, False, True]
     assert iterations.fetches[1] == 1
     [error] = iterations.fetch_errors
-    [stop] = _fetch_failed(iterations.stops[1])
+    [stop] = fetch_failed(iterations.stops[1])
     assert error.splitlines()[0] in stop.detail
-    assert _fetch_failed(iterations.stops[2]) == []
+    assert fetch_failed(iterations.stops[2]) == []
