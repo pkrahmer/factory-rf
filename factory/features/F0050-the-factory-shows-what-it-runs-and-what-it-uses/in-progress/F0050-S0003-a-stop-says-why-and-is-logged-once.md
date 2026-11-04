@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T13:31:38.562307Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T13:31:38.555645Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:31:38.562307Z'
+  stage: intake
+---
+
 # A stop says why, and is logged once
 
 ## Description
@@ -29,3 +56,6 @@ uv run pytest tests/application -k stop 2>&1 | tail -1
 Expect: `1`, then a line that ends in `passed` with no `failed`.
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
