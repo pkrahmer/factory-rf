@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 540
-comments_read: [6630647682, 6630816683]
+comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
 claim: null
 journal:
@@ -82,6 +82,11 @@ journal:
   stage: doing
   run: f81195d101a642248e59316d59c21fa0
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-11-04T12:56:53.238129Z'
+  stage: doing
 ---
 
 # A refused push or hosting call is retried and logged
@@ -263,3 +268,14 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
        I would choose (a).
 
     Not touched: the stall push in `stalls.py` still has no retry, as decided. It does carry git's reason now, through `push_failure`. The refactor step and `make duplicates` are left until the tests are settled.
+14. 2026-11-04 human: Answers of the human:
+
+    1. **(a)** "`push_reason` drops git's advice lines (these two, and lines starting with `hint:`) before it takes the last three." The advice lines are exactly `Please make sure you have the correct access rights` and `and the repository exists.` (after stripping), and any line that starts with `hint:`. The Interface gets that sentence; the reviewer has leave to add it to the Interface's `PushFailed` bullet. Leave for the tester: a domain row with those advice lines after a cause line.
+
+    2. Yes, exactly those two: in `tests/application/test_push_retry.py`, `GitOptions` imported from `factory.domain.git`, and `message: str | None` at line 200. The tester's own file.
+
+    3. **(a)** "keep `Git.last_push_output() -> str`, and the tester changes these three tests to 22 operations, `last_push_output` included." Leave for the tester: in the three tests you name, the count and the name list become 22 with `last_push_output`; the names of the tests may say twenty-two; nothing else in those modules.
+
+    4. **(a)** "the tester changes these four tests to leave out lines starting with `handler error `, each checking the same thing as now." Leave for the tester: only those four tests in `tests/application/test_dispatcher.py`; nothing else in that module.
+
+    End with `tests` as you need.
