@@ -510,7 +510,23 @@ After a change, rebuild the image and renew its id (see "The rebuild after a mer
 
 A project can add tools to the stage image (a compiler, a JDK, a browser) without changing the image for every project. It commits the file `factory/stage.Containerfile` to `main`. Every container of the instance (the sync, the agent and the checks) then runs in the image that file builds on top of the stage image.
 
-Only `main` counts. `factory-run` fetches when it starts, reads the file from `origin/main`, and builds it once, before the preflight. A file on a branch, or a change pushed to `main` after the start, has no effect until `factory-run` is started again. Without the file nothing changes: every container runs in the base image, `FACTORY_STAGE_IMAGE`, under the identity of `FACTORY_IMAGE_ID_FILE`.
+Only `main` counts. `factory-run` fetches when it starts, reads the file from `origin/main`, and builds it before the preflight. A file on a branch has no effect. Without the file nothing changes: every container runs in the base image, `FACTORY_STAGE_IMAGE`, under the identity of `FACTORY_IMAGE_ID_FILE`.
+
+#### A change on `main` takes effect before the next stage
+
+No restart is needed. Before every tick, after the fetch, the factory compares the stage file on `origin/main` with the one it last handled. The same text, or no file again, builds nothing and logs nothing; a new commit that does not touch the file counts as the same.
+
+- A file that was added or changed is built as at the start. The stages after it run in the new image, under its new identity and its `PATH`, so the preflight and the reuse of passed checks start afresh. The previous project image is removed once the new one is tagged, so the machine keeps one project image.
+- A file that was removed returns the instance to the base image and the base's identity.
+- A stage that is running is never interrupted. If `main` moves while it runs, its remaining containers keep the image it started with, and the change takes effect before the next stage.
+
+Each change writes one line to the factory log, and an unchanged file writes none. `<commit>` is the first 12 hex digits of `origin/main`:
+
+| Line | When |
+|---|---|
+| `stage image: built <identity> at <commit> in <s> s` | a build passed (also the one at the start) |
+| `stage image: back to the base at <commit>` | the file was removed while a project image was in use |
+| `stage image: failed at <commit>` | the file broke the rule or did not build |
 
 #### The rule
 
@@ -547,7 +563,9 @@ The instance's image identity becomes the base's identity, a `+`, and the first 
 
 A file that breaks the rule, or does not build, raises the machine stop `stage_image_failed` (see "The stops"). Its detail is the rule's reason, or `the stage file did not build in <s> s:` followed by the last 20 lines of the build's output; a build that reaches its time limit gives the same text. While the stop stands the factory starts no stage, and it does not fall back to the base image. `factory-health` shows the stop; `factory-watch` shows no stop of any reason.
 
-What to do: read the detail, fix `factory/stage.Containerfile` on `main`, and start `factory-run` again. The stop ends at the next start, whether the file is then valid or gone. In a job, a machine stop that has stood for ten minutes ends the execution (see "The idle shutdown"), so the fix is a new commit on `main` and a new execution.
+The detail starts with `at <commit>: `, the first 12 hex digits of the `origin/main` that was tried. The image in use stays the one before the failed build.
+
+What to do: read the detail and fix `factory/stage.Containerfile` on `main`. A failed build waits for a new `main`: the same file again is not built again, so a commit that leaves the file as it is does not end the stop. The next `main` with another file ends the stop and the file is built; a `main` without the file ends it and returns to the base. A restart of `factory-run` also ends it. In a job, a machine stop that has stood for ten minutes ends the execution (see "The idle shutdown"), so the fix is a new commit on `main` and a new execution.
 
 ### The image on the cost records
 

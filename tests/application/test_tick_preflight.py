@@ -19,7 +19,7 @@ from factory.domain.events import EventKind
 from factory.domain.identifiers import branch_name
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.settings import InstanceSettings
-from git_support import CHECKOUT, PIPELINE_YAML, install_agents, remote_commit, run_git
+from git_support import CHECKOUT, PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
 from stage_run_support import INSTANCE
 from wiring_support import every_tool
@@ -76,10 +76,7 @@ class Machine:
         self.human.push_file("main", path, text)
 
     def remove_from_main(self, path: str) -> None:
-        human = self.directory / "human"
-        run_git(human, "rm", "-q", path)
-        run_git(human, "commit", "-q", "-m", f"remove {path}")
-        run_git(human, "push", "-q", "origin", "main")
+        self.human.remove_file("main", path)
 
     def log_lines(self) -> list[str]:
         log = self.directory / "state" / "factory.log"

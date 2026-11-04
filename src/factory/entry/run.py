@@ -34,6 +34,8 @@ from factory.entry.wiring import (
     project_image_settings,
     read_environment_settings,
     read_hosting_token,
+    stage_file_on_main,
+    stage_image_report,
     system_clock,
 )
 
@@ -144,7 +146,8 @@ def run_instance(
     """Run the instance of `settings` until `should_stop`; `hosting` replaces PyGithub.
 
     The containers run in the image the project's stage file builds through `images`, podman's
-    by default; while that file stands as a stop, no tick runs. The idle shutdown's `exit` ends
+    by default, built again before the next tick when the file on `origin/main` changed; while
+    that file stands as a stop, no tick runs. The idle shutdown's `exit` ends
     the loop through `request_stop`, and so does a machine stop that stands too long under that
     setting.
 
@@ -195,47 +198,59 @@ class _StartInputs:
 
 
 class _ProjectImageStart:
-    """The instance's one tick, built once the checkout is ready, in the image its stage file chose.
+    """The instance's tick, in the image the stage file on `origin/main` chose.
 
-    One tick for the whole run: its status lives in memory and counts across ticks.
+    The stage file is compared before every tick, and a tick is built again only when it changed.
+    The tick's status lives in memory and counts across ticks until then: a rebuilt tick starts
+    its error counts again at zero. A tick that runs keeps its image.
     """
 
     def __init__(self, inputs: _StartInputs, waiter: RepositoryWaiter) -> None:
         self._inputs = inputs
         self._waiter = waiter
+        # None while the stage file stands as a stop, or before the first choice.
         self._tick: Callable[[], bool] | None = None
-        # A stage file that failed stands until the next start; no stage starts before.
-        self._failed = False
+        self._followed = False
+        self._stage_file: str | None = None
+        self._in_project_image = False
 
     def prepare(self) -> bool:
-        if self._failed or not self._waiter.prepare():
+        if not self._waiter.prepare():
             return False
-        if self._tick is None:
-            self._tick = self._build_tick()
+        self._follow_main()
         return self._tick is not None
 
     def tick(self) -> bool:
         return self._tick is not None and self._tick()
 
-    def _build_tick(self) -> Callable[[], bool] | None:
-        inputs = self._inputs
-        git = inputs.boundaries.git
-        # The stage file is read from the remote's main as it is at the start.
+    def _follow_main(self) -> None:
+        git = self._inputs.boundaries.git
         git.fetch()
+        stage_file = stage_file_on_main(git)
+        # The same file again builds nothing, and one that failed is not tried again.
+        if self._followed and stage_file == self._stage_file:
+            return
+        self._followed = True
+        self._stage_file = stage_file
+        self._choose(stage_file is not None)
+
+    def _choose(self, has_stage_file: bool) -> None:
+        inputs = self._inputs
+        boundaries = inputs.boundaries
+        report = stage_image_report(boundaries.git, boundaries.log, boundaries.clock)
         chosen = project_image_settings(
-            inputs.settings,
-            git,
-            inputs.images,
-            StopService(inputs.boundaries),
-            clock=inputs.boundaries.clock,
+            inputs.settings, boundaries.git, inputs.images, StopService(boundaries), report=report
         )
         if chosen is None:
-            self._failed = True
-            return None
-        boundaries = build_boundaries(
-            chosen, inputs.token, hosting=inputs.boundaries.hosting, images=inputs.images
+            self._tick = None
+            return
+        if self._in_project_image and not has_stage_file:
+            report.log.line(f"stage image: back to the base at {report.commit}")
+        self._in_project_image = has_stage_file
+        chosen_boundaries = build_boundaries(
+            chosen, inputs.token, hosting=boundaries.hosting, images=inputs.images
         )
-        return activity_tick(build_tick(boundaries, chosen), inputs.idle)
+        self._tick = activity_tick(build_tick(chosen_boundaries, chosen), inputs.idle)
 
 
 def _write_an_empty_health_status_when_there_is_none(state_directory: Path) -> None:
