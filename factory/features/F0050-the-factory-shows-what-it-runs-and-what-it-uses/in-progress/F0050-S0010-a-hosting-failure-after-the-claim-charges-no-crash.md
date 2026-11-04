@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T22:42:56.217695Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-11-04T22:42:50.634076Z'
   stage: review
   run: 15b838dff5e344adbc385b96572fc610
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-04T22:42:56.217695Z'
+  stage: doing
 ---
 
 # A hosting failure after the claim charges no crash
@@ -313,3 +322,4 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
 
     Earlier tests:
     - `tests/application/test_hosting_failure_after_claim.py`: the human's leave, journal 4 (the `xfail` mark removed) and journal 14 (`test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_run` deleted). Dropping the `branch_state` import that the deletion left unused follows from that deletion. Nothing else changed.
+23. factory: started doing as vm.
