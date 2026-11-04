@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 545
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T19:50:44.068238Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-04T19:50:44.068238Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-04T19:51:09.837277Z'
+  stage: intake
+  run: 7a058d81a3aa41e99c47fd5b3d73309b
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -58,3 +60,10 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: concrete. It names `vm/setup.sh` (step `transcripts`, option `--transcript-days <n>`, the folder, the `factory.env` line, the exact `tmpfiles.d` file name and rule line) and `vm/job-start.sh` (the exact message, status not 0, unset changes nothing). `src/` is unchanged, as it says.
+   - Criteria: each is testable. Criterion 1 is table rows (default, 7 → `7d`, 0 → no line, no rule, no folder, `x` → refused with the option's name) plus the second run that changes nothing. Criterion 2 covers the writable folder, the missing folder, the folder that cannot be written, and the unset setting. Every rule has its failing side: `x` is refused, and the missing and unwritable folders end with the message. Criterion 3 is `make check`. Docs criterion 4 is the last one.
+   - Smoke test: runnable. The two greps return counts. The pytest command has no `-q`, and `pyproject.toml` `addopts` already sets `-q`, so `tail -1` shows the `... passed` summary line, which the Expect line can be checked against.
+   - Architecture: shell scripts under `vm/` only, with no `src/` change and no cloud client. This matches decision 10 and the guide's "site's own folder" design.
+   - Scope: inside the feature's scope (the S0007 line), and it touches nothing in Out of scope (creating a bucket stays the operator's step, described in the guide).
+   - Notes for the tester, not questions: `--transcript-days` with a negative value is not spelled out; treat it like `x` (refused). The Interface does not say whether `0` removes a folder an earlier run made, so test only that none is made.
