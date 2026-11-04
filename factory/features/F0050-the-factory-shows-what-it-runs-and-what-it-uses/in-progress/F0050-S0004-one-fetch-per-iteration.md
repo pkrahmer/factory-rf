@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T14:31:58.485851Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-04T14:31:58.485851Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-04T14:49:14.386835Z'
+  stage: tests
+  run: d8bef35f8c6746e7b8eef074bebc42b8
 ---
 
 # One fetch per iteration
@@ -117,3 +119,35 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
    - Architecture: the entry layer fetches and the application tick receives the flag, so no layer rule is broken. No new interface or dependency.
    - Scope: within S0004 of `feature.md` and not in its Out of scope. The Description is unchanged in meaning.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for criteria 1–4. They are red on purpose and form the coder's specification.
+
+   - criterion 1: tests/entry/test_run_one_fetch.py::test_an_iteration_fetches_once_and_its_tick_sees_what_that_fetch_brought (parametrized: `new-commit-on-main`, `new-commit-on-branch`)
+   - criterion 2: tests/entry/test_run_one_fetch.py::test_a_failed_fetch_in_an_iteration_stands_as_fetch_failed_and_the_next_passed_one_clears_it
+   - criterion 3: tests/application/test_tick_own_fetch.py::test_a_tick_run_without_the_fetch_before_it_fetches_once (parametrized: `default` = `tick.run()`, `fetched-false` = `tick.run(fetched=False)`)
+   - criterion 4: tests/application/test_tick_own_fetch.py::test_a_tick_run_alone_whose_fetch_fails_stops_and_the_next_passed_one_clears_it
+   - criteria 5 and 6 (make check, docs): no test.
+
+   Files created: tests/application/test_tick_own_fetch.py, tests/entry/test_run_one_fetch.py. No earlier test file was changed.
+
+   How the tests work:
+   - The entry tests run `run_instance` against a real local remote. `GitCli.fetch` is wrapped through monkeypatch so it counts every call and still runs the real fetch.
+   - `run_module.build_tick` is replaced by a real `Tick` whose handler, for every event, records what the tick's checkout holds as `origin/main` and `origin/<branch>`.
+   - Iterations are separated at `sleep`, which is called after each idle iteration.
+   - The work-item branch is `work-item/F0001-S0009`, which has no story. I chose this because a started work item makes the tick active, and an active tick never calls `sleep`, so the loop never pauses (my first attempt hung for that reason). A cap of 20 handled events in `should_stop` makes a loop that never pauses fail instead of hang.
+   - The application tests use a `GitCli` subclass that counts its fetches on the test's checkout. They break the remote by renaming it away, as tests/application/test_tick.py does.
+
+   The one run, `uv run pytest -q` on the two files:
+   - Failing for the right reason:
+     - both criterion 1 rows: `assert 2 == 1`, i.e. two fetches in the iteration today
+     - the `fetched-false` row of criterion 3 and the criterion 4 test: `TypeError: Tick.run() got an unexpected keyword argument 'fetched'`
+   - Passing already:
+     - the `default` row of criterion 3: today's tick already fetches once
+     - criterion 2: a failed fetch before the tick already ends the iteration after one fetch. This test guards that behaviour so it stays.
+
+   No module failed to import: the tests reach the missing `fetched` parameter only when they call `Tick.run`.
+
+   `make lint` is green. The type check was skipped, as this stage says.
+
+   Note for review: `Instance.go_away`/`come_back` in the new entry test repeat the same two methods of `Outage` in tests/entry/test_run_fetch_before_tick.py. I did not use the standing leave to move them into a shared helper. If the reviewer counts the copy as a finding, that move is the tester's to make.
+
+   `lint`: lint: green (0.2 s)
