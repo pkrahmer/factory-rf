@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T01:29:06.139795Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-04T01:29:06.139795Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-04T01:32:50.109830Z'
+  stage: tests
+  run: 73430809bd294243911d6133f64d45c9
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -121,3 +123,25 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
    - Scope: within feature decision 5 and the feature's S0003 scope. Nothing in "Out of scope" is touched.
    - Open for the coder: the commit in the log lines and the detail is the first 12 hex digits.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for criteria 1 to 7 in one new file. Criteria 8 and 9 (`make check`, docs) get no test.
+
+   How the tests work: they drive `factory.entry.run.run_instance` with a replacement `build_tick` that `factory.entry.run` looks up, the same seam `tests/entry/test_run.py` uses. Each tick that is built records three things after its stage's action: the image it got (`settings.stage_image`), the identity (`settings.image`) and the PATH (`boundaries.image_path`). It also records how many builds had been asked for so far. Between iterations, the scheduler's sleep pushes the next change to `main` from the human's clone. Builds go through `ScriptedImages`, a test subclass of `FakeImages` that ends each build as scripted and gives the PATH of each passed build its own value. The tests only compare `stage image:` log lines written after the first iteration, so whether the start's own build writes a line is left open.
+
+   - criterion 1: tests/entry/test_run_project_image_rebuild.py::test_a_new_main_that_leaves_the_stage_file_as_it_is_builds_nothing_and_logs_nothing (rows: same-digest, no-file)
+   - criterion 2: tests/entry/test_run_project_image_rebuild.py::test_a_changed_stage_file_is_built_once_before_the_next_stage_and_taken_by_every_later_one
+   - criterion 3: tests/entry/test_run_project_image_rebuild.py::test_a_stage_file_added_to_a_project_without_one_is_built_and_taken
+   - criterion 4: tests/entry/test_run_project_image_rebuild.py::test_a_removed_stage_file_returns_to_the_base_and_builds_nothing
+   - criterion 5: tests/entry/test_run_project_image_rebuild.py::test_a_main_that_moves_during_a_stage_changes_its_image_only_from_the_next_stage (the tick that is running pushes to `main` itself, then records)
+   - criterion 6: tests/entry/test_run_project_image_rebuild.py::test_a_failed_rebuild_stands_as_a_stop_until_main_brings_another_stage_file (rows: same-digest, another-digest, file-removed, each with its own expectations for the stop, the builds, the image afterwards and the log lines)
+   - criterion 7: tests/entry/test_run_project_image_rebuild.py::test_a_passed_rebuild_builds_under_the_same_tag_so_the_previous_image_is_removed. Through the interface this means a second `Images.build` call with the same base, tag and time limit; `Images.build` removes untagged images after itself.
+
+   Points for the coder:
+   - Criterion 6 does not say whether a tick runs while the stop stands. The test does not decide it: it checks only that any tick that runs before the stop ends keeps the old image, PATH and identity.
+   - The built line is checked as `in 3 s` for a build that lasted 3 s, so no rounding is involved.
+   - `<commit>` is the first 12 hex digits of `main` after each push.
+
+   Files created: tests/entry/test_run_project_image_rebuild.py. No earlier test file changed.
+
+   Test run: the one run, `uv run pytest -q tests/entry/test_run_project_image_rebuild.py | tail -5`, collected the file without errors. Every module it imports exists, so none failed to import. The five lines shown were failures: criterion 5, the three rows of criterion 6, and criterion 7. They fail because only the start builds today. The failures for criteria 2 to 4 and the count line were above the tail and not seen. Criterion 1 is expected to pass already, since the current code does nothing on a new `main`. `make lint` is green; the type check was skipped as the stage says.
+
+   `lint`: lint: green (0.1 s)
