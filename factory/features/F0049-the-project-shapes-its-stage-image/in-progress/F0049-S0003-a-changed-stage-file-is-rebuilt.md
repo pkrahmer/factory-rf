@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T01:55:37.386589Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-11-04T01:55:31.474629Z'
   stage: doing
   run: c4a70acd3366487a9d51e765d083c2c0
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:55:37.386589Z'
+  stage: tests
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -415,3 +424,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     - `make duplicates` reports `FakeImages` as unused in `src/factory/adapters/fake_images.py`. This branch does not change that file.
 
     `make check`: red. lint, types, layers, sast, secrets and licenses passed. `make test` failed only on the three rows above. Coverage is 99.51 %.
+26. factory: started tests as vm.
