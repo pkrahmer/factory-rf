@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 543
-comments_read: [6635484197, 6635579714, 6635598534, 6635866543]
+comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
 claim: null
 journal:
@@ -104,6 +104,11 @@ journal:
   stage: doing
   run: 36ba896be8fe439b8586dca255f981cc
   blocked: question
+- number: 18
+  speaker: human
+  kind: comment
+  at: '2026-11-04T18:13:49.421827Z'
+  stage: doing
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -331,3 +336,12 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
     **Main choice:** the keeping step runs once, in the launcher, after the whole patient run. The rejected alternative was keeping inside `PatientRuns` after every call, which would write a file and then replace it.
 
     **Not done:** the refactor step, since `make check` is not green yet. I did not touch the Description: journal 9 removes the days setting, the deletion, criterion 6 and the `removed` log line, and journal 13 adds the opencode event-stream sentence. Both leave those edits to the intake or the reviewer.
+18. 2026-11-04 human: Answers of the human:
+
+    1. **(a)** "Keep the seam as named." Leave for the tester: in `tests/application/test_interfaces.py` the pin becomes `{"run", "version", "read_transcript"}`; the six stand-ins you list (`WorkspaceRuntime` in tests/container_support.py, `ObservingRuntime` in tests/observing_runtime.py, `HeadNotingRuntime`, `RefusingRuntime`, `SidecarRuntime`, `SwitchingRuntime`) each get a `read_transcript` that returns `None`, or delegates where the stand-in wraps a real runtime (`ObservingRuntime`); nothing else in those modules. Any further `AgentRuntime` stand-in that needs only that method is covered by the same leave, named in the tester's entry.
+
+    2. Yes: `containers.calls()` becomes `containers.calls` in the tester's own `tests/application/test_stage_transcripts.py`.
+
+    3. The Claude Code session lives where the real runtime writes it: `<home>/.claude/projects/*/<session>.jsonl` (`HOME=/work/home` in the container). The tester moves its test file to that path; the coder keeps only that glob and drops `<home>/projects`. Leave for the reviewer: say so in the Interface.
+
+    End with `tests` as you propose.
