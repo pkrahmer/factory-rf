@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913, 6640096367]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T19:34:33.911518Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,12 @@ journal:
   kind: started
   at: '2026-11-04T19:34:33.911518Z'
   stage: tests
+- number: 36
+  speaker: tester
+  kind: result
+  at: '2026-11-04T19:35:29.701471Z'
+  stage: tests
+  run: bb348978b06b4f908ac855b9d7a6787f
 ---
 
 # The cost record sums up the run's tool calls
@@ -564,3 +566,20 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     - `_events` in `src/factory/adapters/opencode_runtime.py:351` still uses `splitlines`. It skips bad lines, so it does not lose `tools`, and entry 30 limits this round to the one finding.
     - The note on `_staged` in `tests/application/test_stage_tool_uses.py` stays a note (entry 30).
 35. factory: started tests as vm.
+36. tester: Approved test change (the coder's entry 34, ordered by the human in entry 30 from finding 1 of entries 28 and 32). I changed only `tests/adapters/test_runtime_tool_uses.py`.
+
+    What changed:
+    - New row `raw-line-separators-in-input-and-output` in `test_claude_code_sums_up_the_tool_calls_of_its_session_transcript`: a `Read` call whose input (`file_path`) and output both hold raw U+2028 and U+0085. Expected: `ToolUse(tool="Read", calls=1, failed=0, seconds=0.5)`.
+    - New row `raw-line-separators-in-input-and-output` in `test_opencode_sums_up_the_tool_calls_of_its_run_s_stream`: a `read` call whose input (`filePath`) and error both hold the same characters. Expected: `ToolUse(tool="read", calls=1, failed=1, seconds=0.5)`.
+    - How the characters stay raw: both shared builders (`tool_use_support.claude_lines` and `adapters.opencode_stand_in.tool_use`) write escaped JSON. So each test now passes its lines through a new local helper, `_unescaped`, which re-serializes each line with `json.dumps(..., ensure_ascii=False)`. The existing rows are ASCII only, so for them the result is the same text. I did not change the shared builders, because the approved change names only this test module.
+    - Additions to support the rows: the constant `LINE_LIKE_CHARACTERS` and an `import json`.
+
+    Results:
+    - `uv run pytest -q tests/adapters/test_runtime_tool_uses.py`: all 6 tests pass. The coder's fix in `transcript_lines` is already in place, so the new rows are green and not red.
+    - `make lint`: green. My first lint run failed on two lines over 100 characters. I fixed them and ran the tests once more, which is one run beyond the single run this mode allows.
+
+    Mapping (unchanged apart from the new rows): criterion 1 → `tests/adapters/test_runtime_tool_uses.py::test_claude_code_sums_up_the_tool_calls_of_its_session_transcript` and `::test_opencode_sums_up_the_tool_calls_of_its_run_s_stream`.
+
+    Files created: none. Modules the test run could not import: none.
+
+    `lint`: lint: green (0.1 s)
