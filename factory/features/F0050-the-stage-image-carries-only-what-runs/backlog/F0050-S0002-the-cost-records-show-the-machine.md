@@ -1,41 +1,47 @@
-# The cost records show the image sizes, the free disk and the memory peak
+# The cost records show the image sizes, the free disk, the memory and the CPU
 
 ## Description
 
-The growth that F0050 removes came as a surprise: nothing the factory writes says how large its images are, how much disk is left, or how much memory the containers took. On 2026-11-04 factory-vm held a 2.4 GB image of an idle instance, a stage image that was two thirds leftovers, and a memory peak of 8.1 GB of 15.6 GB, and each was found only by hand. This story adds six measures to every completed cost record, so that the records on GitHub and the Factory Timeline show them from a distance: the sizes of the base image and of the project's layer, the free space of the machine's image store and of the stage's dataset, and the memory peak and total. The memory peak is the kernel's high-water mark of the cgroup that holds the factory user's containers, which cannot be reset on the kernels in use (6.8 on factory-vm): it is the highest use since that cgroup began, on a VM with lingering since boot, not the peak of the run. Its name says so. The first record in which it rises names the run that raised it. A measure the machine cannot give is `None`, as every other unknown measure of the record is. The factory's log gets the sizes in its line for each built image.
+The growth that F0050 removes came as a surprise: nothing the factory writes says how large its images are, how much disk is left, or how much memory and CPU the containers took. On 2026-11-04 factory-vm held a 2.4 GB image of an idle instance, a stage image that was two thirds leftovers, and a memory peak of 8.1 GB of 15.6 GB, and each was found only by hand; npm's `EBADENGINE` warning was printed by every build for days before anyone read it. This story adds one object, `machine`, to every completed cost record, so that the records on GitHub and the Factory Timeline show the machine from a distance: the sizes of the base image and of the project's layer, the free space of the image store and of the stage's dataset, the memory peak and total, and the run's own CPU time and the time its work waited for a CPU or for memory. The waits are the measures that say whether the machine is too small. Every value is read from a file or a command the factory already reaches, at the run's start and end; nothing samples during the run.
+
+The memory peak is the kernel's high-water mark of the cgroup that holds the factory user's containers, which cannot be reset on the kernels in use (6.8 on factory-vm): it is the highest use since that cgroup began, on a VM with lingering since boot, not the peak of the run. Its name says so, and the first record in which it rises names the run that raised it. The CPU time and the two waits are differences of the kernel's running totals between the run's start and end, so they are the run's own; they count every container of the factory user, so two instances that run at once on one machine see each other's load. A value the machine cannot give is `None`, and a machine that gives none has `"machine": null`. The factory's log line for each built image also gives the sizes and the count of the build's warnings.
 
 ## Interface
 
-- `CostRecord` (`factory.domain.cost_records`) gets six optional fields, each a `NonNegativeInt` or `None`, and, like the other measures, `None` on a `started` record:
-  - `base_image_bytes`: the size of the base image (`FACTORY_STAGE_IMAGE`) the run's image was built on;
-  - `project_layer_bytes`: the project image's size minus the base's; `0` when the project has no stage file;
-  - `store_free_bytes`: the free space of the file system that holds podman's image store;
-  - `dataset_free_bytes`: the free space of the stage's dataset (`FACTORY_WORKSPACE`), which on ZFS respects the dataset's quota;
-  - `memory_peak_since_boot_bytes`: `memory.peak` of the cgroup v2 slice of the user that runs the containers (`/sys/fs/cgroup/user.slice/user-<uid>.slice/memory.peak`);
-  - `memory_total_bytes`: the machine's memory (`MemTotal`).
-- The two image sizes are measured when the factory builds or adopts an image (at start and after a changed stage file, F0049), not at every run; the other four when the record is completed. The coder decides through which interface each is read, within the wrappers rule; the existing disk-space interface serves the free space.
-- The records contract moves from `4.1` to `4.2` (added optional fields), and its schemas are regenerated with `uv run python -m factory.entry.contract`.
-- The log line of a built project image becomes `stage image: built <identity> at <commit> in <s> s, base <GB> GB, layer <GB> GB` (two decimals); the factory's start writes one line `stage image: base <GB> GB` for an instance without a stage file.
+- A new model `MachineMeasures` in `factory.domain.cost_records`, frozen, unknown keys refused, every field optional (`None` when unknown):
+  - `base_image_bytes` (`NonNegativeInt`): the size of the base image (`FACTORY_STAGE_IMAGE`) the run's image was built on;
+  - `project_layer_bytes` (`NonNegativeInt`): the project image's size minus the base's; `0` when the project has no stage file;
+  - `store_free_bytes` (`NonNegativeInt`): the free space of the file system that holds podman's image store;
+  - `dataset_free_bytes` (`NonNegativeInt`): the free space of the stage's dataset (`FACTORY_WORKSPACE`), which on ZFS respects the dataset's quota;
+  - `memory_peak_since_boot_bytes` (`NonNegativeInt`): `memory.peak` of the cgroup v2 slice of the user that runs the containers (`/sys/fs/cgroup/user.slice/user-<uid>.slice/`);
+  - `memory_total_bytes` (`NonNegativeInt`): the machine's memory (`MemTotal` of `/proc/meminfo`);
+  - `cpu_seconds` (non-negative finite float): the slice's `usage_usec` of `cpu.stat` at the run's end minus at its start;
+  - `cpu_wait_seconds` (non-negative finite float): the `total` of the `some` line of the slice's `cpu.pressure`, end minus start;
+  - `memory_wait_seconds` (non-negative finite float): the same of the slice's `memory.pressure`.
+- `CostRecord` gets `machine: MachineMeasures | None = None`; like the other measures, a `started` record carries none.
+- The two image sizes are measured when the factory builds or adopts an image (at start and after a changed stage file, F0049), not at every run; the free space, the memory peak and total, and the end readings at the record's completion; the start readings when the run starts. A start reading that is missing makes its difference `None`. The coder decides through which interfaces they are read, within the wrappers rule; the existing disk-space interface serves the free space.
+- The records contract moves from `4.1` to `4.2` (an added optional field), and its schemas are regenerated with `uv run python -m factory.entry.contract`.
+- The log line of a built project image becomes `stage image: built <identity> at <commit> in <s> s, base <GB> GB, layer <GB> GB, <n> warnings` (sizes with two decimals; the warnings are the build output's lines that hold `WARN` or `warning`, case ignored); the factory's start writes `stage image: base <GB> GB` for an instance without a stage file.
 
 ## Acceptance criteria
 
-1. A completed record carries the six fields; a `started` record that carries any of them is refused, as for the other measures. Rows: each field at `0`, at a large value, and at `-1` (refused).
-2. A measure that cannot be read (no such cgroup file, an image inspect without a size, a file system that cannot be read) is `None` on the record and does not fail the run or stop the factory.
+1. A completed record carries `machine` with its nine fields; a `started` record with `machine` is refused, as for the other measures. Rows for each integer field at `0`, at a large value and at `-1` (refused); rows for each float field at `0.0`, at a large value, at `-0.5` and at NaN (both refused).
+2. A measure that cannot be read (no such cgroup file, an image inspect without a size, a file system that cannot be read) is `None` in `machine` and does not fail the run or stop the factory; when nothing can be read, the record holds `"machine": null`.
 3. `project_layer_bytes` is `0` for a project without a stage file and the difference of the two sizes for one with it; the two image sizes change only after a build or a return to the base.
-4. `memory_peak_since_boot_bytes` is the value read from the slice's `memory.peak` when the record is completed; a later record with a higher file value carries the higher value.
+4. `memory_peak_since_boot_bytes` is the value the slice's file holds at the record's completion. `cpu_seconds`, `cpu_wait_seconds` and `memory_wait_seconds` are the end reading minus the start reading in seconds; rows: a run whose totals grew, a run whose start reading is missing (`None`), and readings with a total that is not a number (`None`).
 5. The records contract is `4.2`, and its schemas match the models.
-6. The two log lines have the form of the Interface.
+6. The two log lines have the form of the Interface; rows for the warnings count: a build output with no warning (`0 warnings`), with npm's `npm warn EBADENGINE` line and with podman's `WARNING:` line.
 7. `make check` stays green.
-8. docs: `docs/operator-guide.md`: in the section on cost records, the six fields, what each measures, and that the memory peak is a high-water mark since the slice began (since boot on a VM with lingering), not the run's own peak; in *The project's stage file*, the new log lines. `docs/decisions.md`: one entry that the records carry the machine's measures and why the peak is the slice's high-water mark (no reset before kernel 6.12, and sampling during a run was not worth its cost). `README.md` and the project guide: none.
+8. docs: `docs/operator-guide.md`: in the section on cost records, the `machine` object and each of its fields, that the memory peak is a high-water mark since the slice began (since boot on a VM with lingering) and not the run's own peak, that the CPU time and the waits are the run's own but count every container of the factory user, and how to read them (CPU time over duration as the cores in use; a wait above zero as the machine being too small); in *The project's stage file*, the new log lines. `docs/decisions.md`: one entry that the records carry the machine's measures, why the peak is the slice's high-water mark (no reset before kernel 6.12, and sampling during a run was not worth its cost), and why the CPU and the waits are differences of running totals. `README.md` and the project guide: none.
 
 ## Smoke test
 
 ```bash
 grep -cE '^RECORDS_CONTRACT = "4\.2"$' src/factory/domain/contract.py
-grep -oE 'base_image_bytes|project_layer_bytes|store_free_bytes|dataset_free_bytes|memory_peak_since_boot_bytes|memory_total_bytes' src/factory/domain/cost_records.py | sort -u | wc -l
+grep -oE 'base_image_bytes|project_layer_bytes|store_free_bytes|dataset_free_bytes|memory_peak_since_boot_bytes|memory_total_bytes|cpu_seconds|cpu_wait_seconds|memory_wait_seconds' src/factory/domain/cost_records.py | sort -u | wc -l
 uv run pytest tests/domain -q 2>&1 | tail -1
 ```
 
-Expect: `1`, `6`, then a line that ends in `passed` with no `failed`.
+Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 
 ## Journal
