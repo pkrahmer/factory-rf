@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 549
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T21:56:50.192301Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-04T21:56:50.192301Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-04T21:57:10.037322Z'
+  stage: intake
+  run: 32abf90ff2724cedbb593ab7eecdc288
+  blocked: question
 ---
 
 # A hosting failure after the claim charges no crash
@@ -64,3 +67,12 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: The format check passed. The story cannot move on until these are answered:
+
+   1. **The approach is not chosen.** `## Description` still says "To refine: the human picks the approach" and gives two options. (a) Release the claim on `HostingServiceError`. (b) Open the pull request before the claim. The criteria and the Interface are written for (a) only. Options: (a) as written, or (b), which needs a new Interface and new criteria and a reading of the race between two instances. I would choose (a), as the acceptance proposed. Please confirm it, so that the Description loses its "To refine" paragraph and says the choice is made.
+
+   2. **The human's leave is missing.** The Interface and criterion 5 take the `xfail(strict=True)` mark off S0008's test `tests/application/test_hosting_failure_after_claim.py::test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick`. The Interface itself says this "needs the human's leave in `feature.md`". `feature.md`'s "The human's changes" and its decisions 1 to 11 hold no leave for S0010. A story that changes another story's test needs the human's word. Please give the leave. It should say that S0010's tester may remove only that mark and change nothing else in that module. I would choose to give it.
+
+   3. **The Interface rule "raises the same error unchanged" has no criterion of its own.** Criterion 1 checks the claim, the agent runtime and the next tick. Criterion 3 checks the counted handler error. Neither checks that the `HostingServiceError` reaches the caller as the same exception, with no wrapping. Criterion 2 checks that the original `HostingServiceError`, not `PushFailed`, is raised when the release push fails. Please add a criterion, or confirm that criterion 3's `HostingServiceError: ...` line covers it. I would add one.
+
+   4. **The release commit has no criterion.** The Interface fixes the subject `commit_subject(<id>, "claim released: hosting failed")`. It also says the commit is a single commit, that the journal gets no new entry, and that attempts and round do not change. Criterion 1 covers only the crash count. Please add a criterion for the subject, the single commit and the unchanged journal, attempts and round. I would add one.
