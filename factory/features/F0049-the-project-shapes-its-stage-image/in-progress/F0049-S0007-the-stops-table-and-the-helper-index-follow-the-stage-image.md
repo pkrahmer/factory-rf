@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 534
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T03:12:20.021341Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-04T03:12:20.021341Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-04T03:14:14.027605Z'
+  stage: doing
+  run: 5da7e7f8e6f942aebf0d611504d32d59
 ---
 
 # The stops table and the test helper index follow the stage image
@@ -102,3 +104,11 @@ Expect: `0`, then `listed`, then `listed`, then `documents ok`.
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: Built nothing: no path changed in this stage. The story changes only `docs/operator-guide.md` (the stops table's `stage-image-failed` row) and `docs/project-guide/README.md` (the *Shared test helpers* index). The Interface says no module under `src/factory/` and no test changes, and the tester wrote no tests, so `make test` had no failures to work from. I ran `make check` on the untouched branch and it ended `check: green` (test: green, coverage 99.52 %).
+      - Main choice: leave both document edits to the documenter. `CLAUDE.md` *Docs* says the documenter keeps `docs/operator-guide.md` and `docs/project-guide/` from each story's docs criterion and the coder does not write them. Criterion 4 names both files as the docs criterion. Rejected: making the row and index edits here. They are outside the coder's part of the work, and the documenter would redo them anyway.
+      - Refactor: there is no diff, so there was nothing to refactor.
+      - Journal: no entry changed the meaning of the task, so `## Description` is unchanged.
+      - Noticed, not touched: criteria 1 and 2 can only be checked after the docs stage. A reviewer reading this stage's diff will find nothing to check against them.
+
+   `check`: check: green (not run again: passed on tree c75cce644896 at 2026-11-04T02:57:19Z)
+   `duplicates`: duplicates: 0 new, 43 known, 0 gone
