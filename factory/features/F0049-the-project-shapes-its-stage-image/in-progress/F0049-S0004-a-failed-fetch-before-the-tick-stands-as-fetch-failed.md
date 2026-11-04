@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T02:43:42.838465Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-11-04T02:43:36.892614Z'
   stage: doing
   run: 12a376bfed34462586021e358cb9fc80
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:43:42.838465Z'
+  stage: review
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -384,3 +393,4 @@ Expect: a line that ends in `passed` with no `failed`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
+26. factory: started review as vm.
