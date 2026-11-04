@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T19:03:21.377347Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-04T19:03:21.377347Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T19:05:26.410134Z'
+  stage: review
+  run: 7d177ed71d9142c2864b2593b66a634a
 ---
 
 # The cost record sums up the run's tool calls
@@ -207,3 +209,30 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
 11. factory: started review as vm.
+12. reviewer: Review of round 0. I read the work item, `git diff main...HEAD -- . ':!factory'` (the generated schemas only for the cost-record change and the version line) and every new and changed test, checking them against criteria 1 to 13 and the Interface. I also ran `make duplicates`. Its 4 new items are not counted as findings: the new claude/opencode similar-code item is the existing `finished_run` item moved down by the added `tool_uses` method (the old item now shows as gone). The three dead-code items are `MachineMeasures` fields that this diff does not touch.
+
+    What holds:
+    - Every criterion has a test that checks it.
+    - The Interface's limits are tested on both sides: name 64/65 characters, the accepted characters, space and slash, both in the model and in the reading; `calls`/`failed` at -1 and 0; `failed` equal to `calls` and above it; `seconds` at -1, NaN, infinity, 0 and `None`; a started record with `None`, `[]` and a list.
+    - The layers hold: parsing is in `factory.domain.tool_uses`, the abstract operation in `AgentRuntime`, and the wrappers only decode and delegate.
+    - The contract's minor rise to 4.4 for an added optional field follows the version rule in `docs/decisions.md`.
+    - No suppression markers. The journal (entry 10) records `make check` green.
+    - The read/keep split of `SessionTranscripts` is explained in the journal, along with the alternative it rejected. The Description and the docs criterion match what was built.
+
+    Findings:
+    1. `src/factory/domain/tool_uses.py:118` and `:144`: a transcript of an unexpected shape raises instead of being read or refused.
+       - Problem: `answered_at - called_at` raises `TypeError` when one Claude Code line's `timestamp` has an offset and the other has none (`2026-11-04T10:00:00` beside `...Z`). `float(value)` in `_milliseconds` raises `OverflowError` for an opencode `time.start`/`time.end` integer beyond float range. Nothing catches either: not `claude_tool_uses`/`opencode_tool_uses`, not the wrappers' `tool_uses`, not `StageLauncher._read_transcript` (`src/factory/application/stage.py:142`). So a transcript that the agent can rewrite in its own home on the dataset fails the stage. That breaks criterion 5 ("does not fail the run") and the rule that input is validated at the boundary.
+       - Fix: in `_timestamp` (`:93`), treat a timestamp without `tzinfo` as no time. In `_milliseconds`, treat a number that does not convert to a finite float as no time, the way `_non_negative` already does.
+       - Tests to hand to the tester: a mixed-offset Claude Code row and a huge-`time.end` opencode row, added to `tests/domain/test_tool_uses.py::test_seconds_come_from_the_transcript_s_times` or `::test_lines_that_cannot_be_read_give_no_tools`, whichever outcome the coder picks.
+    2. `tests/application/test_stage_tool_uses.py:64-73`: `_sidecar`/`_records` is a second copy of `_records` in `tests/application/test_stage_transcripts.py:60` (show the cost-records file at the branch head, assert it exists, parse it).
+       - Fix: the tester moves it to `tests/stage_run_support.py` under the standing leave and both modules use it from there.
+
+    Earlier tests (changed test files that `main` already holds):
+    - `tests/application/test_interfaces.py`: the human's leave, journal entry 4 (`tool_uses` added to `AgentRuntime`'s pinned operations).
+    - `tests/application/test_agent_run_probe.py`: the human's leave, journal entry 4 (`RefusingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/application/test_stage_run.py`: the human's leave, journal entry 4 (`HeadNotingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/container_support.py`: the human's leave, journal entry 4 (`WorkspaceRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/observing_runtime.py`: the human's leave, journal entry 4 (`ObservingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/domain/test_contract.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`).
+    - `tests/domain/test_contract_version_4.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
+    - `tests/domain/test_contract_version_4_2.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
