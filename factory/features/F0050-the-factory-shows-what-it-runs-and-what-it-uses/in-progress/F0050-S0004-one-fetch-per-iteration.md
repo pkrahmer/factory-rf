@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947, 6634929291]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T15:43:12.953593Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -201,6 +197,12 @@ journal:
   kind: started
   at: '2026-11-04T15:43:12.953593Z'
   stage: doing
+- number: 35
+  speaker: coder
+  kind: result
+  at: '2026-11-04T15:47:16.364748Z'
+  stage: doing
+  run: 90894cf1ec0b4d53b7339aa5c29616f4
 ---
 
 # One fetch per iteration
@@ -521,3 +523,25 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
     `lint`: lint: green (0.1 s)
 34. factory: started doing as vm.
+35. coder: Round 1. `make check` is green (`check: green`, coverage 99.42 %), with the tester's changes from entry 33 in place, including the pinned `TICK_RUN` sentence and the moved helpers in `tests/remote_outage_support.py`. I changed no code in this run. The round's code change, the docstring of `Tick.run` for reviewer finding 4, was already in the working tree from entry 31.
+
+    What I built, over the whole story:
+    - `src/factory/application/tick.py`: `Tick.run(self, *, fetched: bool = False)`. With `fetched=True` the tick skips `_fetch()`, which also skips the raise and clear of `fetch_failed`. The docstring now says this, in the exact sentence the human allowed in entry 29. The code comment that gave the same reason is gone.
+    - `src/factory/entry/run.py`: `activity_tick(tick, idle=None, *, fetched=False)` passes the flag on to the tick. `_ProjectImageStart._choose` builds its tick with `fetched=True`, because `_follow_main` already fetches before every tick and raises or clears `fetch_failed` itself. `factory-watch` and every other caller keep the default fetch. `scheduler.py:126` is untouched.
+
+    How the reviewer's findings were handled:
+    - Findings 1 to 3 (copied test helpers) were moved by the tester under the standing leave (entry 33).
+    - Finding 4 (the docstring of `Tick.run`) is fixed in the code, with the human's leave in entry 29.
+
+    Main choice: the reason for skipping the fetch is stated in the public docstring of `Tick.run`. I rejected keeping it only as a code comment, because the docstring would then be wrong for `fetched=True`.
+
+    Refactor: I read `git diff main -- . ':!factory' ':!tests'` and found nothing to rename, simplify or remove.
+
+    Description: no rewrite. The journal (entries 11, 18 and 29) only gave leave for test changes and did not change what the task means.
+
+    Noticed but not touched: `make duplicates` reported 3 new findings in `src/factory/domain/cost_records.py:41-43`. That file is outside this story.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 3 new, 43 known, 0 gone
