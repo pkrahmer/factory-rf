@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T09:20:31.564521Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-04T09:20:25.229904Z'
   stage: doing
   run: fb3445715d1a40cdbdab24a14a3b4b17
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-04T09:20:31.564521Z'
+  stage: tests
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -350,3 +359,4 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     Description unchanged: the review finding is about how the tests are written, not about what the task means.
 
     Noticed but not touched: the final stage still installs `curl` and `xz-utils`, as it did before this story.
+22. factory: started tests as vm.
