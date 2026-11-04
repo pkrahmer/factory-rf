@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T18:13:52.516524Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T18:13:49.421827Z'
+  stage: doing
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-04T18:13:52.516524Z'
   stage: doing
 ---
 
@@ -345,3 +354,4 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
     3. The Claude Code session lives where the real runtime writes it: `<home>/.claude/projects/*/<session>.jsonl` (`HOME=/work/home` in the container). The tester moves its test file to that path; the coder keeps only that glob and drops `<home>/projects`. Leave for the reviewer: say so in the Interface.
 
     End with `tests` as you propose.
+19. factory: started doing as vm.
