@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T18:34:57.337516Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -197,6 +201,11 @@ journal:
   at: '2026-11-04T18:34:51.070720Z'
   stage: review
   run: 894cb4ec74fd4d469b36a2ac6cee0d23
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-11-04T18:34:57.337516Z'
+  stage: docs
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -652,3 +661,4 @@ Expect: the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: no
     - tests/domain/test_contract.py: the human's leave, journal 4 (the `"4.2"` pin becomes `"4.3"`)
     - tests/domain/test_contract_version_4.py: the human's leave, journal 4 (the `"4.2"` pins become `"4.3"`)
     - tests/domain/test_contract_version_4_2.py: the human's leave, journal 4 (the `"4.2"` pins become `"4.3"`)
+35. factory: started docs as vm.
