@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T13:52:22.230600Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-04T13:52:15.679230Z'
   stage: doing
   run: c458533efeee4b029b81382d6b65e32b
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:52:22.230600Z'
+  stage: tests
 ---
 
 # A stop says why, and is logged once
@@ -233,3 +242,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     `make duplicates` still reports the 3 dead-code findings in `src/factory/domain/cost_records.py:41-43`, a file this story does not touch.
 
     `check`: check: green
+15. factory: started tests as vm.
