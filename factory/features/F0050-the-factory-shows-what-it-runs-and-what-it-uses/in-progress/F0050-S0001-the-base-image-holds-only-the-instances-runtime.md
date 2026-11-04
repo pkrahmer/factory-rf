@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T09:13:57.451346Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-04T09:13:57.451346Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-04T09:14:21.976948Z'
+  stage: tests
+  run: b58bd32f86be43058669ecb96515f331
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -244,3 +246,20 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
 
     No code changed in this round. `vm/Dockerfile` and `vm/job-start.sh` are as entry 10 describes (the work is on the branch, `git diff main --stat -- vm`), and they pass every test. Once the tester's change is in, `make types` should be green, and with it `make check`. The other targets were already green one by one in entry 10. Description unchanged: the journal changed only how two test rows are written, not what the task means.
 14. factory: started tests as vm.
+15. tester: I made the test change the human approved in entry 11, option (a), as the coder named it in entry 13. I changed only `tests/test_stage_image.py`.
+
+    - In `test_the_apt_install_names_exactly_the_six_packages`, the rows' `lambda text, package=package: ...` is now `_add_apt_package(package)`. This is a new named factory returning `Callable[[str], str]`, with the same `replace` on the first `--no-install-recommends `.
+    - In `test_the_final_stage_leaves_no_install_rest`, the rows' `lambda text, path=path: re.sub(...)` is now `_drop_path(path)`. This is a new named factory returning `Callable[[str], str]`, with the same `re.sub`.
+
+    Both factories follow the way `_drop_lines_with` and `_without_word` are written in that module. Every test keeps its name, its rows, their ids and what it checks. Nothing else in the module changed, and I created no files.
+
+    Why: `mypy --strict` could not type the lambdas with default arguments ("Cannot infer type of lambda [misc]"), which kept `make types` red.
+
+    Runs:
+    - `uv run pytest -q tests/test_stage_image.py`: all passed against the coder's `vm/` files. There were no import errors.
+    - `make lint`: green.
+    - `uv run mypy --strict tests/test_stage_image.py`: no issues found. I ran this to confirm the fix itself.
+
+    Criteria → tests are as in entry 8. No project skill was used.
+
+    `lint`: lint: green (0.1 s)

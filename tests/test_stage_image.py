@@ -653,17 +653,22 @@ def test_the_node_archive_is_checked_before_it_is_unpacked(
     assert _node_archive_is_checked(change(stage_dockerfile)) == checked
 
 
+def _add_apt_package(package: str) -> Callable[[str], str]:
+    """A change that adds `package` to the first apt install."""
+
+    def change(text: str) -> str:
+        return text.replace("--no-install-recommends ", f"--no-install-recommends {package} ", 1)
+
+    return change
+
+
 @pytest.mark.parametrize(
     ("change", "exact"),
     [
         pytest.param(lambda text: text, True, id="as-built"),
         *[
             pytest.param(
-                _in_final_stage(
-                    lambda text, package=package: text.replace(
-                        "--no-install-recommends ", f"--no-install-recommends {package} ", 1
-                    )
-                ),
+                _in_final_stage(_add_apt_package(package)),
                 False,
                 id=package,
             )
@@ -973,13 +978,22 @@ def _final_stage_cleans_up(dockerfile: str) -> bool:
     return all(any(_covers(word, path) for word in removed) for path in CLEANED)
 
 
+def _drop_path(path: str) -> Callable[[str], str]:
+    """A change that drops every word starting with `path`."""
+
+    def change(text: str) -> str:
+        return re.sub(rf"\s{path}[^\s\"']*", "", text)
+
+    return change
+
+
 @pytest.mark.parametrize(
     ("change", "clean"),
     [
         pytest.param(lambda text: text, True, id="as-built"),
         *[
             pytest.param(
-                _in_final_stage(lambda text, path=path: re.sub(rf"\s{path}[^\s\"']*", "", text)),
+                _in_final_stage(_drop_path(path)),
                 False,
                 id=path.strip("/").replace("/", "-"),
             )
