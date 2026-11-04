@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T22:43:35.134159Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-04T22:43:35.134159Z'
   stage: tests
+- number: 26
+  speaker: tester
+  kind: result
+  at: '2026-11-04T22:44:28.431470Z'
+  stage: tests
+  run: 9b42f37f005c4675bea02a49721d5970
 ---
 
 # A hosting failure after the claim charges no crash
@@ -352,3 +354,19 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
 
     The factory left out changes outside the write paths: factory/features/F0050-the-factory-shows-what-it-runs-and-what-it-uses/in-progress/F0050-S0010-a-hosting-failure-after-the-claim-charges-no-crash.md.
 25. factory: started tests as vm.
+26. tester: Made the test changes the coder named in journal 24 for review findings 3 to 5, and added the reviewer's optional row. I changed no code.
+
+    - Finding 3 (standing leave to move a shared test helper): I moved the duplicated fixture into `tests/conftest.py` as `failed_after_claim`, with the same body and docstring. It is deleted from both modules. I kept S0008's fixture name, so `tests/application/test_hosting_failure_after_claim.py` changes only by losing its fixture and its now unused `import pytest`. Its test `test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick` keeps its name and checks the same thing. In `tests/application/test_hosting_failure_releases_claim.py`, the two tests that used `failed_tick` now take `failed_after_claim`.
+    - Finding 4: in `tests/application/test_hosting_failure_releases_claim.py` I removed `_log_text`. `_handler_errors` now applies `HANDLER_ERROR` to each line of `state_log_lines(world.state)` from `tests/log_support.py`. The `error cap reached` check in `test_each_failing_tick_counts_its_handler_error_from_one_and_reaches_no_cap` reads the same lines.
+    - Finding 5: `test_the_hosting_failure_reaches_the_caller_as_the_same_exception` now also asserts, for each row, that `branch_state(world, work_item).claim` is `None` exactly when `refusals == 0`.
+    - Reviewer's note: I added `pytest.param(3, True, id="pushed-after-three-refusals")` to `test_a_release_whose_push_is_refused_four_times_leaves_the_claim_and_a_crash_follows`. That row is the passing side of the four-try limit.
+
+    Criterion → test mapping: unchanged from the earlier tests entries. Only the fixture's name and source moved, and the assertions above were added.
+
+    Earlier test files I changed: `tests/application/test_hosting_failure_after_claim.py` (S0008's) and `tests/conftest.py`, both under the standing leave to move a shared test helper. No files created. Every module imported.
+
+    One run of `uv run pytest -q` over the two test modules: 12 passed. `make lint`: lint: green (0.2 s).
+
+    Still open: the coder's edits to criteria 3 and 9 (findings 1 and 2) were dropped from the take because they are outside the coder's write paths (journal 24). The work item is outside the tester's write paths as well, so those two findings still need someone whose write paths include it.
+
+    `lint`: lint: green (0.2 s)

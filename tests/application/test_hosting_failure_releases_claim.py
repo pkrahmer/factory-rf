@@ -18,6 +18,7 @@ from factory.domain.identifiers import WorkItemId, branch_name
 from factory.domain.kill_points import KillPoints
 from factory.domain.work_item import WorkItemDocument
 from git_support import PIPELINE_YAML
+from log_support import state_log_lines
 from proof_support import (
     FEATURE,
     STAGE,
@@ -92,13 +93,12 @@ def _branch_commits(world: World, work_item: WorkItemId) -> list[CommitInfo]:
     return git.log(f"origin/{branch_name(work_item)}", since="origin/main")
 
 
-def _log_text(world: World) -> str:
-    log = world.state / "factory.log"
-    return log.read_text(encoding="utf-8") if log.exists() else ""
-
-
 def _handler_errors(world: World) -> list[tuple[str, str]]:
-    return [(match[1], match[2]) for match in HANDLER_ERROR.finditer(_log_text(world))]
+    return [
+        (match[1], match[2])
+        for match in map(HANDLER_ERROR.search, state_log_lines(world.state))
+        if match
+    ]
 
 
 def _queue_stage_run(world: World) -> None:
@@ -109,15 +109,6 @@ def _queue_stage_run(world: World) -> None:
 def _crashes_in_journal(world: World, work_item: WorkItemId) -> int:
     journal = head_state(world, work_item).journal
     return [(record.speaker, record.kind) for record in journal].count(("factory", "crash"))
-
-
-@pytest.fixture
-def failed_tick(world: World, work_item: WorkItemId) -> World:
-    """A world whose first tick claimed the work item and then met a hosting failure."""
-    del work_item  # requested only so that the story exists before the tick
-    world.hosting.fail_next("create_pull_request")
-    run_ticks(world)
-    return world
 
 
 @pytest.fixture
@@ -139,19 +130,19 @@ def launch(world: World, work_item: WorkItemId) -> _Launch:
 
 
 def test_a_hosting_failure_after_the_claim_releases_it_and_the_next_tick_runs_the_stage(
-    failed_tick: World, work_item: WorkItemId
+    failed_after_claim: World, work_item: WorkItemId
 ) -> None:
-    released = branch_state(failed_tick, work_item)
+    released = branch_state(failed_after_claim, work_item)
     assert released is not None
     assert released.claim is None
-    assert failed_tick.agent_runtime.requests() == []
+    assert failed_after_claim.agent_runtime.requests() == []
 
-    _queue_stage_run(failed_tick)
-    run_ticks(failed_tick)
+    _queue_stage_run(failed_after_claim)
+    run_ticks(failed_after_claim)
 
-    assert _crashes_in_journal(failed_tick, work_item) == 0
-    assert head_state(failed_tick, work_item).crashes == 0
-    assert len(failed_tick.agent_runtime.requests()) == 1
+    assert _crashes_in_journal(failed_after_claim, work_item) == 0
+    assert head_state(failed_after_claim, work_item).crashes == 0
+    assert len(failed_after_claim.agent_runtime.requests()) == 1
 
 
 @pytest.mark.parametrize(
@@ -159,6 +150,7 @@ def test_a_hosting_failure_after_the_claim_releases_it_and_the_next_tick_runs_th
     [
         pytest.param(0, True, id="pushed-first-try"),
         pytest.param(2, True, id="pushed-after-two-refusals"),
+        pytest.param(3, True, id="pushed-after-three-refusals"),
         pytest.param(4, False, id="refused-four-times"),
     ],
 )
@@ -190,7 +182,7 @@ def test_each_failing_tick_counts_its_handler_error_from_one_and_reaches_no_cap(
     assert [count for _key, count in errors] == ["1"] * ticks
     assert {key for key, _count in errors} == {key for key, _count in errors[:1]}
     assert all(key.endswith(f":{work_item}") for key, _count in errors)
-    assert "error cap reached" not in _log_text(world)
+    assert not any("error cap reached" in line for line in state_log_lines(world.state))
 
 
 def test_an_error_other_than_a_hosting_failure_after_the_claim_releases_nothing(
@@ -226,21 +218,24 @@ def test_the_hosting_failure_reaches_the_caller_as_the_same_exception(
         launch.launcher.launch(launch.prepared)
 
     assert raised.value is launch.error
+    claimed = branch_state(world, work_item)
+    assert claimed is not None
+    assert (claimed.claim is None) is (refusals == 0)
 
 
 def test_the_release_is_one_commit_with_its_subject_and_leaves_the_journal_and_counters(
-    failed_tick: World, work_item: WorkItemId
+    failed_after_claim: World, work_item: WorkItemId
 ) -> None:
-    commits = _branch_commits(failed_tick, work_item)
+    commits = _branch_commits(failed_after_claim, work_item)
     subjects = [commit.subject for commit in commits]
     assert subjects.count(_release_subject(work_item)) == 1
     release, claim = commits[0], commits[1]
     assert release.subject == _release_subject(work_item)
     assert release.parents == [claim.commit]
 
-    path = work_item_file(failed_tick, work_item)
-    released = state_at(failed_tick, release.commit, path)
-    claimed = state_at(failed_tick, claim.commit, path)
+    path = work_item_file(failed_after_claim, work_item)
+    released = state_at(failed_after_claim, release.commit, path)
+    claimed = state_at(failed_after_claim, claim.commit, path)
     assert released is not None
     assert claimed is not None
     assert claimed.claim is not None

@@ -59,7 +59,7 @@ from machine_readings_support import FakeMachineReadings
 from operator_skill_support import Operator, make_operator
 from podman_support import IMAGE, Podman, PodmanPlan, write_podman
 from podman_support import INSTANCE as PODMAN_INSTANCE
-from proof_support import World, build_world, start_story
+from proof_support import World, build_world, run_ticks, start_story
 from run_layout_support import Layout, build_layout
 from run_process_recorder import Recorder
 from settings_support import AGENT_HOME
@@ -372,6 +372,15 @@ def world(tmp_path: Path, remote_template: Path) -> World:
 def work_item(world: World) -> WorkItemId:
     """Return a story started in the world, its work item on its branch."""
     return start_story(world)
+
+
+@pytest.fixture
+def failed_after_claim(world: World, work_item: WorkItemId) -> World:
+    """A world whose first tick claimed the work item and then met a hosting failure."""
+    del work_item  # requested only so that the story exists before the tick
+    world.hosting.fail_next("create_pull_request")
+    run_ticks(world)
+    return world
 
 
 @pytest.fixture
