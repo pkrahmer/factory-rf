@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 550
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T23:02:09.900950Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-04T23:02:02.283216Z'
   stage: doing
   run: 34721fe8dc604ed29ca416c50a5ed2cf
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:02:09.900950Z'
+  stage: review
 ---
 
 # The decision log and the contract's history match the feature
@@ -113,3 +122,4 @@ Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
 
    `check`: check: green (not run again: passed on tree a4a57514a13e at 2026-11-04T22:47:18Z)
    `duplicates`: duplicates: 4 new, 41 known, 2 gone
+8. factory: started review as vm.
