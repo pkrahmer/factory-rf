@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T19:14:46.957795Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-04T19:14:46.957795Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-11-04T19:17:03.330508Z'
+  stage: doing
+  run: 8907617dccce4f87bb76a05d5ccb08e6
 ---
 
 # The cost record sums up the run's tool calls
@@ -365,3 +367,20 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     - `tests/application/test_stage_transcripts.py`: the standing leave to move a shared test helper. `_records` was replaced by the shared `pushed_cost_records`, and the imports it no longer needs went with it. Every test keeps its name and what it checks.
     - `tests/stage_run_support.py`: the standing leave to move a shared test helper (the shared `pushed_cost_text` and `pushed_cost_records` added; nothing earlier changed).
 21. factory: started doing as vm.
+22. coder: Round 2: I fixed the one finding in the reviewer's entry 20. `make check` is green (test: green, 92.3 s; coverage 99.25 %). I changed no test.
+
+    What changed:
+    - `src/factory/domain/tool_uses.py` (`_object`): it now catches `RecursionError` as well as `ValueError` from `json.loads`. A line nested deeper than the recursion limit is now treated as unreadable, the same as a line that is not JSON. That makes the whole result `None` (criterion 5) and the stage no longer fails. A one-line comment says why: the decoder recurses once per nesting level.
+    - I tried it by hand: a line of 100000 `[` gives `None` from both `claude_tool_uses` and `opencode_tool_uses`.
+
+    Main choice: I treated the line as unreadable, as the reviewer proposed. I rejected two alternatives:
+    - skipping only that line: it would silently undercount;
+    - raising the recursion limit: it would only move the threshold.
+
+    Test change for the tester: add a row for each runtime to `tests/domain/test_tool_uses.py::test_lines_that_cannot_be_read_give_no_tools`, where the transcript or stream holds a line of 100000 `[` and the result is `None`.
+
+    Refactor pass: the change is one line plus its comment, so there was nothing to refactor.
+
+    Noticed but not touched:
+    - The reviewer's note that `_staged` in `tests/application/test_stage_tool_uses.py` repeats `_with_transcripts` in `tests/application/test_stage_transcripts.py`. That is a test helper; the tester can move it under the standing leave if the reviewer turns it into a finding.
+    - `CostRecord` does not itself refuse an unsorted or duplicated `tools` list (as noted in earlier rounds).

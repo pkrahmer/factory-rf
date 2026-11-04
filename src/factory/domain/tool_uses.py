@@ -67,7 +67,8 @@ def _objects(lines: list[str]) -> list[dict[str, object]]:
 def _object(line: str) -> dict[str, object]:
     try:
         value: object = json.loads(line)
-    except ValueError as error:
+    # The decoder recurses per nesting level, so a deeply nested line raises RecursionError.
+    except (ValueError, RecursionError) as error:
         raise _Unreadable from error
     return _as_object(value)
 
