@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T20:34:46.578479Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -222,6 +226,11 @@ journal:
   at: '2026-11-04T20:34:40.526367Z'
   stage: doing
   run: 55ad99a14f3547f58e3520506ea6cb83
+- number: 40
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:34:46.578479Z'
+  stage: tests
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -625,3 +634,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     - both come before the folder's `install -d`.
 
     Noticed but not touched: `docs/operator-guide.md` still mentions the dropped `tmpfiles.d` rule and the `--transcript-days` option. Entry 37 lists the places. Fixing them is the documenter's job under docs criterion 5.
+40. factory: started tests as vm.
