@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T10:36:34.345949Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T10:36:09.501400Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T10:36:34.345949Z'
   stage: tests
 ---
 
@@ -167,3 +176,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
    1. **(a)** "The Interface names the seams." Exactly as you list them: the pure functions in a new `factory.domain.machine` (`count_warnings`, `gigabytes`, `pressure_total_seconds`, `cpu_usage_seconds`, `mem_total_bytes`, `machine_differences`); `Images.size_bytes(image) -> int | None` and `Images.store_path() -> Path | None`; `ImageBuild.warnings: NonNegativeInt`; the application interface `MachineReadings` with an adapter that takes the cgroup slice folder and the meminfo path as constructor arguments. The two build lines are tested through `project_image_settings(..., report=...)` and `FakeImages`. The base line `stage image: base <GB> GB` is tested through the same `project_image_settings` call for a project without a stage file, which is what the factory's start runs (`_ProjectImageStart._choose` in `factory.entry.run`). The coder may add arguments these names need, and says so in its entry.
 
    2. **(b)** "Both are set to `"4.2"`." The pinned value stays a deliberate guard: a version change must show up as a changed test, as in F0049 (decision 8). Leave for the tester: in `tests/domain/test_contract_version_4.py` the `"4.1"` pins and in `tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version` the `"4.1"` become `"4.2"`; nothing else in those modules.
+10. factory: started tests as vm.
