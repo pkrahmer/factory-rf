@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 534
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T03:14:21.969138Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-04T03:14:14.027605Z'
   stage: doing
   run: 5da7e7f8e6f942aebf0d611504d32d59
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:14:21.969138Z'
+  stage: review
 ---
 
 # The stops table and the test helper index follow the stage image
@@ -112,3 +121,4 @@ Expect: `0`, then `listed`, then `listed`, then `documents ok`.
 
    `check`: check: green (not run again: passed on tree c75cce644896 at 2026-11-04T02:57:19Z)
    `duplicates`: duplicates: 0 new, 43 known, 0 gone
+8. factory: started review as vm.
