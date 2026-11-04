@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T19:09:30.642485Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-04T19:09:24.767684Z'
   stage: tests
   run: 12f9345762cb47a186941256eef3a8de
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-04T19:09:30.642485Z'
+  stage: doing
 ---
 
 # The cost record sums up the run's tool calls
@@ -295,3 +304,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     Files changed: `tests/domain/test_tool_uses.py`, `tests/application/test_stage_tool_uses.py`, `tests/application/test_stage_transcripts.py` (earlier story, standing leave), `tests/stage_run_support.py` (shared support, standing leave). No files created. The test run imported every module.
 
     `lint`: lint: green (0.2 s)
+17. factory: started doing as vm.
