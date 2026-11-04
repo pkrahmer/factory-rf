@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T01:59:52.119064Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-04T01:59:52.119064Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T02:01:20.220528Z'
+  stage: review
+  run: fd675f59e3fb4128b2094b20c83a715a
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -203,7 +205,7 @@ After S0002 the factory builds the project's stage file once, when `factory-run`
 6. A rebuild that fails stands as `stage_image_failed` with the first 12 hex digits of the commit in its detail and the log line `stage image: failed at <commit>`, and the image in use stays the one before. Each row has its own expectations (stop ended or not, image and identity afterwards, log lines): a later `main` with the same digest (the stop stands, no build, no log line); another digest (the stop ends, it builds); the file removed (the stop ends, the base and its identity, no build).
 7. After a passed rebuild, the images interface's removal of untagged images runs, so the previous project image does not stay.
 8. `make check` stays green.
-9. docs: `docs/operator-guide.md`: in *The project's stage file*, that a merged change takes effect before the next stage without a restart, the four log lines, and that a failed build waits for a new `main`. The project guide: `stage-environment.md` says where the factory compares the stage file on a new `main`. `docs/decisions.md`: one entry with feature decision 5 and its reason. `README.md`: none.
+9. docs: `docs/operator-guide.md`: in *The project's stage file*, that a merged change takes effect before the next stage without a restart, the three log lines, and that a failed build waits for a new `main`. The project guide: `stage-environment.md` says where the factory compares the stage file on a new `main`. `docs/decisions.md`: one entry with feature decision 5 and its reason. `README.md`: none.
 
 ## Smoke test
 
@@ -487,3 +489,34 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     `check`: check: green
     `duplicates`: duplicates: 1 new, 42 known, 0 gone
 30. factory: started review as vm.
+31. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`: `src/factory/entry/run.py`, `src/factory/entry/wiring.py`, the new `tests/entry/test_run_project_image_rebuild.py`, and the support and earlier test files the tester changed. To check the helper move I also read `GitCli.commit` (it runs `add --all`, so a deleted file is staged), `HumanClone._on_branch` and the `human` fixture in `tests/conftest.py`.
+
+    Round 0 findings:
+    - 1 to 3 (copied helpers): fixed. `_commit` now uses `remote_commit`. Removing the file now goes through the new `HumanClone.remove_file`. `World._lines` now uses the new `state_log_lines`.
+      - `log_lines` keeps its old body because `tests/test_shared_bodies.py` uses that body as its sample (entry 27).
+      - The new helper is needed because the `instance_settings` fixture keeps the log under `instance-state`.
+    - 4: fixed. The `_ProjectImageStart` docstring (`src/factory/entry/run.py:201`) now says a rebuilt tick starts its error counts again at zero.
+    - 5: I made this fix myself as a description correction (below), because the coder's edit was dropped.
+
+    This round, groups 1 to 5:
+    - Group 1, the criteria:
+      - Criteria 1 to 7 each still have a test that checks what the criterion says. The three rows of criterion 6 each keep their own expectations.
+      - The 12-digit commit is checked in the stop's detail and in every log line.
+      - The coder's `make check` was green (entry 29).
+    - Group 2, architecture: holds. The comparison and the wiring stay in `factory.entry`, and `Git` and `Images` are used through their interfaces.
+    - Group 3, security: no secrets, no command strings, and no new markers.
+    - Group 4, quality: no findings in `src/`.
+      - The diff adds `_SHORT_COMMIT_LENGTH`, but no 12-digit helper exists to reuse. Other modules cut `[:12]` inline.
+      - `make duplicates` reports 1 new finding: `FakeImages` in `src/factory/adapters/fake_images.py`, a file this diff does not change.
+    - Group 5, work item hygiene:
+      - The journal explains the main choice: it compares the file's text rather than `StageLayer.digest`. The human accepted that in entry 11, and the digest is the sha256 of the text.
+      - The Description matches what was built.
+
+    no findings
+
+    description corrected: criterion 9 "the four log lines" -> "the three log lines" (the Interface and the smoke test name three: `built`, `back to the base at`, `failed at`).
+
+    Earlier tests:
+    - tests/application/test_tick_preflight.py: changed under the standing leave to move a shared test helper. `Machine.remove_from_main` now calls `HumanClone.remove_file` on the same clone (`tmp_path / "human"`). Every test keeps its name and checks the same thing, and the unused `run_git` import is gone.
+    - tests/human_clone.py: none needed. It only adds `remove_file`, and the earlier contents are unchanged.
+    - tests/log_support.py: none needed. It only adds `state_log_lines`, and `log_lines` is unchanged.
