@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 532
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T03:00:05.151943Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-04T02:59:58.639848Z'
   stage: docs
   run: 7da8574b1a704728bc02bacc35422395
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:00:05.151943Z'
+  stage: smoke-test
 ---
 
 # The stage image's tests share their helpers and pin the image without an environment
@@ -183,3 +192,4 @@ Expect: `0`, `0`, then a line that ends in `passed` with no `failed`.
     `check`: check: green (not run again: passed on tree c75cce644896 at 2026-11-04T02:57:19Z)
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
