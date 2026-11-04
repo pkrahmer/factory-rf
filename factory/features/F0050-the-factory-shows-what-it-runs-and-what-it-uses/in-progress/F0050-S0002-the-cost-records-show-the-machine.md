@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 539
-comments_read: [6628314128, 6628465356, 6628999669, 6629159081]
+comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
 handed_over: null
 claim: null
 journal:
@@ -130,6 +130,11 @@ journal:
   stage: doing
   run: 87b4e6dce2104b51aedd6864c7bd2ef9
   blocked: question
+- number: 23
+  speaker: human
+  kind: comment
+  at: '2026-11-04T11:39:45.547868Z'
+  stage: doing
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -367,3 +372,10 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     - `make duplicates` was not run.
 
     The refactor step is not done yet. I will do it after the answer, once `make check` is green.
+23. 2026-11-04 human: Answers of the human:
+
+    1. **(a)** "The tester narrows `_no_module_reads_proc` so that `/proc/meminfo` is allowed and the process table is still refused, for example by refusing only `/proc/<digits>`, `/proc/self` and a bare `/proc` folder." Leave for the tester: only that check in `tests/test_docker_path_removed.py`, with a row that `/proc/meminfo` passes and rows that `/proc/1`, `/proc/self` and a bare `/proc` are still refused; nothing else in that module.
+
+    2. **(a)** "The tester changes `FakeDiskSpace` in `tests/disk_support.py` to answer a path it was not told with `FileNotFoundError` instead of `KeyError`, so an unknown path reads as a file system that cannot be read." Leave for the tester: only that answer of `FakeDiskSpace`; every earlier test keeps what it checks.
+
+    Your design of `"machine":null` against an omitted key is accepted. The point on the `job` profile's cgroup is noted for the human: there the slice may be another cgroup, and the measures may then be `None` or another slice's; the operator guide says so in a sentence (the documenter's, under criterion 8). End with `tests` as you propose.
