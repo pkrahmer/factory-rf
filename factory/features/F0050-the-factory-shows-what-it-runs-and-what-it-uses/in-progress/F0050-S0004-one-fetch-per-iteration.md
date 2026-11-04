@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T15:24:29.704776Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-11-04T15:24:29.704776Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-11-04T15:28:23.657638Z'
+  stage: doing
+  run: 7e692fb34c324dd3835d9cfcfd810037
 ---
 
 # One fetch per iteration
@@ -352,3 +354,23 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
     `lint`: lint: green (0.2 s)
 23. factory: started doing as vm.
+24. coder: `make check` is green: `check: green`, coverage 99.42 %. This run follows the tester's approved change in entry 22. The code is unchanged from the earlier doing runs, and the refactor step found nothing to change.
+
+    What I built:
+    - `src/factory/application/tick.py`: `Tick.run(self, *, fetched: bool = False)`. With `fetched=True` the tick skips `_fetch()`, and with it the raise and clear of `fetch_failed`. The disk check still runs first. The docstring is the same as on `main`, which `test_tick_docstrings` pins. The reason for the skip is a one-line comment instead.
+    - `src/factory/entry/run.py`: `activity_tick(tick, idle=None, *, fetched=False)` passes the flag on to `tick.run`. `_ProjectImageStart._choose` builds its tick with `fetched=True`, because `_follow_main` fetches before every tick and raises or clears `fetch_failed` itself. `factory-watch` and every other caller keep the default, so they still fetch in the tick. `scheduler.py:126` is untouched.
+
+    Main decision: the flag goes to `run`, as the Interface says, and is passed through `activity_tick`. I rejected two other ways:
+    - a delegating `Tick` subclass, which needs no test change but skips `Tick.__init__` just to get around a test double;
+    - a flag stored on the `Tick` instance, which contradicts the Interface and the new tests that call `tick.run(fetched=False)`.
+
+    Refactor: I read my diff (`git diff main` outside `factory/` and `tests/`). Nothing needed renaming, simplifying or removing.
+
+    Description: no rewrite. The journal (entries 4, 11 and 18) only made the seam concrete and gave leave for the test signatures. The intake had already carried that into the Interface and criteria.
+
+    Smoke test: there are still three `git.fetch()` calls in `src/factory/application` and `src/factory/entry`, the same count as before the story.
+
+    Noticed, not touched: `Instance.go_away`/`come_back` in `tests/entry/test_run_one_fetch.py` copy `Outage` in `tests/entry/test_run_fetch_before_tick.py`. Moving them to a shared place is the tester's job, under the standing leave.
+
+    `check`: check: green
+    `duplicates`: duplicates: 3 new, 43 known, 0 gone
