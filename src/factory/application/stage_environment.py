@@ -15,6 +15,7 @@ from factory.application.take import TakeReport, TakeService
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.checks import last_line
 from factory.domain.containers import (
+    SYSTEM_PATH,
     WORK,
     WORK_CHECKOUT,
     WORK_HOME,
@@ -28,7 +29,7 @@ from factory.domain.git import CommitId
 UPSTREAM = "/upstream"
 AGENT_FILES = "/etc/factory/claude"
 SHELL = "/bin/sh"
-SYNC_ENVIRONMENT = {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": WORK_HOME}
+SYNC_ENVIRONMENT = {"PATH": SYSTEM_PATH, "HOME": WORK_HOME}
 TIMING_LINE = (
     "stage environment: reset {reset} s, sync {sync} s, advance {advance} s, take {take} s"
 )
@@ -102,12 +103,16 @@ class ContainerEnvironment(StageEnvironment):
     ) -> None:
         """Prepare the dataset of `snapshots` through `containers`; take into the checkout.
 
-        The sync's container gets `extra_environment` below its own and `ca_bundle` mounted
-        read-only at its own path.
+        The sync's container gets `extra_environment` below its own, the `PATH` of the image the
+        boundaries name, and `ca_bundle` mounted read-only at its own path.
         """
         self._boundaries = boundaries
         # The sync's own names win: its `PATH` and home never come from the host.
-        self._sync_environment = {**extra_environment, **SYNC_ENVIRONMENT}
+        self._sync_environment = {
+            **extra_environment,
+            **SYNC_ENVIRONMENT,
+            "PATH": boundaries.image_path,
+        }
         self._bundle_mounts = bundle_mounts(ca_bundle)
         self._snapshots = snapshots
         self._containers = containers

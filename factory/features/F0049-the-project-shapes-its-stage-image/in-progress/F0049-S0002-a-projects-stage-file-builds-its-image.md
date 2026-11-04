@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T00:07:24.560888Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,13 @@ journal:
   kind: started
   at: '2026-11-04T00:07:24.560888Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: question
+  at: '2026-11-04T00:33:13.741272Z'
+  stage: doing
+  run: fe3fd47351a1473493e56e92e5eec49c
+  blocked: question
 ---
 
 # A project's stage file builds the image its stages run in
@@ -275,3 +278,30 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
 
     `lint`: lint: green (0.1 s)
 15. factory: started doing as vm.
+16. coder: I built the whole story, and every test for it passes. `make check` is red only in four earlier test files. Each pins something this story must change, and I may not edit tests. So I stopped here. My changes are in the working tree.
+
+    Built:
+    - `src/factory/domain/stage_layer.py`: `STAGE_FILE`, `StageLayer`, `StageLayerRefused`, `project_image_tag`, `stage_layer`. The rule checks size first, then the U+FFFD that `show_file`'s decoding leaves for bytes that are not UTF-8, then the FROM count, the lines before the FROM, and the FROM's form. Each reason names the line it refuses.
+    - `src/factory/application/images.py`: `Images`, `ImageBuild`, `IMAGE_BUILD_TIME_LIMIT`.
+    - `src/factory/adapters/podman_images.py`: `PodmanImages`, with a keyword `profile` for the job's global options. Fake: `src/factory/adapters/fake_images.py`.
+    - `run_podman` in `src/factory/adapters/podman_runs.py`, built on `run_or_raise`. Two existing tests forbid any other route: `test_wrapper_search` (only the listed wrappers import `process`) and `test_run_or_raise` (no second request builder in `podman_runs`).
+    - `SYSTEM_PATH` in `factory.domain.containers`. `Boundaries.image_path` uses it as its default. The sync's `PATH` comes from `boundaries.image_path`. `agent_environment` and `production_environment` take a `path` argument, and `build_tick` passes `boundaries.image_path`.
+    - `src/factory/entry/wiring.py`: `project_image_settings`, `with_image_path`, `build_images`, and `build_boundaries(..., images=)`.
+    - The reason `stage_image_failed`, machine-scoped, in `src/factory/domain/stops.py`, with a row in `src/factory/domain/stop_table.py`. The contract schemas are regenerated at `RECORDS_CONTRACT = "4.1"`.
+
+    Main choice: in `src/factory/entry/run.py`, `_ProjectImageStart` builds the one tick on the first iteration whose `RepositoryWaiter.prepare` succeeds. That iteration fetches, decides the image, builds the boundaries again on the chosen settings, then applies `with_image_path`. After a failure, no iteration runs again until the next start. I rejected building the image before the loop: the checkout may not exist yet at the start, and the repository-unavailable stop already handles that. `run_instance` takes `hosting` and `images` through `**replacements: Unpack[Replacements]` because ruff's `PLR0913` refuses a sixth argument, and existing callers keep their keywords. The second build calls `build_boundaries` without `images`, because the conftest fixture `on_the_manual_clock` patches it with the old signature.
+
+    Questions. Each needs a test change by the tester; my choice is (a) each time:
+    1. `tests/test_second_user_removed.py`, row `build-boundaries-parameters`, pins `build_boundaries`' parameters to exactly `["settings", "token", "hosting"]`. `tests/entry/test_wiring_image_path.py` (entry 12's answer) calls it with `images=`. (a) Add `"images"` to that row. (b) Drop `images` from `build_boundaries` and have the image-path test call `with_image_path(build_boundaries(...), FakeImages(...))`.
+    2. The stop table. `tests/domain/test_stop_table.py::test_every_repository_stop_reason_is_the_reason_of_exactly_one_row` requires a row for the new reason, so I added `stage-image-failed` (limit `L55`, as `preflight-failed`) after `disk-low`. Two tests then fail. `::test_the_table_holds_the_fifteen_stops_in_order` pins 15 rows. `tests/test_stop_table.py:89` derives the scope from `("preflight_failed", "disk_low")`. (a) The tester adds the sixteenth row to the first test and `stage_image_failed` to that tuple, as entry 9 allowed for `test_health.py`. Please also confirm `L55` or name the right limit.
+    3. The records contract. `RepositoryStopReason` is in `stop-record.schema.json`, and `docs/decisions.md` raises the minor version for an added value, so I set 4.1. `tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version` and `tests/domain/test_contract_version_4.py::test_the_records_contract_is_at_version_4_without_left_branch` pin `"4.0"`. (a) The tester changes those pins to `"4.1"`. (b) Keep 4.0 against the rule; then I revert `contract.py` and regenerate.
+
+    Noticed, not touched:
+    - The check containers keep the fixed `PATH` (`CHECK_ENVIRONMENT`). The Interface names only the sync and the agent, and passing a `path` into `ContainerMakeCommands` would need the patched `build_boundaries` signature. A project that adds a JDK will not find `java` in its checks. That is likely a story of its own.
+    - A build that reaches its time limit loses its output: `run_or_raise` raises, so the stop's detail holds podman's no-end text instead of the tail.
+    - When the image cannot be inspected, `with_image_path` falls back to `SYSTEM_PATH` and leaves the report to the preflight's stage-image item.
+    - When the base identity is unknown (`settings.image` is `None`), the project settings keep `image=None`, so no preflight stamp is reused.
+
+    The tester's edit to the Description (criterion 13 dropped) was left out by the factory, so the Description still lists the watch criterion.
+
+    Refactor step: not done yet, because `make check` is not green.

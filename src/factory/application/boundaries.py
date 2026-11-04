@@ -19,6 +19,7 @@ from factory.application.hosting import HostingService
 from factory.application.machine import Clock, DiskSpace, FactoryLog, HealthStatusStore, Waiter
 from factory.application.project_commands import ProjectCommands
 from factory.application.snapshots import Snapshots
+from factory.domain.containers import SYSTEM_PATH
 from factory.domain.disk import DiskRecord
 from factory.domain.known_results import ResultRecord
 from factory.domain.settings import InstanceSettings
@@ -54,3 +55,5 @@ class Boundaries:
     containers: ContainerRuns
     # What the operator adds to every container's environment, read once from the host.
     container_extra_environment: Mapping[str, str] = field(default_factory=dict)
+    # The `PATH` the image every container runs in configures.
+    image_path: str = SYSTEM_PATH
