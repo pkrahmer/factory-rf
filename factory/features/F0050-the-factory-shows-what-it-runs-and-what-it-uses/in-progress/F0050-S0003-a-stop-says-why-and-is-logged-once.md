@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T14:07:48.263911Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -148,6 +152,11 @@ journal:
   at: '2026-11-04T14:07:39.328076Z'
   stage: doing
   run: 9bcb5db1740646ecbdc79d87a5c30fec
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-04T14:07:48.263911Z'
+  stage: tests
 ---
 
 # A stop says why, and is logged once
@@ -412,3 +421,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     **Noticed, not touched:** the dead-code findings in `src/factory/domain/cost_records.py:41-43` that `make duplicates` reported earlier; I did not run `make duplicates` this round. The two duplicated test helpers in the reviewer's notes (`_answering` and the `_ended` result builder) are for the tester to consider under the standing leave.
 
     The factory left out changes outside the write paths: factory/features/F0050-the-factory-shows-what-it-runs-and-what-it-uses/in-progress/F0050-S0003-a-stop-says-why-and-is-logged-once.md.
+26. factory: started tests as vm.
