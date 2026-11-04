@@ -1,15 +1,14 @@
 """The wiring of one instance's run: its tick and the boundaries read from the environment."""
 
 import tempfile
-from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
+from agent_definition_support import COMPLETED
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
-from factory.domain.agent_runs import AgentRunResult
 from factory.domain.errors import SettingsInvalid
 from factory.domain.identifiers import branch_name
 from factory.domain.settings import InstanceSettings, read_settings
@@ -21,6 +20,7 @@ from factory.entry.wiring import (
 )
 from git_support import PIPELINE_YAML, install_agents, remote_commit, run_git
 from human_clone import HumanClone
+from probe_support import COMPLETED as PROBE
 from wiring_support import every_tool, with_dataset
 
 INSTANCE = "factory-7"
@@ -53,12 +53,6 @@ Expect: nothing.
 
 ## Journal
 """
-PROBE = AgentRunResult(
-    end_reason="completed", decision="question", entry="probe", duration=timedelta(seconds=5)
-)
-COMPLETED = AgentRunResult(
-    end_reason="completed", decision="tests", entry="checked.", duration=timedelta(minutes=1)
-)
 
 
 @pytest.fixture

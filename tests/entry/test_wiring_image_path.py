@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from agent_definition_support import COMPLETED
 from container_extra_support import CHECK_LIMIT, COMMIT, env_words
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
@@ -16,25 +17,19 @@ from factory.adapters.podman_images import PodmanImages
 from factory.application.boundaries import Boundaries
 from factory.application.images import Images
 from factory.application.stage_environment import stage_environment_of
-from factory.domain.agent_runs import AgentRunResult
+from factory.domain.containers import SYSTEM_PATH
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import agent_environment, build_boundaries, build_tick
 from git_support import CHECKOUT, PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 from podman_support import IMAGE
+from probe_support import COMPLETED as PROBE
 from recording_stand_in_support import recorded_calls, recording_stand_in
 from stage_run_support import BACKLOG_PATH, STORY
 from wiring_support import CREDENTIAL, every_tool, with_dataset
 from zfs_support import DATASET
 
 JDK_PATH = "/opt/jdk/bin:/usr/local/bin:/usr/bin:/bin"
-BASE_PATH = "/usr/local/bin:/usr/bin:/bin"
-PROBE = AgentRunResult(
-    end_reason="completed", decision="question", entry="probe", duration=timedelta(seconds=5)
-)
-COMPLETED = AgentRunResult(
-    end_reason="completed", decision="tests", entry="checked.", duration=timedelta(minutes=1)
-)
 
 
 @pytest.mark.usefixtures("checkout", "sudo_stand_in")
@@ -44,9 +39,9 @@ COMPLETED = AgentRunResult(
         pytest.param(
             lambda _podman: FakeImages(paths={IMAGE: JDK_PATH}), JDK_PATH, id="image-path"
         ),
-        pytest.param(lambda _podman: FakeImages(), BASE_PATH, id="no-image-path"),
+        pytest.param(lambda _podman: FakeImages(), SYSTEM_PATH, id="no-image-path"),
         # The stand-in `podman` prints no JSON for `image inspect`, so `path` raises.
-        pytest.param(lambda podman: PodmanImages(str(podman)), BASE_PATH, id="path-raises"),
+        pytest.param(lambda podman: PodmanImages(str(podman)), SYSTEM_PATH, id="path-raises"),
     ],
 )
 def test_the_sync_the_check_and_the_agent_take_the_path_of_the_image_in_use(

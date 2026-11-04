@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 532
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T02:54:11.863846Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-04T02:54:11.863846Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-04T02:55:18.069110Z'
+  stage: tests
+  run: be37586595464d7a91e66a844c256ddf
 ---
 
 # The stage image's tests share their helpers and pin the image without an environment
@@ -82,3 +84,25 @@ Expect: `0`, `0`, then a line that ends in `passed` with no `failed`.
    - Architecture: tests only, in the folders that mirror the package. Shared helpers go into support modules, as `CLAUDE.md` requires.
    - Scope: within F0049 as a follow-up of the S0002/S0003 reviewer notes. Nothing is in the feature's "Out of scope", and the story leaves `STAND_IN` alone.
 4. factory: started tests as vm.
+5. tester: This story only changes tests. The code already handles the new case, so nothing is red on purpose: the new `null` row and every moved test pass now. The coder has nothing to implement. What is left is the `make check` gate (criterion 5).
+
+   Criterion → test:
+   - criterion 1: tests/adapters/test_podman_images.py::test_path_is_the_images_configured_path_or_the_base_default[null]. This is a new row: inspect prints `null`, and the expected `PATH` is `SYSTEM_PATH`.
+   - criterion 2: no test function of its own, because the criterion is about how the test modules are written. I changed tests/adapters/test_podman_images.py to import `SYSTEM_PATH` from `factory.domain.containers` and removed its own definition. In tests/entry/test_wiring_image_path.py I replaced `BASE_PATH` with `SYSTEM_PATH` from `factory.domain.containers`. The smoke test's first grep prints `0`.
+   - criterion 3: tests/entry/test_wiring_run.py and tests/entry/test_wiring_image_path.py now import `COMPLETED as PROBE` from `probe_support` and `COMPLETED` from `agent_definition_support`. Their local definitions are gone, along with the imports of `AgentRunResult` (in both) and `timedelta` (in test_wiring_run.py) that nothing used any more. Every test in both modules keeps its name and passes, and the smoke test's second grep prints `0`.
+   - criterion 4: in tests/application/test_tick_preflight.py, `Machine.log_lines` now returns `state_log_lines(self.directory / "state")` from `log_support`. Every test in the module keeps its name and passes. I did not touch tests/test_shared_bodies.py or `log_support.log_lines`, and tests/test_shared_bodies.py passes.
+   - criteria 5 and 6 (`make check`, `docs:`): no test. They are not mine.
+
+   Files changed (I created none):
+   - tests/adapters/test_podman_images.py
+   - tests/entry/test_wiring_image_path.py
+   - tests/entry/test_wiring_run.py: earlier test file, changed under the standing leave in `CLAUDE.md` (*Tests*).
+   - tests/application/test_tick_preflight.py: earlier test file, changed under the standing leave in `CLAUDE.md` (*Tests*).
+
+   As the Interface says, I left tests/vm_support.py's own `SYSTEM_PATH` and `STAND_IN` as they are. The other modules that define their own `PROBE` or `COMPLETED` are also unchanged.
+
+   Run: `uv run pytest -q` over the five modules the smoke test names: all passed, none failed. `make lint`: green. Every module was imported; the test run had no import failures.
+
+   Rejected: a structural test that scans `tests/` for the `PATH` text or for assignments to `PROBE`/`COMPLETED`. It would add a standing rule that the criteria do not ask for. The smoke test's greps already check criteria 2 and 3.
+
+   `lint`: lint: green (0.2 s)

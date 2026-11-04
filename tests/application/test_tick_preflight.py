@@ -21,6 +21,7 @@ from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.settings import InstanceSettings
 from git_support import CHECKOUT, PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
+from log_support import state_log_lines
 from stage_run_support import INSTANCE
 from wiring_support import every_tool
 
@@ -79,8 +80,7 @@ class Machine:
         self.human.remove_file("main", path)
 
     def log_lines(self) -> list[str]:
-        log = self.directory / "state" / "factory.log"
-        return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
+        return state_log_lines(self.directory / "state")
 
 
 @pytest.fixture
