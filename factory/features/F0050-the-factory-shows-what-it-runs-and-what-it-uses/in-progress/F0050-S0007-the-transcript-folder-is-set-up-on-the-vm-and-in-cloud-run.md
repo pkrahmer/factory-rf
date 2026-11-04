@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T20:32:37.470688Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -199,6 +203,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T20:32:34.388456Z'
+  stage: review
+- number: 36
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:32:37.470688Z'
   stage: review
 ---
 
@@ -573,3 +582,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     2. The documenter brings `docs/operator-guide.md` in line with the revised docs criterion: the places the reviewer lists (the options table row, the steps, *Transcripts* and *On a VM*) lose the dropped `tmpfiles.d` rule and `--transcript-days`.
 
     Nothing else. A further finding that fails no criterion goes under `Notes:`.
+36. factory: started review as vm.
