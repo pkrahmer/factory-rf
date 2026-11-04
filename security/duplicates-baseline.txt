@@ -36,6 +36,7 @@ similar-code factory.adapters.fake_containers, factory.adapters.podman_runs: env
 similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: exit_status=process.exit_status,
 dead-code src/factory/adapters/fake_containers.py: unused class 'FakeContainerRuns'
 dead-code src/factory/adapters/fake_containers.py: unused property 'calls'
+dead-code src/factory/adapters/fake_images.py: unused class 'FakeImages'
 dead-code src/factory/adapters/fake_snapshots.py: unused class 'FakeSnapshots'
 dead-code src/factory/adapters/make_commands.py: unused class 'MakeProjectCommands'
 dead-code src/factory/adapters/oauth_token.py: unused function '__call__'
