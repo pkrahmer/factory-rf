@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T02:38:39.065484Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-04T02:38:33.090391Z'
   stage: doing
   run: 729d9dda4f29406293908d03313003ce
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:38:39.065484Z'
+  stage: tests
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -314,3 +323,4 @@ Expect: a line that ends in `passed` with no `failed`.
     Description: entry 19 changes no meaning of the task, so the Description stays as it is.
 
     Noticed and not touched: as entry 17 said, the tick's own `fetch_failed` also writes git's multi-line error text to the log one line at a time, and each iteration still fetches twice.
+22. factory: started tests as vm.
