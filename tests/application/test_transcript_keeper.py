@@ -2,8 +2,6 @@
 
 import gzip
 import hashlib
-import os
-from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -16,7 +14,6 @@ from recording_log import RecordingLog
 WORK_ITEM = "F0001-S0001"
 RUN = "a" * 32
 LATER_RUN = "c" * 32
-NOW = datetime(2026, 11, 4, 12, 0, tzinfo=UTC)
 
 
 @pytest.fixture
@@ -81,27 +78,3 @@ def test_a_folder_that_cannot_be_written_logs_the_line_and_keeps_nothing(
     assert ref is None
     assert len(log.lines) == 1
     assert log.lines[0].startswith(f"transcript: not kept for {RUN}: ")
-
-
-@pytest.mark.parametrize(
-    ("old_files", "expected_lines"),
-    [
-        pytest.param(2, ["transcript: removed 2 older than 3 days"], id="removed-some"),
-        pytest.param(0, [], id="removed-none"),
-    ],
-)
-def test_removing_old_transcripts_logs_a_line_only_when_it_removed_any(
-    tmp_path: Path, log: RecordingLog, old_files: int, expected_lines: list[str]
-) -> None:
-    store = FileTranscriptStore(tmp_path)
-    runs = [str(index) * 32 for index in range(old_files)]
-    for run in [*runs, "f" * 32]:
-        store.write(f"{WORK_ITEM}/{run}.jsonl.gz", b"transcript")
-    stamp = (NOW - timedelta(days=4)).timestamp()
-    for run in runs:
-        os.utime(tmp_path / WORK_ITEM / f"{run}.jsonl.gz", (stamp, stamp))
-
-    removed = TranscriptKeeper(store, log).remove_old(3, NOW)
-
-    assert removed == old_files
-    assert log.lines == expected_lines

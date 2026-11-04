@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T16:08:54.777801Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,13 @@ journal:
   kind: started
   at: '2026-11-04T16:08:54.777801Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: question
+  at: '2026-11-04T16:10:01.525473Z'
+  stage: tests
+  run: 9206d7470f7c407bb1e5b107fb58eb5f
+  blocked: question
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -183,3 +186,29 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
 
    Leave for the intake (or, if the story has moved on, the reviewer): make exactly these edits to the Description, Interface, criteria and smoke test. Everything else of the answer above stands.
 10. factory: started tests as vm.
+11. tester: I took the human's correction (journal 9) into the tests I wrote earlier. The factory deletes no transcripts, so these tests are gone:
+    - `test_the_transcript_days_are_read_or_refused` in tests/domain/test_settings_transcripts.py
+    - `test_only_files_strictly_older_than_the_days_are_removed` in tests/adapters/test_transcript_files.py
+    - `test_removing_old_transcripts_logs_a_line_only_when_it_removed_any` in tests/application/test_transcript_keeper.py
+
+    I also removed the imports and constants only those tests used. `make lint` is green. One run of the transcript test files: collection errors because factory.adapters.transcript_files, factory.application.transcripts, factory.domain.transcripts and `TranscriptRef` in factory.domain.cost_records do not exist yet. That is the expected failure. I did not edit the Description, Interface, criteria or smoke test, because journal 9 leaves those edits to the intake or the reviewer.
+
+    Tests as they stand (red on purpose):
+    - criterion 5 (only the `FACTORY_TRANSCRIPT_DIR` rows are left): tests/domain/test_settings_transcripts.py::test_the_transcript_folder_is_read_or_refused
+    - criterion 8: tests/domain/test_transcript_ref.py::test_a_transcript_ref_takes_only_a_relative_gz_path_and_a_lowercase_sha256
+    - criterion 9: the three `"4.2"` pins became `"4.3"` under the leave in journal 4: tests/domain/test_contract_version_4.py, tests/domain/test_contract_version_4_2.py, tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version
+    - criterion 2, keeper and store side, Claude Code row only: tests/application/test_transcript_keeper.py::test_a_kept_transcript_is_a_gzip_file_under_its_run_id_that_its_ref_names, tests/adapters/test_transcript_files.py::test_a_written_transcript_is_owner_only_and_its_sha256_returned, tests/adapters/test_claude_runtime_transcript.py::test_a_session_is_read_from_its_project_folder
+    - criterion 3, keeper side: tests/application/test_transcript_keeper.py::test_a_run_kept_again_replaces_its_file_and_a_later_run_keeps_its_own
+    - criterion 4, keeper and wrapper side: tests/application/test_transcript_keeper.py::test_a_folder_that_cannot_be_written_logs_the_line_and_keeps_nothing, tests/adapters/test_claude_runtime_transcript.py::test_a_session_without_a_file_has_no_transcript
+    - criterion 6: removed, per journal 9.
+
+    Files changed in this run: tests/domain/test_settings_transcripts.py, tests/adapters/test_transcript_files.py, tests/application/test_transcript_keeper.py. Modules the test run could not import: factory.adapters.transcript_files, factory.application.transcripts, factory.domain.transcripts, and `TranscriptRef` from factory.domain.cost_records.
+
+    Still open. Journal 9 answers only the deletion part of my questions in journal 8. My question 2 (`activity_tick`) falls away with it. These three still have no answer, and I cannot write criteria 1, 7, the record level of 3 and 4, and the opencode row of 2 without guessing:
+
+    1. How the keeper reaches the stage run, and how a test scripts a transcript. Criteria 1, 3 (record level), 4 (stage rows: missing session, missing transcript, a later run's failed copy) and 7 depend on this.
+       (a) `Boundaries` gains `transcripts: TranscriptStore | None = None`, which is None when the setting is unset or empty. The stage builds a `TranscriptKeeper` from it and `boundaries.log`. `ScriptedRun` in the fake runtime gains `transcript: Transcript | None = None`, which the fake's `read_transcript` returns for the result's session.
+       (b) The stage takes a `TranscriptKeeper | None` argument directly.
+       I would choose (a). Please also say which home path the stage passes to `read_transcript`: `settings.agent_home` or the dataset's home path.
+    2. Opencode, the second row of criterion 2: which files under `.local/share/opencode` make up session S, and what must the gathered content hold? I would choose every file under `.local/share/opencode/storage` whose path names S (`session/*/S.json`, `message/S/*`, and those messages' parts). The test would then check that the gathered content holds each of those files' text. If this opencode version keeps sessions in `opencode.db`, please name that layout instead.
+    3. Criterion 7: with `transcript_dir` set, I would check two things. No mount of any container started through the fake containers contains the folder's path, and no `AgentRunRequest.prompt` the fake runtime recorded contains it. Is that the check you want?
