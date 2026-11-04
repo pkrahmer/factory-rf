@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T13:21:29.249857Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -230,6 +234,11 @@ journal:
   at: '2026-11-04T13:21:22.558950Z'
   stage: docs
   run: 006e3654a84946f8bf213d3ccfabf178
+- number: 41
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:21:29.249857Z'
+  stage: smoke-test
 ---
 
 # A refused push or hosting call is retried and logged
@@ -736,3 +745,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     `check`: check: green (not run again: passed on tree e585a54632d3 at 2026-11-04T13:17:20Z)
     `secrets`: secrets: green (3.5 s)
     `documents`: documents ok
+41. factory: started smoke-test as vm.
