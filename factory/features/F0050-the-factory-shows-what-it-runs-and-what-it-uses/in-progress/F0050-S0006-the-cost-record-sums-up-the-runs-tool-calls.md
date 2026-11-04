@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T18:50:33.957674Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-04T18:50:33.957674Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-04T18:55:16.018666Z'
+  stage: tests
+  run: f0c5a8cb6a6345dc91f4d6a99bd59523
 ---
 
 # The cost record sums up the run's tool calls
@@ -131,3 +133,35 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
    - Architecture: pure parsing sits in domain, the wrappers in adapters, and the abstract operation in application. This fits the four layers and the rule that wrappers are the only code to read tool output. Nothing leaves the wrapper that holds call content.
    - Scope: within the feature's S0006 line. It adds no transcript on GitHub. The leaves for the tester (the interface pin in `tests/application/test_interfaces.py`, the stand-ins' `tool_uses` returning `None`, the contract pins `"4.3"` to `"4.4"`) are in journal 4 and are not in the story file, so the tester must take them from there.
 7. factory: started tests as vm.
+8. tester: Tests written for every acceptance criterion. Their one run fails at collection, for the right reason: `ImportError: cannot import name 'ToolUse' from 'factory.domain.cost_records'`, raised through `tests/container_support.py`, which `tests/conftest.py` imports. `make lint` is green.
+
+   Criterion → test:
+   - criterion 1: `tests/domain/test_tool_uses.py::test_a_run_gives_one_entry_per_tool_with_its_calls_failures_and_seconds` (rows claude-code and opencode, each with two-tools and no-tool-call). Also `tests/adapters/test_runtime_tool_uses.py::test_claude_code_sums_up_the_tool_calls_of_its_session_transcript` and `::test_opencode_sums_up_the_tool_calls_of_its_run_s_stream`, each with a no-tool-call row giving `[]`. Also `tests/application/test_stage_tool_uses.py::test_a_completed_run_s_record_carries_its_tool_calls`, with rows with and without a transcript folder, plus no-tool-call.
+   - criterion 2: `tests/domain/test_tool_uses.py::test_a_failed_call_counts_in_failed` (Claude Code's `is_error`, opencode's `status: "error"`) and `tests/domain/test_tool_use_model.py::test_failed_calls_never_exceed_the_calls` (failed equal to calls accepted, failed above calls refused, -1 refused for calls and for failed).
+   - criterion 3: `tests/domain/test_tool_uses.py::test_a_tool_name_outside_the_form_is_counted_under_other` (rows: space, slash, 65 characters).
+   - criterion 4: `tests/application/test_stage_tool_uses.py::test_a_record_s_tools_hold_no_text_of_a_call_s_input_or_output` (rows: path, command, key-shaped string, each placed in the call's input and in its result). Each checks that none of it appears in the sidecar text on the branch.
+   - criterion 5: `tests/domain/test_tool_uses.py::test_lines_that_cannot_be_read_give_no_tools` (a non-JSON line, both runtimes) and `tests/application/test_stage_tool_uses.py::test_tool_calls_that_cannot_be_read_leave_tools_none_and_the_run_goes_on` (rows: unreadable transcript, no transcript kept). In both stage rows the run does not stall, moves to `doing`, and the record has `tools` `None`.
+   - criterion 6: `tests/domain/test_tool_uses.py::test_seconds_come_from_the_transcript_s_times` (with-times and without-times rows, per runtime).
+   - criterion 7: `tests/domain/test_tool_use_model.py::test_seconds_are_a_non_negative_finite_number_or_none` (0 and `None` accepted; -1, NaN and infinity refused).
+   - criterion 8: `tests/domain/test_tool_uses.py::test_tools_are_sorted_by_name_whatever_order_they_first_appear_in`.
+   - criterion 9: `tests/domain/test_tool_use_model.py::test_a_started_record_carries_no_tools` (a started record refuses `[]` and a list with entries and accepts `None`; a completed record accepts all three).
+   - criterion 10: `tests/domain/test_tool_uses.py::test_a_tool_name_outside_the_form_is_counted_under_other` (rows: 64 characters kept, 65 to `other`, `mcp__files:read-v1.2` kept) and `::test_bad_names_and_a_tool_named_other_merge_into_one_other_entry` (calls, failed calls and seconds summed).
+   - criterion 11: `tests/domain/test_tool_use_model.py::test_a_tool_name_outside_the_form_is_refused_by_the_model`.
+   - criterion 12: `tests/domain/test_tool_uses.py::test_a_tool_used_three_times_once_failed_sums_into_one_entry`.
+   - criterion 13: `tests/domain/test_tool_uses.py::test_a_call_without_a_result_is_a_call_not_failed_and_adds_no_seconds`. An answered Bash call of 1.5 s and an unanswered one give calls 2, failed 0, seconds 1.5. A lone unanswered call has no test: whether its seconds is `None` or `0` is not stated.
+   - criteria 14 and 15: not tests.
+
+   Test data: the Claude Code lines use the session form: an `assistant` line holds a `tool_use` content item with `id`, `name` and `input`, and a `user` line holds a `tool_result` with `tool_use_id`, `content` and `is_error`. Each line carries an ISO `timestamp` ending in `Z`, which is left out for the without-times rows. The opencode lines are `tool_use` events with `part.state.status`, `input`, `output` or `error`, and `time.start`/`time.end` in milliseconds, which are left out for the without-times rows. The stage tests run a test-local `ClaudeReadingRuntime(FakeAgentRuntime)` whose `tool_uses` calls a real `ClaudeCodeRuntime.tool_uses`. The test does not depend on how the fake's own `tool_uses` behaves, which the story leaves to the coder.
+
+   Files created: `tests/tool_use_support.py` (`Call`, `claude_lines`, `opencode_lines`, `transcript_of`), `tests/domain/test_tool_use_model.py`, `tests/domain/test_tool_uses.py`, `tests/adapters/test_runtime_tool_uses.py`, `tests/application/test_stage_tool_uses.py`.
+
+   Earlier test files changed under the human's leave in journal entry 4:
+   - `tests/application/test_interfaces.py`: `AgentRuntime`'s operations now include `tool_uses`.
+   - A `tool_uses` returning `None` was added to the stand-ins in `tests/observing_runtime.py`, `tests/application/test_agent_run_probe.py` (`RefusingRuntime`), `tests/application/test_stage_run.py` (`HeadNotingRuntime`) and `tests/container_support.py` (`WorkspaceRuntime`).
+   - The `"4.3"` pins became `"4.4"` in `tests/domain/test_contract.py`, `tests/domain/test_contract_version_4.py` and `tests/domain/test_contract_version_4_2.py`.
+
+   No new test checks the 4.4 contract itself, because no criterion names it.
+
+   Modules and names the test run could not import: `factory.domain.cost_records.ToolUse` (the collection error above, which blocks every test through the conftest) and the module `factory.domain.tool_uses`.
+
+   `lint`: lint: green (0.2 s)

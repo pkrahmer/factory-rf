@@ -9,7 +9,7 @@ from factory.domain.contract import CONTRACT, RECORDS_CONTRACT
 
 
 def _version() -> None:
-    assert RECORDS_CONTRACT == "4.3"
+    assert RECORDS_CONTRACT == "4.4"
 
 
 def _machine_named() -> None:
@@ -20,7 +20,7 @@ def _machine_named() -> None:
     "check",
     [
         pytest.param(_version, id="version"),
-        *[pytest.param(committed_is_generated(entry, "4.3"), id=entry.name) for entry in CONTRACT],
+        *[pytest.param(committed_is_generated(entry, "4.4"), id=entry.name) for entry in CONTRACT],
         pytest.param(_machine_named, id="machine-in-the-cost-record"),
     ],
 )

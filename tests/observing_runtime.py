@@ -9,6 +9,7 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.git import Git
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
+from factory.domain.cost_records import ToolUse
 from factory.domain.hosting import PullRequestView
 from factory.domain.transcripts import Transcript
 from git_support import remote_commit
@@ -66,3 +67,8 @@ class ObservingRuntime(AgentRuntime):
     def read_transcript(self, home: Path, session: str) -> Transcript | None:
         """The delegate's transcript of `session`."""
         return self._delegate.read_transcript(home, session)
+
+    def tool_uses(self, transcript: Transcript) -> list[ToolUse] | None:
+        """No reading of tool calls."""
+        del transcript
+        return None
