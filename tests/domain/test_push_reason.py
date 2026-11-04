@@ -1,0 +1,72 @@
+"""The reason of a failed push: git's last non-empty lines, at most three and 300 characters."""
+
+import pytest
+
+from factory.domain.git import push_reason
+
+SERVER_ERROR = """\
+remote: Internal Server Error
+To https://github.com/owner/name.git
+ ! [remote rejected] main -> main (Internal Server Error)
+error: failed to push some refs to 'https://github.com/owner/name.git'
+"""
+NON_FAST_FORWARD = """\
+To https://github.com/owner/name.git
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/owner/name.git'
+hint: Updates were rejected because the tip of your current branch is behind
+"""
+UNREACHABLE = """\
+fatal: unable to access 'https://github.com/owner/name.git/': Could not resolve host: github.com
+"""
+WORDS = ["alpha", "bravo", "charlie", "delta", "echo"]
+
+
+@pytest.mark.parametrize(
+    ("output", "held"),
+    [
+        pytest.param(
+            SERVER_ERROR, "! [remote rejected] main -> main (Internal Server Error)", id="server"
+        ),
+        pytest.param(NON_FAST_FORWARD, "(non-fast-forward)", id="non-fast-forward"),
+        pytest.param(UNREACHABLE, "Could not resolve host: github.com", id="unreachable"),
+    ],
+)
+def test_the_reason_holds_gits_last_lines(output: str, held: str) -> None:
+    assert held in push_reason(output)
+
+
+@pytest.mark.parametrize(
+    ("count", "kept"),
+    [
+        pytest.param(3, WORDS[:3], id="three-lines"),
+        pytest.param(4, WORDS[1:4], id="four-lines"),
+        pytest.param(5, WORDS[2:5], id="five-lines"),
+    ],
+)
+def test_the_reason_keeps_the_last_three_non_empty_lines(count: int, kept: list[str]) -> None:
+    output = "\n\n".join(WORDS[:count]) + "\n\n"
+
+    reason = push_reason(output)
+
+    assert [word for word in WORDS if word in reason] == kept
+
+
+@pytest.mark.parametrize(
+    ("length", "kept"),
+    [pytest.param(300, 300, id="300-kept"), pytest.param(301, 300, id="301-cut")],
+)
+def test_a_one_line_reason_is_cut_at_300_characters(length: int, kept: int) -> None:
+    line = "".join(str(index % 10) for index in range(length))
+
+    assert push_reason(line + "\n") == line[:kept]
+
+
+def test_a_joined_reason_over_300_characters_keeps_its_first_300() -> None:
+    lines = [letter * 150 for letter in "xyz"]
+
+    reason = push_reason("\n".join(lines) + "\n")
+
+    assert len(reason) == 300
+    assert reason.startswith(lines[0])
+    assert "z" * 150 not in reason

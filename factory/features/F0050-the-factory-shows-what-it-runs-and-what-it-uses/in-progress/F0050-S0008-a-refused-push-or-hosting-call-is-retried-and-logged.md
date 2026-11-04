@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T12:40:26.398912Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-04T12:40:26.398912Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-04T12:45:40.725068Z'
+  stage: tests
+  run: 97005f8c0cc942d8851a90f9728c2805
 ---
 
 # A refused push or hosting call is retried and logged
@@ -172,3 +174,31 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
 
    2. Confirmed: a recording subclass of `GitCli` that records each `push` call and the branch head before calling the real `push`, with the hook recording the commit id it got. That is no fake: the push runs.
 10. factory: started tests as vm.
+11. tester: I wrote the tests for criteria 1 to 10, following the human's answers in journal entry 9. The reason text is tested on a pure function, `push_reason` in `factory.domain.git`. Each kind of failure also has a test on a real remote. Criterion 7 uses `RecordingGit`, a subclass of `GitCli`: it records each `push` call and the head before calling the real push. The remote's `pre-receive` hook refuses a counted number of pushes with `Internal Server Error` and records the commit id it was offered. Waits are read from the `boundaries` fixture's `ManualWaiter`, so no real time passes. Retry lines are read from a `RecordingLog` (`tests/recording_log.py`) that replaces `boundaries.log`.
+
+    Mapping (every push test in `test_push_retry.py` runs twice through the `case` fixture: `result` is `StageFinisher.finish`, which reaches `_commit_and_push`; `record` is `WorkItemRecorder.publish`):
+    - criterion 1: tests/application/test_dispatcher_error_lines.py::test_each_counted_error_writes_its_key_count_cap_type_and_text, ::test_an_error_text_with_a_line_break_is_written_on_one_line, ::test_an_error_text_is_written_with_at_most_300_characters (300 kept, 301 cut)
+    - criterion 2: tests/application/test_push_retry.py::test_a_push_refused_twice_is_pushed_on_the_third_try_without_a_crash, ::test_a_push_refused_four_times_raises_push_failed_after_three_retries
+    - criterion 3: tests/domain/test_push_reason.py::test_the_reason_holds_gits_last_lines (server, non-fast-forward, unreachable). On a real remote: the four-failure test above (`[remote rejected]`), ::test_a_push_behind_the_remote_fails_at_once_without_a_retry (`[rejected]`), ::test_a_push_to_an_unreachable_remote_is_retried_and_names_gits_reason (`does not appear to be a git repository`)
+    - criterion 4: tests/adapters/test_pygithub_retry.py::test_the_hosting_client_retries_five_times_with_a_backoff_and_covers_patch
+    - criterion 5: tests/application/test_hosting_failure_after_claim.py::test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick
+    - criterion 6: tests/domain/test_push_reason.py::test_the_reason_keeps_the_last_three_non_empty_lines (3, 4 and 5 lines), ::test_a_one_line_reason_is_cut_at_300_characters (300 kept, 301 cut), ::test_a_joined_reason_over_300_characters_keeps_its_first_300
+    - criterion 7: tests/application/test_push_retry.py::test_the_retried_push_is_the_same_push_of_the_same_head
+    - criterion 8: tests/application/test_push_retry.py::test_each_retry_line_names_its_try_its_wait_and_gits_reason
+    - criterion 9: tests/application/test_push_retry.py::test_a_push_behind_the_remote_fails_at_once_without_a_retry (fetch first, non-fast-forward)
+    - criterion 10: tests/adapters/test_pygithub_retry.py::test_the_hosting_client_retries_five_times_with_a_backoff_and_covers_patch. It reads the retry from the built client, `vars(service)["_repository"].requester`, with no network call. It does not depend on the name of the builder function.
+
+    Criterion 5 is the xfail case. Before writing the test I ran a probe once. After `create_pull_request` fails at the claim, the claim is pushed and no agent runs. The next tick records `factory crash`, then `started`, and the crash count is 1. So the test is marked `xfail(strict=True, reason="a crash is charged for a stage in which no agent ran")`. Today a crash is charged for a stage in which no agent ran; the human should know this. The fix is not part of this story.
+
+    Interpretations, all inside the Interface's wording:
+    - The 300-character limit in the dispatcher line applies to `<text>` after `<exception type>: `.
+    - How a line break is replaced is not pinned. The test checks only that the line has no break and keeps both parts.
+    - The retry reason is not compared with a fixed text, because git's trailing lines vary. The test checks that each reason holds `[remote rejected]`; in the four-failure row it also checks that the reason appears in `str(PushFailed)`.
+
+    The Interface does not yet name `push_reason`; the human's answer 9 does.
+
+    Files created: tests/application/test_push_retry.py, tests/application/test_dispatcher_error_lines.py, tests/application/test_hosting_failure_after_claim.py, tests/domain/test_push_reason.py, tests/adapters/test_pygithub_retry.py. No earlier test file was changed.
+
+    Test run: I ran the test files once. Collection stopped on `ImportError: cannot import name 'push_reason' from 'factory.domain.git'`, which is the expected missing name. Because collection stopped there, that run did not show the other files' failures. I did not run them again (stage rule). `make lint` is green. The type check was skipped, as this stage allows.
+
+    `lint`: lint: green (0.1 s)
