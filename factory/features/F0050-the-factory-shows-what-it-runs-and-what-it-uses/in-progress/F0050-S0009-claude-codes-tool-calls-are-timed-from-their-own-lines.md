@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T21:20:18.419740Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T21:20:14.917374Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:20:18.419740Z'
   stage: intake
 ---
 
@@ -106,3 +115,4 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
    1. Yes, add that criterion, with the two rows (second line later, second line `null`).
    2. Yes, add that criterion, with the two rows (the blob line before the `user` line, and after it).
    3. Yes: a new module `tests/domain/test_tool_uses_replayed_lines.py`; no earlier test changes. If a shared fixture of `tests/domain/test_tool_uses.py` is needed, the standing leave to move a shared helper covers it.
+5. factory: started intake as vm.
