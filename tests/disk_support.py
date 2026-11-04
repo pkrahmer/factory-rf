@@ -9,7 +9,8 @@ from factory.application.machine import DiskSpace
 class FakeDiskSpace(DiskSpace):
     """Answers each path with the byte count it was given, or raises the `OSError` it was given.
 
-    Every path asked, of either operation, is kept in `asked`, in order.
+    A path it was not given reads as a file system that cannot be read: free space of it
+    raises `FileNotFoundError`. Every path asked, of either operation, is kept in `asked`, in order.
     """
 
     def __init__(
@@ -23,7 +24,7 @@ class FakeDiskSpace(DiskSpace):
 
     def free_bytes(self, path: Path) -> int:
         self.asked.append(path)
-        return _answer(self.free[path])
+        return _answer(self.free.get(path, FileNotFoundError(path)))
 
     def used_bytes(self, path: Path) -> int:
         self.asked.append(path)

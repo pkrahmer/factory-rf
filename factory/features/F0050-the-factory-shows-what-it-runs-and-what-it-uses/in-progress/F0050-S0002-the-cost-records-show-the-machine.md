@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T11:40:32.697858Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -155,6 +151,12 @@ journal:
   kind: started
   at: '2026-11-04T11:40:32.697858Z'
   stage: tests
+- number: 27
+  speaker: tester
+  kind: result
+  at: '2026-11-04T11:41:14.548713Z'
+  stage: tests
+  run: f5d61c1d9e8a47d0870a234b2f765b8f
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -408,3 +410,17 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 
     The Description needs no rewrite. Entry 23 changes only these two tests. It also accepts the `"machine":null` design against an omitted key, and it leaves to the documenter the operator-guide sentence on the `job` profile's cgroup. Still open for the coder's next run: the refactor step, a final `make check`, and `make duplicates`, which has not been run.
 26. factory: started tests as vm.
+27. tester: I made the two test changes the human allowed in entry 23, which the coder named in entry 25. I changed no other test.
+
+    1. `tests/test_docker_path_removed.py`: `_no_module_reads_proc` no longer refuses any text containing `/proc`. It now uses `_names_the_process_table`, which searches with the pattern `PROCESS_TABLE`. That pattern refuses `/proc/<digits>`, `/proc/self`, and a bare `/proc` or `/proc/` folder. `/proc/meminfo` passes. I added the rows the human asked for as one parametrized test, `test_the_process_table_check_refuses_only_the_process_table`: `meminfo` is not refused, and `pid` (`/proc/1`), `self` and `bare` (`/proc`) are refused. The test `test_the_process_table_names_are_removed[proc]` keeps its name and still checks the whole of `src/factory`. Nothing else in the module changed apart from the `re` import.
+       - Rejected: allowing only `/proc/meminfo` and refusing every other `/proc` path. It is stricter, but the human described the narrower refusal (process folders, `self`, the bare folder), so I followed that.
+
+    2. `tests/disk_support.py`: `FakeDiskSpace.free_bytes` used to raise `KeyError` for a path it was not given. It now raises `FileNotFoundError(path)`, an `OSError`, so an unknown path reads as a file system that cannot be read. I updated the class docstring to say so. `used_bytes` is unchanged. I searched the tests and found none that relies on the old `KeyError`.
+
+    Run: `uv run pytest -q tests/test_docker_path_removed.py tests/application/test_stage_provider_limit.py` passed, including `test_a_stage_whose_limit_outlasts_the_ceiling_stalls_with_its_note`. `make lint` is green.
+
+    Files changed: tests/test_docker_path_removed.py and tests/disk_support.py. No files were created, and the test run imported every module.
+
+    Open for the coder: the refactor step, a final `make check`, and `make duplicates`.
+
+    `lint`: lint: green (0.1 s)
