@@ -66,7 +66,7 @@ One factory instance runs one project and is told what it needs through environm
 | `FACTORY_IMAGE_ID_FILE` | yes, for `factory-run` and `factory-watch` | The file that holds the identity of the image the instance runs on, an absolute path. There is no default; `vm/setup.sh` sets `/srv/factory/<instance>/image-id`. A missing or blank value is refused with `missing`, a relative path with `is not an absolute path`, in both cases with `FACTORY_IMAGE_ID_FILE` as the variable. |
 | `FACTORY_CLAUDE_HOME` | yes | The directory where the agents are installed (`<it>/agents/<role>.md`), an absolute path. There is no default and `HOME` is not read; `vm/setup.sh` sets `/srv/factory/<instance>/factory/claude`. A missing or blank value is refused with `missing`, a relative path with `is not an absolute path`, in both cases with `FACTORY_CLAUDE_HOME` as the variable. |
 | `FACTORY_CLAUDE` | no | Claude Code's executable, used when the runtime is `claude`. Default `claude`. |
-| `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it under Claude Code | The version of Claude Code the stage image pins (`2.1.296`). The environment file `factory.env` that `vm/setup.sh` writes sets it from the pins of `vm/Dockerfile`; a missing or blank value is read as not pinned. |
+| `FACTORY_CLAUDE_VERSION` | no, but the preflight fails without it under Claude Code | The version of Claude Code the stage image pins (`2.1.318`). The environment file `factory.env` that `vm/setup.sh` writes sets it from the pins of `vm/Dockerfile`; a missing or blank value is read as not pinned. |
 | `FACTORY_TOKEN_FILE` | no, but needed to build the boundaries | The file that holds the hosting-service token. No default; `factory.env` sets it to `/home/factory/.secrets/hosting-token`. |
 | `FACTORY_CLAUDE_LOGIN_FILE` | no | The file that holds the agent's login token, made with `claude setup-token`, as plain ASCII text. A blank value counts as unset. No default; the environment file sets it to `/home/factory/.secrets/claude-token`. See "The agent runtime" and "The agent's login token". |
 | `FACTORY_API_LOGIN_FILE` | no | The file that holds the agent's Anthropic API key, as plain ASCII text. A blank value counts as unset. No default; the environment file sets it to `/home/factory/.secrets/anthropic-api-key`. A key in it wins over the token. See "The agent's API key". |
@@ -79,7 +79,7 @@ One factory instance runs one project and is told what it needs through environm
 | `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` | no | How long the waits of one run may add up to before the run ends `provider_limit`, in whole minutes of ASCII digits, at least 1. Default 120; unset or blank gives the default. Anything else is refused with `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` as the variable; a ceiling below the cool-down is refused with `is shorter than the cool-down`. See "A provider's spend limit". |
 | `FACTORY_AGENT_RUNTIME` | no | The agent runtime of the instance: `claude` (Claude Code, the default) or `opencode`. Unset or blank gives `claude`; surrounding spaces are stripped; anything else (`Opencode`, `both`) is refused with `FACTORY_AGENT_RUNTIME` as the variable and `is neither claude nor opencode`. See "Running on opencode". |
 | `FACTORY_OPENCODE` | no | The opencode executable, used when the runtime is `opencode`. Default `opencode`. |
-| `FACTORY_OPENCODE_VERSION` | no, but the preflight fails without it under opencode | The version of opencode the stage image pins (`1.19.3`). `factory.env` sets it from the pins of `vm/Dockerfile`; a blank value is read as not pinned. |
+| `FACTORY_OPENCODE_VERSION` | no, but the preflight fails without it under opencode | The version of opencode the stage image pins (`1.19.5`). `factory.env` sets it from the pins of `vm/Dockerfile`; a blank value is read as not pinned. |
 | `FACTORY_OPENCODE_MODELS` | no | Comma-separated `<alias>=<provider>/<model>` entries that map the agent files' aliases (`opus`, `sonnet`, `haiku`) to opencode's model ids; spaces around each part are stripped. The provider is the part before the first `/`, so `openrouter/anthropic/claude-opus-5-5` is one model. Unset or blank gives none (`factory.env` sets the three Anthropic ids from `vm/Dockerfile`). An entry without `=`, with an empty alias or with a model that has no `/` or an empty side, and an alias named twice, are refused with `FACTORY_OPENCODE_MODELS` as the variable. |
 | `FACTORY_OPENCODE_PROVIDER_FILE` | no | The absolute path of a JSON file that describes a company's own OpenAI-compatible provider and the small model; the opencode runtime merges it into the configuration of every run. Unset or blank gives none, and the configuration is as without the setting. A relative path is refused with `FACTORY_OPENCODE_PROVIDER_FILE` as the variable and `is not an absolute path`. The file is read at the start of every run, so a fault in it (or a missing file) ends that run with `cannot use the opencode provider file <path>: <reason>` and a new file applies from the next run, without a restart. See "A company's provider". |
 | `FACTORY_DATASET` | with `zfs` | The ZFS dataset the stages run on (`tank/factory/vm`); not read with `FACTORY_SNAPSHOTS=copy`. Missing or blank is refused when the instance's boundaries are built, with `FACTORY_DATASET` as the variable and `missing`; `read_settings` itself raises no fault for it. |
@@ -274,7 +274,7 @@ opencode has no budget flag, so the factory keeps the budget of an opencode run 
 
 ### Running on opencode
 
-An instance runs its agents on Claude Code unless the operator sets `FACTORY_AGENT_RUNTIME=opencode` (`--runtime opencode` of `vm/setup.sh`). The stage image holds both runtimes: `opencode-ai` is installed from npm at the version `OPENCODE_VERSION` of `vm/Dockerfile`, and the environment file sets `FACTORY_OPENCODE_VERSION` to it.
+An instance runs its agents on Claude Code unless the operator sets `FACTORY_AGENT_RUNTIME=opencode` (`--runtime opencode` of `vm/setup.sh`). The stage image holds only the runtime it was built for, so an opencode instance needs an image built with `AGENT_RUNTIME=opencode` (see "The stage image"). `opencode-ai` is installed from npm at the version `OPENCODE_VERSION` of `vm/Dockerfile`, and the environment file sets `FACTORY_OPENCODE_VERSION` to it.
 
 **The login.** An opencode run logs in with the API key in the file `FACTORY_API_LOGIN_FILE` names (see "The agent's API key"). Every run is then paid through the API. The subscription token is not used.
 
@@ -474,8 +474,8 @@ Every container of a v1.2 stage (the sync, the agent, the checks) starts from on
 
 It holds:
 
-- the pinned base image, and Debian's `git`, `make`, `curl`, `ca-certificates`, `procps` and `xz-utils` (for the Node archive), at the versions the base image's Debian release ships;
-- `uv`, Claude Code and opencode at exact versions, with the runtimes' environment: `DISABLE_AUTOUPDATER`, `UV_LINK_MODE`, `PYTHONDONTWRITEBYTECODE`, the two version records `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION`, and the opencode model ids `FACTORY_OPENCODE_MODELS`;
+- the pinned base image, and Debian's `git`, `make`, `curl`, `ca-certificates`, `procps` and `xz-utils`, at the versions the base image's Debian release ships;
+- `uv` and one agent runtime, Claude Code or opencode, at exact versions, with the runtimes' environment: `DISABLE_AUTOUPDATER`, `UV_LINK_MODE`, `PYTHONDONTWRITEBYTECODE`, the two version records `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION`, and the opencode model ids `FACTORY_OPENCODE_MODELS`;
 - the agent files (`claude/agents` and `claude/settings.json`) at `/etc/factory/claude`, read-only.
 
 It holds no user of its own and no `sudo`, no copy of the factory's source or its `uv sync`, no image-id file and no login or token path: the container runs as the caller's user (`--userns=keep-id`) and mounts the dataset.
@@ -485,8 +485,10 @@ The image only carries the agent files. The sync container copies them into the 
 Build it on the VM as the user `factory`, from a checkout:
 
 ```bash
-podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> <the checkout>
+podman build -f vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> <the checkout>
 ```
+
+`AGENT_RUNTIME` has no default. The image holds only that runtime, so it must be the instance's `FACTORY_AGENT_RUNTIME` (the preflight's `agent-runtime-version` fails on an image built for the other one). A build without it, with an empty value or with any other value, fails at once with a message that names `AGENT_RUNTIME`, `claude` and `opencode`. `vm/job-start.sh` passes `FACTORY_AGENT_RUNTIME` itself. After a change of runtime, rebuild the image and renew the file `FACTORY_IMAGE_ID_FILE` names, so that the instance gets a new `image-id`.
 
 `--build-arg FACTORY_IMAGE=<ref>` sets the label `factory.image`; it defaults to `unlabelled`. The label is not the identity of the image. The settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, and you renew that file after every build. `vm/setup.sh` makes the file with a fresh uuid when it is missing or empty (see *The script*). Nothing in `make check` builds the image.
 
@@ -494,15 +496,15 @@ podman build -f vm/Dockerfile -t <FACTORY_STAGE_IMAGE> <the checkout>
 
 A VM's next rebuild takes the current packages of the same release.
 
-The agent runtimes are installed by a Node of their own. The image downloads Node 22 from nodejs.org, pinned by `NODE_VERSION` and `NODE_SHA256`, checks the archive with `sha256sum -c` before it unpacks it into `/opt/factory/node`, and installs Claude Code and opencode with that Node's npm under `/opt/factory`. The commands `/usr/local/bin/claude` and `/usr/local/bin/opencode` exec the installed runtimes, `/opt/factory/bin/claude` and `/opt/factory/bin/opencode`, directly and pass their arguments on: both runtimes install native executables, so the factory's Node serves the install alone. The factory's Node is not on the `PATH`, and the image has no `node` or `npm` for projects: a project that needs one installs its own, and that cannot change the runtimes. To change the Node pin, set both `ARG`s in `vm/Dockerfile`: `NODE_VERSION` to a `22.<n>.<n>` release and `NODE_SHA256` to the SHA-256 that nodejs.org's `SHASUMS256.txt` lists for `node-v<NODE_VERSION>-linux-x64.tar.xz` (64 lowercase hex digits). A wrong checksum fails the build.
+The agent runtime is installed by a Node of its own, in a first build stage. That stage downloads Node 22 from nodejs.org, pinned by `NODE_VERSION` and `NODE_SHA256`, checks the archive with `sha256sum -c` before it unpacks it into `/opt/factory/node`, and installs the one runtime `AGENT_RUNTIME` names with that Node's npm. The final stage copies from it only that runtime's native executable, to `/opt/factory/bin/<runtime>`; `/usr/local/bin/<runtime>` execs it and passes its arguments on. The final stage therefore holds no Node, no npm, no npm cache, no other runtime and no opencode `baseline` executable, and it clears apt's lists, debconf's cache, the install logs and `/tmp`. The image has no command for the other runtime, and no `node` or `npm` for projects: a project that needs one installs its own, and that cannot change the runtimes. To change the Node pin, set both `ARG`s in `vm/Dockerfile`: `NODE_VERSION` to a `22.<n>.<n>` release and `NODE_SHA256` to the SHA-256 that nodejs.org's `SHASUMS256.txt` lists for `node-v<NODE_VERSION>-linux-x64.tar.xz` (64 lowercase hex digits). A wrong checksum fails the build.
 
 #### Update the pins
 
 The Debian packages carry no version, so a security or point update needs no edit. Moving to a new Debian release is a deliberate change of the base image's digest. Edit the line in `vm/Dockerfile`, then run the test:
 
 - Base image: `podman pull <image>`, then take the digest from `podman inspect --format '{{index .RepoDigests 0}}'` and put it after `@sha256:` in the `BASE_IMAGE` default.
-- `uv`: the `UV_VERSION` default. Node: `NODE_VERSION` and `NODE_SHA256` together (see above). Claude Code: the `CLAUDE_CODE_VERSION` default (three numbers). Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, with its auto-update off (`DISABLE_AUTOUPDATER=1`); the version is in the environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it.
-- opencode: the `OPENCODE_VERSION` default and the `FACTORY_OPENCODE_MODELS` value. Check the model ids with `opencode models anthropic`.
+- `uv`: the `UV_VERSION` default. Node: `NODE_VERSION` and `NODE_SHA256` together (see above). Claude Code: the `CLAUDE_CODE_VERSION` default (three numbers; now `2.1.318`). Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, with its auto-update off (`DISABLE_AUTOUPDATER=1`); the version is in the environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it.
+- opencode: the `OPENCODE_VERSION` default (now `1.19.5`) and the `FACTORY_OPENCODE_MODELS` value. Check the model ids with `opencode models anthropic`.
 
 After a change, rebuild the image and renew its id (see "The rebuild after a merge"); `vm/setup.sh` carries the pins into the environment file.
 

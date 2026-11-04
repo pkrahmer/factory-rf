@@ -2,6 +2,8 @@
 
 import os
 import re
+import shlex
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -369,11 +371,21 @@ def test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options(
         and storage in call.argv
         and any(call.argv[i : i + 2] == ["-t", "tmpfs"] for i in range(len(call.argv)))
     ]
-    builds = [call.argv for call in run.named("podman") if "build" in call.argv]
+    builds = [
+        _without_runtime_argument(call.argv) for call in run.named("podman") if "build" in call.argv
+    ]
+    runtimes = [
+        call.argv[index + 1]
+        for call in run.named("podman")
+        if "build" in call.argv
+        for index, word in enumerate(call.argv[:-1])
+        if word == "--build-arg" and call.argv[index + 1].startswith("AGENT_RUNTIME=")
+    ]
 
     assert run.result.exit_status == 0, run.result.stderr
     assert len(mounts) == 1
     assert mounts[0] < _first(run, "podman")
+    assert runtimes == ["AGENT_RUNTIME=opencode"]
     assert builds == [
         [
             *JOB_PODMAN_OPTIONS,
@@ -390,6 +402,47 @@ def test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options(
         ]
     ]
     assert UUID.match((run.root / "image-id").read_text(encoding="utf-8").strip())
+
+
+def _without_runtime_argument(argv: list[str]) -> list[str]:
+    """The build's argv without its `--build-arg AGENT_RUNTIME=` pair."""
+    pairs = [
+        index
+        for index, word in enumerate(argv[:-1])
+        if word == "--build-arg" and argv[index + 1].startswith("AGENT_RUNTIME=")
+    ]
+    return [word for index, word in enumerate(argv) if not {index, index - 1} & set(pairs)]
+
+
+def _builds_for_the_instance_runtime(script: str) -> bool:
+    builds = [
+        shlex.split(line)
+        for line in _uncommented(script).splitlines()
+        if " build " in line and "vm/Dockerfile" in line
+    ]
+    return len(builds) == 1 and any(
+        builds[0][index : index + 2] == ["--build-arg", "AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME"]
+        for index in range(len(builds[0]))
+    )
+
+
+@pytest.mark.parametrize(
+    ("change", "for_the_runtime"),
+    [
+        pytest.param(lambda text: text, True, id="as-written"),
+        pytest.param(
+            lambda text: re.sub(r'\s--build-arg "?AGENT_RUNTIME=[^\s"]*"?', "", text),
+            False,
+            id="without-the-runtime",
+        ),
+    ],
+)
+def test_the_stage_image_is_built_for_the_instance_runtime(
+    change: Callable[[str], str], for_the_runtime: bool
+) -> None:
+    script = change(JOB_START.read_text(encoding="utf-8"))
+
+    assert _builds_for_the_instance_runtime(script) == for_the_runtime
 
 
 def test_a_failed_mount_stops_the_script_before_podman(tmp_path: Path) -> None:

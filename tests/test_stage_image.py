@@ -2,7 +2,8 @@
 
 import re
 from collections.abc import Callable
-from pathlib import Path
+from fnmatch import fnmatch
+from pathlib import Path, PurePosixPath
 
 import pytest
 
@@ -19,10 +20,12 @@ from dockerfile_support import (
     _declared_names,
     _env,
     _from_references,
+    _instruction_commands,
     _instructions,
     _piped_download_findings,
     _pipelines,
     _shell_lines,
+    _substitute,
     _uncommented,
     floating_references,
 )
@@ -39,6 +42,12 @@ NODE_VERSION = re.compile(r"22\.\d+\.\d+")
 LOWER_SHA256 = re.compile(r"[0-9a-f]{64}")
 CLAUDE_CODE = "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
 OPENCODE = "opencode-ai@${OPENCODE_VERSION}"
+RUNTIMES = {"claude": CLAUDE_CODE, "opencode": OPENCODE}
+RUNTIME_REFERENCE = re.compile(r"\$\{AGENT_RUNTIME\}|\$AGENT_RUNTIME\b")
+RUNTIME_NAMES = ("claude", "opencode", "anthropic")
+LEFT_FROM_THE_INSTALL = ("/opt/factory/node", "/root/.npm")
+# Built from its parts: the path is the one the final stage empties, not a file a test writes.
+TEMPORARY = str(PurePosixPath("/", "tmp"))
 AGENT_FILES_COPY = "claude /etc/factory/claude"
 AGENT_FILES_MODES = (
     "chmod 0755 /etc/factory/claude /etc/factory/claude/agents"
@@ -103,6 +112,68 @@ def _run_commands(arguments: str) -> list[Command]:
     return [command for pipeline in _pipelines(arguments) for command in pipeline]
 
 
+def _final_from(instructions: list[Instruction]) -> int:
+    return max(index for index, (keyword, _) in enumerate(instructions) if keyword == "FROM")
+
+
+def _final_stage(instructions: list[Instruction]) -> list[Instruction]:
+    """The instructions after the final stage's FROM."""
+    return instructions[_final_from(instructions) + 1 :]
+
+
+def _final_stage_text(dockerfile: str) -> str:
+    """The text of `dockerfile` after its final FROM line."""
+    lines = dockerfile.splitlines()
+    final = max(index for index, line in enumerate(lines) if re.match(r"FROM\s", line.strip()))
+    return "\n".join(lines[final + 1 :])
+
+
+def _in_final_stage(change: Callable[[str], str]) -> Callable[[str], str]:
+    """A change applied to the text after the final FROM line alone."""
+
+    def changed(text: str) -> str:
+        tail = _final_stage_text(text)
+        return text[: len(text) - len(tail)] + change(tail)
+
+    return changed
+
+
+def _is_npm(command: Command) -> bool:
+    return Path(command[0]).name in {"npm", "npx"}
+
+
+def _npm_packages(command: Command) -> list[str] | None:
+    """The packages an `npm install` names, None for any other command."""
+    if Path(command[0]).name != "npm" or "install" not in command:
+        return None
+    rest = command[command.index("install") + 1 :]
+    return [
+        word
+        for index, word in enumerate(rest)
+        if not word.startswith("-") and (index == 0 or rest[index - 1] != "--prefix")
+    ]
+
+
+def _for_runtime(dockerfile: str, requirement: str) -> str:
+    """The instructions of `dockerfile` with every `npm install` naming `requirement` alone."""
+    lines: list[str] = []
+    for keyword, arguments in _instructions(dockerfile):
+        commands = _run_commands(arguments) if keyword == "RUN" else []
+        installs = [command for command in commands if _npm_packages(command) is not None]
+        if installs:
+            install = installs[0]
+            packages = _npm_packages(install) or []
+            words = [word for word in install if word not in packages]
+            lines.append(f"{keyword} {' '.join([*words, requirement])}")
+        else:
+            lines.append(f"{keyword} {arguments}")
+    return "\n".join(lines)
+
+
+def _with_runtime(dockerfile: str, name: str) -> str:
+    return RUNTIME_REFERENCE.sub(name, dockerfile)
+
+
 # The Debian packages follow the base image's release, which its digest fixes (docs/decisions.md).
 RELEASE_PACKAGES = sorted(f"apt package {package}" for package in STAGE_PACKAGES)
 
@@ -138,13 +209,31 @@ def test_the_stage_image_has_no_floating_reference(
     stage_dockerfile: str, change: Callable[[str], str], pinned: bool
 ) -> None:
     # floating_references knows npm by its bare name and an option's value only after "=".
-    text = change(stage_dockerfile).replace(FACTORY_NPM, "npm")
-    findings = floating_references(text.replace(f"--prefix {FACTORY_PREFIX}", "--prefix=_"))
-    others = [finding for finding in findings if finding not in RELEASE_PACKAGES]
+    texts = [
+        _for_runtime(change(stage_dockerfile), requirement).replace(FACTORY_NPM, "npm")
+        for requirement in RUNTIMES.values()
+    ]
+    # The final stage declares the version again, without a default, for its settings.
+    each_findings = [
+        [
+            finding
+            for finding in floating_references(
+                text.replace(f"--prefix {FACTORY_PREFIX}", "--prefix=_")
+            )
+            if finding != "ARG CLAUDE_CODE_VERSION"
+        ]
+        for text in texts
+    ]
+    others = [
+        finding
+        for findings in each_findings
+        for finding in findings
+        if finding not in RELEASE_PACKAGES
+    ]
 
     assert (others == []) == pinned
     if pinned:
-        assert sorted(findings) == RELEASE_PACKAGES
+        assert all(sorted(set(findings)) == RELEASE_PACKAGES for findings in each_findings)
 
 
 def test_the_one_base_image_is_the_pinned_build_argument(
@@ -158,20 +247,23 @@ def test_the_one_base_image_is_the_pinned_build_argument(
     ]
     references = _from_references(stage_instructions)
 
-    assert [arguments for keyword, arguments in stage_instructions if keyword == "FROM"] == [
-        "${BASE_IMAGE}"
-    ]
+    assert stage_instructions[_final_from(stage_instructions)] == ("FROM", "${BASE_IMAGE}")
     assert len(base_argument) == 1
     assert base_argument[0] < keywords.index("FROM")
-    assert len(references) == 1
-    assert DIGEST.search(references[0])
+    assert len(references) == 2
+    assert all(DIGEST.search(reference) for reference in references)
 
 
-@pytest.mark.parametrize("keyword", ["FROM", "LABEL", "COPY"])
-def test_the_stage_image_has_one_instruction_of_each_kind(
-    stage_instructions: list[Instruction], keyword: str
+def _kind(instruction: Instruction) -> str:
+    keyword, arguments = instruction
+    return "COPY --from" if keyword == "COPY" and "--from=" in arguments else keyword
+
+
+@pytest.mark.parametrize(("keyword", "count"), [("FROM", 2), ("LABEL", 1), ("COPY", 1)])
+def test_the_stage_image_has_its_count_of_each_instruction(
+    stage_instructions: list[Instruction], keyword: str, count: int
 ) -> None:
-    assert [each for each, _ in stage_instructions].count(keyword) == 1
+    assert [_kind(each) for each in stage_instructions].count(keyword) == count
 
 
 MODEL = re.compile(r"^[\w.-]+/[\w.-]+$")
@@ -215,7 +307,7 @@ def test_each_debian_package_is_installed_by_name_alone(
 ) -> None:
     stage = [
         each
-        for each in _apt_packages(_commands(stage_dockerfile))
+        for each in _apt_packages(_commands(_final_stage_text(stage_dockerfile)))
         if each.partition("=")[0] == package
     ]
 
@@ -227,7 +319,7 @@ def test_the_one_apt_install_is_the_tools_without_recommends(
 ) -> None:
     runs = [
         arguments
-        for keyword, arguments in stage_instructions
+        for keyword, arguments in _final_stage(stage_instructions)
         if keyword == "RUN"
         and any(_after(command, "apt-get", {"install"}) for command in _run_commands(arguments))
     ]
@@ -244,7 +336,8 @@ def test_the_one_apt_install_is_the_tools_without_recommends(
     assert len(runs) == 1
     assert len(install) == 1
     assert sorted(
-        each.partition("=")[0] for each in _apt_packages(_commands(stage_dockerfile))
+        each.partition("=")[0]
+        for each in _apt_packages(_commands(_final_stage_text(stage_dockerfile)))
     ) == sorted(STAGE_PACKAGES)
     assert "--no-install-recommends" in install[0]
     assert removals != []
@@ -261,9 +354,8 @@ def test_the_one_apt_install_is_the_tools_without_recommends(
 def test_each_tool_is_installed_once_at_its_pinned_version(
     stage_dockerfile: str, program: str, requirement: str, flags: list[str]
 ) -> None:
-    installs = [
-        command for command in _installs(stage_dockerfile, program) if requirement in command
-    ]
+    text = _for_runtime(stage_dockerfile, requirement)
+    installs = [command for command in _installs(text, program) if requirement in command]
 
     assert len(installs) == 1
     assert set(flags) <= set(installs[0])
@@ -295,16 +387,9 @@ def _installed_by_the_factory_npm(dockerfile: str, requirement: str) -> bool:
 def test_the_runtimes_are_installed_by_the_factory_npm_into_its_prefix(
     stage_dockerfile: str, requirement: str, change: Callable[[str], str], installed: bool
 ) -> None:
-    assert _installed_by_the_factory_npm(change(stage_dockerfile), requirement) == installed
+    text = _for_runtime(change(stage_dockerfile), requirement)
 
-
-def test_opencode_is_installed_after_claude_code(stage_dockerfile: str) -> None:
-    installs = _installs(stage_dockerfile, FACTORY_NPM)
-    claude = [index for index, command in enumerate(installs) if CLAUDE_CODE in command]
-    opencode = [index for index, command in enumerate(installs) if OPENCODE in command]
-
-    assert len(claude) == len(opencode) == 1
-    assert claude[0] < opencode[0]
+    assert _installed_by_the_factory_npm(text, requirement) == installed
 
 
 @pytest.mark.parametrize("words", [["npx"], ["uv", "sync"], ["uv", "tool", "install"]])
@@ -317,9 +402,13 @@ def test_no_other_install_is_made(stage_dockerfile: str, words: list[str]) -> No
 def test_the_agent_files_are_copied_read_only_to_their_place(
     stage_dockerfile: str, stage_instructions: list[Instruction]
 ) -> None:
-    copies = [index for index, (keyword, _) in enumerate(stage_instructions) if keyword == "COPY"]
+    copies = [index for index, each in enumerate(stage_instructions) if _kind(each) == "COPY"]
     lines = stage_dockerfile.splitlines()
-    copy_lines = [index for index, line in enumerate(lines) if line.strip().startswith("COPY ")]
+    copy_lines = [
+        index
+        for index, line in enumerate(lines)
+        if line.strip().startswith("COPY ") and "--from=" not in line
+    ]
 
     assert [stage_instructions[index][1] for index in copies] == [AGENT_FILES_COPY]
     assert stage_instructions[copies[0] + 1] == ("RUN", AGENT_FILES_MODES)
@@ -403,11 +492,25 @@ def test_nothing_of_the_long_lived_container_is_left(stage_dockerfile: str, word
     assert word not in _uncommented(stage_dockerfile)
 
 
-def test_the_first_line_names_the_build_command(stage_dockerfile: str) -> None:
-    first = stage_dockerfile.splitlines()[0]
+@pytest.mark.parametrize(
+    ("change", "named"),
+    [
+        pytest.param(lambda text: text, True, id="as-built"),
+        pytest.param(
+            lambda text: text.replace(" --build-arg AGENT_RUNTIME=<claude|opencode>", "", 1),
+            False,
+            id="without-the-runtime",
+        ),
+    ],
+)
+def test_the_first_line_names_the_build_command_with_the_runtime(
+    stage_dockerfile: str, change: Callable[[str], str], named: bool
+) -> None:
+    first = change(stage_dockerfile).splitlines()[0]
 
     assert first.startswith("#")
     assert "podman build -f vm/Dockerfile" in first
+    assert ("--build-arg AGENT_RUNTIME=<claude|opencode>" in first) == named
 
 
 def _node_is_pinned(dockerfile: str) -> bool:
@@ -542,15 +645,22 @@ def test_the_node_archive_is_checked_before_it_is_unpacked(
     assert _node_archive_is_checked(change(stage_dockerfile)) == checked
 
 
+def _add_apt_package(package: str) -> Callable[[str], str]:
+    """A change that adds `package` to the first apt install."""
+
+    def change(text: str) -> str:
+        return text.replace("--no-install-recommends ", f"--no-install-recommends {package} ", 1)
+
+    return change
+
+
 @pytest.mark.parametrize(
     ("change", "exact"),
     [
         pytest.param(lambda text: text, True, id="as-built"),
         *[
             pytest.param(
-                lambda text, package=package: text.replace(
-                    "--no-install-recommends ", f"--no-install-recommends {package} ", 1
-                ),
+                _in_final_stage(_add_apt_package(package)),
                 False,
                 id=package,
             )
@@ -561,7 +671,7 @@ def test_the_node_archive_is_checked_before_it_is_unpacked(
 def test_the_apt_install_names_exactly_the_six_packages(
     stage_dockerfile: str, change: Callable[[str], str], exact: bool
 ) -> None:
-    packages = _apt_packages(_commands(change(stage_dockerfile)))
+    packages = _apt_packages(_commands(_final_stage_text(change(stage_dockerfile))))
 
     assert (sorted(packages) == sorted(STAGE_PACKAGES)) == exact
 
@@ -605,7 +715,9 @@ def _execs_its_installed_command(dockerfile: str, name: str) -> bool:
 def test_each_runtime_command_execs_its_installed_command(
     stage_dockerfile: str, name: str, change: Callable[[str], str], execs: bool
 ) -> None:
-    assert _execs_its_installed_command(change(stage_dockerfile), name) == execs
+    text = _with_runtime(change(stage_dockerfile), name)
+
+    assert _execs_its_installed_command(text, name) == execs
 
 
 def _keeps_the_factory_node_off_the_path(dockerfile: str) -> bool:
@@ -644,3 +756,312 @@ def test_the_factory_node_stays_off_the_path(
     stage_dockerfile: str, extra: str, off_the_path: bool
 ) -> None:
     assert _keeps_the_factory_node_off_the_path(f"{stage_dockerfile}\n{extra}\n") == off_the_path
+
+
+@pytest.mark.parametrize(
+    ("change", "without_default"),
+    [
+        pytest.param(lambda text: text, True, id="as-built"),
+        pytest.param(
+            lambda text: re.sub(r"(?m)^ARG AGENT_RUNTIME$", "ARG AGENT_RUNTIME=claude", text),
+            False,
+            id="claude-default",
+        ),
+        pytest.param(
+            lambda text: re.sub(r"(?m)^ARG AGENT_RUNTIME$", "ARG AGENT_RUNTIME=", text),
+            False,
+            id="empty-default",
+        ),
+    ],
+)
+def test_the_runtime_build_argument_has_no_default(
+    stage_dockerfile: str, change: Callable[[str], str], without_default: bool
+) -> None:
+    declared = [
+        arguments
+        for keyword, arguments in _instructions(change(stage_dockerfile))
+        if keyword == "ARG" and arguments.partition("=")[0] == "AGENT_RUNTIME"
+    ]
+
+    assert (declared != [] and all(each == "AGENT_RUNTIME" for each in declared)) == (
+        without_default
+    )
+
+
+def _installs_one_runtime_by_its_name(instructions: list[Instruction]) -> bool:
+    final = _final_from(instructions)
+    late_npm = [
+        command for command in _instruction_commands(instructions[final:]) if _is_npm(command)
+    ]
+    holders = [
+        (arguments, packages)
+        for keyword, arguments in instructions
+        if keyword == "RUN"
+        for command in _run_commands(arguments)
+        if (packages := _npm_packages(command)) is not None
+    ]
+    if late_npm or len(holders) != 1 or len(holders[0][1]) != 1:
+        return False
+    arguments, packages = holders[0]
+    package = _substitute(packages[0], _arg_defaults(instructions, before_from=False))
+    return bool(
+        "$" in package
+        and RUNTIME_REFERENCE.search(arguments)
+        and all(requirement in arguments for requirement in RUNTIMES.values())
+    )
+
+
+def _install_index(instructions: list[Instruction]) -> int:
+    return next(
+        index
+        for index, (keyword, arguments) in enumerate(instructions)
+        if keyword == "RUN"
+        and any(_npm_packages(command) is not None for command in _run_commands(arguments))
+    )
+
+
+def _second_install(instructions: list[Instruction]) -> list[Instruction]:
+    index = _install_index(instructions)
+    return [*instructions[: index + 1], instructions[index], *instructions[index + 1 :]]
+
+
+def _independent_install(instructions: list[Instruction]) -> list[Instruction]:
+    index = _install_index(instructions)
+    keyword, arguments = instructions[index]
+    literal = re.sub(r"(npm install[^&|;]*\s)(\S+)", lambda m: m[1] + CLAUDE_CODE, arguments)
+    return [*instructions[:index], (keyword, literal), *instructions[index + 1 :]]
+
+
+@pytest.mark.parametrize(
+    ("change", "one_by_name"),
+    [
+        pytest.param(lambda each: each, True, id="as-built"),
+        pytest.param(
+            lambda each: [*each, ("RUN", f"{FACTORY_NPM} --version")], False, id="npm-in-final"
+        ),
+        pytest.param(_second_install, False, id="two-installs"),
+        pytest.param(_independent_install, False, id="package-without-the-runtime"),
+    ],
+)
+def test_the_first_stage_installs_the_one_runtime_its_name_chooses(
+    stage_instructions: list[Instruction],
+    change: Callable[[list[Instruction]], list[Instruction]],
+    one_by_name: bool,
+) -> None:
+    assert _installs_one_runtime_by_its_name(change(stage_instructions)) == one_by_name
+
+
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [
+        ("CLAUDE_CODE_VERSION", "2.1.318"),
+        ("OPENCODE_VERSION", "1.19.5"),
+        ("NODE_VERSION", "22.23.4"),
+        # The checksum as its number: its hex digits read as a secret to make secrets.
+        (
+            "NODE_SHA256",
+            "10865645828126401455792825685472766161388442199184181265352319439912524310990",
+        ),
+    ],
+)
+def test_each_install_pin_has_its_value(
+    stage_instructions: list[Instruction], name: str, value: str
+) -> None:
+    pin = _arg_defaults(stage_instructions, before_from=False).get(name, "")
+    if name == "NODE_SHA256":
+        pin = str(int(pin, 16))
+
+    assert pin == value
+
+
+def _is_install(command: Command) -> bool:
+    return bool(
+        _after(command, "apt-get", {"install"})
+        or _after(command, "pip", {"install"})
+        or _npm_packages(command) is not None
+        or Path(command[0]).name == "curl"
+    )
+
+
+def _checks_the_runtime_first(commands: list[Command]) -> bool:
+    first = next(index for index, command in enumerate(commands) if _is_install(command))
+    before = commands[:first]
+    messages = [
+        VARIABLE_FREE.sub("", " ".join(command[command.index(word) + 1 :]))
+        for command in before
+        for word in command
+        if word in {"echo", "printf"}
+    ]
+    fails = any(
+        command[index + 1 : index + 2] not in ([], ["0"])
+        for command in before
+        for index, word in enumerate(command)
+        if word == "exit"
+    )
+    return bool(
+        any(RUNTIME_REFERENCE.search(word) for command in before for word in command)
+        and fails
+        and any(all(word in message for word in RUNTIME_MESSAGE_WORDS) for message in messages)
+    )
+
+
+VARIABLE_FREE = re.compile(r"\$\{\w+\}|\$\w+")
+RUNTIME_MESSAGE_WORDS = ("AGENT_RUNTIME", "claude", "opencode")
+
+
+def _drop_the_message(commands: list[Command]) -> list[Command]:
+    return [command for command in commands if not {"echo", "printf", "exit"} & set(command)]
+
+
+def _without_word(word: str) -> Callable[[list[Command]], list[Command]]:
+    def change(commands: list[Command]) -> list[Command]:
+        return [
+            [each.replace(word, "") for each in command]
+            if {"echo", "printf"} & set(command)
+            else command
+            for command in commands
+        ]
+
+    return change
+
+
+@pytest.mark.parametrize(
+    ("change", "checked"),
+    [
+        pytest.param(lambda commands: commands, True, id="as-built"),
+        pytest.param(_drop_the_message, False, id="no-check"),
+        *[
+            pytest.param(_without_word(word), False, id=f"message-without-{word}")
+            for word in RUNTIME_MESSAGE_WORDS
+        ],
+    ],
+)
+def test_the_runtime_build_argument_is_checked_before_any_install(
+    stage_dockerfile: str,
+    change: Callable[[list[Command]], list[Command]],
+    checked: bool,
+) -> None:
+    assert _checks_the_runtime_first(change(_commands(stage_dockerfile))) == checked
+
+
+def _covers(pattern: str, path: str) -> bool:
+    return fnmatch(path, pattern) or path.startswith(pattern.rstrip("/") + "/")
+
+
+CLEANED = [f"{TEMPORARY}/a", "/var/lib/apt/lists/a", "/var/cache/debconf/a-old", "/var/log/a.log"]
+
+
+def _final_stage_cleans_up(dockerfile: str) -> bool:
+    commands = _instruction_commands(_final_stage(_instructions(dockerfile)))
+    last_use = max(
+        (
+            index
+            for index, command in enumerate(commands)
+            if command[0] != "rm"
+            and ("apt-get" in command or any(word.startswith(TEMPORARY) for word in command))
+        ),
+        default=-1,
+    )
+    removed = [
+        word
+        for command in commands[last_use + 1 :]
+        if command[:1] == ["rm"]
+        for word in command[1:]
+        if not word.startswith("-")
+    ]
+    return all(any(_covers(word, path) for word in removed) for path in CLEANED)
+
+
+def _drop_path(path: str) -> Callable[[str], str]:
+    """A change that drops every word starting with `path`."""
+
+    def change(text: str) -> str:
+        return re.sub(rf"\s{path}[^\s\"']*", "", text)
+
+    return change
+
+
+@pytest.mark.parametrize(
+    ("change", "clean"),
+    [
+        pytest.param(lambda text: text, True, id="as-built"),
+        *[
+            pytest.param(
+                _in_final_stage(_drop_path(path)),
+                False,
+                id=path.strip("/").replace("/", "-"),
+            )
+            for path in [TEMPORARY, "/var/lib/apt/lists", "/var/cache/debconf", "/var/log"]
+        ],
+    ],
+)
+def test_the_final_stage_leaves_no_install_rest(
+    stage_dockerfile: str, change: Callable[[str], str], clean: bool
+) -> None:
+    assert _final_stage_cleans_up(change(stage_dockerfile)) == clean
+
+
+def _takes_from_the_install(source: str) -> bool:
+    """Whether a source of the final stage's COPY --from takes more than the chosen runtime."""
+    return bool(
+        {"node", "npm", ".npm"} & set(PurePosixPath(source).parts)
+        or any(_covers(source, left) or _covers(left, source) for left in LEFT_FROM_THE_INSTALL)
+        or any(name in RUNTIME_REFERENCE.sub("", source) for name in RUNTIME_NAMES)
+    )
+
+
+def _takes_only_the_chosen_runtime(dockerfile: str) -> bool:
+    copies = [
+        [word for word in arguments.split() if not word.startswith("--")]
+        for keyword, arguments in _final_stage(_instructions(dockerfile))
+        if keyword == "COPY" and "--from=" in arguments
+    ]
+    return copies != [] and not any(
+        any(_takes_from_the_install(source) for source in words[:-1])
+        or any("baseline" in word for word in words)
+        for words in copies
+    )
+
+
+def _first_stage_name(dockerfile: str) -> str:
+    first = next(arguments for keyword, arguments in _instructions(dockerfile) if keyword == "FROM")
+    words = first.split()
+    return words[-1] if len(words) == 3 and words[1].upper() == "AS" else "0"
+
+
+@pytest.mark.parametrize(
+    ("source", "only_the_runtime"),
+    [
+        pytest.param(None, True, id="as-built"),
+        pytest.param("/opt/factory/node", False, id="node"),
+        pytest.param("/opt/factory/node/bin/node", False, id="node-executable"),
+        pytest.param("/opt/factory/lib/node_modules/npm", False, id="npm"),
+        pytest.param("/root/.npm", False, id="npm-cache"),
+        pytest.param("/opt/factory", False, id="whole-prefix"),
+        pytest.param("/opt/factory/lib/node_modules/opencode-ai", False, id="opencode-install"),
+        pytest.param("/opt/factory/lib/node_modules/@anthropic-ai", False, id="claude-install"),
+        pytest.param("/opt/runtime-baseline/bin/", False, id="baseline"),
+    ],
+)
+def test_the_final_stage_takes_only_the_chosen_runtime_from_the_first_stage(
+    stage_dockerfile: str, source: str | None, only_the_runtime: bool
+) -> None:
+    extra = (
+        ""
+        if source is None
+        else (f"COPY --from={_first_stage_name(stage_dockerfile)} {source} /opt/factory/extra/")
+    )
+
+    assert _takes_only_the_chosen_runtime(f"{stage_dockerfile}\n{extra}\n") == only_the_runtime
+
+
+@pytest.mark.parametrize(
+    "name", ["FACTORY_CLAUDE_VERSION", "FACTORY_OPENCODE_VERSION", "FACTORY_OPENCODE_MODELS"]
+)
+@pytest.mark.parametrize("removed", [False, True], ids=["as-built", "removed"])
+def test_the_version_settings_stay_in_the_image(
+    stage_dockerfile: str, name: str, removed: bool
+) -> None:
+    text = _drop_lines_with(f"ENV {name}=")(stage_dockerfile) if removed else stage_dockerfile
+
+    assert (name in _env(_final_stage(_instructions(text)))) != removed
