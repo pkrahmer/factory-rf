@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T22:36:25.675909Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-11-04T22:36:20.346471Z'
   stage: tests
   run: b0a76fbbce95436c8196303c776bdd83
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-04T22:36:25.675909Z'
+  stage: doing
 ---
 
 # A hosting failure after the claim charges no crash
@@ -255,3 +264,4 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
     One run of `uv run pytest -q tests/application/test_hosting_failure_after_claim.py`: 1 passed. `make lint`: lint: green (0.1 s).
 
     `lint`: lint: green (0.2 s)
+19. factory: started doing as vm.
