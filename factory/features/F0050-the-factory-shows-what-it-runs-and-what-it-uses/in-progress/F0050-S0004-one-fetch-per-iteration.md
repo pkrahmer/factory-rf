@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947, 6634929291]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T15:50:28.238099Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -234,6 +230,12 @@ journal:
   kind: started
   at: '2026-11-04T15:50:28.238099Z'
   stage: smoke-test
+- number: 41
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T15:51:00.031565Z'
+  stage: smoke-test
+  run: 42a25322ae80495ebe14fa49ee0285dc
 ---
 
 # One fetch per iteration
@@ -641,3 +643,26 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
 40. factory: started smoke-test as vm.
+41. smoke-tester: Smoke test run from the repository root. I ran both commands exactly as written, in order. No server was involved, and I fixed nothing.
+
+    Command 1: `grep -rn 'git.fetch()' src/factory/application src/factory/entry | wc -l`
+
+    ```
+    3
+    ```
+
+    Met `Expect:`. The count is 3, which is not more than the 3 on `main` when the story was written. For context only, I also ran the grep without `wc -l`. The three call sites are `src/factory/application/tick.py:152` (the tick's own fetch, which `fetched=False` keeps), `src/factory/application/scheduler.py:126` (`prepare()`, which the Interface says stays) and `src/factory/entry/run.py:238` (the fetch in `_follow_main`, once per iteration).
+
+    Command 2: `uv run pytest tests/entry tests/application -k fetch 2>&1 | tail -1`
+
+    ```
+    42 passed, 2065 deselected in 5.37s
+    ```
+
+    Met `Expect:`. The line ends in `passed` and nothing failed.
+
+    Acceptance criteria: I read criteria 1 to 6 again against what the run showed, and nothing contradicts any of them. The three fetch call sites match the Interface: one fetch in the iteration, the tick's own fetch kept for runs without one before it, and `prepare()` unchanged. The smoke test does not cover criterion 5 (`make check`) or criterion 6 (docs); the factory's checks cover those.
+
+    Findings: none.
+
+    Open: nothing.
