@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
+from factory.domain.cost_records import ToolUse
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoint, KillPoints
 from factory.domain.transcripts import Transcript
@@ -68,6 +69,11 @@ class FakeAgentRuntime(AgentRuntime):
         for scripted in reversed(self._played):
             if scripted.result.session == session:
                 return scripted.transcript
+        return None
+
+    def tool_uses(self, transcript: Transcript) -> list[ToolUse] | None:
+        """No tool calls are read from a scripted transcript: always `None`."""
+        del transcript
         return None
 
 

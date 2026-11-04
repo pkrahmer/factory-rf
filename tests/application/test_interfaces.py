@@ -88,7 +88,7 @@ def test_hosting_abstract_methods_are_its_ten_operations_with_their_return_types
 
 def test_project_commands_and_agent_runtime_have_exactly_their_operations_abstract() -> None:
     assert ProjectCommands.__abstractmethods__ == {"run"}
-    assert AgentRuntime.__abstractmethods__ == {"run", "version", "read_transcript"}
+    assert AgentRuntime.__abstractmethods__ == {"run", "version", "read_transcript", "tool_uses"}
     assert Snapshots.__abstractmethods__ == {"mount_point", "reset", "advance", "changed_paths"}
     assert ContainerRuns.__abstractmethods__ == {"launch", "run"}
     assert StageEnvironment.__abstractmethods__ == {"prepare", "run_agent", "take"}

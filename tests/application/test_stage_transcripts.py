@@ -13,12 +13,10 @@ from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.transcript_files import FileTranscriptStore
 from factory.application.boundaries import Boundaries
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.cost_records import CostRecord
-from factory.domain.paths import cost_records_path
 from factory.domain.provider_limits import ProviderLimit
 from factory.domain.transcripts import Transcript
 from human_clone import HumanClone
-from stage_run_support import PATH, WORK_ITEM, branch_head, open_story, run_stage
+from stage_run_support import WORK_ITEM, open_story, pushed_cost_records, run_stage
 from transcript_support import sha256_of
 
 SESSION = "ses_a"
@@ -55,12 +53,6 @@ def _with_transcripts(boundaries: Boundaries, tmp_path: Path, folder: Path) -> B
 def transcribed(boundaries: Boundaries, tmp_path: Path, folder: Path) -> Boundaries:
     """The boundaries with a transcript folder and the dataset's workspace in their settings."""
     return _with_transcripts(boundaries, tmp_path, folder)
-
-
-def _records(boundaries: Boundaries, remote: Path) -> list[CostRecord]:
-    text = boundaries.git.show_file(branch_head(remote), cost_records_path(PATH))
-    assert text is not None
-    return boundaries.cost_reader.parse(text)
 
 
 def _log_text(boundaries: Boundaries) -> str:
@@ -100,7 +92,7 @@ def test_without_a_transcript_folder_a_stage_runs_as_before_and_keeps_nothing(
 
     assert report.stall is None
     assert report.next_stage == "doing"
-    assert all(record.transcript is None for record in _records(boundaries, remote))
+    assert all(record.transcript is None for record in pushed_cost_records(boundaries, remote))
     assert "transcript:" not in _log_text(boundaries)
     assert boundaries.stop_records.read() == []
     assert [path for path in _files(tmp_path) if path.name.endswith(".gz")] == []
@@ -120,7 +112,7 @@ def test_a_completed_run_leaves_its_transcript_that_its_record_names(
 
     run_stage(transcribed)
 
-    [record] = _records(transcribed, remote)
+    [record] = pushed_cost_records(transcribed, remote)
     expected = f"{WORK_ITEM}/{record.run}.jsonl.gz"
     assert _files(folder) == [folder / expected]
     written = folder / expected
@@ -147,7 +139,7 @@ def test_a_run_resumed_within_itself_keeps_one_file_with_the_content_after_the_r
 
     run_stage(replace(transcribed, waiter=ManualWaiter(clock)))
 
-    [record] = _records(transcribed, remote)
+    [record] = pushed_cost_records(transcribed, remote)
     written = folder / WORK_ITEM / f"{record.run}.jsonl.gz"
     assert _files(folder) == [written]
     assert gzip.decompress(written.read_bytes()) == SECOND.content
@@ -184,7 +176,7 @@ def test_a_transcript_not_kept_writes_its_line_and_leaves_the_run_unchanged(
 
     assert report.stall is None
     assert report.next_stage == "doing"
-    [record] = _records(transcribed, remote)
+    [record] = pushed_cost_records(transcribed, remote)
     assert record.status == "completed"
     assert record.transcript is None
     assert f"{NOT_KEPT}{record.run}: " in _log_text(transcribed)
@@ -217,7 +209,7 @@ def test_a_later_run_of_an_earlier_session_names_its_own_file_or_none(
 
     run_stage(limited)
 
-    earlier, later = _records(transcribed, remote)[-2:]
+    earlier, later = pushed_cost_records(transcribed, remote)[-2:]
     assert earlier.run != later.run
     assert earlier.transcript is not None
     assert earlier.transcript.sha256 == sha256_of(folder / earlier.transcript.path)

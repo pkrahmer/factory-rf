@@ -11,6 +11,7 @@ from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.git import Git
 from factory.domain.agent_runs import QUESTION, AgentRunRequest, AgentRunResult
+from factory.domain.cost_records import ToolUse
 from factory.domain.transcripts import Transcript
 from human_clone import HumanClone
 from stage_run_support import (
@@ -50,6 +51,11 @@ class HeadNotingRuntime(AgentRuntime):
     def read_transcript(self, home: Path, session: str) -> Transcript | None:
         """No transcript is kept."""
         del home, session
+        return None
+
+    def tool_uses(self, transcript: Transcript) -> list[ToolUse] | None:
+        """No reading of tool calls."""
+        del transcript
         return None
 
 

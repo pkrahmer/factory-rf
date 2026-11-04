@@ -2025,7 +2025,7 @@ The command prints `contract: 5 schemas written`. With two or more arguments it 
 
 **The approval.** A work item enters the approval with its last `result` record in the journal. No record marks the entry, so a reader takes the approval's start from that record's `at` and its end from the `done` record's `at`.
 
-**The version.** Each schema carries the records contract's version in `x-records-contract`, now `4.3` (`1.1` added the cost record's optional `login`; `1.2` added the end reason `provider_limit` to the cost record's `end_reason` and the stall reason `provider_limit` to the `reason` of the journal records in `work-item-state` and `acceptance-state`; `1.3` added the optional `not_read` of a project command to `pipeline-definition`; `2.0` removed `tool_paths` from `pipeline-definition`, a change that can break a reader, since the schema no longer allows the key; `3.0` removed the stall reason `nested_repository` from the `reason` of the journal records in `work-item-state` and `acceptance-state`, a change that can break a reader, since those schemas no longer allow the value; `4.0` removed the stall reason `left_branch` in the same places, for the same reason: no agent can cause it on the dataset; `4.2` added the optional `machine` object to the cost record; `4.3` added the optional `transcript` object to the cost record). The major version rises for a change that can break a reader: a field removed or renamed, a type narrowed, a meaning changed. The minor version rises for an added optional field or value. This version is not the `contract` of the pipeline definition, which is the version of the definition's own format (see "The pipeline definition").
+**The version.** Each schema carries the records contract's version in `x-records-contract`, now `4.4` (`1.1` added the cost record's optional `login`; `1.2` added the end reason `provider_limit` to the cost record's `end_reason` and the stall reason `provider_limit` to the `reason` of the journal records in `work-item-state` and `acceptance-state`; `1.3` added the optional `not_read` of a project command to `pipeline-definition`; `2.0` removed `tool_paths` from `pipeline-definition`, a change that can break a reader, since the schema no longer allows the key; `3.0` removed the stall reason `nested_repository` from the `reason` of the journal records in `work-item-state` and `acceptance-state`, a change that can break a reader, since those schemas no longer allow the value; `4.0` removed the stall reason `left_branch` in the same places, for the same reason: no agent can cause it on the dataset; `4.2` added the optional `machine` object to the cost record; `4.3` added the optional `transcript` object to the cost record; `4.4` added the optional `tools` list to the cost record). The major version rises for a change that can break a reader: a field removed or renamed, a type narrowed, a meaning changed. The minor version rises for an added optional field or value. This version is not the `contract` of the pipeline definition, which is the version of the definition's own format (see "The pipeline definition").
 
 **Unknown properties.** The schemas say `additionalProperties: false` for what this version of the factory writes. A reader still ignores a property it does not know, since a later minor version may add one.
 
@@ -2163,6 +2163,23 @@ How to read them:
 - `store_free_bytes` and `dataset_free_bytes` falling from record to record show the disk filling before it is full.
 
 Under the `job` container profile the containers run as root, so the user slice the factory looks at may be another cgroup than the containers': the measures there may be `null` or another slice's.
+
+### The tool calls on the cost records
+
+A completed cost record can carry `tools`, the run's tool calls summed up without their content, so that the records on GitHub and the Factory Timeline show where a run spent its turns and time, and how often its calls failed. It is read from the run's transcript (Claude Code's session file, opencode's event stream) before the transcript is copied or thrown away, so it is written whether or not `FACTORY_TRANSCRIPT_DIR` is set. A `started` record has none.
+
+`tools` is a list with one entry per tool, sorted by `tool`:
+
+| Field | Meaning |
+|---|---|
+| `tool` | The tool's name as the runtime gives it (`Bash`, `Read`, `Edit`, `bash`). A name that is longer than 64 characters or holds anything but letters, digits, `_`, `-`, `.` and `:` is counted under `other`, together with a tool really named `other`. |
+| `calls` | How many times the run called it. |
+| `failed` | How many of those calls failed: Claude Code's `tool_result` with `is_error`, opencode's tool state `error`. Never above `calls`. |
+| `seconds` | The seconds the calls took: Claude Code's `tool_result` line `timestamp` minus its `tool_use` line's, opencode's `time.end` minus `time.start`. `null` when the runtime gave no times. |
+
+A call with no result counts as a call, not as failed, and adds no seconds. `[]` means the run made no tool call. `"tools": null` means the calls could not be read (or the record is older than contract 4.4); the run does not fail for it.
+
+The entries hold no command, no file content, no path and no argument of any call: only the tool's name and three numbers.
 
 ### The cost line
 

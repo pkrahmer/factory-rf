@@ -58,10 +58,12 @@ from factory.domain.agent_runs import (
     TokenCounts,
     resumed_result,
 )
+from factory.domain.cost_records import ToolUse
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoints
 from factory.domain.provider_limits import ProviderLimit, limit_in_text, named_wait
-from factory.domain.transcripts import Transcript
+from factory.domain.tool_uses import claude_tool_uses
+from factory.domain.transcripts import Transcript, transcript_lines
 
 # These names moved to the shared launch module; earlier callers still import them here.
 __all__ = [
@@ -405,6 +407,11 @@ class ClaudeCodeRuntime(AgentRuntime):
         for found in sorted(home.glob(f"{_SESSION_FOLDER}/*/{session}.jsonl")):
             return Transcript(extension="jsonl", content=found.read_bytes())
         return None
+
+    def tool_uses(self, transcript: Transcript) -> list[ToolUse] | None:
+        """The tool calls of `transcript`, summed up per tool; `None` when it cannot be read."""
+        lines = transcript_lines(transcript)
+        return None if lines is None else claude_tool_uses(lines)
 
     def version(self) -> str:
         """The version `claude --version` prints, such as `2.1.289`.

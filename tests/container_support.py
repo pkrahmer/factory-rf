@@ -20,6 +20,7 @@ from factory.application.stage import StageReport
 from factory.application.stage_environment import ContainerEnvironment
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
+from factory.domain.cost_records import ToolUse
 from factory.domain.git import ChangedPath, CommitId
 from factory.domain.settings import InstanceSettings
 from factory.domain.transcripts import Transcript
@@ -291,6 +292,11 @@ class WorkspaceRuntime(AgentRuntime):
     def read_transcript(self, home: Path, session: str) -> Transcript | None:
         """No transcript is kept."""
         del home, session
+        return None
+
+    def tool_uses(self, transcript: Transcript) -> list[ToolUse] | None:
+        """No reading of tool calls."""
+        del transcript
         return None
 
 
