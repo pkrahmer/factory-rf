@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T21:25:54.413769Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-04T21:25:54.413769Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T21:27:10.021323Z'
+  stage: review
+  run: 209f4111d5fe48e4ae69c4b8808ff2cc
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -105,8 +107,9 @@ S0006 sums up each run's tool calls in the cost record, with the seconds they to
 4. The counts are unchanged for a transcript without replay lines: S0006's existing rows still pass as written.
 5. Two `assistant` lines with the same `tool_use` id, the first with a timestamp and the second with a different one or `null`, give `seconds` from the first line's timestamp. Rows: second line later, second line `null`.
 6. A `tool_result` that appears also on a line of another type (`api-request-blob`, `attachment`), with a timestamp that differs from the `user` line's, does not change `seconds`. Rows: the blob line before the `user` line, and after it.
-7. `make check` stays green.
-8. docs: `docs/operator-guide.md`, *The tool calls on the cost records*: the `seconds` row says the times come from the `assistant` line of the call and the `user` line of its result, and that other lines of the session file are not read. `docs/decisions.md`: none (the rule refines S0006's entry). `README.md` and the project guide: none.
+7. Two `user` lines with a `tool_result` for the same `tool_use_id`, the first with a timestamp and the second with a different one or `null`, give `seconds` from the first `user` line's timestamp; and when only the second one has `is_error`, the call is not failed. Rows: second line later, second line `null`, second line failed.
+8. `make check` stays green.
+9. docs: `docs/operator-guide.md`, *The tool calls on the cost records*: the `seconds` row says the times come from the `assistant` line of the call and the `user` line of its result, and that other lines of the session file are not read. `docs/decisions.md`: none (the rule refines S0006's entry). `README.md` and the project guide: none.
 
 ## Smoke test
 
@@ -193,3 +196,18 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
 11. factory: started review as vm.
+12. reviewer: Review of round 0. In scope: `src/factory/domain/tool_uses.py` and the new `tests/domain/test_tool_uses_replayed_lines.py`. I read both against the Interface and criteria 1 to 6. The code takes a `tool_use` only from an `assistant` line and a `tool_result` only from a `user` line, and keeps the first of two copies of an id through `setdefault`. Each criterion's rows test what its name says. The factory's `make check` after the coder was green (journal 10).
+
+    Findings:
+    1. criterion 7 added: it needs its test. Location: `src/factory/domain/tool_uses.py:45-47` (`results.setdefault(...)`). The Interface says "when the same id appears on two lines of the right type, the first one's time stays". The diff applies that rule to `tool_result` items on two `user` lines as well, which changes S0006's behaviour from last-wins to first-wins, but criterion 5 only covers `assistant` lines. The new criterion 7: two `user` lines with a `tool_result` for the same `tool_use_id` give `seconds` from the first one's timestamp, and an `is_error` on the second one only does not mark the call failed. Rows: second line later, second line `null`, second line failed. Fix: the tester adds one parametrized test with these rows to `tests/domain/test_tool_uses_replayed_lines.py`. No change under `src/` is needed. The closing criteria are renumbered to 8 (`make check`) and 9 (docs).
+
+    Checked, no finding:
+    - Architecture: the change stays in `factory.domain`, with no I/O and no new import.
+    - Security: no marker, no secret, no command built from strings.
+    - Quality: `line_type` is a clear name, and the function's docstring states the new rule. The test module's `_line`, `_use` and `_result` look like `tool_use_support._claude_line`, but they are not copies. They write `"timestamp": null` explicitly and can leave out `type`, both of which criteria 1 and 2 need, and the shared helper does neither.
+    - `make duplicates` (run by me as a record) reports 4 new findings, all in `claude_runtime`/`opencode_runtime` and `cost_records.py`, outside this diff.
+    - Work item hygiene: the Description matches what was built, journal 10 names the main choice and the alternatives rejected, and the docs criterion (now 9) still fits.
+
+    Not reported, by judgment: the Interface also names a line with no `type` for results, and criteria 3 and 6 have no such row. The code handles it (`line_type == "user"`), and the failing side of the rule is tested through the `api-request-blob` and `attachment` rows.
+
+    Earlier tests: none changed. The diff only adds `tests/domain/test_tool_uses_replayed_lines.py` (status `A`).
