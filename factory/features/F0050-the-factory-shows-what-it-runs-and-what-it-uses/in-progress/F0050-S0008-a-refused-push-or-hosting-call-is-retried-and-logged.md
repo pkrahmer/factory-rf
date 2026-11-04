@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T13:08:20.561295Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   at: '2026-11-04T13:08:13.789404Z'
   stage: tests
   run: 3edf4a6e31d44bd3a6fa3314b18ab66c
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:08:20.561295Z'
+  stage: doing
 ---
 
 # A refused push or hosting call is retried and logged
@@ -491,3 +500,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     - No files were created, and every module was imported.
 
     `lint`: lint: green (0.2 s)
+27. factory: started doing as vm.
