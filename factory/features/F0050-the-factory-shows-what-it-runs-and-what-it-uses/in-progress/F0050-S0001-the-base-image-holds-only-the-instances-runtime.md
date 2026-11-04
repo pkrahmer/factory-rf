@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T09:13:32.801011Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T09:13:28.756325Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T09:13:32.801011Z'
   stage: doing
 ---
 
@@ -215,3 +224,4 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     Leave for the tester: in `tests/test_stage_image.py`, exactly those two rows' lambdas (lines 663 and 982 as the coder names them) become such named factories; every test keeps its name, its rows, their ids and what they check. Nothing else in that module. End with `tests` as you propose.
 
     Your choice to copy only the resolved executable is accepted; the human's build checks that each runtime runs from that one file.
+12. factory: started doing as vm.
