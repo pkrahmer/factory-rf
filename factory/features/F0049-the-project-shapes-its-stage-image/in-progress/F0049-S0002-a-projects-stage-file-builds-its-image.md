@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T01:06:37.133157Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -198,6 +202,11 @@ journal:
   at: '2026-11-04T01:06:30.994631Z'
   stage: doing
   run: d52fb857564b4deea6435e2f3771cbb0
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:06:37.133157Z'
+  stage: review
 ---
 
 # A project's stage file builds the image its stages run in
@@ -596,3 +605,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
 
     `check`: check: green
     `duplicates`: duplicates: 1 new, 42 known, 0 gone
+35. factory: started review as vm.
