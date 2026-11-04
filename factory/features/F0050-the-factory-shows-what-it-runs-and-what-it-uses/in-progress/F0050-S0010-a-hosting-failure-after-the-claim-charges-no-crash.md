@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T21:56:50.192301Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T21:56:50.185730Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:56:50.192301Z'
+  stage: intake
+---
+
 # A hosting failure after the claim charges no crash
 
 <!-- proposed by feature acceptance of 2026-11-04; refine before starting -->
@@ -34,3 +61,6 @@ uv run pytest tests/application -k "hosting_failure" 2>&1 | tail -1
 Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`.
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
