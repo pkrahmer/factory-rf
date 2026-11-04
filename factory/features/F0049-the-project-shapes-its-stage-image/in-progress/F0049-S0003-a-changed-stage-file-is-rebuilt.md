@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T01:46:24.743217Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-04T01:46:19.213174Z'
   stage: doing
   run: 3ea6b28b6be4433c919199598b7630b7
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:46:24.743217Z'
+  stage: review
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -281,3 +290,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
 
     `check`: check: green
     `duplicates`: duplicates: 1 new, 42 known, 0 gone
+18. factory: started review as vm.
