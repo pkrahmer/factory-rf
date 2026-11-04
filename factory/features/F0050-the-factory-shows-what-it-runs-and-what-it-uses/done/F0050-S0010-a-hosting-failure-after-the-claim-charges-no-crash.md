@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -197,6 +197,11 @@ journal:
   at: '2026-11-04T22:51:55.980483Z'
   stage: smoke-test
   run: e7ba6b983899439f8bcdb1b57890ef56
+- number: 35
+  speaker: factory
+  kind: done
+  at: '2026-11-04T22:57:52.566550Z'
+  stage: approval
 ---
 
 # A hosting failure after the claim charges no crash
@@ -493,3 +498,4 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
     Against the acceptance criteria: the selection covers S0008's test without its mark (criterion 5) and the new tests in `tests/application/test_hosting_failure_releases_claim.py`, and they all pass. Nothing in the output contradicts any criterion. The smoke test does not exercise criteria 1–4 and 6–7 directly, the docs criterion 9, or `make check` (criterion 8, which the factory runs as a gate).
 
     Findings: none.
+35. factory: done (pull request merged); cost: 15 runs, 18.6 min, 128 turns, 370057 tokens in (3266744 more from cache), 53261 out, $4.33
