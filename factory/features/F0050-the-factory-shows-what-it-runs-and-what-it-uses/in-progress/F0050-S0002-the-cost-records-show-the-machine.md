@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T11:41:20.851486Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -157,6 +161,11 @@ journal:
   at: '2026-11-04T11:41:14.548713Z'
   stage: tests
   run: f5d61c1d9e8a47d0870a234b2f765b8f
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-04T11:41:20.851486Z'
+  stage: doing
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -424,3 +433,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     Open for the coder: the refactor step, a final `make check`, and `make duplicates`.
 
     `lint`: lint: green (0.1 s)
+28. factory: started doing as vm.
