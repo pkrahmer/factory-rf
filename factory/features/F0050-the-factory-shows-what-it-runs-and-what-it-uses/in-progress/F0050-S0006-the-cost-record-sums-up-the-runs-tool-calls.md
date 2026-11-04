@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T18:50:03.234352Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-04T18:50:03.234352Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-04T18:50:27.794136Z'
+  stage: intake
+  run: df77186843ba4249801a724a5abc9cae
 ---
 
 # The cost record sums up the run's tool calls
@@ -53,6 +55,7 @@ The transcripts of S0005 stay inside the site, so an evaluation from a distance 
 - A new model `ToolUse` in `factory.domain.cost_records`, frozen, unknown keys refused: `tool` (the tool's name as the runtime gives it, for example `Bash`, `Read`, `Edit`, `bash`; at most 64 characters of letters, digits, `_`, `-`, `.` and `:`), `calls` (`NonNegativeInt`), `failed` (`NonNegativeInt`, at most `calls`), `seconds` (a non-negative finite float, or `None` when the runtime gives no times).
 - `CostRecord` gets `tools: list[ToolUse] | None = None`, sorted by `tool`, one entry per tool; `None` on a `started` record and when the run's tool calls cannot be read; `[]` for a run with no tool call. The records contract's version follows its rule.
 - Each runtime's wrapper reads the calls from what it already has: Claude Code's session transcript (`tool_use` and its `tool_result` with `is_error`), opencode's stream events. A tool's name that breaks the form above is counted under `other`. The coder decides the reading; nothing of a call's input or output leaves the wrapper.
+- Pure functions in a new `factory.domain.tool_uses`: `claude_tool_uses(lines: list[str]) -> list[ToolUse] | None` and `opencode_tool_uses(lines: list[str]) -> list[ToolUse] | None`, each `None` when the lines cannot be read, `[]` for no call; they do the counting, the `other` rule and the sorting. Each runtime wrapper gains `tool_uses(transcript: Transcript) -> list[ToolUse] | None` (an abstract operation of `AgentRuntime`, implemented by the fake too). The stage reads the transcript with `read_transcript` (S0005) whether or not `FACTORY_TRANSCRIPT_DIR` is set, passes it to `tool_uses`, and hands the result to `CostRecorder.complete(..., tools=...)`; it keeps the file only when a store is set. A call with no `tool_result` is a call, not failed, with no seconds. The contract moves to 4.4.
 
 ## Acceptance criteria
 
@@ -61,8 +64,16 @@ The transcripts of S0005 stay inside the site, so an evaluation from a distance 
 3. A tool name with a space, a slash, or more than 64 characters is counted under `other`.
 4. A record's `tools` holds no text of any call's input or output: rows where a call's input holds a path, a command and a string shaped like a key, none of which appears in the record's JSON.
 5. A transcript or stream that cannot be read leaves `tools` as `None` and does not fail the run.
-6. `make check` stays green.
-7. docs: `docs/operator-guide.md`: in the section on cost records, `tools` and its fields, and that it holds no content. `docs/decisions.md`: one entry with feature decision 6's second half. `README.md` and the project guide: none.
+6. `seconds` comes from the transcript: Claude Code's `tool_result` line `timestamp` minus its `tool_use` line's; opencode's tool part `time.start` and `time.end`. Rows per runtime: a transcript with times gives a float, one without gives `None`.
+7. `ToolUse.seconds` refuses `-1`, NaN and infinity and accepts `0`.
+8. `tools` is sorted by `tool`: a row whose tools first appear out of alphabetical order.
+9. A `started` record with `tools` is refused.
+10. A name of 64 characters is kept and one of 65 is counted under `other`; names with `_`, `-`, `.` and `:` are kept. Two bad names give one `other` entry with calls, failed calls and seconds summed; a tool really named `other` merges with them.
+11. `ToolUse` refuses a `tool` that breaks the form; only the reading turns such a name into `other`.
+12. A tool used three times, one failed, gives one entry with `calls` 3 and `failed` 1.
+13. A call with no `tool_result` counts as a call, not failed, and adds no seconds.
+14. `make check` stays green.
+15. docs: `docs/operator-guide.md`: in the section on cost records, `tools` and its fields, and that it holds no content. `docs/decisions.md`: one entry with feature decision 6's second half. `README.md` and the project guide: none.
 
 ## Smoke test
 
@@ -104,3 +115,9 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
    Leave for the tester: the pin of `AgentRuntime`'s operations in `tests/application/test_interfaces.py` gains `tool_uses`, and every `AgentRuntime` stand-in of an earlier test gets a `tool_uses` that returns `None`, named in its entry; nothing else in those modules. The contract moves to 4.4 with a criterion, and the `"4.3"` pins of the three contract tests become `"4.4"` under the same leave.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: concrete. `ToolUse` and `CostRecord.tools` in `factory.domain.cost_records`. Pure `claude_tool_uses` and `opencode_tool_uses` in `factory.domain.tool_uses`, with signatures. `tool_uses(transcript)` is a new abstract operation of `AgentRuntime`. The stage reads the transcript and passes `tools=` to `CostRecorder.complete`. I wrote the human's seams from journal entry 4 into the Interface.
+   - Criteria: the human's answers (journal 4, items 1–8) are now written into the story as criteria 6–13, before the two closing ones. They cover the sources of `seconds` (float and `None`, per runtime), the `seconds` limits (-1, NaN, inf refused, 0 accepted), sorting, a `started` record with `tools` refused, the 64/65 limit with `_ - . :` and the merge into `other`, `ToolUse` refusing a bad name, summing repeated calls, and a call with no result. Each is testable by one parametrized test. The failing side of each rule has a row. The original criteria 1–5 are unchanged.
+   - Smoke test: runnable. It passes no `-q`, because `addopts` already sets one. Each `Expect:` line is checkable.
+   - Architecture: pure parsing sits in domain, the wrappers in adapters, and the abstract operation in application. This fits the four layers and the rule that wrappers are the only code to read tool output. Nothing leaves the wrapper that holds call content.
+   - Scope: within the feature's S0006 line. It adds no transcript on GitHub. The leaves for the tester (the interface pin in `tests/application/test_interfaces.py`, the stand-ins' `tool_uses` returning `None`, the contract pins `"4.3"` to `"4.4"`) are in journal 4 and are not in the story file, so the tester must take them from there.
