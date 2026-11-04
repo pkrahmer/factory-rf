@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-04T03:15:48.063198Z'
   stage: smoke-test
   run: 6c7fc874a6d842f7927f496a6769a000
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-04T03:17:43.432293Z'
+  stage: approval
 ---
 
 # The stops table and the test helper index follow the stage image
@@ -206,3 +211,4 @@ Expect: `0`, then `listed`, then `listed`, then `documents ok`.
     - Criterion 4 (docs): the only documents in the diff are the two the criterion names. `README.md` and `docs/decisions.md` are untouched, as it says.
 
     Open: none.
+14. factory: done (pull request merged); cost: 6 runs, 3.3 min, 28 turns, 98293 tokens in (393680 more from cache), 7482 out, $0.82
