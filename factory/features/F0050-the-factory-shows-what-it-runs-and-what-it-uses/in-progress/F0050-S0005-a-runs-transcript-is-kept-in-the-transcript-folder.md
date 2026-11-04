@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T18:26:30.541634Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-11-04T18:26:30.541634Z'
   stage: tests
+- number: 30
+  speaker: tester
+  kind: result
+  at: '2026-11-04T18:27:57.557861Z'
+  stage: tests
+  run: 6c31385904f443729b7812f1100bce74
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -544,3 +546,28 @@ Expect: the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: no
 
     Noticed, not touched: nothing new.
 29. factory: started tests as vm.
+30. tester: Round 1, the test changes the coder's entry 28 names (reviewer findings 1 and 3 to 8 of journal 26). Each test checks what it checked before. All of the changed test files are this story's tester's files, so no other story's test was touched.
+
+    Changes:
+    - `tests/adapters/test_claude_runtime_transcript.py` (findings 1, 4, 5): the found and missing cases are now rows of one parametrized test, `test_a_session_is_read_from_its_project_folder_and_nothing_else_is`.
+      - The found row also asserts `transcript.extension == "jsonl"`.
+      - Three new refused rows (`parent-folder` `../<session>`, `glob-character` `*`, `path-separator` `a/b`) each expect `None`. Each one is set up so that an unchecked glob would match a real file: `projects/<session>.jsonl` and `projects/-work-checkout/a/b.jsonl` both exist.
+    - `tests/adapters/test_opencode_runtime_transcript.py` (findings 3, 6): one parametrized test, `test_a_session_transcript_is_the_event_stream_of_its_last_run`, with these rows:
+      - `its-run`
+      - `never-seen` → `None`
+      - `resumed-within-the-run`: the stand-in's `over_budget()` step, then `RESUME_REPLY`. The transcript holds the first call's events and the resume's.
+      - `second-run`: two runs of the same session. The second run's transcript holds only its own events.
+      - I added no row that asks for the first session after a run of another session: no criterion states that behaviour.
+    - `_sha256` (finding 7): moved from both `tests/application/test_stage_transcripts.py` and `tests/application/test_transcript_keeper.py` into the new `tests/transcript_support.py` as `sha256_of`, and both files now use it from there.
+    - `tests/application/test_stage_transcripts.py` (finding 8): `test_a_later_run_of_an_earlier_session_names_its_own_file` and `test_a_later_run_whose_copy_fails_names_no_earlier_file` are folded into one parametrized test, `test_a_later_run_of_an_earlier_session_names_its_own_file_or_none`, with rows `kept` (LATER) and `not-kept` (None).
+
+    Criterion mapping for the changed tests:
+    - criterion 2, Claude Code row, and the session check: tests/adapters/test_claude_runtime_transcript.py::test_a_session_is_read_from_its_project_folder_and_nothing_else_is
+    - criterion 2/3, opencode row: tests/adapters/test_opencode_runtime_transcript.py::test_a_session_transcript_is_the_event_stream_of_its_last_run
+    - criterion 3, a later run of an earlier session: tests/application/test_stage_transcripts.py::test_a_later_run_of_an_earlier_session_names_its_own_file_or_none
+
+    Files created: tests/transcript_support.py. Files changed: the four test files above.
+
+    One run of `uv run pytest -q` on the five files: every test passes (21), because the coder's round-1 code is already in place. No module failed to import. `make lint`: green. I skipped the type check, as this stage says to.
+
+    `lint`: lint: green (0.2 s)

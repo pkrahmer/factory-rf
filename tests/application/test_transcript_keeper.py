@@ -1,7 +1,6 @@
 """The keeper of transcripts: each run's transcript compressed under its run id, or a log line."""
 
 import gzip
-import hashlib
 from pathlib import Path
 
 import pytest
@@ -10,6 +9,7 @@ from factory.adapters.transcript_files import FileTranscriptStore
 from factory.application.transcripts import TranscriptKeeper
 from factory.domain.transcripts import Transcript
 from recording_log import RecordingLog
+from transcript_support import sha256_of
 
 WORK_ITEM = "F0001-S0001"
 RUN = "a" * 32
@@ -19,10 +19,6 @@ LATER_RUN = "c" * 32
 @pytest.fixture
 def log() -> RecordingLog:
     return RecordingLog()
-
-
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def test_a_kept_transcript_is_a_gzip_file_under_its_run_id_that_its_ref_names(
@@ -36,7 +32,7 @@ def test_a_kept_transcript_is_a_gzip_file_under_its_run_id_that_its_ref_names(
     assert ref.path == f"{WORK_ITEM}/{RUN}.jsonl.gz"
     written = tmp_path / ref.path
     assert gzip.decompress(written.read_bytes()) == transcript.content
-    assert ref.sha256 == _sha256(written)
+    assert ref.sha256 == sha256_of(written)
     assert [path.name for path in tmp_path.rglob("*") if path.is_file()] == [f"{RUN}.jsonl.gz"]
     assert log.lines == []
 
@@ -62,8 +58,8 @@ def test_a_run_kept_again_replaces_its_file_and_a_later_run_keeps_its_own(
         f"{LATER_RUN}.jsonl.gz",
     ]
     assert gzip.decompress((tmp_path / resumed.path).read_bytes()) == b"after the resume\n"
-    assert resumed.sha256 == _sha256(tmp_path / resumed.path)
-    assert later.sha256 == _sha256(tmp_path / later.path)
+    assert resumed.sha256 == sha256_of(tmp_path / resumed.path)
+    assert later.sha256 == sha256_of(tmp_path / later.path)
 
 
 def test_a_folder_that_cannot_be_written_logs_the_line_and_keeps_nothing(

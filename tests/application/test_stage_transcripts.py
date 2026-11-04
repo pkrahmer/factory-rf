@@ -1,7 +1,6 @@
 """A stage keeps its run's transcript in the transcript folder, or writes a line and goes on."""
 
 import gzip
-import hashlib
 from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
@@ -20,6 +19,7 @@ from factory.domain.provider_limits import ProviderLimit
 from factory.domain.transcripts import Transcript
 from human_clone import HumanClone
 from stage_run_support import PATH, WORK_ITEM, branch_head, open_story, run_stage
+from transcript_support import sha256_of
 
 SESSION = "ses_a"
 SECONDS = timedelta(seconds=5)
@@ -70,10 +70,6 @@ def _log_text(boundaries: Boundaries) -> str:
 
 def _files(folder: Path) -> list[Path]:
     return sorted(path for path in folder.rglob("*") if path.is_file()) if folder.exists() else []
-
-
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _limited_settings(boundaries: Boundaries, agent_home: Path) -> Boundaries:
@@ -132,7 +128,7 @@ def test_a_completed_run_leaves_its_transcript_that_its_record_names(
     assert gzip.decompress(written.read_bytes()) == FIRST.content
     assert record.transcript is not None
     assert record.transcript.path == expected
-    assert record.transcript.sha256 == _sha256(written)
+    assert record.transcript.sha256 == sha256_of(written)
 
 
 def test_a_run_resumed_within_itself_keeps_one_file_with_the_content_after_the_resume(
@@ -156,36 +152,7 @@ def test_a_run_resumed_within_itself_keeps_one_file_with_the_content_after_the_r
     assert _files(folder) == [written]
     assert gzip.decompress(written.read_bytes()) == SECOND.content
     assert record.transcript is not None
-    assert record.transcript.sha256 == _sha256(written)
-
-
-def test_a_later_run_of_an_earlier_session_names_its_own_file(
-    transcribed: Boundaries,
-    *,
-    folder: Path,
-    human: HumanClone,
-    agent_home: Path,
-    agent_runtime: FakeAgentRuntime,
-    remote: Path,
-    clock: ManualClock,
-) -> None:
-    open_story(transcribed, human, agent_home)
-    limited = _limited_settings(replace(transcribed, waiter=ManualWaiter(clock)), agent_home)
-    agent_runtime.queue(ScriptedRun(result=LIMITED, transcript=FIRST))
-    agent_runtime.queue(ScriptedRun(result=LIMITED, transcript=FIRST))
-    assert run_stage(limited).stall is not None
-    agent_runtime.queue(ScriptedRun(result=COMPLETED, transcript=LATER))
-
-    run_stage(limited)
-
-    earlier, later = _records(transcribed, remote)[-2:]
-    assert earlier.run != later.run
-    assert earlier.transcript is not None
-    assert later.transcript is not None
-    assert later.transcript.path == f"{WORK_ITEM}/{later.run}.jsonl.gz"
-    assert gzip.decompress((folder / later.transcript.path).read_bytes()) == LATER.content
-    assert later.transcript.sha256 == _sha256(folder / later.transcript.path)
-    assert earlier.transcript.sha256 == _sha256(folder / earlier.transcript.path)
+    assert record.transcript.sha256 == sha256_of(written)
 
 
 @pytest.mark.parametrize(
@@ -223,9 +190,18 @@ def test_a_transcript_not_kept_writes_its_line_and_leaves_the_run_unchanged(
     assert f"{NOT_KEPT}{record.run}: " in _log_text(transcribed)
 
 
-def test_a_later_run_whose_copy_fails_names_no_earlier_file(
+@pytest.mark.parametrize(
+    "later_transcript",
+    [
+        pytest.param(LATER, id="kept"),
+        pytest.param(None, id="not-kept"),
+    ],
+)
+def test_a_later_run_of_an_earlier_session_names_its_own_file_or_none(
     transcribed: Boundaries,
     *,
+    later_transcript: Transcript | None,
+    folder: Path,
     human: HumanClone,
     agent_home: Path,
     agent_runtime: FakeAgentRuntime,
@@ -237,14 +213,23 @@ def test_a_later_run_whose_copy_fails_names_no_earlier_file(
     agent_runtime.queue(ScriptedRun(result=LIMITED, transcript=FIRST))
     agent_runtime.queue(ScriptedRun(result=LIMITED, transcript=FIRST))
     assert run_stage(limited).stall is not None
-    agent_runtime.queue(ScriptedRun(result=COMPLETED, transcript=None))
+    agent_runtime.queue(ScriptedRun(result=COMPLETED, transcript=later_transcript))
 
     run_stage(limited)
 
     earlier, later = _records(transcribed, remote)[-2:]
+    assert earlier.run != later.run
     assert earlier.transcript is not None
-    assert later.transcript is None
-    assert f"{NOT_KEPT}{later.run}: " in _log_text(transcribed)
+    assert earlier.transcript.sha256 == sha256_of(folder / earlier.transcript.path)
+    if later_transcript is None:
+        assert later.transcript is None
+        assert f"{NOT_KEPT}{later.run}: " in _log_text(transcribed)
+    else:
+        assert later.transcript is not None
+        assert later.transcript.path == f"{WORK_ITEM}/{later.run}.jsonl.gz"
+        written = folder / later.transcript.path
+        assert gzip.decompress(written.read_bytes()) == later_transcript.content
+        assert later.transcript.sha256 == sha256_of(written)
 
 
 def test_no_container_and_no_prompt_names_the_transcript_folder(
