@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 548
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T21:39:02.398880Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-04T21:38:56.801994Z'
   stage: intake
   run: 1d92dce72c6345c9b8d3e2d4c08c9d9b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:39:02.398880Z'
+  stage: tests
 ---
 
 # A push's reason keeps the server's words
@@ -86,3 +95,4 @@ Expect: a line that ends in `passed` with no `failed`.
    - Smoke test: both commands are runnable. pyproject's `addopts` already has `-q`, and the pytest command passes none. The Expects are checkable (an exact string, and a trailing `passed` with no `failed`).
    - Architecture: the change is in the domain layer, a pure function with no I/O. `push_is_retried` stays untouched.
    - Scope: it fits F0050's S0008 follow-up (S0011 is listed in feature.md, from A0001). It is not in the Out of scope list. Retry rules and limits do not change.
+4. factory: started tests as vm.
