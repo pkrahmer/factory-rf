@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T00:43:29.541919Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -146,6 +142,12 @@ journal:
   kind: started
   at: '2026-11-04T00:43:29.541919Z'
   stage: review
+- number: 25
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T00:47:16.032608Z'
+  stage: review
+  run: 2cd6dc3f306c44d4bb24fafa38b4cc34
 ---
 
 # A project's stage file builds the image its stages run in
@@ -166,8 +168,8 @@ Every container of an instance (the sync, the agent, the checks) runs in the sta
   - `build(layer: StageLayer, base: str, tag: str, time_limit: timedelta) -> ImageBuild`: builds `layer.text` with `--build-arg FACTORY_BASE=<base>`, `--network=host` and with an empty context directory, tags it `tag`, and removes images left without a tag after it. `ImageBuild` holds `passed`, `duration` and `output_tail` (the build's last 20 lines).
   - `path(image: str) -> str`: the `PATH` the image's configuration sets (podman's `image inspect`), or the base's default `/usr/local/bin:/usr/bin:/bin` when it sets none.
   - The build's time limit is 30 minutes, one constant.
-- The project image is named in one place of the wiring: the image every container run takes, and the identity the preflight and the check reuse take. The sync environment's and the agent environment's `PATH` are built from `path(<the image in use>)` (the agent's with its scripts folder first), in place of the fixed `/usr/local/bin:/usr/bin:/bin`. Rows of earlier tests that pin that `PATH` change under the feature's leave.
-- A new `RepositoryStopReason`, `stage_image_failed`, whose detail is the rule's reason or `the stage file did not build in <s> s:` followed by `output_tail`. While it stands no stage starts; `factory-health` and `factory-watch` show it as they show the other stops. It ends with the next start of `factory-run` (and, after S0003, with a new `main`).
+- The project image is named in one place of the wiring: the image every container run takes, and the identity the preflight and the check reuse take. The sync environment's, the check environment's and the agent environment's `PATH` are built from `path(<the image in use>)` (the agent's with its scripts folder first), in place of the fixed `/usr/local/bin:/usr/bin:/bin`. Rows of earlier tests that pin that `PATH` change under the feature's leave.
+- A new `RepositoryStopReason`, `stage_image_failed`, whose detail is the rule's reason or `the stage file did not build in <s> s:` followed by `output_tail`. While it stands no stage starts; `factory-health` shows it as it shows the other stops (`factory-watch` shows no stop of any reason, and that stays so). It ends with the next start of `factory-run` (and, after S0003, with a new `main`).
 
 ## Acceptance criteria
 
@@ -175,7 +177,7 @@ Every container of an instance (the sync, the agent, the checks) runs in the sta
 2. Two files that differ in one byte have different digests, and the same file has the same digest and identity at every call; the identity is `<base identity>+<12 hex digits>`.
 3. A start whose `origin/main` holds no stage file builds nothing, and every container run takes the base image with the base's identity, exactly as before this story.
 4. A start whose `origin/main` holds a valid stage file builds it once, with the base image as `FACTORY_BASE` and the tag `<FACTORY_STAGE_IMAGE>-project`, before the preflight runs; every following container run (sync, agent, check) takes the project image, and the preflight's stamps and the check reuse take the layer's identity.
-5. The containers' `PATH` is the image's: a fake image whose `PATH` is `/opt/jdk/bin:/usr/local/bin:/usr/bin:/bin` gives the sync environment that `PATH` and the agent environment its scripts folder followed by it; an image that sets none gives `/usr/local/bin:/usr/bin:/bin`.
+5. The containers' `PATH` is the image's: a fake image whose `PATH` is `/opt/jdk/bin:/usr/local/bin:/usr/bin:/bin` gives the sync environment and the check environment that `PATH` and the agent environment its scripts folder followed by it; an image that sets none gives `/usr/local/bin:/usr/bin:/bin`.
 6. A stage file that breaks the rule, and one whose build fails or reaches its time limit, each stand as the stop `stage_image_failed` with its detail as the Interface states, and no stage starts while it stands; the base image is not used in its place.
 7. The podman adapter's build passes `--build-arg FACTORY_BASE=<base>`, `--network=host`, `-t <tag>` and an empty context directory, and after a build runs the removal of untagged images; its `path` reads the image's configured `PATH`. Tested through the argument lists and a stand-in for `podman`, without a real container.
 8. The podman adapter's `output_tail`: a build that prints 25 lines gives the last 20 lines in order; one that prints 5 lines gives all 5.
@@ -183,9 +185,10 @@ Every container of an instance (the sync, the agent, the checks) runs in the sta
 10. The podman adapter's `path`: inspect output with a `PATH` gives that `PATH`; inspect output without one gives `/usr/local/bin:/usr/bin:/bin`.
 11. After a `stage_image_failed` stop, the next start of `factory-run` with a valid stage file, and one with no stage file, each holds no such stop.
 12. `factory-health` shows `stage_image_failed` as a stop: a row `stage_image_failed` in `test_every_stop_reason_makes_the_check_fail_until_it_is_cleared` (`tests/entry/test_health.py`).
-13. `factory-watch` shows `stage_image_failed` as a stop: a test of its own in `tests/entry/test_watch.py`, since no existing watch test renders every stop reason generically.
-14. `make check` stays green.
-15. docs: `docs/operator-guide.md`: a section *The project's stage file*: what `factory/stage.Containerfile` is, its rule, an example that adds `build-essential` and `cmake`, that only `main` counts, that the build has the network and no files of the repository so the project pins its own versions and checksums, where the project image and its identity show, and the stop `stage_image_failed` and what to do about it. The project guide: `stage-environment.md` names the images interface, its fake and the one place where the image in use is chosen. `docs/decisions.md`: one entry with feature decisions 1, 3 and 4 and their reasons. `README.md`: one sentence that a project can add tools to its stage image with that file.
+13. The podman adapter's `path` raises `ContainerError` when `image inspect` exits non-zero and when it prints no JSON; `build_boundaries` given images whose `path` raises gives the sync, the check and the agent `/usr/local/bin:/usr/bin:/bin`.
+14. The podman adapter in the `job` container profile puts the job's global podman options before `build`, `image prune -f` and `image inspect`; in the `rootless` profile it puts none.
+15. `make check` stays green.
+16. docs: `docs/operator-guide.md`: a section *The project's stage file*: what `factory/stage.Containerfile` is, its rule, an example that adds `build-essential` and `cmake`, that only `main` counts, that the build has the network and no files of the repository so the project pins its own versions and checksums, that the sync, the checks and the agent take the `PATH` the image sets (so a tool the layer puts on its `PATH` is found by `make check`), where the project image and its identity show, and the stop `stage_image_failed` and what to do about it. The project guide: `stage-environment.md` names the images interface, its fake and the one place where the image in use is chosen. `docs/decisions.md`: one entry with feature decisions 1, 3 and 4 and their reasons. `README.md`: one sentence that a project can add tools to its stage image with that file.
 
 ## Smoke test
 
@@ -415,3 +418,32 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 42 known, 0 gone
 24. factory: started review as vm.
+25. reviewer: Round 0 review. I read the diff of `src/` and `tests/` against the work item and ran `make duplicates`. Its one new finding is vulture's `unused class 'FakeImages'` (src/factory/adapters/fake_images.py:23). That is a false positive: the class is the test fake and is used only by tests. I did not run `make check`: entry 23 says it was green after the coder. The contract went from 4.0 to 4.1 for the added `stage_image_failed` value, which is the minor bump `docs/decisions.md` asks for.
+
+    Findings:
+    1. criterion 4, src/factory/entry/run.py:570-588 (`_ProjectImageStart._build_tick`). No test covers the success path through `run_instance`. `test_a_start_with_a_valid_stage_file_builds_it_once_and_takes_the_project_image` checks only what `project_image_settings` returns, so if `_build_tick` passed `inputs.settings` instead of `chosen` to `build_boundaries`/`build_tick`, no test would fail. Fix (tester): add a `run_instance` test with a valid stage file on `main` and `FakeImages`. It should check that the tick's container runs (recorded `podman run` calls) take `<FACTORY_STAGE_IMAGE>-project`, that the preflight's stamp is keyed by the layer's identity, and that the build comes before the preflight.
+    2. criterion 1 / Interface "at most 64 KiB of UTF-8", src/factory/domain/stage_layer.py:385. The rule treats any U+FFFD in the text as "not UTF-8", so a valid UTF-8 file that contains U+FFFD is refused with the wrong reason. It also measures the size after `show_file` has replaced each bad byte with three bytes. Fix (coder): decide UTF-8 validity and size on the file's bytes as they are read. For example, give the Git wrapper a strict read that reports undecodable bytes, and have `stage_layer` refuse on that, not on a character a valid file may hold.
+    3. src/factory/adapters/podman_runs.py:53 (`run_podman`). It copies `PodmanRuns._query` (same file, ~line 203): the same `run_or_raise` call with `functools.partial(ContainerError, ...)` and `accepted=None`; only `cwd` differs. Fix (coder): give `run_podman` a `cwd` parameter and have `_query` call it, so one helper stays.
+    4. tests/entry/test_wiring_project_image.py:33-52 (`_Build`, `_RecordingImages`). This is a second images fake that copies `BuildCall` and `FakeImages` from src/factory/adapters/fake_images.py, against the one fake the Interface names. Fix (tester): use `FakeImages(build_result=...)` and compare against `BuildCall`.
+    5. tests/entry/test_wiring_project_image.py:197-216 (`test_no_stage_starts_while_the_stage_image_stop_stands`). It builds the settings by hand (token file, state directory, `with_dataset`, `no-claude`) as a copy of the `instance_settings` fixture in tests/conftest.py:505. Fix (tester): take the `instance_settings` fixture.
+    6. tests/domain/test_stage_layer.py:43-66. The two sides of one rule, the 64 KiB limit included, are split over two test functions (`test_a_stage_file_within_the_rule_is_accepted` and `test_a_stage_file_that_breaks_the_rule_is_refused`). Fix (tester): make them rows of one parametrized test, where each row gives either the expected digest and identity or a refusal.
+    7. criterion 13 added: it needs its test. The podman `path` raises `ContainerError` when inspect fails or prints no JSON, and `build_boundaries` then falls back to `/usr/local/bin:/usr/bin:/bin` (src/factory/adapters/podman_images.py:156-161, src/factory/entry/wiring.py:742-746). Both behaviours are built and kept by entry 17, but untested.
+    8. criterion 14 added: it needs its test. `PodmanImages(..., profile="job")` puts `JOB_PODMAN_OPTIONS` before every podman call (src/factory/adapters/podman_images.py:115), and `build_images` passes the instance's profile; no test covers this.
+
+    description corrected: Interface "The sync environment's and the agent environment's `PATH`" -> "The sync environment's, the check environment's and the agent environment's `PATH`" (entry 17, item 4).
+    description corrected: Interface "`factory-health` and `factory-watch` show it as they show the other stops" -> "`factory-health` shows it as it shows the other stops (`factory-watch` shows no stop of any reason, and that stays so)" (entry 12, item 2).
+    description corrected: criterion 5 "gives the sync environment that `PATH`" -> "gives the sync environment and the check environment that `PATH`" (entry 17, item 4).
+    description corrected: criterion 13 (`factory-watch` shows the stop) -> removed (entry 12, item 2). The new criteria 13 and 14 take its place, and `make check` and `docs:` are now 15 and 16.
+    description corrected: docs criterion -> it now also asks that the operator guide say the sync, the checks and the agent take the image's `PATH` (entry 17, item 4).
+
+    Rejected as findings: `project_image_settings` and the start logic living in `factory.entry`, because the human chose that seam in entry 9, item 3. The time-limited build's detail holding podman's text rather than a tail, the inspect fallback, and `image=None`, because entry 17 keeps all three. `image prune -f` pruning every dangling image, because entry 9, item 2 names that command. The `Replacements` TypedDict in run.py, which is typed and documented.
+
+    Earlier tests:
+    - tests/conftest.py: the human's leave, entry 17, item 4 (the `on_the_manual_clock` stand-in only).
+    - tests/domain/test_contract.py: the human's leave, entry 17, item 3 (the 4.1 pin).
+    - tests/domain/test_contract_version_4.py: the human's leave, entry 17, item 3 (the pins and the module docstring's version).
+    - tests/domain/test_stop_table.py: the human's leave, entry 17, item 2 (the sixteenth row).
+    - tests/test_stop_table.py: the human's leave, entry 17, item 2 (the machine-scope tuple).
+    - tests/test_second_user_removed.py: the human's leave, entry 17, item 1 (`images` in the parameter row).
+    - tests/entry/test_health.py: the human's leave, entry 9, item 4 (the row and the machine-scope tuple).
+    - tests/entry/test_wiring_handlers.py: the story's Interface leave for rows that pin the `PATH` (the call gains the explicit `PATH` argument; the test checks the same thing).
