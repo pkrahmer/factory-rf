@@ -151,3 +151,24 @@ def test_a_replayed_tool_result_with_another_time_does_not_change_seconds(
     result = claude_tool_uses(lines) or []
 
     assert [(use.tool, use.seconds) for use in result] == [("Bash", 2.5)]
+
+
+@pytest.mark.parametrize(
+    ("second_time", "second_failed"),
+    [
+        pytest.param(LATER, False, id="second-line-later"),
+        pytest.param(None, False, id="second-line-null"),
+        pytest.param(LATER, True, id="second-line-failed"),
+    ],
+)
+def test_a_repeated_user_tool_result_keeps_the_first_line_s_time_and_outcome(
+    second_time: str | None, *, second_failed: bool
+) -> None:
+    lines = [
+        _prompt(),
+        _line("assistant", _use(), CALLED),
+        _line("user", _result(), ANSWERED),
+        _line("user", _result(failed=second_failed), second_time),
+    ]
+
+    assert claude_tool_uses(lines) == [ToolUse(tool="Bash", calls=1, failed=0, seconds=2.5)]

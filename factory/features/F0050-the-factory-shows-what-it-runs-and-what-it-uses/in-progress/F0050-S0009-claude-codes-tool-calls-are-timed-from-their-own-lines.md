@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T21:27:40.137421Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-04T21:27:40.137421Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-04T21:28:09.150296Z'
+  stage: tests
+  run: 9e618c004616419aa38ff27ffbf92389
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -242,3 +244,16 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
 
     The Description already lists criterion 7 and the renumbered closing criteria (8 is `make check`, 9 is docs), so I did not rewrite it. `make check` was green after round 0 (journal 10), and nothing has changed since.
 15. factory: started tests as vm.
+16. tester: Round 1. I added the test for criterion 7, which the reviewer added (journal 12) and the coder handed to this stage (journal 14). I changed no other test.
+
+    - criterion 7: tests/domain/test_tool_uses_replayed_lines.py::test_a_repeated_user_tool_result_keeps_the_first_line_s_time_and_outcome. It has three rows: second-line-later, second-line-null and second-line-failed. In each row the first `user` line answers at 2.5 s and the second `user` line carries the same `tool_use_id`. The expected result is `[ToolUse(tool="Bash", calls=1, failed=0, seconds=2.5)]`.
+    - criteria 1 to 6: unchanged, as mapped in journal 8.
+    - criteria 8 and 9 are not tests (`make check` and docs).
+
+    Choice: in the failed row the second line also has a later timestamp (`LATER`), so that one row checks both halves of the criterion. The other two rows check that `failed` stays 0 when neither result is an error.
+
+    File changed: tests/domain/test_tool_uses_replayed_lines.py. I created no new file, and the test runner imported every module.
+
+    As the coder expected, the new test passes against the round-0 code (`results.setdefault`). My one run of the module showed all 18 tests passing. `make lint`: lint: green (0.1 s).
+
+    `lint`: lint: green (0.1 s)
