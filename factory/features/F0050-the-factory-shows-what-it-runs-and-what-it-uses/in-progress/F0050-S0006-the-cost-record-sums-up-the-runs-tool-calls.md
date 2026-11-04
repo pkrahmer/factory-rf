@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913, 6640096367]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T19:32:09.496925Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-11-04T19:32:09.496925Z'
   stage: doing
+- number: 34
+  speaker: coder
+  kind: result
+  at: '2026-11-04T19:34:27.827323Z'
+  stage: doing
+  run: 3afb192a89504a3fb841485a4ca888b3
 ---
 
 # The cost record sums up the run's tool calls
@@ -536,3 +538,19 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     - `tests/application/test_stage_transcripts.py`: the standing leave to move a shared test helper (`_records` replaced by the shared `pushed_cost_records`, its unused imports removed; every test keeps its name and what it checks).
     - `tests/stage_run_support.py`: the standing leave to move a shared test helper (`pushed_cost_text` and `pushed_cost_records` added; nothing earlier changed).
 33. factory: started doing as vm.
+34. coder: Narrow round after the human's answer in entry 30: I fixed exactly finding 1 of entries 28 and 32, and nothing else. `make check` is green (test: green, 88.3 s). I changed no test.
+
+    What changed:
+    - `src/factory/domain/transcripts.py` (`transcript_lines`): it now splits the decoded text on `"\n"` only, not with `str.splitlines()`. Raw U+2028, U+2029 or U+0085 inside a JSON string no longer breaks a line into pieces that are not JSON. A one-line comment gives the reason.
+    - Blank pieces, such as the one after a trailing newline, are still skipped by `_objects` in `src/factory/domain/tool_uses.py`. `json.loads` accepts a trailing `\r`, so CRLF lines still read.
+    - Tried by hand: a Claude Code `tool_use` line written with `ensure_ascii=False`, whose input holds raw U+2028 and U+0085 and which ends in `\r\n`, gives `[ToolUse(tool='Read', calls=1, failed=0, seconds=None)]`.
+
+    Main choice: split on `"\n"`, as the reviewer proposed. I rejected keeping `splitlines` and skipping the lines that fail to parse. That would undercount without saying so, and it would go against entry 22's choice that one unreadable line makes the whole transcript `None`.
+
+    Test change for the tester (the reviewer's rows, ordered in entry 30): add one row to `tests/adapters/test_runtime_tool_uses.py::test_claude_code_sums_up_the_tool_calls_of_its_session_transcript` and one to `::test_opencode_sums_up_the_tool_calls_of_its_run_s_stream`. In each row a call's input or output holds raw U+2028 and U+0085 (lines written with `ensure_ascii=False`), and the call is still counted.
+
+    Refactor pass: the change is one line plus its comment, so there was nothing to refactor.
+
+    Noticed but not touched:
+    - `_events` in `src/factory/adapters/opencode_runtime.py:351` still uses `splitlines`. It skips bad lines, so it does not lose `tools`, and entry 30 limits this round to the one finding.
+    - The note on `_staged` in `tests/application/test_stage_tool_uses.py` stays a note (entry 30).

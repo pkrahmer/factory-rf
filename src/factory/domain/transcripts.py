@@ -15,6 +15,7 @@ class Transcript(BaseModel):
 def transcript_lines(transcript: Transcript) -> list[str] | None:
     """The transcript's lines as UTF-8 text; `None` when its bytes are not UTF-8."""
     try:
-        return transcript.content.decode("utf-8").splitlines()
+        # JSON writers leave U+2028, U+2029 and U+0085 raw in strings; splitlines breaks at them.
+        return transcript.content.decode("utf-8").split("\n")
     except UnicodeDecodeError:
         return None
