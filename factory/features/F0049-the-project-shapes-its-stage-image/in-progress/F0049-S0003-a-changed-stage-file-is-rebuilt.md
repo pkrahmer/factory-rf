@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T01:56:12.889204Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-04T01:56:12.889204Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-11-04T01:59:46.594571Z'
+  stage: doing
+  run: 8ac7b984594f496c93936476089b578c
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -452,3 +454,26 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
 
     `lint`: lint: green (0.1 s)
 28. factory: started doing as vm.
+29. coder: Round 1, after the tester's fix in entry 27. No code changed in this run. `make check` is green again: `check: green`, with coverage at 99.51 %. The three rows of `tests/test_shared_bodies.py` that failed in entry 25 pass, now that `log_lines` has its original body back.
+
+    Review findings, round 0:
+    - 1 to 3 (copied test helpers): the tester made these changes in entries 23 and 27, under the standing leave.
+    - 4: `src/factory/entry/run.py`, `_ProjectImageStart` docstring. It now says a rebuilt tick starts its error counts again at zero. Fixed in entry 21 and unchanged since.
+    - 5: criterion 9 still says "the four log lines". My edit to it was dropped, because the work item is outside the coder's write paths. The Interface and the smoke test name three lines, so the documenter should write three, or the human should correct the criterion.
+
+    What I built (since entry 10, unchanged):
+    - `src/factory/entry/run.py`: `_ProjectImageStart.prepare` → `_follow_main` / `_choose`.
+    - `src/factory/entry/wiring.py`: `StageImageReport`, `stage_image_report`, `stage_file_on_main`, and `project_image_settings(report=)`.
+
+    Main choice: I compare the stage file's text, not `StageLayer.digest`. The human confirmed this in entry 11. I rejected computing the digest separately, because a file that breaks the rule has no digest and would need its own case.
+
+    Refactor: I read the diff against `main` (`run.py`, `wiring.py`). It has not changed since my last read in entry 21, so nothing needed changing.
+
+    What the journal changed: only the tests (entries 11, 15, 23, 27). The Description is unchanged apart from the open criterion 9 wording above.
+
+    Noticed, not touched:
+    - `make duplicates` reports `FakeImages` as unused in `src/factory/adapters/fake_images.py`. This branch does not change that file.
+    - `Machine.log_lines` in `tests/application/test_tick_preflight.py` is a near-copy of `log_lines`. The tester noted it in entry 23.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 42 known, 0 gone
