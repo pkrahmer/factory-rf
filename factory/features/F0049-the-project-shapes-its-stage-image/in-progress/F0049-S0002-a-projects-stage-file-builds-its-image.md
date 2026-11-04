@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 527
-comments_read: [6618558222, 6618632675, 6618725845, 6619198883]
+comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
 claim: null
 journal:
@@ -160,6 +160,11 @@ journal:
   stage: doing
   run: 8467255f2391468d8614b8dd87ceff7b
   blocked: question
+- number: 28
+  speaker: human
+  kind: comment
+  at: '2026-11-04T00:55:24.223122Z'
+  stage: doing
 ---
 
 # A project's stage file builds the image its stages run in
@@ -475,3 +480,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     The reviewer's tester findings are still open for the tests stage: 1 (a `run_instance` test of the success path), 4 (use `FakeImages`/`BuildCall`), 5 (use the `instance_settings` fixture), 6 (accepted and refused as rows of one test), 7 (criterion 13) and 8 (criterion 14).
 
     Refactor step: I read my diff. It is the one helper change and needs nothing more. Description: unchanged by me. The reviewer already rewrote it in entry 25.
+28. 2026-11-04 human: (c): keep the U+FFFD check in stage_layer. A stage file that holds U+FFFD, or bytes that are not UTF-8 (which reach the factory as U+FFFD), is refused with one reason that names both; the 64 KiB limit is measured on the UTF-8 encoding of the text as read. The operator guide says so in one sentence. Git.show_file and the process wrapper stay unchanged, so no leave is needed. The reviewer's tester findings go to the tests stage as usual.
