@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T01:09:39.600673Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -218,6 +214,12 @@ journal:
   kind: started
   at: '2026-11-04T01:09:39.600673Z'
   stage: doing
+- number: 38
+  speaker: coder
+  kind: result
+  at: '2026-11-04T01:10:14.539515Z'
+  stage: doing
+  run: 11b245c29da949a0abdb900531348272
 ---
 
 # A project's stage file builds the image its stages run in
@@ -650,3 +652,16 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     - tests/entry/test_health.py: the human's leave, entry 9, item 4 (the row and the machine-scope tuple).
     - tests/entry/test_wiring_handlers.py: the Interface's leave for rows that pin the `PATH` (the call gains the explicit `PATH` argument; the test checks the same thing).
 37. factory: started doing as vm.
+38. coder: Round 2, after the reviewer's entry 36. I changed no files; the working tree is clean. Both findings are test changes for the tester, and the code they check is already built.
+
+    Changes for the tester:
+    1. Criterion 5, agent side: add a row or test that builds the tick on boundaries from `build_boundaries(..., images=FakeImages(paths={IMAGE: JDK_PATH}))`, runs one stage, and checks that the agent request's `PATH` is the interpreter's folder followed by `/opt/jdk/bin:/usr/local/bin:/usr/bin:/bin`. `tests/entry/test_wiring_image_path.py` builds that `PATH` itself today. The code it should reach: `build_tick` passes `production_environment(boundaries.image_path)` (src/factory/entry/wiring.py:657).
+    2. Criterion 6, rule row: in `tests/entry/test_wiring_project_image.py::test_a_stage_file_that_breaks_the_rule_stands_as_a_stop_and_builds_nothing`, swap `assert detail` for a comparison with `str()` of the `StageLayerRefused` that the rule raises. For the `rule` row that is `stage_layer("FROM debian:bookworm\n", BASE_IDENTITY)`; for the `not-utf-8` row it is the refusal for a text holding U+FFFD.
+
+    Main choice: I changed no code and sent the work item to the tester (R9). I rejected removing the `SYSTEM_PATH` defaults from `production_environment` and `agent_environment` so that a dropped argument would fail to type-check. That is a refactor the reviewer did not ask for, and it would change rows of earlier tests that call those functions without a path.
+
+    I did not run `make check` this run, since nothing changed since entry 34's green run. The factory runs it after the tests stage.
+
+    Noticed, not touched: the reviewer's notes in entry 36. `STAND_IN` in tests/adapters/test_podman_images.py copies `PODMAN_SCRIPT`/`PodmanPlan` from tests/podman_support. There is no row for inspect printing `null`. `SYSTEM_PATH` is defined again in that test. Entry 17's notes still stand as well: the timed-out build's detail is podman's no-end text, the inspect failure falls back to the default `PATH`, and `image=None` reuses no stamp.
+
+    Description: unchanged in this run. The reviewer already brought it up to date with entry 28.
