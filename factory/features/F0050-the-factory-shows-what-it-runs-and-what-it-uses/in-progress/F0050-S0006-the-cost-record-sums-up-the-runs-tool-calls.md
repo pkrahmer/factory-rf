@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T18:55:24.236964Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-04T18:55:16.018666Z'
   stage: tests
   run: f0c5a8cb6a6345dc91f4d6a99bd59523
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-04T18:55:24.236964Z'
+  stage: doing
 ---
 
 # The cost record sums up the run's tool calls
@@ -165,3 +174,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
    Modules and names the test run could not import: `factory.domain.cost_records.ToolUse` (the collection error above, which blocks every test through the conftest) and the module `factory.domain.tool_uses`.
 
    `lint`: lint: green (0.2 s)
+9. factory: started doing as vm.
