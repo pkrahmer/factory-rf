@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-11-04T21:33:48.012299Z'
   stage: smoke-test
   run: e924684cc0e44005b701edfe7a405605
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-11-04T21:37:44.711333Z'
+  stage: approval
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -383,3 +388,4 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
     - Criterion 9 (docs): the `seconds` row in `docs/operator-guide.md:2222` says the times come from the `assistant` line holding the `tool_use` and the `user` line holding the `tool_result`, and that other lines of the session file are not read. That matches the criterion.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 8.8 min, 64 turns, 218470 tokens in (1108634 more from cache), 22479 out, $2.12
