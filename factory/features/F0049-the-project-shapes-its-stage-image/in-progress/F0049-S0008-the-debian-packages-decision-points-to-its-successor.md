@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 536
 comments_read: [6621759488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T03:34:41.310019Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-04T03:34:35.484705Z'
   stage: review
   run: 14eb7e4447ce4f56872fc1b924ba5ac5
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:34:41.310019Z'
+  stage: docs
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -162,3 +171,4 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
       
       The journal gives the main choice (the documenter adds the line) and what was rejected (the coder adding it). Criterion 3 tells the documenter exactly what to write.
     - Item 6, earlier tests: the diff changes, renames or deletes no test file.
+13. factory: started docs as vm.
