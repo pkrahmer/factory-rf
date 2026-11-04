@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 532
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T02:59:42.816526Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-04T02:59:36.881409Z'
   stage: review
   run: e814460b4c8e4baf947e3cfd7cd63450
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:59:42.816526Z'
+  stage: docs
 ---
 
 # The stage image's tests share their helpers and pin the image without an environment
@@ -162,3 +171,4 @@ Expect: `0`, `0`, then a line that ends in `passed` with no `failed`.
    - `tests/entry/test_wiring_image_path.py`: the standing leave to move a shared test helper, plus the story's naming. It replaces the copies of `BASE_PATH`, `PROBE` and `COMPLETED` with the shared values. Every test keeps its name and what it checks.
    - `tests/entry/test_wiring_run.py`: the standing leave to move a shared test helper. It replaces the copies of `PROBE` and `COMPLETED` with the shared values. Every test keeps its name and what it checks.
    - `tests/application/test_tick_preflight.py`: the standing leave to move a shared test helper. `Machine.log_lines` now uses `state_log_lines` of `tests/log_support.py`. Every test keeps its name and what it checks.
+10. factory: started docs as vm.
