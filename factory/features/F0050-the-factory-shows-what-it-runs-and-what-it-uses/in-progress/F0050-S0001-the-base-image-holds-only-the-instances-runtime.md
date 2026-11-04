@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T09:28:32.079329Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -180,6 +184,11 @@ journal:
   at: '2026-11-04T09:28:24.910211Z'
   stage: smoke-test
   run: 025dbcf1136249dfae9d81d04d4fa80c
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-11-04T09:28:32.079329Z'
+  stage: doing
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -542,3 +551,4 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
        - **Observed:** `3`. The bare `ARG AGENT_RUNTIME` line appears at `vm/Dockerfile:5` (before the first `FROM`), `vm/Dockerfile:11` (in the `install` stage) and `vm/Dockerfile:41` (in the final stage).
        - **Criterion:** none contradicted. The Interface asks only for `ARG AGENT_RUNTIME` without a default, and all three lines have none.
        - **Note for the next stage:** Docker scopes an `ARG` declared before `FROM` so that each stage must declare it again to use it. Both stages use `${AGENT_RUNTIME}`, so the three lines look necessary, and the `Expect:` count of `1` may be what is wrong rather than the Dockerfile. The `## Smoke test` section belongs to the human. If removing the redeclarations would break the build, the coder should probably ask the human to change the expectation to `3`, not change the Dockerfile.
+32. factory: started doing as vm.
