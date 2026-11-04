@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T02:31:21.918597Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-04T02:31:15.735515Z'
   stage: doing
   run: bc5887637fcb4ce59eeba777ec20e929
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:31:21.918597Z'
+  stage: tests
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -196,3 +205,4 @@ Expect: a line that ends in `passed` with no `failed`.
     Main choice: I catch the error in `_follow_main`, as the Interface says, so the fetch and its stop stay together. I rejected catching it in `prepare`.
 
     Noticed and not touched: the `fetch_failed` stop that the tick raises from its own fetch writes the same multi-line text to the log in the same way. No journal entry changed the meaning of the task, so the Description stays as it is.
+14. factory: started tests as vm.
