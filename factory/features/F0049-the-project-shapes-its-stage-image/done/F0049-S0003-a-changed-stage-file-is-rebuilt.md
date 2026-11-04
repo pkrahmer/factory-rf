@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -202,6 +202,11 @@ journal:
   at: '2026-11-04T02:03:08.871465Z'
   stage: smoke-test
   run: 7da71a5ca47241f2a9dd8de53df52107
+- number: 36
+  speaker: factory
+  kind: done
+  at: '2026-11-04T02:05:04.201525Z'
+  stage: approval
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -591,3 +596,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     Against the acceptance criteria: the command only shows that the three log strings are in the source. To see where they come from I ran one extra grep (`grep -rnE 'stage image: ' src/factory`). It finds them in `src/factory/entry/run.py:248` (`back to the base at {report.commit}`) and in `src/factory/entry/wiring.py:431` and `:441` (`built {layer.identity} at {report.commit} in {…} s` and `failed at {report.commit}`). Those match the line formats in the Interface and in criteria 2, 4 and 6. Nothing in the smoke test contradicts any criterion. The command does not exercise the build behaviour itself (criteria 1–7) or the docs (criterion 9). The tests and the factory's checks cover those, and I did not judge them here.
 
     Findings: none.
+36. factory: done (pull request merged); cost: 16 runs, 27.7 min, 162 turns, 465300 tokens in (4671353 more from cache), 87007 out, $5.86
