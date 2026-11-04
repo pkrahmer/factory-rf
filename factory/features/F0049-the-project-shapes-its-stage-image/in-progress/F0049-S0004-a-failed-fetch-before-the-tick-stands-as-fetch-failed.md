@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T02:32:01.360795Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-04T02:31:54.897462Z'
   stage: tests
   run: 0da224ae776945bba6dafe3fd990868c
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:32:01.360795Z'
+  stage: doing
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -225,3 +234,4 @@ Expect: a line that ends in `passed` with no `failed`.
     I created no files. The only file I changed is `tests/entry/test_run_fetch_before_tick.py`, which this story's tests stage wrote. Every module the tests use imports.
 
     `lint`: lint: green (0.1 s)
+16. factory: started doing as vm.
