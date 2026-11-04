@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T01:42:27.921971Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-04T01:42:21.619653Z'
   stage: tests
   run: 29e233b18d0e462484ec04ca8047237f
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:42:27.921971Z'
+  stage: doing
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -244,3 +253,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     Files changed: tests/entry/test_run_project_image_rebuild.py. No files created.
 
     `lint`: lint: green (0.1 s)
+16. factory: started doing as vm.
