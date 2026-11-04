@@ -95,6 +95,16 @@ class CheckResult(BaseModel):
         return self.status == "passed"
 
 
+def command_ending(result: CheckResult) -> str:
+    """How `result` ended: `exit status <n>`, `signal <n>` or `time_limit`."""
+    if result.exit_status is None:
+        return "time_limit"
+    # The process runner reports a command ended by a signal as the negative signal number.
+    if result.exit_status < 0:
+        return f"signal {-result.exit_status}"
+    return f"exit status {result.exit_status}"
+
+
 def command_line(result: CheckResult) -> str:
     """`` `<command>`: <last line> ``, naming a stop at the time limit or the reused run."""
     line = f"`{result.command}`: {result.last_line}"

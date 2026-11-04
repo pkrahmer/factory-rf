@@ -35,7 +35,10 @@ _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 
 
 class TickOutcome(BaseModel):
-    """How one tick ended: at a repository stop, or with the event it dispatched."""
+    """How one tick ended: at a repository stop, with the event it dispatched, or with neither.
+
+    Neither stands for a tick that the factory's own stop ended after the preflight.
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -109,6 +112,10 @@ class Tick:
             self._run_preflight()
         except _Stopped as stopped:
             return TickOutcome(stopped=stopped.reason)
+        if self._boundaries.stop_requested():
+            # The stop may have cut off the probe of main: a main without a verdict is no
+            # ground to claim work while the factory shuts down.
+            return TickOutcome()
         delete_stale_branches(self._boundaries)
         event = Watcher(self._boundaries, self._instance).evaluate(definition)
         dispatcher = Dispatcher(

@@ -157,7 +157,10 @@ def run_instance(
     """
     _write_an_empty_health_status_when_there_is_none(settings.state_directory)
     token = read_hosting_token(settings.token_file)
-    boundaries = build_boundaries(settings, token, hosting=replacements.get("hosting"))
+    boundaries = replace(
+        build_boundaries(settings, token, hosting=replacements.get("hosting")),
+        stop_requested=should_stop,
+    )
     images = replacements.get("images")
     DiskRecorder(boundaries).record("start")
     preparer = CheckoutPreparer(boundaries.git, settings)
@@ -270,7 +273,9 @@ class _ProjectImageStart:
         built = build_boundaries(
             chosen.settings, inputs.token, hosting=boundaries.hosting, images=inputs.images
         )
-        chosen_boundaries = _sized(built, chosen.sizes)
+        # The tick's preflight must see the factory's own stop, or a probe it cuts off is judged.
+        carried = replace(built, stop_requested=boundaries.stop_requested)
+        chosen_boundaries = _sized(carried, chosen.sizes)
         self._tick = activity_tick(build_tick(chosen_boundaries, chosen.settings), inputs.idle)
 
 

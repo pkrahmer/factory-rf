@@ -1,6 +1,6 @@
 """The interfaces that wiring hands to the services, held together in one place."""
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -71,3 +71,5 @@ class Boundaries:
     project_layer_bytes: int | None = None
     # The folder of the image store, whose free space the cost records show.
     image_store: Path | None = None
+    # Whether the factory's own shutdown has been asked for: a command it cut off is not judged.
+    stop_requested: Callable[[], bool] = lambda: False

@@ -19,7 +19,7 @@ from factory.domain.agent_runs import (
     AgentRunRequest,
     Login,
 )
-from factory.domain.checks import CheckResult
+from factory.domain.checks import CheckResult, command_ending
 from factory.domain.containers import ContainerResult
 from factory.domain.errors import (
     AgentDefinitionError,
@@ -539,6 +539,9 @@ class Preflight:
             main, MAIN_BRANCH, sync_time_limit=PROBE_TIME_LIMIT
         )
         result = self._boundaries.project_commands.run(PROBE_COMMAND, time_limit=PROBE_TIME_LIMIT)
+        if self._boundaries.stop_requested():
+            # Cut off by the factory's own shutdown: no verdict on main; the next start probes it.
+            return None
         if result.passed:
             self._stops.clear_stop(_MAIN_FAILING)
             self._stamps.write(PreflightStamp(image=stamp.image, main_probed=main))
@@ -566,4 +569,13 @@ def _failing_detail(result: CheckResult, main: CommitId) -> str:
     commit = main[:_SHORT_COMMIT]
     if result.status == "time_limit":
         return f"{PROBE_COMMAND} reached its time_limit on main at {commit}"
+    if not result.last_line.strip():
+        return f"{PROBE_COMMAND} {_ended(result)} and printed nothing on main at {commit}"
     return f"{PROBE_COMMAND} is red on main at {commit}: {result.last_line}"
+
+
+def _ended(result: CheckResult) -> str:
+    ending = command_ending(result)
+    if ending.startswith("exit status"):
+        return f"ended with {ending}"
+    return f"ended by {ending}"
