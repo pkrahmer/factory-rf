@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 532
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T03:00:05.151943Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-04T03:00:05.151943Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T03:00:52.991566Z'
+  stage: smoke-test
+  run: 2a6434f2d05f4743acd238222fae135f
 ---
 
 # The stage image's tests share their helpers and pin the image without an environment
@@ -193,3 +195,32 @@ Expect: `0`, `0`, then a line that ends in `passed` with no `failed`.
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: I ran the three smoke-test commands from the repository root in order, as written. All three met their `Expect:` line, so there are no findings.
+
+    1. `grep -rlF '= "/usr/local/bin:/usr/bin:/bin"' tests | grep -v '^tests/vm_support.py$' | wc -l`
+    ```
+    0
+    ```
+    Met: expected `0`.
+
+    2. `grep -hE '^(PROBE|COMPLETED) = ' tests/entry/test_wiring_run.py tests/entry/test_wiring_image_path.py | wc -l`
+    ```
+    0
+    ```
+    Met: expected `0`.
+
+    3. `uv run pytest tests/adapters/test_podman_images.py tests/entry/test_wiring_image_path.py tests/entry/test_wiring_run.py tests/application/test_tick_preflight.py tests/test_shared_bodies.py 2>&1 | tail -1`
+    ```
+    766 passed in 19.41s
+    ```
+    Met: the line ends in `passed` and has no `failed`.
+
+    I read the acceptance criteria again against the tree. The smoke test contradicts none of them:
+    - Criterion 1: `tests/adapters/test_podman_images.py:128` has the row `pytest.param("null\n", SYSTEM_PATH, id="null")`, beside `with-path` and `without-path`.
+    - Criterion 2: both modules import `SYSTEM_PATH` from `factory.domain.containers` (`tests/adapters/test_podman_images.py:12`, `tests/entry/test_wiring_image_path.py:20`). Command 1 printed `0`.
+    - Criterion 3: both entry modules import `COMPLETED` from `agent_definition_support` and `COMPLETED as PROBE` from `probe_support`. Command 2 printed `0`, and both modules pass.
+    - Criterion 4: `tests/application/test_tick_preflight.py:83` returns `state_log_lines(self.directory / "state")`. `tests/test_shared_bodies.py` is not in `git diff main --stat` and passes.
+    - Criterion 6: `git diff main --stat` shows only the four test files plus the work item and its costs sidecar. Nothing under `src/`, `README.md` or `docs/` changed.
+    - Criterion 5 (`make check`) is not one of the smoke-test commands, so I did not run it. The factory runs it as the gate. The coder's `make check` was green (entry 7).
+
+    Open: nothing.
