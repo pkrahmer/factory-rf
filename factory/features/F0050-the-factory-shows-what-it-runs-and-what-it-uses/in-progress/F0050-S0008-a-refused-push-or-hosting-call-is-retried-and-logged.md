@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T13:21:29.249857Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -239,6 +235,12 @@ journal:
   kind: started
   at: '2026-11-04T13:21:29.249857Z'
   stage: smoke-test
+- number: 42
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T13:22:26.428834Z'
+  stage: smoke-test
+  run: f4d1aa663efe4e6b9dfc1c2f3c3e1183
 ---
 
 # A refused push or hosting call is retried and logged
@@ -746,3 +748,32 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     `secrets`: secrets: green (3.5 s)
     `documents`: documents ok
 41. factory: started smoke-test as vm.
+42. smoke-tester: Smoke test, round 2. I ran the three commands under `## Smoke test` from the repository root, as written and in order. I fixed nothing.
+
+    Command 1: `grep -rhoE 'handler error|push: retry' src/factory | sort -u`
+    ```
+    handler error
+    push: retry
+    ```
+    Met its `Expect:`: the output is exactly the two lines `handler error` and `push: retry`.
+
+    Command 2: `grep -rc 'PATCH' src/factory/adapters | awk -F: '{s+=$2} END {print (s>0)}'`
+    ```
+    1
+    ```
+    Met its `Expect:`: `1`.
+
+    Command 3: `uv run pytest tests/application tests/adapters -k "push or handler or hosting" 2>&1 | tail -1`
+    ```
+    434 passed, 2751 deselected, 1 xfailed in 36.52s
+    ```
+    Met its `Expect:`: the line ends in `passed`, has no `failed`, and an `xfailed` count stands beside it.
+
+    Against the acceptance criteria:
+    - No criterion is contradicted by what the smoke test showed.
+    - The one `xfailed` is criterion 5's strict xfail, which the earlier entries name: a crash is charged for a stage in which no agent ran. Criterion 5 allows this as the pinned outcome, and the fix is not part of this story.
+    - I did not run `make check` (criterion 12) myself. It is the factory's gate, and entry 40 reports `check: green`.
+
+    Findings: none.
+
+    Open for the human: criterion 5's xfail. At the next tick after a hosting failure in `ensure_pull_request`, a crash is charged for a stage in which no agent ran.
