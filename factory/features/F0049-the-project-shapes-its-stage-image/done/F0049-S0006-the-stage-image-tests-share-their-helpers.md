@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-04T03:00:52.991566Z'
   stage: smoke-test
   run: 2a6434f2d05f4743acd238222fae135f
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-04T03:02:49.347831Z'
+  stage: approval
 ---
 
 # The stage image's tests share their helpers and pin the image without an environment
@@ -224,3 +229,4 @@ Expect: `0`, `0`, then a line that ends in `passed` with no `failed`.
     - Criterion 5 (`make check`) is not one of the smoke-test commands, so I did not run it. The factory runs it as the gate. The coder's `make check` was green (entry 7).
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 4.6 min, 35 turns, 113016 tokens in (593317 more from cache), 11190 out, $1.08
