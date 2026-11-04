@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T01:41:07.843102Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-04T01:41:07.843102Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-04T01:41:27.243129Z'
+  stage: doing
+  run: de6b50e26a06469cb4a688f4a9869387
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -206,3 +208,16 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     The factory left out changes outside the write paths: tests/entry/test_run_project_image_rebuild.py.
 11. 2026-11-04 human: (a): the tester makes World take the remote fixture (or sets self.remote to tmp_path / "origin" / "remote.git"), in this story's own test module. Your other choices stand: comparing the text, the report holding the clock, the built line at the start too. A failed fetch in prepare that logs iteration failed and retries at the next tick is acceptable for now.
 12. factory: started doing as vm.
+13. coder: Test change for the tester, per the human's answer in entry 11, option (a). In `tests/entry/test_run_project_image_rebuild.py`, `World.__init__` (line 152) must point `self.remote` at the bare repository the `remote` fixture returns. Either `World` takes the `remote` fixture as a parameter, or the line becomes `self.remote = tmp_path / "origin" / "remote.git"`. Today `_commit(self.remote)` runs `git rev-parse main` outside a repository, so all 10 tests fail in the scheduler's first sleep before any expectation is checked.
+
+    No code changed in this run. The implementation from entry 10 is committed on the branch as it was: `src/factory/entry/run.py` (`_ProjectImageStart.prepare` → `_follow_main`) and `src/factory/entry/wiring.py` (`StageImageReport`, `stage_image_report`, `stage_file_on_main`, `project_image_settings(report=)`). In entry 10 I ran the whole file in a scratch copy with only that line changed, and all 10 tests passed.
+
+    The human's answer keeps my earlier choices, so nothing else changes:
+    - comparing the file's text rather than `StageLayer.digest`
+    - the report holding the clock
+    - the `built` line also at the start
+    - a failed fetch in `prepare` that logs `iteration failed` and retries at the next tick
+
+    The Description stays as it is: the answer is about the test, not the task's meaning.
+
+    Once the tester makes the change and sends the item back, the next coder run needs only `make check` and the refactor read.
