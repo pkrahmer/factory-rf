@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T21:33:21.801415Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-11-04T21:33:13.264796Z'
   stage: docs
   run: 41d2916bc3a24a4a9c12969afe5edc5f
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:33:21.801415Z'
+  stage: smoke-test
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -346,3 +355,4 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
     `check`: check: green (not run again: passed on tree b987ce4f33da at 2026-11-04T21:30:10Z)
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
+23. factory: started smoke-test as vm.
