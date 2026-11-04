@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T22:11:52.197603Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-04T22:11:46.907895Z'
   stage: intake
   run: ffb77967dc0f40678f226b34a301f5c7
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-04T22:11:52.197603Z'
+  stage: tests
 ---
 
 # A hosting failure after the claim charges no crash
@@ -108,3 +117,4 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
    - Smoke test: runnable. The grep count and the pytest tail are checkable, and the `Expect:` line names `0` and a line ending in `passed` with no `failed` or `xfailed`. I did not check the pytest `addopts`, since the command passes no `-q`.
    - Architecture: the change sits in `factory.application`, using the `Claims` and push helpers that already exist. No new layer or dependency.
    - Scope: within F0050 (S0010 is listed in the feature) and not in "Out of scope". The cap of three stays, as the feature requires. The change to S0008's test is limited to the `xfail` mark, with the human's leave.
+7. factory: started tests as vm.
