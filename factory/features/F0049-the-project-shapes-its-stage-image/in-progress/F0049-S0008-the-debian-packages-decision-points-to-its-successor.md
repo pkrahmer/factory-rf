@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 536
-comments_read: []
+comments_read: [6621759488]
 handed_over: null
 claim: null
 journal:
@@ -37,6 +37,11 @@ journal:
   stage: tests
   run: 3f9c8319bb4a41cbb8524b8cdedd5ce5
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-11-04T03:31:23.857353Z'
+  stage: tests
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -88,3 +93,4 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
    (b) Read "no test change" as "no existing test changes". I would add one new test module, `tests/test_decision_log_debian_packages.py`. Its test, `test_debian_packages_entry_points_to_its_successor`, would read `docs/decisions.md` and check that the entry's last bullet starts with `Superseded in part by "The factory's tools live apart, under `/opt/factory`, with their own Node"` and names `xz-utils`, `nodejs` and `npm`. The test fails until the documenter adds the line. It cannot check "the other bullets and entries are unchanged" without copying the old text into the test, so the reviewer would still check that part against the diff.
 
    I would choose (a), because the Description and Interface both rule out a test, and the human wrote them. I'll proceed as you say.
+6. 2026-11-04 human: (a): no test for this story; the smoke test and the reviewer check criterion 1.
