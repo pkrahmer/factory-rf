@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T15:23:51.732732Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-11-04T15:23:51.732732Z'
   stage: tests
+- number: 22
+  speaker: tester
+  kind: result
+  at: '2026-11-04T15:24:23.453891Z'
+  stage: tests
+  run: 8672c5cfee9f48ccafdd868bd1faae83
 ---
 
 # One fetch per iteration
@@ -323,3 +325,20 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
     Noticed, not touched: `Instance.go_away`/`come_back` in `tests/entry/test_run_one_fetch.py` copy `Outage` in `tests/entry/test_run_fetch_before_tick.py`. The tester may move that copy to a shared place under the standing leave.
 21. factory: started tests as vm.
+22. tester: Approved test change: the human's answer A in entry 18, named by the coder in entry 20. In `tests/entry/test_run.py`, inside `test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick`, I changed only the nested function `recording_tick`. Its signature is now `def recording_tick(tick: Tick, idle: IdleShutdown | None = None, *, fetched: bool = False) -> Callable[[], bool]:`, split over three lines so that `ruff format` accepts it, and it returns `original_tick(tick, idle, fetched=fetched)`. Nothing else in that module changed. The test still checks the same thing: the idle shutdown that is handed to the activity tick.
+
+    No other test double needed the same change. The only other callers of `activity_tick` in the tests (`tests/entry/test_run.py:207` and `tests/entry/test_run_idle_shutdown.py:39`) call the real function. They do not replace it, so the leave in entry 18 was not used anywhere else.
+
+    Criterion → test mapping, unchanged from entry 8:
+    - criterion 1: tests/entry/test_run_one_fetch.py::test_an_iteration_fetches_once_and_its_tick_sees_what_that_fetch_brought
+    - criterion 2: tests/entry/test_run_one_fetch.py::test_a_failed_fetch_in_an_iteration_stands_as_fetch_failed_and_the_next_passed_one_clears_it
+    - criterion 3: tests/application/test_tick_own_fetch.py::test_a_tick_run_without_the_fetch_before_it_fetches_once
+    - criterion 4: tests/application/test_tick_own_fetch.py::test_a_tick_run_alone_whose_fetch_fails_stops_and_the_next_passed_one_clears_it
+
+    Files created: none. Earlier test file changed: tests/entry/test_run.py, under the human's leave in entry 18. Every module imported.
+
+    The one run was `uv run pytest -q tests/entry/test_run.py`: all 31 tests passed. `make lint`: lint: green (0.2 s). I skipped the type check, as this stage says.
+
+    Still open: the optional move of the `Outage` copy (`Instance.go_away`/`come_back` in tests/entry/test_run_one_fetch.py) to a shared place. I did not make it, because this run is limited to the approved change.
+
+    `lint`: lint: green (0.2 s)
