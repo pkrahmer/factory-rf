@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T20:14:51.912940Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -144,6 +148,11 @@ journal:
   kind: send_back
   at: '2026-11-04T20:14:46.041783Z'
   stage: approval
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:14:51.912940Z'
+  stage: doing
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -399,3 +408,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 23. 2026-11-04 human: Sent back by the human: the decision above (no retention on the VM; drop the tmpfiles.d rule and --transcript-days) came in after the review, so the branch still holds them. Apply it in this round, as the comment above says; the reviewer edits the story under its leave.
 24. 2026-11-04 human: closed the pull request.
 25. factory: sent back to doing, round 2.
+26. factory: started doing as vm.
