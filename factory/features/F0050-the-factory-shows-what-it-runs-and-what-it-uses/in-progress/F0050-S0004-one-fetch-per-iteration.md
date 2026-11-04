@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T14:31:29.781306Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-04T14:31:29.781306Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-04T14:31:52.155648Z'
+  stage: intake
+  run: 674bc08686514862aed357edc80cbb89
 ---
 
 # One fetch per iteration
@@ -50,7 +52,9 @@ Since F0049-S0003 and S0004 the factory fetches twice in every iteration: once b
 
 ## Interface
 
-- One iteration of `factory-run` calls `Git.fetch` once. The coder decides which of the two places keeps it and how the other learns that the fetch was made; the tick still works on a fresh `origin/main` and fresh work-item branches.
+- `Tick.run(fetched: bool = False)` in `factory.application.tick`: with `fetched=True` it skips `git.fetch()` and its raise and clear of `fetch_failed`, because the caller already fetched; the default fetches as today.
+- `_ProjectImageStart._follow_main` in `factory.entry.run` keeps the one fetch and the one raise and clear of `fetch_failed` in an iteration, and passes `fetched=True` to the tick of the same iteration. One iteration of `factory-run` calls `Git.fetch` once; the tick still works on a fresh `origin/main` and fresh work-item branches.
+- `src/factory/application/scheduler.py:126` stays as it is: `prepare()` fetches there only when the checkout is not ready yet.
 - A failed fetch stands as `fetch_failed` (S0004 of F0049), raised in one place, and ends the iteration without a tick; a passed fetch clears it.
 - `factory-watch` and every other caller of the tick keep fetching as today, when they run the tick without the fetch before it.
 
@@ -59,8 +63,9 @@ Since F0049-S0003 and S0004 the factory fetches twice in every iteration: once b
 1. One iteration of `factory-run` with a passed fetch calls `Git.fetch` exactly once and runs the tick on what that fetch brought: rows for a new commit on `main` and for a new commit on a work-item branch, each seen by the same iteration's tick.
 2. One iteration with a failed fetch calls `Git.fetch` once, raises `fetch_failed` with the fetch's first line in its detail, and runs no tick; the next iteration with a passed fetch clears the stop and runs the tick.
 3. A tick run without the fetch before it (as `factory-watch` runs it) still fetches once.
-4. `make check` stays green.
-5. docs: `docs/project-guide/` in the file on the tick or the stage environment: where the iteration fetches, once. `docs/operator-guide.md` and `docs/decisions.md`: none, unless an existing sentence says the tick fetches; then that sentence follows. `README.md`: none.
+4. A tick run alone (`fetched=False`) whose fetch fails raises `fetch_failed` and runs nothing; the next one with a passed fetch clears it, as today.
+5. `make check` stays green.
+6. docs: `docs/project-guide/` in the file on the tick or the stage environment: where the iteration fetches, once. `docs/operator-guide.md` and `docs/decisions.md`: none, unless an existing sentence says the tick fetches; then that sentence follows. `README.md`: none.
 
 ## Smoke test
 
@@ -96,3 +101,9 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
    4. One parametrized test with two rows (a new commit on `main`, a new commit on a work-item branch), as the project's tests do for the sides of one rule; the criterion stays one.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: carried in the human's answers from journal entry 4 (answers 1 and 2). It now names `Tick.run(fetched: bool = False)` in `factory.application.tick`. It names `_ProjectImageStart._follow_main` in `factory.entry.run` as the one fetch and the one raise and clear of `fetch_failed`, passing `fetched=True` to the tick. It also says `scheduler.py:126` stays as it is. These are the human's edits carried in; I added nothing of my own.
+   - Criteria: carried in from answer 3 as new criterion 4: a tick run alone (`fetched=False`) whose fetch fails raises `fetch_failed` and runs nothing, and the next one with a passed fetch clears it. The closing two are now 5 and 6. Per answer 4, criterion 1 stays one criterion, tested by one parametrized test with two rows (a new commit on `main`, a new commit on a work-item branch). Each criterion is testable by one test function. Both sides of the fetch rule are covered: failed and passed in criterion 2 for `factory-run`, and in criterion 4 for a tick run alone. Criterion 3 covers the default fetching once.
+   - Smoke test: runnable. `addopts` already sets `-q`, so `tail -1` shows the summary line. The Expect line is checkable: a count not larger than 3 (answer 2 confirms it), then a line ending in `passed` with no `failed`.
+   - Architecture: the entry layer fetches and the application tick receives the flag, so no layer rule is broken. No new interface or dependency.
+   - Scope: within S0004 of `feature.md` and not in its Out of scope. The Description is unchanged in meaning.
