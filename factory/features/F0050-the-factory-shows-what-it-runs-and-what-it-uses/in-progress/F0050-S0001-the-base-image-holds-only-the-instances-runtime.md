@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272, 6627457871]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T09:35:29.015014Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -208,6 +212,11 @@ journal:
   at: '2026-11-04T09:35:22.938091Z'
   stage: doing
   run: 6b556d4d4dff422a99971d759d6ac6e7
+- number: 37
+  speaker: factory
+  kind: started
+  at: '2026-11-04T09:35:29.015014Z'
+  stage: review
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -615,3 +624,4 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
 
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
+37. factory: started review as vm.
