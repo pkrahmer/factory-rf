@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T18:50:33.957674Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-04T18:50:27.794136Z'
   stage: intake
   run: df77186843ba4249801a724a5abc9cae
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-04T18:50:33.957674Z'
+  stage: tests
 ---
 
 # The cost record sums up the run's tool calls
@@ -121,3 +130,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
    - Smoke test: runnable. It passes no `-q`, because `addopts` already sets one. Each `Expect:` line is checkable.
    - Architecture: pure parsing sits in domain, the wrappers in adapters, and the abstract operation in application. This fits the four layers and the rule that wrappers are the only code to read tool output. Nothing leaves the wrapper that holds call content.
    - Scope: within the feature's S0006 line. It adds no transcript on GitHub. The leaves for the tester (the interface pin in `tests/application/test_interfaces.py`, the stand-ins' `tool_uses` returning `None`, the contract pins `"4.3"` to `"4.4"`) are in journal 4 and are not in the story file, so the tester must take them from there.
+7. factory: started tests as vm.
