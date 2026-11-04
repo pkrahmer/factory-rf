@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -30,8 +30,13 @@ journal:
   at: '2026-11-04T23:21:49.353432Z'
   stage: acceptance
   run: 15edd6ea0ecb4eef9cffcbeb9e5ba5bf
+- number: 5
+  speaker: factory
+  kind: done
+  at: '2026-11-04T23:29:50.245344Z'
+  stage: done
 stories: [F0050-S0001, F0050-S0002, F0050-S0003, F0050-S0004, F0050-S0005, F0050-S0006, F0050-S0007, F0050-S0008, F0050-S0009, F0050-S0010, F0050-S0011, F0050-S0012]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The factory shows what it runs and what it uses
@@ -345,3 +350,4 @@ Human interventions: 28 questions answered (25 questions, 2 at the round cap, 1 
    6 Decisions: feature decisions 1 to 12 and the journal defaults are listed for the human. To revisit: two branch commits per tick during an outage. Open for the human: the coder's write paths and the work item's Description in `factory/pipeline.yml`; a second run of `vm/setup.sh` for `FACTORY_TRANSCRIPT_DIR`; the duplicates baseline. Every earlier test change has a named leave, though S0010's deletion leave is in journal 14 and not in feature decision 12.
    7 Slow checks: `make documents` is ok. `make duplicates` gives `4 new, 41 known, 2 gone` (the same four since S0002; the baseline is the human's). The slowest tests are about 10 s each, the `ROOMY_LIMIT` waits. Disk at acceptance equals disk at start, with no growth.
    8 Cost: 188 runs, 325.0 min, $69.91. S0002 was the most expensive ($11.83, five answers, crash cap) and needed the human most. The four follow-ups cost $8.64 together. 28 questions answered (25 questions, 2 at the round cap, 1 at the crash cap), 3.4 h waited.
+5. factory: done (pull request merged); cost: 1 runs, 7.9 min, 31 turns, 96001 tokens in (1956103 more from cache), 29667 out, $1.75
