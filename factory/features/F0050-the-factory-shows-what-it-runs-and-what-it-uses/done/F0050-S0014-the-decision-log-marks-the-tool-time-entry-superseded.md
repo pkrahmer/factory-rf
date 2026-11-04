@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-04T23:56:39.982126Z'
   stage: smoke-test
   run: 3d9ef73449dd47e2b4a62993ed74af70
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-04T23:57:29.381877Z'
+  stage: approval
 ---
 
 # The decision log marks the old tool-time entry as superseded
@@ -199,3 +204,4 @@ Expect: `1`.
     - Criterion 3: no other entry of the log changes.
     - Criterion 4: I did not run `make check` again. It is the factory's gate, and the journal records it green.
     - Criterion 5: nothing in the smoke test contradicts it.
+14. factory: done (pull request merged); cost: 6 runs, 3.8 min, 30 turns, 95728 tokens in (425198 more from cache), 6615 out, $0.80
