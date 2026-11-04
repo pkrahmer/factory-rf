@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T21:21:50.327205Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-04T21:21:44.113042Z'
   stage: tests
   run: d37a6294a04a4d7ebad820d940c9078d
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:21:50.327205Z'
+  stage: doing
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -153,3 +162,4 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
    File created: tests/domain/test_tool_uses_replayed_lines.py. No import failed: the module exists, and the tests fail on wrong results. 9 of them fail against the current code: the rows where the replayed copy now overwrites or adds. The rows where today's code already gives the right result pass, for example a blob before the `user` line, or criterion 3's `user` row. `make lint` is green after `ruff format`.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
