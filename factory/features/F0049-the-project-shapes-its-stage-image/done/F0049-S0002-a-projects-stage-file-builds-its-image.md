@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -275,6 +275,11 @@ journal:
   at: '2026-11-04T01:19:56.921710Z'
   stage: smoke-test
   run: e2d301daabb04484a3d9a06c56879ef7
+- number: 49
+  speaker: factory
+  kind: done
+  at: '2026-11-04T01:21:50.699414Z'
+  stage: approval
 ---
 
 # A project's stage file builds the image its stages run in
@@ -851,3 +856,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     Findings: none.
 
     Open: nothing.
+49. factory: done (pull request merged); cost: 21 runs, 69.5 min, 366 turns, 1031455 tokens in (17316039 more from cache), 204896 out, $15.10
