@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 539
-comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
+comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
 claim: null
 journal:
@@ -213,6 +213,11 @@ journal:
   stage: doing
   run: 9c6ab98d2b3e4dd2ac603fef085eec75
   blocked: question
+- number: 38
+  speaker: human
+  kind: comment
+  at: '2026-11-04T12:03:40.262759Z'
+  stage: doing
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -619,3 +624,8 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     Refactor: there is no new diff in this run, so nothing to refactor.
 
     Noticed, not touched: the 3 vulture false positives on `MachineMeasures` fields in `make duplicates`, which the reviewer already judged. I did not run `make duplicates` again.
+38. 2026-11-04 human: Answer of the human: neither (a) nor (c): the human does not push to a work item's branch. Instead the reviewer makes the edit, under this leave:
+
+    Leave for the reviewer: in criterion 13 (docs), after "in *The project's stage file*, the new log lines", add exactly: ", with `unknown` for a size that cannot be read; and one sentence that under the `job` container profile the containers run as root, so the user slice may be another cgroup and the measures may then be `None` or another slice's." Nothing else in the criteria changes. With that edit, finding 6 is met; the documenter writes both from the criterion.
+
+    End with `review` as the work item is.
