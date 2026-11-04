@@ -90,9 +90,11 @@ def _timestamp(event: dict[str, object]) -> datetime | None:
     if not isinstance(value, str):
         return None
     try:
-        return datetime.fromisoformat(value)
+        at = datetime.fromisoformat(value)
     except ValueError:
         return None
+    # A time without an offset cannot be set against one with an offset; it gives no time.
+    return at if at.tzinfo is not None else None
 
 
 def _content_items(event: dict[str, object]) -> list[dict[str, object]]:
@@ -141,7 +143,11 @@ def _opencode_seconds(time: object) -> float | None:
 def _milliseconds(value: object) -> float | None:
     if isinstance(value, bool) or not isinstance(value, int | float):
         return None
-    return float(value)
+    try:
+        return float(value)
+    except OverflowError:
+        # An integer beyond the float range gives no time rather than a failed stage.
+        return None
 
 
 def _non_negative(seconds: float) -> float | None:
@@ -166,4 +172,8 @@ def _summed(calls: list[_Call]) -> list[ToolUse]:
 def _added(total: float | None, seconds: float | None) -> float | None:
     if seconds is None:
         return total
-    return seconds if total is None else total + seconds
+    if total is None:
+        return seconds
+    summed = total + seconds
+    # Two huge times overflow to infinity; the total then stays where it was.
+    return summed if math.isfinite(summed) else total

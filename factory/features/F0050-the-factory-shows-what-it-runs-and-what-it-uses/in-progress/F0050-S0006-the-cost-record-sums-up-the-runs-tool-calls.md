@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T19:05:32.372023Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-04T19:05:32.372023Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-04T19:07:52.281960Z'
+  stage: doing
+  run: 43de3b1de72448e3a5f64a85db78d542
 ---
 
 # The cost record sums up the run's tool calls
@@ -246,3 +248,23 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     - `tests/domain/test_contract_version_4.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
     - `tests/domain/test_contract_version_4_2.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
 13. factory: started doing as vm.
+14. coder: Round 1: both review findings from entry 12 are addressed. `make check` is green (test: green, 92.0 s). No test changed.
+
+    Finding 1 (code, done) in `src/factory/domain/tool_uses.py`:
+    - `_timestamp` now treats a Claude Code `timestamp` without an offset as no time. A mixed-offset pair therefore gives `seconds` `None` instead of raising `TypeError`.
+    - `_milliseconds` catches `OverflowError`, so an opencode `time.start` or `time.end` integer beyond float range gives no time.
+    - `_added` keeps the earlier total when adding two huge finite times would overflow to infinity. That closes the same crash in the summing step, which would otherwise surface as a `ToolUse` validation error out of `_summed`.
+    - The chosen outcome is "no time", not "unreadable": the call still counts and only its seconds are dropped. That matches how a negative or non-finite difference was already handled. I rejected returning `None` for the whole transcript, because one odd time field would then hide every count.
+    - I checked both cases by hand: a mixed-offset Claude Code pair gives `[ToolUse(tool='Bash', calls=1, failed=0, seconds=None)]`, and an opencode `time.end` of `10**400` gives `[ToolUse(tool='bash', calls=1, failed=0, seconds=None)]`.
+
+    For the tester, two test changes:
+    1. Add two rows to `tests/domain/test_tool_uses.py::test_seconds_come_from_the_transcript_s_times`, each expecting `seconds` `None` and the call still counted (`calls` 1, `failed` 0):
+       - a Claude Code call whose `tool_use` line's `timestamp` has no offset (`2026-11-04T10:00:00`) while its `tool_result` line's ends in `Z`;
+       - an opencode call whose `time.end` is an integer beyond float range (`10**400`).
+    2. Under the standing leave to move a shared test helper:
+       - move the duplicated `_records` (show the cost-records sidecar at the branch head, assert it exists, parse it) from `tests/application/test_stage_tool_uses.py` (`_sidecar`/`_records`, lines 64–73) and `tests/application/test_stage_transcripts.py` (`_records`, line 60) into `tests/stage_run_support.py`;
+       - change both modules to use it from there.
+
+    Refactor pass: I read the round's diff. I wrote the overflow guard in `_added` explicitly instead of as an `or` expression. Nothing else needed changing.
+
+    Noticed, not touched: the `make duplicates` items the reviewer already judged as not findings.
