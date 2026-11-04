@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T01:06:37.133157Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -207,6 +203,12 @@ journal:
   kind: started
   at: '2026-11-04T01:06:37.133157Z'
   stage: review
+- number: 36
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T01:09:33.658120Z'
+  stage: review
+  run: 1ef441aa7b7f42c4ad94dfa3bda99a8b
 ---
 
 # A project's stage file builds the image its stages run in
@@ -220,7 +222,8 @@ Every container of an instance (the sync, the agent, the checks) runs in the sta
 - The rule (`factory.domain`, a module of its own or `factory.domain.containers`): `stage_layer(text: str, base_identity: str) -> StageLayer`, raising a refusal with the reason for a file that breaks it. `StageLayer` (a frozen Pydantic model) holds the file's text, its `digest` (the first 12 hex digits of its SHA-256) and `identity`, `f"{base_identity}+{digest}"`.
   - Before its one `FROM`, the file may hold only blank lines, comments and the line `ARG FACTORY_BASE`.
   - It holds exactly one `FROM` instruction (case-insensitive), and that is `FROM ${FACTORY_BASE}` or `FROM $FACTORY_BASE`, with nothing after the image name (no `AS`, no `--platform`).
-  - It is at most 64 KiB of UTF-8.
+  - It is at most 64 KiB, measured on the UTF-8 encoding of the text as read.
+  - It holds no U+FFFD. Bytes that are not UTF-8 reach the factory as U+FFFD (the reader decodes with replacement), so a file with either is refused with one reason that names both.
   - The template, which the first criterion accepts, is these three lines: `ARG FACTORY_BASE`, `FROM ${FACTORY_BASE}`, and `RUN apt-get update && apt-get install -y --no-install-recommends build-essential cmake && rm -rf /var/lib/apt/lists/*`.
 - The constant `STAGE_FILE = "factory/stage.Containerfile"` and the project image's tag, `f"{FACTORY_STAGE_IMAGE}-project"` (for example `factory-stage:vm-project`), each defined once.
 - An interface in `factory.application` for the images, with one podman implementation in `factory.adapters` (podman is reached only through its wrapper, R5) and one fake:
@@ -232,7 +235,7 @@ Every container of an instance (the sync, the agent, the checks) runs in the sta
 
 ## Acceptance criteria
 
-1. `stage_layer` accepts and refuses by its rule; rows: the template of the Interface (accepted, with its digest and identity); `FROM ${FACTORY_BASE}` alone; `from $FACTORY_BASE` in lower case; a comment and a blank line before `ARG FACTORY_BASE`; refused, each with its own reason: `FROM debian:bookworm`, `FROM ${FACTORY_BASE} AS build`, `FROM --platform=linux/amd64 ${FACTORY_BASE}`, a second `FROM`, no `FROM`, a `RUN` before the `FROM`, `ARG OTHER` before the `FROM`, a file of 64 KiB (accepted) and of 64 KiB and one byte (refused), and bytes that are not UTF-8.
+1. `stage_layer` accepts and refuses by its rule; rows: the template of the Interface (accepted, with its digest and identity); `FROM ${FACTORY_BASE}` alone; `from $FACTORY_BASE` in lower case; a comment and a blank line before `ARG FACTORY_BASE`; refused, each with its own reason: `FROM debian:bookworm`, `FROM ${FACTORY_BASE} AS build`, `FROM --platform=linux/amd64 ${FACTORY_BASE}`, a second `FROM`, no `FROM`, a `RUN` before the `FROM`, `ARG OTHER` before the `FROM`, a file of 64 KiB (accepted) and of 64 KiB and one byte (refused), and a text that holds U+FFFD (refused, with the one reason that names U+FFFD and bytes that are not UTF-8). Bytes that are not UTF-8 are tested where the start reads the file, under criterion 6.
 2. Two files that differ in one byte have different digests, and the same file has the same digest and identity at every call; the identity is `<base identity>+<12 hex digits>`.
 3. A start whose `origin/main` holds no stage file builds nothing, and every container run takes the base image with the base's identity, exactly as before this story.
 4. A start whose `origin/main` holds a valid stage file builds it once, with the base image as `FACTORY_BASE` and the tag `<FACTORY_STAGE_IMAGE>-project`, before the preflight runs; every following container run (sync, agent, check) takes the project image, and the preflight's stamps and the check reuse take the layer's identity.
@@ -247,7 +250,7 @@ Every container of an instance (the sync, the agent, the checks) runs in the sta
 13. The podman adapter's `path` raises `ContainerError` when `image inspect` exits non-zero and when it prints no JSON; `build_boundaries` given images whose `path` raises gives the sync, the check and the agent `/usr/local/bin:/usr/bin:/bin`.
 14. The podman adapter in the `job` container profile puts the job's global podman options before `build`, `image prune -f` and `image inspect`; in the `rootless` profile it puts none.
 15. `make check` stays green.
-16. docs: `docs/operator-guide.md`: a section *The project's stage file*: what `factory/stage.Containerfile` is, its rule, an example that adds `build-essential` and `cmake`, that only `main` counts, that the build has the network and no files of the repository so the project pins its own versions and checksums, that the sync, the checks and the agent take the `PATH` the image sets (so a tool the layer puts on its `PATH` is found by `make check`), where the project image and its identity show, and the stop `stage_image_failed` and what to do about it. The project guide: `stage-environment.md` names the images interface, its fake and the one place where the image in use is chosen. `docs/decisions.md`: one entry with feature decisions 1, 3 and 4 and their reasons. `README.md`: one sentence that a project can add tools to its stage image with that file.
+16. docs: `docs/operator-guide.md`: a section *The project's stage file*: what `factory/stage.Containerfile` is, its rule (with one sentence saying that a file holding U+FFFD, or bytes that are not UTF-8, is refused with one reason that names both, and that the 64 KiB limit is measured on the UTF-8 encoding of the text as read), an example that adds `build-essential` and `cmake`, that only `main` counts, that the build has the network and no files of the repository so the project pins its own versions and checksums, that the sync, the checks and the agent take the `PATH` the image sets (so a tool the layer puts on its `PATH` is found by `make check`), where the project image and its identity show, and the stop `stage_image_failed` and what to do about it. The project guide: `stage-environment.md` names the images interface, its fake and the one place where the image in use is chosen. `docs/decisions.md`: one entry with feature decisions 1, 3 and 4 and their reasons. `README.md`: one sentence that a project can add tools to its stage image with that file.
 
 ## Smoke test
 
@@ -606,3 +609,34 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 42 known, 0 gone
 35. factory: started review as vm.
+36. reviewer: Round 1 review. I read the work item and the whole diff of `src/` and `tests/` against `main`, without the generated contract schemas. Since round 0, finding 3 is fixed: `run_podman` takes `cwd`, and `PodmanRuns._query` calls it (src/factory/adapters/podman_runs.py:181, :205). Finding 2 is closed by the human's answer in entry 28: the U+FFFD check stays, and its one reason names both cases (src/factory/domain/stage_layer.py:399-402). The tester's changes for findings 1 and 4 to 8 are in place. I did not run `make check`: entry 34 says it was green after the coder, and the factory runs it again after me.
+
+    Findings:
+    1. Criterion 5, agent side. In tests/entry/test_wiring_image_path.py:65 the test builds the agent's `PATH` itself, with `agent_environment(scripts, home, boundaries.image_path)`, so it never tests the wiring that gives the agent its environment. `build_tick` passes `production_environment(boundaries.image_path)` (src/factory/entry/wiring.py:657), and both `production_environment` and `agent_environment` default `path` to `SYSTEM_PATH`. So if that call dropped the argument, no test would fail: the only test that checks a tick's agent environment, tests/entry/test_wiring_run.py::test_build_tick_runs_one_stage_in_the_production_environment_under_its_instance, builds its boundaries without `images`. Fix (tester): add a row or a test that builds the tick on boundaries from `build_boundaries(..., images=FakeImages(paths={IMAGE: JDK_PATH}))`, runs one stage, and checks that the agent request's `PATH` is the interpreter's folder followed by `/opt/jdk/bin:/usr/local/bin:/usr/bin:/bin`.
+    2. Criterion 6, rule row. Criterion 6 says the stop stands "with its detail as the Interface states", and for a broken rule that detail is the rule's own reason. But tests/entry/test_wiring_project_image.py::test_a_stage_file_that_breaks_the_rule_stands_as_a_stop_and_builds_nothing (`assert detail`, near line 155) only checks that the detail is not empty. So a fixed or wrong text would pass. Fix (tester): in the `rule` row, compare the detail to `str()` of the `StageLayerRefused` that `stage_layer("FROM debian:bookworm\n", BASE_IDENTITY)` raises. In the `not-utf-8` row, compare it to the refusal for a text holding U+FFFD. Each row then carries its expected refusal.
+
+    description corrected: Interface "It is at most 64 KiB of UTF-8." -> "It is at most 64 KiB, measured on the UTF-8 encoding of the text as read." plus a new rule: "It holds no U+FFFD … refused with one reason that names both" (entry 28).
+    description corrected: criterion 1 "…and bytes that are not UTF-8." -> "…and a text that holds U+FFFD (refused, with the one reason that names U+FFFD and bytes that are not UTF-8). Bytes that are not UTF-8 are tested where the start reads the file, under criterion 6." (entry 9, item 5; entry 28).
+    description corrected: docs criterion "its rule" -> "its rule (with one sentence saying that a file holding U+FFFD, or bytes that are not UTF-8, is refused with one reason that names both, and that the 64 KiB limit is measured on the UTF-8 encoding of the text as read)" (entry 28).
+
+    What I looked at and did not count as findings:
+    - Criterion 4: the run test checks the preflight's container call and the stamp, not a sync, check or agent run. All container runs come from the one `PodmanRuns` that the second `build_boundaries(chosen, …)` builds, and the test asserts that the base image appears in no podman call. So passing `inputs.settings` there would fail that test.
+    - The check reuse reads `boundaries.settings.image` (src/factory/application/known_results.py:57), which comes from those same boundaries.
+    - A build that hits its time limit is not pruned at once (src/factory/adapters/podman_images.py:139-143). The comment there says why: podman may still be ending the build, and the next build's prune removes what it left.
+    - The time-limit tail, the fallback when inspect fails, and `image=None` are kept by entry 17.
+    - The seam in `factory.entry` and `PodmanImages` as a second podman class were chosen by the human in entry 9.
+
+    Notes:
+    - tests/adapters/test_podman_images.py:26-45: `STAND_IN` copies `PODMAN_SCRIPT` and `PodmanPlan` from tests/podman_support.py (record the call, print the planned stdout, wait, exit). Only the context listing is new; this could extend the shared stand-in.
+    - tests/adapters/test_podman_images.py:121-140: there is no row for inspect printing `null` (an image with no environment at all). The code handles it as the Interface says (src/factory/adapters/podman_images.py:166-168, it returns `SYSTEM_PATH`).
+    - tests/adapters/test_podman_images.py:21: `SYSTEM_PATH` is defined again in the test instead of being imported from `factory.domain.containers`.
+
+    Earlier tests:
+    - tests/conftest.py: the human's leave, entry 17, item 4 (only the `on_the_manual_clock` stand-in's signature and its import).
+    - tests/domain/test_contract.py: the human's leave, entry 17, item 3 (the 4.1 pin).
+    - tests/domain/test_contract_version_4.py: the human's leave, entry 17, item 3 (the 4.1 pins and the module docstring's version).
+    - tests/domain/test_stop_table.py: the human's leave, entry 17, item 2 (the sixteenth row).
+    - tests/test_stop_table.py: the human's leave, entry 17, item 2 (the machine-scope tuple).
+    - tests/test_second_user_removed.py: the human's leave, entry 17, item 1 (`images` in the parameter row).
+    - tests/entry/test_health.py: the human's leave, entry 9, item 4 (the row and the machine-scope tuple).
+    - tests/entry/test_wiring_handlers.py: the Interface's leave for rows that pin the `PATH` (the call gains the explicit `PATH` argument; the test checks the same thing).
