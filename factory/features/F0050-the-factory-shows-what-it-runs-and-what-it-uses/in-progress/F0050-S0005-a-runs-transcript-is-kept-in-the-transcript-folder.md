@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T16:22:19.921758Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-04T16:22:19.921758Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-04T16:25:49.057410Z'
+  stage: tests
+  run: 0788bbd65ab2443f9774fd3ea7defc3e
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -250,3 +252,30 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
 
     3. Yes, exactly that check.
 14. factory: started tests as vm.
+15. tester: With the answers in journals 12 and 13, I wrote the tests that were still missing: criterion 1, the record and stage level of criteria 3 and 4, criterion 7 and the opencode row of criterion 2. The earlier modules are kept as journal 11 left them. `make lint` is green.
+
+    Criterion → test:
+    - criterion 1: tests/application/test_stage_transcripts.py::test_without_a_transcript_folder_a_stage_runs_as_before_and_keeps_nothing. It checks no stall, no `.gz` file, no `transcript:` log line, no stop record, and every record's `transcript` is None. Also tests/entry/test_wiring_transcripts.py::test_the_built_boundaries_hold_a_transcript_store_only_with_a_folder, which checks `Boundaries.transcripts` is None without a folder and a `FileTranscriptStore` with one. The empty row comes from tests/domain/test_settings_transcripts.py::test_the_transcript_folder_is_read_or_refused[empty], where empty is read as None.
+    - criterion 2, Claude Code row: tests/application/test_stage_transcripts.py::test_a_completed_run_leaves_its_transcript_that_its_record_names, tests/adapters/test_claude_runtime_transcript.py::test_a_session_is_read_from_its_project_folder, tests/application/test_transcript_keeper.py::test_a_kept_transcript_is_a_gzip_file_under_its_run_id_that_its_ref_names, tests/adapters/test_transcript_files.py::test_a_written_transcript_is_owner_only_and_its_sha256_returned
+    - criterion 2, opencode row: tests/adapters/test_opencode_runtime_transcript.py::test_a_session_transcript_is_the_event_stream_of_its_run. It checks `extension` is `jsonl` and the content is the scripted event lines.
+    - criterion 3: tests/application/test_stage_transcripts.py::test_a_run_resumed_within_itself_keeps_one_file_with_the_content_after_the_resume (a provider-limit wait inside one stage run), ::test_a_later_run_of_an_earlier_session_names_its_own_file (a stalled run, then a later run on the same session), and tests/application/test_transcript_keeper.py::test_a_run_kept_again_replaces_its_file_and_a_later_run_keeps_its_own
+    - criterion 4: tests/application/test_stage_transcripts.py::test_a_transcript_not_kept_writes_its_line_and_leaves_the_run_unchanged (rows: missing-session, missing-transcript, folder-not-writable) and ::test_a_later_run_whose_copy_fails_names_no_earlier_file. Also tests/application/test_transcript_keeper.py::test_a_folder_that_cannot_be_written_logs_the_line_and_keeps_nothing, tests/adapters/test_claude_runtime_transcript.py::test_a_session_without_a_file_has_no_transcript and tests/adapters/test_opencode_runtime_transcript.py::test_a_session_the_runtime_never_saw_has_no_transcript
+    - criterion 5: tests/domain/test_settings_transcripts.py::test_the_transcript_folder_is_read_or_refused (only the `FACTORY_TRANSCRIPT_DIR` rows)
+    - criterion 6: gone (journal 9)
+    - criterion 7: tests/application/test_stage_transcripts.py::test_no_container_and_no_prompt_names_the_transcript_folder. It checks the mount sources of every `FakeContainerRuns` call and the prompt of every request the fake runtime got.
+    - criterion 8: tests/domain/test_transcript_ref.py::test_a_transcript_ref_takes_only_a_relative_gz_path_and_a_lowercase_sha256
+    - criterion 9: the three `"4.2"` pins became `"4.3"` under the leave in journal 4 (done in an earlier run): tests/domain/test_contract_version_4.py, tests/domain/test_contract_version_4_2.py, tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version
+
+    What the stage tests take for granted, from journal 12 answer 1(a):
+    - `Boundaries.transcripts: TranscriptStore | None = None`.
+    - `ScriptedRun.transcript: Transcript | None = None`. The fake's `read_transcript` returns the transcript of the latest played run whose result has that session.
+    - The stage passes `settings.workspace / "home"` as the home. The fixture sets `workspace` to the fake dataset (`<tmp_path>/workspace`) and `transcript_dir` to `<tmp_path>/transcripts`.
+    - The `not kept` line is read from `<state>/factory.log`, as a substring.
+
+    Files created in this run: tests/application/test_stage_transcripts.py, tests/adapters/test_opencode_runtime_transcript.py, tests/entry/test_wiring_transcripts.py. Earlier runs created tests/domain/test_settings_transcripts.py, tests/domain/test_transcript_ref.py, tests/application/test_transcript_keeper.py, tests/adapters/test_transcript_files.py and tests/adapters/test_claude_runtime_transcript.py.
+
+    Modules the test run could not import (5 collection errors, as expected): factory.adapters.transcript_files, factory.application.transcripts, factory.domain.transcripts, and `TranscriptRef` from factory.domain.cost_records. The opencode, Claude Code and settings transcript tests collect and fail on the missing `read_transcript` and `transcript_dir`.
+
+    Still open: journal 9 leaves the edits of the Description, Interface, criteria and smoke test (the deletion parts removed) to the intake or the reviewer. Journal 13 leaves the opencode event-stream sentence for the Interface to the reviewer. I made neither edit.
+
+    `lint`: lint: green (0.1 s)
