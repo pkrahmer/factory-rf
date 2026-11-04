@@ -576,6 +576,6 @@ def _failing_detail(result: CheckResult, main: CommitId) -> str:
 
 def _ended(result: CheckResult) -> str:
     ending = command_ending(result)
-    if result.exit_status is not None and result.exit_status >= 0:
+    if ending.startswith("exit status"):
         return f"ended with {ending}"
     return f"ended by {ending}"

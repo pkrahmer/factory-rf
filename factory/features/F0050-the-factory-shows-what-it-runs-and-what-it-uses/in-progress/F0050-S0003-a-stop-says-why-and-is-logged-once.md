@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T13:49:58.203396Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-04T13:49:58.203396Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-04T13:52:15.679230Z'
+  stage: doing
+  run: c458533efeee4b029b81382d6b65e32b
 ---
 
 # A stop says why, and is logged once
@@ -212,3 +214,22 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     Earlier tests: none. The diff only adds test files (`tests/application/test_preflight_stop_detail.py`, `tests/application/test_stop_log_once.py`, `tests/domain/test_command_ending.py`).
 13. factory: started doing as vm.
+14. coder: Round 1. I fixed review findings 1 and 3 in code. Finding 2 asks for a new test, so I am sending the work item to the tester. `make check` is green.
+
+    **Fixed**
+    - Finding 1, `src/factory/entry/run.py` (`_ProjectImageStart._choose`): the boundaries that `build_boundaries` builds for the chosen image now take over `stop_requested` from the start's boundaries (`replace(built, stop_requested=boundaries.stop_requested)`), before `_sized`. Every tick's preflight now sees `run_instance`'s `should_stop`, which `run_until_stopped` wires to the stop event's `is_set`. A short comment says why. I rejected adding it to `_sized`: that function is about image sizes, and mixing the stop flag in would make it do two jobs.
+    - Finding 3, `src/factory/application/preflight.py` (`_ended`): it now picks "with" or "by" from the text `command_ending` returns (`ending.startswith("exit status")`), so the rule that a non-negative status is an exit status lives only in `command_ending`. I rejected a new enum or a second function in `factory.domain.checks`. That would add an API surface that only this one caller needs.
+
+    **For the tester (finding 2)**
+    This test is new, not a change to an existing one. It goes under `tests/entry/`, like `tests/entry/test_run*.py`, and checks the Interface rule "wired in `factory.entry.run` to the `is_set` of the event that `install_stop_handlers` sets": `run_instance`'s `should_stop` must reach the preflight of the tick built after the stage image is chosen. Scenario: during a probe of `main`, `should_stop` turns true and the probe ends by signal 15. The test checks that no `main_branch_failing` is raised. With today's code it should pass; it would have failed before the finding 1 fix. I did not add the criterion to `## Description`, because the reviewer proposed it and the human has not asked for it. The Interface line it tests is already there.
+
+    **Refactor**
+    I read the diff once. The change is two lines, and nothing else needed changing.
+
+    **Journal**
+    The journal changed nothing in the meaning of the task.
+
+    **Noticed, not touched**
+    `make duplicates` still reports the 3 dead-code findings in `src/factory/domain/cost_records.py:41-43`, a file this story does not touch.
+
+    `check`: check: green

@@ -273,7 +273,9 @@ class _ProjectImageStart:
         built = build_boundaries(
             chosen.settings, inputs.token, hosting=boundaries.hosting, images=inputs.images
         )
-        chosen_boundaries = _sized(built, chosen.sizes)
+        # The tick's preflight must see the factory's own stop, or a probe it cuts off is judged.
+        carried = replace(built, stop_requested=boundaries.stop_requested)
+        chosen_boundaries = _sized(carried, chosen.sizes)
         self._tick = activity_tick(build_tick(chosen_boundaries, chosen.settings), inputs.idle)
 
 
