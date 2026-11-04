@@ -1,11 +1,11 @@
-"""The containers' `PATH` is the one the image in use configures."""
+"""The containers' `PATH` is the one the image in use configures: sync, check and agent."""
 
 from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
-from container_extra_support import COMMIT, env_words
+from container_extra_support import CHECK_LIMIT, COMMIT, env_words
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.fake_images import FakeImages
 from factory.application.stage_environment import stage_environment_of
@@ -29,7 +29,7 @@ BASE_PATH = "/usr/local/bin:/usr/bin:/bin"
         pytest.param({}, BASE_PATH, id="no-image-path"),
     ],
 )
-def test_the_sync_and_the_agent_take_the_path_of_the_image_in_use(
+def test_the_sync_the_check_and_the_agent_take_the_path_of_the_image_in_use(
     tmp_path: Path, agent_home: Path, paths: dict[str, str], expected: str
 ) -> None:
     zfs = recording_stand_in(tmp_path / "zfs-bin")
@@ -54,9 +54,12 @@ def test_the_sync_and_the_agent_take_the_path_of_the_image_in_use(
     scripts = tmp_path / "scripts"
 
     stage_environment_of(boundaries).prepare(COMMIT, "main", sync_time_limit=timedelta(minutes=5))
+    boundaries.project_commands.run("check", time_limit=CHECK_LIMIT)
     agent = agent_environment(scripts, tmp_path / "home", boundaries.image_path)
 
-    [sync] = [words for words in recorded_calls(podman) if words[:1] == ["run"]]
+    [sync, check] = [words for words in recorded_calls(podman) if words[:1] == ["run"]]
     assert boundaries.image_path == expected
     assert env_words(sync)["PATH"] == expected
+    assert "factory-check" in check
+    assert env_words(check)["PATH"] == expected
     assert agent["PATH"] == f"{scripts}:{expected}"

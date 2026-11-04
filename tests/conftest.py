@@ -35,6 +35,7 @@ from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
 from factory.application.hosting import HostingService
+from factory.application.images import Images
 from factory.domain.disk import DiskRecord
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import WorkItemId
@@ -529,9 +530,13 @@ def on_the_manual_clock(clock: ManualClock, monkeypatch: pytest.MonkeyPatch) -> 
     original = run_module.build_boundaries
 
     def built(
-        settings: InstanceSettings, token: str, *, hosting: HostingService | None = None
+        settings: InstanceSettings,
+        token: str,
+        *,
+        hosting: HostingService | None = None,
+        images: Images | None = None,
     ) -> Boundaries:
-        boundaries = original(settings, token, hosting=hosting)
+        boundaries = original(settings, token, hosting=hosting, images=images)
         return replace(boundaries, clock=clock, log=machine_log(settings.state_directory, clock))
 
     monkeypatch.setattr(run_module, "build_boundaries", built)

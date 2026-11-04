@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T00:35:45.703890Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -124,6 +120,12 @@ journal:
   kind: started
   at: '2026-11-04T00:35:45.703890Z'
   stage: tests
+- number: 21
+  speaker: tester
+  kind: result
+  at: '2026-11-04T00:37:15.629667Z'
+  stage: tests
+  run: 251a94c64a0945659ae4ba1191f09a32
 ---
 
 # A project's stage file builds the image its stages run in
@@ -350,3 +352,25 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
 
     After the tester's changes, my plan for the next round is to add the check's `PATH` along the seam above, use the new fixture signature to drop the `with_image_path` workaround in `run.py`, and then take `make check` to green and do the refactor step.
 20. factory: started tests as vm.
+21. tester: I made the test changes that the human approved in entry 17 and the coder listed in entry 19. They fall under feature decision 8.
+
+    Earlier test files I changed, and what changed:
+    1. `tests/test_second_user_removed.py`, row `build-boundaries-parameters`: the expected parameters are now `["settings", "token", "hosting", "images"]`.
+    2. `tests/domain/test_stop_table.py`: `ROWS` gains the sixteenth row `("stage-image-failed", ("L55",), "health_status", "stage_image_failed", REPOSITORY_TEST)` after `disk-low`. The test keeps its name, `test_the_table_holds_the_fifteen_stops_in_order`.
+    3. `tests/test_stop_table.py::test_repository_stop_reaches_the_health_status_and_the_factory_log`: `stage_image_failed` is added to the machine-scoped tuple. The line was too long for ruff E501, so the conditional is now wrapped in parentheses. It checks the same thing.
+    4. `tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version` and `tests/domain/test_contract_version_4.py::test_the_records_contract_is_at_version_4_without_left_branch`: the pins go from `"4.0"` to `"4.1"`. That covers the `RECORDS_CONTRACT` check and the `committed_is_generated` rows, plus the module docstring.
+    5. `tests/conftest.py`, fixture `on_the_manual_clock`: the stand-in `built` now takes `images: Images | None = None` and passes it to `original(settings, token, hosting=hosting, images=images)`. I also added the import `from factory.application.images import Images`. Nothing else in conftest changed.
+
+    Criterion 5, the new check row: I changed my own test `tests/entry/test_wiring_image_path.py`. The test is now named `test_the_sync_the_check_and_the_agent_take_the_path_of_the_image_in_use`, with the same two rows, `image-path` and `no-image-path`. It now also runs `boundaries.project_commands.run("check", time_limit=CHECK_LIMIT)`. It then checks that the second recorded `podman run` is the check (it holds `factory-check`) and that its `--env PATH` is the image's `PATH`.
+
+    Mapping for criterion 5: criterion 5: tests/entry/test_wiring_image_path.py::test_the_sync_the_check_and_the_agent_take_the_path_of_the_image_in_use. The mapping for the other criteria is as in entry 14.
+
+    Rows I did not change: the `check` rows in `tests/application/test_container_environment_extra.py` (which expect `CHECK_ENVIRONMENT`) and `tests/adapters/test_make_commands_container.py:134`. They build `ContainerMakeCommands` without an image path, so they still hold under the seam the coder proposes, where the default is `SYSTEM_PATH` and `CHECK_ENVIRONMENT` is kept. If the coder's seam changes that, it is a new test change.
+
+    Not done: the Description still lists the watch criterion that entry 12 dropped. The work item's Description is outside the write paths the factory takes from this stage, and the factory left out my earlier edit to it. Someone who may write there has to remove it.
+
+    Files created: none.
+
+    Run: `uv run pytest -q` over the changed files and `tests/entry/test_wiring_project_image.py` had one failure: `test_the_sync_the_check_and_the_agent_take_the_path_of_the_image_in_use[image-path]`. It fails at `env_words(check)["PATH"]`, which is `'/usr/local/bin:/usr/bin:/bin'` where `'/opt/jdk/bin:/usr/local/bin:/usr/bin:/bin'` is expected. That is the right reason: the check's `PATH` is still fixed. Every module imported. The other changed tests passed. `make lint` is green.
+
+    `lint`: lint: green (0.2 s)

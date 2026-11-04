@@ -57,7 +57,7 @@ def _parameters(callable_: Callable[..., object]) -> list[str]:
             for runtime in (ClaudeCodeRuntime, OpencodeRuntime)
         ),
         pytest.param(
-            lambda: _parameters(build_boundaries) != ["settings", "token", "hosting"],
+            lambda: _parameters(build_boundaries) != ["settings", "token", "hosting", "images"],
             id="build-boundaries-parameters",
         ),
         pytest.param(
