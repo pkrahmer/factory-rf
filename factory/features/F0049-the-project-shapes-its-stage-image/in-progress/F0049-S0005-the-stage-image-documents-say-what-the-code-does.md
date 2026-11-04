@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 531
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T02:51:50.277268Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-04T02:51:43.991114Z'
   stage: docs
   run: 63992ac29fb14a229bb72421b43780ca
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:51:50.277268Z'
+  stage: smoke-test
 ---
 
 # The stage image's documents say what the code does and why
@@ -167,3 +176,4 @@ Expect: `0`, `0`, `1`, then `documents ok`.
     `check`: check: green (not run again: passed on tree da88284d442d at 2026-11-04T02:41:58Z)
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
