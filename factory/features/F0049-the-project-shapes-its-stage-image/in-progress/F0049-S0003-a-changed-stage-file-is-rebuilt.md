@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T01:26:07.158256Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T01:26:07.151781Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:26:07.158256Z'
+  stage: intake
+---
+
 # A changed stage file on main is rebuilt between stages
 
 ## Description
@@ -31,3 +58,6 @@ grep -rhoE 'stage image: (built|back to the base at|failed at)' src/factory | so
 Expect: exactly the three lines `stage image: back to the base at`, `stage image: built` and `stage image: failed at`.
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
