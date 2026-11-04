@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T01:15:34.200184Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -251,6 +247,12 @@ journal:
   kind: started
   at: '2026-11-04T01:15:34.200184Z'
   stage: review
+- number: 44
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T01:17:22.293649Z'
+  stage: review
+  run: e1de76a6789b45e1aee97a5b204c6974
 ---
 
 # A project's stage file builds the image its stages run in
@@ -738,3 +740,36 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     `check`: check: green
     `duplicates`: duplicates: 1 new, 42 known, 0 gone
 43. factory: started review as vm.
+44. reviewer: Round 2 review. I read the work item and the diff of `src/` and `tests/` against `main`, leaving out the generated contract schemas. Since the round 1 review (eb3373b45) only two test files have changed: `tests/entry/test_wiring_image_path.py` and `tests/entry/test_wiring_project_image.py`. Nothing under `src/` has changed since then. I did not run `make check`: entry 42 says it was green after the coder (`check: green`, coverage 99.52 %), and the factory runs it again after me.
+
+    Round 1's two findings are closed:
+    - Finding 1 (criterion 5, agent side): the new `tests/entry/test_wiring_image_path.py::test_the_tick_gives_the_agent_run_the_path_of_the_image_in_use` builds the boundaries through `build_boundaries(..., images=FakeImages(paths={IMAGE: JDK_PATH}))` and gives their `image_path` to `build_tick`. It then checks that the agent request's `PATH` is the interpreter's folder followed by the JDK `PATH`. If `build_tick` stopped passing `boundaries.image_path` to `production_environment` (src/factory/entry/wiring.py:657), the `PATH` would fall back to `SYSTEM_PATH` and this test would fail.
+    - Finding 2 (criterion 6, rule rows): `tests/entry/test_wiring_project_image.py::test_a_stage_file_that_breaks_the_rule_stands_as_a_stop_and_builds_nothing` now compares the stop's detail with `str()` of the `StageLayerRefused` the rule raises. This covers both rows: the broken FROM, and the `b"\xff"` file read as U+FFFD.
+
+    I went through groups 1 to 5 again:
+    - **Acceptance criteria:** every criterion from 1 to 14 has a test as entry 32 maps them, with criterion 5 extended by the tick test above.
+    - **Architecture:** the rule is in `factory.domain`, `Images` is an ABC in `factory.application`, podman is reached through `run_podman` only, and the image is chosen in `factory.entry` as entry 9 decided.
+    - **Security:** no new suppression markers, and no command built as a shell string.
+    - **Quality:** the docstrings are present, and `run_podman` is one shared helper.
+    - **Work item hygiene:** the Description matches what was built.
+
+    `make duplicates` still reports one new finding: vulture's false positive on `FakeImages`, which round 0 already rejected.
+
+    no findings
+
+    Notes:
+    - tests/entry/test_wiring_image_path.py:32-37: `PROBE` and `COMPLETED` copy the constants at tests/entry/test_wiring_run.py:56-61. They could move to a shared support module under the standing leave.
+    - tests/entry/test_wiring_image_path.py:97-107: the test builds its `InstanceSettings` and token file by hand, much like the `instance_settings` fixture (tests/conftest.py:506) and tests/entry/test_wiring_run.py:74.
+    - tests/adapters/test_podman_images.py:26-45: `STAND_IN` copies `PODMAN_SCRIPT` and `PodmanPlan` from tests/podman_support.py (carried over from round 1).
+    - tests/adapters/test_podman_images.py:121-140: there is still no row for inspect printing `null`. The code handles that case as the Interface says: src/factory/adapters/podman_images.py:166-168 returns `SYSTEM_PATH` (carried over from round 1).
+    - tests/adapters/test_podman_images.py:21: `SYSTEM_PATH` is defined again instead of being imported from `factory.domain.containers` (carried over from round 1).
+
+    Earlier tests:
+    - tests/conftest.py: the human's leave, entry 17, item 4 (only the `on_the_manual_clock` stand-in's signature and its import).
+    - tests/domain/test_contract.py: the human's leave, entry 17, item 3 (the 4.1 pin).
+    - tests/domain/test_contract_version_4.py: the human's leave, entry 17, item 3 (the 4.1 pins and the module docstring's version).
+    - tests/domain/test_stop_table.py: the human's leave, entry 17, item 2 (the sixteenth row).
+    - tests/test_stop_table.py: the human's leave, entry 17, item 2 (the machine-scope tuple).
+    - tests/test_second_user_removed.py: the human's leave, entry 17, item 1 (`images` in the parameter row).
+    - tests/entry/test_health.py: the human's leave, entry 9, item 4 (the row and the machine-scope tuple).
+    - tests/entry/test_wiring_handlers.py: the Interface's leave for rows that pin the `PATH` (the call gains the explicit `PATH` argument and the test checks the same thing).
