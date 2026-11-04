@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T23:51:56.738640Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T23:51:56.732040Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:51:56.738640Z'
+  stage: intake
+---
+
 # The decision log marks the old tool-time entry as superseded
 
 <!-- proposed by feature acceptance of 2026-11-04; refine before starting -->
@@ -34,3 +61,6 @@ grep -c "This supersedes \*The time per tool command inside a run is not recorde
 Expect: `1`.
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
