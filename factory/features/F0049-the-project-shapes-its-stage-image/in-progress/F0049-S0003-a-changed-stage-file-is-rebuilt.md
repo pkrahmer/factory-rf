@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T02:02:39.209087Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -191,6 +195,11 @@ journal:
   at: '2026-11-04T02:02:33.279327Z'
   stage: docs
   run: e2445c6c329a48f4b38656a17808f97f
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:02:39.209087Z'
+  stage: smoke-test
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -558,3 +567,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     `check`: check: green (not run again: passed on tree c99c2fe9392e at 2026-11-04T01:58:07Z)
     `secrets`: secrets: green (2.7 s)
     `documents`: documents ok
+34. factory: started smoke-test as vm.
