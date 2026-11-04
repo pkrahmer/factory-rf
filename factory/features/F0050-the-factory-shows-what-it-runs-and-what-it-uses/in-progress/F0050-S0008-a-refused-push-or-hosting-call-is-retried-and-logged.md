@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T13:00:26.653561Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-11-04T13:00:26.653561Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-04T13:04:31.316995Z'
+  stage: doing
+  run: d36ed4a3c03b4523ba3e4a166b20e292
 ---
 
 # A refused push or hosting call is retried and logged
@@ -367,3 +369,31 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
 
     `lint`: lint: green (0.1 s)
 19. factory: started doing as vm.
+20. coder: The tester's changes from entry 18 are in. `make check` was green on the first run of this round (`check: green`, total coverage 99.41 %). I made no further code changes.
+
+    What I built (unchanged since entries 13 and 16):
+    - `src/factory/domain/git.py`:
+      - `push_reason(output)`: drops empty lines, git's two advice lines and `hint:` lines; keeps the last three lines left; joins them with ` | `; cuts the whole reason at the end to 300 characters.
+      - `push_is_retried(outcome, output)`: true for `unreachable`, and for `rejected` only when the output holds `[remote rejected]`.
+    - `src/factory/domain/errors.py`: `PushFailed(branch, outcome, reason="")` gains `reason`, which is added to its message.
+    - `src/factory/application/pushes.py` (new):
+      - `push_with_retries(boundaries, branch)`: waits 5, 15 and 45 s through `boundaries.waiter`, and before each wait writes `push: retry n of 3 in s s: <reason>` to `boundaries.log`. A refusal that is not retried raises `PushFailed` at once.
+      - `push_failure(git, branch, outcome)`: builds a `PushFailed` with git's reason.
+    - Where they are used: `StageFinisher._commit_and_push` (`stage.py`) and `WorkItemRecorder.publish` (`handlers/recording.py`) push with retries. The claim, stall, acceptance-opening and remote-branch-deletion pushes only use `push_failure`, without a retry.
+    - `src/factory/application/git.py` and `src/factory/adapters/git_cli.py`: a new `Git.last_push_output()` operation (the 22nd), which returns git's whole output of the latest failed push or remote deletion.
+    - `src/factory/domain/tick_status.py`: `handler_error_line`. `Dispatcher._count` (`dispatcher.py`) now takes the exception and writes one line per counted error. Counting and the cap are unchanged.
+    - `src/factory/adapters/pygithub_hosting.py`: `hosting_retry()` builds `GithubRetry(total=5, backoff_factor=2, allowed_methods=DEFAULT_ALLOWED_METHODS | {"PATCH"})`, and `pygithub_service` passes it to `github.Github(...)`. This is the module-level function the human's answer 6 allowed.
+
+    Main choice: git's reason crosses the `Git` interface through a separate `last_push_output()` operation. I rejected having `push` return a `PushResult` DTO, because it would have changed many tests (human's answer 3a). I also kept the whole reason rule, the advice-line filter included, in the pure domain function rather than in `GitCli`.
+
+    Refactor step: I read the whole diff and found nothing to rename, simplify or remove.
+
+    Criterion 5: the test is the `xfail(strict=True)` case. The tester found that a crash is charged at the next tick for a stage in which no agent ran. That is open for the human; the fix is not part of this story.
+
+    Noticed, not touched:
+    - `make duplicates` reports `3 new, 43 known, 0 gone` and exits with an error. The three new findings are vulture's unused-variable warnings (60 % confidence) for `store_free_bytes`, `dataset_free_bytes` and `memory_peak_since_boot_bytes` in `src/factory/domain/cost_records.py:41-43`, a file this story does not change. It is a record, not a check.
+    - The stall push in `stalls.py` has no retry, as decided, but now carries git's reason.
+    - The reviewer has the human's leave (entry 14, answer 1) to add the advice-line sentence to the Interface's `PushFailed` bullet; I did not rewrite the Description.
+
+    `check`: check: green
+    `duplicates`: duplicates: 3 new, 43 known, 0 gone
