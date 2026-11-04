@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T23:44:05.961074Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-11-04T23:44:00.640398Z'
   stage: review
   run: 5d3c838035f5435e854b5aeafb1c5bb1
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:44:05.961074Z'
+  stage: docs
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -280,3 +289,4 @@ Expect: a line that ends in `passed` with no `failed`.
     Earlier tests:
     - `tests/application/test_push_retry_reason.py`: under the standing leave to move a shared test helper. Only its copy of `result_case` and the imports that copy alone used were removed. Its one test keeps its name and checks the same thing.
     - `tests/conftest.py`: none needed. The change only adds the shared `result_case` fixture and the `push_retry_support` import, and every fixture the file already held is unchanged.
+18. factory: started docs as vm.
