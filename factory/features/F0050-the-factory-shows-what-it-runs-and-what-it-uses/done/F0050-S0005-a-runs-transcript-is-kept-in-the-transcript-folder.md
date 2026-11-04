@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -219,6 +219,11 @@ journal:
   at: '2026-11-04T18:36:48.315641Z'
   stage: smoke-test
   run: 1ba5fd8e68ef4f7fba855682d0e93028
+- number: 39
+  speaker: factory
+  kind: done
+  at: '2026-11-04T18:40:46.900962Z'
+  stage: approval
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -716,3 +721,4 @@ Expect: the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: no
     Not covered: these two commands only search the source. They do not run a stage, write a transcript or check the docs. I did not run `make check` (criterion 9), because the factory runs the stage's checks itself.
 
     Decision: approval.
+39. factory: done (pull request merged); cost: 16 runs, 41.5 min, 231 turns, 749741 tokens in (9756136 more from cache), 120151 out, $9.77
