@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T08:57:44.016290Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-04T08:57:44.016290Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-04T09:05:56.907760Z'
+  stage: tests
+  run: d34ce2cc26cb43a8a4f75b4990d5b790
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -128,3 +130,40 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
    - Architecture: the story touches only `vm/`, tests and docs, with no layer involved.
    - Scope: within F0050's scope (S0001 items). The feature's leave covers changing `tests/test_stage_image.py` and the build-command row of `tests/test_vm_job_start.py`, and nothing else in that module.
 7. factory: started tests as vm.
+8. tester: Wrote the stage-image and job-start tests from the criteria. I changed only `tests/test_stage_image.py` and the build-command row of `tests/test_vm_job_start.py`, under the feature's leave that intake recorded. I created no new files.
+
+   Criteria → tests:
+   - criterion 1: tests/test_stage_image.py::test_the_runtime_build_argument_has_no_default (as-built, `=claude`, `=` empty) and tests/test_stage_image.py::test_the_final_stage_takes_only_the_chosen_runtime_from_the_first_stage (rows node, node-executable, npm, npm-cache, whole-prefix, opencode-install, claude-install)
+   - criterion 2: tests/test_stage_image.py::test_the_first_stage_installs_the_one_runtime_its_name_chooses (as-built, npm-in-final, two-installs, package-without-the-runtime)
+   - criterion 3: tests/test_stage_image.py::test_each_install_pin_has_its_value (NODE_SHA256 is compared as its decimal number, because the hex literal failed `make secrets`)
+   - criterion 4: tests/test_vm_job_start.py::test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options (now shows `AGENT_RUNTIME=opencode` and compares the rest of the argv as before) and tests/test_vm_job_start.py::test_the_stage_image_is_built_for_the_instance_runtime (as-written, without-the-runtime)
+   - criterion 5: tests/test_stage_image.py::test_the_runtime_build_argument_is_checked_before_any_install (as-built, no-check, message-without-AGENT_RUNTIME/claude/opencode)
+   - criterion 6: tests/test_stage_image.py::test_the_final_stage_leaves_no_install_rest (rows tmp, apt lists, debconf, logs) and tests/test_stage_image.py::test_the_final_stage_takes_only_the_chosen_runtime_from_the_first_stage (rows for the other runtime's literal paths and baseline)
+   - criterion 7: tests/test_stage_image.py::test_the_version_settings_stay_in_the_image
+   - criterion 8: tests/test_stage_image.py::test_the_first_line_names_the_build_command_with_the_runtime (replaces test_the_first_line_names_the_build_command)
+   - criteria 9 and 10: no test (`make check`, the human's build, docs).
+
+   How the text checks work:
+   - The final stage is everything after the last `FROM`.
+   - The runtime check must come before the first install command: `apt-get install`, `pip install`, `npm install` or `curl`. Before it, the file must reference `${AGENT_RUNTIME}`, have an `exit` with a non-zero status, and have an `echo` or `printf` whose message (with variables taken out) holds the three words. The test does not check the empty case separately; a `case` with `*)` covers it.
+   - An install "depends on the runtime" when its one package word still holds a `$` after the ARG defaults are put in, and its RUN references `AGENT_RUNTIME` and holds both pinned packages.
+   - The cleanups are `rm` arguments that cover `/tmp/*`, `/var/lib/apt/lists/*`, `/var/cache/debconf/*-old` and `/var/log/*.log` (a glob or a parent directory). They must come after the final stage's last `apt-get` or `/tmp` use.
+   - A COPY --from source is refused when it holds a `node`, `npm` or `.npm` path segment, lies above or below `/opt/factory/node` or `/root/.npm`, or holds a runtime name not written as `${AGENT_RUNTIME}`. It is also refused when any word of the instruction contains `baseline`.
+
+   Earlier tests in tests/test_stage_image.py that the two-stage, one-runtime file must break, changed under the leave:
+   - The floating-reference test and the two npm-install tests now apply each runtime's package to the one install (`_for_runtime`).
+   - The floating-reference test ignores the final stage's default-less `ARG CLAUDE_CODE_VERSION`.
+   - The base-image test now wants the final FROM to be `${BASE_IMAGE}` and two digest-pinned references.
+   - test_the_stage_image_has_one_instruction_of_each_kind became test_the_stage_image_has_its_count_of_each_instruction: two FROM, one LABEL, one COPY without `--from`.
+   - The apt tests now read the final stage only.
+   - The agent-files copy test ignores COPY --from.
+   - The exec-wrapper test replaces `${AGENT_RUNTIME}` with each name.
+   - test_opencode_is_installed_after_claude_code is removed, because the story asks for exactly one install.
+
+   Check: with a sample two-stage Dockerfile and job-start line, both modules passed in full. I then restored `vm/` from HEAD, and `git status` shows only the two test files changed.
+
+   Red run: `uv run pytest -q tests/test_stage_image.py tests/test_vm_job_start.py` fails on the current files with wrong results (for example `[as-built]` rows and the job-start build rows). There were no import errors; no module was missing. `make lint` green, `make secrets` green. No project skill was used.
+
+   The factory left out changes outside the write paths: vm/Dockerfile, vm/job-start.sh.
+
+   `lint`: lint: green (0.1 s)
