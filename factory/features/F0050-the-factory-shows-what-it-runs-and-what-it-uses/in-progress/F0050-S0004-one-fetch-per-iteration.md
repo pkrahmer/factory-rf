@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 542
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T14:22:54.875427Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-04T14:22:54.875427Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-04T14:23:19.708543Z'
+  stage: intake
+  run: a95ab27cceb64c3091dcc3fc2106828a
+  blocked: question
 ---
 
 # One fetch per iteration
@@ -58,3 +61,14 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed):
+
+   1. The Interface names no concrete seam. "The coder decides which of the two places keeps it and how the other learns that the fetch was made" leaves the tester without a signature to write tests against. Two testers could pick different seams, and both would pass criteria 1 to 3. Please name the seam. For example: `Tick.run(fetched: bool = False)` in `factory.application.tick`, which skips `git.fetch()` when the caller already fetched; `_ProjectImageStart._follow_main` in `factory.entry.run` keeps the one fetch and the one raise and clear of `fetch_failed`. I would choose this option, because `factory-watch` then keeps today's default.
+
+   2. `src/factory/application/scheduler.py:126` also calls `self._boundaries.git.fetch()`. The Description and the smoke test count three calls on `main`: tick.py:148, scheduler.py:126 and run.py:235. The story does not say what that call does, or whether it is in the iteration's path. Please say if it belongs to this story (for example, if it is the tick's fetch via the scheduler) or stays as it is. The smoke test's "not larger than before" count depends on the answer.
+
+   3. The Interface says a failed fetch is "raised in one place". Criterion 2 tests this only through `factory-run`. A tick run without the fetch before it, as `factory-watch` runs it, also raises and clears `fetch_failed` at tick.py:148. Does criterion 3 cover that failing side? Please add a criterion for it: a tick run alone with a failed fetch stops as it does today, or the Interface says it no longer raises it. Without this the failing side of the "keep fetching as today" rule has no test.
+
+   4. Criterion 1 has two clauses, a new commit on `main` and a new commit on a work-item branch, in one criterion. A single test function cannot easily show both. Please split it into two criteria, or confirm that one test with two assertions is meant.
+
+   The other checks passed. The smoke test is runnable, and `addopts` already sets `-q`, so the `tail -1` summary line exists. The scope fits the feature (S0004 in `feature.md`). The layers hold: the entry fetches and the application tick receives the knowledge.
