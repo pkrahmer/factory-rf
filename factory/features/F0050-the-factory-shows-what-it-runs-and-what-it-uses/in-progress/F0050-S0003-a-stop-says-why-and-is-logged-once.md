@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T14:09:08.833783Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -159,6 +163,11 @@ journal:
   at: '2026-11-04T14:09:01.968082Z'
   stage: tests
   run: d634766871114aa59e69e3beeb1e0232
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-04T14:09:08.833783Z'
+  stage: doing
 ---
 
 # A stop says why, and is logged once
@@ -455,3 +464,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     The factory left out changes outside the write paths: src/factory/application/tick.py.
 
     `lint`: lint: green (0.1 s)
+28. factory: started doing as vm.
