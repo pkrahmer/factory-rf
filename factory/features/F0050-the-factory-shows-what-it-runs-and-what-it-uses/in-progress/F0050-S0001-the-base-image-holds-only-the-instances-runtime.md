@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272, 6627457871]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T09:39:34.143810Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -249,6 +245,12 @@ journal:
   kind: started
   at: '2026-11-04T09:39:34.143810Z'
   stage: smoke-test
+- number: 44
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T09:40:20.034704Z'
+  stage: smoke-test
+  run: 8482a79d7f924c34bd12144e6fd52eb9
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -704,3 +706,37 @@ Expect: `2`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     `secrets`: secrets: green (2.5 s)
     `documents`: documents ok
 43. factory: started smoke-test as vm.
+44. smoke-tester: Round 2 smoke test. I ran the four commands under `## Smoke test` from the repository root, as written and in order. I fixed nothing. All four met their `Expect:` line (`2`, `2`, `1`, then a line ending in `passed` with no `failed`).
+
+    1. `grep -cE '^ARG AGENT_RUNTIME$' vm/Dockerfile`: met (expected `2`).
+    ```
+    2
+    ```
+    2. `grep -cE '^ARG CLAUDE_CODE_VERSION=2\.1\.318$|^ARG OPENCODE_VERSION=1\.19\.5$' vm/Dockerfile`: met (expected `2`).
+    ```
+    2
+    ```
+    3. `grep -c 'AGENT_RUNTIME=\$FACTORY_AGENT_RUNTIME' vm/job-start.sh`: met (expected `1`).
+    ```
+    1
+    ```
+    4. `uv run pytest tests/test_stage_image.py tests/test_vm_job_start.py 2>&1 | tail -1`: met (the line ends in `passed`, with no `failed`).
+    ```
+    190 passed in 6.50s
+    ```
+
+    Acceptance criteria re-read against `vm/Dockerfile` and `vm/job-start.sh`:
+    - Criteria 1 and 2: both `ARG AGENT_RUNTIME` lines have no default (`vm/Dockerfile:8`, `:39`). The only `npm install` is in the `install` stage. It picks its package with a `case` on `${AGENT_RUNTIME}`.
+    - Criterion 3: the pins are 2.1.318 and 1.19.5. Node's pins match `origin/main` (22.23.4 and its SHA-256).
+    - Criterion 4: `vm/job-start.sh:158` passes `--build-arg "AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME"`.
+    - Criterion 5: the check comes before any install. Its message contains `AGENT_RUNTIME`, `claude` and `opencode`.
+    - Criterion 6: the final stage removes the apt lists, the debconf `*-old` files, `/var/log/*.log` and `/tmp/*`. Its one `COPY --from` takes only `/opt/runtime/${AGENT_RUNTIME}`, and no path in it contains `baseline`.
+    - Criterion 7: the three `ENV` lines are still there.
+    - Criterion 8: the first line names `--build-arg AGENT_RUNTIME=<claude|opencode>`.
+    - Criterion 10: the documenter's entry 42 covers it, and the factory's `documents` check after the docs stage was green.
+
+    Not checked here:
+    - Criterion 9's image builds are the human's to do on factory-vm, so I did not run them.
+    - I did not run `make check` again. The factory reports it green on this tree (entries 36 and 42).
+
+    Findings: none.
