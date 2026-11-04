@@ -60,3 +60,8 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 33. **A behaviour the coder adds on its own is found rounds later.** S0007: the coder wrote the link refusal in its first run; the reviewer found it untested in round 2 ($1.22, 603 s). Fix: the coder names every behaviour it added beyond the Interface in its entry, and the reviewer checks those first.
 34. **`make duplicates` does not see shell**, and the coder runs the full Python suite (88 s) for a diff with no Python, where the relevant tests take 6 s. Fix: the coder's check follows what the diff touches; a duplicates check for `vm/*.sh`.
 35. **What worked: a leave that lists the reviewer's exact edits.** S0007: three edits made exactly, against about 24 in S0005. Keep it as the playbook's way to change a running story.
+
+## For the morning of 2026-11-05: compare the CPU wait
+
+36. **The CPU limit as a test of `cpu_wait_seconds`.** From 21:3x UTC on 2026-11-04 the factory user's slice on factory-vm is limited to 6 of 12 cores (`CPUQuota=600%`, runtime only), because the PC's fan was loud during `make check`. Baseline before the limit, over the 111 F0050 runs that carry `machine`: 22,612 s of CPU, 84.8 s of CPU wait (0.38 % of the CPU time), 1.72 cores on average per run, the largest wait 4.8 s (S0006's doing at 18:55). In the morning: the same numbers for the runs after the limit, the `make check` times before and after, and whether the measure shows the throttle clearly enough to judge a machine's size. Note: a cgroup quota throttles rather than queues, so the throttle may show more in `cpu.stat`'s `throttled_usec` than in `cpu.pressure`; if the wait stays near zero, that field is the candidate to add.
+
