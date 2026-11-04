@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 542
 comments_read: [6633278047]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T14:49:20.687350Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-04T14:49:20.687350Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-04T15:00:56.640501Z'
+  stage: doing
+  run: 5c0e524494694c48acd6cdd8e4627e4e
+  blocked: question
 ---
 
 # One fetch per iteration
@@ -161,3 +164,30 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
    `lint`: lint: green (0.2 s)
 9. factory: started doing as vm.
+10. coder: Question: the Interface's `Tick.run(fetched: bool = False)` breaks six test doubles that subclass `Tick` and override `run(self)` with no parameters. Other stories wrote them, and the standing leave does not cover changing them. Which way do you want it?
+
+    What I did. The implementation is in the working tree:
+    - `src/factory/application/tick.py`: `run(self, *, fetched: bool = False)` skips `_fetch()` when `fetched` is true. The disk check still runs first.
+    - `src/factory/entry/run.py`: `activity_tick(tick, idle=None, *, fetched=False)` passes the flag on. `_ProjectImageStart._choose` builds the tick with `fetched=True`, since `_follow_main` fetches and raises or clears `fetch_failed` before every tick.
+
+    With it, the new tests in `tests/entry/test_run_one_fetch.py` and `tests/application/test_tick_own_fetch.py` pass: `uv run pytest -q` on those two files gives `......` with no failure.
+
+    `make check` is red: I did not run the whole target, but mypy alone fails. These test doubles still override `run(self)`:
+    - `tests/entry/test_run_stop_requested.py:31` (`AskingTick`)
+    - `tests/entry/test_run_project_image_rebuild.py:75` (`RecordingTick`)
+    - `tests/entry/test_run_image_sizes.py:39` (`SeeingTick`)
+    - `tests/entry/test_run_fetch_before_tick.py:54` (`RecordingTick`)
+    - `tests/entry/test_run_idle_shutdown.py:21` (`_ScriptedTick`)
+    - `tests/scripted_tick_support.py:44` (`ScriptedTick`)
+
+    Two failures follow:
+    - `mypy --strict` reports `Signature of "run" incompatible with supertype "factory.application.tick.Tick"  [override]` for each, ending in `Found 6 errors in 6 files`.
+    - At runtime, the ones that `run_instance` builds now get `fetched=True`, for example `iteration failed: TypeError: SeeingTick.run() got an unexpected keyword argument 'fetched'` and then `tests/entry/test_run_image_sizes.py:84: AssertionError`.
+
+    Options:
+    - A (my choice): the tester changes only the signature of those six overrides to `def run(self, *, fetched: bool = False) -> TickOutcome:` and leaves their bodies alone, so each test still checks the same thing. The code stays as the Interface says, and the coder then only re-runs `make check`.
+    - B: a different seam that leaves `Tick.run()` without a parameter, for example a constructor flag on `Tick` or a no-op fetch in the boundaries the entry hands to the tick. This contradicts the Interface. It also fails the new tests, which call `tick.run(fetched=False)` (criteria 3 and 4) and replace `build_tick` with a plain `Tick(boundaries, ...)` (criteria 1 and 2). It would need new tests as well.
+
+    With A, the next coder round ends with `tests`, naming the six signatures.
+
+    Noticed, not touched: the tester's note that `Instance.go_away`/`come_back` in `tests/entry/test_run_one_fetch.py` copy `Outage` in `tests/entry/test_run_fetch_before_tick.py`. I did no refactor step, because the stage stops here. The project guide was not changed: that is the docs stage's work.
