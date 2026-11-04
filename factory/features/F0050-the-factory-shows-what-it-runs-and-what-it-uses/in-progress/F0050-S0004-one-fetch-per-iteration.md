@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T14:22:54.875427Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T14:22:54.868675Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T14:22:54.875427Z'
+  stage: intake
+---
+
 # One fetch per iteration
 
 ## Description
@@ -28,3 +55,6 @@ uv run pytest tests/entry tests/application -k fetch 2>&1 | tail -1
 Expect: a number not larger than before the story (3 on `main` when it was written), then a line that ends in `passed` with no `failed`.
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
