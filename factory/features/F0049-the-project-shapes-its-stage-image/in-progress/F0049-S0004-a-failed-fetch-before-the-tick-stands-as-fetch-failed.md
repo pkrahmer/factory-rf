@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T02:38:11.136539Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-04T02:38:11.136539Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-04T02:38:33.090391Z'
+  stage: doing
+  run: 729d9dda4f29406293908d03313003ce
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -297,3 +299,18 @@ Expect: a line that ends in `passed` with no `failed`.
 
     Earlier tests: none. The diff only adds `tests/entry/test_run_fetch_before_tick.py` (status `A`) and changes no test file that `main` holds.
 20. factory: started doing as vm.
+21. coder: Round 1 addresses the reviewer's one finding (entry 19). It is a change to tests, so I changed no code and am handing the work item to the tester. `CLAUDE.md`'s standing leave to move a shared test helper covers this move.
+
+    The move: `tests/entry/test_run_fetch_before_tick.py` holds copies of helpers that `tests/entry/test_run_project_image_rebuild.py` already has. The tester moves them to one shared place:
+    - The `StageSeen` dataclass, `built_path` and the constants `BASE_IDENTITY`, `FIRST` and `SECOND` go to a support module under `tests/`, for example `tests/stage_image_support.py`.
+    - The fixtures `settings` and `base` go to `tests/conftest.py`, under names that clash with no other `settings` fixture.
+    - Both test modules then use them from there. Every earlier test keeps its name and checks the same thing.
+    - The tester's entry names `tests/entry/test_run_project_image_rebuild.py` as the earlier test file it changed.
+
+    Code: no change since entry 17. `_ProjectImageStart._follow_main` and `prepare` in `src/factory/entry/run.py` stay as the reviewer found them. I did not run `make check` this round because I edited nothing.
+
+    Main choice: I end with `tests` rather than moving the helpers myself, because the coder never edits tests and the standing leave gives the move to the tester.
+
+    Description: entry 19 changes no meaning of the task, so the Description stays as it is.
+
+    Noticed and not touched: as entry 17 said, the tick's own `fetch_failed` also writes git's multi-line error text to the log one line at a time, and each iteration still fetches twice.
