@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 543
 comments_read: [6635484197]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T16:04:55.395432Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-04T16:04:55.395432Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-04T16:08:04.642756Z'
+  stage: tests
+  run: d21fa20287144a658a0e6b09c3f3007c
+  blocked: question
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -137,3 +140,22 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
    - Architecture: settings and models in domain, wrappers per runtime, keeper and store interface in application, the file adapter in adapters, and wiring in entry. This fits the four layers.
    - Scope: within F0050's S0005 line, with nothing from "Out of scope". The tester has the human's leave for the three "4.2" pins to "4.3".
 7. factory: started tests as vm.
+8. tester: Tests are written for the seams the Interface names exactly. Some criteria are only partly covered, because the seams they go through at stage level are not named. I stopped there instead of guessing.
+
+   Written so far (red on purpose, `make lint` green):
+   - criterion 5: tests/domain/test_settings_transcripts.py::test_the_transcript_folder_is_read_or_refused (rows: unset, empty, absolute outside, relative, inside workspace, checkout, state directory, agent home) and ::test_the_transcript_days_are_read_or_refused (rows: unset, empty, 1, 0, -1, x)
+   - criterion 8: tests/domain/test_transcript_ref.py::test_a_transcript_ref_takes_only_a_relative_gz_path_and_a_lowercase_sha256
+   - criterion 9: the three `"4.2"` pins became `"4.3"`, under the human's leave (journal 4), nothing else changed: tests/domain/test_contract_version_4.py, tests/domain/test_contract_version_4_2.py, tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version
+   - criterion 2 (keeper and store side; Claude Code row only): tests/application/test_transcript_keeper.py::test_a_kept_transcript_is_a_gzip_file_under_its_run_id_that_its_ref_names, tests/adapters/test_transcript_files.py::test_a_written_transcript_is_owner_only_and_its_sha256_returned, tests/adapters/test_claude_runtime_transcript.py::test_a_session_is_read_from_its_project_folder
+   - criterion 3 (keeper side): tests/application/test_transcript_keeper.py::test_a_run_kept_again_replaces_its_file_and_a_later_run_keeps_its_own
+   - criterion 4 (keeper and wrapper side): tests/application/test_transcript_keeper.py::test_a_folder_that_cannot_be_written_logs_the_line_and_keeps_nothing, tests/adapters/test_claude_runtime_transcript.py::test_a_session_without_a_file_has_no_transcript
+   - criterion 6 (store and keeper side): tests/adapters/test_transcript_files.py::test_only_files_strictly_older_than_the_days_are_removed (rows: older, exactly, newer), tests/application/test_transcript_keeper.py::test_removing_old_transcripts_logs_a_line_only_when_it_removed_any
+
+   Files created: the five new test modules above. Modules the test run could not import: factory.adapters.transcript_files, factory.application.transcripts, factory.domain.transcripts, and `TranscriptRef` from factory.domain.cost_records. These are collection errors, as expected.
+
+   Questions. Criteria 1, 3 and 4 (record level), 6 (tick level), 7 and the opencode row of 2 run through seams the Interface leaves to the coder ("the coder may add arguments"). A test cannot be written against them yet:
+
+   1. How the keeper reaches the stage run, and how a test scripts a transcript. This is needed for criterion 1 (no file, no `transcript:` line, record `transcript` None, unset and empty rows), the record half of 3 (a resumed run's record and a later run's record), the stage rows of 4 (missing session, missing transcript, a later run's failed copy) and criterion 7. Options: (a) `Boundaries` gains `transcripts: TranscriptStore | None = None` (None when the setting is unset; the stage builds the keeper from it and `boundaries.log`), and `ScriptedRun` in the fake runtime gains `transcript: Transcript | None = None`, which the fake's `read_transcript` returns for the result's session; (b) the stage takes a `TranscriptKeeper | None` argument. I would choose (a). The stage reads from `settings.agent_home`, or from the dataset's home path: please say which home path the stage passes to `read_transcript`.
+   2. Criterion 6 at tick level: how does `activity_tick` get the keeper, the days and the clock? I would choose keyword arguments `transcripts: TranscriptKeeper | None = None, transcript_days: int | None = None, clock: Clock | None = None`. The idle and non-idle rows would then drive it with a fake `Tick` that returns an idle and a busy outcome.
+   3. Opencode (criterion 2's second row): which files under `.local/share/opencode` make up session S, and what must the gathered content contain? I would choose: every file under `.local/share/opencode/storage` whose path names S (`session/*/S.json`, `message/S/*`, and the parts of those messages), and the test checks that the gathered content holds each of those files' text. If this opencode version keeps sessions in its `opencode.db` instead, the test would need a different stand-in. Please name the layout.
+   4. Criterion 7: I would check that, with `transcript_dir` set, no mount of a container started through the fake containers and no `AgentRunRequest.prompt` recorded by the fake runtime contains the folder's path. Is that the check you want?
