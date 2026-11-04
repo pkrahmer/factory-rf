@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T22:51:26.964369Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -186,6 +190,11 @@ journal:
   at: '2026-11-04T22:51:21.623557Z'
   stage: docs
   run: be45b84dbc9c4f91839eb47a2ac68a96
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-11-04T22:51:26.964369Z'
+  stage: smoke-test
 ---
 
 # A hosting failure after the claim charges no crash
@@ -464,3 +473,4 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
     `check`: check: green (not run again: passed on tree a4a57514a13e at 2026-11-04T22:47:18Z)
     `secrets`: secrets: green (2.9 s)
     `documents`: documents ok
+33. factory: started smoke-test as vm.
