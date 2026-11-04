@@ -41,7 +41,7 @@ class ScriptedTick[A](Tick):
         return not self._steps
 
     @override
-    def run(self) -> TickOutcome:
+    def run(self, *, fetched: bool = False) -> TickOutcome:
         minutes, seconds, action = self._steps.pop(0)
         self.runs += 1
         self._clock.advance(

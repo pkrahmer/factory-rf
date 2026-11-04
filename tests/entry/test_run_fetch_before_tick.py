@@ -51,7 +51,7 @@ class RecordingTick(Tick):
         self._images = images
 
     @override
-    def run(self) -> TickOutcome:
+    def run(self, *, fetched: bool = False) -> TickOutcome:
         self._record(replace(self._seen, builds=len(self._images.builds)))
         return TickOutcome()
 

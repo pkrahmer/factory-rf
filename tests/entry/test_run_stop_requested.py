@@ -28,7 +28,7 @@ class AskingTick(Tick):
         self._seen = seen
 
     @override
-    def run(self) -> TickOutcome:
+    def run(self, *, fetched: bool = False) -> TickOutcome:
         self._seen.append(self._stop_requested())
         self._request()
         self._seen.append(self._stop_requested())

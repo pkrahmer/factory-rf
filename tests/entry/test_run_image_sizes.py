@@ -36,7 +36,7 @@ class SeeingTick(Tick):
         self._record = record
 
     @override
-    def run(self) -> TickOutcome:
+    def run(self, *, fetched: bool = False) -> TickOutcome:
         self._record(self._seen)
         return TickOutcome()
 

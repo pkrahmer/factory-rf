@@ -72,7 +72,7 @@ class RecordingTick(Tick):
         self._builds = builds
 
     @override
-    def run(self) -> TickOutcome:
+    def run(self, *, fetched: bool = False) -> TickOutcome:
         if self._during:
             self._during.pop(0)()
         seen = self._seen

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T15:13:44.631580Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-04T15:13:44.631580Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-04T15:14:26.652106Z'
+  stage: tests
+  run: 43aeb62bd64d41b2af91152bc65008be
 ---
 
 # One fetch per iteration
@@ -228,3 +230,24 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
     I changed no code in this run. Not checked in this run: I did not re-run `make check`. It stays red until the six signatures change, because `mypy --strict` reports an `[override]` error for each of them. Once the tester sends the work item back, I run `make check` and do the refactor step.
 14. factory: started tests as vm.
+15. tester: Approved test change (the human's answer in entry 11, option A, named by the coder in entry 13). I changed only the signature of `run` to `def run(self, *, fetched: bool = False) -> TickOutcome:` in the six test doubles below. Their bodies and everything else in those modules are unchanged, so each test still checks the same thing.
+    - tests/entry/test_run_stop_requested.py:31 (`AskingTick`)
+    - tests/entry/test_run_project_image_rebuild.py:75 (`RecordingTick`)
+    - tests/entry/test_run_image_sizes.py:39 (`SeeingTick`)
+    - tests/entry/test_run_fetch_before_tick.py:54 (`RecordingTick`)
+    - tests/entry/test_run_idle_shutdown.py:21 (`_ScriptedTick`)
+    - tests/scripted_tick_support.py:44 (`ScriptedTick`)
+
+    Criterion → test mapping, unchanged from entry 8:
+    - criterion 1: tests/entry/test_run_one_fetch.py::test_an_iteration_fetches_once_and_its_tick_sees_what_that_fetch_brought
+    - criterion 2: tests/entry/test_run_one_fetch.py::test_a_failed_fetch_in_an_iteration_stands_as_fetch_failed_and_the_next_passed_one_clears_it
+    - criterion 3: tests/application/test_tick_own_fetch.py::test_a_tick_run_without_the_fetch_before_it_fetches_once
+    - criterion 4: tests/application/test_tick_own_fetch.py::test_a_tick_run_alone_whose_fetch_fails_stops_and_the_next_passed_one_clears_it
+
+    Files created: none in this run. The earlier test files I changed are the six above, under the human's leave in entry 11. Every module imported.
+
+    Not done: the optional move of the `Outage` copy (`Instance.go_away`/`come_back` in tests/entry/test_run_one_fetch.py) to a shared place. The human allowed it but did not require it, and I kept this run to exactly the approved change. It can still be made under the standing leave if review counts the copy as a finding.
+
+    The one run was `uv run pytest -q` on the six changed modules, the test modules that use scripted_tick_support, and the two new test files. All 45 tests passed, with no failure. `make lint`: lint: green (0.1 s). I skipped the type check, as this stage says; the coder's `make check` covers it.
+
+    `lint`: lint: green (0.1 s)
