@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T23:38:13.724549Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-04T23:38:08.702732Z'
   stage: doing
   run: 89ba15dd52fa4926a4213a398aa9c7f3
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:38:13.724549Z'
+  stage: tests
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -201,3 +210,4 @@ Expect: a line that ends in `passed` with no `failed`.
     Rejected: putting the fixture in `tests/push_retry_support.py`. That module holds plain helpers and `open_push_case`, and `CLAUDE.md` puts a shared fixture in `tests/conftest.py`.
 
     The code in `src/factory/domain/git.py` stays as it was in round 0, and so does the Description: the journal did not change what the task means. Noticed but not touched: the docs criterion (operator guide and git-and-hosting guide) is the documenter's work.
+12. factory: started tests as vm.
