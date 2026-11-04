@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T01:02:35.267881Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -196,6 +192,12 @@ journal:
   kind: started
   at: '2026-11-04T01:02:35.267881Z'
   stage: doing
+- number: 34
+  speaker: coder
+  kind: result
+  at: '2026-11-04T01:06:30.994631Z'
+  stage: doing
+  run: d52fb857564b4deea6435e2f3771cbb0
 ---
 
 # A project's stage file builds the image its stages run in
@@ -570,3 +572,27 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
 
     `lint`: lint: green (0.1 s)
 33. factory: started doing as vm.
+34. coder: Round 1, after the tester's entry 32. I changed no files this run. The working tree is clean.
+
+    First I ran `make check` on the committed state. It is green: lint, types, layers, sast, secrets, licenses and test (84.5 s, coverage 99.52 %), then `check: green`. No test failed. The tester's new and changed tests for findings 1, 4, 5, 6, 7 and 8 from entry 25, and the refused row `not-utf-8-or-u-fffd` from entry 28, pass against code that earlier rounds built:
+    - the success path through `run_instance`: `src/factory/entry/run.py`, `_ProjectImageStart`;
+    - the inspect failure that raises `ContainerError`, and the job-profile global options: `src/factory/adapters/podman_images.py`;
+    - the fallback to `/usr/local/bin:/usr/bin:/bin`: `src/factory/entry/wiring.py`, `_image_path`;
+    - the refusal that names both U+FFFD and bytes that are not UTF-8: `src/factory/domain/stage_layer.py`.
+
+    So this round needed no code. The findings for the coder (2 and 3) were settled in entries 27 and 30.
+
+    Main choice: I left the code as it stands. I rejected changing code just to make the new tests turn red first: they are already green for the right reason, because the behaviour they pin was built in round 0 and in entry 30.
+
+    Refactor step: I read the diff against `main` again, mainly `src/factory/domain/stage_layer.py`. Nothing needs changing.
+
+    Description: entry 28 changed the meaning: one refusal for U+FFFD and for bytes that are not UTF-8, the 64 KiB limit measured on the UTF-8 encoding of the text as read, and one sentence in the operator guide. The Description does not say this yet. I did not rewrite it, because the factory left out earlier edits to the work item from these stages. The operator-guide sentence is the documenter's.
+
+    Noticed, not touched (the same notes entry 17 kept):
+    - A build that reaches its time limit gets podman's no-end text as its detail, not the tail.
+    - An image that cannot be inspected falls back to the default `PATH`.
+    - With `image=None`, no preflight stamp is reused.
+    - `make duplicates` still reports vulture's false positive on `FakeImages`, the fake that only tests use.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 42 known, 0 gone
