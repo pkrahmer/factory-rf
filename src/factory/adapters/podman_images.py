@@ -11,6 +11,7 @@ from factory.adapters.printed_output import failure_detail
 from factory.application.images import ImageBuild, Images
 from factory.domain.containers import JOB_PODMAN_OPTIONS, SYSTEM_PATH
 from factory.domain.errors import ContainerError
+from factory.domain.machine import count_warnings
 from factory.domain.settings import ContainerProfileName
 from factory.domain.stage_layer import StageLayer
 
@@ -60,6 +61,7 @@ class PodmanImages(Images):
             passed=result.exit_status == 0,
             duration=result.duration,
             output_tail="\n".join(result.stdout.splitlines()[-BUILD_OUTPUT_TAIL_LINES:]),
+            warnings=count_warnings(result.stdout),
         )
 
     def path(self, image: str) -> str:
@@ -74,6 +76,28 @@ class PodmanImages(Images):
         except json.JSONDecodeError as error:
             raise ContainerError(command, f"printed no environment: {error}") from error
         return _configured_path(environment) or SYSTEM_PATH
+
+    def size_bytes(self, image: str) -> int | None:
+        """The size `podman image inspect` gives `image`, or `None` when it gives none."""
+        printed = self._printed(["image", "inspect", "--format", "{{.Size}}", image])
+        if printed is None or not printed.isdigit():
+            return None
+        return int(printed)
+
+    def store_path(self) -> Path | None:
+        """The graph root `podman info` names, or `None` when it names none."""
+        printed = self._printed(["info", "--format", "{{.Store.GraphRoot}}"])
+        return None if not printed else Path(printed)
+
+    def _printed(self, words: list[str]) -> str | None:
+        # A measure the machine cannot give is unknown, never a fault of the run.
+        try:
+            result = run_podman([*self._podman, *words], PODMAN_TIME_LIMIT)
+        except ContainerError:
+            return None
+        if result.exit_status != 0:
+            return None
+        return result.stdout.strip()
 
 
 def _configured_path(environment: object) -> str | None:

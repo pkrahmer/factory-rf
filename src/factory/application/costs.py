@@ -3,17 +3,18 @@
 from __future__ import annotations
 
 import uuid
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
+from factory.application.disk_records import bytes_or_unknown
 from factory.application.files import CostRecordReader
 from factory.application.git import Git
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.bills import Bill, StageBill, bill, bills_by_stage, cost_line, cost_table
-from factory.domain.cost_records import CostRecord
+from factory.domain.cost_records import CostRecord, MachineMeasures
 from factory.domain.identifiers import (
     WorkItemId,
     branch_name,
@@ -21,6 +22,7 @@ from factory.domain.identifiers import (
     work_item_of_branch,
     work_item_order,
 )
+from factory.domain.machine import MachineTotals, machine_differences
 from factory.domain.paths import FEATURES_DIRECTORY, MAIN_BRANCH, REMOTE, cost_records_path
 from factory.domain.work_item import require_state
 
@@ -29,13 +31,17 @@ if TYPE_CHECKING:
 
 
 class CostRun(BaseModel):
-    """One run's sidecar in memory: its path, the run's id and every record, the run's last."""
+    """One run's sidecar in memory: its path, the run's id and every record, the run's last.
+
+    `start_totals` are the machine's running totals when the run began; `None` when unread.
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     path: str
     run: str
     records: list[CostRecord]
+    start_totals: MachineTotals | None = None
 
 
 class CostRecorder:
@@ -63,14 +69,20 @@ class CostRecorder:
             image=settings.image,
             instance=settings.instance,
         )
-        run = CostRun(path=path, run=record.run, records=[*earlier, record])
+        run = CostRun(
+            path=path,
+            run=record.run,
+            records=[*earlier, record],
+            start_totals=self._start_totals(),
+        )
         self.write(run)
         return run
 
     def complete(self, run: CostRun, result: AgentRunResult) -> CostRun:
         """Replace the run's record by its completed one, with what `result` reported, and write."""
+        machine = self._machine_measures(run.start_totals)
         records = [
-            _completed(record, result) if record.run == run.run else record
+            _completed(record, result, machine) if record.run == run.run else record
             for record in run.records
         ]
         completed = run.model_copy(update={"records": records})
@@ -81,8 +93,37 @@ class CostRecorder:
         """Write the records of `run` to its sidecar, replacing whatever the file held."""
         self._boundaries.cost_writer.write(self._boundaries.checkout / run.path, run.records)
 
+    def _start_totals(self) -> MachineTotals | None:
+        machine = self._boundaries.machine
+        return None if machine is None else machine.totals()
 
-def _completed(record: CostRecord, result: AgentRunResult) -> CostRecord:
+    def _machine_measures(self, start_totals: MachineTotals | None) -> MachineMeasures | None:
+        boundaries = self._boundaries
+        machine = boundaries.machine
+        totals = None if machine is None else machine_differences(start_totals, machine.totals())
+        measures = MachineMeasures(
+            base_image_bytes=boundaries.base_image_bytes,
+            project_layer_bytes=boundaries.project_layer_bytes,
+            store_free_bytes=self._free_bytes(boundaries.image_store),
+            dataset_free_bytes=self._free_bytes(boundaries.settings.workspace),
+            memory_peak_since_boot_bytes=None if machine is None else machine.memory_peak_bytes(),
+            memory_total_bytes=None if machine is None else machine.memory_total_bytes(),
+            cpu_seconds=None if totals is None else totals.cpu_seconds,
+            cpu_wait_seconds=None if totals is None else totals.cpu_wait_seconds,
+            memory_wait_seconds=None if totals is None else totals.memory_wait_seconds,
+        )
+        # A machine that gave nothing is one unknown measure, not nine.
+        return None if measures == MachineMeasures() else measures
+
+    def _free_bytes(self, path: Path | None) -> int | None:
+        if path is None:
+            return None
+        return bytes_or_unknown(self._boundaries.disk.free_bytes, path)
+
+
+def _completed(
+    record: CostRecord, result: AgentRunResult, machine: MachineMeasures | None
+) -> CostRecord:
     # Copied as reported: an unknown measure stays None and a reported zero stays zero (R24).
     # A run that died or met its time limit left no reply, so its denials are unknown.
     no_reply = result.end_reason in ("died", "time_limit")
@@ -101,6 +142,7 @@ def _completed(record: CostRecord, result: AgentRunResult) -> CostRecord:
             "denials": None if no_reply else len(result.permission_denials),
             "denied_paths": None if no_reply else _denied_paths(result),
             "login": result.login,
+            "machine": machine,
         }
     )
 

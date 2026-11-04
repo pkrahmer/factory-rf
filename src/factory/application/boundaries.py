@@ -16,7 +16,14 @@ from factory.application.files import (
 )
 from factory.application.git import Git
 from factory.application.hosting import HostingService
-from factory.application.machine import Clock, DiskSpace, FactoryLog, HealthStatusStore, Waiter
+from factory.application.machine import (
+    Clock,
+    DiskSpace,
+    FactoryLog,
+    HealthStatusStore,
+    MachineReadings,
+    Waiter,
+)
 from factory.application.project_commands import ProjectCommands
 from factory.application.snapshots import Snapshots
 from factory.domain.containers import SYSTEM_PATH
@@ -57,3 +64,10 @@ class Boundaries:
     container_extra_environment: Mapping[str, str] = field(default_factory=dict)
     # The `PATH` the image every container runs in configures.
     image_path: str = SYSTEM_PATH
+    # The kernel's counts of the containers' user; `None` where the machine gives none.
+    machine: MachineReadings | None = None
+    # The sizes of the image the containers run in, measured when it was built or chosen.
+    base_image_bytes: int | None = None
+    project_layer_bytes: int | None = None
+    # The folder of the image store, whose free space the cost records show.
+    image_store: Path | None = None

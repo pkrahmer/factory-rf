@@ -1,7 +1,8 @@
-"""The fake images the tests use: no build runs, and each image's `PATH` is given."""
+"""The fake images the tests use: no build runs, and each image's `PATH` and size are given."""
 
 from dataclasses import dataclass
 from datetime import timedelta
+from pathlib import Path
 
 from factory.application.images import ImageBuild, Images
 from factory.domain.containers import SYSTEM_PATH
@@ -21,13 +22,20 @@ class BuildCall:
 
 
 class FakeImages(Images):
-    """Images whose builds end as given and whose `PATH`s are given per image."""
+    """Images whose builds end as given and whose `PATH`s and sizes are given per image."""
 
     def __init__(
-        self, paths: dict[str, str] | None = None, build_result: ImageBuild = PASSED_BUILD
+        self,
+        paths: dict[str, str] | None = None,
+        build_result: ImageBuild = PASSED_BUILD,
+        sizes: dict[str, int] | None = None,
     ) -> None:
-        """Give each image of `paths` its `PATH`, every other the base's; end builds as given."""
+        """Give each image of `paths` its `PATH`, every other the base's; end builds as given.
+
+        Each image of `sizes` has its size, every other none known.
+        """
         self._paths = dict(paths or {})
+        self._image_sizes = dict(sizes or {})
         self._build_result = build_result
         self.builds: list[BuildCall] = []
 
@@ -39,3 +47,11 @@ class FakeImages(Images):
     def path(self, image: str) -> str:
         """The `PATH` given for `image`, or the base's."""
         return self._paths.get(image, SYSTEM_PATH)
+
+    def size_bytes(self, image: str) -> int | None:
+        """The size given for `image`, or `None`."""
+        return self._image_sizes.get(image)
+
+    def store_path(self) -> Path | None:
+        """Unknown: `None`."""
+        return None

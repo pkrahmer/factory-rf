@@ -1,9 +1,10 @@
-"""The interfaces to the machine: its clock, the log, the health status store, disks and power."""
+"""The interfaces to the machine: its clock, the log, health status, disks, readings and power."""
 
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from factory.domain.machine import MachineTotals
 from factory.domain.stops import HealthStatus
 
 
@@ -59,6 +60,22 @@ class DiskSpace(ABC):
 
         Symbolic links and other non-regular files are skipped.
         """
+
+
+class MachineReadings(ABC):
+    """Reads what the kernel counts for the user whose containers the factory runs."""
+
+    @abstractmethod
+    def totals(self) -> MachineTotals:
+        """The running totals of CPU time and of the waits for a CPU and for memory now."""
+
+    @abstractmethod
+    def memory_peak_bytes(self) -> int | None:
+        """The high-water mark of the user's memory since its slice began; `None` when unread."""
+
+    @abstractmethod
+    def memory_total_bytes(self) -> int | None:
+        """The machine's memory in bytes; `None` when unread."""
 
 
 class PowerOff(ABC):

@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T11:18:54.762533Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -127,6 +123,13 @@ journal:
   kind: started
   at: '2026-11-04T11:18:54.762533Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: question
+  at: '2026-11-04T11:37:51.669625Z'
+  stage: doing
+  run: 87b4e6dce2104b51aedd6864c7bd2ef9
+  blocked: question
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -328,3 +331,39 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.1 s)
 21. factory: started doing as vm.
+22. coder: I stopped with everything built. `make check` is red on two tests from earlier stories. Both conflict with this story's Interface and I may not change them, so I am asking. lint, types, layers, sast, secrets and licenses are green, and so are all of this story's tests.
+
+    The two failures in `make test`:
+
+    1. `tests/test_docker_path_removed.py::test_the_process_table_names_are_removed[proc]` fails with `assert False` from `_no_module_reads_proc`. That check fails when any file under `src/factory` contains the text `/proc`. The Interface says `memory_total_bytes` is `MemTotal` of `/proc/meminfo`, so the wiring has to name that path (`_MEMINFO = Path("/proc/meminfo")` in `src/factory/entry/wiring.py`). The docstrings of `factory.domain.machine` and `factory.adapters.machine_files` name it too. The check was written to keep the process table out (`/proc/<pid>`); the meminfo file is not the process table. Options:
+       (a) The tester narrows `_no_module_reads_proc` so that `/proc/meminfo` is allowed and the process table is still refused, for example by refusing only `/proc/<digits>`, `/proc/self` and a bare `/proc` folder. **This is what I would choose.**
+       (b) Read the memory total through `os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE")` instead. This gives the kernel's same `totalram` value, but it changes the Interface and the tester's adapter test `tests/adapters/test_machine_files.py`, which reads a meminfo path given to the constructor.
+       (c) Build the path in pieces (`Path("/", "proc", "meminfo")`) so the text never appears. I reject this: it gets past the check without meeting what it is for.
+
+    2. `tests/application/test_stage_provider_limit.py::test_a_stage_whose_limit_outlasts_the_ceiling_stalls_with_its_note` fails with `E   KeyError: PosixPath('/tmp/.../test_a_stage_whose_limit_outla0/work')`. The failing call is `tests/disk_support.py:26` in `free_bytes`, reached from `src/factory/application/costs.py` `_free_bytes`. The test gives the stage `local_settings`, which name a workspace. The shared `FakeDiskSpace` of the `boundaries` fixture only knows `tmp_path` and the state folder, and it raises `KeyError` for any other path. The Interface says `dataset_free_bytes` is the free space of `FACTORY_WORKSPACE`, and that a file system that cannot be read gives `None` (`OSError`). Options:
+       (a) The tester changes `FakeDiskSpace` in `tests/disk_support.py` to answer a path it was not told with `FileNotFoundError` instead of `KeyError`, so an unknown path reads as a file system that cannot be read. **This is what I would choose.**
+       (b) The tester adds the workspace to the free space of that one test's fake disk.
+       (c) The code catches `LookupError` as well. I reject this: production code would be catching the fake's error.
+
+    What I built:
+    - `src/factory/domain/machine.py`: `MachineTotals`, `count_warnings`, `gigabytes`, `pressure_total_seconds`, `cpu_usage_seconds`, `mem_total_bytes` and `machine_differences`. A total that went down between start and end also gives `None`.
+    - `MachineMeasures` and `CostRecord.machine` in `src/factory/domain/cost_records.py`. `machine` is declared before `login`, because `tests/domain/test_login_records.py` requires `login` to be the last field.
+    - `MachineReadings` in `src/factory/application/machine.py`.
+    - `Images.size_bytes` and `Images.store_path` in `src/factory/application/images.py`, with `ImageBuild.warnings` defaulting to `0`. Implemented in `src/factory/adapters/podman_images.py`, which runs `podman image inspect --format {{.Size}}` and `podman info --format {{.Store.GraphRoot}}`; a failed call gives `None`. `FakeImages` takes an optional `sizes` argument.
+    - `CgroupMachineReadings` in `src/factory/adapters/machine_files.py`.
+    - `Boundaries` in `src/factory/application/boundaries.py` gains `machine` (optional, default `None`, because `tests/proof_support.py` builds `Boundaries` without it), `base_image_bytes`, `project_layer_bytes` and `image_store`.
+    - `CostRecorder` in `src/factory/application/costs.py`. `CostRun` gains `start_totals`, read in `begin`. `complete` builds the measures and gives `None` when the machine gave nothing. It reuses `bytes_or_unknown` from `src/factory/application/disk_records.py`, which I made public for this.
+    - `ImageSizes`, `image_sizes` and the two log lines in `src/factory/entry/wiring.py`. A size that cannot be read is written as `unknown`. The machine readings are wired to `/sys/fs/cgroup/user.slice/user-<uid>.slice` and `/proc/meminfo`.
+    - `_ProjectImageStart` in `src/factory/entry/run.py` measures the sizes when it chooses an image and puts them into the boundaries. It hands the base-only line a report only at the start, so a return to the base logs just `back to the base`, as `tests/entry/test_run_project_image_rebuild.py` expects.
+    - The contract is at 4.2, its schemas regenerated with `uv run python -m factory.entry.contract`.
+
+    Arguments I added beyond the names in entries 9 and 18: `FakeImages(sizes=...)`, `CostRun.start_totals`, `Boundaries.image_store`, `_ProjectImageStart._choose(at_start=...)`, and `image_sizes(images, base, project)` in the wiring.
+
+    Main design decision: when a machine was asked and gave nothing, the record says `"machine":null`; a record written without the field leaves it out. Three sets of tests have to hold at once: `tests/application/test_costs.py` (the record in memory equals the one read back), the new null-machine test (`"machine":null` on disk, `None` when read back) and the earlier writer tests (their exact lines, with no `machine` key). So `machine` uses `Field(exclude_if=...)` to stay out of a dump when it is `None`, and the jsonl writer writes `null` only where `machine` is in `model_fields_set`. This keeps the writer's existing rule that a line is written back as it was read. Rejected: an all-`None` `MachineMeasures()` in memory written as `null`. Read back it becomes `None`, so the record in memory no longer equals the one read back and `test_the_completed_record_replaces_the_started_one` fails.
+
+    Noticed, not touched:
+    - In the `job` container profile the containers run as root, so the user slice of the factory's own uid may not be the cgroup that holds them.
+    - The image sizes are read twice when an image is chosen: once for the log line and once for the boundaries. That is two cheap `podman image inspect` calls per choice, never per run.
+    - `make duplicates` was not run.
+
+    The refactor step is not done yet. I will do it after the answer, once `make check` is green.

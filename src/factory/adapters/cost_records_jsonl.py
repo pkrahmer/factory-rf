@@ -48,6 +48,10 @@ def _line_of_record(record: CostRecord) -> str:
     for field in ("instance", "denials", "denied_paths", "login"):
         if fields[field] is None:
             del fields[field]
+    # A machine asked that told nothing is null, in the model's order; one never asked is left out.
+    if "machine" in record.model_fields_set and record.machine is None:
+        fields["machine"] = None
+        fields = {name: fields[name] for name in CostRecord.model_fields if name in fields}
     return json.dumps(fields, separators=_SEPARATORS) + "\n"
 
 

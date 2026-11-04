@@ -5,7 +5,7 @@ import signal
 import sys
 import threading
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from types import FrameType
 from typing import TypedDict, Unpack
@@ -29,6 +29,7 @@ from factory.entry.wiring import (
     health_file,
     health_store,
     idle_shutdown_of,
+    image_sizes,
     machine_log,
     machine_stop_exit_of,
     project_image_settings,
@@ -245,17 +246,20 @@ class _ProjectImageStart:
         # The same file again builds nothing, and one that failed is not tried again.
         if self._followed and stage_file == self._stage_file:
             return True
+        at_start = not self._followed
         self._followed = True
         self._stage_file = stage_file
-        self._choose(stage_file is not None)
+        self._choose(stage_file is not None, at_start=at_start)
         return True
 
-    def _choose(self, has_stage_file: bool) -> None:
+    def _choose(self, has_stage_file: bool, *, at_start: bool) -> None:
         inputs = self._inputs
         boundaries = inputs.boundaries
         report = stage_image_report(boundaries.git, boundaries.log, boundaries.clock)
+        # Without a stage file the report only tells the base's size, which the start tells once.
+        told = report if has_stage_file or at_start else None
         chosen = project_image_settings(
-            inputs.settings, boundaries.git, inputs.images, StopService(boundaries), report=report
+            inputs.settings, boundaries.git, inputs.images, StopService(boundaries), report=told
         )
         if chosen is None:
             self._tick = None
@@ -263,10 +267,21 @@ class _ProjectImageStart:
         if self._in_project_image and not has_stage_file:
             report.log.line(f"stage image: back to the base at {report.commit}")
         self._in_project_image = has_stage_file
-        chosen_boundaries = build_boundaries(
+        built = build_boundaries(
             chosen, inputs.token, hosting=boundaries.hosting, images=inputs.images
         )
+        chosen_boundaries = self._sized(built, chosen.stage_image if has_stage_file else None)
         self._tick = activity_tick(build_tick(chosen_boundaries, chosen), inputs.idle)
+
+    def _sized(self, boundaries: Boundaries, project_image: str | None) -> Boundaries:
+        # Measured here, when the image is chosen, so that no run waits for podman to tell them.
+        base = self._inputs.settings.stage_image
+        if base is None:
+            return boundaries
+        sizes = image_sizes(self._inputs.images, base, project_image)
+        return replace(
+            boundaries, base_image_bytes=sizes.base_bytes, project_layer_bytes=sizes.layer_bytes
+        )
 
 
 def _write_an_empty_health_status_when_there_is_none(state_directory: Path) -> None:
