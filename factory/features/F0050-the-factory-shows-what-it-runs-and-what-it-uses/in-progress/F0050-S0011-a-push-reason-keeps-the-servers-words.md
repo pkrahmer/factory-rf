@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 548
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T21:46:46.354987Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-04T21:46:37.690386Z'
   stage: review
   run: f522917f60964c5e8327aca1381f9ede
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:46:46.354987Z'
+  stage: docs
 ---
 
 # A push's reason keeps the server's words
@@ -182,3 +191,4 @@ Expect: a line that ends in `passed` with no `failed`.
      - Moved to tests/push_retry_support.py: `RecordingGit`, `PushCase`, `RETRY`, and the result/record push builders.
      - The `case` fixture's body moved there as `open_push_case`. The fixture keeps its name and its params.
      - The test functions below the fixture are unchanged, and each keeps its name and what it checks.
+10. factory: started docs as vm.
