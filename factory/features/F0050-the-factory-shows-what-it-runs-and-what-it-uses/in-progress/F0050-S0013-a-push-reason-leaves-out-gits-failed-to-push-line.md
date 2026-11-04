@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 552
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T23:30:50.424604Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-04T23:30:50.424604Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-04T23:31:08.402856Z'
+  stage: intake
+  run: 5cfc8757a2de43a5b69b0a3aef923592
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -76,3 +78,9 @@ Expect: a line that ends in `passed` with no `failed`.
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: `factory.domain.git.push_reason(output: str) -> str` is named with an unchanged signature. The rule is concrete: a line that starts with `error: failed to push some refs to ` after stripping is left out. It also gives the contrast cases (other `error:` lines kept, `remote: error: failed to push...` kept). The test modules are named. `push_is_retried` is stated as unchanged.
+   - Criteria: each one is testable by one test function. Criterion 1 is the full example. Criterion 2 covers both sides of the rule (left out with and without leading spaces; `error: src refspec` kept; `remote: error: failed...` kept). Criterion 3 covers the ordering with two `remote:` lines. Criterion 4 covers the end-to-end case through the retry log lines. The three-line and 300-character limits and `push_is_retried` are kept as they are and tested by the earlier stories, so no new criterion is needed. `make check` and `docs:` are last.
+   - Smoke test: both commands are runnable. The first calls `push_reason` directly and its Expect line is an exact string. The second runs pytest with no `-q`, which is correct because `pyproject.toml` addopts already sets `-q`. Its Expect line (ends in `passed`, no `failed`) can be checked against `tail -1`.
+   - Architecture: the change sits in `factory.domain.git`, a pure function with no I/O, which is the right layer. The new tests go in `tests/domain/` and `tests/application/`, mirroring the package. No other test module is changed, so no leave is needed.
+   - Scope: the story is inside feature F0050's scope, as a follow-up of the S0008 and S0011 push-reason work, and it is listed in the feature's stories (from A0002). It touches nothing under Out of scope.
