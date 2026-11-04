@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T13:40:48.105739Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-04T13:40:42.058747Z'
   stage: intake
   run: dba40a543ba04f04b6d984276c512302
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:40:48.105739Z'
+  stage: tests
 ---
 
 # A stop says why, and is logged once
@@ -107,3 +116,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
    - Smoke test: unchanged. `grep ... 'printed nothing'` is runnable and checkable. `pytest tests/application -k stop` is runnable. The project's pytest `addopts` was not checked for `-q`. The Expect reads the last line as "passed", and the tester should confirm that this holds under the configured `addopts`.
    - Architecture: the pure function is in the domain, the use is in the application, and the wiring is in the entry layer. No layer is crossed.
    - Scope: within F0050's scope line for S0003 and not in "Out of scope". Stage checks cut off by a stop are left out, as the human said.
+7. factory: started tests as vm.
