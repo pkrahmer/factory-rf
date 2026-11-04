@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T14:14:28.128276Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -190,6 +186,12 @@ journal:
   kind: started
   at: '2026-11-04T14:14:28.128276Z'
   stage: docs
+- number: 33
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T14:15:27.130490Z'
+  stage: docs
+  run: 904bf30b25a142b9b04766e5ef37d3f3
 ---
 
 # A stop says why, and is logged once
@@ -540,3 +542,23 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     Earlier tests: none. The diff only adds test files (`tests/application/test_preflight_stop_detail.py`, `tests/application/test_stop_log_once.py`, `tests/domain/test_command_ending.py`, `tests/entry/test_run_stop_requested.py`).
 32. factory: started docs as vm.
+33. documenter: Docs round 2. I changed only documents, so I ran no `make check`; the factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md`, "The stops of the repository or the machine":
+      - New bullet that a stop's detail always says why. An empty or blank detail becomes `no detail given`, and a probe of `main` that printed nothing names the command and its ending.
+      - The bullet on the health status now says the log line is written only when the stop is new or its detail (or scope) changes, and again after a clear. The old text said the log repeats the line every cycle. It also says the records note only the first raise and the clear.
+    - `docs/operator-guide.md`, "The stamp and the probe of the main branch":
+      - The `main_branch_failing` bullet gives the detail used when `lint` printed nothing.
+      - New bullet: a probe cut off by the factory's own stop is not judged, and its tick claims no work. It covers the next start, the judged signal-15 case when the factory is not stopping, and that only the probe of `main` follows the rule.
+    - `docs/decisions.md`: one entry, F0050-S0003, with the decision and the reason from the story (the two restarts of 2026-11-04 and the log repetitions during an outage). The story names no rejected option, so I wrote no "Rejected" line.
+
+    Cross-read and found current: the "The wait for a repository that is not ready" paragraph (it already says "written once per detail"), "The health status file", "The stop records on main" (the records carry no detail), and the stop table. `README.md` and the project guide need nothing, as the docs criterion says.
+
+    Wording to know: the code's detail reads `lint ended by signal 15 ...`, while the story's Interface example says `make lint ended ...`. I documented the code's form, which the criteria allow. No findings for the coder.
+
+    Stale text I did not touch: none. I did not run the smoke-test commands, because the factory's smoke test runs them.
+
+    `check`: check: green (not run again: passed on tree eb6adf599a2f at 2026-11-04T14:11:13Z)
+    `secrets`: secrets: green (2.6 s)
+    `documents`: documents ok

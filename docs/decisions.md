@@ -1506,3 +1506,12 @@ Date: 2026-11-04 (F0050-S0008).
 - Why: GitHub's partial outage of 2026-11-04 (about 09:36 to 10:05 UTC, `planning/outage-2026-11-04.md`). One failed push most likely discarded a finished docs run of F0050-S0001, charged a crash and ran the paid agent again, and the first run's cost record was lost (19 runs recorded, 20 ran). The hand-over failed three times in about 90 s, reached the handler's error cap and was never tried again, and its first two errors were logged nowhere. A short outage should be cheap and visible.
 - Open: a test pins that a hosting failure after the claim (in `ensure_pull_request`) charges a crash for a stage in which no agent ran; it is a strict `xfail`, and the fix is not part of this story.
 - No rejected option is named by the story for this entry, so none is written.
+
+
+## A stop says why, a stop of the factory's own shutdown is not raised, and a standing stop is logged once
+
+Date: 2026-11-04 (F0050-S0003).
+
+- Decision: a failed probe of `main` that printed nothing gets the detail `<command> ended by <ending> and printed nothing on main at <commit>` (`ended with exit status <n>` for an exit status), with the ending from `command_ending` in `factory.domain.checks`. `StopService.raise_stop` replaces an empty or blank detail with `no detail given`, for any reason. `Boundaries.stop_requested` (wired in `factory.entry.run` to the event that `install_stop_handlers` sets) makes a probe of `main` that ended while it is true not judged: no stop, no stamp, and the tick ends with `TickOutcome()`; a probe ended by signal 15 while it is false is judged as before. `raise_stop` writes the line `stop <scope> <reason>: <detail>` only when the stop does not stand yet or stands with another detail; the health status takes the newest detail, and the records note the first raise and the clear only. Only the probe of `main` follows the stop rule; a stage's checks cut off by a stop end in a crash and a rerun (the human, 2026-11-04).
+- Why: twice on 2026-11-04 (00:59 and 02:19 UTC) a restart of `factory@vm` cut off a probe of `main` and left the untrue stop `main_branch_failing` with an empty detail, which cleared a few seconds later; an empty detail also hides the cause of a true stop. During a remote outage the log repeated `stop repository fetch_failed: ...` every few seconds and buried the other lines, although the stop records already note only the first raise and the clear.
+- No rejected option is named by the story for this entry, so none is written.
