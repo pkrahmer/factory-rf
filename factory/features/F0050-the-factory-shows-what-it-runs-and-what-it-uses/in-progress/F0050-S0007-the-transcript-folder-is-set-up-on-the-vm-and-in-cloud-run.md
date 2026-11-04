@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T19:51:15.743127Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-04T19:51:09.837277Z'
   stage: intake
   run: 7a058d81a3aa41e99c47fd5b3d73309b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-04T19:51:15.743127Z'
+  stage: tests
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -67,3 +76,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
    - Architecture: shell scripts under `vm/` only, with no `src/` change and no cloud client. This matches decision 10 and the guide's "site's own folder" design.
    - Scope: inside the feature's scope (the S0007 line), and it touches nothing in Out of scope (creating a bucket stays the operator's step, described in the guide).
    - Notes for the tester, not questions: `--transcript-days` with a negative value is not spelled out; treat it like `x` (refused). The Interface does not say whether `0` removes a folder an earlier run made, so test only that none is made.
+4. factory: started tests as vm.
