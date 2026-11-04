@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T19:13:26.791001Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-04T19:13:26.791001Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T19:14:41.108872Z'
+  stage: review
+  run: 58949cf327d0409293838a84f50d04bd
 ---
 
 # The cost record sums up the run's tool calls
@@ -329,3 +331,27 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
 19. factory: started review as vm.
+20. reviewer: Round 1 review. I read the work item, `git diff main...HEAD -- . ':!factory'` (of the generated schemas, only the stat), every new test module and every changed earlier test, and checked them against criteria 1 to 13 and the Interface. Both findings from entry 12 are closed. Finding 1 is fixed in `src/factory/domain/tool_uses.py`: `_timestamp` now gives no time for a timestamp without an offset, and `_milliseconds` and `_added` catch an overflow. Both cases have rows in `tests/domain/test_tool_uses.py::test_seconds_come_from_the_transcript_s_times`. Finding 2 is closed: the tester moved the helper into `tests/stage_run_support.py` as `pushed_cost_text` and `pushed_cost_records`.
+
+    What holds:
+    - Every criterion has a test that checks what it says. The limits are tested on both sides: names of 64 and 65 characters, the accepted characters, a space, a slash; `calls` and `failed` at -1 and 0; `failed` equal to `calls` and above it; `seconds` at -1, NaN, infinity, 0 and `None`; a started record with `None`, `[]` and a list.
+    - The layers hold. No suppression markers. The contract's minor rise to 4.4 follows the version rule. Entry 18 records `make check` green.
+    - The Description and the docs criterion match what was built. Entries 10 and 14 explain the read/keep split and the "no time, not unreadable" choice, with what was rejected.
+
+    Findings:
+    1. `src/factory/domain/tool_uses.py:68-71` (`_object`): only `ValueError` from `json.loads` is caught. CPython's decoder raises `RecursionError` for a line nested deeper than the recursion limit, for example a line of 100000 `[`. Nothing catches it: not `claude_tool_uses`/`opencode_tool_uses`, not the wrappers' `tool_uses`, not `StageLauncher._read_transcript` (`src/factory/application/stage.py:142-146`). The agent can rewrite the session transcript in its own home on the dataset, so it can fail the stage after its run. This breaks criterion 5 ("does not fail the run") and the rule that input is validated at the boundary, the same class of defect as round 0's finding 1. Fix: catch `RecursionError` beside `ValueError` in `_object`, so the line is unreadable and the result is `None`. Test to hand to the tester: add a deeply nested line as a row of `tests/domain/test_tool_uses.py::test_lines_that_cannot_be_read_give_no_tools`, for both runtimes.
+
+    Notes:
+    - `tests/application/test_stage_tool_uses.py:51-60` (`_staged`) repeats the settings and store update of `_with_transcripts` in `tests/application/test_stage_transcripts.py:45-49` (workspace, `transcript_dir`, `FileTranscriptStore`). It could build on one shared helper in `tests/stage_run_support.py`.
+
+    Earlier tests (changed test files that `main` already holds):
+    - `tests/application/test_interfaces.py`: the human's leave, journal entry 4 (`tool_uses` added to `AgentRuntime`'s pinned operations).
+    - `tests/application/test_agent_run_probe.py`: the human's leave, journal entry 4 (`RefusingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/application/test_stage_run.py`: the human's leave, journal entry 4 (`HeadNotingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/container_support.py`: the human's leave, journal entry 4 (`WorkspaceRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/observing_runtime.py`: the human's leave, journal entry 4 (`ObservingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/domain/test_contract.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`).
+    - `tests/domain/test_contract_version_4.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
+    - `tests/domain/test_contract_version_4_2.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
+    - `tests/application/test_stage_transcripts.py`: the standing leave to move a shared test helper. `_records` was replaced by the shared `pushed_cost_records`, and the imports it no longer needs went with it. Every test keeps its name and what it checks.
+    - `tests/stage_run_support.py`: the standing leave to move a shared test helper (the shared `pushed_cost_text` and `pushed_cost_records` added; nothing earlier changed).
