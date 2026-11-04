@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T15:14:33.642174Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-04T15:14:26.652106Z'
   stage: tests
   run: 43aeb62bd64d41b2af91152bc65008be
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:14:33.642174Z'
+  stage: doing
 ---
 
 # One fetch per iteration
@@ -251,3 +260,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     The one run was `uv run pytest -q` on the six changed modules, the test modules that use scripted_tick_support, and the two new test files. All 45 tests passed, with no failure. `make lint`: lint: green (0.1 s). I skipped the type check, as this stage says; the coder's `make check` covers it.
 
     `lint`: lint: green (0.1 s)
+16. factory: started doing as vm.
