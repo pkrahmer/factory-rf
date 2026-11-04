@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T11:14:19.376017Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -106,6 +110,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T11:14:12.043901Z'
+  stage: tests
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-04T11:14:19.376017Z'
   stage: tests
 ---
 
@@ -264,3 +273,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     2. **(b)** "It means only a return to the base (stage file removed), whose sizes are read without a build." The story's word "adopts" meant no more than that; no new `Images` operation.
 
     3. Yes. Leave for the tester: in `tests/entry/test_run_project_image_rebuild.py` the two expected build lines (lines 243 and 349) take the new form, and their `FakeImages` get sizes through the shared subclass, which you move to the new support module `tests/sized_images.py`; nothing else in that file changes.
+19. factory: started tests as vm.
