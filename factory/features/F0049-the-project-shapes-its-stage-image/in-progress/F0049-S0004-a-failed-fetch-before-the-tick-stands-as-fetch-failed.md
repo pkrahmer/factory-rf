@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T02:27:48.430427Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-04T02:27:42.440865Z'
   stage: tests
   run: 29a2b1fd8be34755a0553bf3f4f2728f
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:27:48.430427Z'
+  stage: doing
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -132,3 +141,4 @@ Expect: a line that ends in `passed` with no `failed`.
    Every module the tests use imports; none was missing. `make lint` is green. I changed no earlier test file.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
