@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T12:03:43.775837Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -217,6 +221,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T12:03:40.262759Z'
+  stage: doing
+- number: 39
+  speaker: factory
+  kind: started
+  at: '2026-11-04T12:03:43.775837Z'
   stage: doing
 ---
 
@@ -629,3 +638,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     Leave for the reviewer: in criterion 13 (docs), after "in *The project's stage file*, the new log lines", add exactly: ", with `unknown` for a size that cannot be read; and one sentence that under the `job` container profile the containers run as root, so the user slice may be another cgroup and the measures may then be `None` or another slice's." Nothing else in the criteria changes. With that edit, finding 6 is met; the documenter writes both from the criterion.
 
     End with `review` as the work item is.
+39. factory: started doing as vm.
