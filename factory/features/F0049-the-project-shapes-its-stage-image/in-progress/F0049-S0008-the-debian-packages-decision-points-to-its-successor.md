@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 536
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T03:26:57.994769Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-04T03:26:52.156374Z'
   stage: intake
   run: 59fcf7c039984a5bbea50f25ce23bf37
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:26:57.994769Z'
+  stage: tests
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -66,3 +75,4 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
    - Smoke test: the three commands are runnable. Two greps and the document check, no pytest, so no `-q` problem. Each `Expect:` (`1`, `1`, `documents ok`) can be checked against the output. The `.` in the grep patterns stands for the apostrophe.
    - Architecture: the change is documentation only, in the decision log, which the documenter stage keeps. It touches no layer. `STAGE_PACKAGES` in `tests/test_stage_image.py` does list the six names the line states.
    - Scope: it is within F0049 (the image split that replaced `nodejs` and `npm` with `xz-utils` in S0001). It is not in the feature's "Out of scope", and it changes no test of another story.
+4. factory: started tests as vm.
