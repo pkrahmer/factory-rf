@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 536
 comments_read: [6621759488]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T03:34:41.310019Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-04T03:34:41.310019Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T03:35:01.630620Z'
+  stage: docs
+  run: 01884389178a472eb43257dc62729472
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -172,3 +174,25 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
       The journal gives the main choice (the documenter adds the line) and what was rejected (the coder adding it). Criterion 3 tells the documenter exactly what to write.
     - Item 6, earlier tests: the diff changes, renames or deletes no test file.
 13. factory: started docs as vm.
+14. documenter: Docs stage, round 0. No findings.
+
+    Files changed:
+    - `docs/decisions.md`: added the Interface's line as the last bullet of *Debian's packages follow the base image's release*. It reads `Superseded in part by "The factory's tools live apart, under `/opt/factory`, with their own Node": the image installs six Debian packages, `xz-utils` in place of `nodejs` and `npm`, and `tests/test_stage_image.py` allows those six names.` The entry's other bullets and every other entry are unchanged. The old text stays as the record of 2026-11-01.
+
+    Checks run, and their output:
+    - First smoke command: `1`.
+    - Second smoke command: `1`.
+    - `uv run python -m factory.entry.check_documents`: `documents ok`.
+    - I did not run `make check`, because I changed only a document. The factory's checks run after this stage.
+
+    Cross-read and found current:
+    - `docs/operator-guide.md`, *The stage image*: it names the six packages, `xz-utils` among them.
+    - `README.md` and `docs/project-guide/`: they do not name the packages, so nothing in them is stale.
+
+    Stale text I saw and did not touch: none.
+
+    "Rejected" line: the story names no rejected option for this addition, so I wrote none. The entry's existing `Rejected:` bullet is unchanged.
+
+    `check`: check: green (not run again: passed on tree c75cce644896 at 2026-11-04T02:57:19Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok
