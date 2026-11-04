@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T11:18:54.762533Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -118,6 +122,11 @@ journal:
   at: '2026-11-04T11:18:45.020859Z'
   stage: tests
   run: 90750c0bbce54848a6ab26d6933a4fcc
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-04T11:18:54.762533Z'
+  stage: doing
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -318,3 +327,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     Modules the runner could not import: `factory.application.machine.MachineReadings`, `factory.domain.machine` (and `MachineTotals` in it), `factory.domain.cost_records.MachineMeasures`, `factory.adapters.machine_files`.
 
     `lint`: lint: green (0.1 s)
+21. factory: started doing as vm.
