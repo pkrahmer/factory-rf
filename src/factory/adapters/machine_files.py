@@ -1,5 +1,6 @@
 """The machine's readings from the user slice's cgroup files and from `/proc/meminfo`."""
 
+from collections.abc import Callable
 from pathlib import Path
 
 from factory.application.machine import MachineReadings
@@ -26,15 +27,10 @@ class CgroupMachineReadings(MachineReadings):
 
     def totals(self) -> MachineTotals:
         """The slice's CPU usage and the `some` totals of its CPU and memory pressure."""
-        cpu = _text(self._slice / _CPU_STAT)
-        cpu_pressure = _text(self._slice / _CPU_PRESSURE)
-        memory_pressure = _text(self._slice / _MEMORY_PRESSURE)
         return MachineTotals(
-            cpu_seconds=None if cpu is None else cpu_usage_seconds(cpu),
-            cpu_wait_seconds=None if cpu_pressure is None else pressure_total_seconds(cpu_pressure),
-            memory_wait_seconds=None
-            if memory_pressure is None
-            else pressure_total_seconds(memory_pressure),
+            cpu_seconds=_parsed(self._slice / _CPU_STAT, cpu_usage_seconds),
+            cpu_wait_seconds=_parsed(self._slice / _CPU_PRESSURE, pressure_total_seconds),
+            memory_wait_seconds=_parsed(self._slice / _MEMORY_PRESSURE, pressure_total_seconds),
         )
 
     def memory_peak_bytes(self) -> int | None:
@@ -46,8 +42,12 @@ class CgroupMachineReadings(MachineReadings):
 
     def memory_total_bytes(self) -> int | None:
         """`MemTotal` of the meminfo file, in bytes."""
-        text = _text(self._meminfo)
-        return None if text is None else mem_total_bytes(text)
+        return _parsed(self._meminfo, mem_total_bytes)
+
+
+def _parsed[T](path: Path, parse: Callable[[str], T | None]) -> T | None:
+    text = _text(path)
+    return None if text is None else parse(text)
 
 
 def _text(path: Path) -> str | None:
