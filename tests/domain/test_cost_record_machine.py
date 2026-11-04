@@ -87,6 +87,7 @@ def test_a_started_record_with_the_machine_is_refused() -> None:
                 pytest.param(field, LARGE_SECONDS, True, id=f"{field}-large"),
                 pytest.param(field, -0.5, False, id=f"{field}-minus-half"),
                 pytest.param(field, math.nan, False, id=f"{field}-nan"),
+                pytest.param(field, math.inf, False, id=f"{field}-infinity"),
             )
         ],
     ],

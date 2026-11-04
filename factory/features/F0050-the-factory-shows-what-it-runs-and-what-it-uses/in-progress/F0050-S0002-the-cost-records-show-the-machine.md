@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T11:52:42.182186Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -199,6 +195,12 @@ journal:
   kind: started
   at: '2026-11-04T11:52:42.182186Z'
   stage: tests
+- number: 35
+  speaker: tester
+  kind: result
+  at: '2026-11-04T11:55:08.424983Z'
+  stage: tests
+  run: 6daaa497119c40b68d376c3aaabdda06
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -551,3 +553,31 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 
     The factory left out changes outside the write paths: factory/features/F0050-the-factory-shows-what-it-runs-and-what-it-uses/in-progress/F0050-S0002-the-cost-records-show-the-machine.md.
 34. factory: started tests as vm.
+35. tester: Round 1. I made the test changes the coder named in entry 33: reviewer findings 1 to 4 and its note. I changed no code. Every test I touched passes against the code the coder built. I ran them once with `uv run pytest -q` over the five files below. `make lint` and `make types` are green.
+
+    Criterion to test:
+    - criterion 1 (the reviewer's note: a float field at infinity is refused): `tests/domain/test_cost_record_machine.py::test_a_machine_measure_is_accepted_only_in_its_range`. New rows `<field>-infinity` (`math.inf`, refused) for each of the three float fields.
+    - criteria 2 and 7 (finding 3):
+      - `tests/adapters/test_podman_images.py::test_size_bytes_is_the_size_inspect_prints_or_none` has the rows a-number, no-number, not-a-number and inspect-fails. It also checks the `image inspect --format {{.Size}}` arguments.
+      - `tests/adapters/test_podman_images.py::test_store_path_is_the_graph_root_info_names_or_none` has the rows graph-root and info-fails. It also checks the `info --format {{.Store.GraphRoot}}` arguments.
+    - criterion 4 (finding 2): `tests/application/test_cost_record_machine_measures.py::test_a_record_begun_and_completed_holds_the_growth_of_the_totals`. A record goes through `CostRecorder.begin` and then `complete`. The local fake `_GrowingReadings` answers `AT_START` at the first totals reading and `GROWN` after it. The written record holds 60.5, 0.5 and 3.0, and the totals were read twice.
+    - criterion 9 (finding 4): `tests/entry/test_wiring_stage_image_sizes.py::test_a_return_to_the_base_gives_both_sizes_without_a_build`. I renamed it from `test_a_return_to_the_base_logs_the_base_size_without_a_build`. It now calls `chosen_image` without a report, as `run.py` does at a return to the base. It asserts `ImageSizes(base_bytes=1_580_000_000, layer_bytes=0)` and that only the first build ran. It no longer pins a `stage image: base` line.
+    - criterion 11 (finding 1), one row each:
+      - an unreadable size is written `unknown`:
+        - `tests/entry/test_wiring_stage_image_sizes.py::test_a_size_that_cannot_be_read_is_logged_unknown` has the rows base-unreadable, project-unreadable and project-smaller-than-base, each on the built line.
+        - `tests/entry/test_wiring_stage_image_sizes.py::test_a_base_that_cannot_be_read_is_logged_unknown_at_the_start` checks `stage image: base unknown`.
+      - a project image smaller than its base: `tests/entry/test_wiring_stage_image_sizes.py::test_a_project_image_smaller_than_its_base_has_no_layer_size` (`image_sizes` gives layer `None`).
+      - a total that went back: `tests/domain/test_machine.py::test_the_run_s_totals_are_the_end_reading_minus_the_start_reading` gets the new row `total-went-back`, where the cpu total is lower at the end and its difference is `None`.
+
+    Files changed (no new files; all five hold this story's tests or, for `test_podman_images.py`, new test functions only):
+    - tests/domain/test_cost_record_machine.py
+    - tests/adapters/test_podman_images.py
+    - tests/application/test_cost_record_machine_measures.py
+    - tests/entry/test_wiring_stage_image_sizes.py
+    - tests/domain/test_machine.py
+
+    No earlier story's test was changed. Every module imported, and nothing failed.
+
+    Open, for the coder: entry 33 says criterion 13 now asks for the `job` profile sentence and the `unknown` log text. But the factory left that work item edit out, because it is outside the coder's write paths. Criterion 13 in the Description still lacks both, so reviewer finding 6 is not yet met in the work item.
+
+    `lint`: lint: green (0.1 s)

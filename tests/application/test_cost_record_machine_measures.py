@@ -6,12 +6,15 @@ from pathlib import Path
 
 import pytest
 
+from cost_image_support import _launch
 from disk_support import FakeDiskSpace
+from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.costs import CostRecorder, CostRun
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.cost_records import CostRecord, MachineMeasures
 from factory.domain.machine import MachineTotals
+from human_clone import HumanClone
 from machine_readings_support import FakeMachineReadings
 
 SIDECAR = "F0001-S0001-first.costs.jsonl"
@@ -31,6 +34,19 @@ RESULT = AgentRunResult(
     entry="done",
 )
 GROWN = MachineTotals(cpu_seconds=160.5, cpu_wait_seconds=2.5, memory_wait_seconds=4.0)
+AT_START = MachineTotals(cpu_seconds=100.0, cpu_wait_seconds=2.0, memory_wait_seconds=1.0)
+
+
+class _GrowingReadings(FakeMachineReadings):
+    """Answers `AT_START` at the first reading of the totals and `GROWN` at every later one."""
+
+    def __init__(self) -> None:
+        super().__init__(GROWN, 8_100_000_000, 16_000_000_000)
+        self.readings = 0
+
+    def totals(self) -> MachineTotals:
+        self.readings += 1
+        return AT_START if self.readings == 1 else GROWN
 
 
 def _complete(
@@ -133,3 +149,26 @@ def test_a_machine_that_gives_nothing_gives_a_null_machine(
     assert record.machine is None
     written = (boundaries.checkout / SIDECAR).read_text(encoding="utf-8").splitlines()
     assert '"machine":null' in written[-1]
+
+
+def test_a_record_begun_and_completed_holds_the_growth_of_the_totals(
+    boundaries: Boundaries,
+    *,
+    human: HumanClone,
+    agent_home: Path,
+    agent_runtime: FakeAgentRuntime,
+) -> None:
+    launched = _launch(boundaries, human, agent_home, agent_runtime)
+    machine = _GrowingReadings()
+    recorder = CostRecorder(replace(boundaries, machine=machine))
+
+    begun = recorder.begin(launched.started, "tester")
+    recorder.complete(begun, RESULT)
+
+    written = boundaries.cost_reader.read(boundaries.checkout / begun.path)[-1]
+    assert written.run == begun.run
+    assert written.machine is not None
+    assert written.machine.cpu_seconds == pytest.approx(60.5)
+    assert written.machine.cpu_wait_seconds == pytest.approx(0.5)
+    assert written.machine.memory_wait_seconds == pytest.approx(3.0)
+    assert machine.readings == 2

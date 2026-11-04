@@ -110,6 +110,12 @@ NONE = _totals(None, None, None)
             _totals(60.5, None, 3.0),
             id="end-total-not-a-number",
         ),
+        pytest.param(
+            _totals(100.0, 2.0, 1.0),
+            _totals(40.0, 2.5, 4.0),
+            _totals(None, 0.5, 3.0),
+            id="total-went-back",
+        ),
     ],
 )
 def test_the_run_s_totals_are_the_end_reading_minus_the_start_reading(
