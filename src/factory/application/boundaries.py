@@ -26,6 +26,7 @@ from factory.application.machine import (
 )
 from factory.application.project_commands import ProjectCommands
 from factory.application.snapshots import Snapshots
+from factory.application.transcripts import TranscriptStore
 from factory.domain.containers import SYSTEM_PATH
 from factory.domain.disk import DiskRecord
 from factory.domain.known_results import ResultRecord
@@ -73,3 +74,5 @@ class Boundaries:
     image_store: Path | None = None
     # Whether the factory's own shutdown has been asked for: a command it cut off is not judged.
     stop_requested: Callable[[], bool] = lambda: False
+    # The folder each run's transcript is kept in; `None` keeps none.
+    transcripts: TranscriptStore | None = None

@@ -69,6 +69,7 @@ from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoints
 from factory.domain.opencode_provider import provider_configuration, read_provider
 from factory.domain.provider_limits import ProviderLimit, limit_in_text, named_wait
+from factory.domain.transcripts import Transcript
 
 CONFIG_VARIABLE = "OPENCODE_CONFIG"
 AGENT_PREFIX = "factory-"
@@ -581,6 +582,11 @@ class OpencodeRuntime(AgentRuntime):
         self._starters = Starters(login_files=LoginFiles(api=api_login_file))
         self._provider_limit = ProviderLimit() if provider_limit is None else provider_limit
         self._provider_file = provider_file
+        # The session and event stream of the latest run only: the stage keeps a transcript
+        # right after its run, so an older stream would only grow a long-lived instance.
+        self._last_stream: tuple[str, str] | None = None
+        # What the calls of the current run printed, the first call's and its resume's.
+        self._printed: list[str] = []
 
     @property
     def containers(self) -> ContainerRuns | None:
@@ -602,14 +608,31 @@ class OpencodeRuntime(AgentRuntime):
         )
         files = _RunFiles.of(self._state_directory, str(uuid.uuid4()))
         make_state_directory(self._state_directory)
+        self._printed = []
         try:
             self._write_files(files, configuration)
             result = self._call(request, files, model, request.agent.budget_usd)
             if result.end_reason == "budget" and result.session is not None:
                 result = self._resume(request, files, model, result, started)
+            if result.session is not None:
+                self._last_stream = (result.session, "".join(self._printed))
             return finished_run(result, started, self._kill_points)
         finally:
             files.remove()
+
+    def read_transcript(self, home: Path, session: str) -> Transcript | None:
+        """The JSON events the last run of `session` printed, one per line, whatever `home`.
+
+        `None` when the latest run of this runtime was not of that session.
+        """
+        # The wrapper read the stream as the call printed it; opencode's own files are not read.
+        del home
+        if self._last_stream is None:
+            return None
+        last_session, stream = self._last_stream
+        if last_session != session:
+            return None
+        return Transcript(extension="jsonl", content=stream.encode("utf-8"))
 
     def version(self) -> str:
         """The version `opencode --version` prints, such as `1.19.3`.
@@ -662,6 +685,7 @@ class OpencodeRuntime(AgentRuntime):
         watch = _Watch(budget, self._provider_limit)
         process_request = self._process_request(request, files, model)
         process = self._start(process_request, watch.on_line)
+        self._printed.append(process.stdout)
         end = CallEnd(
             stderr=process.stderr,
             printed=bool(_events(process.stdout)),

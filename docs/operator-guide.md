@@ -86,6 +86,7 @@ One factory instance runs one project and is told what it needs through environm
 | `FACTORY_SNAPSHOTS` | no | How the dataset's base is kept: `zfs` (the default) or `copy` (see *Without ZFS*). Unset or blank gives `zfs`; anything else (`ZFS`, `btrfs`) is refused by `read_settings` with `FACTORY_SNAPSHOTS` as the variable and `is neither zfs nor copy`. |
 | `FACTORY_SNAPSHOT_BASE` | with `copy` | The absolute directory that holds the base, used only with `FACTORY_SNAPSHOTS=copy`. Unset or blank gives none. A relative path is refused with `is not an absolute path`; with `zfs` a base is refused with `is only used with FACTORY_SNAPSHOTS=copy`; with `copy` a base that is, holds or lies inside the workspace, the checkout or the state directory is refused with `<path> overlaps <workspace\|checkout\|state>`. A missing one with `copy` is refused when the boundaries are built, with `FACTORY_SNAPSHOT_BASE` as the variable and `missing`, before the workspace and the image are looked at. |
 | `FACTORY_WORKSPACE` | yes | The folder the stage containers mount at `/work`, an absolute path (`/srv/factory/vm/work`): the dataset's mount point with `zfs`, a plain directory with `copy`. A relative path is refused by `read_settings` with `FACTORY_WORKSPACE` as the variable and `is not an absolute path`; a missing or blank one when the boundaries are built, with `missing`. |
+| `FACTORY_TRANSCRIPT_DIR` | no | The folder that keeps each agent run's transcript (see "Transcripts"): an absolute path outside the workspace, the checkout, the state directory and the agent home. Unset or blank keeps no transcript, and is no fault. A relative path is refused by `read_settings` with `FACTORY_TRANSCRIPT_DIR` as the variable and `is not an absolute path`; one inside one of the four places with `<path> lies inside <place>`. |
 | `FACTORY_STAGE_IMAGE` | yes | The image the stage containers run (`factory-stage:1`). Missing or blank is refused when the boundaries are built, with `FACTORY_STAGE_IMAGE` as the variable and `missing`. |
 | `FACTORY_PODMAN` | no | The `podman` executable, one word. Default `podman`; unset or blank gives the default. |
 | `FACTORY_CONTAINER_PROFILE` | no | How the factory starts its containers: `rootless` (the default) or `job` (see *The job profile*). Unset or blank gives `rootless`; anything else (`Job`, `root`) is refused by `read_settings` with `FACTORY_CONTAINER_PROFILE` as the variable and `is neither rootless nor job`. |
@@ -1597,6 +1598,39 @@ The size of a folder counts only what the factory user can read. A folder under 
 
 The record cannot see the host. Read the host's own numbers by hand at the same moments and at the end of a run: the free space of the VM's disk, and the size of the pool (`zpool list`).
 
+## Transcripts
+
+A transcript is the whole conversation of one agent run: every file the agent read, every command's output and the agent's reasoning. It can hold what no scan of secrets finds, so it never goes to GitHub, not in a comment, not in a commit. The factory keeps it in a folder of the site's own.
+
+### The setting
+
+`FACTORY_TRANSCRIPT_DIR` names the folder: on a VM a local directory, in a Cloud Run job a Cloud Storage bucket mounted as a volume, so the factory needs no cloud client and knows only the folder. It must be an absolute path outside `FACTORY_WORKSPACE`, `FACTORY_CHECKOUT`, `FACTORY_STATE` and the agent home (`FACTORY_CLAUDE_HOME`); `read_settings` refuses any other with the variable's name. No container mounts the folder and no prompt names it.
+
+Unset or empty keeps no transcript. That is no fault: the factory starts and runs as before, writes no `transcript:` line, and the preflight has no item for the folder.
+
+### What is kept
+
+After each agent run that has a session, and before the dataset is rolled back, the factory copies the session's transcript to
+
+```
+<FACTORY_TRANSCRIPT_DIR>/<work item>/<run id>.jsonl.gz
+```
+
+gzip-compressed, mode `0600` (the folders it creates get `0700`). `<work item>` is the id such as `F0050-S0005`, `<run id>` the run's id on its cost record. Claude Code's transcript is the session file under `.claude/projects/` in the agent's home on the dataset; opencode's is the JSON event stream its wrapper read as the run printed it, one event per line. Read one with `zcat <file>`.
+
+A run that is resumed within itself (after a spent budget) keeps one file; the copy after the resume replaces the earlier one. A later run that continues an earlier run's session (after a provider limit) writes a file under its own run id.
+
+The cost record refers to the file with `transcript`: `path` (relative to the folder, as above) and `sha256` (of the file as written, so that a reader can tell it is the file the record names). It is `null` when none was kept.
+
+### When one is not kept
+
+A transcript that cannot be found or copied (no session, no transcript file, a folder that cannot be written) writes one line to the factory log, `transcript: not kept for <run id>: <reason>`, and the record's `transcript` is `null`. The run, the stage and the factory go on.
+
+### The site's part
+
+- The folder must sit where only the site's own people can read it. The factory sets the file modes, but a mounted bucket or a shared disk has its own access rules.
+- The factory deletes no transcript. Removing old ones is the site's: a `tmpfiles.d` rule on a VM, a lifecycle rule on a bucket.
+
 ## The stops
 
 Every stop the factory raises has one destination. A stop of the repository or the machine goes to the health status and to a line of the factory log. A stop of one work item goes once on that work item's pull request. One case, a backlog story that names a later stage in its own file, has no stop. Every line about a stop in the factory log is time-stamped (see "The factory log").
@@ -1991,7 +2025,7 @@ The command prints `contract: 5 schemas written`. With two or more arguments it 
 
 **The approval.** A work item enters the approval with its last `result` record in the journal. No record marks the entry, so a reader takes the approval's start from that record's `at` and its end from the `done` record's `at`.
 
-**The version.** Each schema carries the records contract's version in `x-records-contract`, now `4.2` (`1.1` added the cost record's optional `login`; `1.2` added the end reason `provider_limit` to the cost record's `end_reason` and the stall reason `provider_limit` to the `reason` of the journal records in `work-item-state` and `acceptance-state`; `1.3` added the optional `not_read` of a project command to `pipeline-definition`; `2.0` removed `tool_paths` from `pipeline-definition`, a change that can break a reader, since the schema no longer allows the key; `3.0` removed the stall reason `nested_repository` from the `reason` of the journal records in `work-item-state` and `acceptance-state`, a change that can break a reader, since those schemas no longer allow the value; `4.0` removed the stall reason `left_branch` in the same places, for the same reason: no agent can cause it on the dataset; `4.2` added the optional `machine` object to the cost record). The major version rises for a change that can break a reader: a field removed or renamed, a type narrowed, a meaning changed. The minor version rises for an added optional field or value. This version is not the `contract` of the pipeline definition, which is the version of the definition's own format (see "The pipeline definition").
+**The version.** Each schema carries the records contract's version in `x-records-contract`, now `4.3` (`1.1` added the cost record's optional `login`; `1.2` added the end reason `provider_limit` to the cost record's `end_reason` and the stall reason `provider_limit` to the `reason` of the journal records in `work-item-state` and `acceptance-state`; `1.3` added the optional `not_read` of a project command to `pipeline-definition`; `2.0` removed `tool_paths` from `pipeline-definition`, a change that can break a reader, since the schema no longer allows the key; `3.0` removed the stall reason `nested_repository` from the `reason` of the journal records in `work-item-state` and `acceptance-state`, a change that can break a reader, since those schemas no longer allow the value; `4.0` removed the stall reason `left_branch` in the same places, for the same reason: no agent can cause it on the dataset; `4.2` added the optional `machine` object to the cost record; `4.3` added the optional `transcript` object to the cost record). The major version rises for a change that can break a reader: a field removed or renamed, a type narrowed, a meaning changed. The minor version rises for an added optional field or value. This version is not the `contract` of the pipeline definition, which is the version of the definition's own format (see "The pipeline definition").
 
 **Unknown properties.** The schemas say `additionalProperties: false` for what this version of the factory writes. A reader still ignores a property it does not know, since a later minor version may add one.
 

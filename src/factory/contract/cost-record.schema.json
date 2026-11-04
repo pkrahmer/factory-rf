@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "x-records-contract": "4.2",
+  "x-records-contract": "4.3",
   "$defs": {
     "MachineMeasures": {
       "additionalProperties": false,
@@ -160,10 +160,31 @@
       ],
       "title": "TokenCounts",
       "type": "object"
+    },
+    "TranscriptRef": {
+      "additionalProperties": false,
+      "description": "Where a run's transcript was kept and what it held when written.\n\n`path` is relative to the transcript folder, `<work item>/<run id>.<ext>.gz`; `sha256` is\nthe SHA-256 of the file as written, so a reader can tell it is the file the record names.",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "TranscriptRef",
+      "type": "object"
     }
   },
   "additionalProperties": false,
-  "description": "One agent run: started, or completed with its measures; a measure `None` is unknown.\n\n`image` and `instance` say where the run ran: the machine's image and the name of\nthe instance; either may be `None` on a record written without settings.\n`denials` counts the tool calls the runtime reported as refused and `denied_paths`\nholds the files they named, each once; both are `None` when the runtime gave no reply.\n`login` says which login the run's calls were handed: an API key, the subscription's\ntoken, or neither; it is `None` when the runtime had no login file.\n`machine` holds the machine's measures; it is `None` on a record written without them,\nand each of its measures is `None` when the machine could not give it.",
+  "description": "One agent run: started, or completed with its measures; a measure `None` is unknown.\n\n`image` and `instance` say where the run ran: the machine's image and the name of\nthe instance; either may be `None` on a record written without settings.\n`denials` counts the tool calls the runtime reported as refused and `denied_paths`\nholds the files they named, each once; both are `None` when the runtime gave no reply.\n`login` says which login the run's calls were handed: an API key, the subscription's\ntoken, or neither; it is `None` when the runtime had no login file.\n`machine` holds the machine's measures; it is `None` on a record written without them,\nand each of its measures is `None` when the machine could not give it.\n`transcript` names the run's kept transcript; it is `None` when none was kept.",
   "properties": {
     "run": {
       "pattern": "^[0-9a-f]{32}$",
@@ -337,6 +358,17 @@
       ],
       "default": null,
       "title": "Denied Paths"
+    },
+    "transcript": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TranscriptRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "machine": {
       "anyOf": [

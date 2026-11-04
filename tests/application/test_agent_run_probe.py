@@ -28,6 +28,7 @@ from factory.domain.agent_runs import (
 )
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.settings import InstanceSettings
+from factory.domain.transcripts import Transcript
 from git_support import install_agents
 from human_clone import HumanClone
 from probe_support import COMPLETED, ENVIRONMENT
@@ -62,6 +63,10 @@ class RefusingRuntime(AgentRuntime):
 
     def version(self) -> str:
         return "fake"
+
+    def read_transcript(self, home: Path, session: str) -> Transcript | None:
+        del home, session
+        return None
 
 
 @pytest.fixture

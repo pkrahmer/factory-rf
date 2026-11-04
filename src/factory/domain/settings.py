@@ -77,6 +77,7 @@ CA_BUNDLE_VARIABLE = "FACTORY_CA_BUNDLE"
 IDLE_SHUTDOWN_VARIABLE = "FACTORY_IDLE_SHUTDOWN_MINUTES"
 IDLE_SHUTDOWN_ACTION_VARIABLE = "FACTORY_IDLE_SHUTDOWN_ACTION"
 CONTAINER_PROFILE_VARIABLE = "FACTORY_CONTAINER_PROFILE"
+TRANSCRIPT_DIR_VARIABLE = "FACTORY_TRANSCRIPT_DIR"
 # The names the factory gives a container itself: the home, the logins, opencode's
 # configuration, git's credential prompt, and every name of its own.
 RESERVED_CONTAINER_NAMES = frozenset(
@@ -140,6 +141,7 @@ class InstanceSettings(BaseModel):
     ca_bundle: Path | None = None
     idle_shutdown_minutes: NonNegativeInt = 0
     idle_shutdown_action: IdleShutdownActionName = "poweroff"
+    transcript_dir: Path | None = None
 
     @field_validator(
         "checkout",
@@ -179,6 +181,32 @@ class InstanceSettings(BaseModel):
         if fault is not None:
             raise ValueError(f"{SNAPSHOT_BASE_VARIABLE}: {fault}")
         return self
+
+    @model_validator(mode="after")
+    def _transcript_dir_apart(self) -> Self:
+        fault = transcript_dir_fault(
+            self.transcript_dir,
+            (self.workspace, self.checkout, self.state_directory, self.agent_home),
+        )
+        if fault is not None:
+            raise ValueError(f"{TRANSCRIPT_DIR_VARIABLE}: {fault}")
+        return self
+
+
+def transcript_dir_fault(folder: Path | None, places: tuple[Path | None, ...]) -> str | None:
+    """The fault of a relative transcript folder or of one inside one of `places`.
+
+    `None` without a folder, and for an absolute one inside none of them.
+    """
+    if folder is None:
+        return None
+    if not folder.is_absolute():
+        return _NOT_ABSOLUTE
+    # A transcript holds what no scan of secrets finds: no container and no commit may reach it.
+    for place in places:
+        if place is not None and folder.is_relative_to(place):
+            return f"{folder} lies inside {place}"
+    return None
 
 
 def workspace_overlap_fault(
@@ -247,6 +275,12 @@ def read_settings(
     base_fault = snapshot_base_fault(snapshots, snapshot_base, workspace, checkout, state_directory)
     if base_fault is not None:
         raise SettingsInvalid(SNAPSHOT_BASE_VARIABLE, base_fault)
+    agent_home = _agent_home(environ)
+    transcript_dir = _optional_path(environ, TRANSCRIPT_DIR_VARIABLE)
+    places = (workspace, checkout, state_directory, agent_home)
+    transcript_fault = transcript_dir_fault(transcript_dir, places)
+    if transcript_fault is not None:
+        raise SettingsInvalid(TRANSCRIPT_DIR_VARIABLE, transcript_fault)
     return InstanceSettings(
         repository_url=repository_url,
         instance=instance,
@@ -254,7 +288,7 @@ def read_settings(
         image=image,
         checkout=checkout,
         state_directory=state_directory,
-        agent_home=_agent_home(environ),
+        agent_home=agent_home,
         claude_executable=_optional(environ, CLAUDE_EXECUTABLE_VARIABLE)
         or _CLAUDE_EXECUTABLE_DEFAULT,
         token_file=_optional_path(environ, CREDENTIAL_FILE_VARIABLE),
@@ -282,6 +316,7 @@ def read_settings(
         ca_bundle=_optional_absolute_path(environ, CA_BUNDLE_VARIABLE),
         idle_shutdown_minutes=_idle_shutdown_minutes(environ),
         idle_shutdown_action=_idle_shutdown_action(environ),
+        transcript_dir=transcript_dir,
     )
 
 

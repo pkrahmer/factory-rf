@@ -9,7 +9,7 @@ from factory.domain.contract import CONTRACT, RECORDS_CONTRACT
 
 
 def _version() -> None:
-    assert RECORDS_CONTRACT == "4.2"
+    assert RECORDS_CONTRACT == "4.3"
 
 
 def _no_left_branch() -> None:
@@ -20,7 +20,7 @@ def _no_left_branch() -> None:
     "check",
     [
         pytest.param(_version, id="version"),
-        *[pytest.param(committed_is_generated(entry, "4.2"), id=entry.name) for entry in CONTRACT],
+        *[pytest.param(committed_is_generated(entry, "4.3"), id=entry.name) for entry in CONTRACT],
         pytest.param(_no_left_branch, id="no-left-branch"),
     ],
 )
