@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T01:42:27.921971Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-04T01:42:27.921971Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-04T01:46:19.213174Z'
+  stage: doing
+  run: 3ea6b28b6be4433c919199598b7630b7
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -254,3 +256,28 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
 
     `lint`: lint: green (0.1 s)
 16. factory: started doing as vm.
+17. coder: `make check` is green, so the item goes to review. This run changed no code. The implementation committed earlier on the branch (entry 10) now passes all 10 tests in `tests/entry/test_run_project_image_rebuild.py`, after the tester's one-line fix in entry 15. The S0002 tests and `tests/entry/test_run.py` also pass. Coverage is 99.51 %.
+
+    What I built (entry 10, unchanged):
+    - `src/factory/entry/run.py`:
+      - `_ProjectImageStart.prepare` runs `_follow_main` before every tick, after the repository waiter. That fetches, reads the stage file on `origin/main` and compares it with the last one it handled. The same text does nothing, which also means a file that failed is not tried again.
+      - `_choose` builds the image through `project_image_settings`. Only when the build passed does it build a new tick on new boundaries: image, identity and `PATH` change together. A tick that is running keeps the boundaries it started with.
+      - A failed build drops the tick, so no tick runs while the stop stands.
+      - When a project image was in use and the file is removed, it writes `stage image: back to the base at <commit>`.
+    - `src/factory/entry/wiring.py`:
+      - New `StageImageReport` holds the log, the clock and the commit's first 12 hex digits. New `stage_image_report` resolves `origin/main` and raises `GitError` when it is missing. New `stage_file_on_main`.
+      - `project_image_settings` takes `report=` in place of `clock=`. With a report it writes `stage image: built <identity> at <commit> in <s> s` and `stage image: failed at <commit>`, and the stop's detail starts with `at <commit>: `. Without a report it behaves as before.
+      - `_whole_seconds` is shared by the fault text and the built line.
+
+    Main choice: I compare the stage file's text, not `StageLayer.digest`. Equal text means an equal digest, and the text also covers a file that breaks the rule and so has no digest. I rejected computing the digest separately, because a refused file would then need its own case. The human confirmed this in entry 11.
+
+    Refactor: I read the diff once against `main`. Nothing needed changing. There is no existing helper for the 12-digit commit: other modules slice `[:12]` inline, and I left them alone.
+
+    What the journal changed: only the test path (entries 11 and 15). The Description stays as it is.
+
+    Noticed, not touched:
+    - A failed fetch in `prepare` now fails that iteration through the scheduler's catch-all, which logs `iteration failed` and retries at the next tick. The human accepted this for now in entry 11.
+    - The start's own build also writes a `built` line.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 42 known, 0 gone
