@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 2
 attempts: 0
 crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T09:28:32.079329Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -189,6 +185,13 @@ journal:
   kind: started
   at: '2026-11-04T09:28:32.079329Z'
   stage: doing
+- number: 33
+  speaker: coder
+  kind: question
+  at: '2026-11-04T09:29:31.328973Z'
+  stage: doing
+  run: 45d4068b7c5d45de815201b23ee0db85
+  blocked: question
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -552,3 +555,23 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
        - **Criterion:** none contradicted. The Interface asks only for `ARG AGENT_RUNTIME` without a default, and all three lines have none.
        - **Note for the next stage:** Docker scopes an `ARG` declared before `FROM` so that each stage must declare it again to use it. Both stages use `${AGENT_RUNTIME}`, so the three lines look necessary, and the `Expect:` count of `1` may be what is wrong rather than the Dockerfile. The `## Smoke test` section belongs to the human. If removing the redeclarations would break the build, the coder should probably ask the human to change the expectation to `3`, not change the Dockerfile.
 32. factory: started doing as vm.
+33. coder: Round 2: the smoke-test finding (entry 31). `grep -cE '^ARG AGENT_RUNTIME$' vm/Dockerfile` prints `3` where the `## Smoke test` expects `1`. I stopped before changing anything. The fix is either a change to the human's expectation or a restructuring the story does not describe, so I am asking which you want.
+
+    Why there are three lines: Docker scopes build arguments per stage. A stage can only read `${AGENT_RUNTIME}` if it declares `ARG AGENT_RUNTIME` itself. Both stages use the value:
+    - the `install` stage, for the check and the choice of npm package (`vm/Dockerfile:11`);
+    - the final stage, for `COPY --from=install /opt/runtime/${AGENT_RUNTIME} …` and the exec wrapper (`vm/Dockerfile:41`).
+
+    The third line, the global one before the first `FROM` (`vm/Dockerfile:5`), is not needed. No `FROM` uses it, and a build argument reaches every stage that declares it without a global line.
+
+    Options:
+    - (A) Keep the Dockerfile as it is and change the smoke test's `Expect:` for the first command to `3`.
+    - (B) Remove the redundant global `ARG AGENT_RUNTIME` and its comment (lines 4–5), keeping one declaration per stage, and change the `Expect:` to `2`. The tests stay green: the no-default test needs every `ARG AGENT_RUNTIME` line to have no value, not a particular count.
+    - (C) Get to exactly `1` by letting only the `install` stage declare the argument. The final stage would then have to work out the runtime without it: copy the whole `/opt/runtime/` directory, then pick the wrapper by `case "$(ls /opt/factory/bin)"`. That swaps a plain build argument for guessing from the file system, and it is harder to read and to check.
+
+    I would choose (B). It removes a line that does nothing, and the expectation then counts one declaration per stage that uses the value. With your answer I make the Dockerfile change if needed, and the `Expect:` line follows your word.
+
+    What is built is unchanged from entries 10 and 17:
+    - `vm/Dockerfile`: two stages. The final stage takes only the resolved runtime executable through one `COPY --from=install`.
+    - `vm/job-start.sh`: passes `--build-arg "AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME"`.
+
+    The other three smoke-test commands passed (entry 31), and `make check` was green at entry 25. Noticed but not touched: the final stage still installs `curl` and `xz-utils`, as it did before this story.
