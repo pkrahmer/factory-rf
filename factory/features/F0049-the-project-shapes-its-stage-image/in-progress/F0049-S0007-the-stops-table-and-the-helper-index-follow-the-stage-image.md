@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 534
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T03:14:21.969138Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-04T03:14:21.969138Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T03:14:42.493005Z'
+  stage: review
+  run: 300c46a6500e4a2b98de24395dd9905d
 ---
 
 # The stops table and the test helper index follow the stage image
@@ -122,3 +124,19 @@ Expect: `0`, then `listed`, then `listed`, then `documents ok`.
    `check`: check: green (not run again: passed on tree c75cce644896 at 2026-11-04T02:57:19Z)
    `duplicates`: duplicates: 0 new, 43 known, 0 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   - Scope: `git diff main...HEAD -- . ':!factory'` is empty, as the story expects. It is a docs-only story, and the Interface rules out any change under `src/factory/` or `tests/`. Both edits belong to the documenter, from criterion 4.
+   - Group 1, acceptance criteria: criteria 1 and 2 are document edits, and the smoke test's greps and the docs stage's `make documents` check them. No rule in the Interface has a failing side that a test could pin. The tester decided not to write grep tests of document text, and I agree: the Interface forbids test changes. Criterion 3: the coder's journal entry 7 says `make check` was green (coverage 99.52 %).
+   - I checked the Interface's facts against `main`:
+     - The row is at `docs/operator-guide.md:1608` and still holds "Fix the file on `main` and start `factory-run` again".
+     - The section "The project's stage file" exists at `docs/operator-guide.md:509`.
+     - `BASE_IDENTITY` (`"sha256-base"`), `FIRST`, `SECOND`, `StageSeen` and `built_path` are in `tests/stage_image_support.py:7-22`.
+     - The fixtures `base_identity_settings` and `base_image` are in `tests/conftest.py:529,535`.
+     - The index *Shared test helpers* is at `docs/project-guide/README.md:23`.
+     
+     So the documenter can carry out criteria 1 and 2 as written.
+   - Groups 2 to 4 (architecture, security, quality): there is no code diff, so nothing applies.
+   - Group 5, work item hygiene: the Description matches the story's purpose. The tester's and coder's journal entries say why no test and no code were written, and what they rejected. The docs criterion names both documents and why `README.md` and `docs/decisions.md` stay unchanged.
+
+   Earlier tests: none. The diff changes no test file.
