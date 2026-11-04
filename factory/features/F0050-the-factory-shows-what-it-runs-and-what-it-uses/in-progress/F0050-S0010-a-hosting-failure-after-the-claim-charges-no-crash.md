@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T22:36:25.675909Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-11-04T22:36:25.675909Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-04T22:41:02.153183Z'
+  stage: doing
+  run: da7c935b242344f6b98f824f3bec5b3c
 ---
 
 # A hosting failure after the claim charges no crash
@@ -265,3 +267,21 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
 
     `lint`: lint: green (0.2 s)
 19. factory: started doing as vm.
+20. coder: `make check` is green (`check: green`, coverage 99.26 %) now that the tester has deleted S0008's old claim-stands test (journal 18). I changed no code in this round.
+
+    **Built** (written in journal 13 and unchanged since): `src/factory/application/stage.py`.
+    - In `StageLauncher._start`, a `HostingServiceError` from `ensure_pull_request` calls `_release_after_hosting_failure` and then re-raises the same error with a bare `raise`.
+    - `_release_after_hosting_failure` clears the claim through `ClaimService.release` and writes the work item. It then makes one commit with the subject `commit_subject(<id>, RELEASE_AFTER_HOSTING_FAILURE)` ("claim released: hosting failed") and pushes it through `push_with_retries`.
+    - If that push fails with `PushFailed`, it logs `claim release not pushed: ...` and does not raise. So the original `HostingServiceError` still reaches the caller, and the claim on the remote stands as before; the human accepted this in journal 14.
+    - Errors other than `HostingServiceError` are not caught.
+
+    **Main choice:** catch the error at the one call in `_start`, where the claim and the document are at hand. **Rejected:** catching it in the tick handler, which would then need to know about claims and the work item's path.
+
+    **Refactor:** I read the diff once more and nothing needed changing. It is two small blocks with no duplicated code, and they reuse the helpers that already exist (`ClaimService.release`, `commit_subject`, `push_with_retries`).
+
+    **Description:** journals 14 to 18 changed only tests, not what the task means, so the Description stays as it is.
+
+    **Noticed, not touched:** when the release push fails, the release commit stays unpushed in the factory's local checkout. The next tick starts from the remote, so I left it alone.
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 41 known, 2 gone
