@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T01:56:12.889204Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-04T01:56:07.131843Z'
   stage: tests
   run: 5ffb3982121e455c93c7fd9b6801bea6
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:56:12.889204Z'
+  stage: doing
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -442,3 +451,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     Files changed: tests/log_support.py. No files created. The mapping from criteria to tests in entry 8 still holds.
 
     `lint`: lint: green (0.1 s)
+28. factory: started doing as vm.
