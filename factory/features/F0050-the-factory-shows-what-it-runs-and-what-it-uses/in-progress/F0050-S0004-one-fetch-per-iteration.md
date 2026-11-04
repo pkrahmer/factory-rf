@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T15:28:30.081644Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   at: '2026-11-04T15:28:23.657638Z'
   stage: doing
   run: 7e692fb34c324dd3835d9cfcfd810037
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:28:30.081644Z'
+  stage: review
 ---
 
 # One fetch per iteration
@@ -374,3 +383,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
+25. factory: started review as vm.
