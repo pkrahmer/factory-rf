@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T20:35:35.687801Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -242,6 +238,12 @@ journal:
   kind: started
   at: '2026-11-04T20:35:35.687801Z'
   stage: doing
+- number: 43
+  speaker: coder
+  kind: result
+  at: '2026-11-04T20:39:28.154928Z'
+  stage: doing
+  run: d1e96118985f44559413bef358642898
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -662,3 +664,15 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
     `lint`: lint: green (0.1 s)
 42. factory: started doing as vm.
+43. coder: Round 1, after the tester's entry 41. I changed no code and the working tree is clean. The tester's new test, `tests/test_vm_setup_transcripts.py::test_the_step_refuses_a_link_at_the_folder_before_it_makes_anything`, is criterion 3. `vm/setup.sh:465-469` already passes it: the `[ -L "$transcripts" ]` check prints `setup: transcripts: $transcripts is a link; remove it and run this script again` to standard error and exits with `exit 1`, and it runs before `owned_with_mode` and the `install -d -o factory -g factory -m 0700`. `make check` is green (`test: green (87.4 s)`, `check: green`).
+
+    Main choice: leave the script as it is, because the test confirms behaviour that is already there. I rejected touching `vm/setup.sh` again. Entry 35 limits this round to the test and the docs, and the code had nothing to fix.
+
+    Refactor: nothing to change. The diff is the same one the reviewer read in entry 37.
+
+    Noticed but not touched: `docs/operator-guide.md` still mentions the dropped `tmpfiles.d` rule and `--transcript-days`, at the places entry 37 lists. That is the documenter's work, the second item of entry 35 under docs criterion 5.
+
+    No journal entry changed the Description in this round. It already reflects the human's decision in entry 22.
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 41 known, 2 gone
