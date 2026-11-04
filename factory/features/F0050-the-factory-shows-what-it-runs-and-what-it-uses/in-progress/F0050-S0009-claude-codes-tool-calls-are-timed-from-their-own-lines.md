@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T21:33:21.801415Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-11-04T21:33:21.801415Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T21:33:48.012299Z'
+  stage: smoke-test
+  run: e924684cc0e44005b701edfe7a405605
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -356,3 +358,28 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
 23. factory: started smoke-test as vm.
+24. smoke-tester: Smoke test, round 1. I ran both commands from the repository root, exactly as written. Both met their `Expect:` lines, so there are no findings.
+
+    1. `uv run pytest tests/domain -k tool_uses 2>&1 | tail -1`
+
+    ```
+    51 passed, 2592 deselected in 0.72s
+    ```
+
+    Met: the line ends in `passed` and has no `failed`.
+
+    2. `uv run python -c '... print(claude_tool_uses(lines))'`: an `assistant` line, then an `api-request-blob` replay with `"timestamp": null`, then a `user` result 2.5 s later.
+
+    ```
+    Bytecode compiled 4164 files in 46ms
+    [ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]
+    ```
+
+    Met: the result line is exactly the expected `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`. The first line is uv's own stderr message from setting up the environment; the program did not print it.
+
+    Acceptance criteria re-read:
+    - The smoke test contradicts none of criteria 1 to 7. The replayed `tool_use` with a null time did not erase the call's time, and the blob line added no second call.
+    - Criterion 8 (`make check`): the coder's run was green (journal 18). I did not run it again; this stage runs only the smoke-test commands.
+    - Criterion 9 (docs): the `seconds` row in `docs/operator-guide.md:2222` says the times come from the `assistant` line holding the `tool_use` and the `user` line holding the `tool_result`, and that other lines of the session file are not read. That matches the criterion.
+
+    Findings: none.
