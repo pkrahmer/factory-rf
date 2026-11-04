@@ -1,8 +1,8 @@
-# The stage image carries only what runs
+# The factory shows what it runs and what it uses
 
 ## Goal
 
-After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured on factory-vm on 2026-11-04: npm's download cache stays in the image (441 MB in `/root/.npm`); opencode's package brings two builds of its executable, the normal one and a "baseline" one for CPUs without AVX2 (178 MB each); the factory's Node stays in `/opt/factory/node` although it serves only npm's install (201 MB); and both agent runtimes are installed, although every instance runs exactly one, the one `FACTORY_AGENT_RUNTIME` names (`vm/setup.sh --runtime`, `vm/job-start.sh`). An instance at work without a Claude key would carry Claude Code for nothing. This feature builds the base image for one runtime and leaves out what only the install needs: about 0.58 GB with Claude Code and 0.51 GB with opencode. It also moves both runtimes to their current releases, and makes every cost record show the image sizes, the free disk, the memory and the CPU, so that the next growth is seen from a distance. Two smaller findings of the same week go with it: a stop always says why and writes its log line once, and the factory fetches once per iteration. Done when every story below is merged and `make check` is green.
+After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured on factory-vm on 2026-11-04: npm's download cache stays in the image (441 MB in `/root/.npm`); opencode's package brings two builds of its executable, the normal one and a "baseline" one for CPUs without AVX2 (178 MB each); the factory's Node stays in `/opt/factory/node` although it serves only npm's install (201 MB); and both agent runtimes are installed, although every instance runs exactly one, the one `FACTORY_AGENT_RUNTIME` names (`vm/setup.sh --runtime`, `vm/job-start.sh`). An instance at work without a Claude key would carry Claude Code for nothing. This feature builds the base image for one runtime and leaves out what only the install needs: about 0.58 GB with Claude Code and 0.51 GB with opencode. It also moves both runtimes to their current releases, and makes every cost record show the image sizes, the free disk, the memory and the CPU, so that the next growth is seen from a distance. Two smaller findings of the same week go with it: a stop always says why and writes its log line once, and the factory fetches once per iteration. Last, every agent run's transcript, which the dataset's rollback throws away today, is kept in a folder inside the site (a local directory on a VM, a Cloud Storage bucket mounted into a Cloud Run job), never on GitHub, and the cost record names it reliably and sums up the run's tool calls without any content. Done when every story below is merged and `make check` is green.
 
 ## Scope
 
@@ -12,6 +12,9 @@ After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured
 - The object `machine` in every completed cost record: the base image and the project layer, the free space of the image store and of the dataset, the memory peak since boot and the memory total, the run's CPU time and its waits for a CPU and for memory; the build's log line with the sizes and the count of warnings; records contract 4.2 (S0002).
 - A stop's detail is never empty; a command cut off by the factory's own stop is not judged; a standing stop writes its log line once (S0003).
 - One fetch per iteration of `factory-run` (S0004).
+- The transcript folder `FACTORY_TRANSCRIPT_DIR`, optional: each run's transcript kept there, compressed, named by its run id, referred to by the record with its path and SHA-256 (S0005).
+- A summary of the run's tool calls without content in the cost record (S0006).
+- The folder on the VM (`vm/setup.sh`) and the operator's steps for a bucket in Cloud Run; `vm/job-start.sh` checks the folder (S0007).
 
 ## Out of scope
 
@@ -21,6 +24,9 @@ After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured
 - A memory peak per run: it needs sampling during the run, since the kernel's peak cannot be reset before 6.12.
 - Limits or warnings on the new measures: first the normal values are watched.
 - A breakdown per container or per instance: the measures count every container of the factory user.
+- A transcript on GitHub, or in any place outside the site (feature decision 6).
+- Creating a bucket or any other cloud resource: the operator's step, described in the guide.
+- An evaluation of the transcripts: it runs later, inside the site.
 - A heartbeat of the instances: a Cloud Run job needs none, and for VMs it belongs to a later instance management harness (the human, 2026-11-04).
 
 ## Stories
@@ -29,6 +35,9 @@ After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured
 - S0002: The cost records show the image sizes, the free disk, the memory and the CPU
 - S0003: A stop says why, and is logged once
 - S0004: One fetch per iteration
+- S0005: A run's transcript is kept in the transcript folder
+- S0006: The cost record sums up the run's tool calls
+- S0007: The transcript folder is set up on the VM and in Cloud Run
 
 ## The human's changes
 
@@ -43,3 +52,4 @@ A leave, for S0001: its tester may change `tests/test_stage_image.py` to the ima
 3. **The runtimes move to their current releases**: Claude Code 2.1.318 (2026-11-03) and opencode 1.19.5 (2026-10-28). Node stays at 22.23.4, the newest 22.x, since it only runs the install. The human asked for current versions, 2026-11-04.
 4. **The memory peak is the slice's high-water mark, and its name says so.** `memory_peak_since_boot_bytes` is the kernel's `memory.peak` of the containers' user slice. Reason: a peak per run would need sampling during the run, and the human judged it not worth the effort; the name keeps the value from being read as the run's own peak. The human, 2026-11-04.
 5. **The machine's measures sit in one object, and the CPU and the waits are the run's own.** `machine` holds all nine values, so the run's own measures stay apart from the machine's state; `cpu_seconds`, `cpu_wait_seconds` and `memory_wait_seconds` are differences of the kernel's running totals between the run's start and end. Reason: the waits say whether the machine is too small, which the peak alone does not; the totals need no sampling. The human, 2026-11-04.
+6. **Transcripts stay inside the site; GitHub gets only numbers.** A transcript holds whole conversations, which no scan of secrets can clear, so it goes only to the folder the site names (`FACTORY_TRANSCRIPT_DIR`): a local directory on a VM, a bucket of the site's own GCP project in Cloud Run, mounted as a volume, so the factory needs no cloud client. An unset folder keeps no transcript and is no fault. The cost record refers to its transcript by path and SHA-256 and sums up the tool calls without content. Reason: the human, 2026-11-04: transcripts may hold sensitive information that the other places' scans do not cover, and Cloud Run, where the telemetry matters most, has no machine that outlives the job.
