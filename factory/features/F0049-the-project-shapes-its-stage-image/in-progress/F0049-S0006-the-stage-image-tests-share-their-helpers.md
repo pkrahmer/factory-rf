@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 532
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T02:59:04.157282Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-04T02:58:58.034318Z'
   stage: doing
   run: dde8291222ab4db59a971234d192b206
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:59:04.157282Z'
+  stage: review
 ---
 
 # The stage image's tests share their helpers and pin the image without an environment
@@ -134,3 +143,4 @@ Expect: `0`, `0`, then a line that ends in `passed` with no `failed`.
 
    `check`: check: green
    `duplicates`: duplicates: 0 new, 43 known, 0 gone
+8. factory: started review as vm.
