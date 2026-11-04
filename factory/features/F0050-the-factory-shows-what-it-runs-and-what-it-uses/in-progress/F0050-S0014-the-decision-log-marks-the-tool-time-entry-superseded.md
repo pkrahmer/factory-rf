@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 553
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T23:55:27.725279Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-04T23:55:27.725279Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T23:55:49.648710Z'
+  stage: review
+  run: ed0eb3f963904949a7122140e23f2a7d
 ---
 
 # The decision log marks the old tool-time entry as superseded
@@ -125,3 +127,16 @@ Expect: `1`.
    `check`: check: green (not run again: passed on tree 066290bec96a at 2026-11-04T23:41:19Z)
    `duplicates`: duplicates: 4 new, 41 known, 2 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'` is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. That fits this story. The Interface says no module under `src/factory/` changes and no test is written. The only edit is to `docs/decisions.md`, which only the documenter may write, and criterion 5 hands it to the docs stage.
+
+   1. Acceptance criteria: criteria 1 to 3 are text the docs stage writes in `docs/decisions.md`. The two smoke-test `grep -c` commands and the docs-stage diff check them, so no pytest test is missing. The Interface states no rule with a failing side and no limit. Criterion 4: the journal records `check: green` and test coverage at 99.26 % after the coder (entry 7).
+   2. Architecture: nothing under `src/` changes, so no layer or wrapper rule is touched.
+   3. Security: no code, no new markers and no new baseline entries.
+   4. Quality: there is no code to judge. The `duplicates: 4 new` result in entry 7 cannot come from this branch, since it changes nothing under `src/factory`.
+   5. Work item hygiene: the coder's journal entry gives the main choice (hand forward with no change) and what it rejected (editing the decision log outside its write paths). The Description still matches the work, since the edit belongs to the docs stage. The docs criterion names exactly the two edits.
+      - Both target entries exist, at `docs/decisions.md:407` and `docs/decisions.md:1537`.
+      - The `- Superseded by *...*:` bullet the Interface gives follows the log's existing bullet form for this (for example `docs/decisions.md:152` and `:420`), so the documenter can write it as given.
+
+   Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
