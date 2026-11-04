@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T12:18:19.094009Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -295,6 +299,11 @@ journal:
   at: '2026-11-04T12:18:13.103101Z'
   stage: docs
   run: 49e6c1d5bfdf4182af86695ff12b03d1
+- number: 53
+  speaker: factory
+  kind: started
+  at: '2026-11-04T12:18:19.094009Z'
+  stage: smoke-test
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -860,3 +869,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     `check`: check: green (not run again: passed on tree c66f0061abaa at 2026-11-04T12:13:33Z)
     `secrets`: secrets: green (2.9 s)
     `documents`: documents ok
+53. factory: started smoke-test as vm.
