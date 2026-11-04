@@ -1504,8 +1504,18 @@ Date: 2026-11-04 (F0050-S0008).
 
 - Decision: the push of a stage's result (`StageFinisher._commit_and_push`) and of a recorded change (`WorkItemRecorder.publish`) is pushed again after 5, 15 and 45 s when the server refused it (`! [remote rejected]`) or the remote cannot be reached, then raises `PushFailed` as before; each retry writes `push: retry <n> of 3 in <s> s: <reason>`. A `! [rejected]` (`non-fast-forward`, `fetch first`) fails at once, and the stall push has no retry. No force, no rebase and no new commit lie between the tries. `PushFailed` carries git's reason (`push_reason`: the last non-empty lines of git's output, at most three, advice lines left out, at most 300 characters in all). Every counted handler error writes `handler error <event key> <n> of <cap>: <exception type>: <text>`. The PyGithub client is created with `GithubRetry(total=5, backoff_factor=2)` whose allowed methods include `PATCH`. The cap of three tries stays (the human, 2026-11-04).
 - Why: GitHub's partial outage of 2026-11-04 (about 09:36 to 10:05 UTC, `planning/outage-2026-11-04.md`). One failed push most likely discarded a finished docs run of F0050-S0001, charged a crash and ran the paid agent again, and the first run's cost record was lost (19 runs recorded, 20 ran). The hand-over failed three times in about 90 s, reached the handler's error cap and was never tried again, and its first two errors were logged nowhere. A short outage should be cheap and visible.
-- Open: a test pins that a hosting failure after the claim (in `ensure_pull_request`) charges a crash for a stage in which no agent ran; it is a strict `xfail`, and the fix is not part of this story.
+- Open: a test pinned that a hosting failure after the claim (in `ensure_pull_request`) charges a crash for a stage in which no agent ran; it was a strict `xfail`, and F0050-S0010 (below) fixed it.
 - No rejected option is named by the story for this entry, so none is written.
+
+
+## A hosting failure after the claim releases the claim and charges no crash
+
+Date: 2026-11-04 (F0050-S0010).
+
+- Decision: when `ensure_pull_request` raises `HostingServiceError` in `StageLauncher._start`, after the claim was pushed and before the agent ran, the stage clears the claim (`ClaimService.release`), commits `<id>: claim released: hosting failed` and pushes it through `push_with_retries`, then raises the same error unchanged. The release adds no journal entry and changes no attempts, round or crash count. If the release's push fails (`PushFailed`), the claim stands, the failure is logged as `claim release not pushed: ...`, and the original error is raised; the next tick records the crash as before. Any other error after the claim is handled as before. The handler's error count and its cap of three are unchanged (the human chose this approach, journal 4).
+- Why: S0008's test found that the claim stands after such a failure and the next tick reads it as a crash, so a stage in which no agent ran was charged a crash; during an outage like that of 2026-11-04, two such ticks reach the crash cap and the human has to write a comment to wake the work item.
+- Consequence: the release moves the branch, so the handler's error count starts at 1 on every failing tick (the count is keyed on the branch's remote state). An outage after the claim therefore retries every tick and reaches no cap, and posts no error stop.
+- Rejected: opening the pull request before the claim (it needs a new Interface and a reading of the race between two instances); keeping the count across the claim and release commits (a domain change in `tick_status`/`evaluation` that the story does not name); resetting the branch to the commit before the claim (it needs a force push, against the one commit pushed through `push_with_retries`).
 
 
 ## A stop says why, a stop of the factory's own shutdown is not raised, and a standing stop is logged once

@@ -27,7 +27,7 @@ from factory.domain.checks import CheckResult, command_line
 from factory.domain.cost_records import ToolUse, TranscriptRef
 from factory.domain.decisions import StageMove, StallReason, agent_entry, decide, stall_reason_of
 from factory.domain.died_runs import died_line
-from factory.domain.errors import HostingServiceError
+from factory.domain.errors import HostingServiceError, PushFailed
 from factory.domain.git import CommitId
 from factory.domain.hand_over import hand_over_description
 from factory.domain.hosting import PullRequestView
@@ -40,6 +40,7 @@ from factory.domain.story_form import FormFinding
 from factory.domain.work_item import WorkItemDocument, require_state
 
 STALL_TAIL_LINES = 15
+RELEASE_AFTER_HOSTING_FAILURE = "claim released: hosting failed"
 
 
 class StartedStage(BaseModel):
@@ -162,7 +163,11 @@ class StageLauncher:
         # The committed file, not the document given to the claim: the agent works on what
         # the stage-start commit holds.
         document = self._boundaries.work_item_reader.read(self._boundaries.checkout / prepared.path)
-        pull_request = self._opening.ensure_pull_request(prepared.work_item, document)
+        try:
+            pull_request = self._opening.ensure_pull_request(prepared.work_item, document)
+        except HostingServiceError:
+            self._release_after_hosting_failure(prepared, document)
+            raise
         return StartedStage(
             work_item=prepared.work_item,
             stage=stage,
@@ -173,6 +178,21 @@ class StageLauncher:
             pull_request=pull_request,
             findings=findings,
         )
+
+    def _release_after_hosting_failure(
+        self, prepared: PreparedWorkItem, document: WorkItemDocument
+    ) -> None:
+        # No agent has run, so the claim must not stand: the next tick would read it as a
+        # crash. A release that cannot be pushed leaves the claim, and the crash, as before.
+        released = self._claims.release(document)
+        self._boundaries.work_item_writer.write(self._boundaries.checkout / prepared.path, released)
+        self._boundaries.git.commit(
+            commit_subject(prepared.work_item, RELEASE_AFTER_HOSTING_FAILURE)
+        )
+        try:
+            push_with_retries(self._boundaries, prepared.branch)
+        except PushFailed as failure:
+            self._boundaries.log.line(f"claim release not pushed: {failure}")
 
 
 class AgentAftermath(BaseModel):
