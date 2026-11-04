@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T16:04:55.395432Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-04T16:04:49.536426Z'
   stage: intake
   run: f44b1ddc7e8848a0a70ab9d389118f7f
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-04T16:04:55.395432Z'
+  stage: tests
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -127,3 +136,4 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
    - Smoke test: the two greps are runnable. The `Expect:` line is checkable against their output. No pytest is involved.
    - Architecture: settings and models in domain, wrappers per runtime, keeper and store interface in application, the file adapter in adapters, and wiring in entry. This fits the four layers.
    - Scope: within F0050's S0005 line, with nothing from "Out of scope". The tester has the human's leave for the three "4.2" pins to "4.3".
+7. factory: started tests as vm.
