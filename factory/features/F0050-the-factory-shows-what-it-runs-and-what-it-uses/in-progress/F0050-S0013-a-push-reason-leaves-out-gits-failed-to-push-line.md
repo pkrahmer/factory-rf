@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T23:37:50.921571Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-04T23:37:45.666888Z'
   stage: review
   run: ecd44f4b80434cb3a28e97ed1952f847
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:37:50.921571Z'
+  stage: doing
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -175,3 +184,4 @@ Expect: a line that ends in `passed` with no `failed`.
    - Group 5 (work item): the Description matches what was built. Entry 7 records the main choice, a prefix match on the full phrase. It rejects dropping every `error:` line and a regex. The docs criterion still says what the documenter must write.
 
    Earlier tests: none. Every test file in the diff is new (status `A`).
+10. factory: started doing as vm.
