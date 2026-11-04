@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 543
-comments_read: []
+comments_read: [6635484197]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 7f3398670c97480fa870732aab6c51db
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-04T16:04:17.357395Z'
+  stage: intake
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -79,3 +84,23 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
    5. An empty `FACTORY_TRANSCRIPT_DAYS` is not stated. Is it unset, or refused with the variable's name? I would choose unset, with a row in criterion 5. The refusal of the other values also needs the days rows `0`, `-1`, `x` to name the variable in the error. Criterion 5 should say "with the variable's name".
    6. "The copy after the resume replaces the earlier one" (Interface) is covered by criterion 3. But "a record of a later run names the file under its own run id; nothing is shared" needs the case where the later run's copy fails: its record has `transcript` `None` and does not name the earlier run's file. Add this as a row in criterion 4 or 3.
    7. Scope check: the story is within F0050's scope (S0005 line) and no "Out of scope" item. The smoke test is runnable and its `Expect:` is checkable, and the project's pytest is not used there. The architecture fits (settings in domain, wrappers per runtime, keeper in application). These need no change.
+4. 2026-11-04 human: Answers of the human:
+
+   1. The seams, put into the Interface:
+      - `InstanceSettings` in `factory.domain.settings` gains `transcript_dir: Path | None = None` and `transcript_days: PositiveInt | None = None`, read by `read_settings`.
+      - `TranscriptRef` (frozen, unknown keys refused) in `factory.domain.cost_records`, beside `CostRecord`, which gains `transcript: TranscriptRef | None = None`.
+      - A domain model `Transcript` in a new `factory.domain.transcripts` (frozen: `extension: str`, e.g. `jsonl`, and `content: bytes`).
+      - `AgentRuntime` (`factory.application.agent_runtime`) gains `read_transcript(home: Path, session: str) -> Transcript | None`; `claude_runtime`, `opencode_runtime` and the fake implement it.
+      - An application interface `TranscriptStore` in a new `factory.application.transcripts`: `write(path: str, data: bytes) -> str` (writes `<folder>/<path>` with mode `0600`, returns the SHA-256 of what it wrote) and `remove_older_than(days: int, now: datetime) -> int`; its adapter `FileTranscriptStore(folder: Path)` in `factory.adapters.transcript_files`; and `TranscriptKeeper(store, log)` in the same application module, with `keep(work_item, run, transcript) -> TranscriptRef | None` (compresses, writes, logs `transcript: not kept for ...` on an error) and `remove_old(days, now) -> int` (logs `transcript: removed ...` when it removed any).
+      - The deletion is called from `activity_tick` in `factory.entry.run`, on an idle outcome only, when `transcript_days` is set.
+      The coder may add arguments these need and says so in its entry.
+
+   2. Yes, a criterion each: `sha256` refused with 63 digits, upper case and a non-hex digit; `path` refused when absolute, with `..`, or not ending in `.gz`.
+
+   3. 4.3, with a criterion that pins it and the regenerated schemas. Leave for the tester: the `"4.2"` pins in `tests/domain/test_contract_version_4.py`, `tests/domain/test_contract_version_4_2.py` and `tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version` become `"4.3"`; nothing else in those modules.
+
+   4. Yes: strictly older is removed, a file of exactly `d` days is kept (a row for each side), and a row for a tick that is not idle, which removes nothing.
+
+   5. An empty `FACTORY_TRANSCRIPT_DAYS` counts as unset (a row); the refusals of `0`, `-1` and `x` name the variable.
+
+   6. Yes: a row where the later run's copy fails: its record has `transcript` `None` and does not name the earlier run's file.
