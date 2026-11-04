@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T11:55:14.967947Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -210,6 +206,13 @@ journal:
   kind: started
   at: '2026-11-04T11:55:14.967947Z'
   stage: doing
+- number: 37
+  speaker: coder
+  kind: question
+  at: '2026-11-04T11:57:40.608466Z'
+  stage: doing
+  run: 9c6ab98d2b3e4dd2ac603fef085eec75
+  blocked: question
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -591,3 +594,28 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.1 s)
 36. factory: started doing as vm.
+37. coder: Round 1, second doing run. I changed no code in this run and no test. `make check` is green (coverage 99.42 %), including the tester's round-1 rows from entry 35 (the infinity rows, `PodmanImages.size_bytes` and `store_path`, begin-then-complete, return to the base, criterion 11). So reviewer findings 1 to 5 are met in code and tests.
+
+    One finding is still open, and I can't close it: reviewer finding 6. It asks for two additions to criterion 13 (docs). The first is the operator-guide sentence the human asked for in entry 23: under the `job` container profile the containers run as root, so the user slice may be another cgroup, and the measures may then be `None` or another slice's. The second is the `unknown` text for an unreadable size in the new log lines (criterion 11). In entry 33 I wrote both into criterion 13, but the factory dropped that edit ("left out changes outside the write paths"). The work item is not in the coder's write paths, so trying again here would be lost the same way.
+
+    Question: how should these two additions reach criterion 13?
+      (a) The human adds them to criterion 13 in a commit of their own on this branch. The text could be: "...in *The project's stage file*, the new log lines, with `unknown` for a size that cannot be read; and one sentence that under the `job` container profile the containers run as root, so the user slice may be another cgroup and the measures may then be `None` or another slice's." **This is what I would choose.** It is the only way the documenter, who writes from the criterion, is sure to see them.
+      (b) The human states in an answer that the documenter takes both from journal entries 23 and 33, and criterion 13 stays as it is. The review then accepts finding 6 as covered by the journal.
+      (c) The pipeline definition gives the coder the work item as a write path. That is a change to `factory/`, so it is the human's.
+
+    After (a) or (b), the work item can go to review as it is now. No code or test change is pending.
+
+    Built across the doing runs (unchanged here; details in entries 22, 29 and 33):
+    - `src/factory/domain/machine.py`
+    - `MachineMeasures` and `CostRecord.machine` in `src/factory/domain/cost_records.py`
+    - `src/factory/application/machine.py`
+    - `Images.size_bytes` and `Images.store_path` in `src/factory/application/images.py`, implemented in `src/factory/adapters/podman_images.py` and `src/factory/adapters/fake_images.py`
+    - `src/factory/adapters/machine_files.py`
+    - `src/factory/application/boundaries.py` and `src/factory/application/costs.py`
+    - `src/factory/adapters/cost_records_jsonl.py`
+    - `chosen_image` and `image_sizes` in `src/factory/entry/wiring.py`, used by `src/factory/entry/run.py`
+    - Contract 4.2, with its schemas regenerated
+
+    Refactor: there is no new diff in this run, so nothing to refactor.
+
+    Noticed, not touched: the 3 vulture false positives on `MachineMeasures` fields in `make duplicates`, which the reviewer already judged. I did not run `make duplicates` again.
