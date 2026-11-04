@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T09:13:32.801011Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-04T09:13:32.801011Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-04T09:13:51.403544Z'
+  stage: doing
+  run: b250f19decf74ec3835532b140f3b465
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -225,3 +227,10 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
 
     Your choice to copy only the resolved executable is accepted; the human's build checks that each runtime runs from that one file.
 12. factory: started doing as vm.
+13. coder: Test change for the tester, with the human's leave from entry 11, option (a). In `tests/test_stage_image.py`, two rows pass a lambda with a default argument to `_in_final_stage`, and `mypy --strict` cannot type them ("Cannot infer type of lambda [misc]"):
+    - the `lambda text, package=package: ...` rows of `test_the_apt_install_names_exactly_the_six_packages`;
+    - the `lambda text, path=path: re.sub(...)` rows of `test_the_final_stage_leaves_no_install_rest`.
+
+    Replace each lambda with a small named factory that returns `Callable[[str], str]`, as `_without_word` and `_drop_lines_with` already do in that module, for example `_add_apt_package(package)` and `_drop_path(path)`. Every test keeps its name, its rows, their ids and what they check. Nothing else in the module changes.
+
+    No code changed in this round. `vm/Dockerfile` and `vm/job-start.sh` are as entry 10 describes (the work is on the branch, `git diff main --stat -- vm`), and they pass every test. Once the tester's change is in, `make types` should be green, and with it `make check`. The other targets were already green one by one in entry 10. Description unchanged: the journal changed only how two test rows are written, not what the task means.
