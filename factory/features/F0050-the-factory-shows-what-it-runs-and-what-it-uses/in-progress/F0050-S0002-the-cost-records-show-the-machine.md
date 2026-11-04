@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T12:09:52.190872Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -249,6 +245,12 @@ journal:
   kind: started
   at: '2026-11-04T12:09:52.190872Z'
   stage: doing
+- number: 44
+  speaker: coder
+  kind: result
+  at: '2026-11-04T12:10:24.331470Z'
+  stage: doing
+  run: 42de879d58734d9580ad153158039c15
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -716,3 +718,20 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     - tests/entry/test_run_project_image_rebuild.py: the human's leave, entry 18 answer 3. The two expected build lines take the new form, and `ScriptedImages` derives from the shared `SizedImages`, with its import.
     - tests/test_docker_path_removed.py: the human's leave, entry 23 answer 1. `_no_module_reads_proc` is narrowed through `PROCESS_TABLE`, with one parametrized test whose rows are meminfo, pid, self and bare.
 43. factory: started doing as vm.
+44. coder: Round 2. The reviewer's two findings in entry 42 both ask for missing tests. The code they test is already there and works as the criteria say, so I changed no code and no test, and I am ending with `tests`. The working tree was clean when I started. I did not run `make check` again because nothing changed since entry 40, where it was green.
+
+    What I checked:
+    - `src/factory/entry/wiring.py:358-359`: `build_boundaries` sets `machine=CgroupMachineReadings(_user_slice(), _MEMINFO)` and `image_store=None if images is None else images.store_path()`.
+    - `src/factory/entry/run.py:261`: `told = report if has_stage_file or at_start else None`.
+
+    Tests the tester should add:
+    1. Finding 1 (criteria 4 and 7): a test in `tests/entry/` that calls `build_boundaries(..., images=SizedImages(<sizes>, store=<a tmp_path folder>))`. It asserts that `boundaries.image_store` is that folder and that `boundaries.machine` is a `CgroupMachineReadings`.
+    2. Finding 2 (criterion 8): a run-level row, for example in `tests/entry/test_run_image_sizes.py`, that goes through `run_instance` with `SizedImages`. A start without a stage file writes `stage image: base 1.58 GB` to the state log exactly once, and later ticks do not write it again.
+
+    Optional, from the reviewer's notes:
+    - `tests/cost_image_support.py:47` has a private `_launch` that `tests/application/test_cost_record_machine_measures.py:10` imports. It could get a public name.
+    - In `tests/entry/test_wiring_stage_image_sizes.py`, the case of a project image smaller than its base is tested twice: `test_a_project_image_smaller_than_its_base_has_no_layer_size` and the `project-smaller-than-base` row of `test_a_size_that_cannot_be_read_is_logged_unknown`.
+
+    The journal does not change the meaning of the task, so I left the Description as it is.
+
+    Refactor: I made no code change in this round, so there was nothing to refactor.
