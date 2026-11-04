@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T20:35:35.687801Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -233,6 +237,11 @@ journal:
   at: '2026-11-04T20:35:29.529968Z'
   stage: tests
   run: 981fe6e9cb6b466d8792bd7d5df291ae
+- number: 42
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:35:35.687801Z'
+  stage: doing
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -652,3 +661,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     Files changed: tests/test_vm_setup_transcripts.py. No new files. Every module imported.
 
     `lint`: lint: green (0.1 s)
+42. factory: started doing as vm.
