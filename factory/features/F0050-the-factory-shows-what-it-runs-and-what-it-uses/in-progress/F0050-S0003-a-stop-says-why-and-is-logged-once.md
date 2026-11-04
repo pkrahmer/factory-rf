@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T13:40:48.105739Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-04T13:40:48.105739Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-04T13:42:23.996827Z'
+  stage: tests
+  run: 87803f78ef974477b0695841386cbb0b
 ---
 
 # A stop says why, and is logged once
@@ -117,3 +119,30 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
    - Architecture: the pure function is in the domain, the use is in the application, and the wiring is in the entry layer. No layer is crossed.
    - Scope: within F0050's scope line for S0003 and not in "Out of scope". Stage checks cut off by a stop are left out, as the human said.
 7. factory: started tests as vm.
+8. tester: I wrote failing tests for criteria 1 to 6. Each one is a parametrized test, with one row per case the criterion names.
+
+   - criterion 1: tests/application/test_preflight_stop_detail.py::test_a_failed_probe_that_printed_nothing_names_the_command_and_its_ending. Rows: exit status 2 with no output, signal 15 with no output, signal 9 with no output, and exit status 2 with output of blanks only. Every row has `stop_requested` set to false.
+   - criterion 2: tests/application/test_preflight_stop_detail.py::test_a_probe_cut_off_by_the_factorys_stop_is_not_judged_and_runs_again
+   - criterion 3: tests/application/test_stop_log_once.py::test_a_standing_stop_writes_its_line_once_and_again_only_when_something_changes. Rows: same detail, other detail, raise after clear.
+   - criterion 4: tests/application/test_stop_log_once.py::test_the_health_status_holds_the_newest_detail_and_the_records_the_first_raise_and_clear. Same three rows.
+   - criterion 5: tests/domain/test_command_ending.py::test_a_command_ending_names_the_exit_status_the_signal_or_the_time_limit. Rows: 0, 2, -15, at the time limit.
+   - criterion 6: tests/application/test_stop_log_once.py::test_an_empty_or_blank_detail_is_replaced_by_no_detail_given. Rows: empty, blank.
+   - criteria 7 and 8: no test; they are the check and the docs stage.
+
+   Files created:
+   - tests/domain/test_command_ending.py
+   - tests/application/test_stop_log_once.py
+   - tests/application/test_preflight_stop_detail.py
+
+   Run: `uv run pytest -q` on the three files stopped at collection with `ImportError: cannot import name 'command_ending' from 'factory.domain.checks'`. The pytest run was interrupted at that collection error, so the other two files were not run. They need `Boundaries.stop_requested` (passed through `dataclasses.replace`) and the new behaviour of `StopService.raise_stop`. `make lint` is green.
+
+   Choices the coder should know:
+   - Criterion 1, wording: the test checks that the detail contains `lint` and ends with `<ending> and printed nothing on main at <commit[:12]>`. `<ending>` is `ended with exit status <n>` or `ended by signal <n>`. Either `lint` or the Interface's example `make lint` as the command name passes.
+   - Criterion 1, time limit: there is no time-limit row, because the criterion names none. The existing test_preflight_run.py test of the `reached its time_limit` detail still stands.
+   - Criterion 2, setup: the fake command sets the stop flag while it runs and returns signal 15. The test does not assert what `run()` returns for the probe that was cut off; the Interface leaves that open. It checks for no `main_branch_failing` stop and that the stamp is absent or has no `main_failed`. Then it checks that a second preflight, with the flag clear, runs the command again and passes.
+   - Criterion 6, how the blank stop is built: `RepositoryStop` already refuses a blank detail (tests/domain/test_stops.py::test_a_blank_detail_is_rejected). So the test builds the stop with `RepositoryStop.model_construct` to bypass validation, and leaves that validator as it is.
+   - Criterion 6, records: a `StopRecord` carries no detail, so for the records the test only checks that one `raised` record is written.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.1 s)
