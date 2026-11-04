@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T23:43:34.922787Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-04T23:43:34.922787Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T23:44:00.640398Z'
+  stage: review
+  run: 5d3c838035f5435e854b5aeafb1c5bb1
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -266,3 +268,15 @@ Expect: a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
 16. factory: started review as vm.
+17. reviewer: no findings
+
+    Checked in this round (round 1), against the diff and the work item:
+    - Group 1 (criteria). Criteria 1 to 3: the tests in `tests/domain/test_push_reason_summary_line.py` use the exact outputs the criteria give and check the exact reasons. Criterion 2 is one parametrized test that covers both sides of the rule: the summary line left out, with and without leading spaces, and `error: src refspec ...` and `remote: error: failed to push some refs to x` kept. Criterion 4: `tests/application/test_push_retry_server_lines.py` rewrites the armed `pre-receive` hook so it prints two lines. It first asserts that the line it replaces is still there. It then checks every retry line for both `remote:` lines and `[remote rejected]`, and for the absence of `failed to push some refs`. The three-line and 300-character limits are unchanged and still pinned by S0008's and S0011's tests. Journal entry 15 records `check: green`.
+    - Group 2 (architecture). The only code change is in `src/factory/domain/git.py`, a pure function in the domain layer. The new prefix joins the existing `startswith` tuple in `_is_reason_line`, and the match runs on the stripped line, as the Interface says.
+    - Group 3 (security). No markers, secrets or command strings in the diff.
+    - Group 4 (quality). `PUSH_SUMMARY_PREFIX` carries a comment that says why the line goes, and the `push_reason` docstring names the left-out line. The round-0 finding is resolved: `result_case` now lives once, in `tests/conftest.py:571-592`, and every type that fixture uses was already imported there. The parametrized `case` fixture in `tests/application/test_push_retry.py` is a different fixture (it runs both `result` and `record`), so it is not a copy. `make duplicates` reports 4 new findings in entries 7 and 15, none of them in code this diff touches.
+    - Group 5 (work item). The Description matches what was built. Entries 7 and 15 give the main choice, a prefix match on the full phrase, and what was rejected: dropping every `error:` line, and a regular expression. The docs criterion still says what the documenter must write.
+
+    Earlier tests:
+    - `tests/application/test_push_retry_reason.py`: under the standing leave to move a shared test helper. Only its copy of `result_case` and the imports that copy alone used were removed. Its one test keeps its name and checks the same thing.
+    - `tests/conftest.py`: none needed. The change only adds the shared `result_case` fixture and the `push_retry_support` import, and every fixture the file already held is unchanged.
