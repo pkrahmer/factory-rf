@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T20:09:46.329442Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-11-04T20:09:40.273067Z'
   stage: docs
   run: d5d765f921e7433e988c1470b2c8129d
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:09:46.329442Z'
+  stage: smoke-test
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -321,3 +330,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     `check`: check: green (not run again: passed on tree 279e875c843b at 2026-11-04T20:06:11Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+20. factory: started smoke-test as vm.
