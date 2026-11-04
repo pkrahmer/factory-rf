@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 553
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T23:56:22.763583Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-04T23:56:22.763583Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T23:56:39.982126Z'
+  stage: smoke-test
+  run: 3d9ef73449dd47e2b4a62993ed74af70
 ---
 
 # The decision log marks the old tool-time entry as superseded
@@ -177,3 +179,23 @@ Expect: `1`.
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test run from the repository root, both commands exactly as written. Both met their `Expect:` lines. No findings.
+
+    1. `grep -c "Superseded by \*The cost record sums up the run's tool calls" docs/decisions.md`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    2. `grep -c "This supersedes \*The time per tool command inside a run is not recorded\*" docs/decisions.md`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    Criteria check: I read `git diff main...HEAD -- docs/decisions.md`. It holds exactly two changes.
+    - Criterion 1: the F0012 entry at `docs/decisions.md:407` keeps its text unchanged. It gains the line `- Superseded by *The cost record sums up the run's tool calls, without their content*: each tool's seconds are read from the run's transcript (F0050-S0006, S0009).`
+    - Criterion 2: the S0006 entry's Decision bullet now ends with `This supersedes *The time per tool command inside a run is not recorded*.`
+    - Criterion 3: no other entry of the log changes.
+    - Criterion 4: I did not run `make check` again. It is the factory's gate, and the journal records it green.
+    - Criterion 5: nothing in the smoke test contradicts it.
