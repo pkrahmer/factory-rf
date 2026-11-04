@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T19:54:22.971858Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-04T19:54:12.959383Z'
   stage: tests
   run: b9d69d1bfff64ee5ae1d1559dfa99d9c
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-04T19:54:22.971858Z'
+  stage: doing
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -100,3 +109,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
    Files created: tests/test_vm_setup_transcripts.py, tests/test_vm_job_start_transcripts.py. Modules the test run could not import: none. No earlier test file changed.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
