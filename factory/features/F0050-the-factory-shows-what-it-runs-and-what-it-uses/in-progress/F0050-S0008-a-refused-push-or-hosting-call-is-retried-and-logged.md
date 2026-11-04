@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T12:32:16.006866Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T12:32:12.184425Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-04T12:32:16.006866Z'
   stage: intake
 ---
 
@@ -97,3 +106,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
    5. Confirmed: the stall push in `stalls.py` stays without a retry in this story.
    6. The one place is `pygithub_service(repository, token)` in `factory.adapters.pygithub_hosting` (line 156, where `github.Github(auth=..., lazy=True)` is built). The test reads the retry from the built client (the `retry` the client was given); the coder may add a small module-level function or constant that builds the `GithubRetry`, so the test can check it without a network, and says so in its entry.
    7. The test drives one tick in which the hosting service fails in `ensure_pull_request` (`factory.application.opening`) after the claim was pushed, using the fake hosting service. It asserts: no agent run was started (the fake runtime has no call), and then, at the next tick, what the journal and the crash count hold. It is marked `xfail(strict=True, reason="a crash is charged for a stage in which no agent ran")` exactly when the next tick records a `crash` entry or a crash count of 1 for that stage; otherwise it passes as written. The entry names which of the two it is.
+5. factory: started intake as vm.
