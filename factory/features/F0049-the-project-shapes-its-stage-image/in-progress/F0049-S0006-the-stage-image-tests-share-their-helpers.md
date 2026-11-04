@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 532
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T02:59:04.157282Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-04T02:59:04.157282Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T02:59:36.881409Z'
+  stage: review
+  run: e814460b4c8e4baf947e3cfd7cd63450
 ---
 
 # The stage image's tests share their helpers and pin the image without an environment
@@ -144,3 +146,19 @@ Expect: `0`, `0`, then a line that ends in `passed` with no `failed`.
    `check`: check: green
    `duplicates`: duplicates: 0 new, 43 known, 0 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   I read the diff against `main`, which changes four test files and nothing under `src/`, and checked it against each criterion and the Interface:
+   - Criterion 1: the new row `null` in `tests/adapters/test_podman_images.py::test_path_is_the_images_configured_path_or_the_base_default` sits beside `with-path` and `without-path`. Its stand-in prints `null\n` and the row expects `SYSTEM_PATH`. `src/factory/adapters/podman_images.py:76-82` returns `SYSTEM_PATH` when the parsed value is not a list, so the row checks the side the Description names.
+   - Criterion 2: both modules import `SYSTEM_PATH` from `factory.domain.containers` (value `/usr/local/bin:/usr/bin:/bin`, `src/factory/domain/containers.py:17`). Under `tests/`, only `tests/vm_support.py:15` still assigns that text to a name. Every other occurrence is a literal inside a call or a dict, not an assignment.
+   - Criterion 3: `tests/entry/test_wiring_run.py` and `tests/entry/test_wiring_image_path.py` no longer assign `PROBE` or `COMPLETED`. Each imports `COMPLETED as PROBE` from `tests/probe_support.py` and `COMPLETED` from `tests/agent_definition_support.py`. I compared the shared values with the removed copies and they are field for field identical. The imports that nothing used any more (`AgentRunResult` in both files, `timedelta` in `test_wiring_run.py`) are gone. `timedelta` is still used in `test_wiring_image_path.py:71`, so it stays there. No test name changed.
+   - Criterion 4: `Machine.log_lines` now returns `state_log_lines(self.directory / "state")`, which has the same body as the removed copy. `tests/log_support.py` and `tests/test_shared_bodies.py` are unchanged.
+   - Criterion 5: the coder's `make check` was green (journal entry 7). Criterion 6 (`docs: none`) still holds: no behaviour, command or decision changed.
+   - Architecture, security and quality: the diff only touches tests and adds no silencing markers. Every copy the Description names is replaced by the shared one. `STAND_IN` and the other modules' own `PROBE`/`COMPLETED` are left alone, as the Description says.
+   - Work item hygiene: the Description matches what was built. The tester's entry names the rejected structural test and why.
+
+   Earlier tests (each file is on `main` and was changed with status `M`):
+   - `tests/adapters/test_podman_images.py`: two leaves. The story the human created and started names the file. It replaces a local copy of `SYSTEM_PATH` with the shared constant, and it adds the `null` row. The earlier rows keep their ids and what they check.
+   - `tests/entry/test_wiring_image_path.py`: the standing leave to move a shared test helper, plus the story's naming. It replaces the copies of `BASE_PATH`, `PROBE` and `COMPLETED` with the shared values. Every test keeps its name and what it checks.
+   - `tests/entry/test_wiring_run.py`: the standing leave to move a shared test helper. It replaces the copies of `PROBE` and `COMPLETED` with the shared values. Every test keeps its name and what it checks.
+   - `tests/application/test_tick_preflight.py`: the standing leave to move a shared test helper. `Machine.log_lines` now uses `state_log_lines` of `tests/log_support.py`. Every test keeps its name and what it checks.
