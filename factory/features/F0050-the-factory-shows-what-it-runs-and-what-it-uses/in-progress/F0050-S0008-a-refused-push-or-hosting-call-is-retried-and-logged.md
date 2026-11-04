@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T13:12:09.747104Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-11-04T13:12:09.747104Z'
   stage: review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T13:13:52.789168Z'
+  stage: review
+  run: b3fcef63cb8144a38ead5c73e553c6ac
 ---
 
 # A refused push or hosting call is retried and logged
@@ -202,8 +204,9 @@ GitHub's partial outage of 2026-11-04 (about 09:36 to 10:05 UTC) was analysed in
 8. The retry lines read `push: retry 1 of 3 in 5 s: <reason>` and `push: retry 2 of 3 in 15 s: <reason>` (and `push: retry 3 of 3 in 45 s: <reason>` in the four-failure row), each ending with git's reason.
 9. Only a refusal by the server (`! [remote rejected]`, for example with `Internal Server Error`) and an unreachable remote are retried. A rejection with `! [rejected]` and `non-fast-forward` or `fetch first` fails at once with `PushFailed`, with no wait and no retry line (rows for both the result push and `WorkItemRecorder.publish`).
 10. The `GithubRetry` is built by a small module-level function or constant in `factory.adapters.pygithub_hosting`, which `pygithub_service(repository, token)` passes to `github.Github(auth=..., lazy=True)`; a test reads the `retry` the built client was given, without a network.
-11. `make check` stays green.
-12. docs: `docs/operator-guide.md`: in the section on stops and errors, the handler error line, that a refused push is retried after 5, 15 and 45 s, that the reason in a push error is git's own, and what the factory does during a hosting outage (today's evidence in short). `docs/decisions.md`: one entry with the reason (the outage of 2026-11-04 and `planning/outage-2026-11-04.md`), and that the cap of three tries stays. `README.md`: none. The project guide: the file on the hosting service names the client's retry.
+11. `push_reason` leaves out git's advice lines before it takes the last three lines: rows where a cause line is followed only by the two advice lines `Please make sure you have the correct access rights` and `and the repository exists.`, written with leading spaces; a cause line followed only by three lines that start with `hint:`; in each row the reason keeps the cause line. One more row: a line that holds more than the advice text (`remote: Please make sure you have the correct access rights`) is kept in the reason.
+12. `make check` stays green.
+13. docs: `docs/operator-guide.md`: in the section on stops and errors, the handler error line, that a refused push is retried after 5, 15 and 45 s, that the reason in a push error is git's own, and what the factory does during a hosting outage (today's evidence in short). `docs/decisions.md`: one entry with the reason (the outage of 2026-11-04 and `planning/outage-2026-11-04.md`), and that the cap of three tries stays. `README.md`: none. The project guide: the file on the hosting service names the client's retry.
 
 ## Smoke test
 
@@ -536,3 +539,28 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
 29. factory: started review as vm.
+30. reviewer: Review of round 1. I read the work item and the diff (`src/`, `tests/`). The factory's `make check` after the coder was green (entry 28).
+
+    Both findings from round 0 (entry 22) are fixed.
+    - `tests/application/test_hosting_failure_after_claim.py`: the asserts after the first tick are in a passing test, built on the fixture `failed_after_claim`. Only the asserts on the next tick are under `xfail(strict=True)`.
+    - `tests/application/test_push_retry.py::test_a_refused_push_is_retried_at_most_three_times` covers 2, 3 and 4 refusals, including the boundary row: refused three times, then pushed.
+
+    Criteria 1 to 10 each have a test that checks what it is named after. Every limit is tested on both sides: 300 and 301 characters, and 3, 4 and 5 lines. Architecture, security and quality hold:
+    - The domain functions are pure.
+    - `pushes.py` waits only through `boundaries.waiter`.
+    - `Git.last_push_output` is abstract, and `GitCli` implements it.
+    - The retry is built only in `pygithub_hosting`.
+    - There is no silencing marker and no new baseline entry.
+    - I found no second copy of an existing helper. The line joins in `stage.py:396`, `git_cli.py:60` and `podman_images.py:63` keep the line breaks and do something else.
+
+    Findings:
+    1. Criterion 11 added: it needs its test. `src/factory/domain/git.py:165-168` (`_is_reason_line`) builds the Interface's advice-line rule, and no criterion named it. In `tests/domain/test_push_reason.py`, the `hint:` filter is not pinned: `ADVICE_AFTER_CAUSE` and `NON_FAST_FORWARD` still hold their expected text when `hint:` lines are kept. The "exactly" side, a line that holds more than the advice text and is kept, has no test either. Fix: the tester adds the rows that criterion 11 names to `test_the_reason_holds_gits_last_lines`, or to a parametrized test of its own. No change under `src/` is needed. The closing criteria are now 12 (`make check`) and 13 (`docs:`).
+
+    Open for the human (criterion 5, as entries 11 and 28 report): a crash is charged at the next tick for a stage in which no agent ran. The test pins this as strict xfail; the fix is not part of this story.
+
+    Earlier tests:
+    - `tests/application/test_dispatcher.py`: the human's leave, entry 14 answer 4. Only the four named tests are changed, and only by the `handler error ` filter.
+    - `tests/application/test_git_interface.py`: the human's leave, entry 14 answer 3 (renamed to twenty-two).
+    - `tests/application/test_interfaces.py`: the human's leave, entry 14 answer 3 (renamed to twenty-two).
+    - `tests/git_interface_support.py`: the human's leave, entry 14 answer 3 (`last_push_output` added to `OPERATIONS`).
+    - `tests/test_checkout_hygiene_removed.py`: the human's leave, entry 14 answer 3 (the count is 22, the row id `git-twenty-two`).
