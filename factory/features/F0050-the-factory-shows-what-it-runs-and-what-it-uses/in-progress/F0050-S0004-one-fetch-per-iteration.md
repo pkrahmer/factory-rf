@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T15:24:29.704776Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-11-04T15:24:23.453891Z'
   stage: tests
   run: 8672c5cfee9f48ccafdd868bd1faae83
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:24:29.704776Z'
+  stage: doing
 ---
 
 # One fetch per iteration
@@ -342,3 +351,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     Still open: the optional move of the `Outage` copy (`Instance.go_away`/`come_back` in tests/entry/test_run_one_fetch.py) to a shared place. I did not make it, because this run is limited to the approved change.
 
     `lint`: lint: green (0.2 s)
+23. factory: started doing as vm.
