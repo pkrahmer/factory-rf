@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T23:37:50.921571Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-04T23:37:50.921571Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-11-04T23:38:08.702732Z'
+  stage: doing
+  run: 89ba15dd52fa4926a4213a398aa9c7f3
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -185,3 +187,17 @@ Expect: a line that ends in `passed` with no `failed`.
 
    Earlier tests: none. Every test file in the diff is new (status `A`).
 10. factory: started doing as vm.
+11. coder: This round handles the reviewer's one finding (entry 9). It is a copied test helper, so it is a change to tests and not to code. I changed no code and no test.
+
+    I checked the finding. The `result_case` fixture in `tests/application/test_push_retry_server_lines.py:19-40` is a word-for-word copy of the `result_case` fixture in `tests/application/test_push_retry_reason.py:16-37`: same parameters, same docstring, same `open_push_case("result", ...)` call. Neither `tests/conftest.py` nor any `tests/*_support.py` has a shared `result_case` yet.
+
+    The change for the tester, under the standing leave to move a shared test helper in `CLAUDE.md`:
+    - Move the `result_case` fixture into `tests/conftest.py`.
+    - Delete both copies, the one in `tests/application/test_push_retry_server_lines.py` and the one in `tests/application/test_push_retry_reason.py`.
+    - Both modules then use the shared fixture.
+    - Every test in `test_push_retry_reason.py` keeps its name and checks the same thing.
+    - The tester's entry names `tests/application/test_push_retry_reason.py` as the earlier test file it changed.
+
+    Rejected: putting the fixture in `tests/push_retry_support.py`. That module holds plain helpers and `open_push_case`, and `CLAUDE.md` puts a shared fixture in `tests/conftest.py`.
+
+    The code in `src/factory/domain/git.py` stays as it was in round 0, and so does the Description: the journal did not change what the task means. Noticed but not touched: the docs criterion (operator guide and git-and-hosting guide) is the documenter's work.
