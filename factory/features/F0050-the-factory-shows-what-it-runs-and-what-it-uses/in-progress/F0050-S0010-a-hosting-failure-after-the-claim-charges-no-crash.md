@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 549
-comments_read: []
+comments_read: [6643408151]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 32abf90ff2724cedbb593ab7eecdc288
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-04T22:11:21.367898Z'
+  stage: intake
 ---
 
 # A hosting failure after the claim charges no crash
@@ -76,3 +81,9 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
    3. **The Interface rule "raises the same error unchanged" has no criterion of its own.** Criterion 1 checks the claim, the agent runtime and the next tick. Criterion 3 checks the counted handler error. Neither checks that the `HostingServiceError` reaches the caller as the same exception, with no wrapping. Criterion 2 checks that the original `HostingServiceError`, not `PushFailed`, is raised when the release push fails. Please add a criterion, or confirm that criterion 3's `HostingServiceError: ...` line covers it. I would add one.
 
    4. **The release commit has no criterion.** The Interface fixes the subject `commit_subject(<id>, "claim released: hosting failed")`. It also says the commit is a single commit, that the journal gets no new entry, and that attempts and round do not change. Criterion 1 covers only the crash count. Please add a criterion for the subject, the single commit and the unchanged journal, attempts and round. I would add one.
+4. 2026-11-04 human: Answers of the human:
+
+   1. **(a)** Release the claim on `HostingServiceError`, as written and as the acceptance proposed. The Description loses its "To refine" paragraph and says the choice is made: a pull request before the claim would open a race between two instances.
+   2. Leave for S0010's tester: in `tests/application/test_hosting_failure_after_claim.py`, only the `xfail(strict=True, ...)` mark of `test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick` goes; nothing else in that module changes. (Also in `feature.md`, decision 12.)
+   3. Yes, add a criterion: the `HostingServiceError` reaches the caller as the same exception object, not wrapped; a row where the release push succeeds and one where it fails (criterion 2's case).
+   4. Yes, add a criterion: one release commit with the subject `commit_subject(<id>, "claim released: hosting failed")`, no new journal entry, and attempts and round unchanged.
