@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T01:19:32.075818Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -264,6 +268,11 @@ journal:
   at: '2026-11-04T01:19:26.350858Z'
   stage: docs
   run: f9191294f5484ee4b25b29ea6897ed29
+- number: 47
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:19:32.075818Z'
+  stage: smoke-test
 ---
 
 # A project's stage file builds the image its stages run in
@@ -809,3 +818,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     `check`: check: green (not run again: passed on tree b152a7252873 at 2026-11-04T01:13:50Z)
     `secrets`: secrets: green (3.3 s)
     `documents`: documents ok
+47. factory: started smoke-test as vm.
