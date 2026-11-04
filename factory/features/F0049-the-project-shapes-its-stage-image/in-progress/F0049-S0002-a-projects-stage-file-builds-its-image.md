@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T00:47:21.859637Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -157,6 +153,13 @@ journal:
   kind: started
   at: '2026-11-04T00:47:21.859637Z'
   stage: doing
+- number: 27
+  speaker: coder
+  kind: question
+  at: '2026-11-04T00:54:37.649204Z'
+  stage: doing
+  run: 8467255f2391468d8614b8dd87ceff7b
+  blocked: question
 ---
 
 # A project's stage file builds the image its stages run in
@@ -457,3 +460,18 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     - tests/entry/test_health.py: the human's leave, entry 9, item 4 (the row and the machine-scope tuple).
     - tests/entry/test_wiring_handlers.py: the story's Interface leave for rows that pin the `PATH` (the call gains the explicit `PATH` argument; the test checks the same thing).
 26. factory: started doing as vm.
+27. coder: Round 1. I fixed finding 3. I stopped at finding 2, because every way to fix it needs a change to a test that another story wrote.
+
+    Done (finding 3): `src/factory/adapters/podman_runs.py`. `run_podman(argv, time_limit, *, cwd=ROOT)` gains a `cwd` keyword, and `PodmanRuns._query` now calls `run_podman(..., cwd=self._workspace)`. So one helper stays. The command text is the same as before: `" ".join(argv)` equals `_command(arguments)`. `make check` is green with this change: lint, types, layers, sast, secrets, licenses and test all passed (test in 84.6 s), then `check: green`. Nothing else is in the working tree.
+
+    Finding 2 (U+FFFD and the size after replacement) is not fixed. The reason is in the process wrapper: `factory.adapters.process._decode` decodes every output with `errors="replace"`. So `Git.show_file` cannot tell a byte that is not UTF-8 from a real U+FFFD, and it cannot give the file's true size. To fix it, the stage file has to be read strictly at the start. I built that: `ProcessRequest.strict_decoding`, `GitCli.show_file(..., *, strict=False)` raising a new `NotUtf8(GitError)`, and `project_image_settings` raising the stop with "the stage file is not UTF-8" on `NotUtf8`. With strict reading, the U+FFFD check leaves `stage_layer`. `make types` then failed in a test that another story wrote: `tests/application/test_tick_stop_records.py:232`. Its `_UnresolvableMainForStopRecords(GitCli)` overrides `show_file(self, ref, path)`, and mypy gives `[override]` because the new signature differs. I undid the strict read, so the code stands as round 0 left it.
+
+    Options:
+    (a) Keep `show_file`'s name and add the keyword `strict: bool = False`. The tester adds `*, strict: bool = False` to the override at `tests/application/test_tick_stop_records.py:232` and passes it through to `super().show_file`. Nothing else in that module changes. This is one line of signature, and the Git interface keeps its twenty-one operations.
+    (b) Add a new Git operation, for example `show_utf8(ref, path) -> str | None` raising `NotUtf8`. The tester adds it to `OPERATIONS` in `tests/git_interface_support.py`, and the two tests named "twenty-one operations" (`tests/application/test_git_interface.py`, `tests/application/test_interfaces.py`) change their names or counts.
+    (c) Reject finding 2: keep the U+FFFD check as it is, and say in the docs that a stage file must not hold U+FFFD.
+    I would choose (a), with your leave for that one override.
+
+    The reviewer's tester findings are still open for the tests stage: 1 (a `run_instance` test of the success path), 4 (use `FakeImages`/`BuildCall`), 5 (use the `instance_settings` fixture), 6 (accepted and refused as rows of one test), 7 (criterion 13) and 8 (criterion 14).
+
+    Refactor step: I read my diff. It is the one helper change and needs nothing more. Description: unchanged by me. The reviewer already rewrote it in entry 25.

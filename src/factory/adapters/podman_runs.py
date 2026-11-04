@@ -50,8 +50,8 @@ def _killed_at_limit(result: ProcessResult, time_limit: timedelta) -> bool:
     return result.exit_status in CONTAINER_KILL_STATUSES and result.duration >= time_limit
 
 
-def run_podman(argv: list[str], time_limit: timedelta) -> ProcessResult:
-    """Run the podman words `argv` from `/`, standard error merged, and return every exit status.
+def run_podman(argv: list[str], time_limit: timedelta, *, cwd: Path = ROOT) -> ProcessResult:
+    """Run the podman words `argv` in `cwd`, standard error merged, and return every exit status.
 
     `ContainerError` when podman cannot start or reaches `time_limit`.
     """
@@ -59,6 +59,7 @@ def run_podman(argv: list[str], time_limit: timedelta) -> ProcessResult:
         argv,
         time_limit=time_limit,
         fault=functools.partial(ContainerError, " ".join(argv)),
+        cwd=cwd,
         accepted=None,
     )
 
@@ -201,10 +202,4 @@ class PodmanRuns(ContainerRuns):
         return " ".join([*self._podman(), *arguments])
 
     def _query(self, arguments: list[str]) -> ProcessResult:
-        return run_or_raise(
-            [*self._podman(), *arguments],
-            time_limit=self._time_limit,
-            fault=functools.partial(ContainerError, self._command(arguments)),
-            cwd=self._workspace,
-            accepted=None,
-        )
+        return run_podman([*self._podman(), *arguments], self._time_limit, cwd=self._workspace)
