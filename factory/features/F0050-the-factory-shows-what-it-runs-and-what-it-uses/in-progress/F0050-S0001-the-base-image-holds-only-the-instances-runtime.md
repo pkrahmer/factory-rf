@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 538
 comments_read: [6626791280]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T09:06:03.619975Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-04T09:06:03.619975Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-04T09:11:35.606211Z'
+  stage: doing
+  run: 85f84eef864b4b5a8ed852bc794b559b
+  blocked: question
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -177,3 +180,28 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: Stopped with `make check` red. The cause is in `tests/test_stage_image.py`, which I may not change. My files pass every test, but `make types` (`mypy --strict`) fails on the test module:
+
+    ```
+    tests/test_stage_image.py:663: error: Cannot infer type of lambda  [misc]
+    tests/test_stage_image.py:982: error: Cannot infer type of lambda  [misc]
+    ```
+
+    Both lines are lambdas with a default argument passed to `_in_final_stage`: `lambda text, package=package: ...` in the `test_the_apt_install_names_exactly_the_six_packages` rows, and `lambda text, path=path: re.sub(...)` in the `test_the_final_stage_leaves_no_install_rest` rows. The tester ran `make lint` but not `make types`, so this did not show up earlier. All the other targets pass when run one by one: lint, layers, sast, secrets, licenses, and test (99.52 % coverage).
+
+    Question: may the tester change these two rows so mypy can type them? I see two options:
+    - (a) Replace each lambda with a small named factory that returns `Callable[[str], str]`, the way `_without_word` and `_drop_lines_with` already do in that module (for example `_add_apt_package(package)` and `_drop_path(path)`). The rows and their ids stay the same.
+    - (b) Annotate the lambdas some other way, for example by binding each to a typed variable first.
+
+    I would choose (a). With your leave I end with `tests`, naming exactly that change. The code needs no further change.
+
+    What I built so far (in the working tree):
+    - `vm/Dockerfile` now has two stages.
+      - Before the first `FROM`: the global `ARG AGENT_RUNTIME` without a default, and the pins `CLAUDE_CODE_VERSION=2.1.318` and `OPENCODE_VERSION=1.19.5`. Each stage declares these again without values.
+      - Stage `install`: a shell `case` check that fails with "AGENT_RUNTIME must be claude or opencode, not '…'", then apt (curl, ca-certificates, xz-utils), then the Node download and checksum check as before. One `npm install` takes `"${package}"`, which a `case` sets from `${AGENT_RUNTIME}`. Finally `cp "$(readlink -f /opt/factory/bin/${AGENT_RUNTIME})" /opt/runtime/${AGENT_RUNTIME}`.
+      - Final stage: one RUN does apt, `pip install uv` and the cleanup (`rm -rf /var/lib/apt/lists/* /var/cache/debconf/*-old /var/log/*.log /var/log/apt/* /tmp/*`). Then `COPY --from=install /opt/runtime/${AGENT_RUNTIME} /opt/factory/bin/${AGENT_RUNTIME}`, and a `case` that writes only the chosen runtime's `/usr/local/bin/<runtime>` exec wrapper. The agent files and the ENV lines are unchanged. The first line names `--build-arg AGENT_RUNTIME=<claude|opencode>`.
+    - `vm/job-start.sh`: the build passes `--build-arg "AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME"`. `dockerfile_arg` still finds exactly one `ARG <name>=` line for each version.
+
+    Main choice: the final stage copies one file, the resolved target of `/opt/factory/bin/<runtime>`. I rejected copying the runtime's package directory, because it holds the other CPU build and runtime names the test refuses. Not verified, because no test builds the image: that each runtime's resolved bin is a self-contained native executable. The human's build will show it (criterion 9).
+
+    Noticed but not touched: nothing else. The refactor pass found nothing to change in my diff.

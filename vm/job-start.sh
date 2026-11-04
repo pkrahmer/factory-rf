@@ -155,7 +155,7 @@ python3 -m venv "$tools" || failed tools
 
 step image
 # shellcheck disable=SC2086 # the options are words of their own
-(cd "$code" && podman $JOB_PODMAN_OPTIONS build --layers=false --network=host -f vm/Dockerfile --build-arg "FACTORY_IMAGE=$FACTORY_CODE_REF" -t "$FACTORY_STAGE_IMAGE" "$code") || failed image
+(cd "$code" && podman $JOB_PODMAN_OPTIONS build --layers=false --network=host -f vm/Dockerfile --build-arg "FACTORY_IMAGE=$FACTORY_CODE_REF" --build-arg "AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME" -t "$FACTORY_STAGE_IMAGE" "$code") || failed image
 # shellcheck disable=SC2086 # the options are words of their own; without -a the tagged images stay
 podman $JOB_PODMAN_OPTIONS image prune -f || failed image
 cat /proc/sys/kernel/random/uuid >"$FACTORY_IMAGE_ID_FILE" || failed image
