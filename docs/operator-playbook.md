@@ -199,3 +199,5 @@ Sources: W, M, S, U are the review aid's findings; P3 is its part 3 (what the ni
 43. Section 7: the test-quality row is from round 1, built by F0021-S0005 (W2).
 44. Section 7: the provider-limit wait marked built by F0020 (S3, updated: F0020 is accepted).
 45. Section 7: new rows for F0026, the reviewer's Description edit (Q4) and a one-round answer (Q7); the heartbeat row names the host drive (U2).
+
+**Finished features live in `factory/archive/`** (the human, 2026-11-04). The factory reads only `factory/features/`, where the open features are; after a feature's last acceptance is merged and archived into its `done/`, move its whole folder to `factory/archive/` by hand (`git mv`), as its own commit. The Factory Timeline reads both folders.
