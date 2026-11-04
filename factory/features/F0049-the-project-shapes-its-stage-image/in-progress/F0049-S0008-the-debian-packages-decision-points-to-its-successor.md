@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 536
 comments_read: [6621759488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T03:33:57.510832Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-04T03:33:51.511979Z'
   stage: doing
   run: e580696a5f4d480cab573617775e584f
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:33:57.510832Z'
+  stage: review
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -136,3 +145,4 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
 
     `check`: check: green (not run again: passed on tree c75cce644896 at 2026-11-04T02:57:19Z)
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
+11. factory: started review as vm.
