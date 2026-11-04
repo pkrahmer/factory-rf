@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 550
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T22:59:30.469348Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-04T22:59:30.469348Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-04T23:02:02.283216Z'
+  stage: doing
+  run: 34721fe8dc604ed29ca416c50a5ed2cf
 ---
 
 # The decision log and the contract's history match the feature
@@ -100,3 +102,14 @@ Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: Built nothing, and the working tree is unchanged. The Interface says no module under `src/factory/` changes and no test is written. All three criteria are about `docs/decisions.md` and `docs/operator-guide.md`, and `CLAUDE.md` (*Docs*) gives those files to the documenter: "the coder does not write them". With no failing tests and no code in scope, the coder has nothing to implement.
+
+   - Main choice: leave the two documents to the docs stage. I rejected writing the new decision-log entry for decision 11, the note on the S0005 entry and the `4.1` line myself. That would go against the project's rule on who writes docs, and those files may be outside the coder's write paths, so the factory could drop the change.
+   - Refactor: none, because the diff is empty.
+   - `make check`: green (`test: green (119.5 s)`, `check: green`).
+   - What the docs stage needs, from the work item and the intake entry: the S0005 entry is at `docs/decisions.md:1533`, not 1523. Before the story `grep -c tmpfiles.d docs/decisions.md` gives 1, not 0. The smoke test's `>=2` still holds after the edits.
+   - The journal did not change the meaning of the task, so the Description was not rewritten.
+   - Noticed but not touched: nothing.
+
+   `check`: check: green (not run again: passed on tree a4a57514a13e at 2026-11-04T22:47:18Z)
+   `duplicates`: duplicates: 4 new, 41 known, 2 gone
