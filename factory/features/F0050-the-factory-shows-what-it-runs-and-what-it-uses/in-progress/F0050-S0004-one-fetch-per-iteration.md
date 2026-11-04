@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947, 6634929291]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T15:43:12.953593Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -192,6 +196,11 @@ journal:
   at: '2026-11-04T15:43:06.446796Z'
   stage: tests
   run: 08342a0039744b7cb3f9c632bd052654
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:43:12.953593Z'
+  stage: doing
 ---
 
 # One fetch per iteration
@@ -511,3 +520,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     One run of `uv run pytest -q` over the five changed test files passed, and `make lint` is green. No module failed to import. I skipped the type check, as this stage says; the coder's `make check` covers it.
 
     `lint`: lint: green (0.1 s)
+34. factory: started doing as vm.
