@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 528
-comments_read: []
+comments_read: [6620015058]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 9a99d43035f441629927f89ec1d7cde7
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-04T01:28:19.119808Z'
+  stage: intake
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -73,3 +78,10 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
    5. Criterion 5's rows combine several behaviours. "Another digest ends the stop and builds" and "the file removed ends the stop and returns to the base" are two different outcomes in one test. Please say they are separate rows with their own expectations (stop ended, image/identity afterwards).
    6. Criterion 3 combines "adds a file to a project without one builds it" with "removes returns to the base". They need not be one test, so please split them into two.
    7. The smoke test greps only for the log-line text in the source. It shows the strings exist, not that a rebuild happens, but it is runnable and its Expect is checkable. I accept it as is, unless you want a stronger check.
+4. 2026-11-04 human: 1. Yes: name them as they stand after S0002 (factory.domain.stage_layer, the Images interface's build and its prune after a build, project_image_settings and with_image_path in factory.entry.wiring, Boundaries.image_path, and the _ProjectImageStart seam in factory.entry.run). Where the comparison should run on each new origin/main, choose the place next to the preflight's probe of main, as the Interface says, and name it.
+   2. Yes: the detail contains the first 12 hex digits of the commit.
+   3. Yes: add stage image: failed at <commit> to criterion 5; <commit> is the 12-digit form in every log line.
+   4. Yes: no log line in the unchanged cases of criterion 1 and in the same-digest row of criterion 5.
+   5. Yes: separate rows, each with its own expectations (stop ended or not, image and identity afterwards).
+   6. Yes: two tests, adding and removing.
+   7. The smoke test stays as it is.
