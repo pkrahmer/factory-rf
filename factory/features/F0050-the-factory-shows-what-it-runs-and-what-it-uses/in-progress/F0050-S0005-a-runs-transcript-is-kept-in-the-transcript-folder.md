@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T18:13:52.516524Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-11-04T18:13:52.516524Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-04T18:14:41.499589Z'
+  stage: doing
+  run: c0322e70f6954cca8ae23bf5b6e7413b
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -355,3 +357,29 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
 
     End with `tests` as you propose.
 19. factory: started doing as vm.
+20. coder: The human's answer (journal 18) calls for test changes, so this round ends with `tests`. The only code change is the one answer 3 asks of the coder.
+
+    Code change:
+    - `src/factory/adapters/claude_runtime.py`: `read_transcript` now looks only in `<home>/.claude/projects/*/<session>.jsonl`. The bare `<home>/projects` glob is gone, and the tuple `_SESSION_FOLDERS` is now the single constant `_SESSION_FOLDER`. `make lint` is green and `mypy --strict` passes on the module. Until the tester moves its test file, `tests/adapters/test_claude_runtime_transcript.py::test_a_session_is_read_from_its_project_folder` stays red.
+
+    Test changes for the tester, all from journal 18:
+    1. `tests/application/test_interfaces.py`: the `AgentRuntime` abstract-operations pin becomes `{"run", "version", "read_transcript"}`.
+    2. Six `AgentRuntime` stand-ins each get a `read_transcript(home, session)` that returns `None`, except `ObservingRuntime`, which delegates to the runtime it wraps. Nothing else in those modules changes. The six are:
+       - `WorkspaceRuntime` (`tests/container_support.py`)
+       - `ObservingRuntime` (`tests/observing_runtime.py`)
+       - `HeadNotingRuntime` (`tests/application/test_stage_run.py`)
+       - `RefusingRuntime` (`tests/application/test_agent_run_probe.py`)
+       - `SidecarRuntime` (`tests/application/test_costs.py`)
+       - `SwitchingRuntime` (`tests/application/test_stall_environment.py`)
+       If another stand-in needs only this method, the same leave covers it; name it in your entry.
+    3. `tests/application/test_stage_transcripts.py::test_no_container_and_no_prompt_names_the_transcript_folder`: `containers.calls()` becomes `containers.calls` (it is a property).
+    4. `tests/adapters/test_claude_runtime_transcript.py`: the scripted session file moves from `<home>/projects/<folder>/<session>.jsonl` to `<home>/.claude/projects/<folder>/<session>.jsonl`.
+
+    Main choice: I made the one code change answer 3 assigns to the coder now, so the next doing round only has to run `make check` and refactor. The alternative I rejected was to change no code before the tests: that would leave the dropped glob in place for another round.
+
+    Still open:
+    - The refactor step and a green `make check` wait for the next doing round, after the tester's changes.
+    - I did not rewrite the Description. Journals 9, 13 and 18 leave those edits to the intake or the reviewer:
+      - journal 9: remove the days setting, the deletion, criterion 6 and the `removed` log line, and change the smoke test to match;
+      - journal 13: the opencode transcript is the run's event stream (`jsonl`);
+      - journal 18: the Claude Code session path is `<home>/.claude/projects/*/<session>.jsonl`.

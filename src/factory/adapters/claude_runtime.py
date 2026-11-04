@@ -85,9 +85,8 @@ SWITCHES = {
 }
 BUDGET_SUBTYPE = "error_max_budget_usd"
 _PATH_KEYS = ("file_path", "notebook_path")
-# Claude Code keeps its sessions under its configuration folder: `$HOME/.claude` by default,
-# the home itself when its configuration folder is pointed there.
-_SESSION_FOLDERS = ("projects", ".claude/projects")
+# Claude Code keeps its sessions under its configuration folder, `$HOME/.claude`.
+_SESSION_FOLDER = ".claude/projects"
 
 
 # A negative count or cost is no measure: such a reply does not parse, so the call is `died`.
@@ -388,13 +387,12 @@ class ClaudeCodeRuntime(AgentRuntime):
             files.remove()
 
     def read_transcript(self, home: Path, session: str) -> Transcript | None:
-        """The session's `projects/<folder>/<session>.jsonl`, under `home` or its `.claude`.
+        """The session's `.claude/projects/<folder>/<session>.jsonl` under `home`.
 
         `None` when no project folder holds it.
         """
-        for folder in _SESSION_FOLDERS:
-            for found in sorted(home.glob(f"{folder}/*/{session}.jsonl")):
-                return Transcript(extension="jsonl", content=found.read_bytes())
+        for found in sorted(home.glob(f"{_SESSION_FOLDER}/*/{session}.jsonl")):
+            return Transcript(extension="jsonl", content=found.read_bytes())
         return None
 
     def version(self) -> str:
