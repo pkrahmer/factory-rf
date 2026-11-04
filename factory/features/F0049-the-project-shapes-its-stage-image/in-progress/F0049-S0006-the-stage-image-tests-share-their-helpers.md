@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 532
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T02:59:42.816526Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-04T02:59:42.816526Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T02:59:58.639848Z'
+  stage: docs
+  run: 7da8574b1a704728bc02bacc35422395
 ---
 
 # The stage image's tests share their helpers and pin the image without an environment
@@ -172,3 +174,12 @@ Expect: `0`, `0`, then a line that ends in `passed` with no `failed`.
    - `tests/entry/test_wiring_run.py`: the standing leave to move a shared test helper. It replaces the copies of `PROBE` and `COMPLETED` with the shared values. Every test keeps its name and what it checks.
    - `tests/application/test_tick_preflight.py`: the standing leave to move a shared test helper. `Machine.log_lines` now uses `state_log_lines` of `tests/log_support.py`. Every test keeps its name and what it checks.
 10. factory: started docs as vm.
+11. documenter: Files changed: none. The docs criterion says `none`: this story only moves shared test values and helpers in four test modules and adds one test row, and no behaviour, command or decision changes. The diff against `main` outside `factory/` and `docs/` is those four test files only, with nothing under `src/`.
+
+    Cross-read and found current: `docs/project-guide/README.md` (test-helper rule at line 25 and `log_support.py` at line 66, which still describes `log_lines` as it is; `state_log_lines` and `test_shared_bodies.py` are unchanged), `docs/project-guide/watching.md` line 238 and `docs/project-guide/stage-environment.md` line 367 (both name `SYSTEM_PATH` as the default image `PATH`, which the diff does not touch). I searched the README and `docs/` for `BASE_PATH`, `log_lines`, `SYSTEM_PATH` and `test_wiring_image_path`, and found no stale mention.
+
+    Findings for the coder: none. Stale text I noticed and left alone: none.
+
+    `check`: check: green (not run again: passed on tree c75cce644896 at 2026-11-04T02:57:19Z)
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok
