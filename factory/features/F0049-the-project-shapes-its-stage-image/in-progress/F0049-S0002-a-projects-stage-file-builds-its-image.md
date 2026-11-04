@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T00:35:45.703890Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -115,6 +119,11 @@ journal:
   at: '2026-11-04T00:35:40.035603Z'
   stage: doing
   run: 6fb5fc86e4a44e4f85082c1d3bff8b53
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-04T00:35:45.703890Z'
+  stage: tests
 ---
 
 # A project's stage file builds the image its stages run in
@@ -340,3 +349,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     What I noticed but did not touch: the Description still lists the watch criterion that entry 12 dropped, because the factory left out the tester's edit to it. The tester can rewrite it while making these changes.
 
     After the tester's changes, my plan for the next round is to add the check's `PATH` along the seam above, use the new fixture signature to drop the `with_image_path` workaround in `run.py`, and then take `make check` to green and do the refactor step.
+20. factory: started tests as vm.
