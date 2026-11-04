@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 553
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T23:52:21.899629Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-04T23:52:16.499354Z'
   stage: intake
   run: 2133abc39b0d4450a7bb9075b5fbd7d0
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:52:21.899629Z'
+  stage: tests
 ---
 
 # The decision log marks the old tool-time entry as superseded
@@ -72,3 +81,4 @@ Expect: `1`.
    - Smoke test: both commands are plain `grep -c` calls on `docs/decisions.md` and run as written. Each `Expect:` is a checkable count of `1`. Neither pattern matches anywhere in the log yet, so the counts start at 0 and reach 1 only after the edit.
    - Architecture: the change is only to the decision log, which the documenter stage keeps. It touches no layer and no file in the human's list.
    - Scope: this is S0014 of F0050, which feature.md lists as "from A0002". It adds no code and no new behaviour. It is not in "Out of scope".
+4. factory: started tests as vm.
