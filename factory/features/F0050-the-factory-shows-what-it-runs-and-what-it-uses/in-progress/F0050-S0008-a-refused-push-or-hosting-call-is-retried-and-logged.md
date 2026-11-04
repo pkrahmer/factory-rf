@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T12:56:56.615731Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T12:56:53.238129Z'
+  stage: doing
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-04T12:56:56.615731Z'
   stage: doing
 ---
 
@@ -279,3 +288,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     4. **(a)** "the tester changes these four tests to leave out lines starting with `handler error `, each checking the same thing as now." Leave for the tester: only those four tests in `tests/application/test_dispatcher.py`; nothing else in that module.
 
     End with `tests` as you need.
+15. factory: started doing as vm.
