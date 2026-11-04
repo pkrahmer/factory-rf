@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T19:21:38.009787Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -161,6 +157,19 @@ journal:
   kind: started
   at: '2026-11-04T19:21:38.009787Z'
   stage: review
+- number: 28
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T19:23:15.375555Z'
+  stage: review
+  run: 5b17b521364e49fb9bba9b5308f4b9d0
+- number: 29
+  speaker: factory
+  kind: question
+  at: '2026-11-04T19:23:15.375555Z'
+  stage: review
+  run: 5b17b521364e49fb9bba9b5308f4b9d0
+  blocked: round_cap
 ---
 
 # The cost record sums up the run's tool calls
@@ -445,3 +454,34 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
 27. factory: started review as vm.
+28. reviewer: Round 2 review. I read the work item, `git diff main...HEAD -- . ':!factory'` (only the stat of the generated schemas), and this round's changes since the round-1 review: `_object` in `src/factory/domain/tool_uses.py` and the new rows in `tests/domain/test_tool_uses.py`. I checked the whole reading path again, from `transcript_lines` to `_summed` and on to `StageLauncher._read_transcript`, against criteria 1 to 13 and the Interface.
+
+    The finding from entry 20 is closed. `_object` now catches `RecursionError`, and `test_lines_that_cannot_be_read_give_no_tools` has a `nested-deeper-than-the-recursion-limit` row for each runtime.
+
+    What holds, from re-reading the code:
+    - `json.loads` accepts `NaN`/`Infinity`/`1e400`, and `_non_negative` drops them.
+    - An integer with too many digits raises `ValueError`, which is caught.
+    - An aware-datetime difference cannot overflow.
+    - A name with a trailing newline does not `fullmatch` and goes to `other`.
+    - The stage passes `tools` only when a transcript was read.
+    - Layers, markers and the contract rise to 4.4 are as judged in entry 20. Entry 26 records `make check` green.
+    - The Description and the docs criterion still match what was built.
+
+    Findings:
+    1. `src/factory/domain/transcripts.py:18` (`transcript_lines`): `str.splitlines()` also breaks at U+2028, U+2029 and U+0085. Claude Code and opencode are Node/Bun programs, and their `JSON.stringify` writes those characters raw inside string values. So one JSON line is split into pieces that are not JSON when a call's input or output holds one of them (a file read, a command's output). `_object` then turns the whole transcript into `None`, and a readable run loses its `tools`, which breaks criterion 1. The existing `_events` in `src/factory/adapters/opencode_runtime.py:351` uses `splitlines` too, but it skips bad lines; the new reader fails the whole transcript on one bad line. Fix: split on `"\n"` only (`decode("utf-8").split("\n")`). `_objects` already skips blank pieces, and `json.loads` tolerates a trailing `\r`. Test to hand to the tester: one row in each of `tests/adapters/test_runtime_tool_uses.py::test_claude_code_sums_up_the_tool_calls_of_its_session_transcript` and `::test_opencode_sums_up_the_tool_calls_of_its_run_s_stream`. In that row a call's result holds raw U+2028 and U+0085 (lines written with `ensure_ascii=False`), and the call is still counted.
+
+    Notes:
+    - `tests/application/test_stage_tool_uses.py:51-60` (`_staged`) repeats the settings and store update of `_with_transcripts` in `tests/application/test_stage_transcripts.py:45-49`. It could build on one shared helper in `tests/stage_run_support.py` (carried over from entry 20).
+
+    Earlier tests (changed test files that `main` already holds):
+    - `tests/application/test_interfaces.py`: the human's leave, journal entry 4 (`tool_uses` added to `AgentRuntime`'s pinned operations).
+    - `tests/application/test_agent_run_probe.py`: the human's leave, journal entry 4 (`RefusingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/application/test_stage_run.py`: the human's leave, journal entry 4 (`HeadNotingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/container_support.py`: the human's leave, journal entry 4 (`WorkspaceRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/observing_runtime.py`: the human's leave, journal entry 4 (`ObservingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/domain/test_contract.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`).
+    - `tests/domain/test_contract_version_4.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
+    - `tests/domain/test_contract_version_4_2.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
+    - `tests/application/test_stage_transcripts.py`: the standing leave to move a shared test helper (`_records` replaced by the shared `pushed_cost_records`, its unused imports removed; every test keeps its name and what it checks).
+    - `tests/stage_run_support.py`: the standing leave to move a shared test helper (`pushed_cost_text` and `pushed_cost_records` added; nothing earlier changed).
+29. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
