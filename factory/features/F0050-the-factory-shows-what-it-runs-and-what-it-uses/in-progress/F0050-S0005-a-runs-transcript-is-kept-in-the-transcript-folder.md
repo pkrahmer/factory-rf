@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T18:34:57.337516Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,12 @@ journal:
   kind: started
   at: '2026-11-04T18:34:57.337516Z'
   stage: docs
+- number: 36
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T18:36:16.864234Z'
+  stage: docs
+  run: 56947a388b704f888f9f254e27f64b0b
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -662,3 +664,22 @@ Expect: the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: no
     - tests/domain/test_contract_version_4.py: the human's leave, journal 4 (the `"4.2"` pins become `"4.3"`)
     - tests/domain/test_contract_version_4_2.py: the human's leave, journal 4 (the `"4.2"` pins become `"4.3"`)
 35. factory: started docs as vm.
+36. documenter: Docs stage, round 1. I wrote the documentation for the transcript story. I changed documents only, so I did not run `make check`; the factory's checks decide. I ran no examples. The one command I wrote, `zcat <file>`, is standard and untried.
+
+    Files changed:
+    - `docs/operator-guide.md`: a table row for `FACTORY_TRANSCRIPT_DIR` in the settings table. A new section *Transcripts*, placed before *The stops*. It covers what a transcript holds and why it never goes to GitHub, the setting and what `read_settings` refuses, the file name `<work item>/<run id>.jsonl.gz`, mode `0600`, resumed and continued runs, the cost record's `transcript` (`path`, `sha256`), the `transcript: not kept for <run id>: <reason>` log line, that the folder must be readable by the site's own people only, and that deleting old files is the site's job (`tmpfiles.d`, a bucket lifecycle rule). The records contract version line now says `4.3`, with the note that 4.3 added the optional `transcript` object.
+    - `docs/project-guide/agents.md`: in *The agent's home*, a paragraph on `read_transcript`. It says the stage passes `<workspace>/home`, where the Claude Code wrapper finds `.claude/projects/*/<session>.jsonl`, which session ids it refuses, that the opencode wrapper keeps the latest run's event stream instead of reading `home`, and what the fake returns.
+    - `docs/decisions.md`: one new entry for this story, with feature decision 6 and its reason, and feature decision 10 for the site-side deletion. The story names no rejected option for it, so I wrote no "Rejected" line.
+    - The docs criterion says `README.md: none`, so I did not touch it.
+
+    Cross-read against the diff and found current: `README.md`; the other `docs/project-guide/` files, including `README.md`'s fixture list, which I left unchanged; the operator guide's *The agent's home*, *The records* and *The machine on the cost records*; and the operator guide's workspace, checkout and state paragraph, which says nothing the new setting contradicts.
+
+    Findings for the coder: none. I compared the code (`settings.py`, `transcripts.py`, `transcript_files.py`, both runtimes, `stage.py`) with the Interface and found no mismatch. The code and the docs agree.
+
+    Stale text I saw but did not touch: none that relates to this story.
+
+    One note from reading the code: the store creates missing subfolders with mode `0700`. The Interface does not state this, so I documented it as a fact of the code.
+
+    `check`: check: green (not run again: passed on tree 2ee60a6b77af at 2026-11-04T18:30:37Z)
+    `secrets`: secrets: green (3.4 s)
+    `documents`: documents ok
