@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T18:28:05.020762Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-11-04T18:27:57.557861Z'
   stage: tests
   run: 6c31385904f443729b7812f1100bce74
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-11-04T18:28:05.020762Z'
+  stage: doing
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -571,3 +580,4 @@ Expect: the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: no
     One run of `uv run pytest -q` on the five files: every test passes (21), because the coder's round-1 code is already in place. No module failed to import. `make lint`: green. I skipped the type check, as this stage says to.
 
     `lint`: lint: green (0.2 s)
+31. factory: started doing as vm.
