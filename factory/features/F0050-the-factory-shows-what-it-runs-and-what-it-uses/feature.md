@@ -15,6 +15,7 @@ After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured
 - The transcript folder `FACTORY_TRANSCRIPT_DIR`, optional: each run's transcript kept there, compressed, named by its run id, referred to by the record with its path and SHA-256 (S0005).
 - A summary of the run's tool calls without content in the cost record (S0006).
 - The folder on the VM (`vm/setup.sh`) and the operator's steps for a bucket in Cloud Run; `vm/job-start.sh` checks the folder (S0007).
+- A refused push or hosting call is retried and logged: a log line per counted handler error, retries of result pushes, git's reason in `PushFailed`, the GitHub client's backoff with PATCH, and a test of a hosting failure after the claim (S0008, from `planning/outage-2026-11-04.md`).
 
 ## Out of scope
 
@@ -27,6 +28,7 @@ After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured
 - A transcript on GitHub, or in any place outside the site (feature decision 6).
 - Creating a bucket or any other cloud resource: the operator's step, described in the guide.
 - An evaluation of the transcripts: it runs later, inside the site.
+- A capped event that tries again by itself every few minutes: the cap of three tries stays; a restart or a new commit wakes it (the human, 2026-11-04).
 - A heartbeat of the instances: a Cloud Run job needs none, and for VMs it belongs to a later instance management harness (the human, 2026-11-04).
 
 ## Stories
@@ -38,6 +40,7 @@ After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured
 - S0005: A run's transcript is kept in the transcript folder
 - S0006: The cost record sums up the run's tool calls
 - S0007: The transcript folder is set up on the VM and in Cloud Run
+- S0008: A refused push or hosting call is retried and logged
 
 ## The human's changes
 
