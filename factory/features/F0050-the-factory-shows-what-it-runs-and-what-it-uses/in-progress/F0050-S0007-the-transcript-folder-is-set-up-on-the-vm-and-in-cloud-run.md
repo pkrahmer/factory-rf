@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T20:04:13.885938Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-04T20:04:07.890063Z'
   stage: tests
   run: 9281512048f647bd8b57a173cf073567
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:04:13.885938Z'
+  stage: doing
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -230,3 +239,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     `make lint`: lint: green.
 
     `lint`: lint: green (0.2 s)
+14. factory: started doing as vm.
