@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T19:09:30.642485Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-04T19:09:30.642485Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-04T19:13:20.695485Z'
+  stage: doing
+  run: 46e5481dcb994eec9b3c369aab3ad2ef
 ---
 
 # The cost record sums up the run's tool calls
@@ -305,3 +307,15 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.2 s)
 17. factory: started doing as vm.
+18. coder: Round 1, after the tester's changes in entry 16: no code changed this run. The two new rows in `tests/domain/test_tool_uses.py::test_seconds_come_from_the_transcript_s_times` (Claude Code timestamp without an offset, opencode `time.end` of `10**400`) pass against the code from entry 14 in `src/factory/domain/tool_uses.py`. The shared `pushed_cost_text`/`pushed_cost_records` helpers in `tests/stage_run_support.py` need no code. Both review findings from entry 12 are now closed: finding 1 in code (entry 14) with its tests (entry 16), and finding 2 by the tester's move.
+
+    `make check` is green (test: green, 92.5 s; total coverage 99.25 %).
+
+    Main decision: the same as in entry 14. An odd time field drops only that call's seconds; the call itself still counts. I rejected treating the whole transcript as unreadable. This run made no new design choice.
+
+    Refactor pass: none needed, since nothing changed since the last pass in entry 14.
+
+    Noticed, not touched: as in entries 10 and 14, `CostRecord` does not itself refuse an unsorted or duplicated `tools` list (the reading guarantees it, and no criterion asks the model to). Docs are the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 41 known, 2 gone
