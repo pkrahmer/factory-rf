@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 531
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T02:48:10.520705Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-04T02:48:04.403932Z'
   stage: intake
   run: d3e10aeda0b8496bb6a907edebf8c74f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:48:10.520705Z'
+  stage: tests
 ---
 
 # The stage image's documents say what the code does and why
@@ -74,3 +83,4 @@ Expect: `0`, `0`, `1`, then `documents ok`.
    - Smoke test: the greps and `uv run python -m factory.entry.check_documents` (the module exists) are runnable. `grep -c` prints 0 when nothing matches, so the Expect `0`, `0`, `1`, then `documents ok` can be checked line by line. `mise.toml` has no match in `docs/decisions.md` today, so the count of 1 is met only after the change. No pytest command is used, so the `-q` rule does not apply.
    - Architecture: nothing in the code layers is touched. The change stays in the docs the documenter keeps. The story needs nothing from `factory/`, `CLAUDE.md` or the project guide.
    - Scope: the story fits F0049. It corrects the documents of S0002 and S0003 and carries decisions 1, 3, 4 and 5 of `feature.md`. It leaves out the feature's Out of scope items (per-line images, an open build context, a registry).
+4. factory: started tests as vm.
