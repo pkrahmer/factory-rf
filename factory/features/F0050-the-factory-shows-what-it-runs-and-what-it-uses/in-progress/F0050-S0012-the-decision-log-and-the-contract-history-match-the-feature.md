@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 550
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T22:59:06.321811Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-04T22:59:01.483096Z'
   stage: intake
   run: 907f752c013f4501b78137aeda2b10ba
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-04T22:59:06.321811Z'
+  stage: tests
 ---
 
 # The decision log and the contract's history match the feature
@@ -69,3 +78,4 @@ Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
    - Smoke test: accepted. The three greps are runnable. The records contract's version list in `docs/operator-guide.md` is one line, so the first count is 1. One inaccuracy in the `Expect:` line: `grep -c tmpfiles.d docs/decisions.md` gives 1 on this branch before the story, not 0, because the S0005 entry names it. After the story it is 3 or more (the S0005 entry, its note and the new entry), so `>=2` still gives `1`. Nothing to ask.
    - Architecture: accepted. Documents only, within the docs stage's paths. No layer is touched.
    - Scope: accepted. It matches feature decisions 10 and 11 and the A0001 proposal, and nothing is in `feature.md`'s out-of-scope list.
+4. factory: started tests as vm.
