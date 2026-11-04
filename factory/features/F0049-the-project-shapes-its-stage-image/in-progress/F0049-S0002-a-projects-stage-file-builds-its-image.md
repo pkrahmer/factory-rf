@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T00:07:24.560888Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-11-04T00:07:18.538182Z'
   stage: tests
   run: ba77bab12fc14b3faddf7b9ab2bd503c
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-04T00:07:24.560888Z'
+  stage: doing
 ---
 
 # A project's stage file builds the image its stages run in
@@ -265,3 +274,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     The factory left out changes outside the write paths: factory/features/F0049-the-project-shapes-its-stage-image/in-progress/F0049-S0002-a-projects-stage-file-builds-its-image.md.
 
     `lint`: lint: green (0.1 s)
+15. factory: started doing as vm.
