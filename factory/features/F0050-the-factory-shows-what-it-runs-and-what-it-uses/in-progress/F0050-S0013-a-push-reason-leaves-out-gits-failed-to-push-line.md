@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T23:32:06.910898Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-04T23:32:06.910898Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-04T23:36:54.746911Z'
+  stage: doing
+  run: 700f611199504461becf6fcbfe45a142
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -121,3 +123,22 @@ Expect: a line that ends in `passed` with no `failed`.
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: Made the tester's five failing tests pass. No test was changed. `make check` is green (coverage 99.26 %).
+
+   What I built, all in `src/factory/domain/git.py`:
+   - A new constant, `PUSH_SUMMARY_PREFIX = "error: failed to push some refs to "`. A comment beside it says why the line goes: it repeats what the ref line says and it names the remote.
+   - `_is_reason_line` now drops any line whose stripped text starts with that prefix. It does this in the same `startswith` tuple that already drops `hint:` lines and the `To <url>` frame line.
+   - The `push_reason` docstring now names the left-out line.
+
+   The signature is unchanged, and so are the three-line limit, the 300-character cut and `push_is_retried`. Because the check runs on the stripped line, an indented summary line is dropped too. A line that only holds these words further in (`remote: error: failed to push ...`) is kept, and so is any other `error:` line.
+
+   Main choice: a prefix match on the full phrase, `error: failed to push some refs to `. I rejected two alternatives:
+   - dropping every `error:` line, which would lose real causes such as `error: src refspec main does not match any`;
+   - a regular expression that also matches the quoted URL, which buys nothing over the prefix.
+
+   Refactor pass: I read the diff and there was nothing more to change.
+
+   Noticed but not touched: the doc updates the docs criterion names (`docs/operator-guide.md`, `docs/project-guide/git-and-hosting.md`) belong to the documenter.
+
+   `check`: check: green
+   `duplicates`: duplicates: 4 new, 41 known, 2 gone
