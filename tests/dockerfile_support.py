@@ -107,7 +107,10 @@ def _shell_lines(instructions: list[Instruction]) -> list[str]:
 
 
 def _commands(dockerfile: str) -> list[Command]:
-    instructions = _instructions(dockerfile)
+    return _instruction_commands(_instructions(dockerfile))
+
+
+def _instruction_commands(instructions: list[Instruction]) -> list[Command]:
     return [
         command
         for line in _shell_lines(instructions)

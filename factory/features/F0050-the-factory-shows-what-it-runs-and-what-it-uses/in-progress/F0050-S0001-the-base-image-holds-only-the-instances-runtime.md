@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T09:20:31.564521Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-04T09:20:31.564521Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-04T09:21:13.025363Z'
+  stage: tests
+  run: 0713aaebcb524721b6afb6cba610921f
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -360,3 +362,22 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
 
     Noticed but not touched: the final stage still installs `curl` and `xz-utils`, as it did before this story.
 22. factory: started tests as vm.
+23. tester: I moved the shared test helper as the coder asked in entry 21, which answers reviewer finding 1 from entry 19. This falls under the standing leave in CLAUDE.md to move a shared test helper. I created no files.
+
+    Earlier test files I changed under that leave:
+    - `tests/dockerfile_support.py`: added `_instruction_commands(instructions: list[Instruction]) -> list[Command]`, holding the instruction-level body that `_commands` had. `_commands(dockerfile)` now returns `_instruction_commands(_instructions(dockerfile))`, so its name and behaviour are unchanged.
+    - `tests/test_stage_image.py`:
+      - Removed `_stage_commands`, the second copy of that body.
+      - `_installs_one_runtime_by_its_name` and `_final_stage_cleans_up` now call `_instruction_commands`, imported from `dockerfile_support`.
+      - Wrapped the `late_npm` line because it went over ruff's 100-character limit.
+
+    Every test keeps its name, its rows, their ids and what it checks. I left one similar loop in the piped-download check (around `tests/test_stage_image.py:604`) as it is: it builds findings from whole pipelines, not a list of commands, so it is not a copy of this helper.
+
+    Runs:
+    - `uv run pytest -q` over `tests/test_stage_image.py`, `tests/test_pins.py`, `tests/test_vm_job_start.py` and `tests/test_vm_job_start_image.py` (every test module that imports `dockerfile_support`): all passed. Every module imported.
+    - `make lint`: green.
+    - `uv run mypy --strict tests/test_stage_image.py tests/dockerfile_support.py`: no issues found.
+
+    The mapping from criteria to tests is unchanged from entry 8. No project skill was used.
+
+    `lint`: lint: green (0.2 s)

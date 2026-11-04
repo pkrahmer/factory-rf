@@ -20,6 +20,7 @@ from dockerfile_support import (
     _declared_names,
     _env,
     _from_references,
+    _instruction_commands,
     _instructions,
     _piped_download_findings,
     _pipelines,
@@ -135,15 +136,6 @@ def _in_final_stage(change: Callable[[str], str]) -> Callable[[str], str]:
         return text[: len(text) - len(tail)] + change(tail)
 
     return changed
-
-
-def _stage_commands(instructions: list[Instruction]) -> list[Command]:
-    return [
-        command
-        for line in _shell_lines(instructions)
-        for pipeline in _pipelines(line)
-        for command in pipeline
-    ]
 
 
 def _is_npm(command: Command) -> bool:
@@ -798,7 +790,9 @@ def test_the_runtime_build_argument_has_no_default(
 
 def _installs_one_runtime_by_its_name(instructions: list[Instruction]) -> bool:
     final = _final_from(instructions)
-    late_npm = [command for command in _stage_commands(instructions[final:]) if _is_npm(command)]
+    late_npm = [
+        command for command in _instruction_commands(instructions[final:]) if _is_npm(command)
+    ]
     holders = [
         (arguments, packages)
         for keyword, arguments in instructions
@@ -958,7 +952,7 @@ CLEANED = [f"{TEMPORARY}/a", "/var/lib/apt/lists/a", "/var/cache/debconf/a-old",
 
 
 def _final_stage_cleans_up(dockerfile: str) -> bool:
-    commands = _stage_commands(_final_stage(_instructions(dockerfile)))
+    commands = _instruction_commands(_final_stage(_instructions(dockerfile)))
     last_use = max(
         (
             index
