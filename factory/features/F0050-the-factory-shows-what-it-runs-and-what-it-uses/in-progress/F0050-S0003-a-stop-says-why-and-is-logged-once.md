@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T14:14:28.128276Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -181,6 +185,11 @@ journal:
   at: '2026-11-04T14:14:21.505265Z'
   stage: review
   run: 919e1256089a4eacbbe26dc562be4816
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-11-04T14:14:28.128276Z'
+  stage: docs
 ---
 
 # A stop says why, and is logged once
@@ -530,3 +539,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     - `tests/application/test_preflight_stop_detail.py:23` (`BACKLOG_PATH`) copies the constant that `tests/crash_support.py:31` already holds. It could be imported from there.
 
     Earlier tests: none. The diff only adds test files (`tests/application/test_preflight_stop_detail.py`, `tests/application/test_stop_log_once.py`, `tests/domain/test_command_ending.py`, `tests/entry/test_run_stop_requested.py`).
+32. factory: started docs as vm.
