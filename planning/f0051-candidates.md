@@ -67,6 +67,8 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 
 37. **Intake questions that the human only confirms.** S0009 (and S0003, S0006, S0008): every intake question was answered "as you propose", at 235 s of human wait and about $0.06 each time. Fix to decide: the intake adds a missing criterion row for a rule the Interface already states (the other side of a two-sided rule, an exact limit) by itself and names it in its entry, and asks only where a real choice is open.
 
+44. **A hosting outage after the claim adds two commits per tick to the branch.** S0010 releases the claim on `HostingServiceError`; the release moves the branch head, so the error count starts again at 1 every tick and never reaches the cap (the human's answer (A), 2026-11-04). A long outage that leaves git working therefore adds a claim and a release commit per tick and never stops. Fix to decide: key a run event's count on the commit before the claim, or wait longer between such ticks.
+
 ## The repository is easier to navigate (the human, 2026-11-04)
 
 38. **`claude/` becomes `agents/`.** It holds the factory's agent files and `settings.json` in Claude Code's format, which the opencode runtime translates per run (decision of 2026-10-19, F0020-S0004); the name says one runtime. Touches `vm/Dockerfile`, the wiring, the coder's write paths in `factory/pipeline.yml`, the docs and tests.
