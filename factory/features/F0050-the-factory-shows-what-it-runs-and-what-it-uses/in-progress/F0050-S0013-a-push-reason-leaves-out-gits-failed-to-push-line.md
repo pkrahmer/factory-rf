@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T23:44:42.568594Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-11-04T23:44:36.807427Z'
   stage: docs
   run: 6ceb9a6dafc442f6bc2d7a4e6e7d06cc
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:44:42.568594Z'
+  stage: smoke-test
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -311,3 +320,4 @@ Expect: a line that ends in `passed` with no `failed`.
     `check`: check: green (not run again: passed on tree 066290bec96a at 2026-11-04T23:41:19Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+20. factory: started smoke-test as vm.
