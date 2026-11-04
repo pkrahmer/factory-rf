@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 543
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T15:57:50.600196Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-04T15:57:50.600196Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-04T15:58:18.926178Z'
+  stage: intake
+  run: 7f3398670c97480fa870732aab6c51db
+  blocked: question
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -67,3 +70,12 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. Questions before the story can move on:
+
+   1. Interface names no concrete modules or signatures. Please name them: the settings fields (class, module, field names, e.g. `Settings.transcript_dir: Path | None`, `transcript_days: PositiveInt | None`); the module of `TranscriptRef` and the `CostRecord.transcript` field; the interface operation each runtime wrapper gains (name, arguments, return type) to find and gather a session; the application class that copies, hashes and removes old files (and the filesystem interface it uses, if any); and where the idle-tick deletion is called. "The coder decides the gathering and the extension" leaves the tester without a seam. I would choose: `factory.domain.settings`, `factory.domain.cost` (or wherever `CostRecord` lives), `AgentRuntime.read_transcript(home: Path, session: str) -> Transcript | None`, and an `application.transcripts.TranscriptKeeper`.
+   2. The `TranscriptRef` rules have no failing-side criterion: `sha256` must be 64 lowercase hex digits (rows: 63 digits, uppercase, non-hex) and `path` always `<work item>/<run id>.<ext>.gz` (a path that is absolute, has `..`, or does not end in `.gz`). I would add a criterion for each.
+   3. The contract version has no criterion. Interface says "follows its rule (an added optional field)", but S0002 already moves the contract to 4.2. Which version does this story produce (4.3?), and should a criterion pin it and the regenerated schemas (and the test pins in `tests/domain/test_contract_version_4.py`, which would need the human's leave)? I would choose 4.3 with a criterion.
+   4. The Interface says deletion runs "once per idle tick". Criterion 6 tests only an idle tick. Add a row for a non-idle tick that deletes nothing. The age boundary is also open: is a file exactly `d` days old kept or removed? I would choose "older than" means strictly older, kept at exactly `d` days, with a row for each side.
+   5. An empty `FACTORY_TRANSCRIPT_DAYS` is not stated. Is it unset, or refused with the variable's name? I would choose unset, with a row in criterion 5. The refusal of the other values also needs the days rows `0`, `-1`, `x` to name the variable in the error. Criterion 5 should say "with the variable's name".
+   6. "The copy after the resume replaces the earlier one" (Interface) is covered by criterion 3. But "a record of a later run names the file under its own run id; nothing is shared" needs the case where the later run's copy fails: its record has `transcript` `None` and does not name the earlier run's file. Add this as a row in criterion 4 or 3.
+   7. Scope check: the story is within F0050's scope (S0005 line) and no "Out of scope" item. The smoke test is runnable and its `Expect:` is checkable, and the project's pytest is not used there. The architecture fits (settings in domain, wrappers per runtime, keeper in application). These need no change.
