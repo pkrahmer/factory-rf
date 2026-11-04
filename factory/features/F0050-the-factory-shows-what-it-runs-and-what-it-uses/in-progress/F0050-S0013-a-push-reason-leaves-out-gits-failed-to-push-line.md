@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T23:44:05.961074Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-04T23:44:05.961074Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T23:44:36.807427Z'
+  stage: docs
+  run: 6ceb9a6dafc442f6bc2d7a4e6e7d06cc
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -290,3 +292,22 @@ Expect: a line that ends in `passed` with no `failed`.
     - `tests/application/test_push_retry_reason.py`: under the standing leave to move a shared test helper. Only its copy of `result_case` and the imports that copy alone used were removed. Its one test keeps its name and checks the same thing.
     - `tests/conftest.py`: none needed. The change only adds the shared `result_case` fixture and the `push_retry_support` import, and every fixture the file already held is unchanged.
 18. factory: started docs as vm.
+19. documenter: Docs for the rule that `push_reason` leaves out git's `error: failed to push some refs to '<url>'` line. I changed two documents and no code. Nothing was run: both files are documents, so I ended without `make check`, and the factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md` (the paragraph on the reason in a `PushFailed`, about line 2502): it now says the `error: failed to push some refs to '<url>'` line is left out, because it repeats the ref line and names the remote. It also says every other `error:` line stays, because it can be the only cause (`error: src refspec main does not match any`), and so does `remote: error: failed to push some refs to x`.
+    - `docs/project-guide/git-and-hosting.md` (the `last_push_output()` / `push_reason` paragraph): the same rule, with the constant name `PUSH_SUMMARY_PREFIX` and the note that the match runs on the stripped line.
+
+    Cross-read and found current:
+    - `docs/decisions.md`: the push-retry entry says "advice lines left out", which still holds. The criterion says `none`, and I wrote nothing.
+    - `README.md`: no change needed, as the criterion says.
+    - `docs/project-guide/README.md` (the `PushFailed` line) and `docs/project-guide/stages.md` (the `push_with_retries` step): both only point to `push_reason`.
+    - The operator-guide example at about line 2487 (`remote: Internal Server Error | ! [remote rejected] ...`): it holds no summary line, so it is still true.
+
+    Findings for the coder: none. The code matches the Interface, with the prefix on the stripped line, `push_is_retried` unchanged and the docstring updated.
+
+    Stale text I saw and did not touch: none. I added no "Why" or "Rejected" line to `docs/decisions.md`.
+
+    `check`: check: green (not run again: passed on tree 066290bec96a at 2026-11-04T23:41:19Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
