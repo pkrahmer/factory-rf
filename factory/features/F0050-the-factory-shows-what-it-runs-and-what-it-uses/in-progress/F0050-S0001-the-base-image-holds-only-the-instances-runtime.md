@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272, 6627457871]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T09:31:28.179160Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,12 @@ journal:
   kind: started
   at: '2026-11-04T09:31:28.179160Z'
   stage: doing
+- number: 36
+  speaker: coder
+  kind: result
+  at: '2026-11-04T09:35:22.938091Z'
+  stage: doing
+  run: 6b556d4d4dff422a99971d759d6ac6e7
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -595,3 +597,21 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
 
     `curl` and `xz-utils` in the final stage stay as they are in this story: the package list is pinned by an earlier test, and the gain is about 1 MB.
 35. factory: started doing as vm.
+36. coder: Round 2. I made the change the human chose in entry 34, option (B), for the smoke-test finding in entry 31. In `vm/Dockerfile` I removed the global `ARG AGENT_RUNTIME` and its comment (the old lines 4–5) from before the first `FROM`. Each stage still declares `ARG AGENT_RUNTIME` with no default, the `install` stage at `vm/Dockerfile:9` and the final stage further down, because each stage reads the value. `grep -cE '^ARG AGENT_RUNTIME$' vm/Dockerfile` now prints `2`. `make check` is green (`check: green`, coverage 99.52 %).
+
+    I did not change the work item's `## Smoke test`. Entry 34 gives the reviewer the leave to change the first `Expect:` value from `1` to `2`, so that edit is still open.
+
+    What is built is otherwise as entries 10 and 17 describe:
+    - `vm/Dockerfile` has two stages. The final stage takes only the resolved runtime executable, through one `COPY --from=install`.
+    - `vm/job-start.sh` passes `--build-arg "AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME"`.
+
+    Main choice this round: keep one declaration in each stage that uses the value. I rejected (C), a single declaration in the `install` stage only. Under (C) the final stage would have to work out the runtime by looking at the copied files instead of reading the build argument.
+
+    Refactor pass: the diff is two deleted lines, so there was nothing to change.
+
+    Description unchanged: the journal changed how many `ARG` lines there are and the smoke test's expected count, not what the task means.
+
+    Noticed but not touched: `curl` and `xz-utils` stay in the final stage, by the human's word in entry 34. No project skill was used.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone

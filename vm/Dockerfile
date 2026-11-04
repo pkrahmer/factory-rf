@@ -1,8 +1,6 @@
 # The stage image of every stage's containers, the tools alone; build: podman build -f vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> .
 # Every tool that shapes a result is pinned; Debian's packages follow the base image's release (docs/decisions.md).
 ARG BASE_IMAGE=python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
-# The one runtime the image holds, the instance's FACTORY_AGENT_RUNTIME; no default, so a build names it.
-ARG AGENT_RUNTIME
 ARG CLAUDE_CODE_VERSION=2.1.318
 ARG OPENCODE_VERSION=1.19.5
 
