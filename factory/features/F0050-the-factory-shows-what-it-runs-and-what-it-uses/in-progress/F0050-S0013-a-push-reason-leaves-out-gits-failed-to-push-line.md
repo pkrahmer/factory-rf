@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T23:31:13.846629Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-04T23:31:13.846629Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-04T23:32:01.433783Z'
+  stage: tests
+  run: 3f89554aae9f4427aceb1586557d9d49
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -94,3 +96,18 @@ Expect: a line that ends in `passed` with no `failed`.
    - Architecture: the change sits in `factory.domain.git`, a pure function with no I/O, which is the right layer. The new tests go in `tests/domain/` and `tests/application/`, mirroring the package. No other test module is changed, so no leave is needed.
    - Scope: the story is inside feature F0050's scope, as a follow-up of the S0008 and S0011 push-reason work, and it is listed in the feature's stories (from A0002). It touches nothing under Out of scope.
 4. factory: started tests as vm.
+5. tester: Wrote the tests for the story's four testable criteria. They are red on purpose, against today's `push_reason`.
+
+   - criterion 1: tests/domain/test_push_reason_summary_line.py::test_the_reason_leaves_out_gits_summary_line_of_a_refused_push
+   - criterion 2: tests/domain/test_push_reason_summary_line.py::test_the_reason_leaves_out_only_the_summary_line (rows: summary-left-out, indented-summary-left-out, other-error-kept, words-further-in-kept)
+   - criterion 3: tests/domain/test_push_reason_summary_line.py::test_two_server_lines_and_the_ref_line_fill_the_reason
+   - criterion 4: tests/application/test_push_retry_server_lines.py::test_a_retry_line_holds_both_server_lines_and_no_summary_line
+   - criteria 5 (`make check`) and 6 (docs): no test; they belong to the coder's check and the docs stage.
+
+   Files created: tests/domain/test_push_reason_summary_line.py, tests/application/test_push_retry_server_lines.py. No earlier test file and no support module was changed.
+
+   For criterion 4 the test uses `PushCase.arm` from `tests/push_retry_support.py`, then rewrites the armed `pre-receive` hook inside the new test module so that it prints the two lines `Internal Server Error` and `request id 1234`. A check in the test makes sure the line it replaces is still there.
+
+   One run of `uv run pytest -q` on the two new files: 5 failed. The failing rows are criterion 1, the two left-out rows of criterion 2, criterion 3 and criterion 4. They fail because the reason is wrong (git's `error: failed to push some refs to` line is still kept), not because something could not be imported. The two kept-line rows of criterion 2 pass already, as they should. Every module the tests use imported. `make lint` is green.
+
+   `lint`: lint: green (0.1 s)
