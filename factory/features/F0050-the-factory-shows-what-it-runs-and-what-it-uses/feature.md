@@ -15,6 +15,7 @@ After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured
 - The transcript folder `FACTORY_TRANSCRIPT_DIR`, optional: each run's transcript kept there, compressed, named by its run id, referred to by the record with its path and SHA-256 (S0005).
 - A summary of the run's tool calls without content in the cost record (S0006).
 - The folder on the VM (`vm/setup.sh`) and the operator's steps for a bucket in Cloud Run; `vm/job-start.sh` checks the folder (S0007).
+- A refused push or hosting call is retried and logged: a log line per counted handler error, retries of result pushes, git's reason in `PushFailed`, the GitHub client's backoff with PATCH, and a test of a hosting failure after the claim (S0008, from `planning/outage-2026-11-04.md`).
 
 ## Out of scope
 
@@ -27,6 +28,7 @@ After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured
 - A transcript on GitHub, or in any place outside the site (feature decision 6).
 - Creating a bucket or any other cloud resource: the operator's step, described in the guide.
 - An evaluation of the transcripts: it runs later, inside the site.
+- A capped event that tries again by itself every few minutes: the cap of three tries stays; a restart or a new commit wakes it (the human, 2026-11-04).
 - A heartbeat of the instances: a Cloud Run job needs none, and for VMs it belongs to a later instance management harness (the human, 2026-11-04).
 
 ## Stories
@@ -38,6 +40,7 @@ After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured
 - S0005: A run's transcript is kept in the transcript folder
 - S0006: The cost record sums up the run's tool calls
 - S0007: The transcript folder is set up on the VM and in Cloud Run
+- S0008: A refused push or hosting call is retried and logged
 
 ## The human's changes
 
@@ -53,3 +56,4 @@ A leave, for S0001: its tester may change `tests/test_stage_image.py` to the ima
 4. **The memory peak is the slice's high-water mark, and its name says so.** `memory_peak_since_boot_bytes` is the kernel's `memory.peak` of the containers' user slice. Reason: a peak per run would need sampling during the run, and the human judged it not worth the effort; the name keeps the value from being read as the run's own peak. The human, 2026-11-04.
 5. **The machine's measures sit in one object, and the CPU and the waits are the run's own.** `machine` holds all nine values, so the run's own measures stay apart from the machine's state; `cpu_seconds`, `cpu_wait_seconds` and `memory_wait_seconds` are differences of the kernel's running totals between the run's start and end. Reason: the waits say whether the machine is too small, which the peak alone does not; the totals need no sampling. The human, 2026-11-04.
 6. **Transcripts stay inside the site; GitHub gets only numbers.** A transcript holds whole conversations, which no scan of secrets can clear, so it goes only to the folder the site names (`FACTORY_TRANSCRIPT_DIR`): a local directory on a VM, a bucket of the site's own GCP project in Cloud Run, mounted as a volume, so the factory needs no cloud client. An unset folder keeps no transcript and is no fault. The cost record refers to its transcript by path and SHA-256 and sums up the tool calls without content. Reason: the human, 2026-11-04: transcripts may hold sensitive information that the other places' scans do not cover, and Cloud Run, where the telemetry matters most, has no machine that outlives the job.
+7. **The seams of S0002 and the contract pins.** S0002's tester named its seams (`factory.domain.machine`, `Images.size_bytes` and `store_path`, `ImageBuild.warnings`, `MachineReadings`), accepted as the Interface. Leave for S0002's tester: the `"4.1"` pins in `tests/domain/test_contract_version_4.py` and in `tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version` become `"4.2"`, nothing else in those modules; the pins stay a deliberate guard, as in F0049 decision 8. Taken for the human on PR #539, 2026-11-04.
