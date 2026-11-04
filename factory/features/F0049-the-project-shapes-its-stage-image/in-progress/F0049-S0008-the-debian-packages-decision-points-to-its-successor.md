@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 536
 comments_read: [6621759488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T03:35:07.480331Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-04T03:35:01.630620Z'
   stage: docs
   run: 01884389178a472eb43257dc62729472
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:35:07.480331Z'
+  stage: smoke-test
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -196,3 +205,4 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
     `check`: check: green (not run again: passed on tree c75cce644896 at 2026-11-04T02:57:19Z)
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
+15. factory: started smoke-test as vm.
