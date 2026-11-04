@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T18:26:30.541634Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-11-04T18:26:24.241231Z'
   stage: doing
   run: 053c62c802f146e890df9f30594b9551
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-04T18:26:30.541634Z'
+  stage: tests
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -534,3 +543,4 @@ Expect: the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: no
     Description: the reviewer already rewrote it in journal 26, and this round changes nothing in it.
 
     Noticed, not touched: nothing new.
+29. factory: started tests as vm.
