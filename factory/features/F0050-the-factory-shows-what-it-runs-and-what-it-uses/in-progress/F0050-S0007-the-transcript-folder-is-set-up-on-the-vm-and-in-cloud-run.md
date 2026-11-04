@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T20:15:31.765429Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -164,6 +160,12 @@ journal:
   kind: started
   at: '2026-11-04T20:15:31.765429Z'
   stage: tests
+- number: 29
+  speaker: tester
+  kind: result
+  at: '2026-11-04T20:16:25.982800Z'
+  stage: tests
+  run: cb06bba820e742bf82e8f4a5cd32f24d
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -445,3 +447,35 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
     The journal does change the task's meaning. My write paths don't include the work item, though, and the human gave the reviewer leave to edit the Description, the Interface and the criteria. So I left `## Description` as it is.
 28. factory: started tests as vm.
+29. tester: Approved test change (round 2). Following the human's decision in entries 22 and 23 and the coder's list in entry 27, I changed only `tests/test_vm_setup_transcripts.py`.
+
+    Tests and helpers removed:
+    - `test_the_transcript_days_take_a_whole_number_of_zero_or_more`
+    - `test_the_usage_names_the_transcript_days`
+    - `test_the_transcript_days_default_to_thirty_before_the_option_parsing`
+    - `test_the_tmpfiles_rule_says_the_folder_its_owner_mode_and_age`
+    - `test_the_tmpfiles_rule_is_written_only_with_days_and_when_its_text_differs`
+    - The constants `OPTION`, `RULE_FILE` and `OPTION_PARSING`, and the helpers `_days_variables`, `_tests_days` and `_guarded_by_days`, which nothing uses any more.
+    - The unused imports from `vm_support`.
+
+    Tests changed:
+    - `test_the_step_makes_the_folder_factory_s_with_0700_only_when_it_is_missing`: there is no days guard any more. The single `install -d -o factory -g factory -m 0700` of the folder now sits under exactly one condition, which names the folder and its owner or mode (the `owned_with_mode` check). The step's one "found" text names the folder and not the rule: no "rule" and no "tmpfiles".
+    - `test_the_setting_s_line_is_written_once_and_only_with_days` is renamed to `test_the_setting_s_line_is_written_once_and_always`. The line `FACTORY_TRANSCRIPT_DIR=/srv/factory/$instance/transcripts` appears exactly once, under no `if`, `&&` or `||`.
+
+    Test added, the optional check from entry 27:
+    - `test_the_script_keeps_no_retention_for_the_transcripts`, with the rows `--transcript-days` and `tmpfiles.d`. Neither may appear in `vm/setup.sh`.
+
+    `tests/test_vm_job_start_transcripts.py` is unchanged; finding 2 was already done in entry 13.
+
+    Mapping after the change:
+    - criterion 1 (the folder and the setting, a second run changes nothing): `tests/test_vm_setup_transcripts.py::test_the_step_makes_the_folder_factory_s_with_0700_only_when_it_is_missing`, `::test_the_setting_s_line_is_written_once_and_always` and `::test_the_script_keeps_no_retention_for_the_transcripts`
+    - criterion 2: `tests/test_vm_job_start_transcripts.py`, unchanged
+
+    Run: `uv run pytest -q tests/test_vm_setup_transcripts.py` shows four failures, all against the current `vm/setup.sh`, which still holds the option, the guard and the rule:
+    - the folder test: the install sits under two conditions, and the found text names the rule
+    - the setting's line: it sits under the days guard
+    - both rows of the no-retention test
+
+    Every import resolved; no module failed to import. `make lint` is green. No files created.
+
+    `lint`: lint: green (0.1 s)
