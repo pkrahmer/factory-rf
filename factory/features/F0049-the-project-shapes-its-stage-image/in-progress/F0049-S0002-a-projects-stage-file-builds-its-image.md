@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 527
-comments_read: [6618558222, 6618632675, 6618725845]
+comments_read: [6618558222, 6618632675, 6618725845, 6619198883]
 handed_over: null
 claim: null
 journal:
@@ -99,6 +99,11 @@ journal:
   stage: doing
   run: fe3fd47351a1473493e56e92e5eec49c
   blocked: question
+- number: 17
+  speaker: human
+  kind: comment
+  at: '2026-11-04T00:35:04.705357Z'
+  stage: doing
 ---
 
 # A project's stage file builds the image its stages run in
@@ -305,3 +310,9 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     The tester's edit to the Description (criterion 13 dropped) was left out by the factory, so the Description still lists the watch criterion.
 
     Refactor step: not done yet, because `make check` is not green.
+17. 2026-11-04 human: 1. (a): add "images" to the build-boundaries-parameters row of tests/test_second_user_removed.py.
+    2. (a): the sixteenth row in tests/domain/test_stop_table.py and stage_image_failed in the scope tuple of tests/test_stop_table.py; L55 as preflight-failed is right.
+    3. (a): the records contract goes to 4.1 by the rule; the tester changes the two pins in tests/domain/test_contract.py and tests/domain/test_contract_version_4.py to "4.1".
+    These leaves are feature decision 8: only those rows, pins and tuples in those modules.
+    4. The checks' PATH is part of this story, not a later one: the check containers take boundaries.image_path too, in place of the fixed CHECK_ENVIRONMENT PATH, because make check is where a project's tools must be found. Criterion 5 gains a row for the check environment (the tester writes it); the existing rows that pin the checks' PATH change under the feature's S0002 leave (tests/adapters/test_make_commands_container.py and the others it names). If the patched build_boundaries in conftest stands in the way, the tester may adapt that fixture's stand-in to the new signature, and nothing else in tests/conftest.py (also decision 8).
+    The other notes stay as they are (the time-limit tail, the inspect fallback, image=None).
