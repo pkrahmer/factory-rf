@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913, 6640096367]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T19:41:26.108702Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -241,6 +245,11 @@ journal:
   at: '2026-11-04T19:41:19.764187Z'
   stage: docs
   run: 1b9453995f08478585bba07fc8d1d683
+- number: 43
+  speaker: factory
+  kind: started
+  at: '2026-11-04T19:41:26.108702Z'
+  stage: smoke-test
 ---
 
 # The cost record sums up the run's tool calls
@@ -681,3 +690,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green (not run again: passed on tree b3ace9e4e2bb at 2026-11-04T19:37:43Z)
     `secrets`: secrets: green (2.9 s)
     `documents`: documents ok
+43. factory: started smoke-test as vm.
