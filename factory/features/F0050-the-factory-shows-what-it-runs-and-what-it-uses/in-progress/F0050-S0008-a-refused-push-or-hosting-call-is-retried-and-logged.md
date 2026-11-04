@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T13:19:47.679755Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -219,6 +223,11 @@ journal:
   at: '2026-11-04T13:19:40.955736Z'
   stage: review
   run: 1d2a63aed275446c9cb81dd09d37c987
+- number: 39
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:19:47.679755Z'
+  stage: docs
 ---
 
 # A refused push or hosting call is retried and logged
@@ -699,3 +708,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     Notes:
     - `tests/domain/test_push_reason.py:85-89`: the constants of the new test sit in the middle of the module, not beside the other constants at the top.
     - `tests/domain/test_push_reason.py:41-43`: the `advice-left-out` row of `test_the_reason_holds_gits_last_lines` overlaps with the new `advice-lines-left-out` row.
+39. factory: started docs as vm.
