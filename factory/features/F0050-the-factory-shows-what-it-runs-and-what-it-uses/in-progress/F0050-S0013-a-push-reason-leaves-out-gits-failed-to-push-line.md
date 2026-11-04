@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T23:37:02.291895Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-04T23:37:02.291895Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T23:37:45.666888Z'
+  stage: review
+  run: ecd44f4b80434cb3a28e97ed1952f847
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -152,3 +154,24 @@ Expect: a line that ends in `passed` with no `failed`.
    `check`: check: green
    `duplicates`: duplicates: 4 new, 41 known, 2 gone
 8. factory: started review as vm.
+9. reviewer: Findings:
+
+   1. `tests/application/test_push_retry_server_lines.py:19-40`: the fixture `result_case` is a word-for-word copy of the `result_case` fixture in `tests/application/test_push_retry_reason.py:16-37`: same parameters, same docstring, same `open_push_case("result", ...)` call. At round 0 a second copy of an existing helper counts as a finding. Fix: under the standing leave to move a shared test helper, the tester moves `result_case` to `tests/conftest.py`, deletes both copies, and has both modules use the shared fixture. `test_push_retry_reason.py` keeps its test names and what they check. The coder passes this to the tester with `tests`; the coder does not edit the tests.
+
+   Checked and found sound:
+   - Group 1 (criteria):
+     - Criterion 1: `test_the_reason_leaves_out_gits_summary_line_of_a_refused_push` uses the exact output the criterion gives and expects the exact reason.
+     - Criterion 2: one parametrized test covers both sides of the rule. The summary line is left out, also with leading spaces. `error: src refspec` and `remote: error: failed to push...` are kept.
+     - Criterion 3: the order of the two `remote:` lines and the ref line is checked against the exact reason string.
+     - Criterion 4: the test runs end to end through `PushCase`. It rewrites the armed hook to print two lines and asserts first that the line it replaces is still there. Every retry line must hold both server lines and `[remote rejected]`, and must not hold `failed to push some refs`.
+     - The three-line and 300-character limits are unchanged and stay pinned by S0008's and S0011's tests. Journal entry 7 records `check: green`.
+   - Group 2 (architecture): the change stays in `factory.domain.git`, a pure function with no I/O.
+   - Group 3 (security): no markers, secrets or strings that build commands.
+   - Group 4 (code quality, `src/factory/domain/git.py`):
+     - The constant `PUSH_SUMMARY_PREFIX` has a comment that says why the line goes.
+     - The match runs on the stripped line, as the Interface says.
+     - The `push_reason` docstring is updated.
+     - `make duplicates` shows 4 new findings (claude_runtime/opencode_runtime similar code and three cost_records variables). None are in code this diff touches.
+   - Group 5 (work item): the Description matches what was built. Entry 7 records the main choice, a prefix match on the full phrase. It rejects dropping every `error:` line and a regex. The docs criterion still says what the documenter must write.
+
+   Earlier tests: none. Every test file in the diff is new (status `A`).
