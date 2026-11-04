@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T19:51:15.743127Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-04T19:51:15.743127Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-04T19:54:12.959383Z'
+  stage: tests
+  run: b9d69d1bfff64ee5ae1d1559dfa99d9c
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -77,3 +79,24 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
    - Scope: inside the feature's scope (the S0007 line), and it touches nothing in Out of scope (creating a bucket stays the operator's step, described in the guide).
    - Notes for the tester, not questions: `--transcript-days` with a negative value is not spelled out; treat it like `x` (refused). The Interface does not say whether `0` removes a folder an earlier run made, so test only that none is made.
 4. factory: started tests as vm.
+5. tester: Tests written for criteria 1 and 2. Both new modules import; they fail on purpose, for the right reasons, and `make lint` is green.
+
+   - criterion 1 (the option's values: default, `7`, `0` accepted; `x`, `-1`, `1.5`, empty and no value refused with the option's name): tests/test_vm_setup_transcripts.py::test_the_transcript_days_take_a_whole_number_of_zero_or_more; the help text names the option: tests/test_vm_setup_transcripts.py::test_the_usage_names_the_transcript_days
+   - criterion 1 (default of 30 days, set before the option parsing): tests/test_vm_setup_transcripts.py::test_the_transcript_days_default_to_thirty_before_the_option_parsing
+   - criterion 1 (folder made with `install -d -o factory -g factory -m 0700`, only when missing, only when days is not 0): tests/test_vm_setup_transcripts.py::test_the_step_makes_the_folder_factory_s_with_0700_only_when_it_is_missing
+   - criterion 1 (the `FACTORY_TRANSCRIPT_DIR=/srv/factory/$instance/transcripts` line written once, only when days is not 0): tests/test_vm_setup_transcripts.py::test_the_setting_s_line_is_written_once_and_only_with_days
+   - criterion 1 (`/etc/tmpfiles.d/factory-$instance-transcripts.conf` holds the rule `d /srv/factory/$instance/transcripts 0700 factory factory ${days}d`): tests/test_vm_setup_transcripts.py::test_the_tmpfiles_rule_says_the_folder_its_owner_mode_and_age
+   - criterion 1 (second run changes nothing: the rule is compared before it is written, never written when days is 0, and the step has a "found" text): tests/test_vm_setup_transcripts.py::test_the_tmpfiles_rule_is_written_only_with_days_and_when_its_text_differs
+   - criterion 2 (writable folder and unset setting start as before, and the writable folder is left empty): tests/test_vm_job_start_transcripts.py::test_a_writable_or_unset_transcript_folder_starts_the_factory_as_before
+   - criterion 2 (missing and read-only folder end with `transcript folder <path> cannot be written`, a status that is not 0, and no factory-run): tests/test_vm_job_start_transcripts.py::test_a_transcript_folder_that_cannot_be_written_ends_the_start
+   - criterion 3: `make check`; no test of its own. None of these tests touches a cloud.
+
+   Why the setup tests read the script's text: `vm/setup.sh` refuses to run without root, so a test can only run it as far as its option and root checks. Earlier stories' `vm/setup.sh` tests also read the script's text (test_vm_setup_idle_shutdown.py, test_vm_setup_text.py), and these follow them. So the second run that changes nothing is tested through the script's guards, not by running it twice. My tests find the step by its `setup: transcripts: ` text, because `STEPS` in tests/vm_support.py does not name it; I did not change that shared list. Following the intake's note, a negative day count is refused like `x`; when days is 0, the tests check only that nothing is made, not that a folder from an earlier run is removed. The read-only job-start row is skipped when the tests run as root.
+
+   Note for the coder: tests/test_vm_job_start.py::test_the_steps_run_in_order_and_factory_run_replaces_the_script expects the exact list of `job-start: <step>` lines, so a new printed step line in job-start.sh would break it.
+
+   Run (`uv run pytest -q` on the two files): 10 failed, all for the right reason: `setup.sh` rejects `--transcript-days` as an unknown word, the help text doesn't name it, the step, the line and the rule are not in the script yet, and `job-start.sh` doesn't check the folder yet. The default, unset and writable rows pass, as they should before the change.
+
+   Files created: tests/test_vm_setup_transcripts.py, tests/test_vm_job_start_transcripts.py. Modules the test run could not import: none. No earlier test file changed.
+
+   `lint`: lint: green (0.1 s)
