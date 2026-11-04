@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 534
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T03:14:48.377833Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-04T03:14:42.493005Z'
   stage: review
   run: 300c46a6500e4a2b98de24395dd9905d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:14:48.377833Z'
+  stage: docs
 ---
 
 # The stops table and the test helper index follow the stage image
@@ -140,3 +149,4 @@ Expect: `0`, then `listed`, then `listed`, then `documents ok`.
    - Group 5, work item hygiene: the Description matches the story's purpose. The tester's and coder's journal entries say why no test and no code were written, and what they rejected. The docs criterion names both documents and why `README.md` and `docs/decisions.md` stay unchanged.
 
    Earlier tests: none. The diff changes no test file.
+10. factory: started docs as vm.
