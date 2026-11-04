@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T22:50:38.288251Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-11-04T22:50:38.288251Z'
   stage: docs
+- number: 32
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T22:51:21.623557Z'
+  stage: docs
+  run: be45b84dbc9c4f91839eb47a2ac68a96
 ---
 
 # A hosting failure after the claim charges no crash
@@ -447,3 +449,18 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
       - Standing leave to move a shared test helper (journal 26): the fixture `failed_after_claim` moved to `tests/conftest.py`, and the `import pytest` it left unused went too. `test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick` keeps its name and what it checks.
     - `tests/conftest.py`: standing leave to move a shared test helper. It only gains the moved fixture `failed_after_claim`, with the same body and docstring, and the `run_ticks` import it needs.
 31. factory: started docs as vm.
+32. documenter: Docs for F0050-S0010. I changed only documents, so I did not run `make check`; the factory's checks after this stage decide.
+
+    Files changed:
+    - `docs/operator-guide.md`, section "During an outage of the hosting service": a new bullet. A hosting failure right after a claim releases the claim and charges no crash. The release commit is `<id>: claim released: hosting failed`. Each failing tick counts its error from 1 again, so the outage never reaches the cap and posts no error stop, and the factory retries every tick. A release whose push fails logs `claim release not pushed: ...` and leaves the claim, so the crash is charged as before. Other errors release nothing.
+    - `docs/decisions.md`: a new entry, "A hosting failure after the claim releases the claim and charges no crash", with the decision, the reason and the consequence. Its "Rejected" line comes from the story's journal: opening the pull request before the claim, keeping the count across the claim and release commits, and resetting the branch (a force push). In the S0008 entry, I changed the "Open" line, which said the `xfail` was unfixed, to say it is fixed by S0010.
+
+    Cross-read and found current: `README.md`, `docs/project-guide/` (the criterion says none), and the rest of `docs/operator-guide.md` (the crash and error-cap text, including "A longer outage is as before"). I read the diff in `src/factory/application/stage.py` against the Interface and found no mismatch, so there are no findings for the coder.
+
+    Stale text I did not touch: none found.
+
+    I did not run the story's smoke-test commands (`grep -c xfail`, `uv run pytest -k hosting_failure`). I did not run any code in this stage, because I wrote no examples.
+
+    `check`: check: green (not run again: passed on tree a4a57514a13e at 2026-11-04T22:47:18Z)
+    `secrets`: secrets: green (2.9 s)
+    `documents`: documents ok
