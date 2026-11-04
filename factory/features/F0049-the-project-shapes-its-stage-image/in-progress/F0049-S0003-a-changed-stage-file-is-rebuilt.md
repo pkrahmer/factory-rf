@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T01:32:55.536824Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-04T01:32:50.109830Z'
   stage: tests
   run: 73430809bd294243911d6133f64d45c9
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:32:55.536824Z'
+  stage: doing
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -145,3 +154,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
    Test run: the one run, `uv run pytest -q tests/entry/test_run_project_image_rebuild.py | tail -5`, collected the file without errors. Every module it imports exists, so none failed to import. The five lines shown were failures: criterion 5, the three rows of criterion 6, and criterion 7. They fail because only the start builds today. The failures for criteria 2 to 4 and the count line were above the tail and not seen. Criterion 1 is expected to pass already, since the current code does nothing on a new `main`. `make lint` is green; the type check was skipped as the stage says.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
