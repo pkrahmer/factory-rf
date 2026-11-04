@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T20:16:32.057965Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -175,6 +171,12 @@ journal:
   kind: started
   at: '2026-11-04T20:16:32.057965Z'
   stage: doing
+- number: 31
+  speaker: coder
+  kind: result
+  at: '2026-11-04T20:20:32.315462Z'
+  stage: doing
+  run: b2879016913f4459b0c5380b94aba429
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -489,3 +491,29 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
     `lint`: lint: green (0.1 s)
 30. factory: started doing as vm.
+31. coder: Round 2. I applied the human's decision from entries 22 and 23, that the VM keeps no retention, against the tester's changed tests from entry 29. Only `vm/setup.sh` changed.
+
+    What I changed in `vm/setup.sh`:
+    - I removed `--transcript-days` from the usage line, the help text and the option parsing, and removed `transcript_days=30`.
+    - I removed `need_whole`, so `need_minutes` is again exactly what it is on `main`.
+    - The line `FACTORY_TRANSCRIPT_DIR=/srv/factory/$instance/transcripts` now sits inside the `factory.env` heredoc, so it is always written, with no condition. Because the environment step compares the staged file with the one in place, a second run finds it unchanged.
+    - The `transcripts` step is down to three parts:
+      - the refusal when the folder is a link;
+      - `install -d -o factory -g factory -m 0700`, run only when `owned_with_mode factory:factory 700` says the folder is missing or wrong;
+      - one "found" text, `found $transcripts factory's alone`.
+    - The `tmpfiles.d` rule, `transcript_rule`, its comment and the `0` branch are gone.
+
+    `vm/job-start.sh` is unchanged.
+
+    Main choice: I put the setting's line inside the heredoc with the other fixed lines. The alternative I rejected was an unconditional `echo >>` after the heredoc. That would only copy the pattern the conditional `idle_shutdown` line uses, without the reason for it.
+
+    Refactor: I read the diff against `main`, and nothing more needed changing.
+
+    `make check`: green.
+
+    Not touched:
+    - `## Description`, the Interface, the criteria and the docs criterion still describe the rule and the option. The human gave the reviewer leave to edit them (entry 22), and my write paths do not include the work item.
+    - `docs/operator-guide.md` still describes the VM's `tmpfiles.d` rule and `--transcript-days`. That is the documenter's to change under the revised docs criterion.
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 41 known, 2 gone

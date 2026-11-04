@@ -8,7 +8,7 @@ set -eu
 
 usage() {
   cat <<'EOF'
-usage: setup.sh --device <path> --repository-url <url> [--code-url <url>] [--instance <name>] [--pool <name>] [--quota <size>] [--code-ref <git ref>] [--image <tag>] [--runtime claude|opencode] [--sudoers] [--idle-shutdown <minutes>] [--transcript-days <n>] [--help]
+usage: setup.sh --device <path> --repository-url <url> [--code-url <url>] [--instance <name>] [--pool <name>] [--quota <size>] [--code-ref <git ref>] [--image <tag>] [--runtime claude|opencode] [--sudoers] [--idle-shutdown <minutes>] [--help]
   --device <path>           the disk or file the pool is made on, when it does not exist yet
   --repository-url <url>    the repository the factory works on, and runs from without --code-url
   --code-url <url>          the repository the factory's code comes from, read without a token
@@ -21,7 +21,6 @@ usage: setup.sh --device <path> --repository-url <url> [--code-url <url>] [--ins
   --runtime claude|opencode the agent runtime (default claude)
   --sudoers                 reach zfs through sudo where the delegation does not suffice
   --idle-shutdown <minutes> power the machine off after that many idle minutes (default off)
-  --transcript-days <n>     remove transcripts older than n days; 0 keeps none (default 30)
   --help                    print this text
 EOF
 }
@@ -41,15 +40,10 @@ need_value() {
   esac
 }
 
-# The third word names the unit in the refusal: "days", "minutes".
-need_whole() {
-  case "$2" in
-    ''|*[!0-9]*) fault "$1 takes a whole number of $3, not $2" ;;
-  esac
-}
-
 need_minutes() {
-  need_whole "$1" "$2" minutes
+  case "$2" in
+    ''|*[!0-9]*) fault "$1 takes a whole number of minutes, not $2" ;;
+  esac
   case "$2" in
     *[1-9]*) ;;
     *) fault "$1 takes at least 1 minute, not $2" ;;
@@ -67,7 +61,6 @@ image=
 runtime=claude
 sudoers=no
 idle_shutdown=
-transcript_days=30
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -84,7 +77,6 @@ while [ $# -gt 0 ]; do
     --image) need_value "$@"; image=$2; shift 2 ;;
     --runtime) need_value "$@"; runtime=$2; shift 2 ;;
     --idle-shutdown) need_value "$@"; need_minutes "$1" "$2"; idle_shutdown=$2; shift 2 ;;
-    --transcript-days) need_value "$@"; need_whole "$1" "$2" days; transcript_days=$2; shift 2 ;;
     *) fault "unknown word: $1" ;;
   esac
 done
@@ -441,10 +433,8 @@ FACTORY_OPENCODE_VERSION=$opencode_version
 FACTORY_OPENCODE_MODELS=$opencode_models
 PATH=/srv/factory/$instance/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 XDG_RUNTIME_DIR=/run/user/$(id -u factory)
+FACTORY_TRANSCRIPT_DIR=/srv/factory/$instance/transcripts
 EOF
-if [ "$transcript_days" -gt 0 ]; then
-  echo "FACTORY_TRANSCRIPT_DIR=/srv/factory/$instance/transcripts" >> "$staged"
-fi
 if [ -n "$idle_shutdown" ]; then
   echo "FACTORY_IDLE_SHUTDOWN_MINUTES=$idle_shutdown" >> "$staged"
 fi
@@ -472,27 +462,16 @@ echo "setup: service: $(said "found /etc/systemd/system/factory@.service in plac
 
 changes=
 transcripts=$base/transcripts
-transcript_rule=/etc/tmpfiles.d/factory-$instance-transcripts.conf
-# systemd's daily systemd-tmpfiles-clean removes the folder's files older than the rule's age.
-if [ "$transcript_days" -gt 0 ]; then
-  # install -d as root on a link factory planted there would reach the link's target.
-  if [ -L "$transcripts" ]; then
-    echo "setup: transcripts: $transcripts is a link; remove it and run this script again" >&2
-    exit 1
-  fi
-  if ! owned_with_mode factory:factory 700 "$transcripts"; then
-    install -d -o factory -g factory -m 0700 "$transcripts"
-    changed "made $transcripts factory's alone"
-  fi
-  echo "d /srv/factory/$instance/transcripts 0700 factory factory ${transcript_days}d" | stage
-  if ! unchanged "$transcript_rule"; then
-    install -m 0644 "$staged" "$transcript_rule"
-    changed "wrote $transcript_rule"
-  fi
-  echo "setup: transcripts: $(said "found $transcripts and $transcript_rule unchanged")"
-else
-  echo "setup: transcripts: not asked; no transcript is kept"
+# install -d as root on a link factory planted there would reach the link's target.
+if [ -L "$transcripts" ]; then
+  echo "setup: transcripts: $transcripts is a link; remove it and run this script again" >&2
+  exit 1
 fi
+if ! owned_with_mode factory:factory 700 "$transcripts"; then
+  install -d -o factory -g factory -m 0700 "$transcripts"
+  changed "made $transcripts factory's alone"
+fi
+echo "setup: transcripts: $(said "found $transcripts factory's alone")"
 
 printf 'setup: done: build the stage image and start factory@%s; see the operator guide, "The machine"\n' "$instance"
 printf 'setup: local: %s/factory.local.env is yours: the script never writes it; the unit reads it after factory.env\n' "$base"
