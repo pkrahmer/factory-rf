@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T20:14:51.912940Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -153,6 +149,12 @@ journal:
   kind: started
   at: '2026-11-04T20:14:51.912940Z'
   stage: doing
+- number: 27
+  speaker: coder
+  kind: result
+  at: '2026-11-04T20:15:25.321132Z'
+  stage: doing
+  run: 48180895a753474999d9d94e659a1612
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -409,3 +411,27 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 24. 2026-11-04 human: closed the pull request.
 25. factory: sent back to doing, round 2.
 26. factory: started doing as vm.
+27. coder: Round 2. The human's decision (entries 22 and 23) means the tests change first. Changing tests is the tester's job, so I'm handing over before I change any code. I changed nothing in this run. If I took out the option and the rule now, the current tests would fail and `make check` would go red.
+
+    Test changes for the tester, all in `tests/test_vm_setup_transcripts.py`, as the human asked:
+    - Remove these tests and the `RULE_FILE` constant:
+      - `test_the_transcript_days_take_a_whole_number_of_zero_or_more`
+      - `test_the_usage_names_the_transcript_days`
+      - `test_the_transcript_days_default_to_thirty_before_the_option_parsing`
+      - `test_the_tmpfiles_rule_says_the_folder_its_owner_mode_and_age`
+      - `test_the_tmpfiles_rule_is_written_only_with_days_and_when_its_text_differs`
+    - Change `test_the_step_makes_the_folder_factory_s_with_0700_only_when_it_is_missing` so that it no longer expects a days guard. The `transcripts` step always makes `$base/transcripts` with `install -d -o factory -g factory -m 0700`, only when `owned_with_mode` says it is missing. Its "found" text names only the folder.
+    - Change `test_the_setting_s_line_is_written_once_and_only_with_days` so that it expects the line `FACTORY_TRANSCRIPT_DIR=/srv/factory/$instance/transcripts` in `factory.env` exactly once, with no condition.
+    - Optionally add one check that `--transcript-days` and `tmpfiles.d` no longer appear in `vm/setup.sh`.
+
+    Finding 2 (one parametrized job-start test) is already done in entry 13. `tests/test_vm_job_start_transcripts.py` needs no change.
+
+    Code changes I'll make once the tests are in, in `vm/setup.sh`:
+    - Remove `--transcript-days` from the usage line, the help text and the option parsing, and remove `transcript_days=30`.
+    - Remove `need_whole`, so `need_minutes` goes back to what it is on `main`.
+    - Write the `FACTORY_TRANSCRIPT_DIR` line with no condition.
+    - Reduce the `transcripts` step to the link refusal, the folder and its "found" text. The rule, `transcript_rule`, the `tmpfiles.d` comment and the `0` branch go.
+
+    `vm/job-start.sh` stays as it is.
+
+    The journal does change the task's meaning. My write paths don't include the work item, though, and the human gave the reviewer leave to edit the Description, the Interface and the criteria. So I left `## Description` as it is.
