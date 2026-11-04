@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T18:50:03.234352Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T18:49:59.865858Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-04T18:50:03.234352Z'
   stage: intake
 ---
 
@@ -94,3 +103,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
    - The stage reads the run's transcript with `read_transcript` (S0005) whether or not `FACTORY_TRANSCRIPT_DIR` is set, passes it to `tool_uses`, and hands the result to `CostRecorder.complete(..., tools=...)`; it keeps the file only when a store is set.
 
    Leave for the tester: the pin of `AgentRuntime`'s operations in `tests/application/test_interfaces.py` gains `tool_uses`, and every `AgentRuntime` stand-in of an earlier test gets a `tool_uses` that returns `None`, named in its entry; nothing else in those modules. The contract moves to 4.4 with a criterion, and the `"4.3"` pins of the three contract tests become `"4.4"` under the same leave.
+5. factory: started intake as vm.
