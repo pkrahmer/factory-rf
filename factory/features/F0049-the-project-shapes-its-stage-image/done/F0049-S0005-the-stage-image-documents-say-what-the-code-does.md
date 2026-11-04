@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-04T02:52:15.165943Z'
   stage: smoke-test
   run: 47c15519b26247e3a61dea903ea2f517
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-04T02:53:06.952308Z'
+  stage: approval
 ---
 
 # The stage image's documents say what the code does and why
@@ -219,3 +224,4 @@ Expect: `0`, `0`, `1`, then `documents ok`.
     - Criterion 6: met. Only `docs/operator-guide.md` and `docs/decisions.md` changed. `README.md` and the project guide did not.
 
     Nothing was fixed or changed. Nothing is open.
+14. factory: done (pull request merged); cost: 6 runs, 3.5 min, 30 turns, 98653 tokens in (447532 more from cache), 8724 out, $0.86
