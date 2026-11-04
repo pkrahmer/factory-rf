@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T02:38:11.136539Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-04T02:38:05.355313Z'
   stage: review
   run: 7a0a9e9a22df442fac01849d811b82c5
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:38:11.136539Z'
+  stage: doing
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -287,3 +296,4 @@ Expect: a line that ends in `passed` with no `failed`.
        Fix: under the standing leave to move a shared test helper, the tester moves `StageSeen`, `built_path` and the three constants to one support module under `tests/` (for example `tests/stage_image_support.py`). It moves the two fixtures to `tests/conftest.py` under names that clash with no other `settings` fixture. Both test modules then use them from there, and every earlier test keeps its name and what it checks.
 
     Earlier tests: none. The diff only adds `tests/entry/test_run_fetch_before_tick.py` (status `A`) and changes no test file that `main` holds.
+20. factory: started doing as vm.
