@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947, 6634929291]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T15:41:08.997357Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T15:41:05.310546Z'
+  stage: doing
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:41:08.997357Z'
   stage: doing
 ---
 
@@ -454,3 +463,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 29. 2026-11-04 human: Answer of the human: **A** "leave to change `TICK_RUN`."
 
     Leave for the tester: in `tests/application/test_tick_docstrings.py`, `TICK_RUN` gets exactly the sentence "With `fetched`, the caller has already fetched in this iteration and raised or cleared `fetch_failed`: the tick skips its own fetch." after its first sentence; nothing else in that module. Do all four changes in one tests round, as you propose.
+30. factory: started doing as vm.
