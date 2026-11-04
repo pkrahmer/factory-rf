@@ -22,6 +22,7 @@ from factory.entry.wiring import health_store
 from git_support import remote_commit
 from human_clone import HumanClone
 from log_support import state_log_lines
+from sized_images import SizedImages, sized_by_tag
 from stage_image_support import BASE_IDENTITY, FIRST, SECOND, StageSeen, built_path
 
 THIRD = "ARG FACTORY_BASE\nFROM ${FACTORY_BASE}\nRUN echo third\n"
@@ -30,11 +31,11 @@ FAILED = ImageBuild(passed=False, duration=timedelta(seconds=4), output_tail="er
 MARK = "stage image:"
 
 
-class ScriptedImages(FakeImages):
+class ScriptedImages(SizedImages):
     """Builds that end as scripted, one result per call; each passed build gets its own `PATH`."""
 
     def __init__(self, results: list[ImageBuild]) -> None:
-        super().__init__()
+        super().__init__(sized_by_tag)
         self._results = list(results)
         self._passed = 0
         self._tags: set[str] = set()
@@ -240,7 +241,10 @@ def test_a_changed_stage_file_is_built_once_before_the_next_stage_and_taken_by_e
     old = StageSeen(image=tag, identity=_identity(FIRST), path=built_path(1), builds=1)
     new = StageSeen(image=tag, identity=_identity(SECOND), path=built_path(2), builds=2)
     assert run.stages == [old, new, new]
-    assert run.lines == [f"stage image: built {_identity(SECOND)} at {run.commits[0]} in 3 s"]
+    assert run.lines == [
+        f"stage image: built {_identity(SECOND)} at {run.commits[0]} in 3 s,"
+        " base 1.58 GB, layer 0.42 GB, 0 warnings"
+    ]
 
 
 def test_a_stage_file_added_to_a_project_without_one_is_built_and_taken(
@@ -346,7 +350,8 @@ def _base_seen(builds: int) -> Callable[[str], StageSeen]:
                 last=_project(THIRD, 2, 3),
                 builds=3,
                 second_line=lambda commit: (
-                    f"stage image: built {_identity(THIRD)} at {commit} in 3 s"
+                    f"stage image: built {_identity(THIRD)} at {commit} in 3 s,"
+                    " base 1.58 GB, layer 0.42 GB, 0 warnings"
                 ),
             ),
             id="another-digest",

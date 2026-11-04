@@ -55,6 +55,7 @@ from git_support import (
     make_remote,
 )
 from human_clone import HumanClone
+from machine_readings_support import FakeMachineReadings
 from operator_skill_support import Operator, make_operator
 from podman_support import IMAGE, Podman, PodmanPlan, write_podman
 from podman_support import INSTANCE as PODMAN_INSTANCE
@@ -323,6 +324,7 @@ def boundaries(
         result_records=JsonLinesRecordLog(state / "records" / "known-results.jsonl", ResultRecord),
         snapshots=snapshots,
         containers=containers,
+        machine=FakeMachineReadings(),
     )
 
 

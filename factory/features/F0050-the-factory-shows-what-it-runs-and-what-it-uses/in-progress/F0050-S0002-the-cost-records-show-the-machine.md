@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T11:14:19.376017Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -116,6 +112,12 @@ journal:
   kind: started
   at: '2026-11-04T11:14:19.376017Z'
   stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-11-04T11:18:45.020859Z'
+  stage: tests
+  run: 90750c0bbce54848a6ab26d6933a4fcc
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -274,3 +276,45 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 
     3. Yes. Leave for the tester: in `tests/entry/test_run_project_image_rebuild.py` the two expected build lines (lines 243 and 349) take the new form, and their `FakeImages` get sizes through the shared subclass, which you move to the new support module `tests/sized_images.py`; nothing else in that file changes.
 19. factory: started tests as vm.
+20. tester: Every criterion now has a test, written against the seams named in entries 9 and 18. I ran the tests once: `uv run pytest -q` over the files below. They fail for the right reason. Collection stops in `tests/conftest.py` on `ImportError: cannot import name 'MachineReadings' from 'factory.application.machine'`, which comes through `tests/machine_readings_support.py`. `make lint` is green.
+
+    Mapping:
+    - criterion 1: tests/domain/test_cost_record_machine.py::test_a_completed_record_carries_the_machine_with_its_nine_fields, ::test_a_started_record_with_the_machine_is_refused, ::test_a_machine_measure_is_accepted_only_in_its_range
+    - criterion 2: tests/application/test_cost_record_machine_measures.py::test_a_file_system_that_cannot_be_read_gives_none (rows store, dataset), ::test_a_machine_that_gives_nothing_gives_a_null_machine; tests/adapters/test_machine_files.py::test_a_missing_file_gives_none
+    - criterion 3: tests/entry/test_run_image_sizes.py::test_a_project_without_a_stage_file_has_a_layer_of_zero, ::test_the_sizes_change_only_after_a_build_or_a_return_to_the_base
+    - criterion 4: tests/domain/test_machine.py::test_the_run_s_totals_are_the_end_reading_minus_the_start_reading (rows grew, start-missing, start-total-not-a-number, end-total-not-a-number), ::test_the_pressure_total_is_the_some_line_in_seconds, ::test_the_cpu_usage_is_the_usage_of_cpu_stat_in_seconds; tests/adapters/test_machine_files.py::test_the_memory_peak_is_what_the_slice_s_file_holds, ::test_the_totals_are_the_cpu_usage_and_the_some_lines_in_seconds; tests/application/test_cost_record_machine_measures.py::test_a_completed_record_carries_what_the_machine_gives (peak at completion; differences `None` without a start reading)
+    - criterion 5: tests/domain/test_contract_version_4_2.py::test_the_records_contract_is_at_version_4_2_with_the_machine_measures
+    - criterion 6: tests/domain/test_machine.py::test_the_warnings_of_a_build_output_are_counted (rows no-warning, npm, podman, apt-update-alternatives); tests/entry/test_wiring_stage_image_sizes.py::test_a_built_image_logs_its_sizes_and_its_warnings
+    - criterion 7: tests/application/test_cost_record_machine_measures.py::test_a_completed_record_carries_what_the_machine_gives (store_free_bytes, dataset_free_bytes); tests/domain/test_machine.py::test_the_memory_total_is_mem_total_in_bytes; tests/adapters/test_machine_files.py::test_the_memory_total_is_mem_total_of_meminfo_in_bytes
+    - criterion 8: tests/entry/test_wiring_stage_image_sizes.py::test_a_start_without_a_stage_file_logs_the_base_size_once; tests/domain/test_machine.py::test_a_size_is_given_in_gigabytes_of_ten_to_the_nine_bytes
+    - criterion 9 (a return to the base, as entry 18 answered): tests/entry/test_wiring_stage_image_sizes.py::test_a_return_to_the_base_logs_the_base_size_without_a_build
+    - criterion 10: test_the_warnings_of_a_build_output_are_counted, rows lowercase-warn and mixed-case-warning
+
+    Files created in this run:
+    - tests/sized_images.py: `SizedImages`, moved out of the wiring test, now taking a size function; `sized_by_tag`; `BASE_BYTES`; `PROJECT_BYTES`.
+    - tests/machine_readings_support.py: `FakeMachineReadings`.
+    - tests/adapters/test_machine_files.py
+    - tests/application/test_cost_record_machine_measures.py
+    - tests/entry/test_run_image_sizes.py
+
+    From the earlier runs: tests/domain/test_machine.py (extended now), tests/entry/test_wiring_stage_image_sizes.py (now uses the support module), tests/domain/test_cost_record_machine.py and tests/domain/test_contract_version_4_2.py.
+
+    Earlier test files changed:
+    - tests/conftest.py: `machine=FakeMachineReadings()` in the `boundaries` fixture and its import (entry 18).
+    - tests/entry/test_run_project_image_rebuild.py: the two expected build lines take the new form, and `ScriptedImages` derives from `SizedImages(sized_by_tag)` (entry 18, answer 3).
+    - tests/domain/test_contract_version_4.py and tests/domain/test_contract.py: `"4.1"` became `"4.2"` (entry 9).
+
+    Names the tests use that entries 9 and 18 left open. Entry 18 lets the coder add arguments; these are what the tests are written against:
+    - `Boundaries` gets `machine: MachineReadings` and three more fields: `base_image_bytes: int | None`, `project_layer_bytes: int | None` and `image_store: Path | None`. The last three need defaults, because the conftest fixture does not set them. The start sets them for the boundaries `build_tick` receives.
+    - `MachineTotals` takes keyword fields.
+    - `SizedImages.store_path()` gives the store, and `DiskSpace.free_bytes` measures it.
+    - `dataset_free_bytes` is `DiskSpace.free_bytes(settings.workspace)`.
+
+    Notes for the coder:
+    - tests/entry/test_run_project_image_rebuild.py still builds `ImageBuild` without `warnings`. So does `PASSED_BUILD` in `factory.adapters.fake_images`. The earlier test stays valid only if `warnings` defaults to `0`.
+    - `"machine":null` is checked as written in the completed line. The jsonl writer currently drops `None` for a few fields, so `machine` must not join them.
+    - `FakeImages` is in `src`, so it needs the two new abstract operations.
+
+    Modules the runner could not import: `factory.application.machine.MachineReadings`, `factory.domain.machine` (and `MachineTotals` in it), `factory.domain.cost_records.MachineMeasures`, `factory.adapters.machine_files`.
+
+    `lint`: lint: green (0.1 s)
