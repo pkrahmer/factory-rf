@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T12:18:19.094009Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -304,6 +300,12 @@ journal:
   kind: started
   at: '2026-11-04T12:18:19.094009Z'
   stage: smoke-test
+- number: 54
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T12:18:43.833097Z'
+  stage: smoke-test
+  run: 96a423203c834a0696deae107f82965b
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -870,3 +872,31 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     `secrets`: secrets: green (2.9 s)
     `documents`: documents ok
 53. factory: started smoke-test as vm.
+54. smoke-tester: Smoke test, round 2. From the repository root I ran the three commands under `## Smoke test` exactly as written and in order. None of them starts a server. I fixed nothing.
+
+    Command 1: `grep -cE '^RECORDS_CONTRACT = "4\.2"$' src/factory/domain/contract.py`
+    ```
+    1
+    ```
+    Expected `1`, got `1`: met.
+
+    Command 2: `grep -oE 'base_image_bytes|…|memory_wait_seconds' src/factory/domain/cost_records.py | sort -u | wc -l`
+    ```
+    9
+    ```
+    Expected `9`, got `9`: met. All nine fields of `MachineMeasures` appear in `factory.domain.cost_records`.
+
+    Command 3: `uv run pytest tests/domain 2>&1 | tail -1`
+    ```
+    2537 passed in 2.84s
+    ```
+    Expected a line ending in `passed` with no `failed`. It ends in `passed` and has no `failed`: met.
+
+    Checked against the acceptance criteria:
+    - No output contradicts a criterion.
+    - Criterion 5 asks for contract `4.2`. Command 1 confirms it.
+    - Criterion 1 asks for the nine fields. Command 2 confirms they are in the domain model.
+    - The domain tests pass, including the rows for criteria 1, 4 and 11.
+    - The smoke test does not reach criteria 2, 3 and 6 to 13, and nothing in it contradicts them.
+
+    Findings: none.
