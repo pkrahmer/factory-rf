@@ -200,8 +200,9 @@ class _StartInputs:
 class _ProjectImageStart:
     """The instance's tick, in the image the stage file on `origin/main` chose.
 
-    The stage file is compared before every tick, and a tick is built again only when it changed:
-    its status lives in memory and counts across ticks. A tick that runs keeps its image.
+    The stage file is compared before every tick, and a tick is built again only when it changed.
+    The tick's status lives in memory and counts across ticks until then: a rebuilt tick starts
+    its error counts again at zero. A tick that runs keeps its image.
     """
 
     def __init__(self, inputs: _StartInputs, waiter: RepositoryWaiter) -> None:

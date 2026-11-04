@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T01:49:47.660768Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-04T01:49:47.660768Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-04T01:51:55.787537Z'
+  stage: doing
+  run: 00283b525a80479485cbe5ab425681da
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -321,3 +323,24 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
 
     Earlier tests: none. The diff adds `tests/entry/test_run_project_image_rebuild.py` and changes no test file that `main` holds.
 20. factory: started doing as vm.
+21. coder: Round 1. I fixed review findings 4 and 5 and hand findings 1 to 3 to the tester. Those three are copied test helpers, and `CLAUDE.md` gives a standing leave to move them; the tester makes that move, not the coder.
+
+    Changes for the tester, all in `tests/entry/test_run_project_image_rebuild.py`. Every test keeps its name and checks the same thing:
+    1. `_commit` (line 124): use `remote_commit(remote, "main")` from `tests/git_support.py:174`, cut to 12 characters, instead of its own `git rev-parse`.
+    2. `_remove_stage_file` (line 128): add `HumanClone.remove_file(branch, path)` beside `push_file` in `tests/human_clone.py`. It reuses `_on_branch`/`_push` and `TEST_IDENTITY`, as `push_file` does. Use it here in place of the local copy. The near-copy `remove_from_main` in `tests/application/test_tick_preflight.py:78` may be moved onto it too, under the same leave.
+    3. `World._lines` (line 211): filter `log_lines(tmp_path)` from `tests/log_support.py:6` by `MARK` instead of reading `state/factory.log` itself.
+
+    What I changed:
+    - `src/factory/entry/run.py`, the `_ProjectImageStart` docstring (finding 4): it now says the tick's status counts across ticks only until the tick is rebuilt, and that a rebuilt tick starts its error counts again at zero.
+      - Rejected: carrying the earlier `TickStatus` into the new tick. That would need a new `status` parameter through `build_tick` and `activity_tick`. That is more than this finding asks for, and the review allowed either fix.
+    - The work item's criterion 9 (finding 5): "the four log lines" is now "the three log lines", matching the Interface and the smoke test.
+      - That is the only change to `## Description`, so its heading is unchanged.
+      - I did not check whether the work item is inside my write paths. If it is not, the factory drops this edit and the documenter should still write three lines.
+
+    Refactor: I read the diff once; nothing needed changing.
+
+    Noticed, not touched: `make duplicates` reports `FakeImages` as unused in `src/factory/adapters/fake_images.py`. This branch does not change that file.
+
+    `make check`: check: green (test: green, coverage 99.51 %).
+
+    The factory left out changes outside the write paths: factory/features/F0049-the-project-shapes-its-stage-image/in-progress/F0049-S0003-a-changed-stage-file-is-rebuilt.md.
