@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T13:57:28.808640Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -115,6 +119,11 @@ journal:
   stage: doing
   run: 805f37af5e7a4763acf9e9e24d6d6f32
   reason: check_red
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:57:28.808640Z'
+  stage: doing
 ---
 
 # A stop says why, and is logged once
@@ -312,3 +321,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     ======================================================================================= short test summary info ========================================================================================
     FAILED tests/adapters/test_process_streaming.py::test_callback_saying_stop_on_standard_output_kills_the_group_at_once[before-a-sleep] - OSError: [Errno 22] Invalid argument
     make: *** [Makefile:84: test] Error 1
+20. factory: started doing as vm.
