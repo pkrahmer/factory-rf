@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T02:30:58.884734Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-04T02:30:58.884734Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-04T02:31:15.735515Z'
+  stage: doing
+  run: bc5887637fcb4ce59eeba777ec20e929
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -187,3 +189,10 @@ Expect: a line that ends in `passed` with no `failed`.
     The Description stays as it is: no journal entry changed the task.
 11. 2026-11-04 human: (a): the tester checks the detail's first line, as you propose. The code keeps detail=str(error), the same as the tick's own fetch_failed.
 12. factory: started doing as vm.
+13. coder: In entry 11 the human chose option (a), which is a change to a test, so this round hands the work item to the tester. The change: in `tests/entry/test_run_fetch_before_tick.py::test_a_failed_fetch_before_the_tick_stands_as_fetch_failed_and_runs_no_tick`, the assertion `any(line.endswith(STOP_LINE + stop.detail) for line in run.lines)` becomes `any(line.endswith(STOP_LINE + stop.detail.splitlines()[0]) for line in run.lines)`. The reason is that git's error text runs over several lines, and the factory log writes each of them as its own line.
+
+    The code is unchanged from entry 10 and stays as it is. In `src/factory/entry/run.py`, `_ProjectImageStart._follow_main` now returns a bool. When the fetch raises `FetchFailed`, it raises the stop `RepositoryStop(scope="repository", reason="fetch_failed", detail=str(error), at=clock.now())` and returns `False`. After a fetch that passes, it calls `clear_stop("fetch_failed")` and returns `True`. `prepare` returns `False` when `_follow_main` does. Any other `GitError` is not caught. I did not run `make check` this round, because it cannot be green until the tester changes that one assertion.
+
+    Main choice: I catch the error in `_follow_main`, as the Interface says, so the fetch and its stop stay together. I rejected catching it in `prepare`.
+
+    Noticed and not touched: the `fetch_failed` stop that the tick raises from its own fetch writes the same multi-line text to the log in the same way. No journal entry changed the meaning of the task, so the Description stays as it is.
