@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T02:44:39.043389Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-04T02:44:39.043389Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T02:45:15.216097Z'
+  stage: docs
+  run: fb3990b63928476da90d0b69e6994eae
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -433,3 +435,17 @@ Expect: a line that ends in `passed` with no `failed`.
     Notes:
     1. `tests/entry/test_run_fetch_before_tick.py:156` (`_project`) builds the same project `StageSeen` as `_project` in `tests/entry/test_run_project_image_rebuild.py:309`, with a different signature. A later move could put one version in `tests/stage_image_support.py`.
 28. factory: started docs as vm.
+29. documenter: Documented that a failed fetch before the tick stands as `fetch_failed`. I changed only documents, so I did not run `make check`; the factory's checks decide. The code matches the Interface and the criteria (the reviewer found nothing in entry 27), so there are no findings.
+
+    Files changed:
+    - `docs/operator-guide.md`: in "The stops of the tick", the fetch before every tick (the stage file comparison) raises the same stop, with scope `repository`. That fetch runs no tick, leaves the image, identity and `PATH` as they were, and the next passing fetch clears the stop. Another git error is not this stop and gives `iteration failed`. In the stops table, the `fetch-failed` row now says the fetch before the tick raises it too.
+    - `docs/project-guide/stage-environment.md`: in *The project's stage image*, `_ProjectImageStart.prepare` raises `fetch_failed` through `_follow_main` on `FetchFailed`, returns `False` and runs no tick. A fetch that passes calls `clear_stop`. Another `GitError` is not caught.
+    - `docs/decisions.md`: one new entry, "A failed fetch before the tick stands as `fetch_failed`". It states the reason the docs criterion gives and says it replaces what F0049-S0003 entry 11 accepted for now. It has no "Rejected" line, because the story names no rejected option for this decision. The coder's rejected design (catching the error in `prepare`) is a choice inside the code, not a decision of the human, so I left it out.
+
+    Cross-read and found current: `README.md` (names no stop, as the docs criterion says), `docs/project-guide/watching.md` (the tick's own fetch step, still true), `docs/operator-guide.md` ("The health status file" reasons list and "The wait for a repository that is not ready"; the latter says the wait does not fetch unless the repository looks unready, and that is unchanged).
+
+    Stale text seen and not touched: none. I did not run the smoke test command, since I wrote no example.
+
+    `check`: check: green (not run again: passed on tree da88284d442d at 2026-11-04T02:41:58Z)
+    `secrets`: secrets: green (2.6 s)
+    `documents`: documents ok

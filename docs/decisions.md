@@ -1469,3 +1469,10 @@ Date: 2026-11-04 (F0049-S0003; decision 5 of the feature).
 
 - Decision: before every tick, after a fetch, the factory compares the stage file on `origin/main` with the one it last handled (`_ProjectImageStart.prepare` in `factory.entry.run`). A new or changed file is built as at the start and the stages after it run in the new image, identity and `PATH`; a removed file returns to the base image and the base's identity; an unchanged file, or a commit that does not touch it, builds nothing. A stage that runs is not interrupted: the change takes effect between stages. A failed build is `stage_image_failed` with the commit's first 12 hex digits in its detail, and it ends with the next `main` whose file differs, or is gone. The previous project image is removed once the new one is tagged.
 - Why: after the start alone, a merged change would reach the containers only after the operator restarts the service, which is easy to forget on a VM.
+
+## A failed fetch before the tick stands as `fetch_failed`
+
+Date: 2026-11-04 (F0049-S0004).
+
+- Decision: the fetch that `_ProjectImageStart.prepare` makes before every tick raises the repository stop `fetch_failed` when it fails (`FetchFailed`; the error's text as the detail), exactly as the tick's own fetch does. No tick runs in that iteration, and the image, its identity, its `PATH` and the stage file last handled stay as they were. The next fetch that passes clears the stop. Any other `GitError` from that fetch is not turned into the stop and keeps the scheduler's `iteration failed`. It replaces what F0049-S0003 (entry 11) accepted for now.
+- Why: the operator and the container's health check read `factory-health`, and an `iteration failed` line alone left it `healthy` while nothing ran.
