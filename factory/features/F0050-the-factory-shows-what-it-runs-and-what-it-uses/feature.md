@@ -43,6 +43,10 @@ The build order. S0008 comes right after S0002, because GitHub's incident of 202
 - S0005: A run's transcript is kept in the transcript folder
 - S0006: The cost record sums up the run's tool calls
 - S0007: The transcript folder is set up on the VM and in Cloud Run
+- S0009: Claude Code's tool calls are timed from their own lines (from A0001)
+- S0011: A push reason keeps the server's words (from A0001)
+- S0010: A hosting failure after the claim charges no crash (from A0001)
+- S0012: The decision log and the contract history match the feature (from A0001)
 
 ## The human's changes
 
