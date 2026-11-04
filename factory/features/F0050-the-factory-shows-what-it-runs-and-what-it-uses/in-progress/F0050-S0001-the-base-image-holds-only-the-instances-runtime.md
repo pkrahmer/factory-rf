@@ -7,7 +7,11 @@ crashes: 1
 pull_request: 538
 comments_read: [6626791280, 6627107272, 6627457871]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T09:37:52.901870Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -228,6 +232,11 @@ journal:
   speaker: factory
   kind: crash
   at: '2026-11-04T09:37:25.200615Z'
+  stage: docs
+- number: 41
+  speaker: factory
+  kind: started
+  at: '2026-11-04T09:37:52.901870Z'
   stage: docs
 ---
 
@@ -662,3 +671,4 @@ Expect: `2`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     - `tests/test_vm_job_start.py`: `test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options` changed under the same `feature.md` leave (the build-command row, for the runtime argument). `test_the_stage_image_is_built_for_the_instance_runtime` is an addition and needs no leave.
 39. factory: started docs as vm.
 40. factory: crash 1: the run of stage docs ended without a result. Its work is discarded back to commit f5dbf1626cd0ed13a292536c6c8fa9f96137fc52.
+41. factory: started docs as vm.
