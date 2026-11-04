@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T18:28:05.020762Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-11-04T18:28:05.020762Z'
   stage: doing
+- number: 32
+  speaker: coder
+  kind: result
+  at: '2026-11-04T18:32:27.430749Z'
+  stage: doing
+  run: 4f1dd09fcac6404a91ab38c17f699a25
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -581,3 +583,22 @@ Expect: the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: no
 
     `lint`: lint: green (0.2 s)
 31. factory: started doing as vm.
+32. coder: Round 1, second doing pass. The tester's changes from journal 30 are in place, and with them `make check` is green as I found it (`check: green`, 99.31 % branch coverage). This pass changed no code.
+
+    What this round built, from journal 28, against the reviewer's findings in journal 26:
+    - Finding 1, `src/factory/adapters/claude_runtime.py`: `read_transcript` returns `None` for a session that is not one plain file name. That covers an empty session, `.`, `..`, and any session containing `/`, `\`, `*`, `?`, `[` or `]`. The check is `_is_plain_session` with `_SESSION_REFUSED_CHARACTERS`, and it runs before the glob. The test's new refused rows (`../<session>`, `*`, `a/b`) pass.
+    - Finding 2, `src/factory/adapters/opencode_runtime.py`: the old per-session dict is replaced by `_last_stream`, which holds only the latest run's session and its event stream, so memory no longer grows with every run. The new opencode rows pass: its run, a session never seen, a run resumed within itself, and a second run.
+    - Findings 3 to 8 were changes to tests, which the tester made (journal 30).
+
+    Main choice, unchanged from journal 28: a session id that is not a plain file name gets no transcript. I rejected escaping it with `glob.escape`, because a `/` or `..` would still reach outside `.claude/projects`. For opencode the runtime keeps only the latest stream. I rejected dropping a stream once it has been read: that would make the read change state, and a stream nobody reads would still be kept.
+
+    Refactor: I read the round's diff of `src/` (`git diff 009173649 -- src`) as a reviewer would and found nothing to change.
+
+    Description: the reviewer rewrote it in journal 26, and no later entry changes its meaning.
+
+    Noticed, not touched: nothing new.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 42 known, 1 gone
