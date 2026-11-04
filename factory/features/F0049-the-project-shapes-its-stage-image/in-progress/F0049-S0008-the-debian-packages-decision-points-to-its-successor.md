@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 536
 comments_read: [6621759488]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T03:35:07.480331Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-04T03:35:07.480331Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T03:35:26.402134Z'
+  stage: smoke-test
+  run: 507debd962c54d75a6cf1bb34131d0bc
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -206,3 +208,25 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
 15. factory: started smoke-test as vm.
+16. smoke-tester: Smoke test, round 0: no findings. I ran the three commands under `## Smoke test` from the repository root, in order and exactly as written.
+
+    1. `grep -c 'Superseded in part by "The factory.s tools live apart' docs/decisions.md`: met `Expect:` (`1`).
+    ```
+    1
+    ```
+    2. `sed -n '/^## Debian.s packages follow the base image.s release/,/^## /p' docs/decisions.md | grep -c 'xz-utils'`: met `Expect:` (`1`).
+    ```
+    1
+    ```
+    3. `uv run python -m factory.entry.check_documents`: met `Expect:` (`documents ok`, after uv's `Bytecode compiled` line, which the expectation allows).
+    ```
+    Bytecode compiled 4164 files in 50ms
+    documents ok
+    ```
+
+    I checked the smoke test against the acceptance criteria:
+    - Criterion 1: holds. `git diff main...HEAD -- docs/` adds exactly one line to `docs/decisions.md`, and that line is now the last bullet of *Debian's packages follow the base image's release*, after its `Rejected:` bullet. It starts `Superseded in part by "The factory's tools live apart, under `/opt/factory`, with their own Node"`. It names the six packages and `xz-utils` in place of `nodejs` and `npm`. No other bullet of the entry changed, and no other entry of the log changed.
+    - Criterion 2: not contradicted. Outside the work item and its `.costs.jsonl` sidecar, the branch changes only `docs/decisions.md`. The factory runs `make check` after this stage, and I did not run it here.
+    - Criterion 3: holds. Only `docs/decisions.md` changed, as the criterion asks.
+
+    Findings: none.
