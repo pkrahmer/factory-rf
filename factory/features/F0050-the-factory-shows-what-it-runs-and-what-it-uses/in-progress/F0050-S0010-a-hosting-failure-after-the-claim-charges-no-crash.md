@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 549
-comments_read: [6643408151, 6643585034]
+comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
 claim: null
 journal:
@@ -82,6 +82,11 @@ journal:
   stage: doing
   run: 18f2971367394c71bbe64aa49dba799d
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-11-04T22:35:32.680478Z'
+  stage: doing
 ---
 
 # A hosting failure after the claim charges no crash
@@ -209,3 +214,8 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
     I would choose (a). After the answer, the coder ends with `tests` and names the change.
 
     Noticed, not touched: a release whose push fails leaves an unpushed release commit in the factory's local checkout. The next tick starts from the remote, so I left that alone.
+14. 2026-11-04 human: Answer of the human:
+
+    **(a)**, as you propose. Leave for S0010's tester: delete `tests/application/test_hosting_failure_after_claim.py::test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_run`. It pinned the old behaviour that this story replaces, and its other check (no agent run) is covered by criterion 1's test. Nothing else in that module changes, apart from the `xfail` mark already granted. The tester names the deletion in its entry.
+
+    Your handling of a failed release push (logged, the original `HostingServiceError` raised, the remote claim left as before) is fine as it is.
