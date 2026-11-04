@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T20:20:40.409982Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -186,26 +182,40 @@ journal:
   kind: started
   at: '2026-11-04T20:20:40.409982Z'
   stage: review
+- number: 33
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T20:22:31.795699Z'
+  stage: review
+  run: 28664d7ccaea4df0af95acfa5677cb9d
+- number: 34
+  speaker: factory
+  kind: question
+  at: '2026-11-04T20:22:31.795699Z'
+  stage: review
+  run: 28664d7ccaea4df0af95acfa5677cb9d
+  blocked: round_cap
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
 
 ## Description
 
-S0005 keeps transcripts in the folder `FACTORY_TRANSCRIPT_DIR` names; this story gives each kind of site that folder. On a VM, `vm/setup.sh` makes `/srv/factory/<instance>/transcripts`, owned by the factory's user with mode `0700`, writes `FACTORY_TRANSCRIPT_DIR` into the instance's environment file, and writes a `tmpfiles.d` rule that makes systemd remove the folder's files older than 30 days (systemd's daily `systemd-tmpfiles-clean` runs it). In a Cloud Run job the folder is a Cloud Storage bucket of the site's own project, mounted into the job as a volume; the operator creates the bucket, its lifecycle rule and the mount, and `vm/job-start.sh` only checks that the folder it is given can be written. The bucket stays inside the site, readable only by the job's service account and the people the site allows; the factory needs no Cloud Storage client and no new right.
+S0005 keeps transcripts in the folder `FACTORY_TRANSCRIPT_DIR` names; this story gives each kind of site that folder. On a VM, `vm/setup.sh` makes `/srv/factory/<instance>/transcripts`, owned by the factory's user with mode `0700`, and writes `FACTORY_TRANSCRIPT_DIR` into the instance's environment file. The VM keeps no retention: at about 5 MB per feature the folder grows too slowly to need one, so there is no `tmpfiles.d` rule and no option for an age, and removing old transcripts on a VM is the operator's, by hand if ever needed. In a Cloud Run job the folder is a Cloud Storage bucket of the site's own project, mounted into the job as a volume; the operator creates the bucket, its lifecycle rule and the mount, and `vm/job-start.sh` only checks that the folder it is given can be written. The bucket stays inside the site, readable only by the job's service account and the people the site allows; the factory needs no Cloud Storage client and no new right.
 
 ## Interface
 
-- `vm/setup.sh`: a step `transcripts` that makes the folder (owner `factory`, mode `0700`), the line `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` in `factory.env`, and the file `/etc/tmpfiles.d/factory-<instance>-transcripts.conf` with the one line `d /srv/factory/<instance>/transcripts 0700 factory factory 30d`. A second run of the script finds all done and changes nothing. A new option `--transcript-days <n>` sets another age; `--transcript-days 0` writes neither the line nor the rule, makes no folder and keeps no transcript.
+- `vm/setup.sh`: a step `transcripts` that makes the folder (owner `factory`, mode `0700`), and the line `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` in `factory.env`. A second run of the script finds all done and changes nothing. No `tmpfiles.d` file and no option `--transcript-days`; `need_minutes` stays as it is on `main`.
 - `vm/job-start.sh`: when `FACTORY_TRANSCRIPT_DIR` is set, it checks before the factory starts that the folder exists and a file can be written and removed there; a failure ends the start with the message `transcript folder <path> cannot be written` and a status that is not 0. When it is unset, nothing changes.
 - No change to `src/` beyond what S0005 built.
 
 ## Acceptance criteria
 
-1. A run of `vm/setup.sh` makes the folder with owner `factory` and mode `0700`, writes the setting's line and the `tmpfiles.d` rule with `30d`; a second run changes nothing. Rows: the default, `--transcript-days 7` (the rule says `7d`), `--transcript-days 0` (no line, no rule, no folder), `--transcript-days x` (refused with the option's name).
+1. A run of `vm/setup.sh` makes the folder with owner `factory` and mode `0700` and writes the setting's line; a second run changes nothing. Rows: the default run, and a second run that changes nothing.
 2. `vm/job-start.sh` with a writable folder starts as before; with a folder that does not exist or cannot be written it ends with the message and a status that is not 0; with the setting unset it starts as before.
-3. `make check` stays green. No test creates anything in a cloud.
-4. docs: `docs/operator-guide.md`: in *Transcripts*, the VM's folder, its `tmpfiles.d` rule and the option; for Cloud Run, the steps the operator takes once: a bucket in the job's project and region, uniform access, no public access, a lifecycle rule that deletes objects after 30 days, the job's service account with `roles/storage.objectUser` on that bucket only, and the job's volume mount (`gcloud run jobs update <job> --add-volume name=transcripts,type=cloud-storage,bucket=<bucket> --add-volume-mount volume=transcripts,mount-path=<path>`), with `FACTORY_TRANSCRIPT_DIR=<path>`; and that a bucket costs a few cents a month at these sizes (about 5 MB per feature). `docs/decisions.md`: none beyond S0005's. `README.md` and the project guide: none.
+3. When `/srv/factory/<instance>/transcripts` is a link, the step `transcripts` of `vm/setup.sh` refuses it before it makes anything there: it prints `setup: transcripts: <path> is a link; remove it and run this script again` to standard error and exits 1.
+4. `make check` stays green. No test creates anything in a cloud.
+5. docs: `docs/operator-guide.md`: in *Transcripts*, the VM's folder, without a rule and without the option; removing old transcripts on a VM is the operator's, by hand if ever needed; for Cloud Run, the steps the operator takes once: a bucket in the job's project and region, uniform access, no public access, a lifecycle rule that deletes objects after 30 days, the job's service account with `roles/storage.objectUser` on that bucket only, and the job's volume mount (`gcloud run jobs update <job> --add-volume name=transcripts,type=cloud-storage,bucket=<bucket> --add-volume-mount volume=transcripts,mount-path=<path>`), with `FACTORY_TRANSCRIPT_DIR=<path>`; and that a bucket costs a few cents a month at these sizes (about 5 MB per feature). `docs/decisions.md`: none beyond S0005's. `README.md` and the project guide: none.
 
 ## Smoke test
 
@@ -527,3 +537,28 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
 32. factory: started review as vm.
+33. reviewer: Review, round 2. I read the whole diff: `vm/setup.sh`, `vm/job-start.sh`, `tests/test_vm_setup_transcripts.py`, `tests/test_vm_job_start_transcripts.py` and `docs/operator-guide.md`. I checked it against the human's decision in entries 22 and 23 and against the helpers already in `vm/setup.sh` (`owned_with_mode`, `changed`, `said`, `stage`/`unchanged`, and the link refusal of the `folders` step).
+
+    Story edits, made under the human's leave in entry 22, and nothing else changed:
+    - description corrected: "writes a `tmpfiles.d` rule that makes systemd remove the folder's files older than 30 days" -> "the VM keeps no retention: no `tmpfiles.d` rule and no option for an age; removing old transcripts on a VM is the operator's, by hand if ever needed".
+    - Interface, `vm/setup.sh`: the `tmpfiles.d` file and `--transcript-days` are gone. It now says there is no `tmpfiles.d` file and no `--transcript-days`, and that `need_minutes` stays as it is on `main`.
+    - Criterion 1: rows are now the default run and a second run that changes nothing. The `7`, `0` and `x` rows are gone.
+    - Docs criterion (now 5): "the VM's folder, without a rule and without the option; removing old transcripts on a VM is the operator's, by hand if ever needed". The Cloud Run part is unchanged.
+    - Smoke test: unchanged, as the human said.
+
+    What holds:
+    - **Code matches the human's decision.** `vm/setup.sh`:
+      - always writes the setting's line inside the `factory.env` heredoc (setup.sh:436), so the environment step's compare-before-write keeps a second run from changing anything;
+      - has its `transcripts` step (setup.sh:463-474) make the folder through `owned_with_mode`/`install -d -o factory -g factory -m 0700`;
+      - no longer has `--transcript-days`, `need_whole` or anything about `tmpfiles.d`. `need_minutes` matches `main`.
+    - **`vm/job-start.sh`:** unchanged since round 1. It is quoted and runs no `eval`.
+    - **Group 1:** criterion 1 is pinned by the folder test, the always-written line test and the no-retention rows. Criterion 2 is pinned by the four-row parametrized test. Entry 31 records `make check` green.
+    - **Groups 2 to 4:** clean. `src/` is unchanged, nothing reaches a cloud, there are no silencing markers, and the step follows the script's pattern.
+
+    Findings:
+    1. criterion 3 added: it needs its test. Where: `vm/setup.sh:466-469`. The `transcripts` step refuses a link planted at `$base/transcripts` before `install -d` runs as root, and exits 1 with `setup: transcripts: <path> is a link; remove it and run this script again`. No criterion named this. It is a security behaviour, and pinning it needs no change under `src/`. Fix (the tester's): one test in `tests/test_vm_setup_transcripts.py`, read from the script's text like the module's other tests, checking that the step has that refusal (the message to standard error, `exit 1`) and that it comes before the folder's `install -d`. The criteria after it are renumbered: `make check` is now 4 and docs is 5.
+
+    Open, for the documenter and not a finding against the code: `docs/operator-guide.md` still describes the dropped rule and option at :618 (options table row), :621, :640 (step 14), :642 (step 16), :729, :1636 ("a `tmpfiles.d` rule on a VM") and :1640-1648 (*On a VM*). The revised docs criterion 5 says what they must say.
+
+    Earlier tests: none. The diff only adds test files (status `A`); no test file on `main` is changed, renamed or deleted.
+34. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
