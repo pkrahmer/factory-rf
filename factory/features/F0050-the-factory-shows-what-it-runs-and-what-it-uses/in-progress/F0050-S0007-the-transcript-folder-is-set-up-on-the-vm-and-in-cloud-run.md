@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T20:08:41.456419Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-11-04T20:08:35.469518Z'
   stage: review
   run: af98d603970442d782e95b2006406f3c
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:08:41.456419Z'
+  stage: docs
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -287,3 +296,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     no findings
 
     Earlier tests: none. The diff only adds test files (status `A`); no test file on `main` is changed, renamed or deleted.
+18. factory: started docs as vm.
