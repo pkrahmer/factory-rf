@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T15:13:44.631580Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-04T15:13:37.986085Z'
   stage: doing
   run: 99f72d43d2e4467a9cdc43d95c13d4ff
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:13:44.631580Z'
+  stage: tests
 ---
 
 # One fetch per iteration
@@ -218,3 +227,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     - `src/factory/entry/run.py`: `activity_tick(..., fetched=...)` passes the flag on, and `_ProjectImageStart` builds its tick with `fetched=True`.
 
     I changed no code in this run. Not checked in this run: I did not re-run `make check`. It stays red until the six signatures change, because `mypy --strict` reports an `[override]` error for each of them. Once the tester sends the work item back, I run `make check` and do the refactor step.
+14. factory: started tests as vm.
