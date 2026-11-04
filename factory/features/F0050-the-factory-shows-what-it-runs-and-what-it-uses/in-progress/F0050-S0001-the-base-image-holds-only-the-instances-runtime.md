@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272, 6627457871]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T09:35:29.015014Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -217,6 +213,12 @@ journal:
   kind: started
   at: '2026-11-04T09:35:29.015014Z'
   stage: review
+- number: 38
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T09:36:07.145305Z'
+  stage: review
+  run: 22ab12e6e24b4ed2aa49e948cd433bfa
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -258,7 +260,7 @@ grep -c 'AGENT_RUNTIME=\$FACTORY_AGENT_RUNTIME' vm/job-start.sh
 uv run pytest tests/test_stage_image.py tests/test_vm_job_start.py 2>&1 | tail -1
 ```
 
-Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
+Expect: `2`, `2`, `1`, then a line that ends in `passed` with no `failed`.
 
 ## Journal
 
@@ -625,3 +627,26 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 37. factory: started review as vm.
+38. reviewer: no findings
+
+    Round 2. The only change since the round-1 review (entry 27) is the human's option (B) from entry 34. The global `ARG AGENT_RUNTIME` and its comment are gone from before the first `FROM`. Each stage that reads the value still declares it without a default: `install` at `vm/Dockerfile:8` and the final stage at `vm/Dockerfile:39`. No `FROM` used the global line, so removing it changes nothing in the build.
+
+    Smoke test changed under the human's leave in entry 34: the first value of `Expect:` went from `1` to `2`. Nothing else in the work item changed.
+
+    What I checked again for this round:
+    - Group 1:
+      - The no-default test (`tests/test_stage_image.py:766-786`) needs every `ARG AGENT_RUNTIME` line to have no value. It does not need a set count, so both stage lines meet it.
+      - The runtime `case` (`vm/Dockerfile:14-18`) still comes before the first install, and its `*)` branch refuses an empty or unknown value.
+      - `make check` after the coder was green (entry 36).
+    - Group 2: only `vm/`, tests and docs are touched, and no layer is involved.
+    - Group 3: no secrets and no silencing markers. The build argument is still quoted in `vm/job-start.sh:158`.
+    - Group 4: no dead lines remain. The comments say why.
+    - Group 5:
+      - The Description, the Interface and the docs criterion still match what was built.
+      - The documenter's text in `docs/operator-guide.md` and `docs/decisions.md` never mentions a global declaration, so it is still true.
+      - The journal gives the main choice (one declaration per stage that reads the value) and what was rejected (option C).
+
+    Earlier tests:
+    - `tests/dockerfile_support.py`: changed under the standing leave in CLAUDE.md to move a shared test helper. `_instruction_commands` was taken out of `_commands`, which keeps its name and behaviour (entry 23).
+    - `tests/test_stage_image.py`: changed under the human's leave in `feature.md` for S0001 ("its tester may change `tests/test_stage_image.py` to the image S0001 describes"). Within that file, the two lambda rows changed under the human's answer in entry 11, and `_stage_commands` was removed under the standing leave to move a shared test helper.
+    - `tests/test_vm_job_start.py`: `test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options` changed under the same `feature.md` leave (the build-command row, for the runtime argument). `test_the_stage_image_is_built_for_the_instance_runtime` is an addition and needs no leave.
