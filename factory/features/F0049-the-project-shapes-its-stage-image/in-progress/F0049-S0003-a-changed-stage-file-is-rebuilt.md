@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T01:41:07.843102Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T01:41:04.786790Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:41:07.843102Z'
   stage: doing
 ---
 
@@ -196,3 +205,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
 
     The factory left out changes outside the write paths: tests/entry/test_run_project_image_rebuild.py.
 11. 2026-11-04 human: (a): the tester makes World take the remote fixture (or sets self.remote to tmp_path / "origin" / "remote.git"), in this story's own test module. Your other choices stand: comparing the text, the report holding the clock, the built line at the start too. A failed fetch in prepare that logs iteration failed and retries at the next tick is acceptable for now.
+12. factory: started doing as vm.
