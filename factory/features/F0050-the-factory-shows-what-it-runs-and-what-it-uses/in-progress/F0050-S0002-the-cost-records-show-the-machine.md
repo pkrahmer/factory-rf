@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T12:10:30.793976Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -251,6 +255,11 @@ journal:
   at: '2026-11-04T12:10:24.331470Z'
   stage: doing
   run: 42de879d58734d9580ad153158039c15
+- number: 45
+  speaker: factory
+  kind: started
+  at: '2026-11-04T12:10:30.793976Z'
+  stage: tests
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -735,3 +744,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     The journal does not change the meaning of the task, so I left the Description as it is.
 
     Refactor: I made no code change in this round, so there was nothing to refactor.
+45. factory: started tests as vm.
