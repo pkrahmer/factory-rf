@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T01:41:33.235692Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-04T01:41:27.243129Z'
   stage: doing
   run: de6b50e26a06469cb4a688f4a9869387
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:41:33.235692Z'
+  stage: tests
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -221,3 +230,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     The Description stays as it is: the answer is about the test, not the task's meaning.
 
     Once the tester makes the change and sends the item back, the next coder run needs only `make check` and the refactor read.
+14. factory: started tests as vm.
