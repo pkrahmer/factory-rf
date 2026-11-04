@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T14:03:05.002659Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -146,6 +142,12 @@ journal:
   kind: started
   at: '2026-11-04T14:03:05.002659Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-04T14:07:39.328076Z'
+  stage: doing
+  run: 9bcb5db1740646ecbdc79d87a5c30fec
 ---
 
 # A stop says why, and is logged once
@@ -395,3 +397,18 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     Earlier tests: none. The diff only adds test files (`tests/application/test_preflight_stop_detail.py`, `tests/application/test_stop_log_once.py`, `tests/domain/test_command_ending.py`, `tests/entry/test_run_stop_requested.py`).
 24. factory: started doing as vm.
+25. coder: Round 2: I fixed review findings 1 and 2 from entry 23. Finding 2 also needs a test, so this goes back to the tester.
+
+    **What I built**
+    - `src/factory/application/tick.py`, `Tick.run`: after the preflight, if `self._boundaries.stop_requested()` is true, the tick returns `TickOutcome()` with no `stopped`, no `event` and no `dispatch`. It does not delete stale branches, evaluate the remote or dispatch. The preflight already leaves the stops alone on a cut-off probe: it raises nothing, clears nothing and writes no stamp. The `TickOutcome` docstring now says that "neither" stands for a tick the factory's own stop ended after the preflight. `idle_shutdown` and `entry/run.py` read it as neither idle nor handled work.
+    - Work item `## Description`: criterion 2 and its Interface line now add "the tick that ran it dispatches nothing" / "ends without dispatching", as finding 2 proposed.
+
+    **Test change for the tester (finding 2):** add a row to `tests/application/test_preflight_stop_detail.py::test_a_probe_cut_off_by_the_factorys_stop_is_not_judged_and_runs_again`, or add an application tick test, showing that a tick whose probe of `main` ends while `stop_requested()` is true dispatches nothing. Right now no test reaches the new early return in `Tick.run`.
+
+    **Main decision and rejected alternative:** the tick checks `stop_requested()` itself after the preflight. I tried first a `ProbeNotJudged` exception raised from `Preflight._run_probe` and caught in `Tick.run`, but threw it away. The existing test calls `rig.preflight().run()` on a cut-off probe and expects it to return normally, and the exception would break that test. With the check in the tick, `Preflight.run` stays as the test pins it. The check also applies when the factory's stop arrives during the preflight without cutting off a probe. Not claiming work then is right too, because the factory is shutting down.
+
+    **Refactor:** the diff is one check plus a docstring line, so there was nothing to change. I first also reworded the `Tick.run` docstring, but `tests/application/test_tick_docstrings.py::test_the_docstrings_say_what_the_code_does[tick-run]` pins it word for word, so I put it back. `make check` is green (`test: green (87.8 s)`, `check: green`).
+
+    **Noticed, not touched:** the dead-code findings in `src/factory/domain/cost_records.py:41-43` that `make duplicates` reported earlier; I did not run `make duplicates` this round. The two duplicated test helpers in the reviewer's notes (`_answering` and the `_ended` result builder) are for the tester to consider under the standing leave.
+
+    The factory left out changes outside the write paths: factory/features/F0050-the-factory-shows-what-it-runs-and-what-it-uses/in-progress/F0050-S0003-a-stop-says-why-and-is-logged-once.md.
