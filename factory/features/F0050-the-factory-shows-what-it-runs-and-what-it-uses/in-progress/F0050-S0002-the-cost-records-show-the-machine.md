@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T11:03:30.082813Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -99,6 +95,13 @@ journal:
   kind: started
   at: '2026-11-04T11:03:30.082813Z'
   stage: tests
+- number: 17
+  speaker: tester
+  kind: question
+  at: '2026-11-04T11:05:57.070105Z'
+  stage: tests
+  run: 965b23d040cc4e28894a26125f54ff9b
+  blocked: question
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -214,3 +217,38 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 14. factory: Stage tests crashed 2 times, which is the crash cap of 2. The factory has not rerun it. Write a comment here and the stage reruns with the crash counter reset to 0 (your comment is copied into the journal). Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
 15. 2026-11-04 human: Retry. Both crashes of the tests stage came after the tester had finished with its structured output (10:39:05 and 10:41:54 UTC): most likely the result push was refused during GitHub's incident of 2026-11-04 (Git Operations degraded). The tester's work in the journal and its answers (entries 8 and 9) stand; start the tests stage again from them.
 16. factory: started tests as vm.
+17. tester: I stopped partway again. Every criterion with a seam named in entry 9 now has a test. Criteria 2, 3, 7 and 9 measure the record itself, and nothing named yet reaches it. Two earlier tests also pin the old build log line. The run (`uv run pytest -q` over the files below) fails for the right reason: collection stops on `ImportError` for `MachineMeasures` from `factory.domain.cost_records` and for `factory.domain.machine`. `make lint` is green.
+
+    Mapping so far:
+    - criterion 1: tests/domain/test_cost_record_machine.py::test_a_completed_record_carries_the_machine_with_its_nine_fields, ::test_a_started_record_with_the_machine_is_refused, ::test_a_machine_measure_is_accepted_only_in_its_range
+    - criterion 4 (parsing only: totals in seconds, a total that is not a number is `None`): tests/domain/test_machine.py::test_the_pressure_total_is_the_some_line_in_seconds, ::test_the_cpu_usage_is_the_usage_of_cpu_stat_in_seconds
+    - criterion 5: tests/domain/test_contract_version_4_2.py::test_the_records_contract_is_at_version_4_2_with_the_machine_measures
+    - criterion 6: tests/domain/test_machine.py::test_the_warnings_of_a_build_output_are_counted (rows: no warning, npm, podman, apt) and tests/entry/test_wiring_stage_image_sizes.py::test_a_built_image_logs_its_sizes_and_its_warnings
+    - criterion 7 (MemTotal only): tests/domain/test_machine.py::test_the_memory_total_is_mem_total_in_bytes
+    - criterion 8: tests/entry/test_wiring_stage_image_sizes.py::test_a_start_without_a_stage_file_logs_the_base_size_once, and tests/domain/test_machine.py::test_a_size_is_given_in_gigabytes_of_ten_to_the_nine_bytes
+    - criterion 10: test_the_warnings_of_a_build_output_are_counted, rows `lowercase-warn` and `mixed-case-warning`
+
+    Files created: tests/domain/test_machine.py, tests/entry/test_wiring_stage_image_sizes.py. They join tests/domain/test_cost_record_machine.py and tests/domain/test_contract_version_4_2.py from entry 8.
+
+    Files changed under entry 9's leave: tests/domain/test_contract_version_4.py and tests/domain/test_contract.py (`"4.1"` → `"4.2"`, nothing else).
+
+    The entry test fakes the sizes with a subclass of `FakeImages` in the test module, which implements `size_bytes` and `store_path`. This means `FakeImages` needs no size argument named by me.
+
+    Questions:
+
+    1. How does a test reach the record's `machine`? Criteria 2 (a reading fails, so the field is `None`, the run goes on, and with nothing read the record holds `"machine": null`), 3 (layer `0` without a stage file; sizes change only after a build or a return to the base), 4 (differences of start and end, the peak at completion) and 7 (`store_free_bytes`, `dataset_free_bytes`) are about the completed record. Entry 9 named the functions, but not their signatures or how the readings reach `CostRecorder`. Options:
+       (a) This is what I would choose. Name these:
+       - `factory.domain.machine.MachineTotals` (frozen: `cpu_seconds`, `cpu_wait_seconds`, `memory_wait_seconds`, each `float | None`) and `machine_differences(start: MachineTotals | None, end: MachineTotals) -> MachineTotals`.
+       - `MachineReadings` in `factory.application.machine`, with `totals() -> MachineTotals`, `memory_peak_bytes() -> int | None` and `memory_total_bytes() -> int | None`.
+       - Its adapter `factory.adapters.machine_files.CgroupMachineReadings(slice_folder: Path, meminfo: Path)`, which I test with files in `tmp_path` for the peak, MemTotal, the differences and missing files.
+       - `Boundaries` gains `machine: MachineReadings`. The `boundaries` fixture in `tests/conftest.py` gets a fake under `tests/`, and `Boundaries` gets the image sizes the start measured.
+       - Record-level tests then run one stage through the existing world fixtures and read the written cost record, for criteria 2, 3 and 7.
+       (b) Test only the adapter and domain functions, and leave the record-level parts of 2, 3 and 7 to the review and the smoke test.
+       (c) You name other seams.
+
+    2. Criterion 9, "an adopted image": the code has no adoption. `project_image_settings` always calls `Images.build` when there is a stage file, and nothing reuses an existing image without a build. What is adoption? Options:
+       (a) The start finds the project tag already present (a new `Images` operation, for example `exists(tag)`) and skips the build. That is new behaviour, beyond this story's description.
+       (b) It means only a return to the base (stage file removed), whose sizes are read without a build. I would choose this, and test it as a second `project_image_settings` call after the stage file is removed.
+       (c) Drop criterion 9.
+
+    3. The new build line breaks two tests of an earlier story. tests/entry/test_run_project_image_rebuild.py pins the old form `stage image: built … in 3 s` at lines 243 and 349. The standing leave does not cover changing them. May I change both expected lines to the new form (`…, base <GB> GB, layer <GB> GB, <n> warnings`) and give their `FakeImages` sizes through a shared subclass? I would move `SizedImages` from my new test into a `tests/sized_images.py` support module. Nothing else in that file changes.
