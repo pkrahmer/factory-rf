@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T21:32:00.644660Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-04T21:32:00.644660Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T21:32:32.980087Z'
+  stage: review
+  run: c8f780d6f6e1424bb6a41e750b016bc9
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -293,3 +295,26 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
 19. factory: started review as vm.
+20. reviewer: Review of round 1. In scope: `src/factory/domain/tool_uses.py` and the new `tests/domain/test_tool_uses_replayed_lines.py`. I read both against the Interface and criteria 1 to 9. The factory's `make check` after the coder was green (journal 18).
+
+    no findings
+
+    What I checked:
+    - Acceptance criteria. Each criterion's rows are what it names.
+      - 1: blob after, blob before, two blobs.
+      - 2: api-request-blob, attachment, no type. In each row one `Read` use gets no entry and one `Bash` use is not counted in `calls`.
+      - 3: api-request-blob and attachment give `failed` 0; `user` gives 1.
+      - 4: S0006's tests are unchanged.
+      - 5: second line later, second line `null`.
+      - 6: before and after, for both blob and attachment.
+      - 7: later, `null`, and failed. The failed row expects `failed=0` and `seconds=2.5`.
+      - The Interface's failing sides are tested: lines of another type add no call, no result and no time, and the first of two copies of an id wins for uses and for results.
+    - Code. `src/factory/domain/tool_uses.py:39-47` filters each item by its line's `type` and keeps the first copy through `setdefault`, which matches the Interface. The docstring states the rule.
+    - Architecture. The change stays in `factory.domain`, with no I/O and no new import.
+    - Security. No marker, no secret, nothing built from strings.
+    - Quality. The names are clear and there is no dead code. The test module's `_line`, `_use` and `_result` write an explicit `"timestamp": null` and can leave out `type`, which the shared `tool_use_support` helper cannot do, so they are not copies of it (same judgment as journal 12). The 4 new `make duplicates` findings are outside this diff (journal 12).
+    - Work item hygiene. The Description matches what was built, and journals 10 and 18 name the main choice and what was rejected. Docs criterion 9 still describes what the operator guide must say.
+
+    Considered and not reported: a malformed `tool_use` or `tool_result` item on a line of another type is now skipped, where S0006 returned `None` for it (noticed in journal 10). The Interface's rule that such a line "adds no call and no result" already covers this, and criterion 2 tests the rule, so I added no criterion.
+
+    Earlier tests: none changed. The diff only adds `tests/domain/test_tool_uses_replayed_lines.py` (status `A`).
