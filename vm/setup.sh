@@ -433,6 +433,7 @@ FACTORY_OPENCODE_VERSION=$opencode_version
 FACTORY_OPENCODE_MODELS=$opencode_models
 PATH=/srv/factory/$instance/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 XDG_RUNTIME_DIR=/run/user/$(id -u factory)
+FACTORY_TRANSCRIPT_DIR=/srv/factory/$instance/transcripts
 EOF
 if [ -n "$idle_shutdown" ]; then
   echo "FACTORY_IDLE_SHUTDOWN_MINUTES=$idle_shutdown" >> "$staged"
@@ -458,6 +459,19 @@ if ! systemctl is-enabled --quiet factory@"$instance"; then
   changed "enabled factory@$instance; it is not started"
 fi
 echo "setup: service: $(said "found /etc/systemd/system/factory@.service in place and factory@$instance enabled")"
+
+changes=
+transcripts=$base/transcripts
+# install -d as root on a link factory planted there would reach the link's target.
+if [ -L "$transcripts" ]; then
+  echo "setup: transcripts: $transcripts is a link; remove it and run this script again" >&2
+  exit 1
+fi
+if ! owned_with_mode factory:factory 700 "$transcripts"; then
+  install -d -o factory -g factory -m 0700 "$transcripts"
+  changed "made $transcripts factory's alone"
+fi
+echo "setup: transcripts: $(said "found $transcripts factory's alone")"
 
 printf 'setup: done: build the stage image and start factory@%s; see the operator guide, "The machine"\n' "$instance"
 printf 'setup: local: %s/factory.local.env is yours: the script never writes it; the unit reads it after factory.env\n' "$base"
