@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 539
 comments_read: [6628314128]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T10:23:40.265823Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-04T10:23:40.265823Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-04T10:25:20.148185Z'
+  stage: tests
+  run: 1a7a8f1e3e0d4a97843a1f22c478e400
+  blocked: question
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -136,3 +139,21 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
    - Architecture: the measures sit in the domain DTOs, and reading is left to wrappers and the existing disk-space interface, which fits the layering.
    - Scope: it is within F0050's S0002 scope (the `machine` object, the log lines, contract 4.2) and touches nothing in "Out of scope".
 7. factory: started tests as vm.
+8. tester: I stopped partway. Criteria 1 and 5 are written. They fail for the right reason: collection stops on `ImportError: cannot import name 'MachineMeasures' from 'factory.domain.cost_records'`. `make lint` is green.
+
+   - criterion 1: tests/domain/test_cost_record_machine.py::test_a_completed_record_carries_the_machine_with_its_nine_fields, ::test_a_started_record_with_the_machine_is_refused, ::test_a_machine_measure_is_accepted_only_in_its_range (rows: each integer field at 0, large and -1; each float field at 0.0, large, -0.5 and NaN)
+   - criterion 5: tests/domain/test_contract_version_4_2.py::test_the_records_contract_is_at_version_4_2_with_the_machine_measures
+   - Files created: tests/domain/test_cost_record_machine.py, tests/domain/test_contract_version_4_2.py. Module the runner could not import: `MachineMeasures` from `factory.domain.cost_records`.
+
+   Questions:
+
+   1. Criteria 2, 3, 4, 6, 7, 8, 9 and 10 have no interface to test against. The Interface says "the coder decides through which interfaces they are read". A test that feeds a cgroup file, a `/proc/meminfo`, an image size or a build output into the factory needs a named seam. The current `ImageBuild` carries only `output_tail`, and `Images` has no size and no store-path operation. Options:
+      (a) The Interface names the seams. This is what I would choose:
+      - pure domain functions in a new `factory.domain.machine`: `count_warnings(output: str) -> int`, `gigabytes(size: int) -> str` (`1_580_000_000` → `"1.58"`), `pressure_total_seconds(text: str) -> float | None` (the `some` line's `total`), `cpu_usage_seconds(text: str) -> float | None` (from `cpu.stat`), `mem_total_bytes(meminfo: str) -> int | None`, and `machine_differences(start, end) -> ...`;
+      - `Images` gains `size_bytes(image: str) -> int | None` and `store_path() -> Path | None`, and `ImageBuild` gains `warnings: NonNegativeInt`;
+      - a new application interface `MachineReadings` (memory peak, MemTotal, CPU and pressure totals, each `None` when unreadable), with an adapter that takes the cgroup slice folder and the meminfo path as constructor arguments, so tests use `tmp_path`;
+      - the two log lines tested through `project_image_settings(..., report=...)` and `FakeImages`, and the base line through the factory's start (which function?).
+      (b) Only the domain criteria (1 and 5) are tested, and criteria 2 to 10 are left to the review and the smoke test. I would not choose this.
+      (c) I invent the seams myself. That would be guessing, and the coder would be bound to my guess.
+
+   2. Criterion 5 moves the contract to 4.2. Two tests of earlier stories assert `"4.1"`, so they will go red: tests/domain/test_contract_version_4.py (`_version` and the `committed_is_generated(entry, "4.1")` rows) and tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version (`== "4.1"`). The standing leave does not cover this change. May I change them? Options: (a) both compare against `RECORDS_CONTRACT`, and test_contract_version_4.py keeps only its no-left-branch row; (b) both are set to `"4.2"`. I would choose (a), so that the next version bump does not break them again.
