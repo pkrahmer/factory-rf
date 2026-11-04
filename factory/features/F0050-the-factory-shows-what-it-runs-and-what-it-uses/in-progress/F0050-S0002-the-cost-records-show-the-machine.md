@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T11:46:55.620655Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -177,6 +173,12 @@ journal:
   kind: started
   at: '2026-11-04T11:46:55.620655Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T11:49:22.998798Z'
+  stage: review
+  run: eb5e77c507714f32900145b2348f29e0
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -216,8 +218,9 @@ The memory peak is the kernel's high-water mark of the cgroup that holds the fac
 8. The line `stage image: base <GB> GB` is written once, at the factory's start, for an instance without a stage file; a row for its form. The sizes in both log lines are in GB of 10^9 bytes: 1_580_000_000 gives `1.58`.
 9. An adopted image (an existing one reused with no build) gives both image sizes without a build; a row.
 10. The warnings count is case-insensitive: a lowercase `warn` line and a mixed-case `Warning` line are each counted; one row each.
-11. `make check` stays green.
-12. docs: `docs/operator-guide.md`: in the section on cost records, the `machine` object and each of its fields, that the memory peak is a high-water mark since the slice began (since boot on a VM with lingering) and not the run's own peak, that the CPU time and the waits are the run's own but count every container of the factory user, and how to read them (CPU time over duration as the cores in use; a wait above zero as the machine being too small); in *The project's stage file*, the new log lines. `docs/decisions.md`: one entry that the records carry the machine's measures, why the peak is the slice's high-water mark (no reset before kernel 6.12, and sampling during a run was not worth its cost), and why the CPU and the waits are differences of running totals. `README.md` and the project guide: none.
+11. A size that cannot be read is written `unknown` in the log lines (`base unknown`, `layer unknown`); a project image smaller than its base gives a layer of `None` (`layer unknown` in the log line); a running total that is lower at the run's end than at its start (the slice began again) gives `None` for its difference. One row each.
+12. `make check` stays green.
+13. docs: `docs/operator-guide.md`: in the section on cost records, the `machine` object and each of its fields, that the memory peak is a high-water mark since the slice began (since boot on a VM with lingering) and not the run's own peak, that the CPU time and the waits are the run's own but count every container of the factory user, and how to read them (CPU time over duration as the cores in use; a wait above zero as the machine being too small); in *The project's stage file*, the new log lines. `docs/decisions.md`: one entry that the records carry the machine's measures, why the peak is the slice's high-water mark (no reset before kernel 6.12, and sampling during a run was not worth its cost), and why the CPU and the waits are differences of running totals. `README.md` and the project guide: none.
 
 ## Smoke test
 
@@ -475,3 +478,32 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
 30. factory: started review as vm.
+31. reviewer: Review of round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`. The four lines of the schemas that only bump the version I took from the stat. Entry 29 records the coder's `make check` as green. Groups 2 (architecture) and 3 (security) are clean:
+    - every new read goes through an existing wrapper (`run_podman`) or a file reader in `factory.adapters`;
+    - `factory.domain.machine` does no I/O;
+    - `os.getuid()` is called only in `factory.entry`;
+    - no marker silences a check.
+
+    The contract moves from 4.1 to 4.2, a minor bump for an added optional field, which fits the version rule.
+
+    The three new `make duplicates` findings are vulture's 60 % "unused variable" hits on `MachineMeasures` fields. They are Pydantic fields set by keyword in `CostRecorder._machine_measures`, so they are false positives, and I do not count them.
+
+    Findings:
+
+    1. criterion 11 added: it needs its test. The diff builds three behaviours that no criterion named. A size that cannot be read is written `unknown` in the log lines (`src/factory/entry/wiring.py` `_size_text`). A project image smaller than its base gives a layer of `None` (`wiring.py` `image_sizes`). A running total that went down gives `None` (`src/factory/domain/machine.py` `_difference`). I wrote the criterion before the two closing ones, which are now 12 and 13. The tester writes one row each.
+    2. tests/application/test_cost_record_machine_measures.py (criterion 4): no test takes a record through `CostRecorder.begin` and then `complete`. The record-level path from the start reading to the end reading, end minus start (`src/factory/application/costs.py:76` `start_totals=self._start_totals()`), is never asserted. The only record-level test builds a `CostRun` without `start_totals`, so its differences are `None`. Fix: a row where the fake readings give one set of totals at `begin` and a higher set at `complete`, and the written record holds their differences.
+    3. `src/factory/adapters/podman_images.py:80` `size_bytes` and `:87` `store_path` have no test (criteria 2 and 7). Nothing checks that `podman image inspect --format {{.Size}}` yields the size, or `None` when podman prints no number or the call fails ("an image inspect without a size"). Nothing checks that `podman info --format {{.Store.GraphRoot}}` yields the store folder, or `None` on a failed call. Fix: rows in `tests/adapters/test_podman_images.py` with its podman stand-in, one per outcome.
+    4. `tests/entry/test_wiring_stage_image_sizes.py::test_a_return_to_the_base_logs_the_base_size_without_a_build` pins a line the factory never writes. At a return to the base, `src/factory/entry/run.py:260` passes `report=None`, so only `back to the base at <commit>` is logged, and the earlier `tests/entry/test_run_project_image_rebuild.py::test_a_removed_stage_file_returns_to_the_base_and_builds_nothing` pins exactly that. The new test also contradicts criterion 8 ("written once, at the factory's start"). Criterion 9 asks for the sizes, not a line. Fix: the tester makes this test assert that a return to the base gives both sizes (`image_sizes`, layer `0`) and runs no build, with no `stage image: base` line. The sizes are already shown at run level by `tests/entry/test_run_image_sizes.py`.
+    5. The image sizes are measured twice for each image chosen. `src/factory/entry/wiring.py:450` and `:468` (inside `project_image_settings`, for the log line) and `src/factory/entry/run.py:281` (`_sized`, for the boundaries) each call `image_sizes`, which runs two more `podman image inspect` calls. The two measurements can also disagree, so the log line and the records could show different sizes. Fix: measure once, for example `project_image_settings` hands the sizes it measured back to `_choose`, which logs them and puts them into the boundaries.
+    6. Work item, criterion 13 (docs): the human's answer in entry 23 asks the operator guide for one sentence. Under the `job` container profile the containers run as root, so the user slice may be another cgroup, and the measures may then be `None` or another slice's. The docs criterion does not name this sentence. The documenter writes from that criterion alone, so the sentence would be lost. Fix: the coder adds it to criterion 13, together with the `unknown` text of an unreadable size in the new log lines (criterion 11).
+
+    Notes:
+    - `tests/domain/test_cost_record_machine.py::test_a_machine_measure_is_accepted_only_in_its_range`: the Interface says the three float fields are "finite", but no row tests infinity. The code refuses it (`src/factory/domain/cost_records.py:21`, `Duration`, `allow_inf_nan=False`). Missing row: each float field at `math.inf`, refused.
+
+    Earlier tests:
+    - tests/conftest.py: the human's leave, entry 18 answer 1 (the `boundaries` fixture gets `machine=FakeMachineReadings()` and its import, nothing else).
+    - tests/disk_support.py: the human's leave, entry 23 answer 2 (`FakeDiskSpace.free_bytes` raises `FileNotFoundError` for a path it was not given, and its docstring says so).
+    - tests/domain/test_contract.py: the human's leave, entry 9 answer 2 (`"4.1"` → `"4.2"`).
+    - tests/domain/test_contract_version_4.py: the human's leave, entry 9 answer 2 (both `"4.1"` pins → `"4.2"`).
+    - tests/entry/test_run_project_image_rebuild.py: the human's leave, entry 18 answer 3 (the two expected build lines, `ScriptedImages` on the shared `SizedImages`, and its import).
+    - tests/test_docker_path_removed.py: the human's leave, entry 23 answer 1 (`_no_module_reads_proc` narrowed through `PROCESS_TABLE`, and one parametrized test with the meminfo, pid, self and bare rows).
