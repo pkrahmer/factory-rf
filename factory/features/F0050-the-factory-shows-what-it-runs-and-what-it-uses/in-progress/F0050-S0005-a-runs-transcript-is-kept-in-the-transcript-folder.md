@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T16:25:55.132277Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-04T16:25:49.057410Z'
   stage: tests
   run: 0788bbd65ab2443f9774fd3ea7defc3e
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-04T16:25:55.132277Z'
+  stage: doing
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -279,3 +288,4 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
     Still open: journal 9 leaves the edits of the Description, Interface, criteria and smoke test (the deletion parts removed) to the intake or the reviewer. Journal 13 leaves the opencode event-stream sentence for the Interface to the reviewer. I made neither edit.
 
     `lint`: lint: green (0.1 s)
+16. factory: started doing as vm.
