@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T14:15:33.976648Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -192,6 +196,11 @@ journal:
   at: '2026-11-04T14:15:27.130490Z'
   stage: docs
   run: 904bf30b25a142b9b04766e5ef37d3f3
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-11-04T14:15:33.976648Z'
+  stage: smoke-test
 ---
 
 # A stop says why, and is logged once
@@ -562,3 +571,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green (not run again: passed on tree eb6adf599a2f at 2026-11-04T14:11:13Z)
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
+34. factory: started smoke-test as vm.
