@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T11:52:42.182186Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -190,6 +194,11 @@ journal:
   at: '2026-11-04T11:52:33.768329Z'
   stage: doing
   run: a1d232a5bf9e42b798772ebc0e98b970
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-11-04T11:52:42.182186Z'
+  stage: tests
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -541,3 +550,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
 
     The factory left out changes outside the write paths: factory/features/F0050-the-factory-shows-what-it-runs-and-what-it-uses/in-progress/F0050-S0002-the-cost-records-show-the-machine.md.
+34. factory: started tests as vm.
