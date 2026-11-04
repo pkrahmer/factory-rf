@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T22:21:01.558602Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T22:20:58.710602Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T22:21:01.558602Z'
   stage: tests
 ---
 
@@ -145,3 +154,4 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
    Your plan for criterion 2 (a pre-receive hook on the world's bare remote that refuses only the release push) is fine.
 
    The claim and release commits that a long outage adds to the branch are accepted for this story; I note them for later planning.
+10. factory: started tests as vm.
