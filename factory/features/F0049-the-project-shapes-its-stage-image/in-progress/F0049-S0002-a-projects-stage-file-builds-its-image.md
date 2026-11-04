@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T01:11:49.412544Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -231,6 +235,11 @@ journal:
   at: '2026-11-04T01:11:43.566789Z'
   stage: tests
   run: afd5310a60c7417faecd64091874c50e
+- number: 41
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:11:49.412544Z'
+  stage: doing
 ---
 
 # A project's stage file builds the image its stages run in
@@ -695,3 +704,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     Test run: `uv run pytest -q tests/entry/test_wiring_image_path.py tests/entry/test_wiring_project_image.py` passed all 16 tests, because the code is already built. `make lint` is green after ruff sorted the new imports. Every module imported. I skipped the type check, as this stage's instructions say.
 
     `lint`: lint: green (0.2 s)
+41. factory: started doing as vm.
