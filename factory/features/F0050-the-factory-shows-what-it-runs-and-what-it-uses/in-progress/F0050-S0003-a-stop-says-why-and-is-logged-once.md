@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T14:07:48.263911Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -157,6 +153,12 @@ journal:
   kind: started
   at: '2026-11-04T14:07:48.263911Z'
   stage: tests
+- number: 27
+  speaker: tester
+  kind: result
+  at: '2026-11-04T14:09:01.968082Z'
+  stage: tests
+  run: d634766871114aa59e69e3beeb1e0232
 ---
 
 # A stop says why, and is logged once
@@ -422,3 +424,34 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     The factory left out changes outside the write paths: factory/features/F0050-the-factory-shows-what-it-runs-and-what-it-uses/in-progress/F0050-S0003-a-stop-says-why-and-is-logged-once.md.
 26. factory: started tests as vm.
+27. tester: Mode: approved test change. I added the tick test that the coder's entry 25 asks for, following review finding 2 in entry 23. Finding 2 extends criterion 2 with "and the tick that ran it dispatches nothing".
+
+    What I changed:
+    - `tests/application/test_preflight_stop_detail.py`: a new test, `test_a_tick_whose_probe_the_factorys_stop_cut_off_dispatches_nothing`. The setup:
+      - a backlog work item is started on main;
+      - the probe sets `stop_requested()` to true and ends by signal 15, with no output;
+      - a `Tick` is built from the rig's boundaries and preflight, with the idle and run handlers.
+
+      The test asserts:
+      - the probe ran once;
+      - the outcome is `TickOutcome()`, with no `stopped`, `event` or `dispatch`;
+      - no `main_branch_failing` was raised;
+      - the fake agent runtime got no requests;
+      - the fake hosting service has no pull requests.
+
+      For the imports, the test takes `INSTANCE` from `stage_run_support`. The `BACKLOG_PATH` constant matches the one in `tests/application/test_tick_preflight.py`.
+    - I chose a tick test over a new row in `test_a_probe_cut_off_by_the_factorys_stop_is_not_judged_and_runs_again`. That test calls only `Preflight.run`, which cannot see whether the tick dispatches.
+
+    Result: the new test passes against the coder's code (`uv run pytest -q` on the file: 6 passed). As a check, I temporarily replaced `if self._boundaries.stop_requested():` in `src/factory/application/tick.py` with `if False:`. The test then failed with `AssertionError: assert TickOutcome(s...patch='error') == TickOutcome(s...dispatch=None)`, which shows it reaches the early return. I copied the file back afterwards, and `git status` shows only the test file changed. `make lint`: green.
+
+    Criterion → test:
+    - criterion 2 (dispatches nothing): `tests/application/test_preflight_stop_detail.py::test_a_tick_whose_probe_the_factorys_stop_cut_off_dispatches_nothing`.
+    - The other criteria keep the tests from round 0.
+
+    Files changed: `tests/application/test_preflight_stop_detail.py`. No files created. No module failed to import.
+
+    Open: the factory dropped the coder's `## Description` edit to criterion 2 and its Interface line ("the tick that ran it dispatches nothing" / "ends without dispatching"), because the work item is outside the coder's write paths (entry 25, last line). Neither the coder nor the tester can write it, so the criterion text still lacks the clause this test checks. The reviewer, who may write the work item, should put it back. I did not move the duplicate `_answering` and `_ended` helpers from the reviewer's notes: the mode limits this stage to the named change.
+
+    The factory left out changes outside the write paths: src/factory/application/tick.py.
+
+    `lint`: lint: green (0.1 s)
