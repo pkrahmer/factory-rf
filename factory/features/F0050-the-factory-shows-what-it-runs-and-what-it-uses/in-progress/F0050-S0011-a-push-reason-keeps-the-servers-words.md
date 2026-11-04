@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 548
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T21:45:50.197034Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-04T21:45:42.013287Z'
   stage: doing
   run: fd0d47a027f54e75afd764bb46a51fa3
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:45:50.197034Z'
+  stage: review
 ---
 
 # A push's reason keeps the server's words
@@ -145,3 +154,4 @@ Expect: a line that ends in `passed` with no `failed`.
 
    `check`: check: green
    `duplicates`: duplicates: 4 new, 41 known, 2 gone
+8. factory: started review as vm.
