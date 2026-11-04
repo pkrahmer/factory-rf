@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T12:03:43.775837Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -227,6 +223,12 @@ journal:
   kind: started
   at: '2026-11-04T12:03:43.775837Z'
   stage: doing
+- number: 40
+  speaker: coder
+  kind: result
+  at: '2026-11-04T12:07:39.009682Z'
+  stage: doing
+  run: b7d53bb9cdb14431b0bb44f91b03b94c
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -639,3 +641,28 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 
     End with `review` as the work item is.
 39. factory: started doing as vm.
+40. coder: Round 1, third doing run. In entry 38 the human answered my question from entry 37. The reviewer, not the coder, adds the two missing pieces to criterion 13 under the human's leave. With that edit, reviewer finding 6 is met. The human told me to end with `review` as the work item is. I changed no code, no test and no work item text in this run. The working tree was clean when I started. `make check` is green: check: green, and coverage is 99.42 %.
+
+    Built across the doing runs (unchanged here; details in entries 22, 29 and 33):
+    - `src/factory/domain/machine.py`
+    - `MachineMeasures` and `CostRecord.machine` in `src/factory/domain/cost_records.py`
+    - `src/factory/application/machine.py`
+    - `Images.size_bytes` and `Images.store_path` in `src/factory/application/images.py`, implemented in `src/factory/adapters/podman_images.py` and `src/factory/adapters/fake_images.py`
+    - `src/factory/adapters/machine_files.py`
+    - `src/factory/application/boundaries.py` and `src/factory/application/costs.py`
+    - `src/factory/adapters/cost_records_jsonl.py`
+    - `chosen_image` and `image_sizes` in `src/factory/entry/wiring.py`, used by `src/factory/entry/run.py`
+    - contract 4.2, with its schemas regenerated
+
+    Main decision (from entry 33): the image sizes are measured once, in `chosen_image`, and that one measurement feeds both the log line and the boundaries. I rejected changing the return type of `project_image_settings`, because tests of earlier stories use its value as `InstanceSettings`.
+
+    For the reviewer: edit criterion 13 under the human's leave in entry 38. After "in *The project's stage file*, the new log lines", add exactly: ", with `unknown` for a size that cannot be read; and one sentence that under the `job` container profile the containers run as root, so the user slice may be another cgroup and the measures may then be `None` or another slice's."
+
+    Description: the journal changed no meaning beyond criteria 11 and 13, so I left it unchanged.
+
+    Refactor: there is no new diff in this run, so nothing to refactor.
+
+    Noticed, not touched: `make duplicates` reports 3 vulture false positives on `MachineMeasures` fields. The reviewer already judged them in entry 31.
+
+    `check`: check: green
+    `duplicates`: duplicates: 3 new, 43 known, 0 gone
