@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 531
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T02:47:43.356327Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-04T02:47:43.356327Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-04T02:48:04.403932Z'
+  stage: intake
+  run: d3e10aeda0b8496bb6a907edebf8c74f
 ---
 
 # The stage image's documents say what the code does and why
@@ -66,3 +68,9 @@ Expect: `0`, `0`, `1`, then `documents ok`.
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: no module or signature changes, by design (docs only). It names `docs/operator-guide.md` and `docs/decisions.md` and states the reasons of decisions 1, 3, 4 and 5 in full for the documenter. It states no behaviour that needs a test.
+   - Criteria: criteria 1 to 4 each name a section and the exact text that must be gone or present. I checked the current files: "gives the same text" and "A restart of `factory-run` also ends it" each occur once, and the decisions entry still says "ends with the next start". Each criterion can be checked by one test function, and none has a failing side beyond the text being absent. Criterion 5 (`make check`) and criterion 6 (`docs:`) are the last two.
+   - Smoke test: the greps and `uv run python -m factory.entry.check_documents` (the module exists) are runnable. `grep -c` prints 0 when nothing matches, so the Expect `0`, `0`, `1`, then `documents ok` can be checked line by line. `mise.toml` has no match in `docs/decisions.md` today, so the count of 1 is met only after the change. No pytest command is used, so the `-q` rule does not apply.
+   - Architecture: nothing in the code layers is touched. The change stays in the docs the documenter keeps. The story needs nothing from `factory/`, `CLAUDE.md` or the project guide.
+   - Scope: the story fits F0049. It corrects the documents of S0002 and S0003 and carries decisions 1, 3, 4 and 5 of `feature.md`. It leaves out the feature's Out of scope items (per-line images, an open build context, a registry).
