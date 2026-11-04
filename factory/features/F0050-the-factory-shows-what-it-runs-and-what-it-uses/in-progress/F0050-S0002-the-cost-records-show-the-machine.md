@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T10:22:00.661881Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-04T10:22:00.661881Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-04T10:22:47.457610Z'
+  stage: intake
+  run: 737b2ea3370c4482a31df1a77a922565
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -65,7 +67,7 @@ The memory peak is the kernel's high-water mark of the cgroup that holds the fac
 - `CostRecord` gets `machine: MachineMeasures | None = None`; like the other measures, a `started` record carries none.
 - The two image sizes are measured when the factory builds or adopts an image (at start and after a changed stage file, F0049), not at every run; the free space, the memory peak and total, and the end readings at the record's completion; the start readings when the run starts. A start reading that is missing makes its difference `None`. The coder decides through which interfaces they are read, within the wrappers rule; the existing disk-space interface serves the free space.
 - The records contract moves from `4.1` to `4.2` (an added optional field), and its schemas are regenerated with `uv run python -m factory.entry.contract`.
-- The log line of a built project image becomes `stage image: built <identity> at <commit> in <s> s, base <GB> GB, layer <GB> GB, <n> warnings` (sizes with two decimals; the warnings are the build output's lines that hold `WARN` or `warning`, case ignored, except apt's `update-alternatives: warning:` lines, which a slim base prints for every manual page it lacks: 23 in each build of F0050-S0001's image on 2026-11-04); the factory's start writes `stage image: base <GB> GB` for an instance without a stage file.
+- The log line of a built project image becomes `stage image: built <identity> at <commit> in <s> s, base <GB> GB, layer <GB> GB, <n> warnings` (sizes with two decimals, a GB being 10^9 bytes: 1_580_000_000 gives `1.58`; the warnings are the build output's lines that hold `WARN` or `warning`, case ignored, except apt's `update-alternatives: warning:` lines, which a slim base prints for every manual page it lacks: 23 in each build of F0050-S0001's image on 2026-11-04); the factory's start writes `stage image: base <GB> GB` for an instance without a stage file.
 
 ## Acceptance criteria
 
@@ -75,15 +77,19 @@ The memory peak is the kernel's high-water mark of the cgroup that holds the fac
 4. `memory_peak_since_boot_bytes` is the value the slice's file holds at the record's completion. `cpu_seconds`, `cpu_wait_seconds` and `memory_wait_seconds` are the end reading minus the start reading in seconds; rows: a run whose totals grew, a run whose start reading is missing (`None`), and readings with a total that is not a number (`None`).
 5. The records contract is `4.2`, and its schemas match the models.
 6. The two log lines have the form of the Interface; rows for the warnings count: a build output with no warning (`0 warnings`), with npm's `npm warn EBADENGINE` line, with podman's `WARNING:` line, and with apt's `update-alternatives: warning: skip creation of ...` line (`0 warnings`).
-7. `make check` stays green.
-8. docs: `docs/operator-guide.md`: in the section on cost records, the `machine` object and each of its fields, that the memory peak is a high-water mark since the slice began (since boot on a VM with lingering) and not the run's own peak, that the CPU time and the waits are the run's own but count every container of the factory user, and how to read them (CPU time over duration as the cores in use; a wait above zero as the machine being too small); in *The project's stage file*, the new log lines. `docs/decisions.md`: one entry that the records carry the machine's measures, why the peak is the slice's high-water mark (no reset before kernel 6.12, and sampling during a run was not worth its cost), and why the CPU and the waits are differences of running totals. `README.md` and the project guide: none.
+7. `store_free_bytes` is the free space of the file system that holds podman's image store, `dataset_free_bytes` the free space of `FACTORY_WORKSPACE`, and `memory_total_bytes` is `MemTotal` of `/proc/meminfo` converted from kB to bytes (x1024); one row per field.
+8. The line `stage image: base <GB> GB` is written once, at the factory's start, for an instance without a stage file; a row for its form. The sizes in both log lines are in GB of 10^9 bytes: 1_580_000_000 gives `1.58`.
+9. An adopted image (an existing one reused with no build) gives both image sizes without a build; a row.
+10. The warnings count is case-insensitive: a lowercase `warn` line and a mixed-case `Warning` line are each counted; one row each.
+11. `make check` stays green.
+12. docs: `docs/operator-guide.md`: in the section on cost records, the `machine` object and each of its fields, that the memory peak is a high-water mark since the slice began (since boot on a VM with lingering) and not the run's own peak, that the CPU time and the waits are the run's own but count every container of the factory user, and how to read them (CPU time over duration as the cores in use; a wait above zero as the machine being too small); in *The project's stage file*, the new log lines. `docs/decisions.md`: one entry that the records carry the machine's measures, why the peak is the slice's high-water mark (no reset before kernel 6.12, and sampling during a run was not worth its cost), and why the CPU and the waits are differences of running totals. `README.md` and the project guide: none.
 
 ## Smoke test
 
 ```bash
 grep -cE '^RECORDS_CONTRACT = "4\.2"$' src/factory/domain/contract.py
 grep -oE 'base_image_bytes|project_layer_bytes|store_free_bytes|dataset_free_bytes|memory_peak_since_boot_bytes|memory_total_bytes|cpu_seconds|cpu_wait_seconds|memory_wait_seconds' src/factory/domain/cost_records.py | sort -u | wc -l
-uv run pytest tests/domain -q 2>&1 | tail -1
+uv run pytest tests/domain 2>&1 | tail -1
 ```
 
 Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
@@ -114,3 +120,9 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
    5. Yes: a row where an adopted image (an existing one reused with no build) gives both sizes without a build.
    6. Yes: one row for a lowercase `warn` line and one for a mixed-case `Warning` line, each counted.
 5. factory: started intake as vm.
+6. intake: accepted. The human's answers (journal entry 4) changed the story, and I wrote exactly those changes in: the smoke test's third command lost its `-q`; criteria 7 to 10 are new (the free-space and MemTotal rows, the base-only log line with the 10^9-byte GB, the adopted image, the case-insensitive warnings rows) and `make check` and `docs:` are now 11 and 12; the Interface's log line now says a GB is 10^9 bytes.
+   - Interface: `MachineMeasures` and `CostRecord.machine` are named in `factory.domain.cost_records`, with each field's type and source; the log lines are given as exact forms. Concrete enough.
+   - Criteria: each is testable by rows of one test. Every rule has a failing side: negative and NaN values refused, an unreadable measure is `None`, a missing start reading is `None`, a non-numeric total is `None`, and the warnings rows cover the 0-warning and counted cases, including case.
+   - Smoke test: the three commands are runnable. Pytest's config sets `-q` already, so the third now has none and its `Expect:` can be met. Each expectation (`1`, `9`, a line ending in `passed`) is checkable.
+   - Architecture: the measures sit in the domain DTOs, and reading is left to wrappers and the existing disk-space interface, which fits the layering.
+   - Scope: it is within F0050's S0002 scope (the `machine` object, the log lines, contract 4.2) and touches nothing in "Out of scope".
