@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T09:20:05.079707Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-04T09:20:05.079707Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-04T09:20:25.229904Z'
+  stage: doing
+  run: fb3445715d1a40cdbdab24a14a3b4b17
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -330,3 +332,21 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     - `tests/test_stage_image.py`: changed under the human's leave in `feature.md` ("A leave, for S0001: its tester may change `tests/test_stage_image.py` to the image S0001 describes"). The two lambda rows were changed under the human's answer in journal entry 11.
     - `tests/test_vm_job_start.py`: `test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options` was changed under the same leave in `feature.md` (the row of the build command, for the runtime argument). `test_the_stage_image_is_built_for_the_instance_runtime` and its helpers are additions that need no leave.
 20. factory: started doing as vm.
+21. coder: Test change for the tester, under the standing leave in CLAUDE.md to move a shared test helper (reviewer finding 1, entry 19). No code changed this round.
+
+    The change: `_stage_commands(instructions)` in `tests/test_stage_image.py:140` is a second copy of the body of `_commands` in `tests/dockerfile_support.py:109`. Move that instruction-level body into `tests/dockerfile_support.py` as one helper, for example `_instruction_commands(instructions: list[Instruction]) -> list[Command]`. Then:
+    - `_commands(dockerfile)` returns `_instruction_commands(_instructions(dockerfile))`, so it keeps its name and its behaviour.
+    - In `tests/test_stage_image.py`, the two callers, `_installs_one_runtime_by_its_name` (line 801) and `_final_stage_cleans_up` (line 961), use the moved helper.
+    - `_stage_commands` is removed from `tests/test_stage_image.py`.
+
+    Every test keeps its name, its rows, their ids and what it checks. The tester's entry names each earlier test file it changed: `tests/dockerfile_support.py` and `tests/test_stage_image.py`.
+
+    What I built is unchanged from entries 10 and 17:
+    - `vm/Dockerfile`: two stages, with `ARG AGENT_RUNTIME` and no default. The final stage takes the one resolved runtime executable through `COPY --from=install`.
+    - `vm/job-start.sh`: passes `--build-arg "AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME"`.
+
+    Main choice: copy the one resolved executable, which the human accepted in entry 11. I rejected copying the runtime's npm package directory, because it holds opencode's baseline CPU build.
+
+    Description unchanged: the review finding is about how the tests are written, not about what the task means.
+
+    Noticed but not touched: the final stage still installs `curl` and `xz-utils`, as it did before this story.
