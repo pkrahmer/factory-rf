@@ -14,7 +14,7 @@ from factory.application.files import CostRecordReader
 from factory.application.git import Git
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.bills import Bill, StageBill, bill, bills_by_stage, cost_line, cost_table
-from factory.domain.cost_records import CostRecord, MachineMeasures, TranscriptRef
+from factory.domain.cost_records import CostRecord, MachineMeasures, ToolUse, TranscriptRef
 from factory.domain.identifiers import (
     WorkItemId,
     branch_name,
@@ -79,15 +79,23 @@ class CostRecorder:
         return run
 
     def complete(
-        self, run: CostRun, result: AgentRunResult, transcript: TranscriptRef | None = None
+        self,
+        run: CostRun,
+        result: AgentRunResult,
+        transcript: TranscriptRef | None = None,
+        *,
+        tools: list[ToolUse] | None = None,
     ) -> CostRun:
         """Replace the run's record by its completed one, with what `result` reported, and write.
 
-        The completed record names `transcript`, the run's kept transcript, when there is one.
+        The completed record names `transcript`, the run's kept transcript, when there is one,
+        and carries `tools`, the run's tool calls summed up, `None` when they were not read.
         """
         machine = self._machine_measures(run.start_totals)
         records = [
-            _completed(record, result, machine, transcript) if record.run == run.run else record
+            _completed(record, result, machine, transcript, tools)
+            if record.run == run.run
+            else record
             for record in run.records
         ]
         completed = run.model_copy(update={"records": records})
@@ -131,6 +139,7 @@ def _completed(
     result: AgentRunResult,
     machine: MachineMeasures | None,
     transcript: TranscriptRef | None,
+    tools: list[ToolUse] | None,
 ) -> CostRecord:
     # Copied as reported: an unknown measure stays None and a reported zero stays zero (R24).
     # A run that died or met its time limit left no reply, so its denials are unknown.
@@ -152,6 +161,7 @@ def _completed(
             "login": result.login,
             "machine": machine,
             "transcript": transcript,
+            "tools": tools,
         }
     )
 

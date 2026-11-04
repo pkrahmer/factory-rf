@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult
+from factory.domain.cost_records import ToolUse
 from factory.domain.transcripts import Transcript
 
 
@@ -27,6 +28,13 @@ class AgentRuntime(ABC):
         """The transcript of `session`, as the runtime kept it in the agent's `home`.
 
         `None` when the runtime kept none for it; `OSError` when one exists but cannot be read.
+        """
+
+    @abstractmethod
+    def tool_uses(self, transcript: Transcript) -> list[ToolUse] | None:
+        """The tool calls of `transcript`, one entry per tool sorted by name, without content.
+
+        `[]` for a run without a tool call; `None` when the transcript cannot be read.
         """
 
 

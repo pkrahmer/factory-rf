@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T18:55:24.236964Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-04T18:55:24.236964Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-04T19:03:15.007272Z'
+  stage: doing
+  run: 7c271bba7a244226a7e8ca92f01dde4f
 ---
 
 # The cost record sums up the run's tool calls
@@ -175,3 +177,23 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
    `lint`: lint: green (0.2 s)
 9. factory: started doing as vm.
+10. coder: Implemented the tool-call summary in the cost record; `make check` is green (test: green, 91.6 s). No test changed.
+
+    Built:
+    - `src/factory/domain/cost_records.py`: `ToolUse` (frozen, extra forbidden; `tool` against `TOOL_NAME_PATTERN` `^[A-Za-z0-9_.:-]{1,64}$`, `calls`/`failed` `NonNegativeInt`, `seconds` the existing `Duration | None`, an after-validator refusing `failed > calls`); `CostRecord.tools: list[ToolUse] | None = None`, joined to the started-record check so a started record with `tools` (even `[]`) is refused.
+    - `src/factory/domain/tool_uses.py` (new): `claude_tool_uses` and `opencode_tool_uses`. Lines are parsed as JSON objects (blank lines skipped, any other unreadable line or a call field of the wrong shape gives `None`); calls become name/failed/seconds only and are summed per tool in `_summed`, which maps a name outside the pattern to `other` (reusing the model's pattern, so the two rules cannot drift) and sorts by name. Claude Code: `tool_use` items matched to `tool_result` by id, `is_error is True` failed, seconds from the two lines' `timestamp`s; an unanswered call is a call, not failed, untimed. opencode: `tool_use` events, `state.status == "error"` failed, seconds from `state.time.start/end` in ms. A tool's seconds is the sum of its timed calls, `None` when none was timed; a negative or non-finite difference gives no time rather than a refused record.
+    - `src/factory/domain/transcripts.py`: `transcript_lines` (UTF-8 lines, `None` on bad bytes), shared by both wrappers.
+    - `src/factory/application/agent_runtime.py`: abstract `tool_uses`; `claude_runtime.py`, `opencode_runtime.py` call their domain function; `fake_agent_runtime.py` returns `None`.
+    - `src/factory/application/transcripts.py`: `SessionTranscripts` split into `read(result) -> SessionTranscript` (the transcript or the reason it is missing) and `keep(work_item, run, read)`, which does nothing without a keeper and otherwise logs and keeps as before; `session_transcripts` now always returns one, with the keeper `None` without a store.
+    - `src/factory/application/stage.py`: `_read_transcript` reads once, hands the transcript to `agent_runtime.tool_uses`, keeps it only with a store, and passes `tools=` to `CostRecorder.complete` (`src/factory/application/costs.py`, new keyword-only `tools`).
+    - `src/factory/adapters/cost_records_jsonl.py`: `tools` joins the fields left out when `None`, so lines written before the field round-trip unchanged (the earlier writer tests pinned that).
+    - `src/factory/domain/contract.py`: 4.4; schemas regenerated with `uv run python -m factory.entry.contract` (minor rise: an added optional field).
+
+    Main decision: the transcript is read once in the stage and both the summary and the keeping work from that read, by splitting `SessionTranscripts` into read and keep. Rejected: calling `read_transcript` a second time for the summary beside the existing keep path (two reads of the same file, two places deciding why a transcript is missing).
+
+    Refactor pass: read the diff; nothing to change.
+
+    Noticed, not touched: `CostRecord` does not itself refuse an unsorted or duplicated `tools` list; the reading guarantees it and no criterion asks the model to. The fake's `tool_uses` always returns `None`; the stage tests use a test-local subclass that reads through the Claude Code wrapper. Docs (operator guide, decisions entry) are the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 41 known, 2 gone

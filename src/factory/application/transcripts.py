@@ -4,6 +4,8 @@ import gzip
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+from pydantic import BaseModel, ConfigDict
+
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.machine import FactoryLog
 from factory.domain.agent_runs import AgentRunResult
@@ -50,44 +52,66 @@ class TranscriptKeeper:
         self._log.line(f"transcript: not kept for {run}: {reason}")
 
 
-class SessionTranscripts:
-    """Keeps the transcript of the session a run's result names, read from the agent's home."""
+class SessionTranscript(BaseModel):
+    """What was read of a run's session: its transcript, or why there is none."""
 
-    def __init__(self, keeper: TranscriptKeeper, runtime: AgentRuntime, home: Path | None) -> None:
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    transcript: Transcript | None
+    missing: str | None = None
+
+
+class SessionTranscripts:
+    """Reads the transcript of the session a run's result names from the agent's home.
+
+    It keeps what it read through `keeper`, when the instance has a transcript folder.
+    """
+
+    def __init__(
+        self, keeper: TranscriptKeeper | None, runtime: AgentRuntime, home: Path | None
+    ) -> None:
         """Read through `runtime` from `home`, the dataset's, and keep through `keeper`."""
         self._keeper = keeper
         self._runtime = runtime
         self._home = home
 
-    def keep(self, work_item: str, run: str, result: AgentRunResult) -> TranscriptRef | None:
-        """Keep the transcript of `result`'s session under `run`, before the dataset is reset.
+    def read(self, result: AgentRunResult) -> SessionTranscript:
+        """The transcript of `result`'s session, read before the dataset is reset.
 
-        `None` and one log line when there is nothing to keep or it fails, so that a lost
-        transcript never fails the run.
+        A transcript that is not there or cannot be read is a reason, never an error, so that a
+        lost transcript never fails the run.
         """
         session = result.session
         if session is None:
-            self._keeper.not_kept(run, "the run has no session")
-            return None
+            return SessionTranscript(transcript=None, missing="the run has no session")
         if self._home is None:
-            self._keeper.not_kept(run, "the instance has no workspace")
-            return None
+            return SessionTranscript(transcript=None, missing="the instance has no workspace")
         try:
             transcript = self._runtime.read_transcript(self._home, session)
         except OSError as error:
-            self._keeper.not_kept(run, str(error))
-            return None
+            return SessionTranscript(transcript=None, missing=str(error))
         if transcript is None:
-            self._keeper.not_kept(run, f"the runtime kept no transcript of session {session}")
+            missing = f"the runtime kept no transcript of session {session}"
+            return SessionTranscript(transcript=None, missing=missing)
+        return SessionTranscript(transcript=transcript)
+
+    def keep(self, work_item: str, run: str, read: SessionTranscript) -> TranscriptRef | None:
+        """Keep the transcript `read` under `run`; `None` without a transcript folder.
+
+        `None` and one log line when there is nothing to keep or it fails.
+        """
+        if self._keeper is None:
             return None
-        return self._keeper.keep(work_item, run, transcript)
+        if read.transcript is None:
+            self._keeper.not_kept(run, read.missing or "the run kept no transcript")
+            return None
+        return self._keeper.keep(work_item, run, read.transcript)
 
 
 def session_transcripts(
     store: TranscriptStore | None, log: FactoryLog, runtime: AgentRuntime, workspace: Path | None
-) -> SessionTranscripts | None:
-    """The transcripts of the runs on `workspace`'s home kept in `store`; `None` without one."""
-    if store is None:
-        return None
+) -> SessionTranscripts:
+    """The transcripts of the runs on `workspace`'s home, kept in `store` when there is one."""
+    keeper = None if store is None else TranscriptKeeper(store, log)
     home = None if workspace is None else workspace / HOME_ON_THE_DATASET
-    return SessionTranscripts(TranscriptKeeper(store, log), runtime, home)
+    return SessionTranscripts(keeper, runtime, home)

@@ -65,11 +65,13 @@ from factory.domain.agent_runs import (
     TokenCounts,
     resumed_result,
 )
+from factory.domain.cost_records import ToolUse
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoints
 from factory.domain.opencode_provider import provider_configuration, read_provider
 from factory.domain.provider_limits import ProviderLimit, limit_in_text, named_wait
-from factory.domain.transcripts import Transcript
+from factory.domain.tool_uses import opencode_tool_uses
+from factory.domain.transcripts import Transcript, transcript_lines
 
 CONFIG_VARIABLE = "OPENCODE_CONFIG"
 AGENT_PREFIX = "factory-"
@@ -633,6 +635,11 @@ class OpencodeRuntime(AgentRuntime):
         if last_session != session:
             return None
         return Transcript(extension="jsonl", content=stream.encode("utf-8"))
+
+    def tool_uses(self, transcript: Transcript) -> list[ToolUse] | None:
+        """The tool calls of `transcript`, summed up per tool; `None` when it cannot be read."""
+        lines = transcript_lines(transcript)
+        return None if lines is None else opencode_tool_uses(lines)
 
     def version(self) -> str:
         """The version `opencode --version` prints, such as `1.19.3`.
