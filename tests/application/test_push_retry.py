@@ -1,115 +1,20 @@
 """A refused or unreachable push of a stage's result or a recorded change is tried again."""
 
 import contextlib
-import shlex
-from collections.abc import Callable
-from dataclasses import dataclass, replace
 from datetime import timedelta
 from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualWaiter
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.git_cli import GitCli
+from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
-from factory.application.handlers.recording import WorkItemRecorder
-from factory.application.opening import WorkItemOpening
-from factory.application.stage import AfterAgent, AgentAftermath, StageFinisher, StageLauncher
 from factory.domain.errors import PushFailed
-from factory.domain.git import CommitId, GitOptions, PushOutcome
-from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.kill_points import KillPoints
-from git_support import CHECKOUT, PIPELINE_YAML, TEST_IDENTITY
 from human_clone import HumanClone
-from recording_log import RecordingLog
-from stage_run_support import (
-    BRANCH,
-    ENVIRONMENT,
-    INSTANCE,
-    PATH,
-    WORK_ITEM,
-    completed,
-    open_story,
-    pushed_state,
-)
+from push_retry_support import PushCase, open_push_case
+from stage_run_support import BRANCH, pushed_state
 
-RETRY = "push: retry "
 WAITS = [timedelta(seconds=5), timedelta(seconds=15), timedelta(seconds=45)]
-
-
-class RecordingGit(GitCli):
-    """The real git, which records each push's branch and the head it pushes."""
-
-    def __init__(self, directory: Path, options: GitOptions) -> None:
-        super().__init__(directory, options)
-        self.pushes: list[tuple[str, CommitId | None]] = []
-
-    def push(self, branch: str) -> PushOutcome:
-        self.pushes.append((branch, self.resolve("HEAD")))
-        return super().push(branch)
-
-
-@dataclass
-class PushCase:
-    """One way to reach a push: the call that pushes and what the test reads afterwards."""
-
-    push: Callable[[], object]
-    git: RecordingGit
-    log: RecordingLog
-    waiter: ManualWaiter
-    boundaries: Boundaries
-    remote: Path
-    received: Path
-
-    def arm(self, failures: int) -> None:
-        """Make the remote refuse the next `failures` pushes as a server error."""
-        left = self.remote / "failures-left"
-        left.write_text(f"{failures}\n", encoding="utf-8")
-        hook = self.remote / "hooks" / "pre-receive"
-        hook.write_text(
-            "#!/bin/sh\n"
-            f'while read old new ref; do echo "$new" >> {shlex.quote(str(self.received))}; done\n'
-            f"left=$(cat {shlex.quote(str(left))})\n"
-            'if [ "$left" -gt 0 ]; then\n'
-            f"  echo $((left - 1)) > {shlex.quote(str(left))}\n"
-            "  echo 'Internal Server Error' >&2\n"
-            "  exit 1\n"
-            "fi\n"
-            "exit 0\n",
-            encoding="utf-8",
-        )
-        hook.chmod(0o755)
-        self.git.pushes.clear()
-
-    def retry_lines(self) -> list[str]:
-        """The retry lines written so far."""
-        return [line for line in self.log.lines if line.startswith(RETRY)]
-
-    def received_heads(self) -> list[str]:
-        """The commit ids the remote's hook was offered, one per try."""
-        if not self.received.exists():
-            return []
-        return self.received.read_text(encoding="utf-8").split()
-
-
-def _result_push(boundaries: Boundaries, agent_runtime: FakeAgentRuntime) -> Callable[[], object]:
-    definition = boundaries.pipeline_reader.parse(PIPELINE_YAML)
-    prepared = WorkItemOpening(boundaries, definition).prepare(WORK_ITEM, PATH)
-    agent_runtime.queue(ScriptedRun(result=completed("doing")))
-    launched = StageLauncher(boundaries, INSTANCE, definition, ENVIRONMENT).launch(prepared)
-    aftermath = AfterAgent(boundaries, INSTANCE, definition).process(launched)
-    assert isinstance(aftermath, AgentAftermath)
-    finisher = StageFinisher(boundaries, INSTANCE, definition)
-    return lambda: finisher.finish(aftermath)
-
-
-def _record_push(boundaries: Boundaries) -> Callable[[], object]:
-    recorder = WorkItemRecorder(boundaries)
-    recorder.check_out(BRANCH)
-    entry = NewEntry(speaker=FACTORY, kind="result", text="recorded")
-    recorder.write(PATH, append_entry(recorder.read(PATH), entry))
-    return lambda: recorder.publish(BRANCH, "the subject")
 
 
 @pytest.fixture(params=["result", "record"])
@@ -125,25 +30,15 @@ def case(
     kill_points: KillPoints,
 ) -> PushCase:
     """A story opened at `tests`, ready to push its stage's result or a recorded change."""
-    options = GitOptions(kill_points=kill_points, identity=TEST_IDENTITY)
-    git = RecordingGit(tmp_path / CHECKOUT, options)
-    log = RecordingLog()
-    recording = replace(boundaries, git=git, log=log)
-    open_story(recording, human, agent_home)
-    push = (
-        _result_push(recording, agent_runtime)
-        if request.param == "result"
-        else _record_push(recording)
-    )
-    assert isinstance(recording.waiter, ManualWaiter)
-    return PushCase(
-        push=push,
-        git=git,
-        log=log,
-        waiter=recording.waiter,
-        boundaries=recording,
+    return open_push_case(
+        request.param,
+        boundaries,
+        tmp_path=tmp_path,
         remote=remote,
-        received=tmp_path / "received-heads",
+        human=human,
+        agent_home=agent_home,
+        agent_runtime=agent_runtime,
+        kill_points=kill_points,
     )
 
 

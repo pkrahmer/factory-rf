@@ -30,6 +30,9 @@ PUSH_ADVICE_LINES = frozenset(
     {"Please make sure you have the correct access rights", "and the repository exists."}
 )
 PUSH_HINT_PREFIX = "hint:"
+# The frame of `git push --porcelain`'s summary would push the server's own `remote:` lines out.
+PUSH_PORCELAIN_DONE = "Done"
+PUSH_PORCELAIN_TARGET_PREFIX = "To "
 
 # Git's ref status for a refusal by the server, which a wait may cure, unlike `[rejected]`.
 SERVER_REFUSAL = "[remote rejected]"
@@ -153,18 +156,24 @@ def _is_valid_component(component: str) -> bool:
 def push_reason(output: str) -> str:
     """Git's reason for a failed push: its last non-empty lines, at most three, on one line.
 
-    Git's advice lines are left out first. The joined reason is cut at the end to at most
-    300 characters.
+    Git's advice lines and the frame of the porcelain summary (`To <url>`, `Done`) are left
+    out first, and every run of whitespace in a kept line becomes one space. The joined reason
+    is cut at the end to at most 300 characters.
     """
-    lines = [line.strip() for line in output.splitlines() if _is_reason_line(line.strip())]
+    stripped = (line.strip() for line in output.splitlines())
+    lines = [_one_space_apart(line) for line in stripped if _is_reason_line(line)]
     joined = PUSH_REASON_SEPARATOR.join(lines[-PUSH_REASON_LINES:])
     return joined[:PUSH_REASON_LENGTH]
 
 
+def _one_space_apart(line: str) -> str:
+    return " ".join(line.split())
+
+
 def _is_reason_line(line: str) -> bool:
-    if not line or line in PUSH_ADVICE_LINES:
+    if not line or line in PUSH_ADVICE_LINES or line == PUSH_PORCELAIN_DONE:
         return False
-    return not line.startswith(PUSH_HINT_PREFIX)
+    return not line.startswith((PUSH_HINT_PREFIX, PUSH_PORCELAIN_TARGET_PREFIX))
 
 
 def push_is_retried(outcome: PushOutcome, output: str) -> bool:
