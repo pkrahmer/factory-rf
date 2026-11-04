@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T21:20:18.419740Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-04T21:20:18.419740Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-04T21:20:36.680857Z'
+  stage: intake
+  run: 3621820853474558b49dc2a9d78a859d
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -62,7 +64,7 @@ S0006 sums up each run's tool calls in the cost record, with the seconds they to
   - A line of another `type` (for example `api-request-blob`, `attachment`, `tools-used`) or with no `type` adds no call and no result, and changes no time already read, even when it holds a `tool_use` or `tool_result` item with the same id.
   - When the same id appears on two lines of the right type, the first one's time stays (a resumed session repeats nothing, but a replay must not erase a time).
   - Everything else stays as S0006 built it: `None` for a line that cannot be read, `[]` for no call, the `other` rule, the sorting, an unanswered call counted and not timed.
-- Tests: `tests/domain/test_tool_uses.py` gets the new rows (S0006's tester's module; adding rows to an existing parametrized test needs the human's leave in `feature.md`, or the rows go into a new module `tests/domain/test_tool_uses_replayed_lines.py`).
+- Tests: the rows go into a new module `tests/domain/test_tool_uses_replayed_lines.py`; no earlier test changes (the human, journal 4). A shared fixture of `tests/domain/test_tool_uses.py` may move under the standing leave.
 
 ## Acceptance criteria
 
@@ -70,8 +72,10 @@ S0006 sums up each run's tool calls in the cost record, with the seconds they to
 2. A `tool_use` item that appears only on a line of another type (`api-request-blob`, `attachment`, a line without `type`) is no call: the tool has no entry, or its `calls` does not count it. Rows: one per line kind.
 3. A `tool_result` with `is_error` that appears only on a line of another type marks no call as failed. A `tool_result` with `is_error` on the `user` line still does.
 4. The counts are unchanged for a transcript without replay lines: S0006's existing rows still pass as written.
-5. `make check` stays green.
-6. docs: `docs/operator-guide.md`, *The tool calls on the cost records*: the `seconds` row says the times come from the `assistant` line of the call and the `user` line of its result, and that other lines of the session file are not read. `docs/decisions.md`: none (the rule refines S0006's entry). `README.md` and the project guide: none.
+5. Two `assistant` lines with the same `tool_use` id, the first with a timestamp and the second with a different one or `null`, give `seconds` from the first line's timestamp. Rows: second line later, second line `null`.
+6. A `tool_result` that appears also on a line of another type (`api-request-blob`, `attachment`), with a timestamp that differs from the `user` line's, does not change `seconds`. Rows: the blob line before the `user` line, and after it.
+7. `make check` stays green.
+8. docs: `docs/operator-guide.md`, *The tool calls on the cost records*: the `seconds` row says the times come from the `assistant` line of the call and the `user` line of its result, and that other lines of the session file are not read. `docs/decisions.md`: none (the rule refines S0006's entry). `README.md` and the project guide: none.
 
 ## Smoke test
 
@@ -116,3 +120,9 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
    2. Yes, add that criterion, with the two rows (the blob line before the `user` line, and after it).
    3. Yes: a new module `tests/domain/test_tool_uses_replayed_lines.py`; no earlier test changes. If a shared fixture of `tests/domain/test_tool_uses.py` is needed, the standing leave to move a shared helper covers it.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: `claude_tool_uses(lines: list[str]) -> list[ToolUse] | None` in `factory.domain.tool_uses` has an unchanged signature and concrete rules (`assistant` for the use, `user` for the result, other types ignored, first time stays). The Tests line now names the new module `tests/domain/test_tool_uses_replayed_lines.py` (human's answer 3, journal 4).
+   - Criteria: each one is testable by one parametrized test. I added two criteria from the human's answers (journal 4, answers 1 and 2). Criterion 5: the first line's time stays when the same `tool_use` id appears twice on `assistant` lines, with rows for a later second line and a `null` one. Criterion 6: a replayed `tool_result` on a line of another type does not change `seconds`, with rows for the blob line before and after the `user` line. They went before the two closing ones, which are now 7 and 8. The failing side is covered by criteria 2 and 3 (other-type lines add no call and no failure).
+   - Smoke test: both commands are runnable. The pytest line passes no `-q`, and `addopts` already sets it. Both `Expect:` lines can be checked against the output.
+   - Architecture: the change stays in the domain layer. It does no I/O and adds no wiring. The records contract is unaffected.
+   - Scope: it is the feature's story S0009 (from A0001) on tool-call timing, consistent with S0006's summary of tool calls. It touches nothing in the feature's Out of scope.
