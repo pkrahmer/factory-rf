@@ -1510,3 +1510,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 03:17Z: F0049-S0007 (stops table and helper index) merged #534 (6 runs, $0.82; documents only, read by me) and archived. The third acceptance opens by itself.
 - 03:26Z: F0049-A0003 (third acceptance) PR #535: accepted with stories, S0008 (the Debian-packages decision points to its successor); smoke test green through eleven changes; $33.98 so far. Live image checked: claude 2.1.296, opencode 1.19.3, no node. Merged; F0049-S0008 started.
 - 03:29Z: F0049-S0008 PR #536 tester question 5: (a) no test, the smoke test and the reviewer check the decision-log line.
+- 03:36Z: F0049-S0008 (Debian-packages decision pointer) merged #536 (one decision-log line, read by me) and archived. The fourth acceptance opens by itself.
