@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T12:59:18.130950Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-11-04T12:59:18.130950Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: result
+  at: '2026-11-04T13:00:20.026854Z'
+  stage: tests
+  run: a7356a966a6a4b36b3fa5f95a2a2d16b
 ---
 
 # A refused push or hosting call is retried and logged
@@ -330,3 +332,28 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
 
     For the reviewer: answer 1 gives leave to add the advice-line sentence to the Interface's `PushFailed` bullet. I did not rewrite the Description.
 17. factory: started tests as vm.
+18. tester: I made the test changes from the human's answers 1 to 4 in entry 14, as the coder listed them in entry 16. Nothing else changed.
+
+    - Answer 1, the advice lines. `tests/domain/test_push_reason.py::test_the_reason_holds_gits_last_lines` gets a new row, `advice-left-out`, with the new constant `ADVICE_AFTER_CAUSE`. That output holds `fatal: '<path>' does not appear to be a git repository` and `fatal: Could not read from remote repository.`, then an empty line, then the two advice lines and a `hint:` line. The row checks that the reason still holds `does not appear to be a git repository`.
+    - Answer 2, `make types`. In `tests/application/test_push_retry.py` (my own file), `GitOptions` is now imported from `factory.domain.git` instead of `factory.adapters.git_cli`. In `test_each_retry_line_names_its_try_its_wait_and_gits_reason`, `message: str | None` is declared before the `try`.
+    - Answer 3, 22 operations. `last_push_output` is added to `OPERATIONS` in `tests/git_interface_support.py`. That shared name list is what the two interface tests compare with, so they get the new name from there. The renames:
+      - `tests/application/test_git_interface.py::test_git_has_exactly_the_twenty_one_operations_and_git_cli_has_each` is now `test_git_has_exactly_the_twenty_two_operations_and_git_cli_has_each`.
+      - `tests/application/test_interfaces.py::test_git_abstract_methods_are_exactly_its_twenty_one_operations` is now `test_git_abstract_methods_are_exactly_its_twenty_two_operations`.
+      - `tests/test_checkout_hygiene_removed.py::test_the_names_of_the_checkouts_hygiene_are_gone[git-twenty-one]` now counts 22 and its row id is `git-twenty-two`.
+    - Answer 4, the dispatcher log. In `tests/application/test_dispatcher.py`, the asserts on `log.lines` now compare the lines that do not start with `handler error `. This covers the seven asserts in these four tests and nothing else in the module:
+      - `test_a_report_for_a_branch_not_on_the_remote_becomes_one_log_line`
+      - `test_an_event_without_a_work_item_is_reported_as_one_log_line`
+      - `test_a_report_that_fails_with_a_git_error_leaves_the_entry_unreported`
+      - `test_a_git_error_in_the_report_of_a_branch_not_on_the_remote_writes_no_log_line`
+
+      Each test checks the same thing as before. I wrote the filter inline in each assert rather than adding a helper, so the module gains no new name.
+
+    Earlier test files I changed, each under the human's leave in entry 14: `tests/git_interface_support.py`, `tests/application/test_git_interface.py`, `tests/application/test_interfaces.py`, `tests/test_checkout_hygiene_removed.py` and `tests/application/test_dispatcher.py`. No files were created.
+
+    Results:
+    - One run of the six test modules: all tests passed.
+    - `make lint`: green.
+    - Every module was imported.
+    - I did not run `make types`. Running mypy on the files by hand, outside the Makefile's settings, printed nothing I could use. The coder's `make check` covers it.
+
+    `lint`: lint: green (0.1 s)

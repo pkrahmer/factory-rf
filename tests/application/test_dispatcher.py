@@ -318,9 +318,11 @@ def test_a_report_for_a_branch_not_on_the_remote_becomes_one_log_line(
     outcomes = [dispatcher.dispatch(event) for _ in range(3)]
 
     assert outcomes == ["error", "error", "reported"]
-    assert log.lines == [f"error cap reached on {event.key}: {BOOM}"]
+    assert [line for line in log.lines if not line.startswith("handler error ")] == [
+        f"error cap reached on {event.key}: {BOOM}"
+    ]
     assert dispatcher.dispatch(event) == "capped"
-    assert len(log.lines) == 1
+    assert len([line for line in log.lines if not line.startswith("handler error ")]) == 1
     assert hosting.pull_requests() == []
 
 
@@ -396,9 +398,11 @@ def test_an_event_without_a_work_item_is_reported_as_one_log_line(
     outcomes = [dispatcher.dispatch(event) for _ in range(3)]
 
     assert outcomes == ["error", "error", "reported"]
-    assert log.lines == [f"error cap reached on {event.key}: {BOOM}"]
+    assert [line for line in log.lines if not line.startswith("handler error ")] == [
+        f"error cap reached on {event.key}: {BOOM}"
+    ]
     assert dispatcher.dispatch(event) == "capped"
-    assert len(log.lines) == 1
+    assert len([line for line in log.lines if not line.startswith("handler error ")]) == 1
 
 
 def test_an_event_without_a_work_item_is_reported_without_a_log(
@@ -448,7 +452,7 @@ def test_a_report_that_fails_with_a_git_error_leaves_the_entry_unreported(
     assert entry.count == 3
     assert entry.last_error == BOOM
     assert hosting.pull_requests() == []
-    assert log.lines == []
+    assert [line for line in log.lines if not line.startswith("handler error ")] == []
 
 
 def test_a_report_that_failed_with_a_git_error_is_made_again_once_git_is_back(
@@ -500,11 +504,13 @@ def test_a_git_error_in_the_report_of_a_branch_not_on_the_remote_writes_no_log_l
     assert not entry.reported
     assert entry.count == 3
     assert entry.last_error == BOOM
-    assert log.lines == []
+    assert [line for line in log.lines if not line.startswith("handler error ")] == []
 
     again = dispatcher.dispatch(event)
 
     assert again == "reported"
     assert len(handler.calls) == 3
-    assert log.lines == [f"error cap reached on {event.key}: {BOOM}"]
+    assert [line for line in log.lines if not line.startswith("handler error ")] == [
+        f"error cap reached on {event.key}: {BOOM}"
+    ]
     assert hosting.pull_requests() == []

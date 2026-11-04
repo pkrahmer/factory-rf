@@ -19,6 +19,14 @@ hint: Updates were rejected because the tip of your current branch is behind
 UNREACHABLE = """\
 fatal: unable to access 'https://github.com/owner/name.git/': Could not resolve host: github.com
 """
+ADVICE_AFTER_CAUSE = """\
+fatal: '/tmp/moved.git' does not appear to be a git repository
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+hint: see 'git help push'
+"""
 WORDS = ["alpha", "bravo", "charlie", "delta", "echo"]
 
 
@@ -30,6 +38,9 @@ WORDS = ["alpha", "bravo", "charlie", "delta", "echo"]
         ),
         pytest.param(NON_FAST_FORWARD, "(non-fast-forward)", id="non-fast-forward"),
         pytest.param(UNREACHABLE, "Could not resolve host: github.com", id="unreachable"),
+        pytest.param(
+            ADVICE_AFTER_CAUSE, "does not appear to be a git repository", id="advice-left-out"
+        ),
     ],
 )
 def test_the_reason_holds_gits_last_lines(output: str, held: str) -> None:

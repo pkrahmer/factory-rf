@@ -11,13 +11,13 @@ import pytest
 
 from factory.adapters.clock import ManualWaiter
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.git_cli import GitCli, GitOptions
+from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.recording import WorkItemRecorder
 from factory.application.opening import WorkItemOpening
 from factory.application.stage import AfterAgent, AgentAftermath, StageFinisher, StageLauncher
 from factory.domain.errors import PushFailed
-from factory.domain.git import CommitId, PushOutcome
+from factory.domain.git import CommitId, GitOptions, PushOutcome
 from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.kill_points import KillPoints
 from git_support import CHECKOUT, PIPELINE_YAML, TEST_IDENTITY
@@ -192,6 +192,7 @@ def test_each_retry_line_names_its_try_its_wait_and_gits_reason(
 ) -> None:
     case.arm(failures)
 
+    message: str | None
     try:
         case.push()
     except PushFailed as error:
