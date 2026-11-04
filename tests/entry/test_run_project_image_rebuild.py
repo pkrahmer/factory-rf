@@ -149,7 +149,7 @@ class World:
         self.hosting = hosting
         self.human = human
         self.human_directory = tmp_path / "human"
-        self.remote = tmp_path / "origin"
+        self.remote = tmp_path / "origin" / "remote.git"
         self.monkeypatch = monkeypatch
 
     def write(self, text: str) -> Callable[[], None]:

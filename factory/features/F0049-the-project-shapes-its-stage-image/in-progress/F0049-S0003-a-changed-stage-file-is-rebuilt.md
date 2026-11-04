@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T01:41:33.235692Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-04T01:41:33.235692Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-04T01:42:21.619653Z'
+  stage: tests
+  run: 29e233b18d0e462484ec04ca8047237f
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -231,3 +233,14 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
 
     Once the tester makes the change and sends the item back, the next coder run needs only `make check` and the refactor read.
 14. factory: started tests as vm.
+15. tester: Made the test change the human approved in entry 11, option (a), as the coder named it in entry 13. I changed one line in `tests/entry/test_run_project_image_rebuild.py`: in `World.__init__`, `self.remote = tmp_path / "origin"` is now `self.remote = tmp_path / "origin" / "remote.git"`. That is the bare repository the `remote` fixture returns (`copy_remote(remote_template, tmp_path / "origin")`). So `_commit(self.remote)` now runs `git rev-parse main` inside the repository.
+
+    Rejected: passing the `remote` fixture into `World`, the human's other option. I tried it first, but `make lint` refused it with PLR0917 (6 positional arguments > 5) on `World.__init__` and on the `world` fixture. I undid it and used the one-line path change instead, which the answer also allows.
+
+    No other test changed. Every test keeps its name and still checks the same thing. The criterion-to-test mapping in entry 8 still holds.
+
+    Test run: `uv run pytest -q tests/entry/test_run_project_image_rebuild.py | tail -5` passed all 10 tests (`..........`) against the coder's implementation already on the branch. Every module imported. `make lint` is green.
+
+    Files changed: tests/entry/test_run_project_image_rebuild.py. No files created.
+
+    `lint`: lint: green (0.1 s)
