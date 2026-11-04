@@ -103,10 +103,17 @@ def test_bad_names_and_a_tool_named_other_merge_into_one_other_entry(read: Readi
         pytest.param(opencode_tool_uses, id="opencode"),
     ],
 )
+@pytest.mark.parametrize(
+    "line",
+    [
+        pytest.param("this is not a JSON line", id="not-json"),
+        pytest.param("[" * 100000, id="nested-deeper-than-the-recursion-limit"),
+    ],
+)
 def test_lines_that_cannot_be_read_give_no_tools(
-    function: Callable[[list[str]], list[ToolUse] | None],
+    function: Callable[[list[str]], list[ToolUse] | None], line: str
 ) -> None:
-    assert function(["this is not a JSON line"]) is None
+    assert function([line]) is None
 
 
 def _claude_without_offset_on_the_call() -> list[ToolUse] | None:
