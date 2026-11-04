@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T21:25:54.413769Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-04T21:25:48.287634Z'
   stage: doing
   run: e09c1a3a5f01482dabf4a2eb2a92f708
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:25:54.413769Z'
+  stage: review
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -183,3 +192,4 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
 
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
+11. factory: started review as vm.
