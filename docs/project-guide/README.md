@@ -125,7 +125,7 @@ Every module `tests/*.py` whose name does not start with `test_`:
 
 `SnapshotError(command, detail)` and `ContainerError(command, detail)` are further `BoundaryError`s beside `ProjectCommandError`, for the snapshots and the container runs: a command that failed, could not start or reached its time limit. The messages are `snapshot command <command> failed: <detail>` and `container command <command> failed: <detail>` (see *The stage environment*, `stage-environment.md`).
 
-`PushFailed(branch, outcome)` is a `FactoryError` for a push that did not reach the remote; `outcome` is the git wrapper's `PushOutcome` other than `"pushed"` (`rejected`, `unreachable`), and the message names the branch and the outcome. The claim service raises it (see *The claim service*).
+`PushFailed(branch, outcome, reason="")` is a `FactoryError` for a push that did not reach the remote; `outcome` is the git wrapper's `PushOutcome` other than `"pushed"` (`rejected`, `unreachable`), and the message names the branch and the outcome, followed by `: <reason>` when git's reason is known (`push_reason` of `Git.last_push_output()`, see *The git wrapper*). The claim service raises it (see *The claim service*).
 
 `CannotHandle(kind, reason)` is a `FactoryError` that a handler raises when it cannot do its work, so the dispatcher counts it as an error; `kind` is the event's kind, and the message is `cannot handle <kind>: <reason>`.
 

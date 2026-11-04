@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T13:19:47.679755Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -228,6 +224,12 @@ journal:
   kind: started
   at: '2026-11-04T13:19:47.679755Z'
   stage: docs
+- number: 40
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T13:21:22.558950Z'
+  stage: docs
+  run: 006e3654a84946f8bf213d3ccfabf178
 ---
 
 # A refused push or hosting call is retried and logged
@@ -709,3 +711,28 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     - `tests/domain/test_push_reason.py:85-89`: the constants of the new test sit in the middle of the module, not beside the other constants at the top.
     - `tests/domain/test_push_reason.py:41-43`: the `advice-left-out` row of `test_the_reason_holds_gits_last_lines` overlaps with the new `advice-lines-left-out` row.
 39. factory: started docs as vm.
+40. documenter: Docs round for F0050-S0008. I changed only documents, so I did not run `make check`. The factory's checks after this stage decide.
+
+    Files changed:
+    - `docs/operator-guide.md`: in "An event that keeps failing", the `handler error <event key> <n> of <cap>: <type>: <text>` line, with an example log line. Two new sections follow it. "A refused push is tried again" covers the waits of 5, 15 and 45 s, the `push: retry` line, which failures are retried and which fail at once, and git's reason in `PushFailed`. "During an outage of the hosting service" gives the 2026-11-04 evidence in short and says what the factory does and what to do.
+    - `docs/decisions.md`: one entry, "A refused push or hosting call is retried and logged". It gives the reason (the outage and `planning/outage-2026-11-04.md`), says the cap of three tries stays, and records the open xfail of criterion 5.
+    - `docs/project-guide/git-and-hosting.md`: the client's retry (`hosting_retry()`, `GithubRetry` with total 5, backoff 2, `PATCH` added), `pygithub_service(repository, token)`, `Git.last_push_output`, `push_reason` and `push_is_retried`.
+    - `docs/project-guide/README.md`: `PushFailed` now carries a `reason`.
+    - `docs/project-guide/stages.md`: the result push goes through `push_with_retries`; the stall push is not retried and its failure carries git's reason.
+    - `docs/project-guide/watching.md`: `WorkItemRecorder.publish` retries; the dispatcher's per-error log line.
+
+    `docs/decisions.md`: the story names no rejected option, so the entry has no "Rejected" line.
+
+    Cross-read and found current: `README.md` (the criterion says none), and the claim, crash and hand-over passages of `docs/operator-guide.md` and the project guide. Their "rejected push" wording stays true: the claim push is not retried, and the other pushes fail as before after the retries.
+
+    Findings for the coder: none. The code matches the Interface.
+
+    Open for the human, criterion 5: at the next tick a crash is charged for a stage in which no agent ran. A strict xfail test pins it, and the fix is not part of this story.
+
+    Stale text I did not touch: nothing found. The reviewer's notes on the test module layout (constants mid-module, one overlapping row) are not mine to fix.
+
+    I ran no examples. The log line in the operator guide is illustrative, built from the code's format string.
+
+    `check`: check: green (not run again: passed on tree e585a54632d3 at 2026-11-04T13:17:20Z)
+    `secrets`: secrets: green (3.5 s)
+    `documents`: documents ok
