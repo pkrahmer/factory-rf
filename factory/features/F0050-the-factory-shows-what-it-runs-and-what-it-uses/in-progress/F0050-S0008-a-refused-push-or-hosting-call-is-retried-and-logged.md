@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T13:14:24.145722Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -186,6 +190,11 @@ journal:
   at: '2026-11-04T13:14:17.849469Z'
   stage: doing
   run: fdef26201edd4882b38e722f1b780a44
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:14:24.145722Z'
+  stage: tests
 ---
 
 # A refused push or hosting call is retried and logged
@@ -593,3 +602,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     Open for the human: criterion 5 is still the strict-xfail case. At the next tick, a crash is charged for a stage in which no agent ran. The fix is not part of this story.
 
     Noticed, not touched: `make duplicates` reports 3 new vulture findings in `src/factory/domain/cost_records.py:41-43`, a file outside this story.
+33. factory: started tests as vm.
