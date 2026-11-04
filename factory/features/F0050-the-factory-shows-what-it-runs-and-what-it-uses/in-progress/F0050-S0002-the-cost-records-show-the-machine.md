@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T11:55:14.967947Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -201,6 +205,11 @@ journal:
   at: '2026-11-04T11:55:08.424983Z'
   stage: tests
   run: 6daaa497119c40b68d376c3aaabdda06
+- number: 36
+  speaker: factory
+  kind: started
+  at: '2026-11-04T11:55:14.967947Z'
+  stage: doing
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -581,3 +590,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     Open, for the coder: entry 33 says criterion 13 now asks for the `job` profile sentence and the `unknown` log text. But the factory left that work item edit out, because it is outside the coder's write paths. Criterion 13 in the Description still lacks both, so reviewer finding 6 is not yet met in the work item.
 
     `lint`: lint: green (0.1 s)
+36. factory: started doing as vm.
