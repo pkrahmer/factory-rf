@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 532
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T02:55:23.838822Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-04T02:55:18.069110Z'
   stage: tests
   run: be37586595464d7a91e66a844c256ddf
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:55:23.838822Z'
+  stage: doing
 ---
 
 # The stage image's tests share their helpers and pin the image without an environment
@@ -106,3 +115,4 @@ Expect: `0`, `0`, then a line that ends in `passed` with no `failed`.
    Rejected: a structural test that scans `tests/` for the `PATH` text or for assignments to `PROBE`/`COMPLETED`. It would add a standing rule that the criteria do not ask for. The smoke test's greps already check criteria 2 and 3.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
