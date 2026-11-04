@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T14:15:33.976648Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -201,6 +197,12 @@ journal:
   kind: started
   at: '2026-11-04T14:15:33.976648Z'
   stage: smoke-test
+- number: 35
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T14:16:08.748996Z'
+  stage: smoke-test
+  run: fd1c3e2fdaa44350942d674f6e583762
 ---
 
 # A stop says why, and is logged once
@@ -572,3 +574,22 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
 34. factory: started smoke-test as vm.
+35. smoke-tester: Smoke test, round 2. I ran both commands from the repository root, in order and exactly as written. Both met their `Expect:` line.
+
+    Command 1: `grep -rc 'printed nothing' src/factory | awk -F: '{s+=$2} END {print (s>0)}'`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    Command 2: `uv run pytest tests/application -k stop 2>&1 | tail -1`
+    ```
+    164 passed, 1453 deselected in 9.86s
+    ```
+    Expect a line that ends in `passed` with no `failed`: met. The line ends with the run time after `passed`, which is pytest's standard summary, and nothing failed.
+
+    Criteria: neither output contradicts any acceptance criterion (1 to 8). Criterion 7 (`make check` green) is recorded in entry 33: the factory's own check passed on tree eb6adf599a2f.
+
+    Findings: none.
+
+    Note, not a finding: the documenter (entry 33) saw that the code's detail reads `lint ended by signal 15 ...`, while the Interface's example reads `make lint ended ...`. Criterion 1 asks only that the detail name the command and its ending, so this does not contradict it.
