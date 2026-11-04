@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T18:41:31.687184Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T18:41:31.680020Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T18:41:31.687184Z'
+  stage: intake
+---
+
 # The cost record sums up the run's tool calls
 
 ## Description
@@ -30,3 +57,6 @@ uv run pytest tests/domain tests/adapters -k tool 2>&1 | tail -1
 Expect: `1`, then a line that ends in `passed` with no `failed`.
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
