@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T13:48:00.090233Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-04T13:47:53.634880Z'
   stage: doing
   run: dfe17aa226ab4f0eb170d215a9d0002b
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:48:00.090233Z'
+  stage: review
 ---
 
 # A stop says why, and is logged once
@@ -179,3 +188,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
+11. factory: started review as vm.
