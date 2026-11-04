@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 540
-comments_read: [6630647682]
+comments_read: [6630647682, 6630816683]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 62008eeeb5904f8989f2d6b8cf0589b2
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-04T12:40:22.806684Z'
+  stage: tests
 ---
 
 # A refused push or hosting call is retried and logged
@@ -152,3 +157,8 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
    A smaller point, to confirm with the same answer: for criterion 7, I would check "the same command, without `--force`" with a recording subclass of `GitCli`. It records each `push(branch)` call and the branch head before calling the real `push`, and the hook records the new commit id it got. Nothing is faked: the push runs. Real git can't be observed in any other way, because a server-side hook can't see `--force`.
 
    Files created: none. No test run, so no import failures recorded yet.
+9. 2026-11-04 human: Answers of the human:
+
+   1. **(a)** "The Interface names a pure function in `factory.domain`, e.g. `push_reason(output: str) -> str`: the last non-empty lines (at most three), joined, cut to 300 characters." Put it in `factory.domain.git` (beside the other git rules), named `push_reason`. Criteria 3 and 6 are text rows on that function. A server refusal's row is met when the `! ... [remote rejected] ... (<reason>)` line is in the message: git repeats the server's reason in that line's parentheses (on 2026-11-04: `! [remote rejected] main -> main (Internal Server Error)`). Plus one test per kind on a real remote (hook refusal, non-fast-forward, removed remote), as you describe, checking that `str(PushFailed)` holds the line that names the kind.
+
+   2. Confirmed: a recording subclass of `GitCli` that records each `push` call and the branch head before calling the real `push`, with the hook recording the commit id it got. That is no fake: the push runs.
