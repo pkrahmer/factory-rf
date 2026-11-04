@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T22:42:56.217695Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-11-04T22:42:56.217695Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-11-04T22:43:29.616759Z'
+  stage: doing
+  run: f333dcaa1ef846958371354d2116873f
 ---
 
 # A hosting failure after the claim charges no crash
@@ -323,3 +325,20 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
     Earlier tests:
     - `tests/application/test_hosting_failure_after_claim.py`: the human's leave, journal 4 (the `xfail` mark removed) and journal 14 (`test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_run` deleted). Dropping the `branch_state` import that the deletion left unused follows from that deletion. Nothing else changed.
 23. factory: started doing as vm.
+24. coder: Round 1. I worked through the reviewer's findings from journal 22. I changed no code. Findings 3 to 5 change tests, so the work item goes to the tester.
+
+    **Findings 1 and 2 (the work item's criteria):** I edited `## Acceptance criteria` in the work item. If my write paths do not include the work item, the factory will drop this edit, as it dropped the tester's edit in journal 11. In that case these two findings are still open and need someone whose write paths do include it.
+    - Criterion 3 now uses the human's wording from journal 9. The failed tick's handler error is logged as S0008 built it (`handler error <event key> 1 of 3: HostingServiceError: ...`). Because the release moves the branch, each failing tick counts from 1 again: three failing ticks in a row each log `1 of 3`, and no error stop is posted.
+    - Criterion 9, the `docs/operator-guide.md` item, now also says that a hosting outage after the claim never reaches the error cap and posts no error stop. The factory retries every tick until the service is back. The `docs/decisions.md` item now also names that consequence.
+
+    **Test changes for the tester (findings 3 to 5, in one sentence each):**
+    - 3: Move the fixture `failed_tick` in `tests/application/test_hosting_failure_releases_claim.py` to `tests/conftest.py`, so that it and its copy `failed_after_claim` in `tests/application/test_hosting_failure_after_claim.py` become one fixture. Both modules then use it. This falls under the standing leave, and S0008's test keeps its name and what it checks.
+    - 4: In `tests/application/test_hosting_failure_releases_claim.py`, replace `_log_text` with `state_log_lines(world.state)` from `tests/log_support.py`. Build `_handler_errors` and the `error cap reached` check on it.
+    - 5: In `test_the_hosting_failure_reaches_the_caller_as_the_same_exception`, also assert per row that `branch_state(world, work_item).claim` is `None` exactly when `refusals == 0`.
+    - The reviewer's note, optional: add the row `pytest.param(3, True, id="pushed-after-three-refusals")` to criterion 2's test.
+
+    **Built:** unchanged since journal 13. In `src/factory/application/stage.py`, `_start` catches a `HostingServiceError` from `ensure_pull_request`, then `_release_after_hosting_failure` releases the claim and the same error is raised again. The main choice and the rejected alternative are the ones in journal 20. I did not run `make check`, because I changed no code. The last run was green (journal 20).
+
+    **Noticed, not touched:** when the release push fails, the release commit stays unpushed in the factory's local checkout. The next tick starts from the remote, so I left it alone.
+
+    The factory left out changes outside the write paths: factory/features/F0050-the-factory-shows-what-it-runs-and-what-it-uses/in-progress/F0050-S0010-a-hosting-failure-after-the-claim-charges-no-crash.md.
