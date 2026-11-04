@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T13:14:24.145722Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-11-04T13:14:24.145722Z'
   stage: tests
+- number: 34
+  speaker: tester
+  kind: result
+  at: '2026-11-04T13:14:50.545497Z'
+  stage: tests
+  run: cd8a5d08340c487bb273bd562e9a8cca
 ---
 
 # A refused push or hosting call is retried and logged
@@ -603,3 +605,20 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
 
     Noticed, not touched: `make duplicates` reports 3 new vulture findings in `src/factory/domain/cost_records.py:41-43`, a file outside this story.
 33. factory: started tests as vm.
+34. tester: Mode: a test change the human approved. I wrote the test for criterion 11, the one the reviewer added in entry 30 and the coder's entry 32 names. I changed no code and no test from an earlier story.
+
+    Criterion 11: `tests/domain/test_push_reason.py::test_the_reason_leaves_out_gits_advice_lines`. It is one parametrized test with three rows:
+    - `advice-lines-left-out`: a cause line (`! [remote rejected] main -> main (Internal Server Error)`) followed only by the two advice lines, each with leading spaces. The reason must equal the cause line exactly, so the test fails if the advice lines are kept.
+    - `hint-lines-left-out`: the cause line followed by three `hint:` lines. The reason must equal the cause line exactly. Without the filter, the cause would be the fourth line from the end and would be lost.
+    - `more-than-advice-kept`: the line `remote: Please make sure you have the correct access rights` is kept as the whole reason. This is the "exactly" side of the rule.
+
+    Files changed: only `tests/domain/test_push_reason.py`, a file this story wrote. I added the test and its constants (`CAUSE`, `ACCESS_ADVICE`, `EXISTS_ADVICE`, `HINTS`, `REMOTE_ACCESS`). I created no new files.
+
+    Results:
+    - One run of `uv run pytest -q tests/domain/test_push_reason.py`: all 13 passed. They pass because the code already handles criterion 11 (`src/factory/domain/git.py`, `_is_reason_line`), as entries 30 and 32 say.
+    - Every module imported.
+    - `make lint`: green.
+
+    Still open for the human (criterion 5): a crash is charged at the next tick for a stage in which no agent ran. A strict xfail test pins it, and the fix is not part of this story.
+
+    `lint`: lint: green (0.2 s)

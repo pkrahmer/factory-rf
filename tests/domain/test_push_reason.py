@@ -81,3 +81,26 @@ def test_a_joined_reason_over_300_characters_keeps_its_first_300() -> None:
     assert len(reason) == 300
     assert reason.startswith(lines[0])
     assert "z" * 150 not in reason
+
+
+CAUSE = " ! [remote rejected] main -> main (Internal Server Error)"
+ACCESS_ADVICE = "Please make sure you have the correct access rights"
+EXISTS_ADVICE = "and the repository exists."
+HINTS = ["hint: first", "hint: second", "hint: third"]
+REMOTE_ACCESS = "remote: " + ACCESS_ADVICE
+
+
+@pytest.mark.parametrize(
+    ("lines", "reason"),
+    [
+        pytest.param(
+            [CAUSE, "    " + ACCESS_ADVICE, "    " + EXISTS_ADVICE],
+            CAUSE.strip(),
+            id="advice-lines-left-out",
+        ),
+        pytest.param([CAUSE, *HINTS], CAUSE.strip(), id="hint-lines-left-out"),
+        pytest.param([REMOTE_ACCESS], REMOTE_ACCESS, id="more-than-advice-kept"),
+    ],
+)
+def test_the_reason_leaves_out_gits_advice_lines(lines: list[str], reason: str) -> None:
+    assert push_reason("\n".join(lines) + "\n") == reason
