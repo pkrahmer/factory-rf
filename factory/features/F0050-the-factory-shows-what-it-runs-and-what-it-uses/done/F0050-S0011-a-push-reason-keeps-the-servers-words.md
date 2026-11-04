@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-04T21:47:52.855304Z'
   stage: smoke-test
   run: dc11eef7b983475493bff40d63b7733b
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-04T21:55:56.073764Z'
+  stage: approval
 ---
 
 # A push's reason keeps the server's words
@@ -245,3 +250,4 @@ Expect: a line that ends in `passed` with no `failed`.
     Criteria check: the output of command 1 matches criterion 1 word for word. It also shows criterion 2 (the frame is left out) and criterion 3 (a tab becomes one space). Command 2 runs the domain rows for criteria 1 to 4 in both test modules, S0008's `tests/domain/test_push_reason.py` and the new `tests/domain/test_push_reason_porcelain.py`, and all of them pass. Neither command reaches criterion 5 (the end-to-end retry lines), and nothing seen here goes against it. For criterion 7, `docs/operator-guide.md:2502` now says that the `To <url>` and `Done` frame is left out, that the `remote:` lines stay and that whitespace becomes one space. That matches what command 1 printed.
 
     Open, not a finding: the documenter also changed `docs/project-guide/git-and-hosting.md`, although the docs criterion says "none" for the project guide. Its reason (entry 11) is that the paragraph described the old rule. The smoke test does not touch that file. I leave it to the human's merge.
+14. factory: done (pull request merged); cost: 6 runs, 6.2 min, 44 turns, 131060 tokens in (905598 more from cache), 17959 out, $1.37
