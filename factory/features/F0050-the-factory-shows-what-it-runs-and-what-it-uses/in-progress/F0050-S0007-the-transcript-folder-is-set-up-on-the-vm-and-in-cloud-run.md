@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T20:15:31.765429Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -155,6 +159,11 @@ journal:
   at: '2026-11-04T20:15:25.321132Z'
   stage: doing
   run: 48180895a753474999d9d94e659a1612
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:15:31.765429Z'
+  stage: tests
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -435,3 +444,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     `vm/job-start.sh` stays as it is.
 
     The journal does change the task's meaning. My write paths don't include the work item, though, and the human gave the reviewer leave to edit the Description, the Interface and the criteria. So I left `## Description` as it is.
+28. factory: started tests as vm.
