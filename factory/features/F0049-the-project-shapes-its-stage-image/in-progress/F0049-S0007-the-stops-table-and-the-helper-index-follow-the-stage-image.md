@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T03:11:27.474081Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T03:11:27.466666Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:11:27.474081Z'
+  stage: intake
+---
+
 # The stops table and the test helper index follow the stage image
 
 <!-- proposed by feature acceptance of 2026-11-04; refine before starting -->
@@ -32,3 +59,6 @@ uv run python -m factory.entry.check_documents
 Expect: `0`, then `listed`, then `listed`, then `documents ok`.
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
