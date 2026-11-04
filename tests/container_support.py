@@ -22,6 +22,7 @@ from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.domain.git import ChangedPath, CommitId
 from factory.domain.settings import InstanceSettings
+from factory.domain.transcripts import Transcript
 from git_support import install_agents, run_git, write_files
 from human_clone import HumanClone
 from podman_support import IMAGE
@@ -286,6 +287,11 @@ class WorkspaceRuntime(AgentRuntime):
     def version(self) -> str:
         """The delegate's version."""
         return self._delegate.version()
+
+    def read_transcript(self, home: Path, session: str) -> Transcript | None:
+        """No transcript is kept."""
+        del home, session
+        return None
 
 
 def whole_stage(

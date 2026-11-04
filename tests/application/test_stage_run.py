@@ -11,6 +11,7 @@ from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.git import Git
 from factory.domain.agent_runs import QUESTION, AgentRunRequest, AgentRunResult
+from factory.domain.transcripts import Transcript
 from human_clone import HumanClone
 from stage_run_support import (
     BRANCH,
@@ -45,6 +46,11 @@ class HeadNotingRuntime(AgentRuntime):
     def version(self) -> str:
         """The delegate's version."""
         return self._delegate.version()
+
+    def read_transcript(self, home: Path, session: str) -> Transcript | None:
+        """No transcript is kept."""
+        del home, session
+        return None
 
 
 @pytest.mark.parametrize(

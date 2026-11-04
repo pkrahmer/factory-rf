@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T18:14:47.846467Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-11-04T18:14:47.846467Z'
   stage: tests
+- number: 22
+  speaker: tester
+  kind: result
+  at: '2026-11-04T18:15:50.200060Z'
+  stage: tests
+  run: c43a0e84fb474d208b3f9b0e8e4b2ba9
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -393,3 +395,20 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
       - journal 13: the opencode transcript is the run's event stream (`jsonl`);
       - journal 18: the Claude Code session path is `<home>/.claude/projects/*/<session>.jsonl`.
 21. factory: started tests as vm.
+22. tester: I made the test changes the human approved in journal 18, as the coder's entry 20 listed them. I changed no test beyond what that leave covers.
+
+    Changes:
+    1. `tests/application/test_interfaces.py`: the `AgentRuntime` abstract-operations pin is now `{"run", "version", "read_transcript"}`.
+    2. I added `read_transcript(home, session) -> Transcript | None` to the stand-ins that derive directly from `AgentRuntime`. Nothing else in those modules changed apart from the `Transcript` import.
+       - `ObservingRuntime` (`tests/observing_runtime.py`) delegates to the `FakeAgentRuntime` it wraps.
+       - `WorkspaceRuntime` (`tests/container_support.py`), `HeadNotingRuntime` (`tests/application/test_stage_run.py`) and `RefusingRuntime` (`tests/application/test_agent_run_probe.py`) each return `None`. Each also runs `del home, session` so ruff's ARG002 stays green.
+       - `SidecarRuntime` (`tests/application/test_costs.py`) and `SwitchingRuntime` (`tests/stall_support.py`, not `test_stall_environment.py` as entry 20 says) both derive from `ObservingRuntime`. They inherit its delegating method, so neither file changed.
+       - I found no other `AgentRuntime` stand-in that needed the method.
+    3. `tests/application/test_stage_transcripts.py::test_no_container_and_no_prompt_names_the_transcript_folder`: `containers.calls()` is now `containers.calls`, in both places.
+    4. `tests/adapters/test_claude_runtime_transcript.py`: both tests now build the session folder at `<home>/.claude/projects/-work-checkout`. I updated the module docstring to match and shortened it to fit the line length.
+
+    Run: `make lint` is green. One run of `uv run pytest -q -n auto` over the changed modules and the modules that use the changed stand-ins (test_interfaces, test_stage_transcripts, test_claude_runtime_transcript, test_agent_run_probe, test_stage_run, test_costs, test_stall_environment, test_stage_launch) passed all 126 tests, with no failures.
+
+    Files changed: tests/application/test_interfaces.py, tests/observing_runtime.py, tests/container_support.py, tests/application/test_stage_run.py, tests/application/test_agent_run_probe.py, tests/application/test_stage_transcripts.py, tests/adapters/test_claude_runtime_transcript.py. Files created: none. Every module imported.
+
+    `lint`: lint: green (0.1 s)

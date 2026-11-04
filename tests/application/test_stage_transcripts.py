@@ -262,8 +262,8 @@ def test_no_container_and_no_prompt_names_the_transcript_folder(
 
     containers = transcribed.containers
     assert isinstance(containers, FakeContainerRuns)
-    assert containers.calls()
+    assert containers.calls
     named = str(folder)
-    for call in containers.calls():
+    for call in containers.calls:
         assert all(named not in str(mount.source) for mount in call.mounts)
     assert all(named not in request.prompt for request in agent_runtime.requests())

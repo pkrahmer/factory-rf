@@ -1,4 +1,4 @@
-"""Where Claude Code keeps a session: its `projects/<folder>/<session>.jsonl` under the home."""
+"""Where Claude Code keeps a session: `.claude/projects/<folder>/<session>.jsonl` in its home."""
 
 from pathlib import Path
 
@@ -19,7 +19,7 @@ def test_a_session_is_read_from_its_project_folder(
     tmp_path: Path, runtime: ClaudeCodeRuntime
 ) -> None:
     home = tmp_path / "home"
-    folder = home / "projects" / "-work-checkout"
+    folder = home / ".claude" / "projects" / "-work-checkout"
     folder.mkdir(parents=True)
     (folder / f"{SESSION}.jsonl").write_bytes(LINES)
 
@@ -33,6 +33,6 @@ def test_a_session_without_a_file_has_no_transcript(
     tmp_path: Path, runtime: ClaudeCodeRuntime
 ) -> None:
     home = tmp_path / "home"
-    (home / "projects" / "-work-checkout").mkdir(parents=True)
+    (home / ".claude" / "projects" / "-work-checkout").mkdir(parents=True)
 
     assert runtime.read_transcript(home, SESSION) is None
