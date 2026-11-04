@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 536
 comments_read: [6621759488]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T03:31:27.196446Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-04T03:31:27.196446Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-04T03:31:43.358595Z'
+  stage: tests
+  run: 7f4d6a0a96a04d7fb98bce41ba167587
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -104,3 +106,12 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
    I would choose (a), because the Description and Interface both rule out a test, and the human wrote them. I'll proceed as you say.
 6. 2026-11-04 human: (a): no test for this story; the smoke test and the reviewer check criterion 1.
 7. factory: started tests as vm.
+8. tester: I wrote no tests and changed no file, as the human answered in entry 6 (option (a)): this story gets no test, and the smoke test and the reviewer check criterion 1.
+
+   - criterion 1: no test. The smoke test (two greps and `check_documents`) and the reviewer check it against the diff of `docs/decisions.md`.
+   - criterion 2: no test. It is the closing `make check` criterion.
+   - criterion 3: no test. It is the closing `docs:` criterion.
+
+   Files created: none. Modules the test run could not import: none, because there is no new test, so I skipped the step-2 test run. `make lint` passes with the working tree unchanged. Nothing is red on the branch: the coder has no test to satisfy, and the work is the one bullet that the Interface names, which the documenter adds to `docs/decisions.md`.
+
+   `lint`: lint: green (0.1 s)
