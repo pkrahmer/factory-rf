@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T02:02:39.209087Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -200,6 +196,12 @@ journal:
   kind: started
   at: '2026-11-04T02:02:39.209087Z'
   stage: smoke-test
+- number: 35
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T02:03:08.871465Z'
+  stage: smoke-test
+  run: 7da71a5ca47241f2a9dd8de53df52107
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -568,3 +570,24 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     `secrets`: secrets: green (2.7 s)
     `documents`: documents ok
 34. factory: started smoke-test as vm.
+35. smoke-tester: Ran the one command under `## Smoke test` from the repository root, exactly as written. Nothing was changed.
+
+    Command 1:
+
+    ```bash
+    grep -rhoE 'stage image: (built|back to the base at|failed at)' src/factory | sort -u
+    ```
+
+    Output (exit 0):
+
+    ```
+    stage image: back to the base at
+    stage image: built
+    stage image: failed at
+    ```
+
+    Expect met: the output is exactly the three lines `stage image: back to the base at`, `stage image: built` and `stage image: failed at`, with nothing else.
+
+    Against the acceptance criteria: the command only shows that the three log strings are in the source. To see where they come from I ran one extra grep (`grep -rnE 'stage image: ' src/factory`). It finds them in `src/factory/entry/run.py:248` (`back to the base at {report.commit}`) and in `src/factory/entry/wiring.py:431` and `:441` (`built {layer.identity} at {report.commit} in {…} s` and `failed at {report.commit}`). Those match the line formats in the Interface and in criteria 2, 4 and 6. Nothing in the smoke test contradicts any criterion. The command does not exercise the build behaviour itself (criteria 1–7) or the docs (criterion 9). The tests and the factory's checks cover those, and I did not judge them here.
+
+    Findings: none.
