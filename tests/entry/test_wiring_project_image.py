@@ -14,7 +14,12 @@ from factory.application.images import IMAGE_BUILD_TIME_LIMIT, ImageBuild, Image
 from factory.application.stops import StopService
 from factory.domain.preflight import PreflightStamp
 from factory.domain.settings import InstanceSettings
-from factory.domain.stage_layer import STAGE_FILE, project_image_tag, stage_layer
+from factory.domain.stage_layer import (
+    STAGE_FILE,
+    StageLayerRefused,
+    project_image_tag,
+    stage_layer,
+)
 from factory.domain.stops import RepositoryStop
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_store, project_image_settings
@@ -129,9 +134,18 @@ def _push_not_utf_8(_human: HumanClone, tmp_path: Path, remote: Path) -> None:
 _Push = Callable[[HumanClone, Path, Path], None]
 
 
+def _refusal(text: str) -> str:
+    with pytest.raises(StageLayerRefused) as refused:
+        stage_layer(text, BASE_IDENTITY)
+    return str(refused.value)
+
+
 @pytest.mark.parametrize(
-    "push",
-    [pytest.param(_push_broken_rule, id="rule"), pytest.param(_push_not_utf_8, id="not-utf-8")],
+    ("push", "refused_text"),
+    [
+        pytest.param(_push_broken_rule, "FROM debian:bookworm\n", id="rule"),
+        pytest.param(_push_not_utf_8, "\ufffd\n", id="not-utf-8"),
+    ],
 )
 def test_a_stage_file_that_breaks_the_rule_stands_as_a_stop_and_builds_nothing(
     boundaries: Boundaries,
@@ -141,6 +155,7 @@ def test_a_stage_file_that_breaks_the_rule_stands_as_a_stop_and_builds_nothing(
     tmp_path: Path,
     remote: Path,
     push: _Push,
+    refused_text: str,
 ) -> None:
     push(human, tmp_path, remote)
     images = FakeImages()
@@ -150,7 +165,7 @@ def test_a_stage_file_that_breaks_the_rule_stands_as_a_stop_and_builds_nothing(
     [(reason, detail)] = _stops(boundaries)
     assert started is None
     assert reason == "stage_image_failed"
-    assert detail
+    assert detail == _refusal(refused_text)
     assert images.builds == []
 
 

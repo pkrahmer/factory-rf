@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T01:10:21.014452Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -229,6 +225,12 @@ journal:
   kind: started
   at: '2026-11-04T01:10:21.014452Z'
   stage: tests
+- number: 40
+  speaker: tester
+  kind: result
+  at: '2026-11-04T01:11:43.566789Z'
+  stage: tests
+  run: afd5310a60c7417faecd64091874c50e
 ---
 
 # A project's stage file builds the image its stages run in
@@ -675,3 +677,21 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
 
     Description: unchanged in this run. The reviewer already brought it up to date with entry 28.
 39. factory: started tests as vm.
+40. tester: Round 2: I made the two test changes that the coder's entry 38 names, from the reviewer's findings 1 and 2 in entry 36. I changed only test files this story wrote. I created no files and did not touch any test from another story.
+
+    1. Criterion 5, agent side: tests/entry/test_wiring_image_path.py::test_the_tick_gives_the_agent_run_the_path_of_the_image_in_use (new).
+       - It builds boundaries through `build_boundaries(settings, CREDENTIAL, hosting=FakeHostingService(), images=FakeImages(paths={IMAGE: JDK_PATH}))`.
+       - It puts their `image_path` on the `boundaries` fixture with `dataclasses.replace`, because the stage needs the fixture's fake dataset and fake agent runtime.
+       - It runs one stage through `build_tick`, set up the same way as test_wiring_run.py's production-environment test.
+       - It checks that the last agent request's `PATH` is `f"{Path(sys.executable).parent}:/opt/jdk/bin:/usr/local/bin:/usr/bin:/bin"`.
+       - If `build_tick` passed no path to `production_environment`, `PATH` would fall back to the default `/usr/local/bin:/usr/bin:/bin` and this test would fail.
+       - The story text comes from `stage_run_support` (`BACKLOG_PATH`, `STORY`). The two `AgentRunResult` constants, `PROBE` and `COMPLETED`, are local copies of the ones in test_wiring_run.py. I did not move them to a shared module: the standing leave allows that move but does not require it.
+    2. Criterion 6, rule rows: tests/entry/test_wiring_project_image.py::test_a_stage_file_that_breaks_the_rule_stands_as_a_stop_and_builds_nothing.
+       - Each row now also carries the text whose refusal it expects: `"FROM debian:bookworm\n"` for `rule` and `"�\n"` for `not-utf-8`.
+       - The stop's detail is now compared with `str()` of the `StageLayerRefused` that `stage_layer(text, BASE_IDENTITY)` raises, through a small `_refusal` helper. This replaces `assert detail`.
+
+    The other criteria keep the tests that entries 32 and earlier mapped.
+
+    Test run: `uv run pytest -q tests/entry/test_wiring_image_path.py tests/entry/test_wiring_project_image.py` passed all 16 tests, because the code is already built. `make lint` is green after ruff sorted the new imports. Every module imported. I skipped the type check, as this stage's instructions say.
+
+    `lint`: lint: green (0.2 s)
