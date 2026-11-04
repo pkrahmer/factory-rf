@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T21:27:16.019550Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-04T21:27:16.019550Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-04T21:27:34.216511Z'
+  stage: doing
+  run: 0b97efeb0c174193ab4416e97c01375e
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -221,3 +223,12 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
 
     Earlier tests: none changed. The diff only adds `tests/domain/test_tool_uses_replayed_lines.py` (status `A`).
 13. factory: started doing as vm.
+14. coder: Round 1. I changed no code. The reviewer's only finding (journal 12) added criterion 7, and that criterion needs only its test.
+
+    Criterion 7: two `user` lines carry a `tool_result` for the same `tool_use_id`. The first has a timestamp; the second has a different timestamp or `null`. `seconds` must come from the first `user` line's timestamp. When only the second line has `is_error`, the call is not failed. Rows: second line later, second line `null`, second line failed.
+
+    The test is one parametrized test with those three rows, added to `tests/domain/test_tool_uses_replayed_lines.py`. That module has no such test yet: its five tests cover criteria 1, 2, 3, 5 and 6.
+
+    `src/factory/domain/tool_uses.py` already keeps the first result through `results.setdefault(...)`, which is the code from round 0 (journal 10). The new test should pass against it without any code change. If it fails, the work item comes back to me.
+
+    The Description already lists criterion 7 and the renumbered closing criteria (8 is `make check`, 9 is docs), so I did not rewrite it. `make check` was green after round 0 (journal 10), and nothing has changed since.
