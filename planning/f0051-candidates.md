@@ -69,6 +69,8 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 
 44. **A hosting outage after the claim adds two commits per tick to the branch.** S0010 releases the claim on `HostingServiceError`; the release moves the branch head, so the error count starts again at 1 every tick and never reaches the cap (the human's answer (A), 2026-11-04). A long outage that leaves git working therefore adds a claim and a release commit per tick and never stops. Fix to decide: key a run event's count on the commit before the claim, or wait longer between such ticks.
 
+45. **A question run does not hand on what it learned.** S0010: the tester's rerun after its question read nine of the same files again (77 KB) and missed a helper it had found in the first run, which became a review finding; about $0.20 and 40 s, and one finding. Fix: a question entry ends with "Found so far", the helpers, fixtures and files the stage will reuse, with their paths, and the rerun starts from that list.
+
 ## The repository is easier to navigate (the human, 2026-11-04)
 
 38. **`claude/` becomes `agents/`.** It holds the factory's agent files and `settings.json` in Claude Code's format, which the opencode runtime translates per run (decision of 2026-10-19, F0020-S0004); the name says one runtime. Touches `vm/Dockerfile`, the wiring, the coder's write paths in `factory/pipeline.yml`, the docs and tests.
