@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 544
-comments_read: [6639153913]
+comments_read: [6639153913, 6640096367]
 handed_over: null
 claim: null
 journal:
@@ -170,6 +170,11 @@ journal:
   stage: review
   run: 5b17b521364e49fb9bba9b5308f4b9d0
   blocked: round_cap
+- number: 30
+  speaker: human
+  kind: comment
+  at: '2026-11-04T19:31:16.178270Z'
+  stage: review
 ---
 
 # The cost record sums up the run's tool calls
@@ -485,3 +490,8 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     - `tests/application/test_stage_transcripts.py`: the standing leave to move a shared test helper (`_records` replaced by the shared `pushed_cost_records`, its unused imports removed; every test keeps its name and what it checks).
     - `tests/stage_run_support.py`: the standing leave to move a shared test helper (`pushed_cost_text` and `pushed_cost_records` added; nothing earlier changed).
 29. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+30. 2026-11-04 human: Answer of the human at the round cap: one more round, narrow.
+
+    Fix exactly finding 1 of entry 28 (`transcript_lines` splits only on `"\n"`, with the reviewer's rows for a U+2028 inside a call's input or output, for each runtime). It is real: a file read or a command's output with such a character would make a readable run lose its `tools`. Nothing else.
+
+    For the reviewer: the rounds since round 0 each found one more rare input. After this fix, a further edge case of input parsing goes under `Notes:` for the human, not under `Findings:`, unless it fails a criterion for an input the factory meets in normal runs. The note on `_staged` stays a note.
