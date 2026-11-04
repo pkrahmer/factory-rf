@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 531
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T02:48:10.520705Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-04T02:48:10.520705Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-04T02:48:38.693193Z'
+  stage: tests
+  run: 7322f29916944d1f9e4dc27b2bc50983
 ---
 
 # The stage image's documents say what the code does and why
@@ -84,3 +86,13 @@ Expect: `0`, `0`, `1`, then `documents ok`.
    - Architecture: nothing in the code layers is touched. The change stays in the docs the documenter keeps. The story needs nothing from `factory/`, `CLAUDE.md` or the project guide.
    - Scope: the story fits F0049. It corrects the documents of S0002 and S0003 and carries decisions 1, 3, 4 and 5 of `feature.md`. It leaves out the feature's Out of scope items (per-line images, an open build context, a registry).
 4. factory: started tests as vm.
+5. tester: No tests written, on purpose. The story's Interface says "No module under `src/factory/` changes, and no test: the story changes `docs/operator-guide.md` and `docs/decisions.md` only", and the intake found that it "states no behaviour that needs a test". Criteria 1 to 4 are about document text that only the documenter may write. A test of that text would fail in the doing stage, the coder cannot make it pass (`docs/` is outside the coder's write paths), so `make check` would stay red until the docs stage. I rejected writing such tests because they would contradict the Interface and block the coder.
+   - criterion 1 (time-limit text in *The stop `stage_image_failed`*): no test. The smoke test's `grep -c 'gives the same text'` and the docs stage check it.
+   - criterion 2 (restart sentence): no test. The smoke test's `grep -c 'A restart of \`factory-run\` also ends it'` checks it.
+   - criterion 3 (project without the stage file: base image, identity, `PATH`): no test. The docs stage checks it.
+   - criterion 4 (decisions entries: reasons of decisions 1, 3, 4 and 5, Rejected line, the replaced stop sentence): no test. The smoke test's `grep -c 'mise.toml'` and `check_documents` check it.
+   - criterion 5 (`make check` green): no test of its own. The factory's checks cover it.
+   - criterion 6 (docs): the documenter's criterion.
+   Files created: none. Modules the test runner could not import: none, because no test was added and so `uv run pytest` was not run. `make lint` is green, and the working tree is unchanged. The coder has nothing to implement: no code changes, and the documenter writes criteria 1 to 4.
+
+   `lint`: lint: green (0.2 s)
