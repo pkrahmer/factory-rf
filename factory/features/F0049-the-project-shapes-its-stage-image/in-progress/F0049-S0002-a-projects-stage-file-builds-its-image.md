@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T00:37:21.109075Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -126,6 +130,11 @@ journal:
   at: '2026-11-04T00:37:15.629667Z'
   stage: tests
   run: 251a94c64a0945659ae4ba1191f09a32
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-04T00:37:21.109075Z'
+  stage: doing
 ---
 
 # A project's stage file builds the image its stages run in
@@ -374,3 +383,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     Run: `uv run pytest -q` over the changed files and `tests/entry/test_wiring_project_image.py` had one failure: `test_the_sync_the_check_and_the_agent_take_the_path_of_the_image_in_use[image-path]`. It fails at `env_words(check)["PATH"]`, which is `'/usr/local/bin:/usr/bin:/bin'` where `'/opt/jdk/bin:/usr/local/bin:/usr/bin:/bin'` is expected. That is the right reason: the check's `PATH` is still fixed. Every module imported. The other changed tests passed. `make lint` is green.
 
     `lint`: lint: green (0.2 s)
+22. factory: started doing as vm.
