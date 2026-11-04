@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T02:32:01.360795Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-04T02:32:01.360795Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-04T02:36:54.998733Z'
+  stage: doing
+  run: c903f6412b20444eb351d61aeadff925
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -235,3 +237,24 @@ Expect: a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.1 s)
 16. factory: started doing as vm.
+17. coder: The tester has changed the assertion, so the code from entry 10 now passes every test. `make check` is green: all seven cases in `tests/entry/test_run_fetch_before_tick.py` pass, and the whole suite passes with 99.51 % coverage.
+
+    What I built, in `src/factory/entry/run.py`:
+    - `_ProjectImageStart._follow_main` now returns a `bool`.
+    - When `git.fetch()` raises `FetchFailed`, it raises the stop through `StopService`: `RepositoryStop(scope="repository", reason="fetch_failed", detail=str(error), at=clock.now())`. Then it returns `False`. It reads no stage file and changes neither the image, its identity, its `PATH` nor the stage file last handled.
+    - After a fetch that passes, it calls `clear_stop("fetch_failed")` and compares the stage file as before, then returns `True`.
+    - `prepare` returns `False` when `_follow_main` does, so no tick runs in that iteration and the scheduler logs no `iteration failed` for it.
+    - Any other `GitError` is not caught and still reaches the scheduler's `iteration failed`.
+
+    Main choice: I catch the error in `_follow_main`, where the Interface puts it, so the fetch and its stop stay together. I rejected catching it in `prepare`.
+
+    Refactor: I read the diff again and found nothing to change.
+
+    Description: entry 11 changed only how the test checks the detail, not what the task means, so the Description stays as it is.
+
+    Noticed and not touched:
+    - The tick raises the same `fetch_failed` from its own fetch, and its detail is also git's multi-line stderr, written to the log one line at a time.
+    - Each iteration still fetches twice (once in prepare, once in the tick). The Description leaves merging them to a later story.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
