@@ -66,14 +66,17 @@ def activity(outcome: TickOutcome) -> bool:
     )
 
 
-def activity_tick(tick: Tick, idle: IdleShutdown | None = None) -> Callable[[], bool]:
+def activity_tick(
+    tick: Tick, idle: IdleShutdown | None = None, *, fetched: bool = False
+) -> Callable[[], bool]:
     """Return the scheduler's tick: run `tick`, the same on every call, and tell its activity.
 
-    Each outcome goes to `idle` first when it is given.
+    Each outcome goes to `idle` first when it is given. With `fetched`, the caller fetches
+    before every call, and the tick does not fetch again.
     """
 
     def run() -> bool:
-        outcome = tick.run()
+        outcome = tick.run(fetched=fetched)
         if idle is not None:
             idle.observe(outcome)
         return activity(outcome)
@@ -276,7 +279,9 @@ class _ProjectImageStart:
         # The tick's preflight must see the factory's own stop, or a probe it cuts off is judged.
         carried = replace(built, stop_requested=boundaries.stop_requested)
         chosen_boundaries = _sized(carried, chosen.sizes)
-        self._tick = activity_tick(build_tick(chosen_boundaries, chosen.settings), inputs.idle)
+        # `_follow_main` fetches before every tick and raises or clears `fetch_failed` itself.
+        tick = build_tick(chosen_boundaries, chosen.settings)
+        self._tick = activity_tick(tick, inputs.idle, fetched=True)
 
 
 def _sized(boundaries: Boundaries, sizes: ImageSizes | None) -> Boundaries:

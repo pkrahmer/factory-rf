@@ -25,6 +25,7 @@ from factory.entry.run import run_instance
 from factory.entry.wiring import git_options, health_store
 from human_clone import HumanClone
 from log_support import state_log_lines
+from remote_outage_support import RemoteOutage, fetch_failed
 from stage_image_support import BASE_IDENTITY, FIRST, SECOND, StageSeen, built_path
 
 STOP_LINE = "stop repository fetch_failed: "
@@ -51,7 +52,7 @@ class RecordingTick(Tick):
         self._images = images
 
     @override
-    def run(self) -> TickOutcome:
+    def run(self, *, fetched: bool = False) -> TickOutcome:
         self._record(replace(self._seen, builds=len(self._images.builds)))
         return TickOutcome()
 
@@ -67,7 +68,7 @@ class Run:
     stops: list[RepositoryStop]
 
 
-class Outage:
+class Outage(RemoteOutage):
     """The instance on its remote, which can be renamed away and back, and the human's clone."""
 
     def __init__(
@@ -78,20 +79,11 @@ class Outage:
         remote: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
+        super().__init__(remote)
         self.settings = settings
         self.hosting = hosting
         self.human = human
-        self.remote = remote
-        self.away = remote.with_name("remote-away.git")
         self.monkeypatch = monkeypatch
-
-    def go_away(self) -> None:
-        """Make the remote unreachable."""
-        self.remote.rename(self.away)
-
-    def come_back(self) -> None:
-        """Make the remote reachable again."""
-        self.away.rename(self.remote)
 
     def push_during_outage(self, text: str) -> Callable[[], None]:
         """Push `text` as the stage file on `main` between two times the remote is unreachable."""
@@ -153,10 +145,6 @@ def outage(
     return Outage(base_identity_settings, hosting, human, remote, monkeypatch)
 
 
-def _fetch_failed(run: Run) -> list[RepositoryStop]:
-    return [stop for stop in run.stops if stop.reason == "fetch_failed"]
-
-
 def _failed_iterations(run: Run) -> list[str]:
     return [line for line in run.lines if "iteration failed" in line]
 
@@ -180,14 +168,14 @@ def test_a_failed_fetch_before_the_tick_stands_as_fetch_failed_and_runs_no_tick(
 
     assert _failed_iterations(run) == []
     if fails:
-        [stop] = _fetch_failed(run)
+        [stop] = fetch_failed(run.stops)
         assert stop.scope == "repository"
         assert stop.detail.startswith("git fetch")
         assert " failed (exit " in stop.detail
         assert any(line.endswith(STOP_LINE + stop.detail.splitlines()[0]) for line in run.lines)
         assert run.ticked == [True, False]
     else:
-        assert _fetch_failed(run) == []
+        assert fetch_failed(run.stops) == []
         assert not any(STOP_LINE in line for line in run.lines)
         assert run.ticked == [True, True]
 
@@ -229,7 +217,7 @@ def test_the_first_fetch_that_passes_after_the_outage_clears_fetch_failed_and_ti
 
     assert any(STOP_LINE in line for line in run.lines)
     assert any(line.endswith("stop cleared fetch_failed") for line in run.lines)
-    assert _fetch_failed(run) == []
+    assert fetch_failed(run.stops) == []
     assert run.ticked == [True, False, False, True]
     after = _project(SECOND, base_image, 2) if changed else _project(FIRST, base_image, 1)
     assert run.stages == [_project(FIRST, base_image, 1), after]
@@ -271,6 +259,6 @@ def test_a_fetch_that_fails_with_another_git_error_is_no_fetch_failed_stop(
 
     run = outage.run(CountingImages(), [break_fetch])
 
-    assert _fetch_failed(run) == []
+    assert fetch_failed(run.stops) == []
     assert not any(STOP_LINE in line for line in run.lines)
     assert any("iteration failed: GitError: git fetch" in line for line in run.lines)

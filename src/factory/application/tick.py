@@ -94,8 +94,11 @@ class Tick:
         """The counts after the last dispatch."""
         return self._status
 
-    def run(self) -> TickOutcome:
+    def run(self, *, fetched: bool = False) -> TickOutcome:
         """Check the disk, fetch, load, restore, publish the stop records, preflight, dispatch.
+
+        With `fetched`, the caller has already fetched in this iteration and raised or cleared
+        `fetch_failed`: the tick skips its own fetch.
 
         Before the dispatch, the stale branches are deleted and the remote is evaluated. A stop
         ends the tick.
@@ -105,7 +108,8 @@ class Tick:
         """
         try:
             self._check_disk()
-            self._fetch()
+            if not fetched:
+                self._fetch()
             definition = self._load()
             self._restore()
             self._publish_stop_records()

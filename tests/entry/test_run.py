@@ -284,9 +284,11 @@ def test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_ti
         made.append((given.idle_shutdown_minutes, shutdown))
         return shutdown
 
-    def recording_tick(tick: Tick, idle: IdleShutdown | None = None) -> Callable[[], bool]:
+    def recording_tick(
+        tick: Tick, idle: IdleShutdown | None = None, *, fetched: bool = False
+    ) -> Callable[[], bool]:
         handed.append(idle)
-        return original_tick(tick, idle)
+        return original_tick(tick, idle, fetched=fetched)
 
     monkeypatch.setattr(run_module, "idle_shutdown_of", recording_of)
     monkeypatch.setattr(run_module, "activity_tick", recording_tick)

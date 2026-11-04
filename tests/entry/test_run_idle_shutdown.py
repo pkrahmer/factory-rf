@@ -18,7 +18,7 @@ class _ScriptedTick(Tick):
         self._outcomes = list(outcomes)
 
     @override
-    def run(self) -> TickOutcome:
+    def run(self, *, fetched: bool = False) -> TickOutcome:
         return self._outcomes.pop(0)
 
 
