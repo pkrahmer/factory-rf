@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T18:15:56.416893Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-11-04T18:15:50.200060Z'
   stage: tests
   run: c43a0e84fb474d208b3f9b0e8e4b2ba9
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-04T18:15:56.416893Z'
+  stage: doing
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -412,3 +421,4 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
     Files changed: tests/application/test_interfaces.py, tests/observing_runtime.py, tests/container_support.py, tests/application/test_stage_run.py, tests/application/test_agent_run_probe.py, tests/application/test_stage_transcripts.py, tests/adapters/test_claude_runtime_transcript.py. Files created: none. Every module imported.
 
     `lint`: lint: green (0.1 s)
+23. factory: started doing as vm.
