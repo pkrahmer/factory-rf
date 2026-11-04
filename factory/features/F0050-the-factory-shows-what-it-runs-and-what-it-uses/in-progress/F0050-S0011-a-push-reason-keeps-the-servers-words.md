@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 548
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T21:47:24.839715Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-04T21:47:24.839715Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T21:47:52.855304Z'
+  stage: smoke-test
+  run: dc11eef7b983475493bff40d63b7733b
 ---
 
 # A push's reason keeps the server's words
@@ -221,3 +223,25 @@ Expect: a line that ends in `passed` with no `failed`.
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Ran both smoke test commands from the repository root, exactly as written and in order. No findings.
+
+    1. `uv run python -c '... print(push_reason("remote: Internal Server Error\nTo /srv/project.git\n!\trefs/heads/b:refs/heads/b\t[remote rejected] (pre-receive hook declined)\nDone\n"))'`
+
+       ```
+       Bytecode compiled 4164 files in 48ms
+       remote: Internal Server Error | ! refs/heads/b:refs/heads/b [remote rejected] (pre-receive hook declined)
+       ```
+
+       Exit 0. The first line is uv's own bytecode notice, not the program's output. Met `Expect:`: the printed reason is exactly `remote: Internal Server Error | ! refs/heads/b:refs/heads/b [remote rejected] (pre-receive hook declined)`. The `To` and `Done` lines are left out, and the tabs became single spaces.
+
+    2. `uv run pytest tests/domain -k push_reason 2>&1 | tail -1`
+
+       ```
+       27 passed, 2630 deselected in 0.71s
+       ```
+
+       Exit 0. Met `Expect:`: the line ends in `passed` and has no `failed`.
+
+    Criteria check: the output of command 1 matches criterion 1 word for word. It also shows criterion 2 (the frame is left out) and criterion 3 (a tab becomes one space). Command 2 runs the domain rows for criteria 1 to 4 in both test modules, S0008's `tests/domain/test_push_reason.py` and the new `tests/domain/test_push_reason_porcelain.py`, and all of them pass. Neither command reaches criterion 5 (the end-to-end retry lines), and nothing seen here goes against it. For criterion 7, `docs/operator-guide.md:2502` now says that the `To <url>` and `Done` frame is left out, that the `remote:` lines stay and that whitespace becomes one space. That matches what command 1 printed.
+
+    Open, not a finding: the documenter also changed `docs/project-guide/git-and-hosting.md`, although the docs criterion says "none" for the project guide. Its reason (entry 11) is that the paragraph described the old rule. The smoke test does not touch that file. I leave it to the human's merge.
