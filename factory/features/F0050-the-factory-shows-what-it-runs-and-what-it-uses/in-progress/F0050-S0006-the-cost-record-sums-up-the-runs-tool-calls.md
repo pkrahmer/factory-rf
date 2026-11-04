@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T19:07:58.513946Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-04T19:07:52.281960Z'
   stage: doing
   run: 43de3b1de72448e3a5f64a85db78d542
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-04T19:07:58.513946Z'
+  stage: tests
 ---
 
 # The cost record sums up the run's tool calls
@@ -268,3 +277,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     Refactor pass: I read the round's diff. I wrote the overflow guard in `_added` explicitly instead of as an `or` expression. Nothing else needed changing.
 
     Noticed, not touched: the `make duplicates` items the reviewer already judged as not findings.
+15. factory: started tests as vm.
