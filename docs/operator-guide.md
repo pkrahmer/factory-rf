@@ -526,9 +526,12 @@ Each change writes one line to the factory log, and an unchanged file writes non
 
 | Line | When |
 |---|---|
-| `stage image: built <identity> at <commit> in <s> s` | a build passed (also the one at the start) |
+| `stage image: built <identity> at <commit> in <s> s, base <GB> GB, layer <GB> GB, <n> warnings` | a build passed (also the one at the start) |
+| `stage image: base <GB> GB` | once, at the factory's start, for an instance without a stage file |
 | `stage image: back to the base at <commit>` | the file was removed while a project image was in use |
 | `stage image: failed at <commit>` | the file broke the rule or did not build |
+
+The sizes are in GB of 10^9 bytes with two decimals (1 580 000 000 bytes give `1.58`). A size that cannot be read is written `unknown` (`base unknown`, `layer unknown`); a project image that is smaller than its base also has `layer unknown`. The warnings are the lines of the build's output that hold `WARN` or `warning`, in any case, except apt's `update-alternatives: warning:` lines, which a slim base prints for every manual page it lacks. A count above zero is worth reading in the build output: npm's `EBADENGINE` is one. An image that is reused with no build (the factory adopts it) gives the same two sizes to the cost records, with no log line of a build.
 
 #### The rule
 
@@ -1986,7 +1989,7 @@ The command prints `contract: 5 schemas written`. With two or more arguments it 
 
 **The approval.** A work item enters the approval with its last `result` record in the journal. No record marks the entry, so a reader takes the approval's start from that record's `at` and its end from the `done` record's `at`.
 
-**The version.** Each schema carries the records contract's version in `x-records-contract`, now `4.0` (`1.1` added the cost record's optional `login`; `1.2` added the end reason `provider_limit` to the cost record's `end_reason` and the stall reason `provider_limit` to the `reason` of the journal records in `work-item-state` and `acceptance-state`; `1.3` added the optional `not_read` of a project command to `pipeline-definition`; `2.0` removed `tool_paths` from `pipeline-definition`, a change that can break a reader, since the schema no longer allows the key; `3.0` removed the stall reason `nested_repository` from the `reason` of the journal records in `work-item-state` and `acceptance-state`, a change that can break a reader, since those schemas no longer allow the value; `4.0` removed the stall reason `left_branch` in the same places, for the same reason: no agent can cause it on the dataset). The major version rises for a change that can break a reader: a field removed or renamed, a type narrowed, a meaning changed. The minor version rises for an added optional field or value. This version is not the `contract` of the pipeline definition, which is the version of the definition's own format (see "The pipeline definition").
+**The version.** Each schema carries the records contract's version in `x-records-contract`, now `4.2` (`1.1` added the cost record's optional `login`; `1.2` added the end reason `provider_limit` to the cost record's `end_reason` and the stall reason `provider_limit` to the `reason` of the journal records in `work-item-state` and `acceptance-state`; `1.3` added the optional `not_read` of a project command to `pipeline-definition`; `2.0` removed `tool_paths` from `pipeline-definition`, a change that can break a reader, since the schema no longer allows the key; `3.0` removed the stall reason `nested_repository` from the `reason` of the journal records in `work-item-state` and `acceptance-state`, a change that can break a reader, since those schemas no longer allow the value; `4.0` removed the stall reason `left_branch` in the same places, for the same reason: no agent can cause it on the dataset; `4.2` added the optional `machine` object to the cost record). The major version rises for a change that can break a reader: a field removed or renamed, a type narrowed, a meaning changed. The minor version rises for an added optional field or value. This version is not the `contract` of the pipeline definition, which is the version of the definition's own format (see "The pipeline definition").
 
 **Unknown properties.** The schemas say `additionalProperties: false` for what this version of the factory writes. A reader still ignores a property it does not know, since a later minor version may add one.
 
@@ -2094,6 +2097,36 @@ It counts the questions that stopped the work item for you: the agent's question
 ### Refused tool calls in the sidecar
 
 A completed record in the sidecar (`<work item>.costs.jsonl`) can carry two more keys: `denials`, the number of tool calls the agent runtime reported as refused in that run, and `denied_paths`, the files those calls named, each once, in the order reported. A third key, `login`, says which login the run's calls were handed: `subscription`, `none` or the value that names the API key; a runtime with no login file leaves it out. A run that got no reply (it died or ran past its time limit) has neither of those two keys; an older line has none of the three. Only the tool calls the runtime reports as refused are counted. A refusal that is only text in a tool's output, such as a write the kernel refuses, is not in them. `factory-bill` does not print these keys.
+
+### The machine on the cost records
+
+A completed cost record can carry `machine`, an object with the machine's measures at that run, so that the records on GitHub and the Factory Timeline show a machine that grows or is too small. A `started` record has none. Each field is a number, or `null` when the machine cannot give it (a missing cgroup file, an image without a size); a failed reading never fails the run. When nothing can be read the record holds `"machine": null`.
+
+| Field | Meaning |
+|---|---|
+| `base_image_bytes` | Size of the base image (`FACTORY_STAGE_IMAGE`) the run's image was built on. |
+| `project_layer_bytes` | Size of the project image minus the base's; `0` for a project without a stage file. `null` when the project image is smaller than its base. |
+| `store_free_bytes` | Free space of the file system that holds podman's image store. |
+| `dataset_free_bytes` | Free space of the stage's dataset (`FACTORY_WORKSPACE`); on ZFS it respects the dataset's quota. |
+| `memory_peak_since_boot_bytes` | `memory.peak` of the cgroup v2 slice of the user that runs the containers (`/sys/fs/cgroup/user.slice/user-<uid>.slice/`), read at the record's completion. |
+| `memory_total_bytes` | The machine's memory, `MemTotal` of `/proc/meminfo`. |
+| `cpu_seconds` | CPU time the slice used during the run (`usage_usec` of `cpu.stat`, end minus start). |
+| `cpu_wait_seconds` | Time the slice's work waited for a CPU during the run (the `total` of the `some` line of `cpu.pressure`, end minus start). |
+| `memory_wait_seconds` | The same for memory (`memory.pressure`). |
+
+The two image sizes are measured when the factory builds or adopts an image (at its start, and after a changed stage file), not at every run, so they change only after a build or a return to the base. The other values are read at the run's start and end; nothing is sampled during the run.
+
+**The memory peak is not the run's own.** The kernels in use (6.8 on the VM) cannot reset `memory.peak`, so the value is the highest use since the slice began, which on a VM with lingering is since boot. The first record in which it rises names the run that raised it; the records after it repeat the value until something goes higher.
+
+**The CPU time and the waits are the run's own, but they count every container of the factory user.** They are differences of the kernel's running totals, so two instances that run at once on one machine see each other's load. A reading that is missing at the start, or a total that is lower at the end than at the start (the slice began again), gives `null`.
+
+How to read them:
+
+- `cpu_seconds` divided by the record's `duration_seconds` is the number of cores the run used on average.
+- A `cpu_wait_seconds` or `memory_wait_seconds` above zero means work waited for the CPU or for memory: the machine is too small for that load.
+- `store_free_bytes` and `dataset_free_bytes` falling from record to record show the disk filling before it is full.
+
+Under the `job` container profile the containers run as root, so the user slice the factory looks at may be another cgroup than the containers': the measures there may be `null` or another slice's.
 
 ### The cost line
 

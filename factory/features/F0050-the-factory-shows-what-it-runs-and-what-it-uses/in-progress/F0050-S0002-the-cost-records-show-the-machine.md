@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T12:16:54.512888Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -293,6 +289,12 @@ journal:
   kind: started
   at: '2026-11-04T12:16:54.512888Z'
   stage: docs
+- number: 52
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T12:18:13.103101Z'
+  stage: docs
+  run: 49e6c1d5bfdf4182af86695ff12b03d1
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -841,3 +843,20 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     - tests/entry/test_run_project_image_rebuild.py: the human's leave, entry 18 answer 3. The two expected build lines take the new form, and `ScriptedImages` derives from the shared `SizedImages`, with its import.
     - tests/test_docker_path_removed.py: the human's leave, entry 23 answer 1. `_no_module_reads_proc` is narrowed through `PROCESS_TABLE`, with one parametrized test whose rows are meminfo, pid, self and bare.
 51. factory: started docs as vm.
+52. documenter: Documents for F0050-S0002. I changed two files and ran no example, because the story adds no command. I did not run `make check`, since I changed only documents; the factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md`, new section *The machine on the cost records*, placed after the paragraph on the optional keys of a completed record. It has the `machine` object and a table of its nine fields. It says that the peak is a high-water mark since the slice began (since boot on a VM with lingering), not the run's own. It says the CPU time and the waits are the run's own but count every container of the factory user. It says how to read them: CPU time over duration as the cores in use, and a wait above zero as a machine too small for the load. It also has the sentence on the `job` profile, where the containers run as root and the measures may be `null` or another slice's.
+    - `docs/operator-guide.md`, *The project's stage file*: the build log line takes its new form, with the base size, the layer size and the warnings count. The new line `stage image: base <GB> GB` is in the table. A paragraph explains GB as 10^9 bytes, `unknown` for a size that cannot be read, which lines count as warnings (apt's `update-alternatives: warning:` excepted), and that an adopted image gives the sizes without a build line.
+    - `docs/operator-guide.md`, *The version* of the records contract: it said "now `4.0`". It now says `4.2` and names the `machine` object. Main already had `4.1`, so the text was already stale by one version. I did not add a note for what `4.1` added, because I did not find what it was.
+    - `docs/decisions.md`: one new entry, "The cost records carry the machine's measures". Its Why comes from the story's Description and its docs criterion: nothing the factory wrote showed the sizes, the disk or the peak, and the peak cannot be reset before kernel 6.12. It also says why sampling during a run was not worth its cost, and why the CPU and the waits are differences of running totals. The story names no rejected option, so I wrote no "Rejected" line for this entry.
+
+    Cross-read and found current: `README.md` and `docs/project-guide/` (the criterion says none, and no stale name turned up in a search for the log line and the contract version). In the operator guide, *The image on the cost records* and the section on the cache key (`image`).
+
+    Findings for the coder: none. The documentation matches the Interface.
+
+    Stale text I saw and did not touch: none beyond the contract version above.
+
+    `check`: check: green (not run again: passed on tree c66f0061abaa at 2026-11-04T12:13:33Z)
+    `secrets`: secrets: green (2.9 s)
+    `documents`: documents ok
