@@ -25,21 +25,9 @@ from factory.entry.run import run_instance
 from factory.entry.wiring import git_options, health_store
 from human_clone import HumanClone
 from log_support import state_log_lines
+from stage_image_support import BASE_IDENTITY, FIRST, SECOND, StageSeen, built_path
 
-BASE_IDENTITY = "sha256-base"
-FIRST = "ARG FACTORY_BASE\nFROM ${FACTORY_BASE}\nRUN echo first\n"
-SECOND = "ARG FACTORY_BASE\nFROM ${FACTORY_BASE}\nRUN echo second\n"
 STOP_LINE = "stop repository fetch_failed: "
-
-
-@dataclass(frozen=True)
-class StageSeen:
-    """What one tick ran with, and how many builds had been asked for when it ran."""
-
-    image: str | None
-    identity: str | None
-    path: str
-    builds: int
 
 
 class CountingImages(FakeImages):
@@ -50,11 +38,6 @@ class CountingImages(FakeImages):
         if image.endswith("-project"):
             return built_path(len(self.builds))
         return SYSTEM_PATH
-
-
-def built_path(builds: int) -> str:
-    """The `PATH` of the project image after `builds` builds."""
-    return f"/opt/build-{builds}/bin:{SYSTEM_PATH}"
 
 
 class RecordingTick(Tick):
@@ -159,28 +142,15 @@ class Outage:
 
 
 @pytest.fixture
-def settings(instance_settings: InstanceSettings) -> InstanceSettings:
-    """The instance settings with the base image's identity."""
-    return instance_settings.model_copy(update={"image": BASE_IDENTITY})
-
-
-@pytest.fixture
-def base(settings: InstanceSettings) -> str:
-    """The base image the settings name."""
-    assert settings.stage_image is not None
-    return settings.stage_image
-
-
-@pytest.fixture
 def outage(
-    settings: InstanceSettings,
+    base_identity_settings: InstanceSettings,
     hosting: FakeHostingService,
     human: HumanClone,
     remote: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Outage:
     """The test's instance on its remote, the human's clone beside it."""
-    return Outage(settings, hosting, human, remote, monkeypatch)
+    return Outage(base_identity_settings, hosting, human, remote, monkeypatch)
 
 
 def _fetch_failed(run: Run) -> list[RepositoryStop]:
@@ -226,7 +196,7 @@ def test_a_failed_fetch_before_the_tick_stands_as_fetch_failed_and_runs_no_tick(
     "stage_file", [pytest.param(None, id="no-stage-file"), pytest.param(FIRST, id="stage-file")]
 )
 def test_while_the_fetch_fails_the_image_in_use_stays_and_nothing_is_built(
-    outage: Outage, base: str, stage_file: str | None
+    outage: Outage, base_image: str, stage_file: str | None
 ) -> None:
     if stage_file is not None:
         outage.human.push_file("main", STAGE_FILE, stage_file)
@@ -236,9 +206,9 @@ def test_while_the_fetch_fails_the_image_in_use_stays_and_nothing_is_built(
 
     builds = 0 if stage_file is None else 1
     if stage_file is None:
-        before = StageSeen(image=base, identity=BASE_IDENTITY, path=SYSTEM_PATH, builds=0)
+        before = StageSeen(image=base_image, identity=BASE_IDENTITY, path=SYSTEM_PATH, builds=0)
     else:
-        before = _project(stage_file, base, 1)
+        before = _project(stage_file, base_image, 1)
     assert run.ticked == [True, False, False, True]
     assert run.builds_at_pause == [builds] * 4
     assert run.stages == [before, before]
@@ -249,7 +219,7 @@ def test_while_the_fetch_fails_the_image_in_use_stays_and_nothing_is_built(
     [pytest.param(False, id="main-unchanged"), pytest.param(True, id="stage-file-changed")],
 )
 def test_the_first_fetch_that_passes_after_the_outage_clears_fetch_failed_and_ticks(
-    outage: Outage, base: str, changed: bool
+    outage: Outage, base_image: str, changed: bool
 ) -> None:
     outage.human.push_file("main", STAGE_FILE, FIRST)
     images = CountingImages()
@@ -261,8 +231,8 @@ def test_the_first_fetch_that_passes_after_the_outage_clears_fetch_failed_and_ti
     assert any(line.endswith("stop cleared fetch_failed") for line in run.lines)
     assert _fetch_failed(run) == []
     assert run.ticked == [True, False, False, True]
-    after = _project(SECOND, base, 2) if changed else _project(FIRST, base, 1)
-    assert run.stages == [_project(FIRST, base, 1), after]
+    after = _project(SECOND, base_image, 2) if changed else _project(FIRST, base_image, 1)
+    assert run.stages == [_project(FIRST, base_image, 1), after]
     assert len(images.builds) == (2 if changed else 1)
 
 

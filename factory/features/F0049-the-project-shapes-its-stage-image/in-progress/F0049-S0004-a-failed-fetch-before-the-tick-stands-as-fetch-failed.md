@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T02:38:39.065484Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-04T02:38:39.065484Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-04T02:40:00.411664Z'
+  stage: tests
+  run: 060cb4aa569b4380add99ac21f06a476
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -324,3 +326,26 @@ Expect: a line that ends in `passed` with no `failed`.
 
     Noticed and not touched: as entry 17 said, the tick's own `fetch_failed` also writes git's multi-line error text to the log one line at a time, and each iteration still fetches twice.
 22. factory: started tests as vm.
+23. tester: I moved the shared test helpers that the reviewer named in entry 19 and the coder passed on in entry 21. `CLAUDE.md`'s standing leave to move a shared test helper covers this move. No test was renamed, and every test checks the same thing as before.
+
+    **The move:**
+    - New support module `tests/stage_image_support.py`. It now holds `BASE_IDENTITY`, `FIRST`, `SECOND`, the `StageSeen` dataclass and `built_path`. The two copies had the same fields and the same body; only their docstrings differed, and the support module has one neutral docstring for each.
+    - `tests/conftest.py`: the two module-level fixtures `settings` and `base` are now `base_identity_settings` and `base_image`. No other fixture under `tests/` has either name. `tests/conftest.py` imports `BASE_IDENTITY` from the support module.
+    - `tests/entry/test_run_project_image_rebuild.py` (an earlier story's test file, changed under the standing leave): I removed its copies of the constants, `StageSeen`, `built_path` and the two fixtures, and it imports them from the shared places. The `world` fixture takes `base_identity_settings`. Its tests take `base_image` where they used to take `base`. `THIRD`, `PASSED`, `FAILED`, `MARK` and `ScriptedImages` belong to this file alone and stay there.
+    - `tests/entry/test_run_fetch_before_tick.py` (this story's file): I made the same change, and the `outage` fixture takes `base_identity_settings`. `STOP_LINE` and `CountingImages` belong to this file alone and stay there.
+
+    **Criteria and their tests (names unchanged):**
+    - criterion 1: tests/entry/test_run_fetch_before_tick.py::test_a_failed_fetch_before_the_tick_stands_as_fetch_failed_and_runs_no_tick (rows `fails`, `passes`)
+    - criterion 2: tests/entry/test_run_fetch_before_tick.py::test_while_the_fetch_fails_the_image_in_use_stays_and_nothing_is_built (rows `no-stage-file`, `stage-file`)
+    - criterion 3: tests/entry/test_run_fetch_before_tick.py::test_the_first_fetch_that_passes_after_the_outage_clears_fetch_failed_and_ticks (rows `main-unchanged`, `stage-file-changed`)
+    - criterion 4: tests/entry/test_run_fetch_before_tick.py::test_a_fetch_that_fails_with_another_git_error_is_no_fetch_failed_stop
+
+    **Files:** created `tests/stage_image_support.py`. Changed `tests/conftest.py`, `tests/entry/test_run_project_image_rebuild.py` (earlier test file) and `tests/entry/test_run_fetch_before_tick.py`.
+
+    **Test run:** `uv run pytest -q tests/entry/test_run_fetch_before_tick.py tests/entry/test_run_project_image_rebuild.py tests/test_shared_imports.py`: all 30 cases pass with the coder's code in the working tree. Every module imports. `make lint` is green.
+
+    **Not checked:** I did not run the type check, as this stage says. I tried running mypy by hand on the four files, but outside the project's configuration it cannot resolve the `factory` imports, so that run says nothing either way. The coder's `make check` covers the types.
+
+    `lint`: lint: green (0.1 s)
+
+    `lint`: lint: green (0.2 s)

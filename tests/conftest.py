@@ -62,6 +62,7 @@ from proof_support import World, build_world, start_story
 from run_layout_support import Layout, build_layout
 from run_process_recorder import Recorder
 from settings_support import AGENT_HOME
+from stage_image_support import BASE_IDENTITY
 from stage_run_support import INSTANCE
 from tmp_path_support import reopen
 from token_support import ENDPOINT, HIDDEN
@@ -522,6 +523,19 @@ def instance_settings(tmp_path: Path, remote: Path, agent_home: Path) -> Instanc
         ),
         tmp_path,
     )
+
+
+@pytest.fixture
+def base_identity_settings(instance_settings: InstanceSettings) -> InstanceSettings:
+    """The instance settings with the base image's identity."""
+    return instance_settings.model_copy(update={"image": BASE_IDENTITY})
+
+
+@pytest.fixture
+def base_image(base_identity_settings: InstanceSettings) -> str:
+    """The base image the settings with the base image's identity name."""
+    assert base_identity_settings.stage_image is not None
+    return base_identity_settings.stage_image
 
 
 @pytest.fixture
