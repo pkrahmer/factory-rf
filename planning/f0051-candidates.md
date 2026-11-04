@@ -41,3 +41,14 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 20. The memory peak is a boot-wide value and cannot say which run needed the memory; a per-run peak would need sampling (F0050 decision 4).
 21. Apt's `update-alternatives` warnings are left out of the warning count; other harmless warnings may need the same treatment once seen.
 22. `vm/setup.sh` and `vm/job-start.sh`: none known after S0007.
+
+## Added after a check against every eval finding (2026-11-04)
+
+23. **A decision posted while a stage runs waits for the next stage start.** S0007 passed review and reached approval before the human's decision was read (it entered the journal only at approval), so it had to be sent back by closing the pull request. Fix: the factory copies new comments into the journal before each stage it starts *and* tells a running review or docs stage; or the human's decision gives leave to the stage that sees it first, and approval refuses while an unread human comment stands.
+24. **The story's own smoke test was wrong** (S0001: one `ARG` line where Docker needs one per stage; S0002: a doubled `-q`). Found only after review and docs. Fix: the coder runs the `## Smoke test` commands once before it ends with `review`.
+25. **The reviewer, not the tester, found missing tests** (S0002: the wiring in `build_boundaries`, adapter tests, begin-then-complete; S0005 too). About $1.50 a round. Fix: a tester rule to write, for every new seam, one test that fails when its wiring is removed.
+26. **A run that crashes leaves no cost record** (S0001's documenter, S0002's two testers: about $1 unrecorded). By design (F0005-S0008: no record without a commit), and S0008's retries make it rarer. Keep, or record the cost of a crashed run in the stop records instead.
+27. **Long waits inside a run for full test suites** (S0002's first coder: 706 s; S0003: a `make check` for an approach it then threw away). Fix: the agents run the tests of the files they touched first and `make check` once at the end.
+28. **Denied compound commands** (S0008: `cd $(mktemp -d) && ...` refused twice, one retry each). Fix: one line in the agent files on the allowed form.
+29. **A restart after a cap answer is a full run** (S0006: the reviewer re-read everything to apply one decided fix). Fix: the cap answer's run reads only the diff since the last review.
+30. **The first tester run is the most expensive single run** (S0001 $1.95, S0006: 25 turns). It is the price of good tests and seams; no fix, but it is where a token budget would bite first.
