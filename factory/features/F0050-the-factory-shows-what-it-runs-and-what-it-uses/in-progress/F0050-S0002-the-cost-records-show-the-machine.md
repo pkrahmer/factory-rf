@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T10:22:00.661881Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T10:21:39.749988Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-04T10:22:00.661881Z'
   stage: intake
 ---
 
@@ -104,3 +113,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
    4. Yes: a row for `stage image: base <GB> GB`, its form, and that it is written once at the factory's start for an instance without a stage file.
    5. Yes: a row where an adopted image (an existing one reused with no build) gives both sizes without a build.
    6. Yes: one row for a lowercase `warn` line and one for a mixed-case `Warning` line, each counted.
+5. factory: started intake as vm.
