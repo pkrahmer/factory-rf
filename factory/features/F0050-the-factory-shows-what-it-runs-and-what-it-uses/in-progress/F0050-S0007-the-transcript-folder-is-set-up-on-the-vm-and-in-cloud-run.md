@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T20:09:46.329442Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-11-04T20:09:46.329442Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T20:10:33.256223Z'
+  stage: smoke-test
+  run: 3b684581ce134e989c391e48da5fa9a5
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -331,3 +333,37 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 20. factory: started smoke-test as vm.
+21. smoke-tester: Smoke test, round 1. I ran the three commands under `## Smoke test` from the repository root, in order and exactly as written. All three met the `Expect:` line. I fixed nothing.
+
+    1. `grep -c 'FACTORY_TRANSCRIPT_DIR=/srv/factory/' vm/setup.sh`
+       ```
+       1
+       ```
+       Expected a number of at least `1`: met (exit status 0).
+
+    2. `grep -c 'cannot be written' vm/job-start.sh`
+       ```
+       1
+       ```
+       Expected a number of at least `1`: met (exit status 0).
+
+    3. `uv run pytest tests/test_vm_setup.py tests/test_vm_job_start.py 2>&1 | tail -1`
+       ```
+       58 passed in 6.10s
+       ```
+       Expected a line ending in `passed` with no `failed`: met. The line ends in the run time, `in 6.10s`, after the word `passed`. I took this as the pytest summary the Expect line means, since the intake read it the same way (entry 3).
+
+    Checked against the acceptance criteria:
+    - Criteria 1 and 2: nothing in the smoke test contradicts them. The setting's line is in `vm/setup.sh` and the message is in `vm/job-start.sh`.
+    - Criterion 3: the earlier `vm/setup.sh` and `vm/job-start.sh` tests still pass, and nothing touched a cloud.
+    - Criterion 4 (docs): I read *Transcripts* in `docs/operator-guide.md` against the criterion. It has every item the criterion names, and `README.md`, the project guide and `docs/decisions.md` are unchanged as the criterion asks. The guide has:
+      - the VM's folder, the `tmpfiles.d` rule with `30d`, and `--transcript-days`;
+      - for Cloud Run, a bucket in the job's project and region, uniform access, public access prevented, a 30-day lifecycle rule, and `roles/storage.objectUser` on that bucket only;
+      - the `gcloud run jobs update … --add-volume … --add-volume-mount …` mount with `FACTORY_TRANSCRIPT_DIR=<path>`;
+      - the cost, a few cents a month at about 5 MB per feature.
+
+    Findings: none.
+
+    Open, not findings:
+    - The smoke test's pytest command runs the older `tests/test_vm_setup.py` and `tests/test_vm_job_start.py`, not this story's `tests/test_vm_setup_transcripts.py` and `tests/test_vm_job_start_transcripts.py`. It confirms that nothing earlier broke, but it does not run the new transcript tests. Those run in `make check`, which entries 15 and 19 record as green.
+    - With `--transcript-days 0`, a rule file written by an earlier run stays in `/etc/tmpfiles.d/`. Entries 7 to 19 note this as the human's choice, and the guide tells the operator to remove it themselves.
