@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T13:00:26.653561Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-11-04T13:00:20.026854Z'
   stage: tests
   run: a7356a966a6a4b36b3fa5f95a2a2d16b
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:00:26.653561Z'
+  stage: doing
 ---
 
 # A refused push or hosting call is retried and logged
@@ -357,3 +366,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     - I did not run `make types`. Running mypy on the files by hand, outside the Makefile's settings, printed nothing I could use. The coder's `make check` covers it.
 
     `lint`: lint: green (0.1 s)
+19. factory: started doing as vm.
