@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T22:58:40.254139Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T22:58:40.247838Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T22:58:40.254139Z'
+  stage: intake
+---
+
 # The decision log and the contract's history match the feature
 
 <!-- proposed by feature acceptance of 2026-11-04; refine before starting -->
@@ -31,3 +58,6 @@ grep -c 'F0050-S0007' docs/decisions.md | awk '{print ($1>=1)}'
 Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
