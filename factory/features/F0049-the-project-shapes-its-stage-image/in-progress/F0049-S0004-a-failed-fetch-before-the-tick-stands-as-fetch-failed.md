@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T02:44:39.043389Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-04T02:44:32.857738Z'
   stage: review
   run: 9a8e0fe08d8640be93f82369b4f9e9a5
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:44:39.043389Z'
+  stage: docs
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -423,3 +432,4 @@ Expect: a line that ends in `passed` with no `failed`.
 
     Notes:
     1. `tests/entry/test_run_fetch_before_tick.py:156` (`_project`) builds the same project `StageSeen` as `_project` in `tests/entry/test_run_project_image_rebuild.py:309`, with a different signature. A later move could put one version in `tests/stage_image_support.py`.
+28. factory: started docs as vm.
