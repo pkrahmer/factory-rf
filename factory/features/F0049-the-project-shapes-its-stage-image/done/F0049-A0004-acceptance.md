@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-04T03:41:21.175401Z'
   stage: acceptance
   run: bf4bca22fc764869abf73deedde313c5
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-04T03:43:19.491049Z'
+  stage: done
 stories: [F0049-S0001, F0049-S0002, F0049-S0003, F0049-S0004, F0049-S0005, F0049-S0006, F0049-S0007, F0049-S0008]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The project shapes its stage image
@@ -303,3 +308,4 @@ None. No finding of weight is left. The open noticed items (see 4) are older tha
    6 Decisions: feature decisions 1 to 9; S0008's answer (a), no test for a document line; A0003's open opencode detail is confirmed by the human. For the human, outside the feature: docs-only stories still run a tester, coder and reviewer with nothing to do. S0008 changed no test, and every earlier test the feature changed had a leave named.
    7 Slow checks: none beyond `make check`. `make duplicates`: 0 new, 43 known. The feature's 283 tests take 21.4 s; the slowest is the 10 s build time-limit test (`ROOMY_LIMIT` by design). Disk: used space unchanged at 1.3 GB, and the 0.1 GB less free space lies outside the factory's directories. No growth to name.
    8 Cost: $34.83, 98 runs, 148.9 min. S0002 stands out at 43 % of the money, because its Interface named no seams; 5 of the 12 interventions were its own, and it needed the human most. S0008 cost $0.85 and asked 1 question. The follow-ups S0004 to S0008 cost $7.27 (21 %). 12 questions answered (11 question, 1 round_cap), 0.4 h waited.
+3. factory: done (pull request merged); cost: 1 runs, 4.8 min, 30 turns, 81984 tokens in (1570684 more from cache), 20634 out, $1.38
