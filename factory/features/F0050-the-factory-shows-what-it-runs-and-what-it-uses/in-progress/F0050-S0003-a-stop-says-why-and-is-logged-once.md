@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T13:42:30.321924Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-04T13:42:23.996827Z'
   stage: tests
   run: 87803f78ef974477b0695841386cbb0b
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:42:30.321924Z'
+  stage: doing
 ---
 
 # A stop says why, and is logged once
@@ -146,3 +155,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
    Open: nothing.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
