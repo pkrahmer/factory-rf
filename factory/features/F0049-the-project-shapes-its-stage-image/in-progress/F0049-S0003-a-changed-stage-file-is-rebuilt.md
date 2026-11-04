@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T01:29:06.139795Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-04T01:29:00.554423Z'
   stage: intake
   run: 66017b2814ed4632b278549ab569c80e
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:29:06.139795Z'
+  stage: tests
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -111,3 +120,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
    - Architecture: the layers hold. The comparison and wiring sit in `factory.entry`, and the `Images` and `Git` interfaces are used as they are.
    - Scope: within feature decision 5 and the feature's S0003 scope. Nothing in "Out of scope" is touched.
    - Open for the coder: the commit in the log lines and the detail is the first 12 hex digits.
+7. factory: started tests as vm.
