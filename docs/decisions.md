@@ -407,6 +407,7 @@ Date: 2026-10-17 (F0012-S0013; F0012 decisions 21 and 22). `RecordingProjectComm
 ## The time per tool command inside a run is not recorded
 
 Date: 2026-10-17 (F0012-S0014; F0012 decision 22). A cost record holds the run's `duration_seconds` and `model_seconds` (the reply's `duration_api_ms`); the rest is the tools' and the factory's. The time of each tool command inside a run (`make check` above all) is not recorded, because the single JSON reply of `claude -p --output-format json` does not carry it: it needs `claude`'s streamed events. Rejected: estimating it from the difference, which mixes the tools with the factory's own work.
+- Superseded by *The cost record sums up the run's tool calls, without their content*: each tool's seconds are read from the run's transcript (F0050-S0006, S0009).
 
 ## The disk record is not committed and none is written at the end of a run
 
@@ -1538,7 +1539,7 @@ Date: 2026-11-04 (F0050-S0005).
 
 Date: 2026-11-04 (F0050-S0006).
 
-- Decision: every completed cost record gets the optional list `tools` (`ToolUse` in `factory.domain.cost_records`): for each tool the run used, its `calls`, the `failed` ones and the `seconds` they took, sorted by tool name. It is read from the run's transcript (`claude_tool_uses`, `opencode_tool_uses` in `factory.domain.tool_uses`) before the transcript is copied or discarded, so it is written whether or not `FACTORY_TRANSCRIPT_DIR` is set. A tool name that breaks the form (64 characters of letters, digits, `_`, `-`, `.` and `:`) is counted under `other`. It is `None` on a `started` record and when the calls cannot be read, and the run never fails for it. The records contract moves to 4.4.
+- Decision: every completed cost record gets the optional list `tools` (`ToolUse` in `factory.domain.cost_records`): for each tool the run used, its `calls`, the `failed` ones and the `seconds` they took, sorted by tool name. It is read from the run's transcript (`claude_tool_uses`, `opencode_tool_uses` in `factory.domain.tool_uses`) before the transcript is copied or discarded, so it is written whether or not `FACTORY_TRANSCRIPT_DIR` is set. A tool name that breaks the form (64 characters of letters, digits, `_`, `-`, `.` and `:`) is counted under `other`. It is `None` on a `started` record and when the calls cannot be read, and the run never fails for it. The records contract moves to 4.4. This supersedes *The time per tool command inside a run is not recorded*.
 - Why (feature decision 6, second half): the transcripts stay inside the site, so GitHub gets only numbers: where a run spent its time and turns, how often it ran commands or read files, how many calls failed. The summary holds no command text, no file content, no path and no argument, so it says nothing the record does not already say about the project.
 - No rejected option is named by the story for this entry, so none is written.
 

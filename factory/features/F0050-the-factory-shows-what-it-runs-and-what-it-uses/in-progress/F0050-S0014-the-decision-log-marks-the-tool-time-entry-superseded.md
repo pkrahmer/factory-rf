@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 553
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T23:55:54.840625Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-04T23:55:54.840625Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T23:56:17.099755Z'
+  stage: docs
+  run: cc54fa39f0c94d05bf8578884905f524
 ---
 
 # The decision log marks the old tool-time entry as superseded
@@ -150,3 +152,18 @@ Expect: `1`.
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
 10. factory: started docs as vm.
+11. documenter: Changed `docs/decisions.md` only, two edits:
+    - The F0012 entry "The time per tool command inside a run is not recorded" keeps its text. It gains the line `- Superseded by *The cost record sums up the run's tool calls, without their content*: each tool's seconds are read from the run's transcript (F0050-S0006, S0009).` The line sits in the bullet form the log already uses, as the Interface gives it.
+    - The S0006 entry "The cost record sums up the run's tool calls, without their content" now ends its Decision bullet with `This supersedes *The time per tool command inside a run is not recorded*.` I put the sentence inside the Decision bullet because the entry has no separate place "after the Decision" that is not the Why bullet.
+
+    I ran both smoke-test greps. Each prints `1`. `git diff --stat` shows two insertions and one deletion in that file. The deletion is the S0006 Decision line, which I rewrote to add the sentence. No other entry changed.
+
+    Cross-read: I read the coder's and reviewer's entries against the two log entries. The tools field is already described as built, so `README.md`, `docs/operator-guide.md` and the project guide need no change, as criterion 5 says. I did not search them for other mentions. The diff holds no code, so there is no contradiction between code and docs.
+
+    I changed only documents, so I ran no `make check`. The factory's check after this stage decides.
+
+    Stale text noticed, not touched: none. The log uses two forms for supersession, a plain sentence and a `- Superseded ...` bullet. I followed the bullet form the Interface gives and left the rest alone.
+
+    `check`: check: green (not run again: passed on tree 066290bec96a at 2026-11-04T23:41:19Z)
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok
