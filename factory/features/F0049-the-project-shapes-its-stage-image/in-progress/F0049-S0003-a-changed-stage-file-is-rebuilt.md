@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T01:53:11.132494Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-04T01:53:11.132494Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-04T01:55:31.474629Z'
+  stage: doing
+  run: c4a70acd3366487a9d51e765d083c2c0
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -385,3 +387,31 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
 
     `lint`: lint: green (0.2 s)
 24. factory: started doing as vm.
+25. coder: Round 1, after the tester's helper move (entry 23). No code changed in this run. `make check` is red only in `tests/test_shared_bodies.py`, and the failure comes from the tester's change to `tests/log_support.py`.
+
+    What fails: three rows of `tests/test_shared_bodies.py::test_the_guard_finds_a_copy_by_its_body_and_nothing_else`. They also fail when the file runs alone, so this is deterministic and not a parallel-run effect:
+    - the-log-under-another-name
+    - with-a-docstring
+    - under-a-decorator
+
+    From the run with `--tb=short`:
+    ```
+    tests/test_shared_bodies.py:133: in test_the_guard_finds_a_copy_by_its_body_and_nothing_else
+    E   AssertionError: assert [] == ['log_lines']
+    E     Right contains one more item: 'log_lines'
+    ```
+
+    Cause: the guard's `THE_LOG_BODY` (`tests/test_shared_bodies.py:19`) is the body `log_lines` had on `main`. It finds copies by comparing against the body of `log_lines` in `log_support.py`. Entry 23 changed that body to `return state_log_lines(tmp_path / "state")`, so the guard's sample copies no longer match it.
+
+    Test change for the tester, in one sentence: in `tests/log_support.py`, give `log_lines` back its original two-line body (`log = tmp_path / "state" / "factory.log"` and the `read_text … if log.exists() else []` return), and keep `state_log_lines` as it is for `tests/entry/test_run_project_image_rebuild.py`.
+    - This touches only the support module the tester changed. It leaves the earlier story's guard test alone. Changing `THE_LOG_BODY` instead would mean changing another story's test, which needs the human's leave.
+
+    Still standing from entry 21:
+    - `src/factory/entry/run.py`: the `_ProjectImageStart` docstring now says a rebuilt tick starts its error counts again at zero (review finding 4).
+    - `src/factory/entry/wiring.py`: unchanged since entry 10.
+
+    Noticed, not touched:
+    - The factory dropped my edit to the work item's criterion 9 in round 1, because the work item is outside the coder's write paths. Criterion 9 still says "the four log lines", but the Interface and the smoke test name three (review finding 5). The documenter should write three, or the human should correct the criterion.
+    - `make duplicates` reports `FakeImages` as unused in `src/factory/adapters/fake_images.py`. This branch does not change that file.
+
+    `make check`: red. lint, types, layers, sast, secrets and licenses passed. `make test` failed only on the three rows above. Coverage is 99.51 %.
