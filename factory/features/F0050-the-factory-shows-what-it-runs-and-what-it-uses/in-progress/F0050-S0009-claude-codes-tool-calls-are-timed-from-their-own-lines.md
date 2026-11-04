@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T21:32:38.665560Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-04T21:32:38.665560Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T21:33:13.264796Z'
+  stage: docs
+  run: 41d2916bc3a24a4a9c12969afe5edc5f
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -328,3 +330,19 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
 
     Earlier tests: none changed. The diff only adds `tests/domain/test_tool_uses_replayed_lines.py` (status `A`).
 21. factory: started docs as vm.
+22. documenter: Docs for round 1, no findings.
+
+    File changed: `docs/operator-guide.md`, *The tool calls on the cost records*, the `seconds` row. It now says the Claude Code times come from the `assistant` line holding the call's `tool_use` and the `user` line holding its `tool_result`. It also says other lines of the session file (`api-request-blob`, `attachment` and the like) are not read, and that the first line wins when an id appears twice on lines of the right type. That is the docs criterion (9). No example was added, so nothing needed to run. I did not run `make check`, because only a document changed. The factory's checks decide.
+
+    Cross-read against the diff (`src/factory/domain/tool_uses.py` and the new test module) and found current:
+    - `docs/operator-guide.md`: the rest of the tool-calls section (the `failed` row, the unanswered-call line, `[]` and `null`) matches the code.
+    - `docs/project-guide/agents.md` and `docs/project-guide/costs.md`: they cover the opencode event reading and the cost fields, not the Claude Code timing rule. Nothing there is stale.
+    - `docs/decisions.md`: none, as the criterion says (the rule refines S0006's entry). `README.md` and the project guide: none.
+
+    Code against the Interface: the code matches it. One behaviour is worth knowing and needs no fix: a malformed `tool_use` or `tool_result` item on a line of another type is now skipped instead of making the whole transcript unreadable (`None`). The coder and reviewer noted it, and the Interface's rule covers it.
+
+    Stale text noticed and left alone: `docs/decisions.md:409` says the tool command times are not recorded. That is the F0012 entry from before S0006, which a later decision superseded, and it is not part of this story.
+
+    `check`: check: green (not run again: passed on tree b987ce4f33da at 2026-11-04T21:30:10Z)
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok

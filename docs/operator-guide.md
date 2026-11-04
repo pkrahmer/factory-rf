@@ -2219,7 +2219,7 @@ A completed cost record can carry `tools`, the run's tool calls summed up withou
 | `tool` | The tool's name as the runtime gives it (`Bash`, `Read`, `Edit`, `bash`). A name that is longer than 64 characters or holds anything but letters, digits, `_`, `-`, `.` and `:` is counted under `other`, together with a tool really named `other`. |
 | `calls` | How many times the run called it. |
 | `failed` | How many of those calls failed: Claude Code's `tool_result` with `is_error`, opencode's tool state `error`. Never above `calls`. |
-| `seconds` | The seconds the calls took: Claude Code's `tool_result` line `timestamp` minus its `tool_use` line's, opencode's `time.end` minus `time.start`. `null` when the runtime gave no times. |
+| `seconds` | The seconds the calls took: Claude Code's `timestamp` of the `user` line that holds the call's `tool_result` minus that of the `assistant` line that holds its `tool_use`; other lines of the session file (`api-request-blob`, `attachment` and the like) are not read, and when an id appears on two lines of the right type the first one counts. opencode's `time.end` minus `time.start`. `null` when the runtime gave no times. |
 
 A call with no result counts as a call, not as failed, and adds no seconds. `[]` means the run made no tool call. `"tools": null` means the calls could not be read (or the record is older than contract 4.4); the run does not fail for it.
 
