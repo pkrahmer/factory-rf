@@ -7,8 +7,17 @@ crashes: 0
 pull_request: null
 comments_read: []
 handed_over: null
-claim: null
-journal: []
+claim:
+  instance: vm
+  stage: acceptance
+  started_at: '2026-11-04T03:17:52.656946Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:17:52.656946Z'
+  stage: acceptance
 stories: [F0049-S0001, F0049-S0002, F0049-S0003, F0049-S0004, F0049-S0005, F0049-S0006, F0049-S0007]
 outcome: null
 ---
@@ -16,3 +25,5 @@ outcome: null
 # Acceptance of The project shapes its stage image
 
 ## Journal
+
+1. factory: started acceptance as vm.
