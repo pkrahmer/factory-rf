@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T20:32:37.470688Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -209,6 +205,12 @@ journal:
   kind: started
   at: '2026-11-04T20:32:37.470688Z'
   stage: review
+- number: 37
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T20:33:54.363473Z'
+  stage: review
+  run: d0ac4dac1baa460fbe564f2a5ef833cb
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -583,3 +585,21 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
     Nothing else. A further finding that fails no criterion goes under `Notes:`.
 36. factory: started review as vm.
+37. reviewer: Review, round 0 (the count started over after the human's answer in entry 35). I read the whole diff: `vm/setup.sh`, `vm/job-start.sh`, `tests/test_vm_setup_transcripts.py`, `tests/test_vm_job_start_transcripts.py` and `docs/operator-guide.md`. I checked it against the revised Description, the Interface, criteria 1 to 5 and the human's entries 22, 23 and 35.
+
+    What holds:
+    - Group 1:
+      - Criterion 1 is pinned by three tests: `test_the_step_makes_the_folder_factory_s_with_0700_only_when_it_is_missing` (one `install -d -o factory -g factory -m 0700`, guarded by `owned_with_mode`, with one "found" text), `test_the_setting_s_line_is_written_once_and_always` (the line sits in the `factory.env` heredoc at `vm/setup.sh:436`, so the environment step's compare-before-write makes a second run change nothing) and `test_the_script_keeps_no_retention_for_the_transcripts`.
+      - Criterion 2 is pinned by the four-row parametrized test: writable, unset, missing, and read-only (skipped under root).
+      - Entry 31 records `make check` green after the coder.
+    - Group 2: `src/` is unchanged and nothing reaches a cloud.
+    - Group 3: no silencing marker and no `eval`. The paths are quoted. The link refusal (`vm/setup.sh:466-469`) comes before `install -d` runs as root.
+    - Group 4: the step follows the script's pattern (`changes=`, `owned_with_mode`, `changed`, `said`), and the comments say why. `need_minutes` matches `main`, and no helper is copied.
+    - Group 5: the Description, Interface and criteria match what was built, and the journal explains the main choices.
+
+    Findings:
+    1. `tests/test_vm_setup_transcripts.py`: criterion 3 (the `transcripts` step refuses a link at `/srv/factory/<instance>/transcripts` before it makes anything, printing `setup: transcripts: <path> is a link; remove it and run this script again` to standard error and exiting 1) has no test. The factory went from the human's answer in entry 35 straight to review, so the tester never wrote it. Fix (the tester's, as entry 35 says): one test read from the script's text like the module's other tests. It checks that the step's link check prints that message to standard error, that `exit 1` follows, and that both come before the folder's `install -d`. `vm/setup.sh:466-469` already behaves this way, so no code change is needed.
+
+    Open, for the documenter after this round, not a finding against the code: `docs/operator-guide.md` still describes the dropped `tmpfiles.d` rule and `--transcript-days`. The places are :618 (the options table row), :621 (the refused values), :640 (step 14), :642 (step 16), :729 (the environment-file row), :1636 ("a `tmpfiles.d` rule on a VM") and :1640-1648 (*On a VM*). Docs criterion 5 says what they must say instead. The Cloud Run part (:1652-1683) already matches the criterion.
+
+    Earlier tests: none. The diff only adds test files (status `A`); no test file on `main` is changed, renamed or deleted.
