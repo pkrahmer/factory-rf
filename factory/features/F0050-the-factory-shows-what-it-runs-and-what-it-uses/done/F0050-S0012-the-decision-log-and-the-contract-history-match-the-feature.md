@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-04T23:03:48.975804Z'
   stage: smoke-test
   run: 295e83e5e3924cd2a89c7bb845ac9b1e
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-04T23:11:49.700310Z'
+  stage: approval
 ---
 
 # The decision log and the contract's history match the feature
@@ -207,3 +212,4 @@ Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
     - Criterion 5: no contradiction. Only `docs/decisions.md` and `docs/operator-guide.md` changed. `README.md` and the project guide did not.
 
     Open: nothing.
+14. factory: done (pull request merged); cost: 6 runs, 4.2 min, 29 turns, 95986 tokens in (424397 more from cache), 8287 out, $0.82
