@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 534
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T03:11:51.297850Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-04T03:11:51.297850Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-04T03:12:13.913652Z'
+  stage: tests
+  run: 34b45c1e6ff1428484507aac7d489a56
 ---
 
 # The stops table and the test helper index follow the stage image
@@ -80,3 +82,13 @@ Expect: `0`, then `listed`, then `listed`, then `documents ok`.
    - Architecture: docs only, which fits CLAUDE.md's split. The documenter keeps `docs/*`, and the story edits no code, no test and nothing in `factory/`.
    - Scope: this is a follow-up to F0049-S0003 (no restart) and S0004 (support module), within the feature's stage-image topic. It is not in "Out of scope". It does not touch `README.md`, `docs/decisions.md` or any test.
 4. factory: started tests as vm.
+5. tester: No tests written. The Interface says this story changes only `docs/operator-guide.md` and `docs/project-guide/README.md`, and that no module under `src/factory/` and no test changes. A pytest test that reads those two documents for the new wording would be a test change the story rules out. Writing one anyway would also add a test that pins documentation text, which nothing in the project does today.
+   - criterion 1 (the `stage-image-failed` row in the stops table: no restart, points to "The project's stage file", "start `factory-run` again" removed): no test, by the Interface. It is checked by the smoke test's first grep (expects `0`) and by the reviewer reading the row.
+   - criterion 2 (the *Shared test helpers* index lists `stage_image_support.py` with `BASE_IDENTITY`, `FIRST`, `SECOND`, `StageSeen`, `built_path`, and the `conftest.py` entry names `base_identity_settings` and `base_image`): no test, by the Interface. It is checked by the smoke test's second and third greps and by the reviewer.
+   - criterion 3 (`make check` stays green): checked by the coder's `make check` and the factory's gate. No test of its own.
+   - criterion 4 (docs): the documenter's criterion, checked by `make documents` (`uv run python -m factory.entry.check_documents`) after the docs stage.
+   Rejected: grep-style tests under `tests/` for the two documents. The Interface forbids test changes, and the smoke test already holds those checks.
+   Files created: none. Modules the test run could not import: none (no test run, because there are no new tests). `make lint` is green.
+   Open: none. The coder has no code to write. The doc edits belong to the documenter, as CLAUDE.md's *Docs* section says.
+
+   `lint`: lint: green (0.2 s)
