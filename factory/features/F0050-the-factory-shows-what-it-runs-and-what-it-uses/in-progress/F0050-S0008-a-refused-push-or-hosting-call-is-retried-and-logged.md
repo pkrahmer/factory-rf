@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T12:40:26.398912Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T12:40:22.806684Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T12:40:26.398912Z'
   stage: tests
 ---
 
@@ -162,3 +171,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
    1. **(a)** "The Interface names a pure function in `factory.domain`, e.g. `push_reason(output: str) -> str`: the last non-empty lines (at most three), joined, cut to 300 characters." Put it in `factory.domain.git` (beside the other git rules), named `push_reason`. Criteria 3 and 6 are text rows on that function. A server refusal's row is met when the `! ... [remote rejected] ... (<reason>)` line is in the message: git repeats the server's reason in that line's parentheses (on 2026-11-04: `! [remote rejected] main -> main (Internal Server Error)`). Plus one test per kind on a real remote (hook refusal, non-fast-forward, removed remote), as you describe, checking that `str(PushFailed)` holds the line that names the kind.
 
    2. Confirmed: a recording subclass of `GitCli` that records each `push` call and the branch head before calling the real `push`, with the hook recording the commit id it got. That is no fake: the push runs.
+10. factory: started tests as vm.
