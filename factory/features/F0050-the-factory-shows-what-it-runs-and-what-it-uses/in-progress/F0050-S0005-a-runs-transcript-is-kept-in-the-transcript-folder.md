@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T18:14:47.846467Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-11-04T18:14:41.499589Z'
   stage: doing
   run: c0322e70f6954cca8ae23bf5b6e7413b
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-04T18:14:47.846467Z'
+  stage: tests
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -383,3 +392,4 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
       - journal 9: remove the days setting, the deletion, criterion 6 and the `removed` log line, and change the smoke test to match;
       - journal 13: the opencode transcript is the run's event stream (`jsonl`);
       - journal 18: the Claude Code session path is `<home>/.claude/projects/*/<session>.jsonl`.
+21. factory: started tests as vm.
