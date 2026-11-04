@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T00:35:07.993162Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T00:35:04.705357Z'
+  stage: doing
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-04T00:35:07.993162Z'
   stage: doing
 ---
 
@@ -316,3 +325,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     These leaves are feature decision 8: only those rows, pins and tuples in those modules.
     4. The checks' PATH is part of this story, not a later one: the check containers take boundaries.image_path too, in place of the fixed CHECK_ENVIRONMENT PATH, because make check is where a project's tools must be found. Criterion 5 gains a row for the check environment (the tester writes it); the existing rows that pin the checks' PATH change under the feature's S0002 leave (tests/adapters/test_make_commands_container.py and the others it names). If the patched build_boundaries in conftest stands in the way, the tester may adapt that fixture's stand-in to the new signature, and nothing else in tests/conftest.py (also decision 8).
     The other notes stay as they are (the time-limit tail, the inspect fallback, image=None).
+18. factory: started doing as vm.
