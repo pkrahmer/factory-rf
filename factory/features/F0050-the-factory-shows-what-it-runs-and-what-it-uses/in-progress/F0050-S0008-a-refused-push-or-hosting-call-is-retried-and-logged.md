@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T12:32:48.233812Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-04T12:32:41.844409Z'
   stage: intake
   run: 395f0a8f3f324a4eb058f67869d6b6d5
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-04T12:32:48.233812Z'
+  stage: tests
 ---
 
 # A refused push or hosting call is retried and logged
@@ -121,3 +130,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
    - Smoke test: the three commands can be run, and each Expect line can be checked against the output. The pytest `addopts` already sets `-q` and the command passes none.
    - Architecture: the log line and the retry sit in the application layer, and the sleeper is an existing interface. The GitHub client change stays in the adapters, behind the hosting-service interface.
    - Scope: this is the feature's S0008 item. The stall push in `stalls.py` stays without a retry (answer 5). The cap of three tries stays.
+7. factory: started tests as vm.
