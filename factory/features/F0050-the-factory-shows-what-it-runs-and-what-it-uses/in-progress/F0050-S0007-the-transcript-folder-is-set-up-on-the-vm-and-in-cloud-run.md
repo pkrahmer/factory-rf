@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T20:40:35.172339Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -255,6 +259,11 @@ journal:
   at: '2026-11-04T20:40:29.081944Z'
   stage: review
   run: 0927919f74d2412a9557aab814f637e8
+- number: 46
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:40:35.172339Z'
+  stage: docs
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -721,3 +730,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     Docs criterion 5 says what they must say instead.
 
     Earlier tests: none. In the diff, the only test files are new ones (status `A`); no test file on `main` is changed, renamed or deleted.
+46. factory: started docs as vm.
