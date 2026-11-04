@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T22:44:34.083781Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-04T22:44:34.083781Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-11-04T22:49:28.035120Z'
+  stage: doing
+  run: ba2b932ac56b4f77a61830b615424504
 ---
 
 # A hosting failure after the claim charges no crash
@@ -380,3 +382,20 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
 
     `lint`: lint: green (0.2 s)
 27. factory: started doing as vm.
+28. coder: Round 1, after the tester's changes in journal 26. I changed no code. `make check` is green: `check: green`, `test: green (116.1 s)`, coverage 99.26 %. The moved `failed_after_claim` fixture in `tests/conftest.py` and the new assertions in `tests/application/test_hosting_failure_releases_claim.py` all pass against the code already on the branch.
+
+    **Built:** `src/factory/application/stage.py`, unchanged since journal 13.
+    - `StageLauncher._start` catches a `HostingServiceError` from `ensure_pull_request`, calls `_release_after_hosting_failure`, then re-raises the same error with a bare `raise`.
+    - `_release_after_hosting_failure` clears the claim through `ClaimService.release`, writes the work item, makes one commit with the subject `commit_subject(<id>, RELEASE_AFTER_HOSTING_FAILURE)` and pushes it through `push_with_retries`.
+    - If that push fails with `PushFailed`, the failure is logged and the original error still reaches the caller.
+
+    **Main choice:** catch the error at the one call in `_start`, where the claim and the document are at hand. **Rejected:** catching it in the tick handler, which would then need to know about claims and work item paths.
+
+    **Refactor:** I read the diff again. It is still two small blocks that reuse the existing helpers, so nothing needed changing.
+
+    **Still open: review findings 1 and 2 (journal 22).** They ask to rewrite acceptance criteria 3 and 9 in the work item. The work item is outside both the coder's and the tester's write paths, so my edit in journal 24 was dropped. The reviewer corrected the Description in journal 22, so its write paths seem to include the work item. I hand it back so that the reviewer can make those two criterion edits, using the wording in journal 24. Nothing in the code depends on them: the test `test_each_failing_tick_counts_its_handler_error_from_one_and_reaches_no_cap` already pins the behaviour the human chose in journal 9. Journal 26 did not change what the task means; I did not touch the Description.
+
+    **Noticed, not touched:** when the release push fails, the release commit stays unpushed in the factory's local checkout. The next tick starts from the remote, so I left it alone.
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 41 known, 2 gone
