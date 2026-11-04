@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 550
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T23:02:51.531192Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-04T23:02:51.531192Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T23:03:19.110980Z'
+  stage: docs
+  run: e1ffcb88e564452fb150cf82dfab16c9
 ---
 
 # The decision log and the contract's history match the feature
@@ -148,3 +150,20 @@ Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
 
    description corrected: "A run's transcript is kept in the transcript folder" (`docs/decisions.md:1523`) -> "A run's transcript is kept in a folder the site names, never on GitHub" (`docs/decisions.md:1533`). The new title is the entry's heading as it stands in the log. The new line number is the one intake entry 3 gives.
 10. factory: started docs as vm.
+11. documenter: Wrote the three document changes the criteria ask for. No code, test or comment was touched, so I did not run `make check`; `make documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/decisions.md`: a new last entry, "A VM keeps no retention of transcripts, a bucket keeps its lifecycle rule" (F0050-S0007, 2026-11-04). Its Decision says a VM has no retention, no `tmpfiles.d` rule and no option for an age. It also says a Cloud Run bucket keeps its lifecycle rule (30 days, as `docs/operator-guide.md` shows). Its Why gives the human's reason of 2026-11-04 (about 5 MB per feature). The S0005 entry gets one added sentence right after its `tmpfiles.d` sentence, which stays unchanged. The sentence says F0050-S0007 replaced the VM's half and names the new entry.
+    - `docs/operator-guide.md`: the records contract's version list (*The version*) now has `` `4.1` added the stop reason `stage_image_failed` to the `reason` of `stop-record` `` between `4.0` and `4.2`.
+
+    Smoke test, run on this tree: `grep -c '`4\.1` added' docs/operator-guide.md` gave 1. `grep -c 'tmpfiles.d' docs/decisions.md` gave 2 (the S0005 entry and the new one; the note names no `tmpfiles.d`), so the `>=2` filter gives 1. `grep -c 'F0050-S0007'` gave 2, so that filter gives 1.
+
+    New entry: the story names no rejected option for it, so it has no "Rejected" line. It says so, as the neighbouring entries do.
+
+    Cross-read and found current: `docs/operator-guide.md` *Transcripts* (the VM has no retention, the bucket has a 30-day lifecycle rule) and the setup script's step 16, both consistent with the new entry. I did not cross-read `README.md` or the project guide, because criterion 5 says none for them.
+
+    Stale text seen but not touched: nothing.
+
+    `check`: check: green (not run again: passed on tree a4a57514a13e at 2026-11-04T22:47:18Z)
+    `secrets`: secrets: green (2.3 s)
+    `documents`: documents ok
