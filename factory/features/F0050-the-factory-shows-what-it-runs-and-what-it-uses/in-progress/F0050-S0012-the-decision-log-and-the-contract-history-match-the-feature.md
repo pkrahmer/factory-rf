@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 550
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T22:59:30.469348Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-04T22:59:25.037512Z'
   stage: tests
   run: 53d5414a54bf49fe85887c54e8aa5bae
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-04T22:59:30.469348Z'
+  stage: doing
 ---
 
 # The decision log and the contract's history match the feature
@@ -90,3 +99,4 @@ Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
    Files created: none. Modules the test runner could not import: none, because no test was added and so there was no red run. `make lint` passed. Open: nothing. This story's only work is in the documents, within the docs stage's write paths.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
