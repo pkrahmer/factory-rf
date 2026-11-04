@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 544
 comments_read: [6639153913, 6640096367]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T19:31:19.389308Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-11-04T19:31:19.389308Z'
   stage: review
+- number: 32
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T19:32:03.567843Z'
+  stage: review
+  run: 656499fb588d4a4081a7ba069924fada
 ---
 
 # The cost record sums up the run's tool calls
@@ -505,3 +507,22 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     For the reviewer: the rounds since round 0 each found one more rare input. After this fix, a further edge case of input parsing goes under `Notes:` for the human, not under `Findings:`, unless it fails a criterion for an input the factory meets in normal runs. The note on `_staged` stays a note.
 31. factory: started review as vm.
+32. reviewer: Review after the human's answer at the round cap (entry 30). The human asked for one more narrow round: fix exactly finding 1 of entry 28 and nothing else. I read the work item, the diff's stat and the code and tests that finding concerns. Since entry 28 the branch holds no change under `src/` or `tests/`. Its only new commits are the factory's own, plus a merge of `origin/main` that brings in only `docs/runs/2026-10-12-overnight/night-log.md`, the human's file, which is not in the diff against `main`. So the fix the human asked for has not been made yet: after the answer the work item came back to review, not to doing. I checked nothing else again this round, as entry 30 asks. Everything else stands as judged in entries 20 and 28.
+
+    Findings:
+    1. `src/factory/domain/transcripts.py:18` (`transcript_lines`): it still uses `str.splitlines()`. That method also breaks at U+2028, U+2029 and U+0085, which the Node and Bun runtimes write raw inside JSON strings. A call whose input or output holds one of them therefore splits a JSON line into pieces that are not JSON, and a readable run loses its `tools` (criterion 1). Fix (entry 28, ordered in entry 30): split on `"\n"` only, `transcript.content.decode("utf-8").split("\n")`. The blank pieces are already skipped, and `json.loads` tolerates a trailing `\r`. Tests for the tester: one row each in `tests/adapters/test_runtime_tool_uses.py::test_claude_code_sums_up_the_tool_calls_of_its_session_transcript` and `::test_opencode_sums_up_the_tool_calls_of_its_run_s_stream`, where a call's input or output holds raw U+2028 and U+0085 (lines written with `ensure_ascii=False`) and the call is still counted. Neither test has such a row yet.
+
+    Notes:
+    - `tests/application/test_stage_tool_uses.py:51-60` (`_staged`) repeats the settings and store update of `_with_transcripts` in `tests/application/test_stage_transcripts.py:45-49`. It stays a note (entry 30).
+
+    Earlier tests (changed test files that `main` already holds):
+    - `tests/application/test_interfaces.py`: the human's leave, journal entry 4 (`tool_uses` added to `AgentRuntime`'s pinned operations).
+    - `tests/application/test_agent_run_probe.py`: the human's leave, journal entry 4 (`RefusingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/application/test_stage_run.py`: the human's leave, journal entry 4 (`HeadNotingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/container_support.py`: the human's leave, journal entry 4 (`WorkspaceRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/observing_runtime.py`: the human's leave, journal entry 4 (`ObservingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/domain/test_contract.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`).
+    - `tests/domain/test_contract_version_4.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
+    - `tests/domain/test_contract_version_4_2.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
+    - `tests/application/test_stage_transcripts.py`: the standing leave to move a shared test helper (`_records` replaced by the shared `pushed_cost_records`, its unused imports removed; every test keeps its name and what it checks).
+    - `tests/stage_run_support.py`: the standing leave to move a shared test helper (`pushed_cost_text` and `pushed_cost_records` added; nothing earlier changed).
