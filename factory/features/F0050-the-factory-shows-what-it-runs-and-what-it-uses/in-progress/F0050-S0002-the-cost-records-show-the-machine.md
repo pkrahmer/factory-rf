@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T12:11:29.662265Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -262,6 +266,11 @@ journal:
   at: '2026-11-04T12:11:23.237445Z'
   stage: tests
   run: 52dd56801efb4ce39151695975ac07a8
+- number: 47
+  speaker: factory
+  kind: started
+  at: '2026-11-04T12:11:29.662265Z'
+  stage: doing
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -762,3 +771,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     Result of my one test run (`uv run pytest -q` on both files): 4 passed, and every module imported. They pass because the code they test is already in place, as entry 44 says. `make lint`: lint: green.
 
     `lint`: lint: green (0.1 s)
+47. factory: started doing as vm.
