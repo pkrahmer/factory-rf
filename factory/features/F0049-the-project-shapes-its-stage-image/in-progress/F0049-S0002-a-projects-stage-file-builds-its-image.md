@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T00:06:18.816139Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-11-04T00:06:18.816139Z'
   stage: tests
+- number: 14
+  speaker: tester
+  kind: result
+  at: '2026-11-04T00:07:18.538182Z'
+  stage: tests
+  run: ba77bab12fc14b3faddf7b9ab2bd503c
 ---
 
 # A project's stage file builds the image its stages run in
@@ -236,3 +238,30 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
 12. 2026-11-04 human: 1. (a): Boundaries.image_path from images.path(settings.stage_image), default /usr/local/bin:/usr/bin:/bin; stage_environment_of(boundaries) and agent_environment(scripts, home, path) take it, as you describe.
     2. (a): drop criterion 13; factory-watch shows no stop of any reason today, and that stays so in this story.
 13. factory: started tests as vm.
+14. tester: I wrote the last missing test, for criterion 5, as entry 12 answered. I dropped criterion 13 from the description as the human decided, so `make check` and `docs:` are now criteria 13 and 14. The Interface now says that only `factory-health` shows the stop.
+
+    Mapping:
+    - criterion 1: tests/domain/test_stage_layer.py::test_a_stage_file_within_the_rule_is_accepted, ::test_a_stage_file_that_breaks_the_rule_is_refused, ::test_each_broken_rule_gives_its_own_reason, ::test_the_padded_files_lie_on_both_sides_of_64_kib. The bytes that are not UTF-8 are tested at the start, under criterion 6.
+    - criterion 2: tests/domain/test_stage_layer.py::test_the_digest_follows_every_byte_and_the_identity_is_stable. `STAGE_FILE` and `project_image_tag` are checked in ::test_the_stage_file_and_the_project_image_tag_are_named_once.
+    - criterion 3: tests/entry/test_wiring_project_image.py::test_a_start_without_a_stage_file_builds_nothing_and_keeps_the_base
+    - criterion 4: tests/entry/test_wiring_project_image.py::test_a_start_with_a_valid_stage_file_builds_it_once_and_takes_the_project_image
+    - criterion 5: tests/entry/test_wiring_image_path.py::test_the_sync_and_the_agent_take_the_path_of_the_image_in_use. It has two rows: an image whose `PATH` is `/opt/jdk/bin:…`, and an image that sets none. It builds the boundaries with `images=FakeImages(paths=…)` and checks `Boundaries.image_path`, the `PATH` of the sync's `podman run` (recorded by a stand-in podman), and `agent_environment(scripts, home, boundaries.image_path)`.
+    - criterion 6: tests/entry/test_wiring_project_image.py::test_a_stage_file_that_does_not_build_stands_as_a_stop (rows failed and time-limit), ::test_a_stage_file_that_breaks_the_rule_stands_as_a_stop_and_builds_nothing (rows rule and not-utf-8), ::test_no_stage_starts_while_the_stage_image_stop_stands
+    - criterion 7: tests/adapters/test_podman_images.py::test_the_build_passes_the_base_the_network_the_tag_and_an_empty_context. A failed build gives passed=False in ::test_a_build_that_fails_has_not_passed.
+    - criterion 8: tests/adapters/test_podman_images.py::test_the_output_tail_is_the_last_twenty_lines_in_order (rows 25 and 5)
+    - criterion 9: tests/adapters/test_podman_images.py::test_a_build_that_reaches_its_time_limit_has_not_passed checks the time limit. tests/entry/test_wiring_project_image.py::test_the_build_time_limit_is_thirty_minutes checks the constant. That the wiring passes it to `build` is checked in criterion 4's test.
+    - criterion 10: tests/adapters/test_podman_images.py::test_path_is_the_images_configured_path_or_the_base_default
+    - criterion 11: tests/entry/test_wiring_project_image.py::test_the_next_start_ends_a_stage_image_stop (rows valid and none)
+    - criterion 12: the row `stage_image_failed` in tests/entry/test_health.py::test_every_stop_reason_makes_the_check_fail_until_it_is_cleared, plus the reason in that module's tuple of machine-scoped reasons (entry 9, item 4)
+
+    Files created in this round: tests/entry/test_wiring_image_path.py. Earlier rounds created tests/domain/test_stage_layer.py, tests/adapters/test_podman_images.py and tests/entry/test_wiring_project_image.py.
+
+    Earlier test files changed:
+    - tests/entry/test_health.py (earlier round, under the leave in entry 9).
+    - tests/entry/test_wiring_handlers.py::test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home: its call now passes `"/usr/local/bin:/usr/bin:/bin"` as the new third argument of `agent_environment`. I changed it under the Interface's leave, which says that rows of earlier tests that pin that `PATH` change. The test still checks the same thing.
+
+    Run: `uv run pytest -q` over the new and changed files stopped with 4 collection errors. The modules the run could not import are `factory.domain.stage_layer`, `factory.application.images`, `factory.adapters.podman_images` and `factory.adapters.fake_images`. `project_image_settings`, run_instance's `images` keyword, build_boundaries' `images` keyword, `Boundaries.image_path` and `agent_environment`'s third parameter don't exist yet either. Because collection stopped, the test_health.py row and the changed test_wiring_handlers.py call were not run. `make lint` is green.
+
+    The factory left out changes outside the write paths: factory/features/F0049-the-project-shapes-its-stage-image/in-progress/F0049-S0002-a-projects-stage-file-builds-its-image.md.
+
+    `lint`: lint: green (0.1 s)

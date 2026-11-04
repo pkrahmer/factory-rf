@@ -98,7 +98,7 @@ def test_the_agent_environment_is_a_path_led_by_the_scripts_and_a_home(
         confine.write_text("", encoding="utf-8")
         confine.chmod(0o755)
 
-    environment = agent_environment(scripts, home)
+    environment = agent_environment(scripts, home, "/usr/local/bin:/usr/bin:/bin")
 
     assert set(environment) == {"PATH", "HOME"}
     assert environment["HOME"] == str(home)
