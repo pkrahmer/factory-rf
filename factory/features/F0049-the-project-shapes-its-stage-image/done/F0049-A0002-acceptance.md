@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-04T03:09:50.176400Z'
   stage: acceptance
   run: f57f586d89454992b51616021d05cee8
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-04T03:10:47.514001Z'
+  stage: done
 stories: [F0049-S0001, F0049-S0002, F0049-S0003, F0049-S0004, F0049-S0005, F0049-S0006]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The project shapes its stage image
@@ -318,3 +323,4 @@ S0002 needed the human most. Its Interface named neither the seams nor the earli
    6 Decisions: feature decisions 1 to 8, the human's answers to A0001's (a) to (d), and S0004 entries 4 and 11. (e), a real build on factory-vm, is still open with the human. Every earlier test changed had a leave named. The `null` row S0006 added to an S0002 test rests on the human-started story's Interface, not on `feature.md`, for the human to confirm.
    7 Slow checks: none beyond `make check`. `make duplicates` shows 0 new and 43 known. The feature's slowest test is the 10 s build time-limit test, which is `ROOMY_LIMIT` by design. Disk: used space is unchanged at 1.3 GB, and 0.1 GB less free space lies outside the factory's directories. No growth to name.
    8 Cost: $33.16, 85 runs, 141.7 min. S0002 still stands out at 46 % of the money, because its Interface named no seams: 5 of the 11 human interventions were its own. The three follow-ups cost $5.60. S0004 took 14 runs because of a test assertion on the multi-line detail and a review round for test helper copies. The stories waited 0.4 h for the human. My scratch smoke script stays in the agent's home, outside the repository, because its removal was refused.
+3. factory: done (pull request merged); cost: 1 runs, 6.7 min, 45 turns, 131329 tokens in (4056004 more from cache), 31014 out, $2.48
