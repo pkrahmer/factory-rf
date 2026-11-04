@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 548
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T21:40:44.798176Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-04T21:40:39.079413Z'
   stage: tests
   run: 1576e4240f634e239192a60ef811434a
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:40:44.798176Z'
+  stage: doing
 ---
 
 # A push's reason keeps the server's words
@@ -118,3 +127,4 @@ Expect: a line that ends in `passed` with no `failed`.
    Open: none. As intake noted, no row has a `To ` line with leading spaces; the Interface does not need one.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
