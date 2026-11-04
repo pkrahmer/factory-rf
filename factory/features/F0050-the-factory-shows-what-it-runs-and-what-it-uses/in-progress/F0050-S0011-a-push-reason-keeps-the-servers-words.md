@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T21:38:34.088778Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T21:38:34.081571Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:38:34.088778Z'
+  stage: intake
+---
+
 # A push's reason keeps the server's words
 
 <!-- proposed by feature acceptance of 2026-11-04; refine before starting -->
@@ -48,3 +75,6 @@ uv run pytest tests/domain -k push_reason 2>&1 | tail -1
 Expect: a line that ends in `passed` with no `failed`.
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
