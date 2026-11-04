@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 542
-comments_read: [6633278047, 6634278570]
+comments_read: [6633278047, 6634278570, 6634494947]
 handed_over: null
 claim: null
 journal:
@@ -104,6 +104,11 @@ journal:
   stage: doing
   run: 7a688b7a31b14b53a60d59b2aab9e706
   blocked: question
+- number: 18
+  speaker: human
+  kind: comment
+  at: '2026-11-04T15:23:20.892601Z'
+  stage: doing
 ---
 
 # One fetch per iteration
@@ -284,3 +289,6 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     Status of `make check`: red only on the two rows above. Lint, types and the other tests passed, and coverage is 99.42 %. I did not do the refactor step, because the stage stops here. The diff otherwise reads clean.
 
     Noticed, not touched: the copy of `Outage` (`Instance.go_away`/`come_back` in `tests/entry/test_run_one_fetch.py`). Moving it to a shared place is the tester's job, under the standing leave.
+18. 2026-11-04 human: Answer of the human: **A** "the tester changes only `recording_tick` at `tests/entry/test_run.py:287` to `def recording_tick(tick: Tick, idle: IdleShutdown | None = None, *, fetched: bool = False) -> Callable[[], bool]:` and makes it return `original_tick(tick, idle, fetched=fetched)`."
+
+    Leave for the tester: only that function in `tests/entry/test_run.py`; nothing else in that module. If the tester finds any further test double that only needs the same signature for `fetched`, the same leave covers it (the signature and the passing on of `fetched`, nothing else), and its entry names each one, so that no further question is needed for this kind.
