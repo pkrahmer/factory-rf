@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T23:38:13.724549Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-04T23:38:13.724549Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-11-04T23:38:52.413895Z'
+  stage: tests
+  run: bfd7644605bb45e1916d89280e108c44
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -211,3 +213,21 @@ Expect: a line that ends in `passed` with no `failed`.
 
     The code in `src/factory/domain/git.py` stays as it was in round 0, and so does the Description: the journal did not change what the task means. Noticed but not touched: the docs criterion (operator guide and git-and-hosting guide) is the documenter's work.
 12. factory: started tests as vm.
+13. tester: I moved the `result_case` fixture into `tests/conftest.py`. This is the change the coder named in entry 11, following the reviewer's finding in entry 9. It falls under the standing leave in `CLAUDE.md` to move a shared test helper.
+
+    What changed:
+    - `tests/conftest.py`: it now has the `result_case` fixture, with the same parameters, docstring and `open_push_case("result", ...)` call as the two copies. It also imports `PushCase` and `open_push_case` from `push_retry_support`.
+    - `tests/application/test_push_retry_server_lines.py` (this story's file): I deleted its copy of `result_case`. `ruff --fix` then removed the imports it no longer needs, and the module now imports only `PushCase` from `push_retry_support`.
+    - `tests/application/test_push_retry_reason.py`: this is an earlier story's test file, changed under the standing leave. I deleted its copy of `result_case` and removed the same unused imports. Its test keeps its name and checks the same thing.
+
+    No other test and no code changed. The mapping from criteria to tests is still the one in entry 5:
+    - criterion 1: tests/domain/test_push_reason_summary_line.py::test_the_reason_leaves_out_gits_summary_line_of_a_refused_push
+    - criterion 2: tests/domain/test_push_reason_summary_line.py::test_the_reason_leaves_out_only_the_summary_line
+    - criterion 3: tests/domain/test_push_reason_summary_line.py::test_two_server_lines_and_the_ref_line_fill_the_reason
+    - criterion 4: tests/application/test_push_retry_server_lines.py::test_a_retry_line_holds_both_server_lines_and_no_summary_line
+
+    Files created: none. Every module imported. One run of `uv run pytest -q` on the two changed test modules passed. `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
+
+    `lint`: lint: green (0.1 s)
