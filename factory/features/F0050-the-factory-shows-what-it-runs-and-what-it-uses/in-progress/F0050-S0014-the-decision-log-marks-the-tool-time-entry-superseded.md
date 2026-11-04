@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 553
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T23:52:47.385323Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-04T23:52:47.385323Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-04T23:55:21.970397Z'
+  stage: doing
+  run: c4624e32ac144116bed2bf325bf9a82e
 ---
 
 # The decision log marks the old tool-time entry as superseded
@@ -103,3 +105,13 @@ Expect: `1`.
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: Nothing built: no code change, and the working tree is unchanged. The Interface says no module under `src/factory/` changes. The only file this story edits is `docs/decisions.md`, which is outside the coder's write paths in the pipeline definition (that file belongs to the documenter's `docs/*`), and CLAUDE.md says the coder does not write the decision log. The docs stage makes the two edits from criterion 5: the `Superseded by *The cost record sums up the run's tool calls, without their content*` line under the F0012 entry at `docs/decisions.md:407`, and the `This supersedes *The time per tool command inside a run is not recorded*.` sentence after the Decision of the S0006 entry at `docs/decisions.md:1537`. I checked that both entries are where the description says.
+
+   - Main choice: hand forward with no change and leave the edit to the documenter. Rejected: editing `docs/decisions.md` here. The factory's take would drop that edit as outside the coder's write paths, and CLAUDE.md gives the decision log to the documenter.
+   - Refactor step: there is no diff, so there was nothing to refactor.
+   - The journal did not change the meaning of the task, so `## Description` was not rewritten.
+   - `make test` and `make check` ran green before handing on (`test: green (118.1 s)`, `check: green`, coverage 99.26 %).
+   - Noticed, not touched: the log uses two forms for supersession, a plain `Superseded by *...*` sentence (`docs/decisions.md:17`, 397, 874) and a `- Superseded in part by "..."` bullet. The Interface gives the bullet form with italics, which the documenter can follow as written.
+
+   `check`: check: green (not run again: passed on tree 066290bec96a at 2026-11-04T23:41:19Z)
+   `duplicates`: duplicates: 4 new, 41 known, 2 gone
