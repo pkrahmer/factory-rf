@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 548
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T21:38:34.088778Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-04T21:38:34.088778Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-04T21:38:56.801994Z'
+  stage: intake
+  run: 1d92dce72c6345c9b8d3e2d4c08c9d9b
 ---
 
 # A push's reason keeps the server's words
@@ -78,3 +80,9 @@ Expect: a line that ends in `passed` with no `failed`.
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: `factory.domain.git.push_reason(output: str) -> str` exists with this signature (src/factory/domain/git.py:153). The story names the module, the signature, and the new exclusions (exact `Done`, lines starting `To `, whitespace collapse). It names the new test module and keeps S0008's.
+   - Criteria: every Interface clause has a criterion. Criterion 1 is the full example. Criterion 2 has the rows for the dropped lines (`Done` with leading spaces, `To <url>`) and the kept lines (`remote: Done`, `remote: To be retried`). Criterion 3 covers whitespace collapse and a tab-only line counting as empty. Criterion 4 covers the 3-line and 300-character limits with the frame present. Criterion 5 is the end-to-end retry-line case with a pre-receive hook. Each can be tested by one function, and the failing sides (dropped vs kept) are both covered. One small gap: nothing tests a `To ` line with leading spaces. The Interface says "after stripping", and the Done row already shows that stripping applies, so I did not ask.
+   - Smoke test: both commands are runnable. pyproject's `addopts` already has `-q`, and the pytest command passes none. The Expects are checkable (an exact string, and a trailing `passed` with no `failed`).
+   - Architecture: the change is in the domain layer, a pure function with no I/O. `push_is_retried` stays untouched.
+   - Scope: it fits F0050's S0008 follow-up (S0011 is listed in feature.md, from A0001). It is not in the Out of scope list. Retry rules and limits do not change.
