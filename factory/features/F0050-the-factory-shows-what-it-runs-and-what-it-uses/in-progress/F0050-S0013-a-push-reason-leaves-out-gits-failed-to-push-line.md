@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T23:37:02.291895Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-04T23:36:54.746911Z'
   stage: doing
   run: 700f611199504461becf6fcbfe45a142
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:37:02.291895Z'
+  stage: review
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -142,3 +151,4 @@ Expect: a line that ends in `passed` with no `failed`.
 
    `check`: check: green
    `duplicates`: duplicates: 4 new, 41 known, 2 gone
+8. factory: started review as vm.
