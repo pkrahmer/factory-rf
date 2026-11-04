@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947, 6634929291]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T15:49:17.624542Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -214,6 +218,11 @@ journal:
   at: '2026-11-04T15:49:11.234055Z'
   stage: review
   run: 6a48f30584be4ac8b54cbc8037a86355
+- number: 38
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:49:17.624542Z'
+  stage: docs
 ---
 
 # One fetch per iteration
@@ -596,3 +605,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     - `tests/entry/test_run_project_image_rebuild.py`: the human's leave, entry 11 (only the signature of `run`).
     - `tests/entry/test_run_stop_requested.py`: the human's leave, entry 11 (only the signature of `run`).
     - `tests/scripted_tick_support.py`: the human's leave, entry 11 (only the signature of `run`).
+38. factory: started docs as vm.
