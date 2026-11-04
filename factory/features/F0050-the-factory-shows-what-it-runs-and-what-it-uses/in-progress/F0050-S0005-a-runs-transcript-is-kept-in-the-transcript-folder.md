@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T15:57:50.600196Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T15:57:50.593155Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:57:50.600196Z'
+  stage: intake
+---
+
 # A run's transcript is kept in the transcript folder
 
 ## Description
@@ -37,3 +64,6 @@ grep -rhoE 'transcript: (not kept for|removed)' src/factory | sort -u
 Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, then the two lines `transcript: not kept for` and `transcript: removed`.
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
