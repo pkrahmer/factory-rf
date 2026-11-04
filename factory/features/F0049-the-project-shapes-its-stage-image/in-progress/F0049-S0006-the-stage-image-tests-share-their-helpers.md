@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 532
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T02:55:23.838822Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-04T02:55:23.838822Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-04T02:58:58.034318Z'
+  stage: doing
+  run: dde8291222ab4db59a971234d192b206
 ---
 
 # The stage image's tests share their helpers and pin the image without an environment
@@ -116,3 +118,19 @@ Expect: `0`, `0`, then a line that ends in `passed` with no `failed`.
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: Built nothing. This story changes only tests, and the tester already made those changes (tests/adapters/test_podman_images.py, tests/entry/test_wiring_image_path.py, tests/entry/test_wiring_run.py, tests/application/test_tick_preflight.py). The new `null` row passes against the existing `src/factory/adapters/podman_images.py`, so no code under `src/factory/` changes, as the Interface requires. `git diff main --stat -- src` is empty.
+
+   Main choice: leave the working tree as the tester left it and only confirm the gate. The alternative I rejected was touching `PodmanImages.path` to name the `null` case explicitly. Behaviour would stay the same, but the Interface forbids any `src/` change.
+
+   Checks:
+   - `make check`: green (`test: green (85.6 s)`, `check: green`).
+   - Smoke test greps: `0` and `0`.
+
+   Refactor: there is no diff of mine, so there was nothing to refactor.
+
+   The journal did not change the meaning of the task, so I did not rewrite the Description.
+
+   Noticed, not touched: `STAND_IN` in tests/adapters/test_podman_images.py is still a variant of `PODMAN_SCRIPT` in tests/podman_support.py. The Description leaves that to a later story.
+
+   `check`: check: green
+   `duplicates`: duplicates: 0 new, 43 known, 0 gone
