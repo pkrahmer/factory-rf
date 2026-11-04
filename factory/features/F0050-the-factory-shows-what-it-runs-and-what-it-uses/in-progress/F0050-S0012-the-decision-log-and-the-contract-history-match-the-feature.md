@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 550
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T23:03:24.449284Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-04T23:03:19.110980Z'
   stage: docs
   run: e1ffcb88e564452fb150cf82dfab16c9
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:03:24.449284Z'
+  stage: smoke-test
 ---
 
 # The decision log and the contract's history match the feature
@@ -167,3 +176,4 @@ Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
     `check`: check: green (not run again: passed on tree a4a57514a13e at 2026-11-04T22:47:18Z)
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
