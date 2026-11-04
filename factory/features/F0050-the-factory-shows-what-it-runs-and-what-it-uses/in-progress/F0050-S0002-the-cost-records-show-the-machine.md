@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 539
-comments_read: []
+comments_read: [6628314128]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 6e70f038875745769734c3dc9db62f8b
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-04T10:21:39.749988Z'
+  stage: intake
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -91,3 +96,11 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
    5. The Interface says the image sizes are measured "when the factory builds or adopts an image". Criterion 3 only says they change after a build or a return to the base. Adopting an image (reusing an existing one with no build) has no criterion. Proposed: add a row where an adopted image gives the sizes without a build.
 
    6. The warnings rule has no criterion for case-insensitivity ("WARN" or "warning", case ignored) beyond the three listed rows. For example, a lowercase `warn` line and a mixed-case `Warning` line. Proposed: one row for each.
+4. 2026-11-04 human: Answers of the human: all six as proposed.
+
+   1. Yes: drop the `-q` from the third command (`uv run pytest tests/domain 2>&1 | tail -1`); the `Expect:` stays.
+   2. Yes: one criterion with a row per field: `store_free_bytes` is the free space of the file system that holds podman's image store, `dataset_free_bytes` the free space of `FACTORY_WORKSPACE`, `memory_total_bytes` is `MemTotal` of `/proc/meminfo` converted from kB to bytes (×1024).
+   3. Yes: a GB in the log lines is 10^9 bytes; a row where 1_580_000_000 gives `1.58`.
+   4. Yes: a row for `stage image: base <GB> GB`, its form, and that it is written once at the factory's start for an instance without a stage file.
+   5. Yes: a row where an adopted image (an existing one reused with no build) gives both sizes without a build.
+   6. Yes: one row for a lowercase `warn` line and one for a mixed-case `Warning` line, each counted.
