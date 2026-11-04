@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T21:20:42.744958Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-04T21:20:36.680857Z'
   stage: intake
   run: 3621820853474558b49dc2a9d78a859d
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:20:42.744958Z'
+  stage: tests
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -126,3 +135,4 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
    - Smoke test: both commands are runnable. The pytest line passes no `-q`, and `addopts` already sets it. Both `Expect:` lines can be checked against the output.
    - Architecture: the change stays in the domain layer. It does no I/O and adds no wiring. The records contract is unaffected.
    - Scope: it is the feature's story S0009 (from A0001) on tool-call timing, consistent with S0006's summary of tool calls. It touches nothing in the feature's Out of scope.
+7. factory: started tests as vm.
