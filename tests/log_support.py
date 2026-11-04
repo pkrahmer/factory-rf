@@ -5,7 +5,8 @@ from pathlib import Path
 
 def log_lines(tmp_path: Path) -> list[str]:
     """Return the lines of the factory log under `tmp_path`, none when it does not exist."""
-    return state_log_lines(tmp_path / "state")
+    log = tmp_path / "state" / "factory.log"
+    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
 
 
 def state_log_lines(state_directory: Path) -> list[str]:

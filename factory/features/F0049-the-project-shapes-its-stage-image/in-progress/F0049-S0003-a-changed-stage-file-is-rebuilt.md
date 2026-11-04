@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T01:55:37.386589Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-04T01:55:37.386589Z'
   stage: tests
+- number: 27
+  speaker: tester
+  kind: result
+  at: '2026-11-04T01:56:07.131843Z'
+  stage: tests
+  run: 5ffb3982121e455c93c7fd9b6801bea6
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -425,3 +427,18 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
 
     `make check`: red. lint, types, layers, sast, secrets and licenses passed. `make test` failed only on the three rows above. Coverage is 99.51 %.
 26. factory: started tests as vm.
+27. tester: I made the test change the coder named in entry 25. Nothing else changed.
+
+    Change, in `tests/log_support.py` only:
+    - `log_lines` has its original two-line body back, as on `main`: `log = tmp_path / "state" / "factory.log"` and the `read_text … if log.exists() else []` return.
+    - `state_log_lines(state_directory)` stays as it is. `tests/entry/test_run_project_image_rebuild.py` uses it because the `instance_settings` fixture keeps the log under `tmp_path / "instance-state"`.
+
+    Why: `tests/test_shared_bodies.py` finds copies of `log_lines` by comparing their bodies with its `THE_LOG_BODY` sample. In entry 23 I made `log_lines` delegate to `state_log_lines`, so its body no longer matched the sample. Three rows of that test failed: the-log-under-another-name, with-a-docstring and under-a-decorator. Restoring the body leaves the earlier story's guard test untouched. `state_log_lines` has a different body, so the guard does not count it as a copy.
+
+    Test run: `uv run pytest -q tests/log_support.py tests/test_shared_bodies.py tests/entry/test_run_project_image_rebuild.py tests/application/test_tick_preflight.py tests/test_shared_imports.py` passed every test. Every module imported.
+
+    `make lint`: lint: green (0.2 s).
+
+    Files changed: tests/log_support.py. No files created. The mapping from criteria to tests in entry 8 still holds.
+
+    `lint`: lint: green (0.1 s)
