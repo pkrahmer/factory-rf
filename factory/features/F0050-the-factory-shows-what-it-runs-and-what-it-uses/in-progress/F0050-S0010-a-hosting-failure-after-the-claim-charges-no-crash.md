@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T22:49:33.422126Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-11-04T22:49:33.422126Z'
   stage: review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T22:50:32.846721Z'
+  stage: review
+  run: fa030a0163fa436bb90a26317f3c3b04
 ---
 
 # A hosting failure after the claim charges no crash
@@ -195,13 +197,13 @@ S0008 pinned what happens when the hosting service fails right after a stage's c
 
 1. A tick whose stage meets a hosting failure in `ensure_pull_request` after the claim was pushed leaves the branch with no claim, and the agent runtime has no call. At the next tick, with the hosting service back, the journal has no `crash` entry, the crash count is 0, and the stage starts and runs its agent.
 2. When the release's push is refused four times (the retries spent), the claim stands, and the next tick records a crash, as today. Rows: the release pushed on the first try, the release pushed after two refusals, the release refused four times.
-3. The handler error of the failed tick is counted and logged as S0008 built it (`handler error <event key> 1 of 3: HostingServiceError: ...`). The cap of three is unchanged: three failing ticks in a row reach it.
+3. The failed tick's handler error is logged as S0008 built it (`handler error <event key> 1 of 3: HostingServiceError: ...`); because the release moves the branch, each failing tick counts from 1 again: three failing ticks in a row each log `1 of 3`, and no error stop is posted.
 4. An error other than `HostingServiceError` after the claim (for example `WorkItemFormatError` for a body with no title line) releases nothing and is handled as today.
 5. S0008's test `test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick` passes without its `xfail` mark.
 6. The `HostingServiceError` reaches the caller as the same exception object, not wrapped. Rows: the release push succeeds; the release push fails (criterion 2's case).
 7. The release is one commit with the subject `commit_subject(<id>, "claim released: hosting failed")`; the journal has no new entry, and attempts and round are unchanged.
 8. `make check` stays green.
-9. docs: `docs/operator-guide.md`, in the section on stops and errors where S0008 described a hosting outage: a hosting failure right after a claim releases the claim, so it charges no crash. `docs/decisions.md`: one entry with the reason (a crash was charged for a stage in which no agent ran, found by S0008's test) and the approach the human chose. `README.md` and the project guide: none.
+9. docs: `docs/operator-guide.md`, in the section on stops and errors where S0008 described a hosting outage: a hosting failure right after a claim releases the claim, so it charges no crash; because each release moves the branch, such an outage never reaches the error cap and posts no error stop: the factory retries every tick until the service is back. `docs/decisions.md`: one entry with the reason (a crash was charged for a stage in which no agent ran, found by S0008's test), the approach the human chose, and its consequence (the error count starts at 1 on every failing tick, so the outage retries every tick and reaches no cap). `README.md` and the project guide: none.
 
 ## Smoke test
 
@@ -409,3 +411,29 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
 29. factory: started review as vm.
+30. reviewer: Review of round 1. I read `src/factory/application/stage.py` (`_start` and `_release_after_hosting_failure`), `tests/application/test_hosting_failure_releases_claim.py`, the changes to `tests/application/test_hosting_failure_after_claim.py` and `tests/conftest.py`, and the work item. The code is unchanged since round 0 and still does what the Interface says:
+    - It catches only `HostingServiceError`, and only from `ensure_pull_request`.
+    - It makes one release commit through `ClaimService.release` with the subject from `commit_subject` and pushes it through `push_with_retries`.
+    - If that push raises `PushFailed`, it logs the failure and swallows it. The original error then goes up through a bare `raise`.
+
+    The coder's last `make check` was green (journal 28). The 4 new `make duplicates` findings are in modules this diff does not touch.
+
+    Round 0's findings:
+    - 3, 4 and 5 are fixed (journal 26).
+      - 3: the fixture is now shared as `failed_after_claim` in `tests/conftest.py`.
+      - 4: `_handler_errors` reads `state_log_lines`.
+      - 5: the `release-refused` row now checks that the claim stands.
+    - My note is fixed too: the row `pushed-after-three-refusals` is in.
+    - 1 and 2 were stuck: neither the coder nor the tester may write the work item, so I made both edits myself. Journal 9 settles them, and I changed nothing else in the work item.
+
+    no findings
+
+    description corrected: criterion 3 "The handler error of the failed tick is counted and logged as S0008 built it (`handler error <event key> 1 of 3: HostingServiceError: ...`). The cap of three is unchanged: three failing ticks in a row reach it." -> "The failed tick's handler error is logged as S0008 built it (`handler error <event key> 1 of 3: HostingServiceError: ...`); because the release moves the branch, each failing tick counts from 1 again: three failing ticks in a row each log `1 of 3`, and no error stop is posted." (the human's wording, journal 9)
+    description corrected: criterion 9's `docs/operator-guide.md` item "a hosting failure right after a claim releases the claim, so it charges no crash" -> the same, plus "because each release moves the branch, such an outage never reaches the error cap and posts no error stop: the factory retries every tick until the service is back". Its `docs/decisions.md` item now also names that consequence: the error count starts at 1 on every failing tick, so the outage is retried every tick and reaches no cap. This is the behaviour the human chose in journal 9, and the documenter writes from this criterion.
+
+    Earlier tests:
+    - `tests/application/test_hosting_failure_after_claim.py`: changed under the human's leave and the standing leave.
+      - Human's leave, journal 4: the `xfail` mark came off.
+      - Human's leave, journal 14: `test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_run` was deleted, and so was the `branch_state` import that the deletion left unused.
+      - Standing leave to move a shared test helper (journal 26): the fixture `failed_after_claim` moved to `tests/conftest.py`, and the `import pytest` it left unused went too. `test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick` keeps its name and what it checks.
+    - `tests/conftest.py`: standing leave to move a shared test helper. It only gains the moved fixture `failed_after_claim`, with the same body and docstring, and the `run_ticks` import it needs.
