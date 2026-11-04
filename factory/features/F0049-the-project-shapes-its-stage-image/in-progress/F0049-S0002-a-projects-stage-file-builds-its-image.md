@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T01:19:32.075818Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -273,6 +269,12 @@ journal:
   kind: started
   at: '2026-11-04T01:19:32.075818Z'
   stage: smoke-test
+- number: 48
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T01:19:56.921710Z'
+  stage: smoke-test
+  run: e2d301daabb04484a3d9a06c56879ef7
 ---
 
 # A project's stage file builds the image its stages run in
@@ -819,3 +821,33 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     `secrets`: secrets: green (3.3 s)
     `documents`: documents ok
 47. factory: started smoke-test as vm.
+48. smoke-tester: Round 2 smoke test. I ran the three commands under `## Smoke test` from the repository root, in order and exactly as written. None of them starts a server. I fixed nothing.
+
+    Command 1: `grep -rlE 'def stage_layer\(' src/factory/domain | wc -l`
+    ```
+    1
+    ```
+    Expected `1`. Met.
+
+    Command 2: `grep -rlF '"factory/stage.Containerfile"' src/factory | wc -l`
+    ```
+    1
+    ```
+    Expected `1`. Met.
+
+    Command 3: `grep -rhoE '"stage_image_failed"' src/factory/domain | sort -u`
+    ```
+    "stage_image_failed"
+    ```
+    Expected the single line `"stage_image_failed"`. Met.
+
+    I then read the acceptance criteria (1 to 16) again. The smoke test confirms three things:
+    - one definition of `stage_layer` in `factory.domain` (Interface, criterion 1);
+    - `STAGE_FILE` defined in exactly one place (Interface);
+    - the new stop reason `stage_image_failed` in the domain (criteria 6, 11, 12).
+
+    Nothing in this output contradicts any criterion, including the ones the commands do not target. The commands do not exercise the behaviour of criteria 3 to 10, 13 and 14 (the build, the `PATH`, the podman adapter). The tests cover those, per the reviewer's entry 44. Criterion 15 (`make check` green) is the factory's gate, and entry 46 records it as green on the current tree. I did not run it again because this stage changes nothing.
+
+    Findings: none.
+
+    Open: nothing.
