@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T14:13:00.357995Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -179,6 +175,12 @@ journal:
   kind: started
   at: '2026-11-04T14:13:00.357995Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T14:14:21.505265Z'
+  stage: review
+  run: 919e1256089a4eacbbe26dc562be4816
 ---
 
 # A stop says why, and is logged once
@@ -192,19 +194,19 @@ Two things this week made the factory's stops hard to read from a distance. Firs
 - `factory.domain.checks.command_ending(result: CheckResult) -> str`: `exit status <n>` for a non-negative exit status, `signal <n>` for a negative one (the process runner reports a signal as `-<n>`), `time_limit` for a result at its time limit.
 - `_failing_detail(result, main)` in `factory.application.preflight` uses it when `result.last_line` is blank: `<command> ended by <ending> and printed nothing on main at <commit>` (for an exit status: `ended with exit status <n>`), for example `make lint ended by signal 15 and printed nothing`.
 - `StopService.raise_stop` never writes an empty or blank detail: it replaces one with `no detail given`, for any stop reason, so none reaches the log, the health status or the stop records.
-- `Boundaries` gains `stop_requested: Callable[[], bool]`, default `lambda: False`, wired in `factory.entry.run` to the `is_set` of the event that `install_stop_handlers` sets. A probe of `main` whose command ended while `stop_requested()` is true is not judged: it raises no stop, writes no preflight stamp and records nothing as failed. The next start probes again. A probe ended by signal 15 while `stop_requested()` is false is judged as today. The rule holds for the probe of `main` only.
+- `Boundaries` gains `stop_requested: Callable[[], bool]`, default `lambda: False`, wired in `factory.entry.run` to the `is_set` of the event that `install_stop_handlers` sets. A probe of `main` whose command ended while `stop_requested()` is true is not judged: it raises no stop, writes no preflight stamp and records nothing as failed, and the tick that ran it ends without dispatching (`TickOutcome()`, neither a stop nor an event). The next start probes again. A probe ended by signal 15 while `stop_requested()` is false is judged as today. The rule holds for the probe of `main` only.
 - `StopService.raise_stop` writes the line `stop <scope> <reason>: <detail>` only when the stop does not stand yet, or stands with another detail; a raise of the same stop with the same detail writes nothing to the log. The health status takes the newest detail; the stop records note the first raise and the clear, and a raise with another detail while the stop stands adds no record. `stop cleared <reason>` stays as it is.
 
 ## Acceptance criteria
 
 1. A failed probe of `main` whose output is empty raises `main_branch_failing` with a detail that names the command and its exit status or signal. Rows: an exit status with no output, a signal with no output (with `stop_requested()` false, signal 15 among them), output of blanks only.
-2. A probe of `main` that is cut off by the factory's own stop (`stop_requested()` true) raises no `main_branch_failing`, writes no stamp with `main_failed`, and the next start runs the probe again.
+2. A probe of `main` that is cut off by the factory's own stop (`stop_requested()` true) raises no `main_branch_failing`, writes no stamp with `main_failed`, the tick that ran it dispatches nothing, and the next start runs the probe again.
 3. A stop raised on three iterations in a row with the same detail writes its log line once; a raise with another detail writes it again; after a clear, the next raise writes it again. Rows: same detail, other detail, raise after clear.
 4. The health status and the stop records are unchanged by criterion 3: the health status holds the newest detail, and the records note the first raise and the clear; a raise with another detail while the stop stands adds no record.
 5. `command_ending` gives `exit status <n>` for exit status 0 and for a positive one, `signal <n>` for a negative one, and `time_limit` for a result at its time limit. Rows: 0, 2, -15, at the time limit.
 6. `StopService.raise_stop` replaces an empty detail and a blank detail with `no detail given`, in the log, the health status and the records. Rows: empty, blank.
 7. `make check` stays green.
-8. docs: `docs/operator-guide.md`: in the section on stops, that a stop's detail always says why, that a command cut off by the factory's own stop is not judged, and that a standing stop writes its log line once and again only when its detail changes. `docs/decisions.md`: one entry with the reason (two stops of this week with an empty detail that were caused by a restart; the log's repetitions during an outage). `README.md` and the project guide: none.
+8. docs: `docs/operator-guide.md`: in the section on stops, that a stop's detail always says why, that a probe of `main` cut off by the factory's own stop is not judged and its tick claims no work, and that a standing stop writes its log line once and again only when its detail changes. `docs/decisions.md`: one entry with the reason (two stops of this week with an empty detail that were caused by a restart; the log's repetitions during an outage). `README.md` and the project guide: none.
 
 ## Smoke test
 
@@ -499,3 +501,32 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
 30. factory: started review as vm.
+31. reviewer: Review of `git diff main...HEAD -- . ':!factory'` against the work item, round 2.
+
+    no findings
+
+    description corrected:
+    - Interface, the `stop_requested` line: "...records nothing as failed. The next start probes again." -> "...records nothing as failed, and the tick that ran it ends without dispatching (`TickOutcome()`, neither a stop nor an event). The next start probes again." This is settled by review finding 2 in entry 23 and the coder's entry 25. The factory had dropped the coder's own edit (entries 25, 27, 29).
+    - Criterion 2: "...writes no stamp with `main_failed`, and the next start runs the probe again." -> "...writes no stamp with `main_failed`, the tick that ran it dispatches nothing, and the next start runs the probe again." Same source as above. The test is already there: `tests/application/test_preflight_stop_detail.py::test_a_tick_whose_probe_the_factorys_stop_cut_off_dispatches_nothing`.
+    - Criterion 8 (docs): "that a command cut off by the factory's own stop is not judged" -> "that a probe of `main` cut off by the factory's own stop is not judged and its tick claims no work". This matches the scope the human gave in entry 4, answer 4 (the probe of `main` only), and the tick behaviour built in round 2, so the documenter writes both.
+
+    Checked and holding:
+    - Round 1 finding 1 is fixed. `Tick.run` (`src/factory/application/tick.py:115-118`) returns `TickOutcome()` after the preflight while `stop_requested()` is true. It does this before `delete_stale_branches`, the watcher and the dispatch. `activity` (`src/factory/entry/run.py:60`) and `_is_idle` (`src/factory/application/idle_shutdown.py:69`) read it as neither work done nor idle. The `TickOutcome` docstring says what "neither" means. The `Tick.run` docstring ("A stop ends the tick") still holds, and `tests/application/test_tick_docstrings.py` pins it.
+    - Round 1 finding 2: the new tick test reaches the early return (the tester's check in entry 27). It asserts one probe, `TickOutcome()`, no `main_branch_failing`, no agent request and no pull request.
+    - Criteria 1 to 6 each have a parametrized test with the rows the criterion names:
+      - criterion 1: exit status 2, signal 15 and signal 9 with `stop_requested` false, and blanks-only output;
+      - criterion 5: 0 and 2 on the non-negative side, -15 on the negative side, and the time limit;
+      - criterion 4: the row where another detail adds no record;
+      - criterion 6: empty and blank, in the log, the health status and the records.
+    - The wiring to the stop event is pinned by `tests/entry/test_run_stop_requested.py`, through `_ProjectImageStart._choose` (`src/factory/entry/run.py:276-278`).
+    - The journal records the coder's `make check` as green (entry 29). The red run in entry 19 was `tests/adapters/test_process_streaming.py`, which this diff does not touch.
+    - Layers hold: `command_ending` is in the domain, its use and the tick check in the application, the wiring in the entry layer.
+    - No silencing markers, no secrets, no string-built commands.
+    - `make duplicates` reports 3 new findings. All are in `src/factory/domain/cost_records.py`, which this diff does not change.
+
+    Notes:
+    - `tests/application/test_preflight_stop_detail.py:37` (`_answering`) is a copy of `_answering` in `tests/application/test_preflight_run.py:38`. It could move to `tests/preflight_support.py` under the standing leave.
+    - `tests/application/test_preflight_stop_detail.py:26-34` (`_ended`) and `tests/domain/test_command_ending.py:22-29` each build the same no-output `CheckResult` from an exit status.
+    - `tests/application/test_preflight_stop_detail.py:23` (`BACKLOG_PATH`) copies the constant that `tests/crash_support.py:31` already holds. It could be imported from there.
+
+    Earlier tests: none. The diff only adds test files (`tests/application/test_preflight_stop_detail.py`, `tests/application/test_stop_log_once.py`, `tests/domain/test_command_ending.py`, `tests/entry/test_run_stop_requested.py`).
