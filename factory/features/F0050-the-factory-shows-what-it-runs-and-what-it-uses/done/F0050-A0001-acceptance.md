@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -30,8 +30,13 @@ journal:
   at: '2026-11-04T21:05:11.697260Z'
   stage: acceptance
   run: d838ec979f1b447a9f2008cabc6ede12
+- number: 5
+  speaker: factory
+  kind: done
+  at: '2026-11-04T21:15:18.589309Z'
+  stage: done
 stories: [F0050-S0001, F0050-S0002, F0050-S0003, F0050-S0004, F0050-S0005, F0050-S0006, F0050-S0007, F0050-S0008]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The factory shows what it runs and what it uses
@@ -326,3 +331,4 @@ Human interventions: 24 questions answered, by cause question 21, round_cap 2 (S
    6 Decisions: feature decisions 1 to 11 plus the journals' answers and defaults are listed. Open for the human: run `vm/setup.sh` again for `FACTORY_TRANSCRIPT_DIR`, refresh the duplicates baseline, and pick S0010's approach. Every earlier test was changed under a named leave.
    7 Slow checks: nothing beyond `make check`, which was green (99.25 %). The slowest tests are the 10 s `ROOMY_LIMIT` ones. Disk went from 1.4 GB to 1.3 GB used, so there is no growth.
    8 Cost: 150 runs, 287.2 min, $61.26. S0002 stands out at $11.83: two tests-stage crashes from refused pushes during GitHub's incident reached the crash cap. 24 questions answered (question 21, round_cap 2, crash_cap 1), 2.8 h waited. S0002 needed the human most (six answers).
+5. factory: done (pull request merged); cost: 1 runs, 13.1 min, 60 turns, 164029 tokens in (6331793 more from cache), 53600 out, $3.65
