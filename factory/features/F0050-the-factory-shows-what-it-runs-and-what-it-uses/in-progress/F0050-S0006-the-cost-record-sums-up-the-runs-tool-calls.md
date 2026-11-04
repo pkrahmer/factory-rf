@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913, 6640096367]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T19:39:32.226213Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -228,6 +224,12 @@ journal:
   kind: started
   at: '2026-11-04T19:39:32.226213Z'
   stage: review
+- number: 40
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T19:40:11.762684Z'
+  stage: review
+  run: dba732e570124c1b9d699f655499ed1b
 ---
 
 # The cost record sums up the run's tool calls
@@ -624,3 +626,31 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
 39. factory: started review as vm.
+40. reviewer: Review of the narrow round the human asked for at the round cap (entry 30). I read the work item, the diff's stat and this round's change: `transcript_lines` in `src/factory/domain/transcripts.py` (coder, entry 34) and the new rows in `tests/adapters/test_runtime_tool_uses.py` (tester, entry 36). As entry 30 asks, I checked nothing else again. Everything else stands as judged in entries 20 and 28.
+
+    Finding 1 of entries 28 and 32 is closed:
+    - In the code, `transcript_lines` now splits the decoded text on `"\n"` only, and the comment says why.
+    - Blank pieces are still skipped in `_objects`. A trailing `\r` is whitespace, which `json.loads` accepts.
+    - Both runtime tests have a `raw-line-separators-in-input-and-output` row. Each row writes a call's input and its output or error with raw U+2028 and U+0085 (`_unescaped` re-serializes with `ensure_ascii=False`), and checks that the call is still counted with its seconds. Under the old `splitlines` these rows would have produced `None`, so they test the fix.
+    - Entry 38 records `make check` green with those rows.
+
+    The Description and the docs criterion still match what was built.
+
+    no findings
+
+    Notes:
+    - `tests/application/test_stage_tool_uses.py:51-60` (`_staged`) repeats the settings and store update of `_with_transcripts` in `tests/application/test_stage_transcripts.py:45-49`. It stays a note (entry 30).
+    - `tests/adapters/test_runtime_tool_uses.py:28` (`_unescaped`) is a local re-serializer. If later stories need raw (unescaped) lines, `claude_lines` in `tests/tool_use_support.py` and `tool_use` in `tests/adapters/opencode_stand_in.py` could take an `ensure_ascii` switch instead.
+    - `src/factory/adapters/opencode_runtime.py:351` (`_events`), which predates this story, still splits with `splitlines`. It skips lines it cannot read, so `tools` is not lost. A stream event that holds U+2028 is dropped from the run's own event reading, though. This is an edge case of input parsing for the human (entry 30), not a finding.
+
+    Earlier tests (changed test files that `main` already holds):
+    - `tests/application/test_interfaces.py`: the human's leave, journal entry 4 (`tool_uses` added to `AgentRuntime`'s pinned operations).
+    - `tests/application/test_agent_run_probe.py`: the human's leave, journal entry 4 (`RefusingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/application/test_stage_run.py`: the human's leave, journal entry 4 (`HeadNotingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/container_support.py`: the human's leave, journal entry 4 (`WorkspaceRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/observing_runtime.py`: the human's leave, journal entry 4 (`ObservingRuntime.tool_uses` returns `None`, plus its import).
+    - `tests/domain/test_contract.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`).
+    - `tests/domain/test_contract_version_4.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
+    - `tests/domain/test_contract_version_4_2.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
+    - `tests/application/test_stage_transcripts.py`: the standing leave to move a shared test helper (`_records` replaced by the shared `pushed_cost_records`, its unused imports removed; every test keeps its name and what it checks).
+    - `tests/stage_run_support.py`: the standing leave to move a shared test helper (`pushed_cost_text` and `pushed_cost_records` added; nothing earlier changed).
