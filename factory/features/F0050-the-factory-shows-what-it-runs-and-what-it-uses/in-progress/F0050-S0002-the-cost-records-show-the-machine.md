@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T11:49:29.536407Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -188,6 +184,12 @@ journal:
   kind: started
   at: '2026-11-04T11:49:29.536407Z'
   stage: doing
+- number: 33
+  speaker: coder
+  kind: result
+  at: '2026-11-04T11:52:33.768329Z'
+  stage: doing
+  run: a1d232a5bf9e42b798772ebc0e98b970
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -517,3 +519,25 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     - tests/entry/test_run_project_image_rebuild.py: the human's leave, entry 18 answer 3 (the two expected build lines, `ScriptedImages` on the shared `SizedImages`, and its import).
     - tests/test_docker_path_removed.py: the human's leave, entry 23 answer 1 (`_no_module_reads_proc` narrowed through `PROCESS_TABLE`, and one parametrized test with the meminfo, pid, self and bare rows).
 32. factory: started doing as vm.
+33. coder: Round 1. I fixed the two findings that were mine (5 and 6). Findings 1 to 4 need test changes, so I am handing them to the tester. `make check` is green (coverage 99.37 %). I changed no test.
+
+    What I built:
+    - Finding 5, the image sizes measured twice. `src/factory/entry/wiring.py` has a new `chosen_image(settings, git, images, stops, *, report=None) -> ChosenImage | None`. `ChosenImage` holds the settings and their `ImageSizes`, or `None` when no base image is named. It measures the sizes once per chosen image and uses that one measurement for the log line too. The base-only path is the private `_base_image`. `project_image_settings` keeps its signature and return type and now returns `chosen_image(...).settings`. In `src/factory/entry/run.py`, `_ProjectImageStart._choose` calls `chosen_image` and puts `chosen.sizes` into the boundaries through `_sized(boundaries, sizes)`, now a module-level function. It no longer calls `image_sizes` a second time, so the log line and the records cannot disagree.
+    - Finding 6: in the work item, criterion 13 now asks the operator guide for the sentence on the `job` container profile: the containers run as root, so the user slice may be another cgroup, and the measures may then be `None` or another slice's. It also asks for the new log lines with `unknown` for a size that cannot be read. I left the Description unchanged, because the journal changed no meaning beyond criterion 11 (which the reviewer wrote) and this docs addition.
+
+    Main decision: I split out `chosen_image` and left the return type of `project_image_settings` unchanged. I rejected changing its return type, because the tests of earlier stories (`tests/entry/test_wiring_project_image.py`, `tests/entry/test_wiring_stage_image_sizes.py`) use its value as `InstanceSettings`. A side effect: `project_image_settings` now reads the sizes also without a report. That is still once per choice, never per run.
+
+    For the tester (the reviewer's findings 1 to 4, and its note):
+    1. Criterion 11: one row each. A size that cannot be read is written `unknown` in the log lines (`base unknown`, `layer unknown`). A project image smaller than its base gives a layer of `None` (`layer unknown`). A running total lower at the end than at the start gives `None` for its difference.
+    2. Criterion 4, `tests/application/test_cost_record_machine_measures.py`: a row that takes a record through `CostRecorder.begin` and then `complete`. The fake readings give one set of totals at `begin` and a higher set at `complete`, and the written record holds their differences.
+    3. Criteria 2 and 7, `tests/adapters/test_podman_images.py`, with its podman stand-in. Rows for `PodmanImages.size_bytes`: a number gives the size; no number, or a failed call, gives `None`. Rows for `PodmanImages.store_path`: it gives the GraphRoot folder; a failed call gives `None`.
+    4. `tests/entry/test_wiring_stage_image_sizes.py::test_a_return_to_the_base_logs_the_base_size_without_a_build`: it pins a line the factory never writes. Change it to assert that a return to the base gives both sizes (through `image_sizes`, layer `0`), runs no build, and writes no `stage image: base` line.
+    - Note: in `tests/domain/test_cost_record_machine.py::test_a_machine_measure_is_accepted_only_in_its_range`, a row for each float field at `math.inf`, refused.
+
+    Refactor: I read my diff and found nothing more to change.
+
+    Noticed, not touched: the 3 vulture false positives on `MachineMeasures` fields in `make duplicates`, which the reviewer already judged. I did not run `make duplicates` again this round.
+
+    `check`: check: green
+
+    The factory left out changes outside the write paths: factory/features/F0050-the-factory-shows-what-it-runs-and-what-it-uses/in-progress/F0050-S0002-the-cost-records-show-the-machine.md.

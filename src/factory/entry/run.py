@@ -23,16 +23,16 @@ from factory.domain.errors import FetchFailed, MachineStopStood, SettingsInvalid
 from factory.domain.settings import STATE_DIRECTORY, InstanceSettings, named_state_directory
 from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.wiring import (
+    ImageSizes,
     build_boundaries,
     build_images,
     build_tick,
+    chosen_image,
     health_file,
     health_store,
     idle_shutdown_of,
-    image_sizes,
     machine_log,
     machine_stop_exit_of,
-    project_image_settings,
     read_environment_settings,
     read_hosting_token,
     stage_file_on_main,
@@ -258,7 +258,7 @@ class _ProjectImageStart:
         report = stage_image_report(boundaries.git, boundaries.log, boundaries.clock)
         # Without a stage file the report only tells the base's size, which the start tells once.
         told = report if has_stage_file or at_start else None
-        chosen = project_image_settings(
+        chosen = chosen_image(
             inputs.settings, boundaries.git, inputs.images, StopService(boundaries), report=told
         )
         if chosen is None:
@@ -268,20 +268,19 @@ class _ProjectImageStart:
             report.log.line(f"stage image: back to the base at {report.commit}")
         self._in_project_image = has_stage_file
         built = build_boundaries(
-            chosen, inputs.token, hosting=boundaries.hosting, images=inputs.images
+            chosen.settings, inputs.token, hosting=boundaries.hosting, images=inputs.images
         )
-        chosen_boundaries = self._sized(built, chosen.stage_image if has_stage_file else None)
-        self._tick = activity_tick(build_tick(chosen_boundaries, chosen), inputs.idle)
+        chosen_boundaries = _sized(built, chosen.sizes)
+        self._tick = activity_tick(build_tick(chosen_boundaries, chosen.settings), inputs.idle)
 
-    def _sized(self, boundaries: Boundaries, project_image: str | None) -> Boundaries:
-        # Measured here, when the image is chosen, so that no run waits for podman to tell them.
-        base = self._inputs.settings.stage_image
-        if base is None:
-            return boundaries
-        sizes = image_sizes(self._inputs.images, base, project_image)
-        return replace(
-            boundaries, base_image_bytes=sizes.base_bytes, project_layer_bytes=sizes.layer_bytes
-        )
+
+def _sized(boundaries: Boundaries, sizes: ImageSizes | None) -> Boundaries:
+    # Measured when the image is chosen, so that no run waits for podman to tell them.
+    if sizes is None:
+        return boundaries
+    return replace(
+        boundaries, base_image_bytes=sizes.base_bytes, project_layer_bytes=sizes.layer_bytes
+    )
 
 
 def _write_an_empty_health_status_when_there_is_none(state_directory: Path) -> None:

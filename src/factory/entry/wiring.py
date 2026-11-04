@@ -125,6 +125,7 @@ from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopRecor
 __all__ = [
     "CREDENTIAL_HELPER",
     "WORK_HOME_ENVIRONMENT",
+    "ChosenImage",
     "ImageSizes",
     "StageImageReport",
     "agent_environment",
@@ -138,6 +139,7 @@ __all__ = [
     "build_tick",
     "build_token_refresher",
     "build_work_item_reader",
+    "chosen_image",
     "client_credentials_source",
     "git_environment",
     "git_options",
@@ -427,6 +429,17 @@ def stage_file_on_main(git: Git) -> str | None:
     return git.show_file(_ORIGIN_MAIN, STAGE_FILE)
 
 
+@dataclass(frozen=True)
+class ChosenImage:
+    """The settings of the image every container runs in, and its sizes.
+
+    The sizes are `None` when the settings name no base image.
+    """
+
+    settings: InstanceSettings
+    sizes: ImageSizes | None
+
+
 def project_image_settings(
     settings: InstanceSettings,
     git: Git,
@@ -443,13 +456,23 @@ def project_image_settings(
     build that passed or failed writes its line to the log, and the stop's detail names the
     commit and takes its time from the report's clock.
     """
+    chosen = chosen_image(settings, git, images, stops, report=report)
+    return None if chosen is None else chosen.settings
+
+
+def chosen_image(
+    settings: InstanceSettings,
+    git: Git,
+    images: Images,
+    stops: StopService,
+    *,
+    report: StageImageReport | None = None,
+) -> ChosenImage | None:
+    """Return the image `project_image_settings` chooses, with its sizes measured once."""
     text = stage_file_on_main(git)
     if text is None:
         stops.clear_stop(_STAGE_IMAGE_FAILED)
-        if report is not None and settings.stage_image is not None:
-            sizes = image_sizes(images, settings.stage_image, None)
-            report.log.line(f"stage image: base {_size_text(sizes.base_bytes)}")
-        return settings
+        return _base_image(settings, images, report)
     base = settings.stage_image
     if base is None:
         raise SettingsInvalid(STAGE_IMAGE_VARIABLE, _MISSING)
@@ -464,8 +487,8 @@ def project_image_settings(
         _stage_image_failed(stops, _build_fault(build), report)
         return None
     stops.clear_stop(_STAGE_IMAGE_FAILED)
+    sizes = image_sizes(images, base, tag)
     if report is not None:
-        sizes = image_sizes(images, base, tag)
         report.log.line(
             f"stage image: built {layer.identity} at {report.commit} in {_whole_seconds(build)} s,"
             f" base {_size_text(sizes.base_bytes)}, layer {_size_text(sizes.layer_bytes)},"
@@ -473,7 +496,19 @@ def project_image_settings(
         )
     # Without a base identity the layer's is unknown too, and no stamp is reused.
     identity = None if settings.image is None else layer.identity
-    return settings.model_copy(update={"stage_image": tag, "image": identity})
+    project = settings.model_copy(update={"stage_image": tag, "image": identity})
+    return ChosenImage(settings=project, sizes=sizes)
+
+
+def _base_image(
+    settings: InstanceSettings, images: Images, report: StageImageReport | None
+) -> ChosenImage:
+    if settings.stage_image is None:
+        return ChosenImage(settings=settings, sizes=None)
+    sizes = image_sizes(images, settings.stage_image, None)
+    if report is not None:
+        report.log.line(f"stage image: base {_size_text(sizes.base_bytes)}")
+    return ChosenImage(settings=settings, sizes=sizes)
 
 
 def _stage_image_failed(stops: StopService, detail: str, report: StageImageReport | None) -> None:
