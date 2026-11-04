@@ -2499,7 +2499,7 @@ The push of a stage's result and the push of a change the factory records (a cra
 
 A rejection with `! [rejected]` (`non-fast-forward`, `fetch first`) is not tried again: the remote moved, and a wait does not change that. It fails at once, as does the push of a stall, which is never tried again.
 
-The reason in a `PushFailed` is git's own: the last non-empty lines of git's output, at most three, joined with ` | ` and cut to 300 characters in all. Git's advice lines are left out (`Please make sure you have the correct access rights`, `and the repository exists.` and any line that starts with `hint:`), so the cause stays in. The reason is in every report and log line that names the error, for example `push of work-item/F0001-S0001 failed: unreachable: fatal: unable to access 'https://...': Could not resolve host: github.com`.
+The reason in a `PushFailed` is git's own: the last non-empty lines of git's output, at most three, joined with ` | ` and cut to 300 characters in all. Git's advice lines are left out (`Please make sure you have the correct access rights`, `and the repository exists.` and any line that starts with `hint:`), so the cause stays in. The frame of the porcelain summary the factory asks git for (a line `To <url>` and the line `Done`) is left out too, so the server's own `remote:` lines stay in; a line such as `remote: Done` is kept. Every run of whitespace in a kept line, a tab included, becomes one space, so the reason is one plain line. The reason is in every report and log line that names the error, for example `push of work-item/F0001-S0001 failed: unreachable: fatal: unable to access 'https://...': Could not resolve host: github.com`.
 
 ### During an outage of the hosting service
 

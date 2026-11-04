@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 548
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T21:46:46.354987Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-04T21:46:46.354987Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T21:47:19.032408Z'
+  stage: docs
+  run: c4f86073188f4c239dc5ef2f0388ab9a
 ---
 
 # A push's reason keeps the server's words
@@ -192,3 +194,20 @@ Expect: a line that ends in `passed` with no `failed`.
      - The `case` fixture's body moved there as `open_push_case`. The fixture keeps its name and its params.
      - The test functions below the fixture are unchanged, and each keeps its name and what it checks.
 10. factory: started docs as vm.
+11. documenter: Documented that a push error's reason leaves out the porcelain frame and writes whitespace as one space. I changed only documents, so I did not run `make check`; the factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md` (the paragraph on the reason in a `PushFailed`, which S0008 wrote): the `To <url>` line and the `Done` line are left out, so the server's `remote:` lines stay. `remote: Done` is kept. Each run of whitespace, tabs included, becomes one space.
+    - `docs/project-guide/git-and-hosting.md` (the `last_push_output()` / `push_reason` paragraph): the same rule in the contract's words. The docs criterion said "none" for the project guide, but this paragraph described the old rule and would have been wrong after the story, so I corrected it.
+
+    Cross-read and found current against the diff: `docs/decisions.md` (the entry on push retries says "advice lines left out, at most 300 characters", which is still true; the criterion says none, so I left it), `docs/project-guide/README.md` (its `PushFailed` text only points to `push_reason`), and `README.md`.
+
+    Rejected: no "Why" or "Rejected" lines were written, since `docs/decisions.md` is untouched.
+
+    I found no disagreement between code, Interface and criteria. The code matches the Interface: `src/factory/domain/git.py` drops an exact `Done` and `To ` lines after stripping, then collapses whitespace.
+
+    Stale text I noticed that is not mine to fix: none.
+
+    `check`: check: green (not run again: passed on tree 33a5d2ee9420 at 2026-11-04T21:43:33Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
