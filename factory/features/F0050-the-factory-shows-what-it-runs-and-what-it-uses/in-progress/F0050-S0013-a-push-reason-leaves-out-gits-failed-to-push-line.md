@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T23:38:57.486731Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-04T23:38:52.413895Z'
   stage: tests
   run: bfd7644605bb45e1916d89280e108c44
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:38:57.486731Z'
+  stage: doing
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -231,3 +240,4 @@ Expect: a line that ends in `passed` with no `failed`.
     `lint`: lint: green (0.1 s)
 
     `lint`: lint: green (0.1 s)
+14. factory: started doing as vm.
