@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T23:32:06.910898Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-04T23:32:01.433783Z'
   stage: tests
   run: 3f89554aae9f4427aceb1586557d9d49
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:32:06.910898Z'
+  stage: doing
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -111,3 +120,4 @@ Expect: a line that ends in `passed` with no `failed`.
    One run of `uv run pytest -q` on the two new files: 5 failed. The failing rows are criterion 1, the two left-out rows of criterion 2, criterion 3 and criterion 4. They fail because the reason is wrong (git's `error: failed to push some refs to` line is still kept), not because something could not be imported. The two kept-line rows of criterion 2 pass already, as they should. Every module the tests use imported. `make lint` is green.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
