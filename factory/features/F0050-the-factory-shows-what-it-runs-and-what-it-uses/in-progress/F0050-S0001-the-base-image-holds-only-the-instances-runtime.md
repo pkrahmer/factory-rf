@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T09:21:19.651471Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-04T09:21:19.651471Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-04T09:24:56.612988Z'
+  stage: doing
+  run: 486d7252d1a047d29017bab54de1454b
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -391,3 +393,19 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.2 s)
 24. factory: started doing as vm.
+25. coder: Round 1. The tester moved the helper in entry 23, which settles reviewer finding 1 (entry 19): `_instruction_commands` now lives in `tests/dockerfile_support.py`, and `_stage_commands` is gone from `tests/test_stage_image.py`. That was the only finding, and it needed no code change. I changed no code this round. With the move in, `make check` is green (`check: green`, coverage 99.52 %).
+
+    What I built is unchanged from entries 10 and 17 (on the branch, `git diff main -- vm`):
+    - `vm/Dockerfile` has two stages.
+      - The first stage, `install`, checks `AGENT_RUNTIME` with a `case`, then downloads and checks Node. It runs one `npm install` of the package chosen from `${AGENT_RUNTIME}`, then copies the resolved executable to `/opt/runtime/${AGENT_RUNTIME}`.
+      - The final stage does apt, uv and the cleanup in one RUN. It has one `COPY --from=install` for the chosen executable, and writes the exec wrapper for that runtime only. The ENV lines stay.
+    - `vm/job-start.sh` passes `--build-arg "AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME"`.
+
+    Main choice: copy only the one resolved executable. The human accepted this in entry 11. I rejected copying the npm package directory, because it holds opencode's baseline CPU build.
+
+    Refactor pass: nothing to change. Description unchanged: the finding was about how the tests are written, not what the task means.
+
+    Noticed but not touched: the final stage still installs `curl` and `xz-utils`, as it did before this story. No project skill was used.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
