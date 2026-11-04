@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T20:39:34.080715Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -253,6 +249,12 @@ journal:
   kind: started
   at: '2026-11-04T20:39:34.080715Z'
   stage: review
+- number: 45
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T20:40:29.081944Z'
+  stage: review
+  run: 0927919f74d2412a9557aab814f637e8
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -686,3 +688,36 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
 44. factory: started review as vm.
+45. reviewer: Review, round 1 (the count started over after the human's answer in entry 35). I read the whole diff: `vm/setup.sh`, `vm/job-start.sh`, `tests/test_vm_setup_transcripts.py`, `tests/test_vm_job_start_transcripts.py` and `docs/operator-guide.md`. I read it against the Description, the Interface, criteria 1 to 5 and the human's entries 22, 23 and 35.
+
+    What holds:
+    - **Group 1, acceptance criteria:**
+      - Criterion 1 has three tests:
+        - `test_the_step_makes_the_folder_factory_s_with_0700_only_when_it_is_missing`: one `install -d -o factory -g factory -m 0700`, guarded by `owned_with_mode`, and one "found" text.
+        - `test_the_setting_s_line_is_written_once_and_always`: the line sits in the `factory.env` heredoc at `vm/setup.sh:436`, and the environment step on `main` compares before it writes, so a second run changes nothing.
+        - `test_the_script_keeps_no_retention_for_the_transcripts`: no `--transcript-days` and no `tmpfiles.d` in the script.
+      - Criterion 2 is one parametrized test with four rows: writable (the factory runs and the folder is left empty), unset, missing, and read-only (skipped under root). The failing rows check the message, a status that is not 0 and that factory-run is not reached.
+      - Criterion 3 is `test_the_step_refuses_a_link_at_the_folder_before_it_makes_anything`. It checks the `-L` guard, the message to standard error, `exit 1` right after it, and that all of this comes before every `install -d` in the step. This matches `vm/setup.sh:465-469`.
+      - Entry 43 records the coder's `make check` green.
+    - **Group 2, architecture:** `src/` is unchanged and nothing reaches a cloud.
+    - **Group 3, security:** no silencing marker and no `eval`. `FACTORY_TRANSCRIPT_DIR` and the folder's path are quoted everywhere. The link refusal runs before `install -d` runs as root.
+    - **Group 4, quality:** the step follows the script's pattern (`changes=`, `owned_with_mode`, `changed`, `said`), and its comments say why. `need_minutes` matches `main`, and no helper in `vm/` is copied.
+    - **Group 5, work item hygiene:** the Description, the Interface and criteria 1 to 5 match what was built. The journal explains the main choices (where the step sits, why the line is in the heredoc) and what was rejected.
+
+    no findings
+
+    Notes:
+    - `tests/test_vm_setup_transcripts.py:38` (`_conditions`) goes over the same lines as `enclosing_if` in `tests/vm_support.py:138`. It returns every enclosing `if`/`elif` where `enclosing_if` returns only the nearest one. So it extends that helper rather than copying it, and it could move to `tests/vm_support.py` beside it.
+
+    Open for the documenter, the second item of the human's entry 35, and not a finding against the code: `docs/operator-guide.md` still describes the dropped `tmpfiles.d` rule and `--transcript-days`. The places are:
+    - :618, the options table row;
+    - :621, the refused values;
+    - :640, step 14 ("Unless `--transcript-days 0`");
+    - :642, step 16;
+    - :729, the environment-file row;
+    - :1636 ("a `tmpfiles.d` rule on a VM");
+    - :1640-1648, *On a VM*.
+
+    Docs criterion 5 says what they must say instead.
+
+    Earlier tests: none. In the diff, the only test files are new ones (status `A`); no test file on `main` is changed, renamed or deleted.
