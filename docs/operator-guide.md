@@ -615,10 +615,9 @@ sudo sh vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner
 | `--runtime claude\|opencode` | `claude` | The agent runtime. |
 | `--sudoers` | off | Reach `zfs` through `sudo` (see below). |
 | `--idle-shutdown <minutes>` | off | Let the factory power the machine off after that many idle minutes: a whole number of ASCII digits, at least 1 (`0`, `x`, `-5`, `1.5` and an empty value are refused). Gives `factory` the power-off right (step 9) and adds `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>` to the environment file (step 14). See *The idle shutdown*. |
-| `--transcript-days <n>` | `30` | Keep transcripts for that many days: a whole number of ASCII digits, `0` or more (`x`, `-1`, `1.5` and an empty value are refused). Makes the transcript folder, adds `FACTORY_TRANSCRIPT_DIR` to the environment file (step 14) and writes the `tmpfiles.d` rule with `<n>d` (step 16). `0` writes neither the line nor the rule, makes no folder and keeps no transcript. See *Transcripts*. |
 | `--help` | | Print the usage to standard output and exit 0. |
 
-A missing required option, an option without its value, an `--idle-shutdown` value that is not a whole number of at least 1, a `--transcript-days` value that is not a whole number, an unknown word or a runtime other than the two prints `setup.sh: <what is wrong>` and the usage to standard error and exits 2. When the user is not root it prints `setup.sh: run as root` and exits 2. Nothing is made or changed before either exit.
+A missing required option, an option without its value, an `--idle-shutdown` value that is not a whole number of at least 1, an unknown word or a runtime other than the two prints `setup.sh: <what is wrong>` and the usage to standard error and exits 2. When the user is not root it prints `setup.sh: run as root` and exits 2. Nothing is made or changed before either exit.
 
 #### The steps
 
@@ -637,9 +636,9 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 11. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
 12. `checkout`: the factory at `--code-ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
 13. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `vm/git-credential-factory` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
-14. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`). With `--idle-shutdown` its last line is `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>`; without the option the file holds no such line, so a run without it takes the setting back. Unless `--transcript-days 0` is given, it holds `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` before that line.
+14. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`). With `--idle-shutdown` its last line is `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>`; without the option the file holds no such line, so a run without it takes the setting back. It always holds `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` before that line.
 15. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
-16. `transcripts`: unless `--transcript-days 0`, the folder `/srv/factory/<instance>/transcripts` (owner `factory`, mode `0700`), made only when it is not already so, and `/etc/tmpfiles.d/factory-<instance>-transcripts.conf` with the one line `d /srv/factory/<instance>/transcripts 0700 factory factory <n>d`, written only when its text differs. If the folder is a link, the script prints `setup: transcripts: ... is a link; remove it and run this script again` to standard error and exits 1. With `--transcript-days 0` the line says `setup: transcripts: not asked; no transcript is kept` and nothing is made. A rule file an earlier run wrote stays; remove it yourself if you want it gone. See *Transcripts*.
+16. `transcripts`: the folder `/srv/factory/<instance>/transcripts` (owner `factory`, mode `0700`), made only when it is not already so. If the folder is a link, the script prints `setup: transcripts: <path> is a link; remove it and run this script again` to standard error and exits 1, before it makes anything there. The script writes no `tmpfiles.d` rule and has no option for an age. See *Transcripts*.
 
 The script writes the files under `/srv/factory/<instance>` (`image-id`, the askpass script and `factory.env`) as `factory`, with `cat` from its own standard input, because a process started by `runuser` may not reopen root's `/dev/stdin`.
 
@@ -726,7 +725,7 @@ The environment file holds these variables, which *Configuration* explains:
 | `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION`, `FACTORY_OPENCODE_MODELS` | the pins of `vm/Dockerfile` |
 | `PATH` | `/srv/factory/<instance>/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin` (`/usr/sbin` holds `zfs`) |
 | `XDG_RUNTIME_DIR` | `/run/user/<uid of factory>`, where rootless Podman finds its runtime folder |
-| `FACTORY_TRANSCRIPT_DIR` | `/srv/factory/<instance>/transcripts`, unless `--transcript-days 0` |
+| `FACTORY_TRANSCRIPT_DIR` | `/srv/factory/<instance>/transcripts` |
 | `FACTORY_IDLE_SHUTDOWN_MINUTES` | `--idle-shutdown`, only when it is given |
 
 ### On GCP, step by step
@@ -1633,19 +1632,13 @@ A transcript that cannot be found or copied (no session, no transcript file, a f
 ### The site's part
 
 - The folder must sit where only the site's own people can read it. The factory sets the file modes, but a mounted bucket or a shared disk has its own access rules.
-- The factory deletes no transcript. Removing old ones is the site's: a `tmpfiles.d` rule on a VM, a lifecycle rule on a bucket.
+- The factory deletes no transcript. Removing old ones is the site's: by hand on a VM, if ever needed, and a lifecycle rule on a bucket.
 
 ### On a VM
 
-`vm/setup.sh` sets this up (steps 14 and 16 of *The steps*). It makes `/srv/factory/<instance>/transcripts`, owned by `factory`, mode `0700`; writes `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` into `factory.env`; and writes `/etc/tmpfiles.d/factory-<instance>-transcripts.conf` with the one line
+`vm/setup.sh` sets this up (steps 14 and 16 of *The steps*). It makes `/srv/factory/<instance>/transcripts`, owned by `factory`, mode `0700`, and writes `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` into `factory.env`. A second run of the script finds both in place and changes nothing.
 
-```
-d /srv/factory/<instance>/transcripts 0700 factory factory 30d
-```
-
-systemd's daily `systemd-tmpfiles-clean` runs the rule and removes the folder's files older than 30 days. A second run of the script finds all of it in place and changes nothing.
-
-`--transcript-days <n>` sets another age (`--transcript-days 7` writes `7d`). `--transcript-days 0` writes neither the line nor the rule, makes no folder and keeps no transcript; a value that is not a whole number is refused with the option's name. Read a transcript as `factory` or root: `zcat /srv/factory/<instance>/transcripts/<work item>/<run id>.jsonl.gz`.
+The VM keeps no retention: at about 5 MB per feature the folder grows too slowly to need one. There is no `tmpfiles.d` rule and no option for an age. Removing old transcripts is yours, by hand, if ever needed. Read a transcript as `factory` or root: `zcat /srv/factory/<instance>/transcripts/<work item>/<run id>.jsonl.gz`.
 
 ### In a Cloud Run job
 

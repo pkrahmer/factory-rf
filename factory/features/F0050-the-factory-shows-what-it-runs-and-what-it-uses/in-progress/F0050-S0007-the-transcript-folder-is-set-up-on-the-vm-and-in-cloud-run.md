@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T20:40:35.172339Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -264,6 +260,12 @@ journal:
   kind: started
   at: '2026-11-04T20:40:35.172339Z'
   stage: docs
+- number: 47
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T20:41:18.212809Z'
+  stage: docs
+  run: 9d88e64333cf4d169bfe0c76ff96c6fa
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -731,3 +733,21 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
     Earlier tests: none. In the diff, the only test files are new ones (status `A`); no test file on `main` is changed, renamed or deleted.
 46. factory: started docs as vm.
+47. documenter: Docs, round 1. I changed one file, `docs/operator-guide.md`. It still described the design the human dropped in entry 22: a `tmpfiles.d` rule and the option `--transcript-days`. I rewrote those places to match `vm/setup.sh` and `vm/job-start.sh` as built:
+    - The setup options table: I removed the `--transcript-days` row.
+    - The usage-error sentence: I removed the `--transcript-days` clause.
+    - Step 14, `environment`: it now always holds `FACTORY_TRANSCRIPT_DIR`.
+    - Step 16, `transcripts`: it makes the folder (`factory`, `0700`, only when not already so) and refuses a link with the exact message and `exit 1`. It writes no rule and has no age option.
+    - The environment-file table row: the "unless `--transcript-days 0`" condition is gone.
+    - The deletion bullet in *Transcripts*: it now says "by hand on a VM, if ever needed; a lifecycle rule on a bucket".
+    - *On a VM*: it now says the folder and the line are made, a second run changes nothing, and the VM keeps no retention (about 5 MB per feature, no rule, no age option, removal is the operator's, by hand). The `zcat` read command stays.
+
+    The *In a Cloud Run job* section from the earlier round already matches docs criterion 5, so I left it. The `FACTORY_TRANSCRIPT_DIR` row in the job-start table and the `inputs` step text both already match `vm/job-start.sh`. The message there is printed as `job-start: transcript folder <path> cannot be written` with status 1, which is how `stop` works.
+
+    I cross-read these and found them current: the *Transcripts* section's other text, the `decisions.md` entry at line 1523 and the README. The `decisions.md` entry mentions a `tmpfiles.d` rule and a lifecycle rule as the site's means of deletion. I did not touch it: the criterion says `decisions.md` gets nothing beyond S0005's, and decision files are not mine to rewrite on my own reading. That is the stale text I saw and left, if the human wants it brought in line with feature decision 10 as changed by entry 22. No `decisions.md` entry was written, so no "Why" or "Rejected" lines were added.
+
+    I found no contradiction between the code and the Interface. I ran no `make check`, because I changed only a document and the factory's checks run right after this stage. I ran no cloud command: the `gcloud` examples are not run by the factory or its tests, and the guide says so.
+
+    `check`: check: green (not run again: passed on tree 7f7c53626887 at 2026-11-04T20:37:47Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok
