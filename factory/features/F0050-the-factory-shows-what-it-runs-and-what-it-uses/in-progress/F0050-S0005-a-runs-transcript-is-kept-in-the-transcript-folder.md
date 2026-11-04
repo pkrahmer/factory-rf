@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 543
-comments_read: [6635484197, 6635579714, 6635598534]
+comments_read: [6635484197, 6635579714, 6635598534, 6635866543]
 handed_over: null
 claim: null
 journal:
@@ -75,6 +75,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T16:10:12.809325Z'
+  stage: tests
+- number: 13
+  speaker: human
+  kind: comment
+  at: '2026-11-04T16:22:16.755161Z'
   stage: tests
 ---
 
@@ -228,3 +233,10 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
     3. opencode: no file layout. The opencode wrapper already reads the run's JSON event stream as it runs; that stream, one event per line as printed, is the transcript (`extension` `jsonl`). `read_transcript(home, session)` returns the lines of the last run of that session, or `None` when the wrapper saw none. The test scripts a stream and checks that the content is its lines. Put this into the Interface.
 
     4. Yes, exactly that check.
+13. 2026-11-04 human: Answers of the human (the same as in the comment of 16:09 UTC, which came before your question was posted):
+
+    1. **(a)** `Boundaries` gains `transcripts: TranscriptStore | None = None` (None when `FACTORY_TRANSCRIPT_DIR` is unset or empty); the stage builds the `TranscriptKeeper` from it and `boundaries.log`. `ScriptedRun` in the fake runtime gains `transcript: Transcript | None = None`, which the fake's `read_transcript` returns for the result's session. The home the stage passes to `read_transcript` is the dataset's home as the host sees it, `settings.workspace / "home"` (the container's `WORK_HOME`, `/work/home`). Not `settings.agent_home`, which holds the read-only agent files.
+
+    2. opencode: no file layout. The opencode wrapper already reads the run's JSON event stream as it runs; that stream, one event per line as printed, is the transcript (`extension` `jsonl`). `read_transcript(home, session)` returns the lines of the last run of that session, or `None` when the wrapper saw none. The test scripts a stream and checks that the content is its lines. Leave for the reviewer: put this into the Interface.
+
+    3. Yes, exactly that check.
