@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T15:28:30.081644Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-04T15:28:30.081644Z'
   stage: review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T15:30:11.452492Z'
+  stage: review
+  run: e46b9f673b86445886183f991fa96ea0
 ---
 
 # One fetch per iteration
@@ -384,3 +386,36 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
 25. factory: started review as vm.
+26. reviewer: Review of round 0. I read the work item, the diff outside `factory/` (`src/factory/application/tick.py`, `src/factory/entry/run.py`, two new test files, seven changed earlier test files) and the code around it: `_ProjectImageStart._follow_main` and `prepare` in `src/factory/entry/run.py:224-259`, and the scheduler loop in `src/factory/application/scheduler.py:62-75`.
+
+    The code does what the Interface says:
+    - The scheduler calls `prepare()` before every tick.
+    - `_follow_main` fetches once, raises `fetch_failed` (and returns False, so no tick runs) or clears it.
+    - The only tick it builds is `activity_tick(..., fetched=True)`, so the tick skips `_fetch()`.
+    - `factory-watch` and the other callers keep the default.
+    - `scheduler.py:126` is unchanged.
+
+    Criteria 1 to 4 each have a test that checks what the criterion says:
+    - criterion 1: two rows; in iteration 1, `fetches == 1` and the tick sees the new commit;
+    - criterion 2: `ticked == [True, False, True]`, one fetch, the first line of the error in the stop's detail, cleared afterwards;
+    - criterion 3: two rows (default and `fetched=False`);
+    - criterion 4: a failed fetch, then a cleared stop.
+
+    The coder's `make check` was green (entry 24).
+
+    I also ran `make duplicates`. Its 3 new findings are all in `src/factory/domain/cost_records.py:41-43`, which this diff does not touch, so they are not findings here.
+
+    Findings:
+    1. `tests/entry/test_run_one_fetch.py:70-91` (`Instance.__init__`, `go_away`, `come_back`): a second copy of `Outage` at `tests/entry/test_run_fetch_before_tick.py:70-95` (the same `away` path and the same rename away and back). Fix: the tester moves it to one shared support module under `tests/` (the standing leave, also granted in entry 11), and both modules use it from there.
+    2. `tests/entry/test_run_one_fetch.py:152` (`_fetch_failed`): a second copy of the `fetch_failed` filter `_fetch_failed` at `tests/entry/test_run_fetch_before_tick.py:156`. Fix: move it to the same shared module as finding 1, taking a list of stops.
+    3. `tests/application/test_tick_own_fetch.py:65-66`: renames the remote to `tmp_path / "moved.git"` inline, a copy of `_move_remote_away` at `tests/application/test_tick.py:178-181`. Fix: the tester moves `_move_remote_away` to a shared support module under the standing leave and uses it in both modules.
+    4. `src/factory/application/tick.py:97`: the docstring of the public `Tick.run` still says, without condition, that it fetches. It says nothing about the new `fetched` parameter, which skips the fetch and the raise and clear of `fetch_failed`. So the docstring is no longer true for `fetched=True`. The coder reverted its own sentence because `TICK_RUN` in `tests/application/test_tick_docstrings.py:13ff` pins the text (entry 17), and did not ask. Fix: the coder ends with `question` and asks the human for leave to change `TICK_RUN`. With that leave, the docstring says that `fetched=True` skips the fetch because the caller fetched; the tester changes the pinned text.
+
+    Earlier tests changed (status M):
+    - `tests/entry/test_run.py`: the human's leave, entry 18 (only the nested `recording_tick`: its signature and passing on `fetched`).
+    - `tests/entry/test_run_fetch_before_tick.py`: the human's leave, entry 11 (only the signature of `run`).
+    - `tests/entry/test_run_idle_shutdown.py`: the human's leave, entry 11 (only the signature of `run`).
+    - `tests/entry/test_run_image_sizes.py`: the human's leave, entry 11 (only the signature of `run`).
+    - `tests/entry/test_run_project_image_rebuild.py`: the human's leave, entry 11 (only the signature of `run`).
+    - `tests/entry/test_run_stop_requested.py`: the human's leave, entry 11 (only the signature of `run`).
+    - `tests/scripted_tick_support.py`: the human's leave, entry 11 (only the signature of `run`).
