@@ -14,6 +14,7 @@ from factory.domain.settings import InstanceSettings
 from factory.domain.stage_layer import STAGE_FILE
 from factory.entry.run import run_instance
 from human_clone import HumanClone
+from log_support import state_log_lines
 from sized_images import BASE_BYTES, PROJECT_BYTES, SizedImages, sized_by_tag
 from stage_image_support import FIRST
 
@@ -106,3 +107,23 @@ def test_the_sizes_change_only_after_a_build_or_a_return_to_the_base(
     assert sizes == [(BASE_BYTES, layer), (BASE_BYTES, layer), (BASE_BYTES, 0)]
     assert seen[1].readings == seen[0].readings
     assert seen[2].readings > seen[1].readings
+
+
+def test_a_run_without_a_stage_file_logs_the_base_size_only_at_its_start(
+    base_identity_settings: InstanceSettings,
+    hosting: FakeHostingService,
+    human: HumanClone,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _run(
+        base_identity_settings,
+        hosting,
+        monkeypatch,
+        [lambda: human.push_file("main", "notes.txt", "another commit\n")],
+    )
+
+    lines = state_log_lines(base_identity_settings.state_directory)
+    mark = "stage image:"
+    assert [line[line.index(mark) :] for line in lines if mark in line] == [
+        "stage image: base 1.58 GB"
+    ]

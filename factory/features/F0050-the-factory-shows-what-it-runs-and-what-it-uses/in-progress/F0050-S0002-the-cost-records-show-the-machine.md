@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T12:10:30.793976Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -260,6 +256,12 @@ journal:
   kind: started
   at: '2026-11-04T12:10:30.793976Z'
   stage: tests
+- number: 46
+  speaker: tester
+  kind: result
+  at: '2026-11-04T12:11:23.237445Z'
+  stage: tests
+  run: 52dd56801efb4ce39151695975ac07a8
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -745,3 +747,18 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 
     Refactor: I made no code change in this round, so there was nothing to refactor.
 45. factory: started tests as vm.
+46. tester: Round 2: I added the two tests the coder asked for in entry 44 (reviewer findings 1 and 2 in entry 42). The code already exists, so both tests pass.
+
+    - criterion 7 and criterion 4, the wiring of the record's inputs (finding 1): `tests/entry/test_wiring_machine_inputs.py::test_the_built_boundaries_read_the_image_store_and_the_cgroup_slice`. It calls `build_boundaries(local_settings with stage_image, CREDENTIAL, hosting=FakeHostingService(), images=SizedImages(sized_by_tag, store=<tmp_path folder>))`. It checks that `boundaries.image_store` is that folder and that `boundaries.machine` is a `CgroupMachineReadings`.
+    - criterion 8, "written once, at the factory's start" (finding 2): `tests/entry/test_run_image_sizes.py::test_a_run_without_a_stage_file_logs_the_base_size_only_at_its_start`. It goes through `run_instance` with `SizedImages`, with no stage file on `main` and a second tick after another commit. It checks that the state log holds exactly one `stage image:` line, `stage image: base 1.58 GB`.
+
+    Files created: `tests/entry/test_wiring_machine_inputs.py`.
+    Files changed: `tests/entry/test_run_image_sizes.py`, which is this story's own test module. I added one test and the import of `state_log_lines` from `log_support`.
+
+    I did not change any earlier story's test.
+
+    I did not make the two optional notes, the public name for `_launch` in `tests/cost_image_support.py` and the doubled smaller-than-base case. The approved change names only the two findings.
+
+    Result of my one test run (`uv run pytest -q` on both files): 4 passed, and every module imported. They pass because the code they test is already in place, as entry 44 says. `make lint`: lint: green.
+
+    `lint`: lint: green (0.1 s)
