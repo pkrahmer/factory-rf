@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T22:51:26.964369Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-11-04T22:51:26.964369Z'
   stage: smoke-test
+- number: 34
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T22:51:55.980483Z'
+  stage: smoke-test
+  run: e7ba6b983899439f8bcdb1b57890ef56
 ---
 
 # A hosting failure after the claim charges no crash
@@ -474,3 +476,20 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
     `secrets`: secrets: green (2.9 s)
     `documents`: documents ok
 33. factory: started smoke-test as vm.
+34. smoke-tester: I ran the two commands under `## Smoke test` from the repository root, as written and in order. I changed nothing.
+
+    Command 1: `grep -c 'xfail' tests/application/test_hosting_failure_after_claim.py`
+    ```
+    0
+    ```
+    Met: the Expect line asks for `0`. `grep -c` exits with status 1 when nothing matches, which is normal for a count of 0. S0008's test no longer has its `xfail` mark (criterion 5).
+
+    Command 2: `uv run pytest tests/application -k "hosting_failure" 2>&1 | tail -1`
+    ```
+    12 passed, 1639 deselected in 4.00s
+    ```
+    Met. This is pytest's summary line: 12 passed, with no `failed` and no `xfailed`. Taken literally, the Expect line says the line "ends in `passed`", but pytest always puts the deselected count and the time after it. I read the expectation as meaning the summary reports only passes, and it does.
+
+    Against the acceptance criteria: the selection covers S0008's test without its mark (criterion 5) and the new tests in `tests/application/test_hosting_failure_releases_claim.py`, and they all pass. Nothing in the output contradicts any criterion. The smoke test does not exercise criteria 1–4 and 6–7 directly, the docs criterion 9, or `make check` (criterion 8, which the factory runs as a gate).
+
+    Findings: none.
