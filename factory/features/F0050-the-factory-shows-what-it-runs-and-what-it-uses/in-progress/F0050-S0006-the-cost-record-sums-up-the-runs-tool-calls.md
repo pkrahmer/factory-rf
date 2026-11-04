@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913, 6640096367]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T19:41:26.108702Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -250,6 +246,12 @@ journal:
   kind: started
   at: '2026-11-04T19:41:26.108702Z'
   stage: smoke-test
+- number: 44
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T19:41:55.470006Z'
+  stage: smoke-test
+  run: 33fa9bec3a4e4e199ae790a264d6fa4b
 ---
 
 # The cost record sums up the run's tool calls
@@ -691,3 +693,22 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     `secrets`: secrets: green (2.9 s)
     `documents`: documents ok
 43. factory: started smoke-test as vm.
+44. smoke-tester: I ran the two commands under `## Smoke test` from the repository root, as written and in order. Both outputs matched their `Expect:` line, and nothing in the output contradicts any acceptance criterion.
+
+    Command 1: `grep -cE '^class ToolUse\(BaseModel\):$' src/factory/domain/cost_records.py`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    Command 2: `uv run pytest tests/domain tests/adapters -k tool 2>&1 | tail -1`
+    ```
+    120 passed, 4104 deselected in 2.19s
+    ```
+    Expect a line that ends in `passed` with no `failed`: met. The line ends in the time, ` in 2.19s`, as every pytest summary does. Its result is `120 passed`, and it has no `failed`.
+
+    Against the criteria: command 1 confirms the `ToolUse` model exists in `factory.domain.cost_records` (Interface). Command 2 ran the 120 tests in `tests/domain` and `tests/adapters` whose names match `tool`, and all passed. The smoke test does not cover criterion 14 (`make check`), which the factory's checks gate, or criterion 15 (docs), which `make documents` gates. It shows nothing that contradicts either.
+
+    Findings: none.
+
+    Open: nothing.
