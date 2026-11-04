@@ -1489,3 +1489,11 @@ Date: 2026-11-04 (F0049-S0004).
 
 - Decision: the fetch that `_ProjectImageStart.prepare` makes before every tick raises the repository stop `fetch_failed` when it fails (`FetchFailed`; the error's text as the detail), exactly as the tick's own fetch does. No tick runs in that iteration, and the image, its identity, its `PATH` and the stage file last handled stay as they were. The next fetch that passes clears the stop. Any other `GitError` from that fetch is not turned into the stop and keeps the scheduler's `iteration failed`. It replaces what F0049-S0003 (entry 11) accepted for now.
 - Why: the operator and the container's health check read `factory-health`, and an `iteration failed` line alone left it `healthy` while nothing ran.
+
+## The cost records carry the machine's measures
+
+Date: 2026-11-04 (F0050-S0002).
+
+- Decision: every completed cost record gets the optional object `machine` (`MachineMeasures` in `factory.domain.cost_records`): the sizes of the base image and the project layer, the free space of the image store and of the dataset, the memory peak and total, and the run's CPU time and its CPU and memory waits. The image sizes are read when the factory builds or adopts an image, the rest at the run's start and end. A value the machine cannot give is `None`, and the run never fails for it. The records contract moves to 4.2. The memory peak is `memory.peak` of the factory user's slice, named `memory_peak_since_boot_bytes`; the CPU time and the two waits are the end reading minus the start reading of the slice's running totals (`usage_usec`, and the `total` of the `some` line of the pressure files).
+- Why: on 2026-11-04 the image sizes, the disk and the memory peak were each found by hand, and nothing the factory wrote showed them. The peak cannot be reset before kernel 6.12 (the VM runs 6.8), and sampling during a run was not worth its cost, so the value is the slice's high-water mark and its name says that it is not the run's own. The CPU time and the waits are differences of running totals because that makes them the run's own.
+

@@ -179,3 +179,48 @@ def test_the_job_profile_puts_its_global_options_before_every_podman_command(
         ["image", "prune"],
         ["image", "inspect"],
     ]
+
+
+@pytest.mark.parametrize(
+    ("printed", "status", "expected"),
+    [
+        pytest.param("2000000000\n", 0, 2_000_000_000, id="a-number"),
+        pytest.param("\n", 0, None, id="no-number"),
+        pytest.param("<no value>\n", 0, None, id="not-a-number"),
+        pytest.param("Error: no such image\n", 125, None, id="inspect-fails"),
+    ],
+)
+def test_size_bytes_is_the_size_inspect_prints_or_none(
+    tmp_path: Path, printed: str, status: int, expected: int | None
+) -> None:
+    podman = _podman(tmp_path, stdout=printed, status=status)
+
+    size = PodmanImages(str(podman)).size_bytes(TAG)
+
+    assert size == expected
+    [call] = _calls(podman)
+    assert call.arguments == ["image", "inspect", "--format", "{{.Size}}", TAG]
+
+
+@pytest.mark.parametrize(
+    ("printed", "status", "expected"),
+    [
+        pytest.param(
+            "/home/factory/.local/share/containers/storage\n",
+            0,
+            Path("/home/factory/.local/share/containers/storage"),
+            id="graph-root",
+        ),
+        pytest.param("Error: cannot connect\n", 125, None, id="info-fails"),
+    ],
+)
+def test_store_path_is_the_graph_root_info_names_or_none(
+    tmp_path: Path, printed: str, status: int, expected: Path | None
+) -> None:
+    podman = _podman(tmp_path, stdout=printed, status=status)
+
+    store = PodmanImages(str(podman)).store_path()
+
+    assert store == expected
+    [call] = _calls(podman)
+    assert call.arguments == ["info", "--format", "{{.Store.GraphRoot}}"]

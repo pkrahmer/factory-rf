@@ -51,12 +51,13 @@ def _folders(settings: InstanceSettings) -> list[Path]:
 def _measure(disk: DiskSpace, folder: Path) -> DiskUse:
     return DiskUse(
         path=str(folder),
-        free_bytes=_bytes_or_unknown(disk.free_bytes, folder),
-        used_bytes=_bytes_or_unknown(disk.used_bytes, folder),
+        free_bytes=bytes_or_unknown(disk.free_bytes, folder),
+        used_bytes=bytes_or_unknown(disk.used_bytes, folder),
     )
 
 
-def _bytes_or_unknown(measure: Callable[[Path], int], folder: Path) -> int | None:
+def bytes_or_unknown(measure: Callable[[Path], int], folder: Path) -> int | None:
+    """What `measure` gives for `folder`, or `None` when it raises `OSError`."""
     try:
         return measure(folder)
     except OSError:

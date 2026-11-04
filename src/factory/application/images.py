@@ -2,8 +2,9 @@
 
 from abc import ABC, abstractmethod
 from datetime import timedelta
+from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, NonNegativeInt
 
 from factory.domain.stage_layer import StageLayer
 
@@ -11,7 +12,7 @@ IMAGE_BUILD_TIME_LIMIT = timedelta(minutes=30)
 
 
 class ImageBuild(BaseModel):
-    """How a build of a stage file ended: passed or not, its duration and its last lines."""
+    """How a build of a stage file ended: passed or not, its duration, last lines and warnings."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -19,6 +20,8 @@ class ImageBuild(BaseModel):
     duration: timedelta
     # The build's last lines, joined by newlines.
     output_tail: str
+    # The lines of the whole output that warn.
+    warnings: NonNegativeInt = 0
 
 
 class Images(ABC):
@@ -38,3 +41,11 @@ class Images(ABC):
 
         `ContainerError` when the image cannot be read.
         """
+
+    @abstractmethod
+    def size_bytes(self, image: str) -> int | None:
+        """The size of `image` in bytes; `None` when it cannot be read."""
+
+    @abstractmethod
+    def store_path(self) -> Path | None:
+        """The folder of the image store; `None` when it cannot be read."""

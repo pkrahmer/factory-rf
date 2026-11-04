@@ -21,6 +21,7 @@ from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
+from factory.adapters.machine_files import CgroupMachineReadings
 from factory.adapters.make_commands import ContainerMakeCommands
 from factory.adapters.oauth_token import ClientCredentialsTokenSource
 from factory.adapters.opencode_runtime import OpencodeRuntime
@@ -97,6 +98,7 @@ from factory.domain.events import EventKind
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import Name
 from factory.domain.known_results import ResultRecord
+from factory.domain.machine import gigabytes
 from factory.domain.paths import MAIN_BRANCH, REMOTE
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.preflight import PreflightItem
@@ -123,6 +125,8 @@ from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopRecor
 __all__ = [
     "CREDENTIAL_HELPER",
     "WORK_HOME_ENVIRONMENT",
+    "ChosenImage",
+    "ImageSizes",
     "StageImageReport",
     "agent_environment",
     "agent_run_environment",
@@ -135,12 +139,14 @@ __all__ = [
     "build_tick",
     "build_token_refresher",
     "build_work_item_reader",
+    "chosen_image",
     "client_credentials_source",
     "git_environment",
     "git_options",
     "handler_factory",
     "health_store",
     "idle_shutdown_of",
+    "image_sizes",
     "machine_extras",
     "machine_log",
     "production_environment",
@@ -166,6 +172,8 @@ _DISK_RECORDS_PATH = Path("records", "disk.jsonl")
 _STOP_RECORDS_PATH = Path("records", "stops.jsonl")
 _RESULT_RECORDS_PATH = Path("records", "known-results.jsonl")
 _MISSING = "missing"
+_USER_SLICES = Path("/sys/fs/cgroup/user.slice")
+_MEMINFO = Path("/proc/meminfo")
 _ORIGIN_MAIN = f"{REMOTE}/{MAIN_BRANCH}"
 _STAGE_IMAGE_FAILED: RepositoryStopReason = "stage_image_failed"
 _SHORT_COMMIT_LENGTH = 12
@@ -347,7 +355,14 @@ def build_boundaries(
         containers=containers,
         container_extra_environment=extra,
         image_path=path,
+        machine=CgroupMachineReadings(_user_slice(), _MEMINFO),
+        image_store=None if images is None else images.store_path(),
     )
+
+
+def _user_slice() -> Path:
+    # The cgroup v2 slice of the user that runs the factory, and so its rootless containers.
+    return _USER_SLICES / f"user-{os.getuid()}.slice"
 
 
 def _image_path(settings: InstanceSettings, images: Images) -> str:
@@ -364,6 +379,28 @@ def _image_path(settings: InstanceSettings, images: Images) -> str:
 def build_images(settings: InstanceSettings) -> Images:
     """Return the images of the stage, reached through the podman of `settings`."""
     return PodmanImages(settings.podman_executable, profile=settings.container_profile)
+
+
+@dataclass(frozen=True)
+class ImageSizes:
+    """The sizes of the image the containers run in: its base and the project's layer on it.
+
+    Either is `None` when it cannot be read; the layer is 0 without a stage file.
+    """
+
+    base_bytes: int | None
+    layer_bytes: int | None
+
+
+def image_sizes(images: Images, base: str, project: str | None) -> ImageSizes:
+    """Return the sizes of `base` and of the layer of `project` on it, 0 without `project`."""
+    base_bytes = images.size_bytes(base)
+    if project is None:
+        return ImageSizes(base_bytes=base_bytes, layer_bytes=0)
+    project_bytes = images.size_bytes(project)
+    if base_bytes is None or project_bytes is None or project_bytes < base_bytes:
+        return ImageSizes(base_bytes=base_bytes, layer_bytes=None)
+    return ImageSizes(base_bytes=base_bytes, layer_bytes=project_bytes - base_bytes)
 
 
 @dataclass(frozen=True)
@@ -392,6 +429,17 @@ def stage_file_on_main(git: Git) -> str | None:
     return git.show_file(_ORIGIN_MAIN, STAGE_FILE)
 
 
+@dataclass(frozen=True)
+class ChosenImage:
+    """The settings of the image every container runs in, and its sizes.
+
+    The sizes are `None` when the settings name no base image.
+    """
+
+    settings: InstanceSettings
+    sizes: ImageSizes | None
+
+
 def project_image_settings(
     settings: InstanceSettings,
     git: Git,
@@ -408,10 +456,23 @@ def project_image_settings(
     build that passed or failed writes its line to the log, and the stop's detail names the
     commit and takes its time from the report's clock.
     """
+    chosen = chosen_image(settings, git, images, stops, report=report)
+    return None if chosen is None else chosen.settings
+
+
+def chosen_image(
+    settings: InstanceSettings,
+    git: Git,
+    images: Images,
+    stops: StopService,
+    *,
+    report: StageImageReport | None = None,
+) -> ChosenImage | None:
+    """Return the image `project_image_settings` chooses, with its sizes measured once."""
     text = stage_file_on_main(git)
     if text is None:
         stops.clear_stop(_STAGE_IMAGE_FAILED)
-        return settings
+        return _base_image(settings, images, report)
     base = settings.stage_image
     if base is None:
         raise SettingsInvalid(STAGE_IMAGE_VARIABLE, _MISSING)
@@ -426,13 +487,28 @@ def project_image_settings(
         _stage_image_failed(stops, _build_fault(build), report)
         return None
     stops.clear_stop(_STAGE_IMAGE_FAILED)
+    sizes = image_sizes(images, base, tag)
     if report is not None:
         report.log.line(
-            f"stage image: built {layer.identity} at {report.commit} in {_whole_seconds(build)} s"
+            f"stage image: built {layer.identity} at {report.commit} in {_whole_seconds(build)} s,"
+            f" base {_size_text(sizes.base_bytes)}, layer {_size_text(sizes.layer_bytes)},"
+            f" {build.warnings} warnings"
         )
     # Without a base identity the layer's is unknown too, and no stamp is reused.
     identity = None if settings.image is None else layer.identity
-    return settings.model_copy(update={"stage_image": tag, "image": identity})
+    project = settings.model_copy(update={"stage_image": tag, "image": identity})
+    return ChosenImage(settings=project, sizes=sizes)
+
+
+def _base_image(
+    settings: InstanceSettings, images: Images, report: StageImageReport | None
+) -> ChosenImage:
+    if settings.stage_image is None:
+        return ChosenImage(settings=settings, sizes=None)
+    sizes = image_sizes(images, settings.stage_image, None)
+    if report is not None:
+        report.log.line(f"stage image: base {_size_text(sizes.base_bytes)}")
+    return ChosenImage(settings=settings, sizes=sizes)
 
 
 def _stage_image_failed(stops: StopService, detail: str, report: StageImageReport | None) -> None:
@@ -447,6 +523,10 @@ def _stage_image_failed(stops: StopService, detail: str, report: StageImageRepor
 
 def _build_fault(build: ImageBuild) -> str:
     return f"the stage file did not build in {_whole_seconds(build)} s:\n{build.output_tail}"
+
+
+def _size_text(size: int | None) -> str:
+    return "unknown" if size is None else f"{gigabytes(size)} GB"
 
 
 def _whole_seconds(build: ImageBuild) -> int:

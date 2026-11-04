@@ -22,6 +22,31 @@ Duration = Annotated[float, Field(ge=0, allow_inf_nan=False)]
 Cost = Annotated[Decimal, Field(ge=0, allow_inf_nan=False)]
 
 
+def _is_none(value: object) -> bool:
+    return value is None
+
+
+class MachineMeasures(BaseModel):
+    """The machine around one run; a measure `None` is unknown.
+
+    The image sizes are those of the image the run ran in, measured when it was built or
+    chosen. The memory peak is the user slice's high-water mark since it began, not the run's.
+    The CPU time and the waits are the run's own, but count every container of the user.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    base_image_bytes: NonNegativeInt | None = None
+    project_layer_bytes: NonNegativeInt | None = None
+    store_free_bytes: NonNegativeInt | None = None
+    dataset_free_bytes: NonNegativeInt | None = None
+    memory_peak_since_boot_bytes: NonNegativeInt | None = None
+    memory_total_bytes: NonNegativeInt | None = None
+    cpu_seconds: Duration | None = None
+    cpu_wait_seconds: Duration | None = None
+    memory_wait_seconds: Duration | None = None
+
+
 class CostRecord(BaseModel):
     """One agent run: started, or completed with its measures; a measure `None` is unknown.
 
@@ -31,6 +56,8 @@ class CostRecord(BaseModel):
     holds the files they named, each once; both are `None` when the runtime gave no reply.
     `login` says which login the run's calls were handed: an API key, the subscription's
     token, or neither; it is `None` when the runtime had no login file.
+    `machine` holds the machine's measures; it is `None` on a record written without them,
+    and each of its measures is `None` when the machine could not give it.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -52,6 +79,9 @@ class CostRecord(BaseModel):
     instance: Name | None = None
     denials: NonNegativeInt | None = None
     denied_paths: list[str] | None = None
+    # Left out of a dump when unknown, so that a record copied through one never claims to have
+    # asked the machine; the writer writes it null where it was asked.
+    machine: MachineMeasures | None = Field(default=None, exclude_if=_is_none)
     login: Login | None = None
 
     @field_validator("cost_usd", mode="before")
@@ -75,6 +105,7 @@ class CostRecord(BaseModel):
                 "denials": self.denials,
                 "denied_paths": self.denied_paths,
                 "login": self.login,
+                "machine": self.machine,
             }
             for field, value in measures.items():
                 if value is not None:

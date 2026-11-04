@@ -2,6 +2,7 @@
 
 import importlib.util
 import os
+import re
 from collections.abc import Callable
 from pathlib import Path
 
@@ -19,6 +20,8 @@ HELPER = "vm/git-credential-factory"
 INSTALLED_HELPER = "/usr/local/bin/git-credential-factory"
 # A string literal that begins `image/`, or a path built with the part `image`.
 IMAGE_PATH = r"[\"']image/|/\s*[\"']image[\"']"
+# The process table: a process's folder, `self`, or the bare `/proc` folder.
+PROCESS_TABLE = re.compile(r"/proc(?:/(?:\d+|self)\b|/?(?![\w/]))")
 
 
 @pytest.mark.parametrize(
@@ -62,8 +65,14 @@ def _process_table_reader_is_gone() -> bool:
     return not hasattr(factory.adapters.process, "read_process_table")
 
 
+def _names_the_process_table(text: str) -> bool:
+    return PROCESS_TABLE.search(text) is not None
+
+
 def _no_module_reads_proc() -> bool:
-    return [path for path in SOURCE.rglob("*.py") if "/proc" in path.read_text("utf-8")] == []
+    return [
+        path for path in SOURCE.rglob("*.py") if _names_the_process_table(path.read_text("utf-8"))
+    ] == []
 
 
 @pytest.mark.parametrize(
@@ -76,6 +85,21 @@ def _no_module_reads_proc() -> bool:
 )
 def test_the_process_table_names_are_removed(is_gone: Callable[[], bool]) -> None:
     assert is_gone()
+
+
+@pytest.mark.parametrize(
+    ("text", "refused"),
+    [
+        pytest.param('Path("/proc/meminfo")', False, id="meminfo"),
+        pytest.param('Path("/proc/1")', True, id="pid"),
+        pytest.param('Path("/proc/self")', True, id="self"),
+        pytest.param('Path("/proc")', True, id="bare"),
+    ],
+)
+def test_the_process_table_check_refuses_only_the_process_table(
+    text: str, *, refused: bool
+) -> None:
+    assert _names_the_process_table(text) is refused
 
 
 def test_no_test_reads_a_file_under_image() -> None:
