@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T12:45:47.161275Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,13 @@ journal:
   kind: started
   at: '2026-11-04T12:45:47.161275Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-11-04T12:50:52.987449Z'
+  stage: doing
+  run: f81195d101a642248e59316d59c21fa0
+  blocked: question
 ---
 
 # A refused push or hosting call is retried and logged
@@ -212,3 +215,51 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
 
     `lint`: lint: green (0.1 s)
 12. factory: started doing as vm.
+13. coder: I wrote the code and ran `make check`. The tests disagree with the Interface in four places, and these need the human's answer before the tester changes anything. My code is in the working tree. Every new test except two passes, and `xfail` (criterion 5) still holds. `make check` stops at `make types`. In `make test`, 11 tests fail, all listed below.
+
+    What I built:
+    - `src/factory/domain/git.py`: `push_reason(output)` keeps the last non-empty lines, at most three, joined with ` | ` and cut at the end to 300 characters. `push_is_retried(outcome, output)` is true for `unreachable`, and for `rejected` when the output holds `[remote rejected]`.
+    - `src/factory/domain/errors.py`: `PushFailed(branch, outcome, reason="")` puts the reason in its message.
+    - `src/factory/application/pushes.py` (new): `push_with_retries(boundaries, branch)` waits 5, 15 and 45 s through `boundaries.waiter` and writes `push: retry n of 3 in s s: <reason>` to `boundaries.log`. `push_failure(git, branch, outcome)` builds a `PushFailed` with git's reason. `StageFinisher._commit_and_push` and `WorkItemRecorder.publish` use the retry. Claims, stalls, acceptance and `delete_branch` use only `push_failure`, without a retry.
+    - `src/factory/domain/tick_status.py`: `handler_error_line`. `Dispatcher._count` writes it once per counted error.
+    - `src/factory/adapters/pygithub_hosting.py`: `hosting_retry()` is `GithubRetry(total=5, backoff_factor=2, allowed_methods=DEFAULT | {"PATCH"})`, passed by `pygithub_service`.
+    - `GitCli` keeps the output of the last failed push in `last_push_output()`. The `Git` interface gained that method.
+
+    Questions:
+
+    1. `tests/application/test_push_retry.py::test_a_push_to_an_unreachable_remote_is_retried_and_names_gits_reason[result|record]` fails because of the rule "the last three non-empty lines". Against a moved local remote, git prints `fatal: '<path>' does not appear to be a git repository`, then `fatal: Could not read from remote repository.`, then the two advice lines `Please make sure you have the correct access rights` and `and the repository exists.` So the reason is `fatal: Could not read from remote repository. | Please make sure you have the correct access rights | and the repository exists.`, and the test's line is the fourth from last. Options:
+       - (a) `push_reason` drops git's advice lines (these two, and lines starting with `hint:`) before it takes the last three. The Interface gets one more sentence; the domain tests pass as they are.
+       - (b) The tester changes the expected text to `Could not read from remote repository`; the Interface is unchanged.
+
+       I would choose (a). Over ssh, the line that names the cause comes before the same advice lines and would be lost too.
+
+    2. `make types` fails in that same test file:
+       - line 14 imports `GitOptions` from `factory.adapters.git_cli`, which does not export it. The import should come from `factory.domain.git`.
+       - line 200 sets `message = None` on a variable that mypy typed as `str`. It needs `message: str | None`.
+
+       These are the tester's changes, and I propose exactly these.
+
+    3. Three tests pin the `Git` interface at exactly 21 operations:
+       - `tests/application/test_git_interface.py::test_git_has_exactly_the_twenty_one_operations_and_git_cli_has_each`
+       - `tests/application/test_interfaces.py::test_git_abstract_methods_are_exactly_its_twenty_one_operations`
+       - `tests/test_checkout_hygiene_removed.py::test_the_names_of_the_checkouts_hygiene_are_gone[git-twenty-one]`
+
+       To carry git's reason across the interface, `Git` needs a 22nd operation. The other way, `push` returning a DTO, breaks `RecordingGit.push(...) -> PushOutcome` and every test that compares an outcome with `"rejected"`. Options:
+       - (a) keep `Git.last_push_output() -> str`, and the tester changes these three tests to 22 operations, `last_push_output` included.
+       - (b) `push` and `delete_remote_branch` return a `PushResult(outcome, output)` DTO, which changes many tests.
+
+       I would choose (a).
+
+    4. Four tests in `tests/application/test_dispatcher.py` compare the whole log with only the cap line, or with nothing:
+       - `test_a_report_for_a_branch_not_on_the_remote_becomes_one_log_line`
+       - `test_an_event_without_a_work_item_is_reported_as_one_log_line`
+       - `test_a_report_that_fails_with_a_git_error_leaves_the_entry_unreported`
+       - `test_a_git_error_in_the_report_of_a_branch_not_on_the_remote_writes_no_log_line`
+
+       They now also see the new lines, for example `assert ['handler err...eError: boom'] == ['error cap r...eError: boom']` and `assert ['handler err...eError: boom'] == []`. The Interface puts one line per counted error into the same log, and the dispatcher has no other. Options:
+       - (a) the tester changes these four tests to leave out lines starting with `handler error ` (or to keep only `error cap reached` lines), each checking the same thing as now.
+       - (b) the handler error lines go elsewhere, but no other log exists.
+
+       I would choose (a).
+
+    Not touched: the stall push in `stalls.py` still has no retry, as decided. It does carry git's reason now, through `push_failure`. The refactor step and `make duplicates` are left until the tests are settled.

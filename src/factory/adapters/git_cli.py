@@ -174,6 +174,7 @@ class GitCli(Git):
         self._directory = directory
         self._options = GitOptions() if options is None else options
         self._identity = self._options.identity
+        self._last_push_output = ""
 
     def fetch(self) -> None:
         """Fetch from the remote and prune; any failure is `FetchFailed`."""
@@ -295,7 +296,12 @@ class GitCli(Git):
         if result.exit_status == 0:
             self._reach(KillPoint.AFTER_PUSH)
             return "pushed"
+        self._last_push_output = result.stdout
         return _failed_push(arguments, result)
+
+    def last_push_output(self) -> str:
+        """Git's whole output of the latest push or remote deletion that failed; `""` before one."""
+        return self._last_push_output
 
     def delete_remote_branch(self, branch: str) -> PushOutcome:
         """Delete `branch` on the remote; already gone counts as deleted, like `push`'s values."""
@@ -306,6 +312,7 @@ class GitCli(Git):
             # A branch deleted elsewhere leaves a stale tracking ref that no push removes.
             self._run(["update-ref", "-d", f"{REMOTE_PREFIX}{branch}"])
             return "pushed"
+        self._last_push_output = result.stdout
         return _failed_push(arguments, result)
 
     def delete_branch(self, branch: str) -> None:

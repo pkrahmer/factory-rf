@@ -19,6 +19,7 @@ from factory.domain.tick_status import (
     at_cap,
     clear_errors,
     find_error,
+    handler_error_line,
     mark_reported,
     record_error,
 )
@@ -78,13 +79,17 @@ class Dispatcher:
             self.handler_for(event.kind).handle(event)
         # Every handler error is counted, never lost; a kill is no Exception and passes through.
         except Exception as error:
-            return self._count(event, f"{type(error).__name__}: {error}")
+            return self._count(event, error)
         self._status = clear_errors(self._status, event.key)
         return "handled"
 
-    def _count(self, event: Event, last_error: str) -> DispatchOutcome:
+    def _count(self, event: Event, error: Exception) -> DispatchOutcome:
+        error_type = type(error).__name__
+        last_error = f"{error_type}: {error}"
         self._status = record_error(self._status, event.key, event.remote_state, last_error)
         entry = find_error(self._status, event.key, event.remote_state)
+        if entry is not None and self._log is not None:
+            self._log.line(handler_error_line(entry, error_type, str(error)))
         if entry is None or not at_cap(entry):
             return "error"
         return self._report(event, entry)

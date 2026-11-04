@@ -72,3 +72,12 @@ def clear_errors(status: TickStatus, event_key: str) -> TickStatus:
 def at_cap(entry: ErrorCount) -> bool:
     """Whether the entry has reached the error cap."""
     return entry.count >= ERROR_CAP
+
+
+ERROR_TEXT_LENGTH = 300
+
+
+def handler_error_line(entry: ErrorCount, error_type: str, text: str) -> str:
+    """The log line of one counted handler error; its text on one line, cut to 300 characters."""
+    one_line = " ".join(text.splitlines())[:ERROR_TEXT_LENGTH]
+    return f"handler error {entry.event_key} {entry.count} of {ERROR_CAP}: {error_type}: {one_line}"

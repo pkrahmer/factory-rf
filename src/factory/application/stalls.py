@@ -7,10 +7,10 @@ from factory.application.claims import ClaimService, StageStart
 from factory.application.costs import CostRecorder, CostRun
 from factory.application.handlers.recording import commit_subject
 from factory.application.opening import WorkItemOpening
+from factory.application.pushes import push_failure
 from factory.application.stage_environment import StageEnvironment, stage_environment_of
 from factory.application.take import TakeReport
 from factory.domain.decisions import StallReason
-from factory.domain.errors import PushFailed
 from factory.domain.git import CommitId
 from factory.domain.hosting import PostKey, PostOutcome, PullRequestView
 from factory.domain.identifiers import Name, WorkItemId
@@ -146,7 +146,7 @@ class StallService:
         commit = git.commit(commit_subject(context.work_item, f"{context.stage} stalled"))
         outcome = git.push(context.branch)
         if outcome != "pushed":
-            raise PushFailed(context.branch, outcome)
+            raise push_failure(git, context.branch, outcome)
         return commit
 
 

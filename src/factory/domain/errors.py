@@ -49,16 +49,19 @@ class NothingToCommit(GitError):
 
 
 class PushFailed(FactoryError):
-    """A push did not reach the remote: the branch and how the push ended."""
+    """A push did not reach the remote: the branch, how the push ended and git's reason."""
 
     branch: str
     outcome: PushOutcome
+    reason: str
 
-    def __init__(self, branch: str, outcome: PushOutcome) -> None:
-        """Name the branch and the push's outcome."""
-        super().__init__(f"push of {branch} failed: {outcome}")
+    def __init__(self, branch: str, outcome: PushOutcome, reason: str = "") -> None:
+        """Name the branch, the push's outcome and, when known, git's reason."""
+        message = f"push of {branch} failed: {outcome}"
+        super().__init__(f"{message}: {reason}" if reason else message)
         self.branch = branch
         self.outcome = outcome
+        self.reason = reason
 
 
 class ProjectCommandError(BoundaryError):

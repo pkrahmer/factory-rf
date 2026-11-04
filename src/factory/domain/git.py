@@ -22,6 +22,13 @@ ChangeKind = Literal["added", "modified", "deleted"]
 
 GIT_TIME_LIMIT = timedelta(minutes=5)
 
+PUSH_REASON_LINES = 3
+PUSH_REASON_LENGTH = 300
+PUSH_REASON_SEPARATOR = " | "
+
+# Git's ref status for a refusal by the server, which a wait may cure, unlike `[rejected]`.
+SERVER_REFUSAL = "[remote rejected]"
+
 
 class RemoteBranch(BaseModel):
     """A branch as the remote holds it: its name without the remote's prefix, and its commit."""
@@ -136,3 +143,20 @@ def _is_forbidden_character(character: str) -> bool:
 
 def _is_valid_component(component: str) -> bool:
     return not component.startswith(".") and not component.endswith(".lock")
+
+
+def push_reason(output: str) -> str:
+    """Git's reason for a failed push: its last non-empty lines, at most three, on one line.
+
+    The joined reason is cut at the end to at most 300 characters.
+    """
+    lines = [line.strip() for line in output.splitlines() if line.strip()]
+    joined = PUSH_REASON_SEPARATOR.join(lines[-PUSH_REASON_LINES:])
+    return joined[:PUSH_REASON_LENGTH]
+
+
+def push_is_retried(outcome: PushOutcome, output: str) -> bool:
+    """Whether a failed push may succeed after a wait: unreachable, or refused by the server."""
+    if outcome == "unreachable":
+        return True
+    return outcome == "rejected" and SERVER_REFUSAL in output
