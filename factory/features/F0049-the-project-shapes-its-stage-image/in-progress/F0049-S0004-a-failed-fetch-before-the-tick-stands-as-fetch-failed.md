@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T02:45:21.520662Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-04T02:45:21.520662Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T02:45:58.687119Z'
+  stage: smoke-test
+  run: dade819c34a94968ba79127ff2c3b8fd
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -459,3 +461,22 @@ Expect: a line that ends in `passed` with no `failed`.
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
 30. factory: started smoke-test as vm.
+31. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` from the repository root, exactly as written, and fixed nothing.
+
+    Command 1: `uv run pytest tests/entry/test_run_fetch_before_tick.py 2>&1 | tail -1`
+
+    ```
+    7 passed in 0.45s
+    ```
+
+    Met `Expect:` (a line that ends in `passed` with no `failed`).
+
+    Against the acceptance criteria: the 7 passing cases are the rows of four parametrized tests in `tests/entry/test_run_fetch_before_tick.py`, one test per criterion from 1 to 4:
+    - fetch fails / fetch passes (criterion 1)
+    - no stage file / with a stage file (criterion 2)
+    - `main` unchanged / stage file changed during the outage (criterion 3)
+    - another `GitError` (criterion 4)
+
+    The smoke test contradicts none of the criteria. It does not exercise criterion 5 (`make check`) or criterion 6 (`docs:`); the factory checks those itself.
+
+    Findings: none.
