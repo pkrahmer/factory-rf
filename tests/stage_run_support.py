@@ -6,9 +6,11 @@ from pathlib import Path
 from factory.application.boundaries import Boundaries
 from factory.application.stage import StageReport, StageRunner
 from factory.domain.agent_runs import AgentRunResult
+from factory.domain.cost_records import CostRecord
 from factory.domain.git import CommitId
 from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord
+from factory.domain.paths import cost_records_path
 from factory.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, SYNC_TARGET, install_agents, remote_commit
 from human_clone import HumanClone
@@ -113,6 +115,18 @@ def branch_head(remote: Path) -> CommitId:
     commit = remote_commit(remote, BRANCH)
     assert commit is not None
     return commit
+
+
+def pushed_cost_text(boundaries: Boundaries, remote: Path) -> str:
+    """The work item's cost-records file at the head of the remote's branch."""
+    text = boundaries.git.show_file(branch_head(remote), cost_records_path(PATH))
+    assert text is not None
+    return text
+
+
+def pushed_cost_records(boundaries: Boundaries, remote: Path) -> list[CostRecord]:
+    """The cost records at the head of the remote's branch."""
+    return boundaries.cost_reader.parse(pushed_cost_text(boundaries, remote))
 
 
 def pushed(boundaries: Boundaries, remote: Path) -> WorkItemDocument:

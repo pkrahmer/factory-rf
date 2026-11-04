@@ -11,11 +11,10 @@ from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.transcript_files import FileTranscriptStore
 from factory.application.boundaries import Boundaries
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.cost_records import CostRecord, ToolUse
-from factory.domain.paths import cost_records_path
+from factory.domain.cost_records import ToolUse
 from factory.domain.transcripts import Transcript
 from human_clone import HumanClone
-from stage_run_support import PATH, branch_head, open_story, run_stage
+from stage_run_support import open_story, pushed_cost_records, pushed_cost_text, run_stage
 from tool_use_support import Call, claude_lines, transcript_of
 
 SESSION = "0b7c4a1e-5d2f-4c3a-9e8b-1a2b3c4d5e6f"
@@ -61,16 +60,6 @@ def _staged(
     return replace(staged, settings=boundaries.settings.model_copy(update=update))
 
 
-def _sidecar(boundaries: Boundaries, remote: Path) -> str:
-    text = boundaries.git.show_file(branch_head(remote), cost_records_path(PATH))
-    assert text is not None
-    return text
-
-
-def _records(boundaries: Boundaries, remote: Path) -> list[CostRecord]:
-    return boundaries.cost_reader.parse(_sidecar(boundaries, remote))
-
-
 @pytest.mark.parametrize(
     ("calls", "folder", "expected"),
     [
@@ -113,7 +102,7 @@ def test_a_completed_run_s_record_carries_its_tool_calls(  # noqa: PLR0913 - the
 
     run_stage(staged)
 
-    [record] = _records(staged, remote)
+    [record] = pushed_cost_records(staged, remote)
     assert record.tools == expected
 
 
@@ -143,9 +132,9 @@ def test_a_record_s_tools_hold_no_text_of_a_call_s_input_or_output(  # noqa: PLR
 
     run_stage(staged)
 
-    [record] = _records(staged, remote)
+    [record] = pushed_cost_records(staged, remote)
     assert record.tools == [ToolUse(tool="Bash", calls=1, failed=0, seconds=1.5)]
-    assert secret not in _sidecar(staged, remote)
+    assert secret not in pushed_cost_text(staged, remote)
 
 
 @pytest.mark.parametrize(
@@ -173,6 +162,6 @@ def test_tool_calls_that_cannot_be_read_leave_tools_none_and_the_run_goes_on(  #
 
     assert report.stall is None
     assert report.next_stage == "doing"
-    [record] = _records(staged, remote)
+    [record] = pushed_cost_records(staged, remote)
     assert record.status == "completed"
     assert record.tools is None

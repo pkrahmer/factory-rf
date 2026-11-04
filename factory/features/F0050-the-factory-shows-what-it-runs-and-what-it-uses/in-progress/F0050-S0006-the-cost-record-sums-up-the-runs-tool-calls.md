@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T19:07:58.513946Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-04T19:07:58.513946Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-04T19:09:24.767684Z'
+  stage: tests
+  run: 12f9345762cb47a186941256eef3a8de
 ---
 
 # The cost record sums up the run's tool calls
@@ -278,3 +280,18 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     Noticed, not touched: the `make duplicates` items the reviewer already judged as not findings.
 15. factory: started tests as vm.
+16. tester: Round 1, the test changes named in the coder's entry 14 (from the reviewer's entry 12). The one run, `uv run pytest -q tests/domain/test_tool_uses.py tests/application/test_stage_tool_uses.py tests/application/test_stage_transcripts.py`, passes: the code from entry 14 already handles both new rows. `make lint` and `make types` are green.
+
+    1. Two new rows in `tests/domain/test_tool_uses.py::test_seconds_come_from_the_transcript_s_times`. Both expect the call still counted with no seconds, `[ToolUse(calls=1, failed=0, seconds=None)]`:
+       - `claude-code-one-timestamp-without-offset`: the `tool_use` line's `timestamp` has its `Z` removed (`2026-11-04T10:00:10.000`), and the `tool_result` line keeps its `Z`.
+       - `opencode-end-beyond-float-range`: `state.time.end` is `10**400`.
+       - These rows only fit one runtime each, so the test can no longer take the two-runtime `read` fixture and a `seconds` value. Its rows now pair a reading with the expected result. The earlier with-times (2.5) and without-times (`None`) cases are still there as one row per runtime, so the test's name and what it checks are unchanged. It now compares the whole result list rather than `seconds` alone.
+       - Two module-private builders write the odd lines: `_claude_without_offset_on_the_call` and `_opencode_end_beyond_float_range`.
+    2. The shared helper, moved under the standing leave in `CLAUDE.md` (*Tests*):
+       - `tests/stage_run_support.py` now has `pushed_cost_text(boundaries, remote)`, which returns the cost-records file at the head of the branch and asserts it exists, and `pushed_cost_records(boundaries, remote)`, which parses it.
+       - `tests/application/test_stage_tool_uses.py` dropped `_sidecar`/`_records` and uses the two shared helpers.
+       - `tests/application/test_stage_transcripts.py`, an earlier story's test file, dropped `_records` and uses `pushed_cost_records`. Its now unused imports (`CostRecord`, `cost_records_path`, `PATH`, `branch_head`) went too. Every test there keeps its name and checks the same thing.
+
+    Files changed: `tests/domain/test_tool_uses.py`, `tests/application/test_stage_tool_uses.py`, `tests/application/test_stage_transcripts.py` (earlier story, standing leave), `tests/stage_run_support.py` (shared support, standing leave). No files created. The test run imported every module.
+
+    `lint`: lint: green (0.2 s)

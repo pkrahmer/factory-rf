@@ -1,5 +1,6 @@
 """Each runtime's transcript summed up per tool: calls, failed calls and seconds, no content."""
 
+import json
 from collections.abc import Callable
 
 import pytest
@@ -108,16 +109,61 @@ def test_lines_that_cannot_be_read_give_no_tools(
     assert function(["this is not a JSON line"]) is None
 
 
+def _claude_without_offset_on_the_call() -> list[ToolUse] | None:
+    lines = claude_lines([Call("Bash", seconds=1.0)])
+    use = json.loads(lines[1])
+    use["timestamp"] = use["timestamp"].removesuffix("Z")
+    lines[1] = json.dumps(use)
+    return claude_tool_uses(lines)
+
+
+def _opencode_end_beyond_float_range() -> list[ToolUse] | None:
+    lines = opencode_lines([Call("bash", seconds=1.0)])
+    event = json.loads(lines[1])
+    event["part"]["state"]["time"]["end"] = 10**400
+    lines[1] = json.dumps(event)
+    return opencode_tool_uses(lines)
+
+
 @pytest.mark.parametrize(
-    ("seconds", "expected"),
-    [pytest.param(2.5, 2.5, id="with-times"), pytest.param(None, None, id="without-times")],
+    ("reading", "expected"),
+    [
+        pytest.param(
+            lambda: _claude([Call("Bash", seconds=2.5)]),
+            [ToolUse(tool="Bash", calls=1, failed=0, seconds=2.5)],
+            id="claude-code-with-times",
+        ),
+        pytest.param(
+            lambda: _opencode([Call("Bash", seconds=2.5)]),
+            [ToolUse(tool="Bash", calls=1, failed=0, seconds=2.5)],
+            id="opencode-with-times",
+        ),
+        pytest.param(
+            lambda: _claude([Call("Bash", seconds=None)]),
+            [ToolUse(tool="Bash", calls=1, failed=0, seconds=None)],
+            id="claude-code-without-times",
+        ),
+        pytest.param(
+            lambda: _opencode([Call("Bash", seconds=None)]),
+            [ToolUse(tool="Bash", calls=1, failed=0, seconds=None)],
+            id="opencode-without-times",
+        ),
+        pytest.param(
+            _claude_without_offset_on_the_call,
+            [ToolUse(tool="Bash", calls=1, failed=0, seconds=None)],
+            id="claude-code-one-timestamp-without-offset",
+        ),
+        pytest.param(
+            _opencode_end_beyond_float_range,
+            [ToolUse(tool="bash", calls=1, failed=0, seconds=None)],
+            id="opencode-end-beyond-float-range",
+        ),
+    ],
 )
 def test_seconds_come_from_the_transcript_s_times(
-    read: Reading, *, seconds: float | None, expected: float | None
+    reading: Callable[[], list[ToolUse] | None], expected: list[ToolUse]
 ) -> None:
-    [use] = read([Call("Bash", seconds=seconds)]) or []
-
-    assert use.seconds == expected
+    assert reading() == expected
 
 
 def test_tools_are_sorted_by_name_whatever_order_they_first_appear_in(read: Reading) -> None:
