@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T08:57:13.517346Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-04T08:57:13.517346Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-04T08:57:37.894708Z'
+  stage: intake
+  run: 61b1d822b1104c51ad6ec00cae167234
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -62,11 +64,15 @@ journal:
 ## Acceptance criteria
 
 1. The stage-image test refuses a Dockerfile in which `AGENT_RUNTIME` has a default, and one whose final stage takes Node, npm, npm's cache or the other runtime's install from the first stage.
-2. The final stage installs no runtime by npm and runs no `npm`; only the first stage does, and it installs exactly one runtime, chosen by `AGENT_RUNTIME`, at its pinned version.
+2. The final stage installs no runtime by npm and runs no `npm`; only the first stage does, and it installs exactly one runtime, chosen by `AGENT_RUNTIME`, at its pinned version. The stage-image test checks the text: every `npm` line lies before the final stage's `FROM`; there is exactly one `npm install`; the package it installs is chosen from `${AGENT_RUNTIME}` (for example a shell `case` mapping `claude` to `@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}` and `opencode` to `opencode-ai@${OPENCODE_VERSION}`). Rows: an `npm` line after the final `FROM`, two `npm install` lines, an install whose package does not depend on `${AGENT_RUNTIME}`.
 3. The pins are `CLAUDE_CODE_VERSION=2.1.318` and `OPENCODE_VERSION=1.19.5`; Node's pins do not change.
-4. `vm/job-start.sh` builds with `--build-arg AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME`; its test row shows the argument.
-5. `make check` stays green. No test builds the image. The human builds it on factory-vm for each runtime and checks: the build without `AGENT_RUNTIME` fails with its message; with `claude`, `claude --version` reports 2.1.318, `command -v opencode node npm` finds nothing, and the image is under 0.7 GB; with `opencode`, `opencode --version` reports 1.19.5, `command -v claude node npm` finds nothing, and the image is under 0.6 GB; neither image has `/root/.npm` or `/opt/factory/node`; the preflight and its agent-run probe pass on the `claude` image.
-6. docs: `docs/operator-guide.md`: in *The stage image*, the build command with `AGENT_RUNTIME`, that the image holds only that runtime and must match the instance's `FACTORY_AGENT_RUNTIME`, that a runtime change needs a rebuild and a new `image-id`, and the new pins. `docs/decisions.md`: one entry with feature decisions 1 and 2 and their reasons. `README.md` and the project guide: none.
+4. `vm/job-start.sh` builds with `--build-arg AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME`; its test row shows the argument, and a row refuses a build line without it.
+5. The stage-image test requires the Dockerfile to check `AGENT_RUNTIME` before any install (empty, and neither `claude` nor `opencode`) and to fail there with a message that contains `AGENT_RUNTIME`, `claude` and `opencode`. Rows: the file as built, the check missing, a message without one of the three words.
+6. The stage-image test checks the final stage's text for its cleanups, one row per clause: it leaves nothing in `/tmp`; it removes apt's lists; it removes debconf's cache and the install logs (`/var/cache/debconf/*-old`, `/var/log/*.log` or wider); its `COPY --from` lines take only the chosen runtime's files; and no `COPY --from` of the final stage names a path that contains `baseline`.
+7. The stage-image test requires the `ENV FACTORY_CLAUDE_VERSION`, `ENV FACTORY_OPENCODE_VERSION` and `ENV FACTORY_OPENCODE_MODELS` lines to stay. Rows: each line removed is refused.
+8. The stage-image test requires the Dockerfile's first line to name the build command with `--build-arg AGENT_RUNTIME=<claude|opencode>`. Row: a first line without it is refused.
+9. `make check` stays green. No test builds the image. The human builds it on factory-vm for each runtime and checks: the build without `AGENT_RUNTIME` fails with its message; with `claude`, `claude --version` reports 2.1.318, `command -v opencode node npm` finds nothing, and the image is under 0.7 GB; with `opencode`, `opencode --version` reports 1.19.5, `command -v claude node npm` finds nothing, and the image is under 0.6 GB; neither image has `/root/.npm` or `/opt/factory/node`; the preflight and its agent-run probe pass on the `claude` image.
+10. docs: `docs/operator-guide.md`: in *The stage image*, the build command with `AGENT_RUNTIME`, that the image holds only that runtime and must match the instance's `FACTORY_AGENT_RUNTIME`, that a runtime change needs a rebuild and a new `image-id`, and the new pins. `docs/decisions.md`: one entry with feature decisions 1 and 2 and their reasons. `README.md` and the project guide: none.
 
 ## Smoke test
 
@@ -106,3 +112,9 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
 
    5. Yes: the test refuses a `job-start.sh` build line without `--build-arg AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME`.
 5. factory: started intake as vm.
+6. intake: accepted. The human's answers (journal entry 4) are carried into the story as their edit, not as my improvement: criterion 2 now names the text check and its three rows (answer 4); criterion 4 adds the refused side (answer 5); new criteria 5 (AGENT_RUNTIME check and message, answer 1), 6 (cleanups and `COPY --from` rows, including `baseline`, answer 2), 7 (the three ENV lines, answer 3) and 8 (first line names the build command, answer 3). The closing two criteria are now 9 (`make check`) and 10 (`docs:`), still last. The Description's meaning did not change.
+   - Interface: names concrete files and lines (`vm/Dockerfile` ARG, stages, pins, ENVs, first line; `vm/job-start.sh` build argument; `vm/setup.sh` unchanged). Every stated behaviour now has a criterion: the AGENT_RUNTIME failure (5), the final-stage contents (1, 2, 6), the pins (3), the ENV lines (7), the first line (8), the job-start argument (4).
+   - Criteria: each is testable as one parametrized test over the Dockerfile's or script's text, and each rule has its failing side as rows (default present, check missing, message missing a word, npm after the final FROM, two installs, an install independent of the runtime, each ENV removed, first line without the argument, job-start line without the argument). Criterion 5 for `make check` and the image build is the human's manual check, as the story says.
+   - Smoke test: the grep and pytest commands are runnable. pytest gets no `-q`, and the `Expect:` ends in `passed` with no `failed`, which the output can be checked against, provided the project's `addopts` keep a summary line. I did not check that.
+   - Architecture: the story touches only `vm/`, tests and docs, with no layer involved.
+   - Scope: within F0050's scope (S0001 items). The feature's leave covers changing `tests/test_stage_image.py` and the build-command row of `tests/test_vm_job_start.py`, and nothing else in that module.
