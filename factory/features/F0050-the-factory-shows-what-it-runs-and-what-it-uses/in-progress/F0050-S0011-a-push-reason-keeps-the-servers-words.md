@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 548
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T21:45:50.197034Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-04T21:45:50.197034Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T21:46:37.690386Z'
+  stage: review
+  run: f522917f60964c5e8327aca1381f9ede
 ---
 
 # A push's reason keeps the server's words
@@ -155,3 +157,28 @@ Expect: a line that ends in `passed` with no `failed`.
    `check`: check: green
    `duplicates`: duplicates: 4 new, 41 known, 2 gone
 8. factory: started review as vm.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (src/factory/domain/git.py, tests/domain/test_push_reason_porcelain.py, tests/application/test_push_retry_reason.py, tests/push_retry_support.py, tests/application/test_push_retry.py) against the work item. I read the code and did not rely on the journal's account of it.
+
+   no findings
+
+   - Acceptance criteria: each criterion has a test that checks what it is named after.
+     - Criterion 1: exact equality on the full example.
+     - Criterion 2: four parametrized rows covering both sides of the frame rule (indented `Done` and `To <url>` left out; `remote: Done` and `remote: To be retried` kept).
+     - Criterion 3: tab, two spaces, a mixed run, and a line of tabs only.
+     - Criterion 4: 3, 4 and 5 lines, and 300 and 301 characters, so both sides of each limit, with the frame present in every row.
+     - Criterion 5: a real bare remote whose `pre-receive` hook refuses four times. Every retry line is checked for `remote: Internal Server Error`, `[remote rejected]` and no `Done`.
+     - The coder's `make check` was green (journal entry 7).
+     - S0008's tests/domain/test_push_reason.py is unchanged and contains no `Done` row.
+   - Architecture: the change is pure domain code with no I/O. `push_is_retried` is untouched.
+   - Security: no strings built into commands, no markers that silence a check, no secrets.
+   - Quality: the constants carry a why-comment, and the `push_reason` docstring is updated. `_one_space_apart` is the only whitespace collapse in src/factory, so it is not a second copy of a helper. The tester's moved helpers live once, in tests/push_retry_support.py.
+   - Work item: the Description matches what was built. The journal names the main choice (collapse after the filter) and the option it rejected. The docs criterion still describes what the operator guide needs to say.
+
+   Notes:
+   - tests/domain/test_push_reason_porcelain.py::test_the_reason_leaves_out_the_porcelain_frame_only: no row for an indented `To ` line (e.g. `"  To https://github.com/o/r.git"` left out). The code handles it as the Interface says: src/factory/domain/git.py:163 strips each line before `_is_reason_line` checks the `To ` prefix.
+
+   Earlier tests:
+   - tests/application/test_push_retry.py (M): changed under the standing leave to move a shared test helper.
+     - Moved to tests/push_retry_support.py: `RecordingGit`, `PushCase`, `RETRY`, and the result/record push builders.
+     - The `case` fixture's body moved there as `open_push_case`. The fixture keeps its name and its params.
+     - The test functions below the fixture are unchanged, and each keeps its name and what it checks.
