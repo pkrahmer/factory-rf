@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T00:55:29.263113Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T00:55:24.223122Z'
+  stage: doing
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-04T00:55:29.263113Z'
   stage: doing
 ---
 
@@ -481,3 +490,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
 
     Refactor step: I read my diff. It is the one helper change and needs nothing more. Description: unchanged by me. The reviewer already rewrote it in entry 25.
 28. 2026-11-04 human: (c): keep the U+FFFD check in stage_layer. A stage file that holds U+FFFD, or bytes that are not UTF-8 (which reach the factory as U+FFFD), is refused with one reason that names both; the 64 KiB limit is measured on the UTF-8 encoding of the text as read. The operator guide says so in one sentence. Git.show_file and the process wrapper stay unchanged, so no leave is needed. The reviewer's tester findings go to the tests stage as usual.
+29. factory: started doing as vm.
