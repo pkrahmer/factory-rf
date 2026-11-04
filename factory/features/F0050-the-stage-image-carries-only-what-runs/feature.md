@@ -2,7 +2,7 @@
 
 ## Goal
 
-After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured on factory-vm on 2026-11-04: npm's download cache stays in the image (441 MB in `/root/.npm`); opencode's package brings two builds of its executable, the normal one and a "baseline" one for CPUs without AVX2 (178 MB each); the factory's Node stays in `/opt/factory/node` although it serves only npm's install (201 MB); and both agent runtimes are installed, although every instance runs exactly one, the one `FACTORY_AGENT_RUNTIME` names (`vm/setup.sh --runtime`, `vm/job-start.sh`). An instance at work without a Claude key would carry Claude Code for nothing. This feature builds the base image for one runtime and leaves out what only the install needs: about 0.58 GB with Claude Code and 0.51 GB with opencode. It also moves both runtimes to their current releases, and makes every cost record show the image sizes, the free disk, the memory and the CPU, so that the next growth is seen from a distance. Done when every story below is merged and `make check` is green.
+After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured on factory-vm on 2026-11-04: npm's download cache stays in the image (441 MB in `/root/.npm`); opencode's package brings two builds of its executable, the normal one and a "baseline" one for CPUs without AVX2 (178 MB each); the factory's Node stays in `/opt/factory/node` although it serves only npm's install (201 MB); and both agent runtimes are installed, although every instance runs exactly one, the one `FACTORY_AGENT_RUNTIME` names (`vm/setup.sh --runtime`, `vm/job-start.sh`). An instance at work without a Claude key would carry Claude Code for nothing. This feature builds the base image for one runtime and leaves out what only the install needs: about 0.58 GB with Claude Code and 0.51 GB with opencode. It also moves both runtimes to their current releases, and makes every cost record show the image sizes, the free disk, the memory and the CPU, so that the next growth is seen from a distance. Two smaller findings of the same week go with it: a stop always says why and writes its log line once, and the factory fetches once per iteration. Done when every story below is merged and `make check` is green.
 
 ## Scope
 
@@ -10,6 +10,8 @@ After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured
 - The pins of Claude Code and opencode move to their current releases (S0001).
 - `vm/job-start.sh` builds for its own runtime; the operator's build command on a VM names the runtime (S0001).
 - The object `machine` in every completed cost record: the base image and the project layer, the free space of the image store and of the dataset, the memory peak since boot and the memory total, the run's CPU time and its waits for a CPU and for memory; the build's log line with the sizes and the count of warnings; records contract 4.2 (S0002).
+- A stop's detail is never empty; a command cut off by the factory's own stop is not judged; a standing stop writes its log line once (S0003).
+- One fetch per iteration of `factory-run` (S0004).
 
 ## Out of scope
 
@@ -19,11 +21,14 @@ After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured
 - A memory peak per run: it needs sampling during the run, since the kernel's peak cannot be reset before 6.12.
 - Limits or warnings on the new measures: first the normal values are watched.
 - A breakdown per container or per instance: the measures count every container of the factory user.
+- A heartbeat of the instances: a Cloud Run job needs none, and for VMs it belongs to a later instance management harness (the human, 2026-11-04).
 
 ## Stories
 
 - S0001: The base image holds only the instance's runtime, with nothing left from its install
 - S0002: The cost records show the image sizes, the free disk, the memory and the CPU
+- S0003: A stop says why, and is logged once
+- S0004: One fetch per iteration
 
 ## The human's changes
 
