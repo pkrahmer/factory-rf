@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 550
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T22:59:06.321811Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-04T22:59:06.321811Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-04T22:59:25.037512Z'
+  stage: tests
+  run: 53d5414a54bf49fe85887c54e8aa5bae
 ---
 
 # The decision log and the contract's history match the feature
@@ -79,3 +81,12 @@ Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
    - Architecture: accepted. Documents only, within the docs stage's paths. No layer is touched.
    - Scope: accepted. It matches feature decisions 10 and 11 and the A0001 proposal, and nothing is in `feature.md`'s out-of-scope list.
 4. factory: started tests as vm.
+5. tester: No tests written, as the Interface says: "no test is written: the criteria are about documents only". The gate is `make documents` in the docs stage and `make check`.
+   - criterion 1 (an entry for decision 11 in `docs/decisions.md`): no test. It is a document criterion, checked by reading the text and by the smoke test's `tmpfiles.d` and `F0050-S0007` counts.
+   - criterion 2 (the note after the S0005 entry's `tmpfiles.d` sentence): no test. Document criterion.
+   - criterion 3 (`4.1` in the records contract's version list in `docs/operator-guide.md`): no test. Document criterion, checked by the smoke test's first grep.
+   - criterion 4 (`make check` stays green): no test of its own. The factory's checks cover it.
+   - criterion 5 (docs): no test. It belongs to the docs stage.
+   Files created: none. Modules the test runner could not import: none, because no test was added and so there was no red run. `make lint` passed. Open: nothing. This story's only work is in the documents, within the docs stage's write paths.
+
+   `lint`: lint: green (0.2 s)
