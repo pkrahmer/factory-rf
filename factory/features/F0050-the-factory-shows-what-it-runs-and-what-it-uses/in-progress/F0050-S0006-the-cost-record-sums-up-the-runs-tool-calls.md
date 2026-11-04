@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913, 6640096367]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T19:34:33.911518Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -197,6 +201,11 @@ journal:
   at: '2026-11-04T19:34:27.827323Z'
   stage: doing
   run: 3afb192a89504a3fb841485a4ca888b3
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-11-04T19:34:33.911518Z'
+  stage: tests
 ---
 
 # The cost record sums up the run's tool calls
@@ -554,3 +563,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     Noticed but not touched:
     - `_events` in `src/factory/adapters/opencode_runtime.py:351` still uses `splitlines`. It skips bad lines, so it does not lose `tools`, and entry 30 limits this round to the one finding.
     - The note on `_staged` in `tests/application/test_stage_tool_uses.py` stays a note (entry 30).
+35. factory: started tests as vm.
