@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T09:26:11.740715Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-04T09:26:04.846508Z'
   stage: review
   run: e8718e1d35ce4fb08bbfe91e861b91d9
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-04T09:26:11.740715Z'
+  stage: docs
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -451,3 +460,4 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     - `tests/dockerfile_support.py`: changed under the standing leave in CLAUDE.md to move a shared test helper. `_instruction_commands` was taken out of `_commands`, which keeps its name and behaviour (entry 23).
     - `tests/test_stage_image.py`: changed under the human's leave in `feature.md` (line 46, "its tester may change `tests/test_stage_image.py` to the image S0001 describes"). The two lambda rows changed under the human's answer in journal entry 11, and `_stage_commands` was removed under the standing leave to move a shared test helper.
     - `tests/test_vm_job_start.py`: `test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options` changed under the same `feature.md` leave (the row of the build command, for the runtime argument). `test_the_stage_image_is_built_for_the_instance_runtime` and its helpers are new, so they need no leave.
+28. factory: started docs as vm.
