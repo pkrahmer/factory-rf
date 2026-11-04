@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T11:49:29.536407Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -179,6 +183,11 @@ journal:
   at: '2026-11-04T11:49:22.998798Z'
   stage: review
   run: eb5e77c507714f32900145b2348f29e0
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-11-04T11:49:29.536407Z'
+  stage: doing
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -507,3 +516,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     - tests/domain/test_contract_version_4.py: the human's leave, entry 9 answer 2 (both `"4.1"` pins → `"4.2"`).
     - tests/entry/test_run_project_image_rebuild.py: the human's leave, entry 18 answer 3 (the two expected build lines, `ScriptedImages` on the shared `SizedImages`, and its import).
     - tests/test_docker_path_removed.py: the human's leave, entry 23 answer 1 (`_no_module_reads_proc` narrowed through `PROCESS_TABLE`, and one parametrized test with the meminfo, pid, self and bare rows).
+32. factory: started doing as vm.
