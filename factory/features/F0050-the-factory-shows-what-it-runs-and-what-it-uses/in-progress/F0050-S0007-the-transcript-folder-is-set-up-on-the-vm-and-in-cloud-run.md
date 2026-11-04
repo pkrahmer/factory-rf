@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T20:16:32.057965Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -166,6 +170,11 @@ journal:
   at: '2026-11-04T20:16:25.982800Z'
   stage: tests
   run: cb06bba820e742bf82e8f4a5cd32f24d
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:16:32.057965Z'
+  stage: doing
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -479,3 +488,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     Every import resolved; no module failed to import. `make lint` is green. No files created.
 
     `lint`: lint: green (0.1 s)
+30. factory: started doing as vm.
