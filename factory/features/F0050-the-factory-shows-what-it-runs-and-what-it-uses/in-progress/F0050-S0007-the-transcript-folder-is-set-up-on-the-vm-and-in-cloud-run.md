@@ -5,7 +5,7 @@ round: 1
 attempts: 0
 crashes: 0
 pull_request: 545
-comments_read: []
+comments_read: [6640877810]
 handed_over: approval
 claim: null
 journal:
@@ -124,6 +124,11 @@ journal:
   at: '2026-11-04T20:10:33.256223Z'
   stage: smoke-test
   run: 3b684581ce134e989c391e48da5fa9a5
+- number: 22
+  speaker: human
+  kind: comment
+  at: '2026-11-04T20:10:53.646862Z'
+  stage: approval
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -367,3 +372,12 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     Open, not findings:
     - The smoke test's pytest command runs the older `tests/test_vm_setup.py` and `tests/test_vm_job_start.py`, not this story's `tests/test_vm_setup_transcripts.py` and `tests/test_vm_job_start_transcripts.py`. It confirms that nothing earlier broke, but it does not run the new transcript tests. Those run in `make check`, which entries 15 and 19 record as green.
     - With `--transcript-days 0`, a rule file written by an earlier run stays in `/etc/tmpfiles.d/`. Entries 7 to 19 note this as the human's choice, and the guide tells the operator to remove it themselves.
+22. 2026-11-04 human: A decision of the human, which changes this story: **the VM keeps no retention either.** Drop the `tmpfiles.d` rule and the option `--transcript-days` entirely. At about 5 MB per feature the folder grows too slowly to need one; a Cloud Run bucket keeps its lifecycle rule, as the docs criterion says.
+
+    So:
+    - `vm/setup.sh`: the step `transcripts` makes the folder (owner `factory`, mode `0700`) and writes the line `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` into `factory.env`; a second run changes nothing. No `tmpfiles.d` file, no `--transcript-days`, and so no `need_whole` helper for it (the earlier `need_minutes` stays as it was on `main`).
+    - Criterion 1's rows: the default run, and a second run that changes nothing. The rows for `--transcript-days 7`, `0` and `x` go, and so does the open point on a leftover rule file.
+    - The docs criterion: the VM's folder without a rule and without the option; removing old transcripts on a VM is the operator's, by hand if ever needed.
+    - The smoke test stays.
+
+    Leave for the reviewer: make exactly these edits to the Description, Interface, criteria and docs criterion on its next run. The coder and the tester follow them in this round: the coder takes out what the option and the rule added to `vm/setup.sh`; the tester takes out the tests of the option and the rule, and still makes finding 2's change.
