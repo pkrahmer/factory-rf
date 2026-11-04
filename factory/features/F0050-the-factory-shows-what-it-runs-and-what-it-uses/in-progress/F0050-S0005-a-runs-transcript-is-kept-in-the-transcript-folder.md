@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 543
-comments_read: [6635484197]
+comments_read: [6635484197, 6635579714]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: d21fa20287144a658a0e6b09c3f3007c
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-04T16:08:51.875802Z'
+  stage: tests
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -159,3 +164,12 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
    2. Criterion 6 at tick level: how does `activity_tick` get the keeper, the days and the clock? I would choose keyword arguments `transcripts: TranscriptKeeper | None = None, transcript_days: int | None = None, clock: Clock | None = None`. The idle and non-idle rows would then drive it with a fake `Tick` that returns an idle and a busy outcome.
    3. Opencode (criterion 2's second row): which files under `.local/share/opencode` make up session S, and what must the gathered content contain? I would choose: every file under `.local/share/opencode/storage` whose path names S (`session/*/S.json`, `message/S/*`, and the parts of those messages), and the test checks that the gathered content holds each of those files' text. If this opencode version keeps sessions in its `opencode.db` instead, the test would need a different stand-in. Please name the layout.
    4. Criterion 7: I would check that, with `transcript_dir` set, no mount of a container started through the fake containers and no `AgentRunRequest.prompt` recorded by the fake runtime contains the folder's path. Is that the check you want?
+9. 2026-11-04 human: A correction of the human, which replaces parts of the answer above: **the factory does not delete old transcripts.** The VM uses a `tmpfiles.d` rule (S0007) and a Cloud Run bucket its lifecycle rule; the factory needs no code for it.
+
+   So, from this story:
+   - `FACTORY_TRANSCRIPT_DAYS`, `InstanceSettings.transcript_days`, `TranscriptStore.remove_older_than`, `TranscriptKeeper.remove_old`, the call from `activity_tick` and the log line `transcript: removed <n> older than <d> days` go.
+   - Answers 4 and 5 above fall away (the age boundary, the non-idle tick, the empty days value).
+   - Criterion 6 goes; criterion 5 keeps only its rows for `FACTORY_TRANSCRIPT_DIR`; the smoke test's first command expects only `FACTORY_TRANSCRIPT_DIR`, and its second only `transcript: not kept for`.
+   - The docs criterion no longer names the days setting; it says that removing old transcripts is the site's (a `tmpfiles.d` rule on a VM, a lifecycle rule on a bucket).
+
+   Leave for the intake (or, if the story has moved on, the reviewer): make exactly these edits to the Description, Interface, criteria and smoke test. Everything else of the answer above stands.
