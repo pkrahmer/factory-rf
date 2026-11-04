@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T16:22:19.921758Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T16:22:16.755161Z'
+  stage: tests
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-04T16:22:19.921758Z'
   stage: tests
 ---
 
@@ -240,3 +249,4 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
     2. opencode: no file layout. The opencode wrapper already reads the run's JSON event stream as it runs; that stream, one event per line as printed, is the transcript (`extension` `jsonl`). `read_transcript(home, session)` returns the lines of the last run of that session, or `None` when the wrapper saw none. The test scripts a stream and checks that the content is its lines. Leave for the reviewer: put this into the Interface.
 
     3. Yes, exactly that check.
+14. factory: started tests as vm.
