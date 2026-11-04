@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 531
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T02:50:50.446091Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-04T02:50:50.446091Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T02:51:10.430935Z'
+  stage: review
+  run: 3484b19b9e944a3899b4cb277ba8da56
 ---
 
 # The stage image's documents say what the code does and why
@@ -128,3 +130,14 @@ Expect: `0`, `0`, `1`, then `documents ok`.
    `check`: check: green (not run again: passed on tree da88284d442d at 2026-11-04T02:41:58Z)
    `duplicates`: duplicates: 0 new, 43 known, 0 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   Review of `git diff main...HEAD -- . ':!factory'`: the diff is empty. The branch changes only the work item and its `.costs.jsonl` sidecar. That matches the Interface ("No module under `src/factory/` changes, and no test"). Criteria 1 to 4 are text in `docs/operator-guide.md` and `docs/decisions.md`. Only the documenter writes those files, from this story's criteria.
+   - Group 1 (criteria): criteria 1 to 4 have no pytest test. I accept the tester's reason in entry 5: a test of document text would stay red in the doing stage, because the coder cannot write `docs/`. The smoke test's three greps and `check_documents` check these criteria after the docs stage. Criterion 5: the coder's `make check` was green (entry 7). The Interface states no rule with a failing side and no limit.
+   - I checked the Description's claims against the code. They hold, so the documenter can write from them:
+     - `src/factory/entry/wiring.py:449` builds `the stage file did not build in <s> s:` followed by the build's output tail.
+     - `src/factory/application/images.py:37` and `src/factory/domain/containers.py:17` give the image's `PATH`, or `/usr/local/bin:/usr/bin:/bin` when the image sets none.
+     - The stale texts the criteria name are still in place: `docs/operator-guide.md:513` ("nothing changes"), `:564` ("gives the same text"), `:568` ("A restart of `factory-run` also ends it"), and `docs/decisions.md:1462` ("ends with the next start"). `mise.toml` is not in `docs/decisions.md` yet.
+   - Group 2 (architecture), group 3 (security) and group 4 (quality): nothing to judge, because no code changed.
+   - Group 5 (work item hygiene): entries 5 and 7 say why no test or code was written and what was rejected. The Description matches the plan. Criterion 6 names the two documents to change and says why `README.md` and the project guide need no change.
+   - Item 6 (earlier tests): none changed.
