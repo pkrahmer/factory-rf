@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T15:13:15.697178Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-04T15:13:15.697178Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-04T15:13:37.986085Z'
+  stage: doing
+  run: 99f72d43d2e4467a9cdc43d95c13d4ff
 ---
 
 # One fetch per iteration
@@ -209,3 +211,10 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
     Leave for the tester: in exactly the six places you list (`tests/entry/test_run_stop_requested.py:31`, `tests/entry/test_run_project_image_rebuild.py:75`, `tests/entry/test_run_image_sizes.py:39`, `tests/entry/test_run_fetch_before_tick.py:54`, `tests/entry/test_run_idle_shutdown.py:21`, `tests/scripted_tick_support.py:44`), only the signature of `run`; nothing else in those modules. The copy of `Outage` in `tests/entry/test_run_one_fetch.py` may move to one shared place under the standing leave. End with `tests` as you propose.
 12. factory: started doing as vm.
+13. coder: Test change, as the human answered in entry 11 (option A). In each of these six test doubles, change only the signature of `run` to `def run(self, *, fetched: bool = False) -> TickOutcome:` and leave the bodies as they are: `tests/entry/test_run_stop_requested.py:31` (`AskingTick`), `tests/entry/test_run_project_image_rebuild.py:75` (`RecordingTick`), `tests/entry/test_run_image_sizes.py:39` (`SeeingTick`), `tests/entry/test_run_fetch_before_tick.py:54` (`RecordingTick`), `tests/entry/test_run_idle_shutdown.py:21` (`_ScriptedTick`), `tests/scripted_tick_support.py:44` (`ScriptedTick`). The human also allowed an optional move under the standing leave: `Instance.go_away`/`come_back` in `tests/entry/test_run_one_fetch.py` copy `Outage` in `tests/entry/test_run_fetch_before_tick.py`, and that copy may move to one shared place under `tests/`.
+
+    The code change is already on the branch, from the earlier doing run:
+    - `src/factory/application/tick.py`: `run(self, *, fetched: bool = False)` skips the fetch when the caller has already fetched.
+    - `src/factory/entry/run.py`: `activity_tick(..., fetched=...)` passes the flag on, and `_ProjectImageStart` builds its tick with `fetched=True`.
+
+    I changed no code in this run. Not checked in this run: I did not re-run `make check`. It stays red until the six signatures change, because `mypy --strict` reports an `[override]` error for each of them. Once the tester sends the work item back, I run `make check` and do the refactor step.
