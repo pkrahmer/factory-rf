@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -277,6 +277,11 @@ journal:
   at: '2026-11-04T20:42:03.644530Z'
   stage: smoke-test
   run: cf3c3de9015340088b7c9cc337e7de8b
+- number: 50
+  speaker: factory
+  kind: done
+  at: '2026-11-04T20:50:07.315709Z'
+  stage: approval
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -789,3 +794,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     - The docs criterion: `docs/operator-guide.md` *Transcripts* (from line 1604) describes the VM folder with no rule and no option, and says removing old transcripts is the operator's job, by hand. The Cloud Run steps include the 30-day lifecycle rule, `roles/storage.objectUser` on that bucket only, the `--add-volume`/`--add-volume-mount` command with `FACTORY_TRANSCRIPT_DIR=<path>`, and the cost of a few cents a month at about 5 MB per feature.
 
     I did not run `make check` (criterion 4); the factory runs that as the stage's check. Nothing is open.
+50. factory: done (pull request merged); cost: 21 runs, 26.9 min, 173 turns, 518730 tokens in (4277296 more from cache), 72756 out, $6.01
