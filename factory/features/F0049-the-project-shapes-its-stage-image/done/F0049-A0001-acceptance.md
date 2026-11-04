@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-04T02:17:11.515403Z'
   stage: acceptance
   run: d8226b6ebc15438db80d64dc8acc9984
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-04T02:19:07.267128Z'
+  stage: done
 stories: [F0049-S0001, F0049-S0002, F0049-S0003]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The project shapes its stage image
@@ -276,3 +281,4 @@ S0002 needed the human most, for the reason above. An Interface that names the s
    6 Decisions: feature decisions 1 to 8 and 9 sets of answers from the journals are listed. Agent defaults: a rebuilt tick resets its error counts; `image prune -f` removes every dangling image; a removed stage file leaves the last project image tagged. Questions (a) to (e) wait for the human, including a real build on factory-vm. Every earlier test changed had its leave; none without one.
    7 Slow checks: none beyond `make check`. `make duplicates` reports 1 new finding, the `FakeImages` false positive. The feature's slowest test is the build time-limit test at 10.0 s, which is `ROOMY_LIMIT` by design. Disk: used space is unchanged at 1.3 GB; free space fell 0.2 GB outside the factory's directories, which the feature does not explain and which this stage's own runs most likely wrote.
    8 Cost: $27.56, 59 runs, 119.7 min. S0002 took 55 % of the money because its Interface named no seams: 5 of the 9 human questions were its own (2 tester stops, earlier tests pinning what it had to change, U+FFFD). S0001's round cap came from a smoke-test grep that matched a Dockerfile comment. The stories waited 0.3 h for the human.
+3. factory: done (pull request merged); cost: 1 runs, 11.9 min, 66 turns, 201432 tokens in (7490233 more from cache), 54795 out, $4.20
