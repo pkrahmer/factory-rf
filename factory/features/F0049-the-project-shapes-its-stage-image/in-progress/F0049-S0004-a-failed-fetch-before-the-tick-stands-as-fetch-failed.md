@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 530
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T02:20:55.662567Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-04T02:20:55.662567Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-04T02:21:16.192136Z'
+  stage: intake
+  run: 44b2b4f9637e49c9a20ba737b532d0ba
+  blocked: question
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -65,3 +68,13 @@ Expect: a line that ends in `passed` with no `failed`.
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: Format check: passed. One finding from the checks it does not cover:
+
+   1. The Interface states a rule, "Any other `GitError` from the fetch is not caught here and keeps today's path". No criterion covers it, so it has no failing side. Two coders could read it two ways, for example catching `GitError` broadly, and both would pass the listed tests. Do you want to add a criterion? I would add: "A fetch that raises a `GitError` other than `FetchFailed` is not turned into the stop `fetch_failed`: no `fetch_failed` stop is raised, and the scheduler logs `iteration failed` for it, as before." The alternative is to drop the Interface line and leave that path unspecified. I would choose the added criterion, before the two closing ones.
+
+   Everything else I checked is fine:
+   - Interface: `_ProjectImageStart._follow_main` has a concrete module and signature, and the stop's fields are named.
+   - Criteria: the stop with its detail and the log lines are covered, and so are the no-tick and no-`iteration failed` outcomes. The pass row, the unchanged image, identity and `PATH` (two rows), and the clear on the next passing fetch with the stage file built once are covered.
+   - Smoke test: `pyproject.toml` already sets `-q` in `addopts`, and the command passes none. The summary line therefore ends in `passed`, so the Expect line can be checked.
+   - Architecture: the change sits in `factory.entry`, which wires the stop service, and calls `StopService` and `clear_stop`, so no layer is crossed.
+   - Scope: it follows S0003's accepted-for-now behaviour and stays inside F0049's rebuild scope, and nothing in the feature's Out of scope is touched.
