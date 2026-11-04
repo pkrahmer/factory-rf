@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-04T03:23:58.891111Z'
   stage: acceptance
   run: 35846d6468944deebddf7ce0b8b0e2a0
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-04T03:25:55.550227Z'
+  stage: done
 stories: [F0049-S0001, F0049-S0002, F0049-S0003, F0049-S0004, F0049-S0005, F0049-S0006, F0049-S0007]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The project shapes its stage image
@@ -298,3 +303,4 @@ S0002 needed the human most. Its Interface named neither the seams nor the earli
    6 Decisions: feature decisions 1 to 9. A0001's (e) is now done by the human; opencode's version is not in the record, for the human to confirm. S0007 asked no questions and changed no test. Every earlier test the feature changed had a leave named.
    7 Slow checks: none beyond `make check`. `make duplicates`: 0 new, 43 known. The feature's 283 tests take 21.4 s; its slowest is the 10 s build time-limit test (`ROOMY_LIMIT` by design). Disk: used space unchanged at 1.3 GB, and the 0.1 GB less free space lies outside the factory's directories. No growth to name.
    8 Cost: $33.98, 91 runs, 145.0 min. S0002 still stands out at 44 % of the money: its Interface named no seams, and 5 of the 11 human interventions were its own. S0007 cost $0.82, first-pass. The four follow-ups cost $6.42 together. The stories waited 0.4 h for the human. The smoke test's scratch folder `/tmp/f0049-smoke-0hnR` was left in place because its removal was refused; it goes with the stage.
+3. factory: done (pull request merged); cost: 1 runs, 6.0 min, 37 turns, 97478 tokens in (2384173 more from cache), 25314 out, $1.76
