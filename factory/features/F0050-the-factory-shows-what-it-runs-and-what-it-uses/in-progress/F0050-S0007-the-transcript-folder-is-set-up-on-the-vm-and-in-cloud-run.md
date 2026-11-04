@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 545
-comments_read: [6640877810, 6640990331]
+comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
 claim: null
 journal:
@@ -195,6 +195,11 @@ journal:
   stage: review
   run: 28664d7ccaea4df0af95acfa5677cb9d
   blocked: round_cap
+- number: 35
+  speaker: human
+  kind: comment
+  at: '2026-11-04T20:32:34.388456Z'
+  stage: review
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -562,3 +567,9 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
     Earlier tests: none. The diff only adds test files (status `A`); no test file on `main` is changed, renamed or deleted.
 34. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+35. 2026-11-04 human: Answer of the human at the round cap: one more round, for exactly two things.
+
+    1. Finding 1 of the last review: the tester writes the one test for the `transcripts` step's refusal of a planted link (`setup: transcripts: <path> is a link; remove it and run this script again`, exit 1), read from the script's text as the module's other tests are. A security behaviour: worth its test.
+    2. The documenter brings `docs/operator-guide.md` in line with the revised docs criterion: the places the reviewer lists (the options table row, the steps, *Transcripts* and *On a VM*) lose the dropped `tmpfiles.d` rule and `--transcript-days`.
+
+    Nothing else. A further finding that fails no criterion goes under `Notes:`.
