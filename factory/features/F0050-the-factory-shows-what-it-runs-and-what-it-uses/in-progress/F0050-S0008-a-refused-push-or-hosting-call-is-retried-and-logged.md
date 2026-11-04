@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T13:06:54.502220Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-11-04T13:06:48.126081Z'
   stage: review
   run: f89b02c6fc7e4ce79a7d6fdda8986749
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:06:54.502220Z'
+  stage: doing
 ---
 
 # A refused push or hosting call is retried and logged
@@ -433,3 +442,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     - `tests/application/test_interfaces.py`: the human's leave, entry 14 answer 3 (renamed to twenty-two).
     - `tests/git_interface_support.py`: the human's leave, entry 14 answer 3. `OPERATIONS` is the name list that only those two tests read.
     - `tests/test_checkout_hygiene_removed.py`: the human's leave, entry 14 answer 3 (the count is 22, the row id `git-twenty-two`).
+23. factory: started doing as vm.
