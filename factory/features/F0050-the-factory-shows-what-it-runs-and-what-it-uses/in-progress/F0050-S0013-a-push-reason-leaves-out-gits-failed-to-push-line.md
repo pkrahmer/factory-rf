@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T23:44:42.568594Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-11-04T23:44:42.568594Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T23:45:08.769554Z'
+  stage: smoke-test
+  run: 76e490b8898a41dd8e8c257aa5db68dc
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -321,3 +323,31 @@ Expect: a line that ends in `passed` with no `failed`.
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 20. factory: started smoke-test as vm.
+21. smoke-tester: I ran both smoke-test commands from the repository root, exactly as written and in order. Both met their `Expect:` lines and there are no findings.
+
+    1. `push_reason` called on the two-`remote:`-line output:
+
+       ```
+       Bytecode compiled 4164 files in 51ms
+       remote: Internal Server Error | remote: request id 1234 | ! refs/heads/b:refs/heads/b [remote rejected] (pre-receive hook declined)
+       ```
+
+       Met. The printed reason is the exact expected string. The first line comes from uv, which compiles bytecode on first run; it is not output of the command under test.
+
+    2. `uv run pytest tests/domain tests/application -k "push_reason or push_retry" 2>&1 | tail -1`:
+
+       ```
+       55 passed, 4260 deselected in 6.26s
+       ```
+
+       Met. The line ends in `passed` and has no `failed`.
+
+    Acceptance criteria, read once more against the smoke test:
+    - Criteria 1 and 3: confirmed by command 1. Git's `error: failed to push some refs to '<url>'` line and the porcelain frame are gone. Both `remote:` lines and the ref line stay, in order.
+    - Criteria 2 and 4: covered by the tests that command 2 ran, which passed.
+    - Criterion 5 (`make check`): I did not run it, because it is not one of the smoke-test commands. Entry 15 records it green.
+    - Criterion 6 (docs): entry 19 records the documenter's changes and a green `documents` check. Nothing in this run contradicts them.
+
+    No criterion is contradicted.
+
+    Findings: none.
