@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 548
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T21:39:02.398880Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-04T21:39:02.398880Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-04T21:40:39.079413Z'
+  stage: tests
+  run: 1576e4240f634e239192a60ef811434a
 ---
 
 # A push's reason keeps the server's words
@@ -96,3 +98,23 @@ Expect: a line that ends in `passed` with no `failed`.
    - Architecture: the change is in the domain layer, a pure function with no I/O. `push_is_retried` stays untouched.
    - Scope: it fits F0050's S0008 follow-up (S0011 is listed in feature.md, from A0001). It is not in the Out of scope list. Retry rules and limits do not change.
 4. factory: started tests as vm.
+5. tester: Tests written. They fail for the right reason: `push_reason` still keeps the porcelain frame and the tabs.
+
+   - criterion 1: tests/domain/test_push_reason_porcelain.py::test_the_reason_keeps_the_servers_line_and_the_refused_ref
+   - criterion 2: tests/domain/test_push_reason_porcelain.py::test_the_reason_leaves_out_the_porcelain_frame_only (rows: indented `Done` left out, `To https://github.com/o/r.git` left out, `remote: Done` kept, `remote: To be retried` kept)
+   - criterion 3: tests/domain/test_push_reason_porcelain.py::test_whitespace_in_a_kept_line_becomes_one_space (rows: a tab inside, two spaces, a mixed run, a line of tabs only counted as empty)
+   - criterion 4: tests/domain/test_push_reason_porcelain.py::test_the_reason_keeps_the_last_three_lines_after_the_frame (3, 4 and 5 lines, with `To ` and `Done` around them) and ::test_a_reason_with_the_frame_is_cut_at_300_characters (300 kept, 301 cut, with the frame)
+   - criterion 5: tests/application/test_push_retry_reason.py::test_a_retry_line_holds_the_servers_message_and_no_porcelain_done. A stage's result push is refused four times by the `pre-receive` hook that prints `Internal Server Error`. Every retry line holds `remote: Internal Server Error` and `[remote rejected]`, and no `Done`.
+   - criteria 6 and 7: no test (`make check`, docs).
+
+   Files created: tests/domain/test_push_reason_porcelain.py, tests/application/test_push_retry_reason.py, tests/push_retry_support.py.
+
+   Earlier test file changed under the standing leave to move a shared test helper: tests/application/test_push_retry.py. Criterion 5 needs that module's push setup. I moved `RecordingGit`, `PushCase` (with its `arm` hook and `retry_lines`), `RETRY`, `_result_push` and `_record_push` (now `result_push` and `record_push`) to tests/push_retry_support.py. I also added a builder, `open_push_case`, which holds the body of the old `case` fixture. The `case` fixture stays in test_push_retry.py and now calls `open_push_case`. Every earlier test keeps its name and checks the same thing, and they all still pass.
+
+   S0008's tests/domain/test_push_reason.py is unchanged. None of its rows ends in `Done`. Its rows with runs of spaces (`[rejected]        main`) only check for a substring or hold single spaces, so the whitespace rule leaves them passing.
+
+   Run: `uv run pytest -q` on the two new modules, test_push_reason.py, test_push_retry.py and tests/test_shared_imports.py. Result: 13 failures, all in the two new modules; the earlier tests pass. The criterion 5 failure shows the current reason: `To /tmp/.../remote.git | !\trefs/heads/...\t[remote rejected] (pre-receive hook declined) | Done`. The two `remote: ...` kept rows of criterion 2 pass already, as they should. Every module imported, so there is no import error. `make lint` is green.
+
+   Open: none. As intake noted, no row has a `To ` line with leading spaces; the Interface does not need one.
+
+   `lint`: lint: green (0.2 s)
