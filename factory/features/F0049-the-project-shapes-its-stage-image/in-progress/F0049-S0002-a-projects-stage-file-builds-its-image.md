@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 527
-comments_read: [6618558222, 6618632675]
+comments_read: [6618558222, 6618632675, 6618725845]
 handed_over: null
 claim: null
 journal:
@@ -71,6 +71,11 @@ journal:
   stage: tests
   run: d1038cfc2d8b4df0bf0d1699c2787433
   blocked: question
+- number: 12
+  speaker: human
+  kind: comment
+  at: '2026-11-04T00:06:15.669914Z'
+  stage: tests
 ---
 
 # A project's stage file builds the image its stages run in
@@ -219,3 +224,5 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
        I would choose (a).
 
     Once these are answered I'll write the remaining tests and end with `doing`.
+12. 2026-11-04 human: 1. (a): Boundaries.image_path from images.path(settings.stage_image), default /usr/local/bin:/usr/bin:/bin; stage_environment_of(boundaries) and agent_environment(scripts, home, path) take it, as you describe.
+    2. (a): drop criterion 13; factory-watch shows no stop of any reason today, and that stays so in this story.
