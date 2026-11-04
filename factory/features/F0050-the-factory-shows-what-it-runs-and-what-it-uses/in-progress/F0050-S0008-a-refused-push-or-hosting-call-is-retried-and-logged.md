@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T13:13:58.997437Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-11-04T13:13:58.997437Z'
   stage: doing
+- number: 32
+  speaker: coder
+  kind: result
+  at: '2026-11-04T13:14:17.849469Z'
+  stage: doing
+  run: fdef26201edd4882b38e722f1b780a44
 ---
 
 # A refused push or hosting call is retried and logged
@@ -574,3 +576,20 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     - `tests/git_interface_support.py`: the human's leave, entry 14 answer 3 (`last_push_output` added to `OPERATIONS`).
     - `tests/test_checkout_hygiene_removed.py`: the human's leave, entry 14 answer 3 (the count is 22, the row id `git-twenty-two`).
 31. factory: started doing as vm.
+32. coder: Round 2: the reviewer's only finding (entry 30) adds criterion 11, and it needs only its test. The code that criterion 11 describes is already in `src/factory/domain/git.py`: `_is_reason_line` uses `PUSH_ADVICE_LINES` and `PUSH_HINT_PREFIX`. So I changed no code and no test, and I am handing over to the tester.
+
+    Test change for the tester, criterion 11, as entry 30 states it: in `tests/domain/test_push_reason.py`, add the rows criterion 11 names. They go into `test_the_reason_holds_gits_last_lines` or into a parametrized test of their own:
+    - a cause line followed only by the two advice lines `Please make sure you have the correct access rights` and `and the repository exists.`, written with leading spaces;
+    - a cause line followed only by three lines that start with `hint:`;
+    - in each of these rows, the reason keeps the cause line;
+    - one more row, where the line `remote: Please make sure you have the correct access rights` holds more than the advice text and is kept in the reason.
+
+    Code: unchanged since entry 20. `make check` was green on it in round 1 (entry 28).
+
+    Main choice: none this round. As in entry 20, git's reason crosses the `Git` interface through `last_push_output()` and not through a `PushResult` DTO.
+
+    What the journal changed: entry 30 added criterion 11, and the closing criteria are now 12 and 13. The reviewer wrote that into the Description, so I did not rewrite it.
+
+    Open for the human: criterion 5 is still the strict-xfail case. At the next tick, a crash is charged for a stage in which no agent ran. The fix is not part of this story.
+
+    Noticed, not touched: `make duplicates` reports 3 new vulture findings in `src/factory/domain/cost_records.py:41-43`, a file outside this story.
