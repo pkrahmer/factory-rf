@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T00:00:11.897268Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T00:00:06.668718Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T00:00:11.897268Z'
   stage: tests
 ---
 
@@ -175,3 +184,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
    3. Your seam: project_image_settings in factory.entry.wiring, run_instance gains images (podman by default) and runs no tick while the stop stands; the PATHs from images.path of the image in use.
    4. machine scope, as preflight_failed. Leave (feature decision 7): you may add stage_image_failed to the tuple of machine-scoped reasons in tests/entry/test_health.py for criterion 12, and nothing else in that module.
    5. 65536 bytes of the UTF-8 encoding; the non-UTF-8 row is tested at the start's reading of the file (b"\xff" on main gives stage_image_failed), not in stage_layer.
+10. factory: started tests as vm.
