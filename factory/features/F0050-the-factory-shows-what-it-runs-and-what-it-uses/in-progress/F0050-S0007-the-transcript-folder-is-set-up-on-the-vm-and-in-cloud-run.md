@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T20:41:24.282096Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -275,6 +271,12 @@ journal:
   kind: started
   at: '2026-11-04T20:41:24.282096Z'
   stage: smoke-test
+- number: 49
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T20:42:03.644530Z'
+  stage: smoke-test
+  run: cf3c3de9015340088b7c9cc337e7de8b
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -761,3 +763,29 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 48. factory: started smoke-test as vm.
+49. smoke-tester: I ran the three smoke-test commands exactly as written, in order, from the repository root. All three met their `Expect:` line. No findings.
+
+    1. `grep -c 'FACTORY_TRANSCRIPT_DIR=/srv/factory/' vm/setup.sh`
+    ```
+    1
+    ```
+    Met: the expectation was a number of at least 1.
+
+    2. `grep -c 'cannot be written' vm/job-start.sh`
+    ```
+    1
+    ```
+    Met: the expectation was a number of at least 1.
+
+    3. `uv run pytest tests/test_vm_setup.py tests/test_vm_job_start.py 2>&1 | tail -1`
+    ```
+    58 passed in 6.07s
+    ```
+    Met: the line ends in `passed` and nothing failed.
+
+    Checking the acceptance criteria again: the smoke test contradicts none of them. To check this I read the changed scripts and the operator guide.
+    - `vm/setup.sh:464-474`: the step makes the folder with owner `factory` and mode `0700` only when it is not already so. A link is refused with the exact message on stderr and exit 1. The `FACTORY_TRANSCRIPT_DIR=/srv/factory/$instance/transcripts` line is at `vm/setup.sh:436`. A grep finds no `tmpfiles` rule and no `transcript-days` option in the script.
+    - `vm/job-start.sh:85-88`: the probe runs only when the setting is set, and a failure stops with status 1 and the message `transcript folder <path> cannot be written`.
+    - The docs criterion: `docs/operator-guide.md` *Transcripts* (from line 1604) describes the VM folder with no rule and no option, and says removing old transcripts is the operator's job, by hand. The Cloud Run steps include the 30-day lifecycle rule, `roles/storage.objectUser` on that bucket only, the `--add-volume`/`--add-volume-mount` command with `FACTORY_TRANSCRIPT_DIR=<path>`, and the cost of a few cents a month at about 5 MB per feature.
+
+    I did not run `make check` (criterion 4); the factory runs that as the stage's check. Nothing is open.
