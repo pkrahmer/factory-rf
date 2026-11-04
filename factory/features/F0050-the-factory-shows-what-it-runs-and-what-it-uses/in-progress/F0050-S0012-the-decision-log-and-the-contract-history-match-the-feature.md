@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 550
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T22:58:40.254139Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-04T22:58:40.254139Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-04T22:59:01.483096Z'
+  stage: intake
+  run: 907f752c013f4501b78137aeda2b10ba
 ---
 
 # The decision log and the contract's history match the feature
@@ -61,3 +63,9 @@ Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: accepted. It names the two documents to change (`docs/decisions.md`, `docs/operator-guide.md`) and says that no module changes. The new entry takes the log's form (Date, Decision, Why).
+   - Criteria: accepted. Each can be checked by reading the text. Criterion 1 covers both halves of decision 11, the VM without retention and the bucket with its lifecycle rule, plus the Why and the S0007 name. Criterion 2 fixes what changes in the S0005 entry, which is at `docs/decisions.md:1533` (the Description says 1523, so the line number is off by ten; the entry is unambiguous). Criterion 3 gives the exact wording. The story states no limits or validations, so none lacks a failing side.
+   - Smoke test: accepted. The three greps are runnable. The records contract's version list in `docs/operator-guide.md` is one line, so the first count is 1. One inaccuracy in the `Expect:` line: `grep -c tmpfiles.d docs/decisions.md` gives 1 on this branch before the story, not 0, because the S0005 entry names it. After the story it is 3 or more (the S0005 entry, its note and the new entry), so `>=2` still gives `1`. Nothing to ask.
+   - Architecture: accepted. Documents only, within the docs stage's paths. No layer is touched.
+   - Scope: accepted. It matches feature decisions 10 and 11 and the A0001 proposal, and nothing is in `feature.md`'s out-of-scope list.
