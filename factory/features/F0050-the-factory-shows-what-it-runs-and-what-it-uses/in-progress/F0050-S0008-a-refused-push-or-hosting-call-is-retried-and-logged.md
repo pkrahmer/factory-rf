@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T13:14:57.049871Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -197,6 +201,11 @@ journal:
   at: '2026-11-04T13:14:50.545497Z'
   stage: tests
   run: cd8a5d08340c487bb273bd562e9a8cca
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:14:57.049871Z'
+  stage: doing
 ---
 
 # A refused push or hosting call is retried and logged
@@ -622,3 +631,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     Still open for the human (criterion 5): a crash is charged at the next tick for a stage in which no agent ran. A strict xfail test pins it, and the fix is not part of this story.
 
     `lint`: lint: green (0.2 s)
+35. factory: started doing as vm.
