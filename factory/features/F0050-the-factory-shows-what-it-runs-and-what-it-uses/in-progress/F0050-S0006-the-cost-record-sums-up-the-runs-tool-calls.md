@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T19:17:09.247700Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-11-04T19:17:03.330508Z'
   stage: doing
   run: 8907617dccce4f87bb76a05d5ccb08e6
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-04T19:17:09.247700Z'
+  stage: tests
 ---
 
 # The cost record sums up the run's tool calls
@@ -384,3 +393,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     Noticed but not touched:
     - The reviewer's note that `_staged` in `tests/application/test_stage_tool_uses.py` repeats `_with_transcripts` in `tests/application/test_stage_transcripts.py`. That is a test helper; the tester can move it under the standing leave if the reviewer turns it into a finding.
     - `CostRecord` does not itself refuse an unsorted or duplicated `tools` list (as noted in earlier rounds).
+23. factory: started tests as vm.
