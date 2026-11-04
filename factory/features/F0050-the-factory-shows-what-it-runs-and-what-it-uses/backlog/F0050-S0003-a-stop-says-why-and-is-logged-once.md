@@ -23,7 +23,7 @@ Two things this week made the factory's stops hard to read from a distance. Firs
 
 ```bash
 grep -rc 'printed nothing' src/factory | awk -F: '{s+=$2} END {print (s>0)}'
-uv run pytest tests/application -q -k stop 2>&1 | tail -1
+uv run pytest tests/application -k stop 2>&1 | tail -1
 ```
 
 Expect: `1`, then a line that ends in `passed` with no `failed`.

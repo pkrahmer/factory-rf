@@ -22,7 +22,7 @@ Since F0049-S0003 and S0004 the factory fetches twice in every iteration: once b
 
 ```bash
 grep -rn 'git.fetch()' src/factory/application src/factory/entry | wc -l
-uv run pytest tests/entry tests/application -q -k fetch 2>&1 | tail -1
+uv run pytest tests/entry tests/application -k fetch 2>&1 | tail -1
 ```
 
 Expect: a number not larger than before the story (3 on `main` when it was written), then a line that ends in `passed` with no `failed`.
