@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T15:23:24.572329Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-11-04T15:23:24.572329Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-04T15:23:45.104012Z'
+  stage: doing
+  run: 729b091edc144db0811584a17dbc4633
 ---
 
 # One fetch per iteration
@@ -302,3 +304,12 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
     Leave for the tester: only that function in `tests/entry/test_run.py`; nothing else in that module. If the tester finds any further test double that only needs the same signature for `fetched`, the same leave covers it (the signature and the passing on of `fetched`, nothing else), and its entry names each one, so that no further question is needed for this kind.
 19. factory: started doing as vm.
+20. coder: Test change, following the human's answer A in entry 18. In `tests/entry/test_run.py:287`, change only the function `recording_tick` to `def recording_tick(tick: Tick, idle: IdleShutdown | None = None, *, fetched: bool = False) -> Callable[[], bool]:` and make it return `original_tick(tick, idle, fetched=fetched)`. Nothing else in that module changes. The human's leave also covers any other test double that needs only this signature and the passing on of `fetched`. The tester's entry names each one it changes.
+
+    I changed no code in this run. The code from the earlier doing runs is still on the branch:
+    - `src/factory/application/tick.py`: `run(self, *, fetched: bool = False)` skips the fetch when the caller has already fetched.
+    - `src/factory/entry/run.py`: `activity_tick(..., *, fetched=False)` passes the flag on, and `_ProjectImageStart._choose` builds its tick with `fetched=True`.
+
+    I did not run `make check` in this run. In entry 17 it was red only on the two rows of `test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick`, and this change fixes them. When the work item comes back, I run `make check` and do the refactor step.
+
+    Noticed, not touched: `Instance.go_away`/`come_back` in `tests/entry/test_run_one_fetch.py` copy `Outage` in `tests/entry/test_run_fetch_before_tick.py`. The tester may move that copy to a shared place under the standing leave.
