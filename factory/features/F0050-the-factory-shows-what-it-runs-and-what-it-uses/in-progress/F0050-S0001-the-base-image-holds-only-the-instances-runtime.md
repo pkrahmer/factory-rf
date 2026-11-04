@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 538
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T08:44:32.302759Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-04T08:44:32.302759Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-04T08:44:58.986388Z'
+  stage: intake
+  run: feb756dad20f40b2a511e1f4301703ac
+  blocked: question
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -66,3 +69,14 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (format check: passed). The story is within F0050's scope and fits the architecture, since it touches only `vm/` and docs. Interface rules lack criteria, though.
+
+   1. The Interface says a build with an empty or unknown `AGENT_RUNTIME` fails with a message that names `AGENT_RUNTIME` and the two values. No criterion tests the failing side. Criterion 5 only has the human build without the argument. An empty value and an unknown value are not covered at all. Should a criterion say the stage-image test requires the Dockerfile to check the value (empty, and neither `claude` nor `opencode`) and to fail with a message that contains `AGENT_RUNTIME`, `claude` and `opencode`? I would add it.
+
+   2. Criterion 1 covers Node, npm, npm's cache and the other runtime's install. The Interface also says the final stage holds nothing in `/tmp`, no apt lists, and no install logs (the Description adds debconf's cache). It also says opencode's unused CPU build is not part of the final stage. Which of these does the stage-image test check? I would add one criterion per clause. Is the baseline executable a clause with its own row?
+
+   3. The Interface says `ENV FACTORY_CLAUDE_VERSION`, `ENV FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS` stay. The Interface also says the first line names the build command with `--build-arg AGENT_RUNTIME=<claude|opencode>`. Neither has a criterion. Should each get one? Criterion 3 covers only the `ARG` pins.
+
+   4. Criterion 2 says only the first stage installs, and installs exactly one runtime chosen by `AGENT_RUNTIME`. How is the test to see that? For example, must the install line use `${AGENT_RUNTIME}` to pick the package, so the test checks the text? Please name the check. As written, two testers could read it two ways.
+
+   5. Criterion 4 is clear. Is the criterion 4 test also meant to refuse a `job-start.sh` build line without the argument? The "refused side" is implicit.
