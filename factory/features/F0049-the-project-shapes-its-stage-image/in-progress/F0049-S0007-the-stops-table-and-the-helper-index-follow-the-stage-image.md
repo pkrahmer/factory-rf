@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 534
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T03:14:48.377833Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-04T03:14:48.377833Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T03:15:12.354910Z'
+  stage: docs
+  run: 1e1239296eeb4814baa8013e20a3894b
 ---
 
 # The stops table and the test helper index follow the stage image
@@ -150,3 +152,16 @@ Expect: `0`, then `listed`, then `listed`, then `documents ok`.
 
    Earlier tests: none. The diff changes no test file.
 10. factory: started docs as vm.
+11. documenter: Documents only, so I did not run `make check`; the factory's gate does. `uv run python -m factory.entry.check_documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/operator-guide.md`: in the stops table, the `stage-image-failed` row no longer sends the operator to "start `factory-run` again". It now says to fix the file on `main`, that the fix takes effect before the next stage with no restart, and still points to "The project's stage file". The other rows are unchanged. The old text now matches `grep -c` zero times.
+    - `docs/project-guide/README.md`, *Shared test helpers*: I added an entry for `stage_image_support.py` (`BASE_IDENTITY`, `FIRST`, `SECOND`, `StageSeen`, `built_path`), placed alphabetically before `story_form_support.py`. I added `base_identity_settings` and `base_image` to the `conftest.py` entry. I took the descriptions from the story's Interface and checked them against `tests/stage_image_support.py` and `tests/conftest.py`. No other entry changed.
+
+    Cross-read and found current: the operator guide's sections "The project's stage file", "A change on `main` takes effect before the next stage" and "The stop `stage_image_failed`" (they already say no restart is needed). Also `README.md` (its one sentence on the stage file stays true) and `docs/decisions.md` (no decision changes, and the story names none, so I wrote no Why or Rejected).
+
+    Stale text I noticed but did not touch: none. There are no findings for the coder; the diff outside the docs is empty, as the Interface says.
+
+    `check`: check: green (not run again: passed on tree c75cce644896 at 2026-11-04T02:57:19Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
