@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 550
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T23:02:09.900950Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-04T23:02:09.900950Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T23:02:46.041810Z'
+  stage: review
+  run: 1e01b6a8eee046f3b17f12a3589e4edf
 ---
 
 # The decision log and the contract's history match the feature
@@ -64,7 +66,7 @@ journal:
 
 ## Description
 
-Two texts that F0050 left behind no longer say what the factory does. First, the decision log's S0005 entry, "A run's transcript is kept in the transcript folder" (`docs/decisions.md:1523`), says that "a `tmpfiles.d` rule on a VM and a lifecycle rule on a bucket" remove old transcripts (feature decision 10). Feature decision 11 then dropped the VM's rule, and `docs/operator-guide.md` (*Transcripts*, *On a VM*) says there is none. The log has no entry for decision 11, because S0007's docs criterion asked for none. Second, the records contract's version list in `docs/operator-guide.md` (*The records contract*, *The version*) goes from `4.0` straight to `4.2`. `4.1` came with F0049-S0002 (commit `4796912ee`) and added the stop reason `stage_image_failed` to the `reason` of `stop-record`. The F0050-S0002 documenter saw the gap and could not tell what `4.1` was. This story repairs both texts. It changes no code and no test.
+Two texts that F0050 left behind no longer say what the factory does. First, the decision log's S0005 entry, "A run's transcript is kept in a folder the site names, never on GitHub" (`docs/decisions.md:1533`), says that "a `tmpfiles.d` rule on a VM and a lifecycle rule on a bucket" remove old transcripts (feature decision 10). Feature decision 11 then dropped the VM's rule, and `docs/operator-guide.md` (*Transcripts*, *On a VM*) says there is none. The log has no entry for decision 11, because S0007's docs criterion asked for none. Second, the records contract's version list in `docs/operator-guide.md` (*The records contract*, *The version*) goes from `4.0` straight to `4.2`. `4.1` came with F0049-S0002 (commit `4796912ee`) and added the stop reason `stage_image_failed` to the `reason` of `stop-record`. The F0050-S0002 documenter saw the gap and could not tell what `4.1` was. This story repairs both texts. It changes no code and no test.
 
 ## Interface
 
@@ -123,3 +125,16 @@ Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
    `check`: check: green (not run again: passed on tree a4a57514a13e at 2026-11-04T22:47:18Z)
    `duplicates`: duplicates: 4 new, 41 known, 2 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   The diff outside `factory/` is empty, which is what the Interface asks for: "No module under `src/factory/` changes, and no test is written". Criteria 1 to 3 are about `docs/decisions.md` and `docs/operator-guide.md` only, and the docs stage writes them.
+
+   - Group 1 (acceptance criteria): no test exists, and that is right. All three content criteria are document criteria, and the Interface rules tests out. The Interface states no rule with a failing side and no limit. The coder's journal entry (7) reports `make check` green.
+   - Groups 2 to 4 (architecture, security, quality): nothing to review, because no code, test or configuration changed.
+   - Group 5 (work item hygiene): the coder's entry gives the main decision (leave the documents to the docs stage) and what it rejected (writing them itself). Criterion 5 tells the documenter what to write: criteria 1 to 3, in the two named files. I checked the targets on this tree:
+     - The S0005 entry starts at `docs/decisions.md:1528`, and its `tmpfiles.d` sentence is at `:1533`.
+     - The version list is at `docs/operator-guide.md:2072`. It goes from `4.0` straight to `4.2`.
+   - Smoke test: its `Expect:` line is right as written. On `main`, `grep -c tmpfiles.d` gives 1, so the `awk ($1>=2)` filter prints `0`, as the line says. The intake entry called this an inaccuracy; it is not one.
+   - Group 6 (earlier tests): none. The diff changes no test file.
+
+   description corrected: "A run's transcript is kept in the transcript folder" (`docs/decisions.md:1523`) -> "A run's transcript is kept in a folder the site names, never on GitHub" (`docs/decisions.md:1533`). The new title is the entry's heading as it stands in the log. The new line number is the one intake entry 3 gives.
