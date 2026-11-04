@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T13:14:57.049871Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,12 @@ journal:
   kind: started
   at: '2026-11-04T13:14:57.049871Z'
   stage: doing
+- number: 36
+  speaker: coder
+  kind: result
+  at: '2026-11-04T13:18:58.394570Z'
+  stage: doing
+  run: 5760b6e317554e24ade2ae2ae616f301
 ---
 
 # A refused push or hosting call is retried and logged
@@ -632,3 +634,24 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
 
     `lint`: lint: green (0.2 s)
 35. factory: started doing as vm.
+36. coder: Round 2, after the tester's entry 34. I changed no code and no test this round. The new test for criterion 11 is `tests/domain/test_push_reason.py::test_the_reason_leaves_out_gits_advice_lines`, with the rows `advice-lines-left-out`, `hint-lines-left-out` and `more-than-advice-kept`. It passes against the code already in `src/factory/domain/git.py`: `_is_reason_line` with `PUSH_ADVICE_LINES` and `PUSH_HINT_PREFIX`. On this round's run, `make check` was green (`check: green`, total coverage 99.41 %).
+
+    What I built, from earlier rounds and unchanged since entry 20:
+    - the handler error line in the dispatcher;
+    - the push retry in `src/factory/application/pushes.py`, used by `StageFinisher._commit_and_push` and `WorkItemRecorder.publish`, which waits through `boundaries.waiter`;
+    - `push_reason` in `factory.domain.git`;
+    - `Git.last_push_output`, implemented by `GitCli`;
+    - the `GithubRetry` built in `factory.adapters.pygithub_hosting`.
+
+    Main choice, kept from entry 20: git's reason crosses the `Git` interface through `last_push_output()`. I rejected a `PushResult` DTO because it would change the return type of every push.
+
+    Refactor: my diff was already reviewed in rounds 0 and 1, and this round added no code, so nothing needed changing.
+
+    What the journal changed: entry 30 added criterion 11, so the closing criteria are now 12 and 13. The Description already says this, so I did not rewrite it.
+
+    Open for the human (criterion 5): at the next tick, a crash is charged for a stage in which no agent ran. A strict xfail test pins this. The fix is not part of this story.
+
+    Noticed, not touched: `make duplicates` reports 3 new vulture findings in `src/factory/domain/cost_records.py:41-43`, a file outside this story.
+
+    `check`: check: green
+    `duplicates`: duplicates: 3 new, 43 known, 0 gone
