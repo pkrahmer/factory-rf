@@ -33,14 +33,16 @@ After F0049 the base image is 1.58 GB, and about 1 GB of it never runs. Measured
 
 ## Stories
 
+The build order. S0008 comes right after S0002, because GitHub's incident of 2026-11-04 cost three finished runs to refused pushes (the human, 2026-11-04).
+
 - S0001: The base image holds only the instance's runtime, with nothing left from its install
 - S0002: The cost records show the image sizes, the free disk, the memory and the CPU
+- S0008: A refused push or hosting call is retried and logged
 - S0003: A stop says why, and is logged once
 - S0004: One fetch per iteration
 - S0005: A run's transcript is kept in the transcript folder
 - S0006: The cost record sums up the run's tool calls
 - S0007: The transcript folder is set up on the VM and in Cloud Run
-- S0008: A refused push or hosting call is retried and logged
 
 ## The human's changes
 
