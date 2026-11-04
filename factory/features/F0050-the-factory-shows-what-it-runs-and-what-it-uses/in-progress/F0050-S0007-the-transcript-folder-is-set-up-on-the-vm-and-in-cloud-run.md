@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T20:08:00.571974Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-04T20:08:00.571974Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T20:08:35.469518Z'
+  stage: review
+  run: af98d603970442d782e95b2006406f3c
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -264,3 +266,24 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
 16. factory: started review as vm.
+17. reviewer: Review, round 1. I read the whole diff again (`vm/setup.sh`, `vm/job-start.sh`, `tests/test_vm_setup_transcripts.py`, `tests/test_vm_job_start_transcripts.py`) and checked it against the work item, and against the helpers in `vm/setup.sh` (`stage`, `unchanged`, `owned_with_mode`, `changed`, `said`).
+
+    Both findings from round 0 are fixed:
+    - Finding 1 (the copied helper): `need_days` is gone. `need_whole <option> <value> <unit>` (`vm/setup.sh:45`) is now the one whole-number check. `need_minutes` and `--transcript-days` both call it, and each refusal message reads as before.
+    - Finding 2 (two test functions for one rule): `tests/test_vm_job_start_transcripts.py` now has one parametrized test, `test_the_factory_starts_only_with_a_writable_or_unset_transcript_folder`. Its rows are writable, unset, missing and read-only (skipped under root), with a `starts` column for the expected outcome.
+
+    What holds:
+    - **Group 1, acceptance criteria:** clear.
+      - Criterion 1 has rows for the default (30, set before the option parsing), `7` (the rule's `${transcript_days}d`), `0` and `x`, plus `-1`, `1.5`, an empty value and a missing value. The "0 or more" limit is tested on both sides (`-1` and `0`). The second run that changes nothing is pinned by the step's guards (`owned_with_mode`, compare before write through `unchanged`, the "found" text).
+      - Criterion 2 covers writable, unset, missing and read-only.
+      - The coder's entry 15 records `make check` green.
+    - **Group 2, architecture:** `src/` is unchanged, and nothing reaches a cloud.
+    - **Group 3, security:** no silencing marker and no `eval`. `FACTORY_TRANSCRIPT_DIR` and the folder's path are quoted everywhere. The `transcripts` step refuses a link planted at the folder before `install -d` runs as root.
+    - **Group 4, quality:** the new step follows the script's step pattern (`changes=`, `changed`, `said`). The comments say why (the operator's mount, the link, systemd's daily clean).
+    - **Group 5, work item hygiene:** the journal explains the main choice (the step is last, after `service`) and what was rejected. The Description matches what was built. The docs criterion still says what the operator guide must carry.
+
+    Open point, for the human only and not a finding: the Interface asks only that `--transcript-days 0` write no line and no rule, and the code does exactly that. But a `tmpfiles.d` rule file an earlier run wrote stays in place, as entries 7, 9, 11 and 15 note. Removing it would be a follow-up.
+
+    no findings
+
+    Earlier tests: none. The diff only adds test files (status `A`); no test file on `main` is changed, renamed or deleted.
