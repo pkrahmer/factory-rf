@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T18:36:24.014147Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -208,6 +212,11 @@ journal:
   at: '2026-11-04T18:36:16.864234Z'
   stage: docs
   run: 56947a388b704f888f9f254e27f64b0b
+- number: 37
+  speaker: factory
+  kind: started
+  at: '2026-11-04T18:36:24.014147Z'
+  stage: smoke-test
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -683,3 +692,4 @@ Expect: the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: no
     `check`: check: green (not run again: passed on tree 2ee60a6b77af at 2026-11-04T18:30:37Z)
     `secrets`: secrets: green (3.4 s)
     `documents`: documents ok
+37. factory: started smoke-test as vm.
