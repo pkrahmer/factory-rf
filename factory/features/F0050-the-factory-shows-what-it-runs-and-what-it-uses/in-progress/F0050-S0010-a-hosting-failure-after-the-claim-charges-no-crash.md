@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T22:35:35.256933Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-11-04T22:35:35.256933Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-11-04T22:35:51.611055Z'
+  stage: doing
+  run: 43577dfabd084e04946e1516b7e0bd3c
 ---
 
 # A hosting failure after the claim charges no crash
@@ -229,3 +231,6 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
 
     Your handling of a failed release push (logged, the original `HostingServiceError` raised, the remote claim left as before) is fine as it is.
 15. factory: started doing as vm.
+16. coder: The human's answer (journal 14) calls for a test change, so I changed no code and hand the work item to the tester. The change, in one sentence: delete `tests/application/test_hosting_failure_after_claim.py::test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_run`, which pinned the claim left standing that this story replaces; nothing else in that module changes apart from the `xfail` mark already removed, and the tester names the deletion in its entry.
+
+    The code from journal 13 is already on the branch (`src/factory/application/stage.py`: `_release_after_hosting_failure` called from `_start`), and the human accepted how it handles a failed release push. With that one test deleted, `make check` was red only on that test in the last run, so it should come back green. I did not run `make check` this time because nothing changed. Journal 14 does not change what the task means, so the Description stays as it is.
