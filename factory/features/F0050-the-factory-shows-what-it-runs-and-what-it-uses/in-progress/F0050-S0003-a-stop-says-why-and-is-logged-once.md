@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 541
-comments_read: []
+comments_read: [6632127880]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: e6064427b7024619b55adaad0fe96f49
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-04T13:40:06.464572Z'
+  stage: intake
 ---
 
 # A stop says why, and is logged once
@@ -69,3 +74,14 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
    3. Interface and criterion 2, how "the factory itself is stopping" is known: it says only "the service manager's stop, SIGTERM to the factory". What the factory looks at is not stated: a flag set by its own SIGTERM handler, or the signal number of the ended command. A command ended by signal 15 from anything else (for example an out-of-memory kill or a timeout) must still be judged, and that side has no criterion. Please add a row where a probe is ended by signal 15 while the factory is not stopping, and say which of them raises `main_branch_failing`.
    4. Criterion 2 covers only the probe of `main`; the Interface says "a command". Does the rule hold for all project commands (the checks of a stage, `make check`), or only for the probe of `main`? If all, each needs a row. If only the probe, change the Interface to say so.
    5. Criterion 3, "after a clear, the next raise writes it again": the Interface also says the log line `stop cleared <reason>` is unchanged, and criterion 4 says the records note only the first raise and the clear. Please say whether a raise with another detail while the stop stands adds a record. I read "unchanged" as no new record, and would like a row that pins it.
+4. 2026-11-04 human: Answers of the human:
+
+   1. **(b)**, as a safety net beside criterion 1: `StopService.raise_stop` never writes an empty or blank detail; it replaces one with `no detail given` (a row for an empty and one for a blank detail, for any stop reason). The useful detail for a failed probe comes from criterion 1; the safety net only keeps a blank out of the log, the health status and the records.
+
+   2. The seams: a pure function `command_ending(result: CheckResult) -> str` in `factory.domain.checks`, which gives `exit status <n>` for a non-negative exit status, `signal <n>` for a negative one (the process runner reports a signal as `-<n>`), and `time_limit` for a result at its time limit. `_failing_detail(result, main)` in `factory.application.preflight` uses it when `result.last_line` is blank: `<command> ended by <ending> and printed nothing on main at <commit>` (for an exit status: `ended with exit status <n>`). The tests go through `command_ending` (rows) and through the probe of `main` with a fake project-commands result. Put this into the Interface.
+
+   3. The factory knows it is stopping by its own stop flag, the `threading.Event` that `install_stop_handlers` sets in `factory.entry.run`. Seam: `Boundaries` gains `stop_requested: Callable[[], bool]`, default `lambda: False`, wired to that event's `is_set`. A probe whose command ended while `stop_requested()` is true is not judged. A probe ended by signal 15 while `stop_requested()` is false is judged as today: it raises `main_branch_failing` with the detail of criterion 1 (`ended by signal 15 and printed nothing`). Add that row.
+
+   4. Only the probe of `main`. A stage's checks that the factory's stop cuts off already end in a crash and a rerun by the lease rules; they are not part of this story. Change the Interface line to "the probe of `main`".
+
+   5. Your reading is right: a raise with another detail while the stop stands adds no record; the health status takes the new detail and the log writes the line once more. Add a row that pins it.
