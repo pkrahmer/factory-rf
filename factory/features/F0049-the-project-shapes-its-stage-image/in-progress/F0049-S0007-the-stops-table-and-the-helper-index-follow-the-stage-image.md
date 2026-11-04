@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 534
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T03:15:18.662184Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-04T03:15:18.662184Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T03:15:48.063198Z'
+  stage: smoke-test
+  run: 6c7fc874a6d842f7927f496a6769a000
 ---
 
 # The stops table and the test helper index follow the stage image
@@ -175,3 +177,32 @@ Expect: `0`, then `listed`, then `listed`, then `documents ok`.
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: No findings. I ran the four smoke-test commands from the repository root, in order and exactly as written. Each one met its `Expect:` line.
+
+    1. `grep -cF 'Fix the file on `main` and start `factory-run` again' docs/operator-guide.md`: met (expected `0`).
+       ```
+       0
+       ```
+       It exits with status 1 because nothing matched. The intake entry already called this harmless; the printed count is what the expectation checks.
+    2. `grep -qF '`stage_image_support.py`' docs/project-guide/README.md && echo listed`: met (expected `listed`).
+       ```
+       listed
+       ```
+    3. `grep -qF '`base_identity_settings`' docs/project-guide/README.md && echo listed`: met (expected `listed`).
+       ```
+       listed
+       ```
+    4. `uv run python -m factory.entry.check_documents`: met (expected `documents ok`).
+       ```
+       Bytecode compiled 4164 files in 46ms
+       documents ok
+       ```
+       The first line comes from uv; the check printed `documents ok` and exited 0.
+
+    I then read the acceptance criteria again against `git diff main...HEAD`:
+    - Criterion 1: `docs/operator-guide.md:1608` now reads "Fix the file on `main`: the fix takes effect before the next stage, with no restart; see "The project's stage file"." The text "start `factory-run` again" is gone. The diff changes only that one row of the stops table.
+    - Criterion 2: `docs/project-guide/README.md` has a new `stage_image_support.py` entry that names `BASE_IDENTITY`, `FIRST`, `SECOND`, `StageSeen` and `built_path`. The `conftest.py` entry now also names `base_identity_settings` and `base_image`. No other index entry changed; the diff touches only those two lines.
+    - Criterion 3: the branch changes no code and no test, only the two documents and the work item. I did not run `make check` myself, because this stage runs only the smoke-test commands. The coder's and the documenter's entries both show `check: green` for this story.
+    - Criterion 4 (docs): the only documents in the diff are the two the criterion names. `README.md` and `docs/decisions.md` are untouched, as it says.
+
+    Open: none.
