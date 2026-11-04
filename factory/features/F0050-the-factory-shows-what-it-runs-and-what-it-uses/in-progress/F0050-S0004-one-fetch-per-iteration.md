@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T15:13:15.697178Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T15:13:12.132976Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:13:15.697178Z'
   stage: doing
 ---
 
@@ -199,3 +208,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 11. 2026-11-04 human: Answer of the human: **A** "the tester changes only the signature of those six overrides to `def run(self, *, fetched: bool = False) -> TickOutcome:` and leaves their bodies alone, so each test still checks the same thing."
 
     Leave for the tester: in exactly the six places you list (`tests/entry/test_run_stop_requested.py:31`, `tests/entry/test_run_project_image_rebuild.py:75`, `tests/entry/test_run_image_sizes.py:39`, `tests/entry/test_run_fetch_before_tick.py:54`, `tests/entry/test_run_idle_shutdown.py:21`, `tests/scripted_tick_support.py:44`), only the signature of `run`; nothing else in those modules. The copy of `Outage` in `tests/entry/test_run_one_fetch.py` may move to one shared place under the standing leave. End with `tests` as you propose.
+12. factory: started doing as vm.
