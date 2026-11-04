@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T23:31:13.846629Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-04T23:31:08.402856Z'
   stage: intake
   run: 5cfc8757a2de43a5b69b0a3aef923592
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:31:13.846629Z'
+  stage: tests
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -84,3 +93,4 @@ Expect: a line that ends in `passed` with no `failed`.
    - Smoke test: both commands are runnable. The first calls `push_reason` directly and its Expect line is an exact string. The second runs pytest with no `-q`, which is correct because `pyproject.toml` addopts already sets `-q`. Its Expect line (ends in `passed`, no `failed`) can be checked against `tail -1`.
    - Architecture: the change sits in `factory.domain.git`, a pure function with no I/O, which is the right layer. The new tests go in `tests/domain/` and `tests/application/`, mirroring the package. No other test module is changed, so no leave is needed.
    - Scope: the story is inside feature F0050's scope, as a follow-up of the S0008 and S0011 push-reason work, and it is listed in the feature's stories (from A0002). It touches nothing under Out of scope.
+4. factory: started tests as vm.
