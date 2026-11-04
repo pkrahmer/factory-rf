@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T16:04:20.279611Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T16:04:17.357395Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-04T16:04:20.279611Z'
   stage: intake
 ---
 
@@ -104,3 +113,4 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
    5. An empty `FACTORY_TRANSCRIPT_DAYS` counts as unset (a row); the refusals of `0`, `-1` and `x` name the variable.
 
    6. Yes: a row where the later run's copy fails: its record has `transcript` `None` and does not name the earlier run's file.
+5. factory: started intake as vm.
