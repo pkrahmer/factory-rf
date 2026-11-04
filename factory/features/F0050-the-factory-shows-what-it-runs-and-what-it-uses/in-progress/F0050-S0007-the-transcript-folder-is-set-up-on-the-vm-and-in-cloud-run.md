@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T20:34:00.682389Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -211,6 +215,11 @@ journal:
   at: '2026-11-04T20:33:54.363473Z'
   stage: review
   run: d0ac4dac1baa460fbe564f2a5ef833cb
+- number: 38
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:34:00.682389Z'
+  stage: doing
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -603,3 +612,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     Open, for the documenter after this round, not a finding against the code: `docs/operator-guide.md` still describes the dropped `tmpfiles.d` rule and `--transcript-days`. The places are :618 (the options table row), :621 (the refused values), :640 (step 14), :642 (step 16), :729 (the environment-file row), :1636 ("a `tmpfiles.d` rule on a VM") and :1640-1648 (*On a VM*). Docs criterion 5 says what they must say instead. The Cloud Run part (:1652-1683) already matches the criterion.
 
     Earlier tests: none. The diff only adds test files (status `A`); no test file on `main` is changed, renamed or deleted.
+38. factory: started doing as vm.
