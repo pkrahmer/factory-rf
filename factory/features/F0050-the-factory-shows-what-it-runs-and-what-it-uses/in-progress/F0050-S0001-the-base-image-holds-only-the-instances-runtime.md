@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T08:57:44.016290Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-04T08:57:37.894708Z'
   stage: intake
   run: 61b1d822b1104c51ad6ec00cae167234
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-04T08:57:44.016290Z'
+  stage: tests
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -118,3 +127,4 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
    - Smoke test: the grep and pytest commands are runnable. pytest gets no `-q`, and the `Expect:` ends in `passed` with no `failed`, which the output can be checked against, provided the project's `addopts` keep a summary line. I did not check that.
    - Architecture: the story touches only `vm/`, tests and docs, with no layer involved.
    - Scope: within F0050's scope (S0001 items). The feature's leave covers changing `tests/test_stage_image.py` and the build-command row of `tests/test_vm_job_start.py`, and nothing else in that module.
+7. factory: started tests as vm.
