@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T19:17:41.221137Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -150,6 +146,12 @@ journal:
   kind: started
   at: '2026-11-04T19:17:41.221137Z'
   stage: doing
+- number: 26
+  speaker: coder
+  kind: result
+  at: '2026-11-04T19:21:32.135438Z'
+  stage: doing
+  run: 772371b8c131483db3d8c116edef1af3
 ---
 
 # The cost record sums up the run's tool calls
@@ -419,3 +421,17 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.1 s)
 25. factory: started doing as vm.
+26. coder: Round 2, after the tester's change in entry 24. I changed no code in this run. The new `nested-deeper-than-the-recursion-limit` rows in `tests/domain/test_tool_uses.py::test_lines_that_cannot_be_read_give_no_tools` (one per runtime) pass against the fix from entry 22 in `src/factory/domain/tool_uses.py`: `_object` catches `RecursionError` beside `ValueError`. That closes the finding in the reviewer's entry 20 in both code and test. `make check` is green (test: green, 93.6 s; coverage 99.25 %).
+
+    Main decision: the same as in entry 22. A line nested too deep to decode makes the whole transcript unreadable, so `tools` is `None`. I rejected skipping only that line, because it would silently undercount. I also rejected raising the recursion limit, because that would only move the threshold. This run made no new design choice.
+
+    Refactor pass: nothing changed since entry 22's pass, so there was nothing to refactor.
+
+    Noticed but not touched:
+    - The reviewer's note in entry 20: `_staged` in `tests/application/test_stage_tool_uses.py` repeats `_with_transcripts` in `tests/application/test_stage_transcripts.py`. It is a test helper, which the tester moves only if a finding asks for it.
+    - `CostRecord` does not itself refuse an unsorted or duplicated `tools` list (as in earlier rounds).
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 41 known, 2 gone
