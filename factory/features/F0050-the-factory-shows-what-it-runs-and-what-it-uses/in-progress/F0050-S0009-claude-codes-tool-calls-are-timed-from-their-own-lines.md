@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T21:27:40.137421Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-04T21:27:34.216511Z'
   stage: doing
   run: 0b97efeb0c174193ab4416e97c01375e
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:27:40.137421Z'
+  stage: tests
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -232,3 +241,4 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
     `src/factory/domain/tool_uses.py` already keeps the first result through `results.setdefault(...)`, which is the code from round 0 (journal 10). The new test should pass against it without any code change. If it fails, the work item comes back to me.
 
     The Description already lists criterion 7 and the renumbered closing criteria (8 is `make check`, 9 is docs), so I did not rewrite it. `make check` was green after round 0 (journal 10), and nothing has changed since.
+15. factory: started tests as vm.
