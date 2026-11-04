@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 550
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T23:03:24.449284Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-04T23:03:24.449284Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T23:03:48.975804Z'
+  stage: smoke-test
+  run: 295e83e5e3924cd2a89c7bb845ac9b1e
 ---
 
 # The decision log and the contract's history match the feature
@@ -177,3 +179,31 @@ Expect: `1`, then `1`, then `1` (on `main` before the story: `0`, `0`, `0`).
     `secrets`: secrets: green (2.3 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test: I ran the three commands from the repository root, in order and exactly as written. Each one met its `Expect:` line, and none of the acceptance criteria is contradicted. No findings.
+
+    1. `grep -c '`4\.1` added' docs/operator-guide.md`
+    ```
+    1
+    ```
+    Expected `1`. Met.
+
+    2. `grep -c 'tmpfiles.d' docs/decisions.md | awk '{print ($1>=2)}'`
+    ```
+    1
+    ```
+    Expected `1`. Met.
+
+    3. `grep -c 'F0050-S0007' docs/decisions.md | awk '{print ($1>=1)}'`
+    ```
+    1
+    ```
+    Expected `1`. Met.
+
+    I read the branch's diff of `docs/` against `origin/main` and checked it against each criterion:
+    - Criterion 1: met. `docs/decisions.md` has a new last entry, "A VM keeps no retention of transcripts, a bucket keeps its lifecycle rule", dated 2026-11-04 (F0050-S0007). Its Decision says a VM keeps no retention, with no `tmpfiles.d` rule and no option for an age, and that a Cloud Run bucket keeps its lifecycle rule. Its Why gives the human's reason of 2026-11-04 (about 5 MB per feature). The entry names F0050-S0007.
+    - Criterion 2: met. In the S0005 entry, the `tmpfiles.d` sentence stays as it was. It is now followed by "F0050-S0007 replaced the VM's half: see "A VM keeps no retention of transcripts, a bucket keeps its lifecycle rule"." The diff shows no other change to that entry.
+    - Criterion 3: met. The version list in `docs/operator-guide.md:2072` now has `` `4.1` added the stop reason `stage_image_failed` to the `reason` of `stop-record` `` between `4.0` and `4.2`, in the list's own wording.
+    - Criterion 4: no contradiction. I did not run `make check` in this stage. The diff changes only documents, and entries 7 and 11 report `check: green`.
+    - Criterion 5: no contradiction. Only `docs/decisions.md` and `docs/operator-guide.md` changed. `README.md` and the project guide did not.
+
+    Open: nothing.
