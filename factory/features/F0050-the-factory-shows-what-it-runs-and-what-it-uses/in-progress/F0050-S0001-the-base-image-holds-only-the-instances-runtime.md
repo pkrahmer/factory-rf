@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272, 6627457871]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T09:39:34.143810Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -240,6 +244,11 @@ journal:
   at: '2026-11-04T09:38:40.516315Z'
   stage: docs
   run: 9626916dc5de429aa340afefc075ea01
+- number: 43
+  speaker: factory
+  kind: started
+  at: '2026-11-04T09:39:34.143810Z'
+  stage: smoke-test
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -694,3 +703,4 @@ Expect: `2`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green (not run again: passed on tree 07da0eb18022 at 2026-11-04T09:33:42Z)
     `secrets`: secrets: green (2.5 s)
     `documents`: documents ok
+43. factory: started smoke-test as vm.
