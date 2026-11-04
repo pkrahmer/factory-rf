@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T12:15:19.437384Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -282,6 +278,12 @@ journal:
   kind: started
   at: '2026-11-04T12:15:19.437384Z'
   stage: review
+- number: 50
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T12:16:48.388049Z'
+  stage: review
+  run: 6d030fc6a67347e5b46ddfabb458e17e
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -800,3 +802,32 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
 49. factory: started review as vm.
+50. reviewer: Review of round 2. I read the work item, the full `git diff main...HEAD -- . ':!factory'` without the regenerated schemas (I took those from the stat), and the change since the round 1 review (`git diff 6ded9d92b HEAD`). Only two test files changed since then: `tests/entry/test_run_image_sizes.py` and the new `tests/entry/test_wiring_machine_inputs.py`. Nothing under `src/` changed. Entry 48 records the coder's `make check` as green, with coverage at 99.42 %.
+
+    Round 1's findings are met:
+    - Finding 1. `test_the_built_boundaries_read_the_image_store_and_the_cgroup_slice` calls `build_boundaries` with `SizedImages(sized_by_tag, store=<tmp folder>)`. It asserts that `boundaries.image_store` is that folder and that `boundaries.machine` is a `CgroupMachineReadings`. If `src/factory/entry/wiring.py:358-359` gave `None` for either, the test would fail.
+    - Finding 2. `test_a_run_without_a_stage_file_logs_the_base_size_only_at_its_start` goes through `run_instance` and requires exactly one `stage image: base 1.58 GB` line. If `at_start` were dropped at `src/factory/entry/run.py:263`, the line would be missing and the test would fail. The other side is already pinned: at a return to the base, no `stage image: base` line is written. `tests/entry/test_run_project_image_rebuild.py:281` asserts the full list of log lines there.
+
+    Groups 1 to 5:
+    - Every criterion, 1 to 11, has its tests (mapping in entries 20, 35 and 46).
+    - The limits of the Interface are tested on both sides: `-1`, `0`, `-0.5`, NaN and infinity in criterion 1, and the layer smaller than the base and the total that went back in criterion 11.
+    - Architecture is clean. `factory.domain.machine` does no I/O. Every podman call goes through `run_podman`. The cgroup and meminfo reads sit in `factory.adapters.machine_files`. `os.getuid()` is called only in `factory.entry`. Every interface is an ABC that its fakes inherit.
+    - Security is clean. No marker silences a check, and no command line is built from a string.
+    - The contract goes from 4.1 to 4.2, a minor bump for an added optional field, which fits the version rule.
+    - `make duplicates` reports 3 new findings. They are the same vulture false positives on `MachineMeasures` fields that entry 31 judged.
+    - The Description and criterion 13 match what was built. Criterion 13 holds the `job` profile sentence and the `unknown` text, under the leave in entry 38.
+
+    no findings
+
+    Notes:
+    - `tests/application/test_cost_record_machine_measures.py:10` imports the private `_launch` from `tests/cost_image_support.py`. A public name would say that it is shared.
+    - `tests/entry/test_wiring_stage_image_sizes.py` tests the "project image smaller than its base" case twice: in `test_a_project_image_smaller_than_its_base_has_no_layer_size` and in the `project-smaller-than-base` row of `test_a_size_that_cannot_be_read_is_logged_unknown`.
+
+    Earlier tests:
+    - tests/adapters/test_podman_images.py: none needed. The diff only adds two test functions, and every earlier test is unchanged.
+    - tests/conftest.py: the human's leave, entry 18 answer 1. The `boundaries` fixture gets `machine=FakeMachineReadings()` and its import.
+    - tests/disk_support.py: the human's leave, entry 23 answer 2. `FakeDiskSpace.free_bytes` answers an unknown path with `FileNotFoundError`, and its docstring says so.
+    - tests/domain/test_contract.py: the human's leave, entry 9 answer 2 (`"4.1"` → `"4.2"`).
+    - tests/domain/test_contract_version_4.py: the human's leave, entry 9 answer 2 (both `"4.1"` pins → `"4.2"`).
+    - tests/entry/test_run_project_image_rebuild.py: the human's leave, entry 18 answer 3. The two expected build lines take the new form, and `ScriptedImages` derives from the shared `SizedImages`, with its import.
+    - tests/test_docker_path_removed.py: the human's leave, entry 23 answer 1. `_no_module_reads_proc` is narrowed through `PROCESS_TABLE`, with one parametrized test whose rows are meminfo, pid, self and bare.
