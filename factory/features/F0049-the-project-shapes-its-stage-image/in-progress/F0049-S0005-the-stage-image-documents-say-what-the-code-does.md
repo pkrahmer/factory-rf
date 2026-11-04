@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 531
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T02:51:16.547907Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-04T02:51:10.430935Z'
   stage: review
   run: 3484b19b9e944a3899b4cb277ba8da56
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:51:16.547907Z'
+  stage: docs
 ---
 
 # The stage image's documents say what the code does and why
@@ -141,3 +150,4 @@ Expect: `0`, `0`, `1`, then `documents ok`.
    - Group 2 (architecture), group 3 (security) and group 4 (quality): nothing to judge, because no code changed.
    - Group 5 (work item hygiene): entries 5 and 7 say why no test or code was written and what was rejected. The Description matches the plan. Criterion 6 names the two documents to change and says why `README.md` and the project guide need no change.
    - Item 6 (earlier tests): none changed.
+10. factory: started docs as vm.
