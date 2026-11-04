@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: crash_cap
+blocked: null
 round: 0
 attempts: 0
-crashes: 2
+crashes: 0
 pull_request: 539
-comments_read: [6628314128, 6628465356]
+comments_read: [6628314128, 6628465356, 6628999669]
 handed_over: null
 claim: null
 journal:
@@ -85,6 +85,11 @@ journal:
   at: '2026-11-04T10:44:59.770405Z'
   stage: tests
   blocked: crash_cap
+- number: 15
+  speaker: human
+  kind: comment
+  at: '2026-11-04T11:03:17.144832Z'
+  stage: tests
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -198,3 +203,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 12. factory: started tests as vm.
 13. factory: crash 2: the run of stage tests ended without a result. Its work is discarded back to commit 0f4d410b4d8c7da0407b784d26baf08d552320a4.
 14. factory: Stage tests crashed 2 times, which is the crash cap of 2. The factory has not rerun it. Write a comment here and the stage reruns with the crash counter reset to 0 (your comment is copied into the journal). Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
+15. 2026-11-04 human: Retry. Both crashes of the tests stage came after the tester had finished with its structured output (10:39:05 and 10:41:54 UTC): most likely the result push was refused during GitHub's incident of 2026-11-04 (Git Operations degraded). The tester's work in the journal and its answers (entries 8 and 9) stand; start the tests stage again from them.
