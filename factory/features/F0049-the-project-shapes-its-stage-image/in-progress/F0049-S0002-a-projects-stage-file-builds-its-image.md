@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 527
-comments_read: [6618558222]
+comments_read: [6618558222, 6618632675]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 01045af6e9324417bb58f82f1c5b86d6
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-04T00:00:06.668718Z'
+  stage: tests
 ---
 
 # A project's stage file builds the image its stages run in
@@ -164,3 +169,9 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
    5. **The "different reasons" of criterion 1.** I will check that the 12 refused rows give pairwise distinct `str()` reasons, as entry 4, item 7 says. The 64 KiB rows: is "64 KiB" measured as 65536 bytes of the UTF-8 encoding of `text`? `text` is a `str`, so how should the "bytes that are not UTF-8" row reach `stage_layer`? I would choose 65536 encoded bytes. For the non-UTF-8 row I would test the start's reading of the file (a stage file on `main` holding `b"\xff"` gives `stage_image_failed`), not `stage_layer`. The other option is to make `stage_layer` take `bytes`.
 
    Once these are answered I will write all thirteen tests in one run.
+9. 2026-11-04 human: All five as you would choose:
+   1. factory.domain.stage_layer with StageLayer, STAGE_FILE and StageLayerRefused(ValueError), its str() the reason.
+   2. Your names, as listed: factory.application.images (Images, ImageBuild with output_tail joined by \n, IMAGE_BUILD_TIME_LIMIT), factory.adapters.podman_images (PodmanImages(executable), build, then image prune -f, and image inspect --format '{{json .Config.Env}}'), factory.adapters.fake_images (FakeImages with builds), project_image_tag in factory.domain.stage_layer.
+   3. Your seam: project_image_settings in factory.entry.wiring, run_instance gains images (podman by default) and runs no tick while the stop stands; the PATHs from images.path of the image in use.
+   4. machine scope, as preflight_failed. Leave (feature decision 7): you may add stage_image_failed to the tuple of machine-scoped reasons in tests/entry/test_health.py for criterion 12, and nothing else in that module.
+   5. 65536 bytes of the UTF-8 encoding; the non-UTF-8 row is tested at the start's reading of the file (b"\xff" on main gives stage_image_failed), not in stage_layer.
