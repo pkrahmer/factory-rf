@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T18:15:56.416893Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-11-04T18:15:56.416893Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-11-04T18:20:09.344596Z'
+  stage: doing
+  run: c3435eee87c946aa81871ccd46214d3e
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -422,3 +424,40 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
 
     `lint`: lint: green (0.1 s)
 23. factory: started doing as vm.
+24. coder: With the tester's changes from journal 22 in place, `make check` is green as I found it (`check: green`, 99.34 % branch coverage). This round changed no code.
+
+    What is built (from journals 17 and 20, now committed):
+    - `src/factory/domain/transcripts.py`: `Transcript`.
+    - `src/factory/domain/cost_records.py`: `TranscriptRef`, a `Sha256` pattern of 64 lowercase hex digits, and a path validator that refuses an absolute path, a path with `..`, and one not ending in `.gz`. Also `CostRecord.transcript`, which a started record refuses.
+    - `src/factory/adapters/cost_records_jsonl.py`: a `None` transcript is left out of the line.
+    - `src/factory/domain/contract.py`: version 4.3. The schemas under `src/factory/contract/` were regenerated with `uv run python -m factory.entry.contract`.
+    - `src/factory/domain/settings.py`: `FACTORY_TRANSCRIPT_DIR`, `InstanceSettings.transcript_dir`, and the check `transcript_dir_fault`, used both by `read_settings` and by a model validator.
+    - `src/factory/application/agent_runtime.py`: the abstract `read_transcript`.
+    - `src/factory/application/transcripts.py`: `TranscriptStore`, `TranscriptKeeper`, `SessionTranscripts` and `session_transcripts`.
+    - `src/factory/adapters/transcript_files.py`: `FileTranscriptStore`. Files are opened with mode `0600` from the start, folders get `0700`.
+    - `read_transcript` in three runtimes:
+      - `src/factory/adapters/claude_runtime.py` reads `<home>/.claude/projects/*/<session>.jsonl`.
+      - `src/factory/adapters/opencode_runtime.py` returns the event stream of the session's last run, the first call and its resume together.
+      - `src/factory/adapters/fake_agent_runtime.py` returns the transcript of the latest played run with that session, through the new `ScriptedRun.transcript`.
+    - `src/factory/application/boundaries.py`: `Boundaries.transcripts`.
+    - `src/factory/entry/wiring.py`: builds a `FileTranscriptStore` only when the folder is set.
+    - `src/factory/application/stage.py`: `StageLauncher._keep_transcript` keeps the transcript after `run_agent` and before `complete`.
+    - `src/factory/application/costs.py`: `CostRecorder.complete` takes the optional `transcript`.
+
+    Arguments and classes beyond the Interface: `CostRecorder.complete(..., transcript)`, `TranscriptKeeper.not_kept`, `SessionTranscripts` and `session_transcripts`. The fault check (the folder must not lie inside the workspace, checkout, state directory or agent home) is the public function `transcript_dir_fault`.
+
+    Main choice: the transcript is kept once per launch, in the launcher, after the whole run including any resume within itself. So the record names the file as it stands after the resume. I rejected keeping it inside `PatientRuns` after every call: that writes a file and then overwrites it, and that layer does not know the cost record.
+
+    Refactor: I read the diff as a reviewer would and found nothing worth changing.
+
+    Noticed, not touched:
+    - `make duplicates` reports `4 new, 42 known, 1 gone`. All four new findings come from shifted line numbers, not from new duplication:
+      - the existing `version_launch` similarity between the claude and opencode runtimes;
+      - three vulture hits on the existing `MachineMeasures` fields at `cost_records.py:43-45`.
+    - I did not rewrite the Description. Journals 9, 13 and 18 leave those edits to the intake or the reviewer:
+      - journal 9: drop `FACTORY_TRANSCRIPT_DAYS`, the deletion, criterion 6 and the `transcript: removed` line, and change the smoke test to match;
+      - journal 13: the opencode transcript is the run's event stream, `jsonl`;
+      - journal 18: the Claude Code session path is `<home>/.claude/projects/*/<session>.jsonl`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 42 known, 1 gone
