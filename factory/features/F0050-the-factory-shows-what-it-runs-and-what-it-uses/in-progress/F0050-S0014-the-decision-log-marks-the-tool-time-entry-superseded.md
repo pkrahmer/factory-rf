@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 553
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T23:52:47.385323Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-04T23:52:41.912999Z'
   stage: tests
   run: d24fff0d2a5b4e41838826f1417db3a7
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:52:47.385323Z'
+  stage: doing
 ---
 
 # The decision log marks the old tool-time entry as superseded
@@ -93,3 +102,4 @@ Expect: `1`.
    Files created: none. Modules the test runner could not import: none. No test run, since there are no new tests. `make lint` is green. Rejected: a structural test that reads `docs/decisions.md` for the two sentences, because the Interface rules out writing one.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
