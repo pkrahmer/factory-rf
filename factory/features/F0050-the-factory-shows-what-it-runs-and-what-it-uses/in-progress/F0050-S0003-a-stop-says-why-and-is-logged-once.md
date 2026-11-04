@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 1
 crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T14:01:20.149812Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -135,6 +131,12 @@ journal:
   kind: started
   at: '2026-11-04T14:01:20.149812Z'
   stage: review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T14:02:58.316338Z'
+  stage: review
+  run: 93ee0b9fe14640e58e7263e17f2e83c5
 ---
 
 # A stop says why, and is logged once
@@ -357,3 +359,29 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
 22. factory: started review as vm.
+23. reviewer: Review of `git diff main...HEAD -- . ':!factory'` against the work item, round 1.
+
+    Findings:
+
+    1. `src/factory/application/preflight.py:542-544` (`_run_probe`), with `Preflight.run` (`:463-477`) and `Tick.run` / `_run_preflight` (`src/factory/application/tick.py:109-118`, `:170-176`): when the probe is cut off, `_run_probe` returns `None`, which is the same value as "main passed". `Preflight.run` then clears `preflight_failed` and returns `None`, and the tick carries on into `delete_stale_branches`, the watcher and `dispatcher.dispatch`. So a SIGTERM that arrives during the probe now lets the same tick claim a work item and start a stage on a `main` that got no verdict, while the factory is shutting down. That claim is then left to the lease rules as a crash. Before this diff the (false) stop at least ended the tick. The Interface says the probe "is not judged", but counting it as a pass is a judgement. Fix: let a probe that is not judged end the tick without dispatching and without raising or clearing a stop. For example, the tick checks `boundaries.stop_requested()` after the preflight and returns a `TickOutcome` with no dispatch, or the preflight reports a "not judged" result that the tick ends on. Add a row to criterion 2's test that the cut-off tick dispatches nothing.
+    2. Against the story, criterion 2 in `## Acceptance criteria`: the criterion pins no stop, no `main_failed` stamp and a new probe on the next start. It does not say what the tick does after a probe that was not judged. That gap is why finding 1 passes `make check`. Fix: extend criterion 2 with "and the tick that ran it dispatches nothing" (needs the code change of finding 1, so I have not written it in myself). The tester then adds that row to `tests/application/test_preflight_stop_detail.py::test_a_probe_cut_off_by_the_factorys_stop_is_not_judged_and_runs_again`, or an application tick test.
+
+    Checked and holding:
+    - Criteria 1, 3, 4, 5 and 6 each have a parametrized test with the rows the criterion names. Criterion 1 includes signal 15 with `stop_requested()` false and blanks-only output. Criterion 4 has the row where another detail adds no record. Criterion 5 tests 0 and 2 on the non-negative side and -15 on the negative side.
+    - The Interface's wiring rule is now pinned by `tests/entry/test_run_stop_requested.py`, through `_ProjectImageStart._choose` (`src/factory/entry/run.py:276-278`). `run_until_stopped` passes `event.is_set` (`run.py:128`).
+    - `StopService.raise_stop` (`src/factory/application/stops.py:38-63`):
+      - it replaces a blank detail before any destination is written;
+      - it writes the line only when the stop is new or its scope or detail changed;
+      - it writes a record only on a first raise;
+      - after a failed health read it still writes the line, adds no record and raises.
+    - Round 0 finding 3 is fixed: `_ended` now branches on what `command_ending` returns.
+    - The journal records the coder's `make check` as green. The red run in entry 19 was a test in `tests/adapters/test_process_streaming.py`, which this diff does not touch, and the next run was green.
+    - Layers hold. There are no silencing markers, no secrets and no string-built commands.
+    - The 3 new findings from `make duplicates` are in `src/factory/domain/cost_records.py`, which this diff does not change.
+    - The Description and the docs criterion match what was built.
+
+    Notes:
+    - `tests/application/test_preflight_stop_detail.py:27` (`_answering`) is a copy of `_answering` in `tests/application/test_preflight_run.py:38`. It could move to `tests/preflight_support.py` under the standing leave.
+    - `tests/domain/test_command_ending.py:22-29` and `tests/application/test_preflight_stop_detail.py:16-24` (`_ended`) each build the same no-output `CheckResult` from an exit status.
+
+    Earlier tests: none. The diff only adds test files (`tests/application/test_preflight_stop_detail.py`, `tests/application/test_stop_log_once.py`, `tests/domain/test_command_ending.py`, `tests/entry/test_run_stop_requested.py`).
