@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T02:45:21.520662Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-11-04T02:45:15.216097Z'
   stage: docs
   run: fb3990b63928476da90d0b69e6994eae
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:45:21.520662Z'
+  stage: smoke-test
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -449,3 +458,4 @@ Expect: a line that ends in `passed` with no `failed`.
     `check`: check: green (not run again: passed on tree da88284d442d at 2026-11-04T02:41:58Z)
     `secrets`: secrets: green (2.6 s)
     `documents`: documents ok
+30. factory: started smoke-test as vm.
