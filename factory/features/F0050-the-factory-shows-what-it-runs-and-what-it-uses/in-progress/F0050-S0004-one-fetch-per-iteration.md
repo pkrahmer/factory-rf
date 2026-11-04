@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 542
-comments_read: []
+comments_read: [6633278047]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: a95ab27cceb64c3091dcc3fc2106828a
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-04T14:31:26.065363Z'
+  stage: intake
 ---
 
 # One fetch per iteration
@@ -72,3 +77,12 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
    4. Criterion 1 has two clauses, a new commit on `main` and a new commit on a work-item branch, in one criterion. A single test function cannot easily show both. Please split it into two criteria, or confirm that one test with two assertions is meant.
 
    The other checks passed. The smoke test is runnable, and `addopts` already sets `-q`, so the `tail -1` summary line exists. The scope fits the feature (S0004 in `feature.md`). The layers hold: the entry fetches and the application tick receives the knowledge.
+4. 2026-11-04 human: Answers of the human:
+
+   1. Yes, as you propose: `Tick.run(fetched: bool = False)` in `factory.application.tick` skips `git.fetch()` (and its raise and clear of `fetch_failed`) when the caller already fetched; `_ProjectImageStart._follow_main` in `factory.entry.run` keeps the one fetch and the one raise and clear of `fetch_failed`, and passes `fetched=True` to the tick of the same iteration. `factory-watch` and every other caller keep the default. Put this into the Interface.
+
+   2. `scheduler.py:126` stays as it is. It is not in a normal iteration: `prepare()` fetches there only when the checkout is not ready yet (no `origin/main` or no pipeline definition), as its comment says. The smoke test's count stays "not larger than 3".
+
+   3. Yes: add a criterion that a tick run alone (with `fetched=False`) whose fetch fails raises `fetch_failed` and runs nothing, and that the next one with a passed fetch clears it, as today.
+
+   4. One parametrized test with two rows (a new commit on `main`, a new commit on a work-item branch), as the project's tests do for the sides of one rule; the criterion stays one.
