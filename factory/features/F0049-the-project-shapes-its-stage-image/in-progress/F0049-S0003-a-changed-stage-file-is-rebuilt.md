@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T01:28:22.048587Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T01:28:19.119808Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:28:22.048587Z'
   stage: intake
 ---
 
@@ -85,3 +94,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
    5. Yes: separate rows, each with its own expectations (stop ended or not, image and identity afterwards).
    6. Yes: two tests, adding and removing.
    7. The smoke test stays as it is.
+5. factory: started intake as vm.
