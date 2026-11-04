@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T12:56:56.615731Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-11-04T12:56:56.615731Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-11-04T12:59:11.769462Z'
+  stage: doing
+  run: f1f22b1681794484b9df37497af81d09
 ---
 
 # A refused push or hosting call is retried and logged
@@ -289,3 +291,32 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
 
     End with `tests` as you need.
 15. factory: started doing as vm.
+16. coder: I made the code change from the human's answer 1 (journal entry 14). The tests changes from answers 2 to 4 belong to the tester, so I am handing over with `tests`.
+
+    What I built:
+    - `src/factory/domain/git.py`: before `push_reason` takes the last three lines, it now leaves out git's advice lines.
+      - The two exact lines `Please make sure you have the correct access rights` and `and the repository exists.` (after stripping) are dropped.
+      - Any line starting with `hint:` is dropped.
+      - New names: `PUSH_ADVICE_LINES`, `PUSH_HINT_PREFIX` and the private `_is_reason_line`.
+    - Main choice: I filter these lines in the domain function, rejecting a filter in `GitCli`. That keeps the whole reason rule in one place.
+    - The rest of the code is unchanged from the previous round (journal entry 13).
+    - `tests/domain/test_push_reason.py` and `tests/application/test_push_retry.py` now pass, including `test_a_push_to_an_unreachable_remote_is_retried_and_names_gits_reason[result|record]`.
+
+    Test changes for the tester, exactly as answered in journal entry 14:
+    1. Answer 1: add a domain row in `tests/domain/test_push_reason.py`: a cause line followed by the two advice lines (and a `hint:` line), and the reason keeps the cause line.
+    2. Answer 2: in `tests/application/test_push_retry.py`, import `GitOptions` from `factory.domain.git` (line 14), and type the variable at line 200 as `message: str | None`. Today these are the only `make types` errors.
+    3. Answer 3: in `tests/application/test_git_interface.py::test_git_has_exactly_the_twenty_one_operations_and_git_cli_has_each`, `tests/application/test_interfaces.py::test_git_abstract_methods_are_exactly_its_twenty_one_operations` and `tests/test_checkout_hygiene_removed.py::test_the_names_of_the_checkouts_hygiene_are_gone[git-twenty-one]`, the count and the name list become 22 with `last_push_output`.
+    4. Answer 4: in `tests/application/test_dispatcher.py`, four tests leave out lines starting with `handler error `:
+       - `test_a_report_for_a_branch_not_on_the_remote_becomes_one_log_line`
+       - `test_an_event_without_a_work_item_is_reported_as_one_log_line`
+       - `test_a_report_that_fails_with_a_git_error_leaves_the_entry_unreported`
+       - `test_a_git_error_in_the_report_of_a_branch_not_on_the_remote_writes_no_log_line`
+
+    State:
+    - `make test`: these 7 tests fail, and nothing else does.
+    - `make types`: only the two errors from item 2.
+    - `make lint`: green.
+    - `make check`: not green until the tester's changes are in.
+    - The refactor step and `make duplicates` wait for the next doing round.
+
+    For the reviewer: answer 1 gives leave to add the advice-line sentence to the Interface's `PushFailed` bullet. I did not rewrite the Description.

@@ -25,6 +25,11 @@ GIT_TIME_LIMIT = timedelta(minutes=5)
 PUSH_REASON_LINES = 3
 PUSH_REASON_LENGTH = 300
 PUSH_REASON_SEPARATOR = " | "
+# Git's advice after an unreachable remote says nothing of the cause and would push the cause out.
+PUSH_ADVICE_LINES = frozenset(
+    {"Please make sure you have the correct access rights", "and the repository exists."}
+)
+PUSH_HINT_PREFIX = "hint:"
 
 # Git's ref status for a refusal by the server, which a wait may cure, unlike `[rejected]`.
 SERVER_REFUSAL = "[remote rejected]"
@@ -148,11 +153,18 @@ def _is_valid_component(component: str) -> bool:
 def push_reason(output: str) -> str:
     """Git's reason for a failed push: its last non-empty lines, at most three, on one line.
 
-    The joined reason is cut at the end to at most 300 characters.
+    Git's advice lines are left out first. The joined reason is cut at the end to at most
+    300 characters.
     """
-    lines = [line.strip() for line in output.splitlines() if line.strip()]
+    lines = [line.strip() for line in output.splitlines() if _is_reason_line(line.strip())]
     joined = PUSH_REASON_SEPARATOR.join(lines[-PUSH_REASON_LINES:])
     return joined[:PUSH_REASON_LENGTH]
+
+
+def _is_reason_line(line: str) -> bool:
+    if not line or line in PUSH_ADVICE_LINES:
+        return False
+    return not line.startswith(PUSH_HINT_PREFIX)
 
 
 def push_is_retried(outcome: PushOutcome, output: str) -> bool:
