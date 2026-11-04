@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T15:30:18.361965Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,13 @@ journal:
   kind: started
   at: '2026-11-04T15:30:18.361965Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: question
+  at: '2026-11-04T15:30:57.734103Z'
+  stage: doing
+  run: eb89b169bb0a4d5887aa14bccf34f174
+  blocked: question
 ---
 
 # One fetch per iteration
@@ -429,3 +432,17 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     - `tests/entry/test_run_stop_requested.py`: the human's leave, entry 11 (only the signature of `run`).
     - `tests/scripted_tick_support.py`: the human's leave, entry 11 (only the signature of `run`).
 27. factory: started doing as vm.
+28. coder: Question (round 1): the reviewer's finding 4 in entry 26 needs your leave. The docstring of `Tick.run` (`src/factory/application/tick.py:97`) still says without condition that the tick fetches, so it is not true for `fetched=True`. Its exact text is pinned by `TICK_RUN` in `tests/application/test_tick_docstrings.py:17-22`, a test written by another story, and the standing leave does not cover it. May the tester change `TICK_RUN`?
+
+    Options:
+    - A (my choice): leave to change `TICK_RUN`. I add one sentence after the summary line of the docstring: "With `fetched`, the caller has already fetched in this iteration and raised or cleared `fetch_failed`: the tick skips its own fetch." The tester inserts the same sentence into `TICK_RUN` after its first sentence. The summary line stays the same, and so does everything else in that test. I then remove the one-line comment above the skipped fetch, because the docstring now gives the reason.
+    - B: no leave. The docstring stays as it is on `main` and the comment stays. Finding 4 is then closed as accepted, and the docstring is only true for the default call.
+
+    What follows from A: I put the docstring change in the working tree and end with `tests`, naming four changes. One is the `TICK_RUN` change. The other three are the reviewer's findings 1–3, which the standing leave already covers:
+    - move `Outage` (`tests/entry/test_run_fetch_before_tick.py:70-95`) and its copy `Instance.__init__`/`go_away`/`come_back` (`tests/entry/test_run_one_fetch.py:70-91`) to one shared support module;
+    - move the `_fetch_failed` filter (`tests/entry/test_run_fetch_before_tick.py:156`, copied at `tests/entry/test_run_one_fetch.py:152`) to that same module, taking a list of stops;
+    - move `_move_remote_away` (`tests/application/test_tick.py:178-181`) to a shared support module and use it in `tests/application/test_tick_own_fetch.py:65-66`.
+
+    Doing all four in one tests round saves a round. With B, I end with `tests` naming only findings 1–3.
+
+    No code changed in this run. `make check` was not run because the tree is the same as in entry 24, where it was green. Noticed, not touched: the 3 new `make duplicates` findings in `src/factory/domain/cost_records.py:41-43`, which are outside this story.
