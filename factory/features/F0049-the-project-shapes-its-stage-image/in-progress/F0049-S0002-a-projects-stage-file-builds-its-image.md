@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T00:35:07.993162Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -113,6 +109,12 @@ journal:
   kind: started
   at: '2026-11-04T00:35:07.993162Z'
   stage: doing
+- number: 19
+  speaker: coder
+  kind: result
+  at: '2026-11-04T00:35:40.035603Z'
+  stage: doing
+  run: 6fb5fc86e4a44e4f85082c1d3bff8b53
 ---
 
 # A project's stage file builds the image its stages run in
@@ -326,3 +328,15 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     4. The checks' PATH is part of this story, not a later one: the check containers take boundaries.image_path too, in place of the fixed CHECK_ENVIRONMENT PATH, because make check is where a project's tools must be found. Criterion 5 gains a row for the check environment (the tester writes it); the existing rows that pin the checks' PATH change under the feature's S0002 leave (tests/adapters/test_make_commands_container.py and the others it names). If the patched build_boundaries in conftest stands in the way, the tester may adapt that fixture's stand-in to the new signature, and nothing else in tests/conftest.py (also decision 8).
     The other notes stay as they are (the time-limit tail, the inspect fallback, image=None).
 18. factory: started doing as vm.
+19. coder: I changed no code and no tests this round. The human's answer in entry 17 asks for test changes before the work can continue, so this goes to the tester. The code from my earlier run is already committed on the branch, with `make check` red only in the pinned rows below.
+
+    Test changes for the tester (feature decision 8, entry 17):
+    1. `tests/test_second_user_removed.py`, row `build-boundaries-parameters`: add `"images"`, which gives `["settings", "token", "hosting", "images"]`.
+    2. `tests/domain/test_stop_table.py::test_the_table_holds_the_fifteen_stops_in_order`: add the sixteenth row `stage-image-failed` (limit `L55`, after `disk-low`). In `tests/test_stop_table.py`, near line 89, add `stage_image_failed` to the machine-scoped tuple `("preflight_failed", "disk_low")`.
+    3. In `tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version` and `tests/domain/test_contract_version_4.py::test_the_records_contract_is_at_version_4_without_left_branch`, change the pins from `"4.0"` to `"4.1"`.
+    4. Criterion 5 gets a new row for the check environment: the check containers take `boundaries.image_path` in place of the fixed `PATH` in `CHECK_ENVIRONMENT`. The rows that pin the checks' `PATH` change under the S0002 leave: `tests/application/test_container_environment_extra.py` (the two `check` rows that expect `CHECK_ENVIRONMENT`) and any others in `tests/adapters/test_make_commands_container.py`. The seam I would choose: `ContainerMakeCommands(..., path: str = SYSTEM_PATH)` as a new keyword, so the check's environment becomes `{**extra, **CHECK_ENVIRONMENT, "PATH": path}`. `build_boundaries` would read the image's path once before it builds the commands and pass it to both `ContainerMakeCommands` and `Boundaries.image_path`. The other option is a mutable path that `with_image_path` sets afterwards; I rejected it because the adapters stay immutable.
+    5. The `on_the_manual_clock` fixture in `tests/conftest.py`: give its stand-in `built` the new signature, `images: Images | None = None` passed through to `original(settings, token, hosting=hosting, images=images)`. Then `src/factory/entry/run.py` can call `build_boundaries(..., images=...)` on the second build instead of patching the path in afterwards with `with_image_path`. Nothing else in that file changes.
+
+    What I noticed but did not touch: the Description still lists the watch criterion that entry 12 dropped, because the factory left out the tester's edit to it. The tester can rewrite it while making these changes.
+
+    After the tester's changes, my plan for the next round is to add the check's `PATH` along the seam above, use the new fixture signature to drop the `with_image_path` workaround in `run.py`, and then take `make check` to green and do the refactor step.
