@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T15:14:33.642174Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,13 @@ journal:
   kind: started
   at: '2026-11-04T15:14:33.642174Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: question
+  at: '2026-11-04T15:17:19.694353Z'
+  stage: doing
+  run: 7a688b7a31b14b53a60d59b2aab9e706
+  blocked: question
 ---
 
 # One fetch per iteration
@@ -261,3 +264,23 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
 
     `lint`: lint: green (0.1 s)
 16. factory: started doing as vm.
+17. coder: Question: one more test double breaks on the new `fetched` flag. It is a seventh place, outside the six signatures your leave in entry 11 covered. How do you want it handled?
+
+    The test: `tests/entry/test_run.py::test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick` (both rows, `0-None` and `30-limit1`). It replaces `run_module.activity_tick` with `recording_tick(tick: Tick, idle: IdleShutdown | None = None)` at `tests/entry/test_run.py:287`. `_ProjectImageStart._choose` now calls `activity_tick(tick, inputs.idle, fetched=True)`, so every iteration fails. From `make check` (`--tb=short`):
+    - `iteration failed: TypeError: test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick.<locals>.recording_tick() got an unexpected keyword argument 'fetched'`
+    - `E   assert [] == [None]` (and, for the other row, `E   assert [] == [<factory.app...IdleShutdown object ...>]`)
+
+    Options:
+    - A (my choice): the tester changes only `recording_tick` at `tests/entry/test_run.py:287` to `def recording_tick(tick: Tick, idle: IdleShutdown | None = None, *, fetched: bool = False) -> Callable[[], bool]:` and makes it return `original_tick(tick, idle, fetched=fetched)`. The test still checks the same thing, which is the idle shutdown handed to the activity tick. The next coder round then ends with `tests`, naming this change.
+    - B: leave `activity_tick(tick, idle)` without the flag. `_ProjectImageStart` would hand it a delegating `Tick` subclass whose `run()` calls the real tick's `run(fetched=True)`. No test changes, but it is a hollow subclass that skips `Tick.__init__` only to get around one test double. I reject it.
+    - C: put the flag on the `Tick` instance (a setter, or a constructor argument) instead of passing it to `run`. This contradicts the Interface's `Tick.run(fetched: bool = False)` and the new tests that call `tick.run(fetched=False)`.
+
+    The current code:
+    - `src/factory/application/tick.py`: `run(self, *, fetched: bool = False)` skips `_fetch()` when `fetched` is true.
+    - `src/factory/entry/run.py`: `activity_tick(tick, idle=None, *, fetched=False)` passes the flag on, and `_ProjectImageStart._choose` builds its tick with `fetched=True`, because `_follow_main` fetches and raises or clears `fetch_failed` before every tick.
+
+    In this run I also fixed `tests/application/test_tick_docstrings.py::test_the_docstrings_say_what_the_code_does[tick-run]`. It pins the docstring of `Tick.run`, and the earlier run had added a paragraph to it. I put the docstring back as it was on `main` and moved the reason into a one-line comment above the skipped fetch. That test passes now.
+
+    Status of `make check`: red only on the two rows above. Lint, types and the other tests passed, and coverage is 99.42 %. I did not do the refactor step, because the stage stops here. The diff otherwise reads clean.
+
+    Noticed, not touched: the copy of `Outage` (`Instance.go_away`/`come_back` in `tests/entry/test_run_one_fetch.py`). Moving it to a shared place is the tester's job, under the standing leave.
