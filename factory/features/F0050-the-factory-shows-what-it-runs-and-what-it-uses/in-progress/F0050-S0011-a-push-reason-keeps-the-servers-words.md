@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 548
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T21:40:44.798176Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-04T21:40:44.798176Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-04T21:45:42.013287Z'
+  stage: doing
+  run: fd0d47a027f54e75afd764bb46a51fa3
 ---
 
 # A push's reason keeps the server's words
@@ -128,3 +130,18 @@ Expect: a line that ends in `passed` with no `failed`.
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: Implemented. `push_reason` now leaves out the frame that `--porcelain` puts around its summary, and it writes each run of whitespace in a kept line as one space. `make check` is green: test green (117.3 s), coverage 99.25 %, check: green.
+
+   - What I built, in `src/factory/domain/git.py`:
+     - Two new constants, `PUSH_PORCELAIN_DONE = "Done"` and `PUSH_PORCELAIN_TARGET_PREFIX = "To "`, each with a comment on why they are left out.
+     - `_is_reason_line` (it gets lines already stripped) now refuses a line that is exactly `Done`, and a line that starts with `To ` or `hint:`. A line such as `remote: Done` or `remote: To be retried` is kept, because only the exact `Done` and the `To ` prefix count.
+     - A new private helper, `_one_space_apart`, does `" ".join(line.split())` on each kept line. A line of tabs only is empty after the strip, so the existing empty-line rule leaves it out.
+     - The line count, the separator and the 300-character cut are unchanged, and so is `push_is_retried`. The docstring now says all of this.
+   - Main choice: I collapse the whitespace after the line passes the filter, so the filter still reads the stripped line exactly as S0008's rules read it. I rejected collapsing before the filter. It would have changed what the advice-line comparison sees, and it would have done work on lines that are thrown away.
+   - Checked as the Interface asks: S0008's `tests/domain/test_push_reason.py` and `tests/application/test_push_retry.py` pass unchanged, next to the new `tests/domain/test_push_reason_porcelain.py` and `tests/application/test_push_retry_reason.py`.
+   - Refactor: I made one pass. I replaced a double assignment to `lines` with a generator of stripped lines, and put the collapse in `_one_space_apart`. No other change was needed.
+   - Journal: no entry changed what the task means, so I did not rewrite the Description.
+   - Noticed, not touched: as intake and the tester both said, no test has a `To ` line with leading spaces. The code strips before it checks the prefix, so such a line is left out.
+
+   `check`: check: green
+   `duplicates`: duplicates: 4 new, 41 known, 2 gone
