@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T16:04:20.279611Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-04T16:04:20.279611Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-04T16:04:49.536426Z'
+  stage: intake
+  run: f44b1ddc7e8848a0a70ab9d389118f7f
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -59,17 +61,22 @@ An agent's session lives in its home on the stage's dataset, and the dataset is 
 - The cost record refers to its transcript reliably (the human, 2026-11-04): it gets `transcript: TranscriptRef | None`, `None` when none was kept. `TranscriptRef` (frozen, unknown keys refused) holds `path`, the file's path relative to `FACTORY_TRANSCRIPT_DIR` (always `<work item>/<run id>.<ext>.gz`, so it is also found from the record's own `work_item` and `run`), and `sha256`, the SHA-256 of the file as written (64 lowercase hex digits), so that a reader can tell that the file is the one the record names. A record of a later run that continues an earlier run's session (a provider limit's resume) names the file under its own run id; nothing is shared between records. The records contract's version follows its rule (an added optional field).
 - The transcript folder is mounted into no container and named in no prompt.
 
+- Seams (the human's answer, journal 4): `InstanceSettings` in `factory.domain.settings` gains `transcript_dir: Path | None = None` and `transcript_days: PositiveInt | None = None`, read by `read_settings`; an empty `FACTORY_TRANSCRIPT_DAYS` counts as unset. `TranscriptRef` (frozen, unknown keys refused) in `factory.domain.cost_records`, beside `CostRecord`, which gains `transcript: TranscriptRef | None = None`; `sha256` is refused unless 64 lowercase hex digits, `path` is refused when absolute, with `..`, or not ending in `.gz`. `Transcript` (frozen: `extension: str`, `content: bytes`) in the new `factory.domain.transcripts`. `AgentRuntime` (`factory.application.agent_runtime`) gains `read_transcript(home: Path, session: str) -> Transcript | None`, implemented by `claude_runtime`, `opencode_runtime` and the fake. `TranscriptStore` (ABC) in the new `factory.application.transcripts`: `write(path: str, data: bytes) -> str` (writes `<folder>/<path>` with mode `0600`, returns the SHA-256 of what it wrote) and `remove_older_than(days: int, now: datetime) -> int`; its adapter `FileTranscriptStore(folder: Path)` in `factory.adapters.transcript_files`; `TranscriptKeeper(store, log)` in `factory.application.transcripts`, with `keep(work_item, run, transcript) -> TranscriptRef | None` (compresses, writes, logs `transcript: not kept for ...` on an error) and `remove_old(days, now) -> int` (logs `transcript: removed ...` when it removed any). The deletion is called from `activity_tick` in `factory.entry.run`, on an idle outcome only, when `transcript_days` is set. A file older than `d` days is removed strictly: a file of exactly `d` days is kept. The coder may add arguments these need and says so in its entry.
+- Records contract: this story produces version 4.3.
+
 ## Acceptance criteria
 
 1. With the setting unset, and with it empty, the factory starts and runs a stage as before: no transcript is written, no `transcript:` line is logged, no stop is raised, and every record's `transcript` is `None`. Rows: unset, empty.
 2. With the setting set, a completed run of each runtime leaves one gzip file at `<work item>/<run id>.<ext>.gz` with mode `0600`, whose content is the session's transcript; the record's `transcript.path` is that path and its `transcript.sha256` the file's SHA-256. Rows: Claude Code, opencode.
 3. A run resumed within itself leaves one file, under its run id, with the content after the resume, and its record's `sha256` matches that file. A later run that continues an earlier session names a file under its own run id, and the earlier record still matches its own file.
-4. A missing session, a missing transcript and a folder that cannot be written each write the log line and leave `transcript` as `None`; the run's result is unchanged. Rows for the three.
-5. The settings refuse a relative path, a path inside the workspace, the checkout, the state directory or the agent home, and days of `0`, `-1` and `x`; they accept `1`. Rows for each.
-6. With days set, an idle tick removes the files older than the days and keeps the newer ones, and writes its line only when it removed any.
+4. A missing session, a missing transcript and a folder that cannot be written each write the log line and leave `transcript` as `None`; the run's result is unchanged. Rows for the three, and a row where a later run that continues an earlier session fails to copy: its record has `transcript` `None` and does not name the earlier run's file.
+5. The settings refuse a relative path, a path inside the workspace, the checkout, the state directory or the agent home, and days of `0`, `-1` and `x`, each refusal naming the variable; they accept `1`, and an empty `FACTORY_TRANSCRIPT_DAYS` counts as unset. Rows for each.
+6. With days set, an idle tick removes the files strictly older than the days and keeps the newer ones and a file of exactly the days; it writes its line only when it removed any; a tick that is not idle removes nothing. Rows for each side.
 7. No container's mounts and no prompt name the transcript folder.
-8. `make check` stays green.
-9. docs: `docs/operator-guide.md`: a section *Transcripts*: what a transcript holds and why it never goes to GitHub, the two settings, the file names, the mode, the log lines, and that the folder must sit where only the site's own people can read it. `docs/decisions.md`: one entry with feature decision 6 and its reason. `README.md`: none. The project guide: the file on agent runs says where the runtimes' wrappers find a session.
+8. `TranscriptRef` refuses a `sha256` of 63 digits, with upper case and with a non-hex digit, and a `path` that is absolute, has `..` or does not end in `.gz`; it accepts a well-formed one. Rows for each.
+9. The records contract's version is `4.3` and the regenerated schemas carry it. The `"4.2"` pins in `tests/domain/test_contract_version_4.py`, `tests/domain/test_contract_version_4_2.py` and `tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version` become `"4.3"`, nothing else in those modules (the human's leave, journal 4).
+10. `make check` stays green.
+11. docs: `docs/operator-guide.md`: a section *Transcripts*: what a transcript holds and why it never goes to GitHub, the two settings, the file names, the mode, the log lines, and that the folder must sit where only the site's own people can read it. `docs/decisions.md`: one entry with feature decision 6 and its reason. `README.md`: none. The project guide: the file on agent runs says where the runtimes' wrappers find a session.
 
 ## Smoke test
 
@@ -114,3 +121,9 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
 
    6. Yes: a row where the later run's copy fails: its record has `transcript` `None` and does not name the earlier run's file.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: accepted with the human's answers (journal 4) written into the story as a "Seams" line. It now names `InstanceSettings.transcript_dir`/`transcript_days`, `TranscriptRef` and `CostRecord.transcript` in `factory.domain.cost_records`, `Transcript` in `factory.domain.transcripts`, `AgentRuntime.read_transcript`, `TranscriptStore`/`TranscriptKeeper` in `factory.application.transcripts`, `FileTranscriptStore` in `factory.adapters.transcript_files`, and the call from `activity_tick`. The contract version is 4.3, strict "older than" is stated, and an empty days value counts as unset.
+   - Criteria: carried in from journal 4. Criterion 4 gets a row where a later run's copy fails. Criterion 5 gets "names the variable" and the empty-days row. Criterion 6 gets the strict boundary and the non-idle row. New criterion 8 covers the `TranscriptRef` sha256 and path refusals, and new criterion 9 pins 4.3 with the test-pin leave. `make check` and `docs:` are now criteria 10 and 11, still last. Every other criterion was already testable by one function with rows.
+   - Smoke test: the two greps are runnable. The `Expect:` line is checkable against their output. No pytest is involved.
+   - Architecture: settings and models in domain, wrappers per runtime, keeper and store interface in application, the file adapter in adapters, and wiring in entry. This fits the four layers.
+   - Scope: within F0050's S0005 line, with nothing from "Out of scope". The tester has the human's leave for the three "4.2" pins to "4.3".
