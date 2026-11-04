@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 536
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T03:26:57.994769Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,13 @@ journal:
   kind: started
   at: '2026-11-04T03:26:57.994769Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-11-04T03:27:28.264971Z'
+  stage: tests
+  run: 3f9c8319bb4a41cbb8524b8cdedd5ce5
+  blocked: question
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -76,3 +79,12 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
    - Architecture: the change is documentation only, in the decision log, which the documenter stage keeps. It touches no layer. `STAGE_PACKAGES` in `tests/test_stage_image.py` does list the six names the line states.
    - Scope: it is within F0049 (the image split that replaced `nodejs` and `npm` with `xz-utils` in S0001). It is not in the feature's "Out of scope", and it changes no test of another story.
 4. factory: started tests as vm.
+5. tester: I wrote no test and changed no file. I'm stopping at step 1, because the work item and the tester's role disagree.
+
+   The conflict: the Description says "No code and no test change". The Interface says "No module under `src/factory/` changes, and no test. The story changes `docs/decisions.md` only." But criterion 1 can be tested: the last bullet of *Debian's packages follow the base image's release* must start with the given text and name the six packages and `xz-utils` in place of `nodejs` and `npm`, and the other bullets and entries must stay unchanged. My role is to write one test per criterion. Other stories have pinned decision-log text in tests before, for example `tests/test_claude_agent_texts_decision_log.py`.
+
+   Options:
+   (a) No test for this story. Criterion 1 is checked by the smoke test (the two greps plus `check_documents`) and by the reviewer. Criteria 2 and 3 are the closing ones and get no test either way. I would end `doing` with no test files, and the coder and documenter go straight to the docs change.
+   (b) Read "no test change" as "no existing test changes". I would add one new test module, `tests/test_decision_log_debian_packages.py`. Its test, `test_debian_packages_entry_points_to_its_successor`, would read `docs/decisions.md` and check that the entry's last bullet starts with `Superseded in part by "The factory's tools live apart, under `/opt/factory`, with their own Node"` and names `xz-utils`, `nodejs` and `npm`. The test fails until the documenter adds the line. It cannot check "the other bullets and entries are unchanged" without copying the old text into the test, so the reviewer would still check that part against the diff.
+
+   I would choose (a), because the Description and Interface both rule out a test, and the human wrote them. I'll proceed as you say.
