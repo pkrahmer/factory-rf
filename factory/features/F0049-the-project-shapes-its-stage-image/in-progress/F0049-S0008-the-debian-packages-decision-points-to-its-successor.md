@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T03:26:35.177376Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T03:26:35.170738Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:26:35.177376Z'
+  stage: intake
+---
+
 # The Debian packages decision points to the entry that superseded it
 
 <!-- proposed by feature acceptance of 2026-11-04; refine before starting -->
@@ -28,3 +55,6 @@ uv run python -m factory.entry.check_documents
 Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` line before it).
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
