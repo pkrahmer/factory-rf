@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T02:40:06.953540Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-04T02:40:06.953540Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-04T02:43:36.892614Z'
+  stage: doing
+  run: 12a376bfed34462586021e358cb9fc80
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -359,3 +361,26 @@ Expect: a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.2 s)
 24. factory: started doing as vm.
+25. coder: Round 1: the tester moved the shared test helpers that the reviewer named in entry 19 (entry 23). So this round I changed no code and ran `make check`, which is green: all tests pass with 99.51 % coverage, and the run ends with `check: green`.
+
+    What I built is unchanged since entry 17. It is all in `src/factory/entry/run.py`:
+    - `_ProjectImageStart._follow_main` now returns a `bool`.
+    - When `git.fetch()` raises `FetchFailed`, it raises `RepositoryStop(scope="repository", reason="fetch_failed", detail=str(error), at=clock.now())` through `StopService` and returns `False`. It then reads no stage file and leaves the image, its identity, its `PATH` and the stage file last handled as they were.
+    - After a fetch that passes, it calls `clear_stop("fetch_failed")` and compares the stage file as before.
+    - `prepare` returns `False` when `_follow_main` does, so no tick runs in that iteration.
+    - Any other `GitError` is not caught and still reaches the scheduler's `iteration failed`.
+
+    Main choice: I catch the error in `_follow_main`, where the Interface puts it, so the fetch and its stop stay together. I rejected catching it in `prepare`.
+
+    Refactor: I made no change this round. The test move touched only files under `tests/`, and the code diff is the one the reviewer read in entry 19.
+
+    Description: entries 19 to 23 changed the test layout, not the meaning of the task, so the Description stays as it is.
+
+    Noticed and not touched:
+    - The tick's own `fetch_failed` also writes git's multi-line error text to the log one line at a time.
+    - Each iteration still fetches twice, once in `prepare` and once in the tick. The Description leaves merging them to a later story.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
