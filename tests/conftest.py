@@ -60,6 +60,7 @@ from operator_skill_support import Operator, make_operator
 from podman_support import IMAGE, Podman, PodmanPlan, write_podman
 from podman_support import INSTANCE as PODMAN_INSTANCE
 from proof_support import World, build_world, run_ticks, start_story
+from push_retry_support import PushCase, open_push_case
 from run_layout_support import Layout, build_layout
 from run_process_recorder import Recorder
 from settings_support import AGENT_HOME
@@ -565,3 +566,27 @@ def on_the_manual_clock(clock: ManualClock, monkeypatch: pytest.MonkeyPatch) -> 
         return replace(boundaries, clock=clock, log=machine_log(settings.state_directory, clock))
 
     monkeypatch.setattr(run_module, "build_boundaries", built)
+
+
+@pytest.fixture
+def result_case(
+    boundaries: Boundaries,
+    *,
+    tmp_path: Path,
+    remote: Path,
+    human: HumanClone,
+    agent_home: Path,
+    agent_runtime: FakeAgentRuntime,
+    kill_points: KillPoints,
+) -> PushCase:
+    """A story opened at `tests`, ready to push its stage's result."""
+    return open_push_case(
+        "result",
+        boundaries,
+        tmp_path=tmp_path,
+        remote=remote,
+        human=human,
+        agent_home=agent_home,
+        agent_runtime=agent_runtime,
+        kill_points=kill_points,
+    )

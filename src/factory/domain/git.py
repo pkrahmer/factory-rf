@@ -33,6 +33,8 @@ PUSH_HINT_PREFIX = "hint:"
 # The frame of `git push --porcelain`'s summary would push the server's own `remote:` lines out.
 PUSH_PORCELAIN_DONE = "Done"
 PUSH_PORCELAIN_TARGET_PREFIX = "To "
+# Git's closing summary of a refused push repeats what the ref line says and names the remote.
+PUSH_SUMMARY_PREFIX = "error: failed to push some refs to "
 
 # Git's ref status for a refusal by the server, which a wait may cure, unlike `[rejected]`.
 SERVER_REFUSAL = "[remote rejected]"
@@ -156,9 +158,10 @@ def _is_valid_component(component: str) -> bool:
 def push_reason(output: str) -> str:
     """Git's reason for a failed push: its last non-empty lines, at most three, on one line.
 
-    Git's advice lines and the frame of the porcelain summary (`To <url>`, `Done`) are left
-    out first, and every run of whitespace in a kept line becomes one space. The joined reason
-    is cut at the end to at most 300 characters.
+    Git's advice lines, the frame of the porcelain summary (`To <url>`, `Done`) and git's
+    closing `error: failed to push some refs to <url>` are left out first, and every run of
+    whitespace in a kept line becomes one space. The joined reason is cut at the end to at
+    most 300 characters.
     """
     stripped = (line.strip() for line in output.splitlines())
     lines = [_one_space_apart(line) for line in stripped if _is_reason_line(line)]
@@ -173,7 +176,8 @@ def _one_space_apart(line: str) -> str:
 def _is_reason_line(line: str) -> bool:
     if not line or line in PUSH_ADVICE_LINES or line == PUSH_PORCELAIN_DONE:
         return False
-    return not line.startswith((PUSH_HINT_PREFIX, PUSH_PORCELAIN_TARGET_PREFIX))
+    left_out_prefixes = (PUSH_HINT_PREFIX, PUSH_PORCELAIN_TARGET_PREFIX, PUSH_SUMMARY_PREFIX)
+    return not line.startswith(left_out_prefixes)
 
 
 def push_is_retried(outcome: PushOutcome, output: str) -> bool:
