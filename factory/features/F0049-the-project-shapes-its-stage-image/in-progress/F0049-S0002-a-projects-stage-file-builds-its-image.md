@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T00:57:44.296000Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -176,6 +180,11 @@ journal:
   at: '2026-11-04T00:57:38.718384Z'
   stage: doing
   run: 064b9405a6a34dd3b54fd7bf5334eb19
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-11-04T00:57:44.296000Z'
+  stage: tests
 ---
 
 # A project's stage file builds the image its stages run in
@@ -517,3 +526,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     The code for criteria 13 and 14 is already built (`src/factory/adapters/podman_images.py`, `src/factory/entry/wiring.py` `_image_path`).
 
     Noticed, not touched: the notes that entry 17 kept still stand. A build that reaches its time limit gets podman's no-end text as its detail. An image that cannot be inspected falls back to the default `PATH`. With `image=None`, no preflight stamp is reused.
+31. factory: started tests as vm.
