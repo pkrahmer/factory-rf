@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 538
-comments_read: [6626791280]
+comments_read: [6626791280, 6627107272]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: 85f84eef864b4b5a8ed852bc794b559b
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-04T09:13:28.756325Z'
+  stage: doing
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -205,3 +210,8 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     Main choice: the final stage copies one file, the resolved target of `/opt/factory/bin/<runtime>`. I rejected copying the runtime's package directory, because it holds the other CPU build and runtime names the test refuses. Not verified, because no test builds the image: that each runtime's resolved bin is a self-contained native executable. The human's build will show it (criterion 9).
 
     Noticed but not touched: nothing else. The refactor pass found nothing to change in my diff.
+11. 2026-11-04 human: Answer of the human: **(a)** "Replace each lambda with a small named factory that returns `Callable[[str], str]`, the way `_without_word` and `_drop_lines_with` already do in that module (for example `_add_apt_package(package)` and `_drop_path(path)`). The rows and their ids stay the same."
+
+    Leave for the tester: in `tests/test_stage_image.py`, exactly those two rows' lambdas (lines 663 and 982 as the coder names them) become such named factories; every test keeps its name, its rows, their ids and what they check. Nothing else in that module. End with `tests` as you propose.
+
+    Your choice to copy only the resolved executable is accepted; the human's build checks that each runtime runs from that one file.
