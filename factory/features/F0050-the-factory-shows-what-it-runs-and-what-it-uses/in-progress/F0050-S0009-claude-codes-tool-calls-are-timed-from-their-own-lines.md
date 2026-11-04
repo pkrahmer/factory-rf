@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 547
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T21:15:58.038128Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-04T21:15:58.038128Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-04T21:16:19.223093Z'
+  stage: intake
+  run: acfdc82cfd3b41f4a886e6c35eaf12ba
+  blocked: question
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -84,3 +87,12 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed; the Interface, the smoke test, the architecture and the scope are fine; three gaps in the criteria):
+
+   1. The Interface says that when the same id appears on two lines of the right type, the first one's time stays. No criterion tests it. Suggested new criterion before the two closing ones: "two `assistant` lines with the same `tool_use` id, the first with a timestamp and the second with a different one or `null`, give `seconds` from the first line's timestamp." Rows: second line later, second line `null`. Should I add it?
+
+   2. The Interface says a line of another type "changes no time already read", but criterion 1 covers only a replayed `tool_use`. A `tool_result` on an `api-request-blob` or `attachment` line, with a timestamp that differs from the `user` line's, has no criterion for its time. Suggested: "a `tool_result` that appears also on a line of another type, with a different timestamp, does not change `seconds`; rows: the blob line before the `user` line, and after it." Should I add it?
+
+   3. The Interface's Tests line leaves two options open: add rows to `tests/domain/test_tool_uses.py` (which needs the human's leave in `feature.md`), or a new module `tests/domain/test_tool_uses_replayed_lines.py`. I would choose the new module, which needs no leave. Please confirm, so the tester doesn't have to decide.
+
+   Checked and fine: the pytest `addopts` already sets `-q`, and the smoke test command passes none; the second smoke test is runnable and its Expect line can be checked.
