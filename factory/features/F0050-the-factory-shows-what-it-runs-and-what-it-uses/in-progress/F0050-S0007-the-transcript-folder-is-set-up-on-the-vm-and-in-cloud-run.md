@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T20:01:28.055653Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-04T20:01:21.943767Z'
   stage: review
   run: 56b450fe6fdc48b5aea794b0275be944
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:01:28.055653Z'
+  stage: doing
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -170,3 +179,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
    Open point, already noted in the coder's entry 7 and left open by the intake: with `--transcript-days 0`, a rule file written by an earlier run stays in `/etc/tmpfiles.d/`. systemd would then make the folder again at boot. This review does not change that; it is the human's choice whether a follow-up should remove the file.
 
    Earlier tests: none. The diff only adds test files (`A`), and no test file on `main` is changed, renamed or deleted.
+10. factory: started doing as vm.
