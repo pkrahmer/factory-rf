@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T09:21:19.651471Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-04T09:21:13.025363Z'
   stage: tests
   run: 0713aaebcb524721b6afb6cba610921f
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-04T09:21:19.651471Z'
+  stage: doing
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -381,3 +390,4 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     The mapping from criteria to tests is unchanged from entry 8. No project skill was used.
 
     `lint`: lint: green (0.2 s)
+24. factory: started doing as vm.
