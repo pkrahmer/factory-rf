@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947, 6634929291]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T15:47:22.596309Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -212,6 +208,12 @@ journal:
   kind: started
   at: '2026-11-04T15:47:22.596309Z'
   stage: review
+- number: 37
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T15:49:11.234055Z'
+  stage: review
+  run: 6a48f30584be4ac8b54cbc8037a86355
 ---
 
 # One fetch per iteration
@@ -555,3 +557,42 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
 36. factory: started review as vm.
+37. reviewer: Review of round 1. I read the work item and the diff outside `factory/`: `src/factory/application/tick.py`, `src/factory/entry/run.py`, the three new test files and the nine earlier test files the diff changed. I also read the code around the change: `_ProjectImageStart.prepare`, `_follow_main` and `_choose` in `src/factory/entry/run.py:224-284`, and every place under `src/factory` that calls the tick.
+
+    The code does what the Interface says:
+    - `prepare()` calls `_follow_main`. It fetches once and then either raises `fetch_failed` and returns False, so no tick runs, or clears the stop.
+    - The only tick in `src/factory` is built at `run.py:284` as `activity_tick(..., fetched=True)`, so `Tick.run` skips `_fetch()` (`tick.py:111-112`). The disk check still runs first.
+    - The default `fetched=False` keeps today's fetch for every other caller.
+    - `scheduler.py:126` is unchanged.
+    - The smoke count of `git.fetch()` calls stays at 3.
+
+    Round 0's findings are resolved:
+    - Findings 1 to 3 (copied test helpers): `RemoteOutage`, `fetch_failed` and `move_remote_away` now live once, in `tests/remote_outage_support.py`, and both earlier modules use them from there.
+    - Finding 4: the docstring of `Tick.run` (`tick.py:98-101`) now describes `fetched`, with the human's leave in entry 29. `TICK_RUN` has exactly the allowed sentence.
+
+    Criteria 1 to 4 each have a test that checks what the criterion says:
+    - criterion 1: two rows, one fetch in the iteration, and the new commit is seen by that iteration's tick;
+    - criterion 2: `ticked == [True, False, True]`, one fetch, the fetch error's first line in the stop's detail, and the stop cleared in the next iteration;
+    - criterion 3: two rows, the default call and `fetched=False`;
+    - criterion 4: a failed fetch is a stop, and the next passed fetch clears it.
+
+    The coder's `make check` was green (entry 35). The 3 new `make duplicates` findings are in `src/factory/domain/cost_records.py:41-43`, which this diff does not touch.
+
+    The Description, the Interface and the docs criterion still match what was built.
+
+    no findings
+
+    Notes:
+    - `tests/remote_outage_support.py:15-29`: `move_remote_away` and `RemoteOutage.go_away` both rename the remote out of reach, to two different paths. One helper would do.
+    - `tests/application/test_tick_own_fetch.py:49-55`: the parameter `explicit` is clearer when named after what it changes, for example `passes_fetched_false`.
+
+    Earlier tests changed (status M):
+    - `tests/application/test_tick.py`: the standing leave to move a shared test helper (`_move_remote_away` moved to `tests/remote_outage_support.py`; its three tests keep their names and checks).
+    - `tests/application/test_tick_docstrings.py`: the human's leave, entry 29 (only the one sentence in `TICK_RUN`).
+    - `tests/entry/test_run.py`: the human's leave, entry 18 (only the nested `recording_tick`: its signature and passing on `fetched`).
+    - `tests/entry/test_run_fetch_before_tick.py`: the human's leave, entry 11 (the signature of `run`), and the standing leave (`Outage` now uses the shared `RemoteOutage`, and `_fetch_failed` became the shared `fetch_failed`; every test keeps its name and check).
+    - `tests/entry/test_run_idle_shutdown.py`: the human's leave, entry 11 (only the signature of `run`).
+    - `tests/entry/test_run_image_sizes.py`: the human's leave, entry 11 (only the signature of `run`).
+    - `tests/entry/test_run_project_image_rebuild.py`: the human's leave, entry 11 (only the signature of `run`).
+    - `tests/entry/test_run_stop_requested.py`: the human's leave, entry 11 (only the signature of `run`).
+    - `tests/scripted_tick_support.py`: the human's leave, entry 11 (only the signature of `run`).
