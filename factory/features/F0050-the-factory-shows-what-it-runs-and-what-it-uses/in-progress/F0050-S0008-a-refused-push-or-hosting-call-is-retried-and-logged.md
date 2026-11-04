@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T13:04:37.627853Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-11-04T13:04:31.316995Z'
   stage: doing
   run: d36ed4a3c03b4523ba3e4a166b20e292
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:04:37.627853Z'
+  stage: review
 ---
 
 # A refused push or hosting call is retried and logged
@@ -397,3 +406,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
 
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
+21. factory: started review as vm.
