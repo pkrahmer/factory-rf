@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T09:20:05.079707Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-04T09:19:58.266341Z'
   stage: review
   run: 1edb1336802548c4995dd58aaf5a27b3
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-04T09:20:05.079707Z'
+  stage: doing
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -320,3 +329,4 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     Earlier tests:
     - `tests/test_stage_image.py`: changed under the human's leave in `feature.md` ("A leave, for S0001: its tester may change `tests/test_stage_image.py` to the image S0001 describes"). The two lambda rows were changed under the human's answer in journal entry 11.
     - `tests/test_vm_job_start.py`: `test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options` was changed under the same leave in `feature.md` (the row of the build command, for the runtime argument). `test_the_stage_image_is_built_for_the_instance_runtime` and its helpers are additions that need no leave.
+20. factory: started doing as vm.
