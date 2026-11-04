@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T14:09:08.833783Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -168,6 +164,12 @@ journal:
   kind: started
   at: '2026-11-04T14:09:08.833783Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-11-04T14:12:53.784791Z'
+  stage: doing
+  run: 2515d9f10e04430da9f6e7ee4c368fe5
 ---
 
 # A stop says why, and is logged once
@@ -465,3 +467,25 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.1 s)
 28. factory: started doing as vm.
+29. coder: Round 2, after the tester's entry 27. I changed no code this round. The fix for review findings 1 and 2 (entry 23) was already committed after entry 25. The tester's new test, `tests/application/test_preflight_stop_detail.py::test_a_tick_whose_probe_the_factorys_stop_cut_off_dispatches_nothing`, passes against it. When this stage started the working tree was clean. A fresh `make check` in the foreground was green: `test: green (87.0 s)`, `check: green`.
+
+    What I built (the story as a whole, all committed):
+    - `src/factory/domain/checks.py`: `command_ending`.
+    - `src/factory/application/preflight.py`: `_failing_detail` and `_ended`. A probe of `main` that ends while `stop_requested()` is true is not judged.
+    - `src/factory/application/boundaries.py`: `stop_requested`.
+    - `src/factory/application/stops.py`: a blank detail becomes `no detail given`, and the line is written once until the detail changes.
+    - `src/factory/application/tick.py`: after the preflight, if `stop_requested()` is true, the tick returns `TickOutcome()` and dispatches nothing.
+    - `src/factory/entry/run.py`: the wiring.
+
+    Main decision: the tick checks `stop_requested()` after the preflight. I rejected a `ProbeNotJudged` exception raised from the preflight, because the existing test pins `Preflight.run` returning normally on a cut-off probe (see entry 25).
+
+    Refactor: no diff this round, so nothing to refactor.
+
+    Description: the journal adds a clause to criterion 2, "and the tick that ran it dispatches nothing", and the matching Interface line, "ends without dispatching". The `## Description` still lacks it, because the work item is outside the coder's write paths and the factory dropped my edit in round 2's first run. The reviewer, who may write the work item, should add the clause. The tester's test already checks it.
+
+    Noticed, not touched:
+    - The dead-code findings from `make duplicates` in `src/factory/domain/cost_records.py:41-43`. I did not run `make duplicates` this round.
+    - The duplicated test helpers `_answering` and `_ended` from the reviewer's notes in entry 23. Moving them is the tester's job under the standing leave.
+
+    `check`: check: green
+    `duplicates`: duplicates: 3 new, 43 known, 0 gone
