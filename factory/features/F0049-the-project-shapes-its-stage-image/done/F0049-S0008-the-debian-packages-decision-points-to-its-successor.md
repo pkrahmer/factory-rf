@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-11-04T03:35:26.402134Z'
   stage: smoke-test
   run: 507debd962c54d75a6cf1bb34131d0bc
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-11-04T03:36:18.546011Z'
+  stage: approval
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -230,3 +235,4 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
     - Criterion 3: holds. Only `docs/decisions.md` changed, as the criterion asks.
 
     Findings: none.
+17. factory: done (pull request merged); cost: 7 runs, 3.9 min, 33 turns, 95595 tokens in (478320 more from cache), 7804 out, $0.85
