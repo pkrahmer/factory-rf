@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T08:57:13.517346Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T08:57:10.111349Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-04T08:57:13.517346Z'
   stage: intake
 ---
 
@@ -96,3 +105,4 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
    4. The check is: every `npm` line lies before the final stage's `FROM`; there is exactly one `npm install`, and the package it installs is chosen from `${AGENT_RUNTIME}` (for example a shell `case` that maps `claude` to `@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}` and `opencode` to `opencode-ai@${OPENCODE_VERSION}`). The test checks the text: rows for an `npm` line after the final `FROM`, two `npm install` lines, and an install whose package does not depend on `${AGENT_RUNTIME}`.
 
    5. Yes: the test refuses a `job-start.sh` build line without `--build-arg AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME`.
+5. factory: started intake as vm.
