@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T13:07:21.552883Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   at: '2026-11-04T13:07:15.073673Z'
   stage: doing
   run: b11e7ebfb0f64c598a7d74dce1b0beb1
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:07:21.552883Z'
+  stage: tests
 ---
 
 # A refused push or hosting call is retried and logged
@@ -458,3 +467,4 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     What the journal changed: the reviewer added the advice-line sentence to the Interface's `PushFailed` bullet, under the human's leave. I left the Description as it is.
 
     Open for the human: criterion 5 is still the xfail case. A crash is charged at the next tick for a stage in which no agent ran. The fix is not part of this story.
+25. factory: started tests as vm.
