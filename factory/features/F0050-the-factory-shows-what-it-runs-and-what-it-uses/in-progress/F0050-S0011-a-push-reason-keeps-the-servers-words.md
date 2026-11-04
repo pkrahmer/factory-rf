@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 548
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T21:47:24.839715Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-04T21:47:19.032408Z'
   stage: docs
   run: c4f86073188f4c239dc5ef2f0388ab9a
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:47:24.839715Z'
+  stage: smoke-test
 ---
 
 # A push's reason keeps the server's words
@@ -211,3 +220,4 @@ Expect: a line that ends in `passed` with no `failed`.
     `check`: check: green (not run again: passed on tree 33a5d2ee9420 at 2026-11-04T21:43:33Z)
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
