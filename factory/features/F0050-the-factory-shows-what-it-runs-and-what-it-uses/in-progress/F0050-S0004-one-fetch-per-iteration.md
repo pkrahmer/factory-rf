@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947, 6634929291]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T15:50:28.238099Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -225,6 +229,11 @@ journal:
   at: '2026-11-04T15:50:21.665333Z'
   stage: docs
   run: fb5fe29a67e8480db26050f7f5e14eeb
+- number: 40
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:50:28.238099Z'
+  stage: smoke-test
 ---
 
 # One fetch per iteration
@@ -631,3 +640,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     `check`: check: green (not run again: passed on tree 686dce6a8d2a at 2026-11-04T15:45:35Z)
     `secrets`: secrets: green (2.1 s)
     `documents`: documents ok
+40. factory: started smoke-test as vm.
