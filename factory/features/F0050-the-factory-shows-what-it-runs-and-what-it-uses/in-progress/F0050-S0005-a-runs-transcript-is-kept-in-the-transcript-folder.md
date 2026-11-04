@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T18:20:15.490058Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,26 +147,31 @@ journal:
   kind: started
   at: '2026-11-04T18:20:15.490058Z'
   stage: review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T18:23:31.426809Z'
+  stage: review
+  run: 97a3b957ba9940308934a40051bb2f69
 ---
 
 # A run's transcript is kept in the transcript folder
 
 ## Description
 
-An agent's session lives in its home on the stage's dataset, and the dataset is rolled back before every stage, so every run's transcript is lost: on 2026-11-04 factory-vm held none of F0049's 102 runs. Only the cost record, the journal entry and the pull request's comments survive, and they cannot say where a run spent its turns or why it went wrong. A transcript holds whole conversations: every file the agent read, every command's output, the agent's reasoning. It can hold what no scan of secrets finds, so it never goes to GitHub. This story keeps it in a folder the site chooses, named by the new setting `FACTORY_TRANSCRIPT_DIR`: on a VM a local directory, in a Cloud Run job a Cloud Storage bucket mounted as a volume (S0007). The factory knows only the folder. After each agent run, before anything rolls the dataset back, it copies the run's transcript there, compressed, named by the run's id, readable by the factory's user alone. An unset setting keeps no transcript, as today. An optional second setting, `FACTORY_TRANSCRIPT_DAYS`, makes the factory delete copies older than that many days; a bucket uses its own lifecycle rule instead. No container sees the folder.
+An agent's session lives in its home on the stage's dataset, and the dataset is rolled back before every stage, so every run's transcript is lost: on 2026-11-04 factory-vm held none of F0049's 102 runs. Only the cost record, the journal entry and the pull request's comments survive, and they cannot say where a run spent its turns or why it went wrong. A transcript holds whole conversations: every file the agent read, every command's output, the agent's reasoning. It can hold what no scan of secrets finds, so it never goes to GitHub. This story keeps it in a folder the site chooses, named by the new setting `FACTORY_TRANSCRIPT_DIR`: on a VM a local directory, in a Cloud Run job a Cloud Storage bucket mounted as a volume (S0007). The factory knows only the folder. After each agent run, before anything rolls the dataset back, it copies the run's transcript there, compressed, named by the run's id, readable by the factory's user alone. An unset setting keeps no transcript, as today. The factory deletes no copies: removing old ones is the site's, a `tmpfiles.d` rule on a VM (S0007) and a lifecycle rule on a bucket. No container sees the folder.
 
 ## Interface
 
-- Settings: `FACTORY_TRANSCRIPT_DIR`, optional, an absolute path outside the workspace, the checkout, the state directory and the agent home; unset or empty keeps no transcript. `FACTORY_TRANSCRIPT_DAYS`, optional, a positive whole number; unset means no deletion by the factory. A relative path, a path inside one of those four places, or a days value that is not a positive whole number is refused when the settings are read, with the variable's name.
-- After each agent run that has a session (`AgentRunResult.session`), the factory copies that session's transcript from the agent's home on the dataset into `<FACTORY_TRANSCRIPT_DIR>/<work item>/<run id>.<ext>.gz`, gzip-compressed, mode `0600`. Each runtime's wrapper knows where its runtime keeps a session and in which form: Claude Code's `projects/<folder>/<session>.jsonl` under the agent home; opencode's session files under `.local/share/opencode`, gathered into one file. The coder decides the gathering and the extension.
+- Settings: `FACTORY_TRANSCRIPT_DIR`, optional, an absolute path outside the workspace, the checkout, the state directory and the agent home; unset or empty keeps no transcript. A relative path or a path inside one of those four places is refused when the settings are read, with the variable's name.
+- After each agent run that has a session (`AgentRunResult.session`), the factory copies that session's transcript from the agent's home on the dataset into `<FACTORY_TRANSCRIPT_DIR>/<work item>/<run id>.<ext>.gz`, gzip-compressed, mode `0600`. Each runtime's wrapper knows where its runtime keeps a session and in which form: Claude Code's `.claude/projects/*/<session>.jsonl` under the agent's home on the dataset (`HOME=/work/home` in the container; the human, journal 18), extension `jsonl`; opencode's is the run's JSON event stream that its wrapper reads as the run prints it, one event per line as printed, extension `jsonl`: `read_transcript(home, session)` returns the lines of the last run of that session, or `None` when the wrapper saw none (the human, journal 13).
 - A run that is resumed within itself (a spent budget's resume, one cost record) keeps one transcript under its run id, the copy after the resume replacing the earlier one.
 - A transcript that cannot be found or copied writes one log line `transcript: not kept for <run id>: <reason>` and does not fail the run, the stage or the factory.
-- With `FACTORY_TRANSCRIPT_DAYS` set, the factory deletes the folder's files older than that many days once per idle tick, and writes `transcript: removed <n> older than <d> days` when it removed any.
 - An unset or empty `FACTORY_TRANSCRIPT_DIR` is no fault anywhere: the factory starts, runs and records as today, writes no transcript, writes no `transcript:` log line, and the preflight has no item for it (the human, 2026-11-04).
 - The cost record refers to its transcript reliably (the human, 2026-11-04): it gets `transcript: TranscriptRef | None`, `None` when none was kept. `TranscriptRef` (frozen, unknown keys refused) holds `path`, the file's path relative to `FACTORY_TRANSCRIPT_DIR` (always `<work item>/<run id>.<ext>.gz`, so it is also found from the record's own `work_item` and `run`), and `sha256`, the SHA-256 of the file as written (64 lowercase hex digits), so that a reader can tell that the file is the one the record names. A record of a later run that continues an earlier run's session (a provider limit's resume) names the file under its own run id; nothing is shared between records. The records contract's version follows its rule (an added optional field).
 - The transcript folder is mounted into no container and named in no prompt.
 
-- Seams (the human's answer, journal 4): `InstanceSettings` in `factory.domain.settings` gains `transcript_dir: Path | None = None` and `transcript_days: PositiveInt | None = None`, read by `read_settings`; an empty `FACTORY_TRANSCRIPT_DAYS` counts as unset. `TranscriptRef` (frozen, unknown keys refused) in `factory.domain.cost_records`, beside `CostRecord`, which gains `transcript: TranscriptRef | None = None`; `sha256` is refused unless 64 lowercase hex digits, `path` is refused when absolute, with `..`, or not ending in `.gz`. `Transcript` (frozen: `extension: str`, `content: bytes`) in the new `factory.domain.transcripts`. `AgentRuntime` (`factory.application.agent_runtime`) gains `read_transcript(home: Path, session: str) -> Transcript | None`, implemented by `claude_runtime`, `opencode_runtime` and the fake. `TranscriptStore` (ABC) in the new `factory.application.transcripts`: `write(path: str, data: bytes) -> str` (writes `<folder>/<path>` with mode `0600`, returns the SHA-256 of what it wrote) and `remove_older_than(days: int, now: datetime) -> int`; its adapter `FileTranscriptStore(folder: Path)` in `factory.adapters.transcript_files`; `TranscriptKeeper(store, log)` in `factory.application.transcripts`, with `keep(work_item, run, transcript) -> TranscriptRef | None` (compresses, writes, logs `transcript: not kept for ...` on an error) and `remove_old(days, now) -> int` (logs `transcript: removed ...` when it removed any). The deletion is called from `activity_tick` in `factory.entry.run`, on an idle outcome only, when `transcript_days` is set. A file older than `d` days is removed strictly: a file of exactly `d` days is kept. The coder may add arguments these need and says so in its entry.
+- Seams (the human's answers, journals 4, 9 and 12): `InstanceSettings` in `factory.domain.settings` gains `transcript_dir: Path | None = None`, read by `read_settings`. `TranscriptRef` (frozen, unknown keys refused) in `factory.domain.cost_records`, beside `CostRecord`, which gains `transcript: TranscriptRef | None = None`; `sha256` is refused unless 64 lowercase hex digits, `path` is refused when absolute, with `..`, or not ending in `.gz`. `Transcript` (frozen: `extension: str`, `content: bytes`) in the new `factory.domain.transcripts`. `AgentRuntime` (`factory.application.agent_runtime`) gains `read_transcript(home: Path, session: str) -> Transcript | None`, implemented by `claude_runtime`, `opencode_runtime` and the fake. `TranscriptStore` (ABC) in the new `factory.application.transcripts`: `write(path: str, data: bytes) -> str` (writes `<folder>/<path>` with mode `0600`, returns the SHA-256 of what it wrote); its adapter `FileTranscriptStore(folder: Path)` in `factory.adapters.transcript_files`; `TranscriptKeeper(store, log)` in `factory.application.transcripts`, with `keep(work_item, run, transcript) -> TranscriptRef | None` (compresses, writes, logs `transcript: not kept for ...` on an error). `Boundaries` gains `transcripts: TranscriptStore | None = None`, `None` when `FACTORY_TRANSCRIPT_DIR` is unset or empty; the stage builds the keeper from it and `boundaries.log`, and passes `settings.workspace / "home"` to `read_transcript`, not `settings.agent_home`. `ScriptedRun` in the fake runtime gains `transcript: Transcript | None = None`, which the fake's `read_transcript` returns for the result's session (the human, journal 12). The coder may add arguments these need and says so in its entry.
 - Records contract: this story produces version 4.3.
 
 ## Acceptance criteria
@@ -179,13 +180,12 @@ An agent's session lives in its home on the stage's dataset, and the dataset is 
 2. With the setting set, a completed run of each runtime leaves one gzip file at `<work item>/<run id>.<ext>.gz` with mode `0600`, whose content is the session's transcript; the record's `transcript.path` is that path and its `transcript.sha256` the file's SHA-256. Rows: Claude Code, opencode.
 3. A run resumed within itself leaves one file, under its run id, with the content after the resume, and its record's `sha256` matches that file. A later run that continues an earlier session names a file under its own run id, and the earlier record still matches its own file.
 4. A missing session, a missing transcript and a folder that cannot be written each write the log line and leave `transcript` as `None`; the run's result is unchanged. Rows for the three, and a row where a later run that continues an earlier session fails to copy: its record has `transcript` `None` and does not name the earlier run's file.
-5. The settings refuse a relative path, a path inside the workspace, the checkout, the state directory or the agent home, and days of `0`, `-1` and `x`, each refusal naming the variable; they accept `1`, and an empty `FACTORY_TRANSCRIPT_DAYS` counts as unset. Rows for each.
-6. With days set, an idle tick removes the files strictly older than the days and keeps the newer ones and a file of exactly the days; it writes its line only when it removed any; a tick that is not idle removes nothing. Rows for each side.
-7. No container's mounts and no prompt name the transcript folder.
-8. `TranscriptRef` refuses a `sha256` of 63 digits, with upper case and with a non-hex digit, and a `path` that is absolute, has `..` or does not end in `.gz`; it accepts a well-formed one. Rows for each.
-9. The records contract's version is `4.3` and the regenerated schemas carry it. The `"4.2"` pins in `tests/domain/test_contract_version_4.py`, `tests/domain/test_contract_version_4_2.py` and `tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version` become `"4.3"`, nothing else in those modules (the human's leave, journal 4).
-10. `make check` stays green.
-11. docs: `docs/operator-guide.md`: a section *Transcripts*: what a transcript holds and why it never goes to GitHub, the two settings, the file names, the mode, the log lines, and that the folder must sit where only the site's own people can read it. `docs/decisions.md`: one entry with feature decision 6 and its reason. `README.md`: none. The project guide: the file on agent runs says where the runtimes' wrappers find a session.
+5. The settings refuse a relative `FACTORY_TRANSCRIPT_DIR` and one inside the workspace, the checkout, the state directory or the agent home, each refusal naming the variable; they accept an absolute path outside those four, and read unset and empty as no folder. Rows for each.
+6. No container's mounts and no prompt name the transcript folder.
+7. `TranscriptRef` refuses a `sha256` of 63 digits, with upper case and with a non-hex digit, and a `path` that is absolute, has `..` or does not end in `.gz`; it accepts a well-formed one. Rows for each.
+8. The records contract's version is `4.3` and the regenerated schemas carry it. The `"4.2"` pins in `tests/domain/test_contract_version_4.py`, `tests/domain/test_contract_version_4_2.py` and `tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version` become `"4.3"`, nothing else in those modules (the human's leave, journal 4).
+9. `make check` stays green.
+10. docs: `docs/operator-guide.md`: a section *Transcripts*: what a transcript holds and why it never goes to GitHub, the setting `FACTORY_TRANSCRIPT_DIR`, the file names, the mode, the log line, that the folder must sit where only the site's own people can read it, and that removing old transcripts is the site's (a `tmpfiles.d` rule on a VM, a lifecycle rule on a bucket). `docs/decisions.md`: one entry with feature decision 6 and its reason. `README.md`: none. The project guide: the file on agent runs says where the runtimes' wrappers find a session.
 
 ## Smoke test
 
@@ -194,7 +194,7 @@ grep -rhoE 'FACTORY_TRANSCRIPT_(DIR|DAYS)' src/factory/domain/settings.py | sort
 grep -rhoE 'transcript: (not kept for|removed)' src/factory | sort -u
 ```
 
-Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, then the two lines `transcript: not kept for` and `transcript: removed`.
+Expect: the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: not kept for`.
 
 ## Journal
 
@@ -471,3 +471,37 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
     `check`: check: green
     `duplicates`: duplicates: 4 new, 42 known, 1 gone
 25. factory: started review as vm.
+26. reviewer: Review of round 0: `git diff main...HEAD -- . ':!factory'` (20 source files, 16 test files) against the work item. I read the code and every new test against criteria 1 to 10 and the Interface. The factory's `make check` after the coder was green (journal 24: `check: green`). `make duplicates` reports 4 new findings; all four are line shifts of known findings, none new in this diff.
+
+    Findings:
+    1. `src/factory/adapters/claude_runtime.py:394` (`read_transcript`): `session` comes from the runtime's output and goes into `home.glob(f"{_SESSION_FOLDER}/*/{session}.jsonl")` unchecked. A session holding `/`, `..` or a glob character (`*`, `?`, `[`) can match another session's file or a file outside `.claude/projects`. That breaks "input validated at the boundary". Fix: treat a session that is not one plain file name (path separator, `..` or a glob character) as no transcript, or escape it with `glob.escape`, and add a refused row to the Claude transcript test.
+    2. `src/factory/adapters/opencode_runtime.py:127` (`self._streams`): the whole event stream of every session the instance ever ran stays in memory for the life of the factory process, so a long-running instance grows without bound. Fix: keep only the latest run's stream (one session/stream pair), or drop a session's stream once `read_transcript` has read it.
+    3. Criterion 3, opencode row: no test pins that a budget-resumed opencode run's transcript holds the first call's events and the resume's together (`self._printed.append` at `opencode_runtime.py:685`). No test pins that a second run's transcript leaves out the earlier run's lines (the reset at `opencode_runtime.py:610`). Fix: the tester adds rows to `tests/adapters/test_opencode_runtime_transcript.py` that use the stand-in's `over_budget` step followed by its resume, and two runs in a row.
+    4. Criterion 2, Claude Code row: `tests/adapters/test_claude_runtime_transcript.py::test_a_session_is_read_from_its_project_folder` never checks `transcript.extension`. The `<run id>.<ext>.gz` name of a real Claude run is therefore not pinned anywhere; the stage tests use the fake's extension. Fix: assert `transcript.extension == "jsonl"`.
+    5. `tests/adapters/test_claude_runtime_transcript.py`: the two test functions are the two sides of one rule (session file found, session file missing). Fix: make them rows of one parametrized test.
+    6. `tests/adapters/test_opencode_runtime_transcript.py`: same problem as finding 5 (the session's stream, a session never seen). Fix: rows of one parametrized test.
+    7. `tests/application/test_stage_transcripts.py:121` (`_sha256`) is a second copy of `_sha256` in `tests/application/test_transcript_keeper.py:23`. Fix: move it to a `*_support.py` module under `tests/` and use it from both files.
+    8. `tests/application/test_stage_transcripts.py`: `test_a_later_run_of_an_earlier_session_names_its_own_file` and `test_a_later_run_whose_copy_fails_names_no_earlier_file` repeat the same setup: open the story, two LIMITED runs, a stall, then a third run. Fix: one parametrized test over the third run's transcript (LATER kept, `None` not kept), or a fixture for the shared setup.
+
+    Description corrected (journals 9, 13 and 18 leave these edits to the reviewer):
+    - Description: "An optional second setting, `FACTORY_TRANSCRIPT_DAYS`, makes the factory delete copies older than that many days; a bucket uses its own lifecycle rule instead." -> "The factory deletes no copies: removing old ones is the site's, a `tmpfiles.d` rule on a VM (S0007) and a lifecycle rule on a bucket."
+    - Interface, Settings: the `FACTORY_TRANSCRIPT_DAYS` sentence and the days refusal -> only `FACTORY_TRANSCRIPT_DIR` and its refusals.
+    - Interface, runtimes: "Claude Code's `projects/<folder>/<session>.jsonl` under the agent home; opencode's session files under `.local/share/opencode`, gathered into one file. The coder decides the gathering and the extension." -> Claude Code's `.claude/projects/*/<session>.jsonl` under the agent's home on the dataset, `jsonl` (journal 18). opencode's transcript is the run's JSON event stream, one event per line, `jsonl`, the last run of the session or `None` (journal 13).
+    - Interface: the bullet on deleting old files once per idle tick and its `transcript: removed` line -> removed.
+    - Seams: `transcript_days`, `remove_older_than`, `remove_old`, the `activity_tick` call and the strict age rule -> removed. Added from journal 12: `Boundaries.transcripts`, `ScriptedRun.transcript`, and `settings.workspace / "home"` as the home the stage passes to `read_transcript`.
+    - Criterion 5: the days rows -> only the `FACTORY_TRANSCRIPT_DIR` rows (relative, the four places, accepted absolute, unset, empty).
+    - Criterion 6 (deletion on an idle tick) -> removed. Criteria 7 to 11 are now 6 to 10.
+    - Docs criterion: "the two settings ... the log lines" -> the setting `FACTORY_TRANSCRIPT_DIR`, the log line, and that removing old transcripts is the site's (a `tmpfiles.d` rule on a VM, a lifecycle rule on a bucket).
+    - Smoke test Expect: four lines -> the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: not kept for`. The commands are unchanged.
+
+    Checked, no finding: the layers hold (`Transcript` in domain; the `TranscriptStore` ABC and keeper in application; the file store and runtime readers in adapters; the wiring in entry). The store opens files owner-only from the start. The keeping runs after `run_agent` and before the next stage's rollback. The contract went from 4.2 to 4.3 for an added optional field, and the schemas are regenerated. No silencing markers. The settings check of the folder's place is lexical (`is_relative_to`), as `workspace_overlap_fault` already is.
+
+    Earlier tests changed:
+    - tests/application/test_agent_run_probe.py: the human's leave, journal 18 (`RefusingRuntime.read_transcript` and its import)
+    - tests/application/test_interfaces.py: the human's leave, journal 18 (the pin `{"run", "version", "read_transcript"}`)
+    - tests/application/test_stage_run.py: the human's leave, journal 18 (`HeadNotingRuntime.read_transcript` and its import)
+    - tests/container_support.py: the human's leave, journal 18 (`WorkspaceRuntime.read_transcript` and its import)
+    - tests/observing_runtime.py: the human's leave, journal 18 (`ObservingRuntime.read_transcript` delegates)
+    - tests/domain/test_contract.py: the human's leave, journal 4 (the `"4.2"` pin -> `"4.3"`)
+    - tests/domain/test_contract_version_4.py: the human's leave, journal 4 (the `"4.2"` pins -> `"4.3"`)
+    - tests/domain/test_contract_version_4_2.py: the human's leave, journal 4 (the `"4.2"` pins -> `"4.3"`)
