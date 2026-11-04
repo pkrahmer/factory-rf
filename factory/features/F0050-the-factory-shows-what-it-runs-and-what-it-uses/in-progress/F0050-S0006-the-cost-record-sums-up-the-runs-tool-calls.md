@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 544
-comments_read: []
+comments_read: [6639153913]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: ace39bc97fb5450a9342fc4e0d35a38d
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-04T18:49:59.865858Z'
+  stage: intake
 ---
 
 # The cost record sums up the run's tool calls
@@ -72,3 +77,20 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
    6. The `ToolUse.tool` form (at most 64 characters of the listed set) has no criterion on the model itself. Is a name that breaks the form refused by the model, with `other` produced only by the wrapper? I would say yes and add a row.
    7. Criterion 1 says "one entry per tool used" but does not say that calls and failed calls are summed per tool when a tool is used several times. A row with repeated calls and one failure would show it.
    8. A call with no `tool_result` (an interrupted run) has no stated handling: counted as a call, not failed, with no seconds? Which is meant?
+4. 2026-11-04 human: Answers of the human. All eight as you propose, and the seams named now, so that the tester need not ask:
+
+   1. Times come from the transcript. Claude Code's session lines carry a `timestamp`; a call's seconds are its `tool_result` line's time minus its `tool_use` line's time. opencode's event stream gives a tool part's `time.start` and `time.end` where the event holds them. Where a call has no times, its tool's `seconds` is `None`. Rows: one transcript with times (a float) and one without (`None`), for each runtime.
+   2. Yes: `-1`, NaN and infinity refused, `0` accepted.
+   3. Yes: a row whose tools first appear out of alphabetical order.
+   4. Yes: a `started` record with `tools` is refused.
+   5. Yes: 64 characters accepted, 65 to `other`; a row with `_`, `-`, `.` and `:` accepted. Two bad names merge into one `other` entry, their calls, failed calls and seconds summed; a tool that is really named `other` merges with them.
+   6. Yes: the model refuses a name that breaks the form; only the reading turns such a name into `other`.
+   7. Yes: a row with one tool used three times, one of them failed (`calls` 3, `failed` 1).
+   8. A call with no `tool_result` counts as a call, not failed, and adds no seconds.
+
+   The seams, for the Interface:
+   - `ToolUse` in `factory.domain.cost_records`; `CostRecord.tools: list[ToolUse] | None = None`.
+   - Pure functions in a new `factory.domain.tool_uses`: `claude_tool_uses(lines: list[str]) -> list[ToolUse] | None` and `opencode_tool_uses(lines: list[str]) -> list[ToolUse] | None`, each `None` when the lines cannot be read, `[]` for no call. They do the counting, the `other` rule and the sorting. Each runtime wrapper gains `tool_uses(transcript: Transcript) -> list[ToolUse] | None`, calling its function (an abstract operation of `AgentRuntime`, implemented by the fake too; the stand-ins of earlier tests get one that returns `None`, under the same kind of leave as in S0005).
+   - The stage reads the run's transcript with `read_transcript` (S0005) whether or not `FACTORY_TRANSCRIPT_DIR` is set, passes it to `tool_uses`, and hands the result to `CostRecorder.complete(..., tools=...)`; it keeps the file only when a store is set.
+
+   Leave for the tester: the pin of `AgentRuntime`'s operations in `tests/application/test_interfaces.py` gains `tool_uses`, and every `AgentRuntime` stand-in of an earlier test gets a `tool_uses` that returns `None`, named in its entry; nothing else in those modules. The contract moves to 4.4 with a criterion, and the `"4.3"` pins of the three contract tests become `"4.4"` under the same leave.
