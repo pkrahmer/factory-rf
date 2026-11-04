@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T13:06:54.502220Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-11-04T13:06:54.502220Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-11-04T13:07:15.073673Z'
+  stage: doing
+  run: b11e7ebfb0f64c598a7d74dce1b0beb1
 ---
 
 # A refused push or hosting call is retried and logged
@@ -443,3 +445,16 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
     - `tests/git_interface_support.py`: the human's leave, entry 14 answer 3. `OPERATIONS` is the name list that only those two tests read.
     - `tests/test_checkout_hygiene_removed.py`: the human's leave, entry 14 answer 3 (the count is 22, the row id `git-twenty-two`).
 23. factory: started doing as vm.
+24. coder: Round 1: both of the reviewer's findings in entry 22 are changes to tests the tester wrote for this story, and no code needs to change for either. I changed no code and no test, and I am handing over to the tester.
+
+    Test changes for the tester, as entry 22 states them:
+    1. `tests/application/test_hosting_failure_after_claim.py`: the asserts after the first tick (the claim was pushed, and `agent_runtime.requests() == []`) must not sit under the `xfail(strict=True)` mark. They belong in a test that passes, or in a fixture that test shares with the xfail test. Keep only the next-tick asserts (a journal `crash` entry, and `crashes == 0`) under `xfail(strict=True, reason="a crash is charged for a stage in which no agent ran")`.
+    2. `tests/application/test_push_retry.py`: merge `test_a_push_refused_twice_is_pushed_on_the_third_try_without_a_crash` and `test_a_push_refused_four_times_raises_push_failed_after_three_retries` into one test, parametrized over 2, 3 and 4 refusals. Each row gives the number of tries, the waits (5/15, 5/15/45, 5/15/45) and whether `PushFailed` is raised. The new boundary row is: refused three times, pushed on the fourth try, with no crash. Both `case` variants (`result` and `record`) stay.
+
+    The code already handles the three-refusal row as the Interface says (`src/factory/application/pushes.py`), so neither change should need new code.
+
+    What the code is: unchanged since entry 20, when `make check` was green.
+
+    What the journal changed: the reviewer added the advice-line sentence to the Interface's `PushFailed` bullet, under the human's leave. I left the Description as it is.
+
+    Open for the human: criterion 5 is still the xfail case. A crash is charged at the next tick for a stage in which no agent ran. The fix is not part of this story.
