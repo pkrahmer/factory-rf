@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from datetime import UTC, datetime
 
 import github
-from github import GithubException
+from github import GithubException, GithubRetry
 from github.IssueComment import IssueComment
 from github.PullRequest import PullRequest
 from github.Repository import Repository
@@ -153,8 +153,21 @@ class PyGithubHostingService(HostingService):
             pull.set_labels(*foreign, *labels)
 
 
+RETRY_TOTAL = 5
+RETRY_BACKOFF_FACTOR = 2
+
+
+def hosting_retry() -> GithubRetry:
+    """The client's retry: five tries with a backoff, writes by `PATCH` included."""
+    # A short outage of the hosting service refuses writes too; each write sets a whole state.
+    methods = GithubRetry.DEFAULT_ALLOWED_METHODS | {"PATCH"}
+    return GithubRetry(
+        total=RETRY_TOTAL, backoff_factor=RETRY_BACKOFF_FACTOR, allowed_methods=methods
+    )
+
+
 def pygithub_service(repository: str, token: str) -> PyGithubHostingService:
     """Return the hosting service of `repository` (`owner/name`), authenticated by `token`."""
     # Lazy, so that building the service sends no request; the first operation does.
-    client = github.Github(auth=github.Auth.Token(token), lazy=True)
+    client = github.Github(auth=github.Auth.Token(token), lazy=True, retry=hosting_retry())
     return PyGithubHostingService(client.get_repo(repository))

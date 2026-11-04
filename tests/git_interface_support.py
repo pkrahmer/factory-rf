@@ -22,4 +22,5 @@ OPERATIONS = {
     "move",
     "work_tree_id",
     "ignored",
+    "last_push_output",
 }

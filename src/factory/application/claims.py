@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.recording import commit_subject
-from factory.domain.errors import PushFailed
+from factory.application.pushes import push_failure
 from factory.domain.git import CommitId
 from factory.domain.identifiers import WorkItemId, branch_name, parse_work_item_file_name
 from factory.domain.journal import NewEntry, append_entry
@@ -67,7 +67,7 @@ class ClaimService:
         )
         outcome = git.push(branch)
         if outcome != "pushed":
-            raise PushFailed(branch, outcome)
+            raise push_failure(git, branch, outcome)
         return StageStart(commit=commit, claim=claim)
 
     def status(self, state: WorkItemState) -> ClaimStatus:

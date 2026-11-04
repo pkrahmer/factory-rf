@@ -44,7 +44,7 @@ def _no_stall_text_mentions_a_nested_repository() -> bool:
             id="sealed-runs-module",
         ),
         pytest.param(lambda: not REMOVED_OPERATIONS & Git.__abstractmethods__, id="git-operations"),
-        pytest.param(lambda: len(Git.__abstractmethods__) == 21, id="git-twenty-one"),
+        pytest.param(lambda: len(Git.__abstractmethods__) == 22, id="git-twenty-two"),
         pytest.param(
             lambda: [name for name in REMOVED_OPERATIONS if hasattr(GitCli, name)] == [],
             id="git-cli-operations",

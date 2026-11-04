@@ -24,7 +24,9 @@ Labels are a projection of the stage: they are written and never read back, so n
 
 ### The PyGithub client
 
-`PyGithubHostingService(repository, kill_points=None)` implements the ten operations on a PyGithub `Repository`. It inherits `HostingService`, an abstract base class. The constructor reads nothing from the repository. `factory.entry.wiring` builds the `Repository` from the repository's `owner/name` and the token read from the token file.
+`PyGithubHostingService(repository, kill_points=None)` implements the ten operations on a PyGithub `Repository`. It inherits `HostingService`, an abstract base class. The constructor reads nothing from the repository. `factory.entry.wiring` builds the service with `pygithub_service(repository, token)` from the repository's `owner/name` and the token read from the token file.
+
+The client retries. `pygithub_service` creates the PyGithub client with `retry=hosting_retry()`, the one place the retry is built: a `GithubRetry` with `total=5`, `backoff_factor=2` and `allowed_methods` the default methods plus `PATCH`, so a write that sets a whole state (a label set, a close, a ready mark) is tried again too. A call that still fails after the retries is a `HostingServiceError` as before. `tests/adapters/test_pygithub_retry.py` reads the `retry` the built client was given, without a network.
 
 - Every failing call raises `HostingServiceError(operation, detail)`: a `github.GithubException` or an `OSError` (a connection error is one) inside any of the ten operations is re-raised with the operation's name and `str(error)` as detail, chained to the original. Any other exception, and `InjectedKill`, passes through unchanged.
 - `post_comment` lists the comments first and returns `"already_posted"` without posting when one has the same key; otherwise it posts `render_post(text, key)`, reaches `KillPoint.AFTER_POST` and returns `"posted"`.
@@ -136,6 +138,8 @@ Push never forces: it runs `git push --porcelain --set-upstream origin refs/head
 - `"rejected"`: the remote refused the update, a non-fast-forward or a remote hook that declined it (git marks the ref with `!`).
 - `"unreachable"`: exit 128 with `Could not read from remote repository`, `does not appear to be a git repository`, `unable to access` or `Could not resolve host` in the output.
 - Any other failure, such as an unknown local branch, is a `GitError`. A tag of the branch's name does not count as that branch: `push("v1")` with a local tag `v1` and no local branch `v1` is a `GitError` and pushes nothing.
+
+`last_push_output()` returns git's whole output of the latest `push` or `delete_remote_branch` that failed (`""` before one). It is how git's own reason crosses the interface without changing the `PushOutcome` return type. `factory.domain.git.push_reason(output)` turns it into the reason: git's advice lines (exactly `Please make sure you have the correct access rights`, exactly `and the repository exists.`, and any line that starts with `hint:`) are left out, the last three non-empty lines are kept (stripped, joined with ` | `), and the whole is cut at the end to 300 characters. `push_is_retried(outcome, output)` says whether a wait may cure the failure: `unreachable`, or `rejected` with `[remote rejected]` (a refusal by the server) in the output; a `[rejected]` with `non-fast-forward` or `fetch first` is never retried.
 
 The push kill points: `KillPoint.BEFORE_PUSH` is reached once per call, before git runs (between a commit and its push, so nothing reaches the remote); `KillPoint.AFTER_PUSH` is reached only after a push that returned `"pushed"`. A rejected or unreachable push reaches only the first. A `GitCli` without kill points pushes normally.
 

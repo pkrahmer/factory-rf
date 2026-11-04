@@ -4,8 +4,9 @@ from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
 from factory.application.git import Git
+from factory.application.pushes import push_failure, push_with_retries
 from factory.domain.archive import destination_path
-from factory.domain.errors import CannotHandle, PushFailed
+from factory.domain.errors import CannotHandle
 from factory.domain.events import Event
 from factory.domain.git import CommitId
 from factory.domain.paths import LifecycleFolder, cost_records_path
@@ -88,16 +89,14 @@ class WorkItemRecorder:
         git = self._boundaries.git
         outcome = git.delete_remote_branch(branch)
         if outcome != "pushed":
-            raise PushFailed(branch, outcome)
+            raise push_failure(git, branch, outcome)
         git.delete_branch(branch)
 
     def publish(self, branch: str, subject: str) -> CommitId:
         """Commit every change with `subject` and push `branch`; `PushFailed` unless pushed."""
         git = self._boundaries.git
         commit = git.commit(subject)
-        outcome = git.push(branch)
-        if outcome != "pushed":
-            raise PushFailed(branch, outcome)
+        push_with_retries(self._boundaries, branch)
         return commit
 
     def record(self, branch: str, path: str, document: WorkItemDocument, subject: str) -> CommitId:

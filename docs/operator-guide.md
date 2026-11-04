@@ -2384,9 +2384,36 @@ What to do about it:
 - Two different events of one work item on one remote state share one report; the one that reached three errors first posts it, and the other is not tried again either.
 - A success clears the event's count.
 
+Every counted error also writes one line to the factory log, so that the first two errors, which post nothing, can be read:
+
+```text
+2026-11-04T09:40:41Z handler error <event key> 2 of 3: PushFailed: push of work-item/F0001-S0001 failed: rejected: remote: Internal Server Error | ! [remote rejected] work-item/F0001-S0001 -> work-item/F0001-S0001 (Internal Server Error)
+```
+
+The line reads `handler error <event key> <n> of <cap>: <exception type>: <text>`. The text is on one line (line breaks become spaces) and at most 300 characters. Only the line is new: the counting and the cap of three are as above.
+
 The counts are kept in memory only. After a restart they begin at zero, so the event is tried up to three more times; the report is not posted twice.
 
 If the work item's branch is not on the remote, no pull request can be opened for the report and no later tick would change that. The report is then one line in the factory log, `error cap reached on <event>: <last error>`, written once; so is the report of an event that belongs to no work item. If the report cannot be posted for another reason (the hosting service is down, or git fails in the factory's checkout while the report resolves the branch), the factory tries to post it again on the next tick, without counting that as an error.
+
+### A refused push is tried again
+
+The push of a stage's result and the push of a change the factory records (a crash, an expiry, the hand-over's record, the archive of a merge) are tried again when the remote may take them after a wait. Only two failures count: a refusal by the server (git's `! [remote rejected]`, for example `Internal Server Error`) and a remote that cannot be reached. The factory waits 5 s and pushes again, then 15 s, then 45 s; each wait writes `push: retry <n> of 3 in <s> s: <reason>` to the factory log. The push is the same command each time, on the same commit: no force, no rebase, no new commit. If the fourth push fails too, `PushFailed` is raised as before, and the stage's crash or the event's error is counted as before.
+
+A rejection with `! [rejected]` (`non-fast-forward`, `fetch first`) is not tried again: the remote moved, and a wait does not change that. It fails at once, as does the push of a stall, which is never tried again.
+
+The reason in a `PushFailed` is git's own: the last non-empty lines of git's output, at most three, joined with ` | ` and cut to 300 characters in all. Git's advice lines are left out (`Please make sure you have the correct access rights`, `and the repository exists.` and any line that starts with `hint:`), so the cause stays in. The reason is in every report and log line that names the error, for example `push of work-item/F0001-S0001 failed: unreachable: fatal: unable to access 'https://...': Could not resolve host: github.com`.
+
+### During an outage of the hosting service
+
+On 2026-11-04, from about 09:36 to 10:05 UTC, GitHub refused pushes and pull request calls for a while (`planning/outage-2026-11-04.md`). The factory stopped nothing and left nothing half-written on the remote, but one refused push discarded a finished docs run and the stage ran again, and the hand-over failed three times in about 90 s and reached the cap with two of its errors in no log. What the factory does now:
+
+- The hosting client (PyGithub) retries a failing call up to five times with a backoff (factor 2), writes by `PATCH` included. A short outage ends inside the call.
+- A refused or unreachable push of a result or a recorded change is tried again after 5, 15 and 45 s (above), so an outage of up to about a minute ends without a crash.
+- A longer outage is as before: the stage is a crash, rerun at the next look (see "A restart during a stage"), an event is a counted error, and after three the factory posts one report. Each counted error is now in the log with its reason.
+- A report that cannot be posted is tried again on the next tick without a count.
+
+What to do: read the log for `push: retry` and `handler error`; do nothing while they pass. When an event is capped, push a commit to the branch once the service is back (see above).
 
 ## Stops that cannot be done
 

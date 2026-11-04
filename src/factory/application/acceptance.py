@@ -18,6 +18,7 @@ from factory.application.handlers.recording import (
     require_pull_request,
     target_of,
 )
+from factory.application.pushes import push_failure
 from factory.application.work_items import read_feature_file
 from factory.domain.acceptance import (
     AcceptanceFacts,
@@ -34,7 +35,7 @@ from factory.domain.archive import destination_path
 from factory.domain.bills import bill, bills_by_stage, cost_line, cost_table
 from factory.domain.cost_records import CostRecord
 from factory.domain.disk import disk_line
-from factory.domain.errors import CannotHandle, PushFailed, WorkItemFormatError
+from factory.domain.errors import CannotHandle, WorkItemFormatError
 from factory.domain.events import Event
 from factory.domain.git import CommitId
 from factory.domain.hand_over import cost_table_key
@@ -127,7 +128,7 @@ class AcceptanceService:
         commit = git.commit(commit_subject(work_item, "opens"))
         outcome = git.push(branch)
         if outcome != "pushed":
-            raise PushFailed(branch, outcome)
+            raise push_failure(git, branch, outcome)
         return OpenedAcceptance(id=work_item, branch=branch, path=path, commit=commit)
 
     def facts(self, feature: FeatureId) -> AcceptanceFacts:

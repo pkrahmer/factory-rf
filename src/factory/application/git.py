@@ -90,6 +90,10 @@ class Git(ABC):
         """Push `branch` to the remote, never forced, and say how the remote took it."""
 
     @abstractmethod
+    def last_push_output(self) -> str:
+        """Git's whole output of the latest push or remote deletion that failed; `""` before one."""
+
+    @abstractmethod
     def delete_remote_branch(self, branch: str) -> PushOutcome:
         """Delete `branch` on the remote and its remote-tracking ref, and say how that went.
 

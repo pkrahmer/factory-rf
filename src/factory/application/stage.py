@@ -15,6 +15,7 @@ from factory.application.handlers.recording import commit_subject
 from factory.application.known_results import KnownResults
 from factory.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.application.provider_limits import PatientRuns
+from factory.application.pushes import push_with_retries
 from factory.application.stage_environment import StageEnvironment, stage_environment_of
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.take import TakeReport
@@ -24,7 +25,7 @@ from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.checks import CheckResult, command_line
 from factory.domain.decisions import StageMove, StallReason, agent_entry, decide, stall_reason_of
 from factory.domain.died_runs import died_line
-from factory.domain.errors import HostingServiceError, PushFailed
+from factory.domain.errors import HostingServiceError
 from factory.domain.git import CommitId
 from factory.domain.hand_over import hand_over_description
 from factory.domain.hosting import PullRequestView
@@ -420,9 +421,7 @@ class StageFinisher:
         commit = git.commit(message)
         if describe:
             self._describe(started, document)
-        outcome = git.push(started.branch)
-        if outcome != "pushed":
-            raise PushFailed(started.branch, outcome)
+        push_with_retries(self._boundaries, started.branch)
         return commit
 
     def _describe(self, started: StartedStage, moved: WorkItemDocument) -> None:
