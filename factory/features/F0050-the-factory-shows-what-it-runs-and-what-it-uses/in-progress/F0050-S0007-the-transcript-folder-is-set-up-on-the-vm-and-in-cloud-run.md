@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T20:00:14.968606Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-04T20:00:14.968606Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T20:01:21.943767Z'
+  stage: review
+  run: 56b450fe6fdc48b5aea794b0275be944
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -155,3 +157,16 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
    `check`: check: green
    `duplicates`: duplicates: 4 new, 41 known, 2 gone
 8. factory: started review as vm.
+9. reviewer: Review, round 0. I read the whole diff: `vm/setup.sh`, `vm/job-start.sh` and the two new test modules. I checked them against the Interface and the criteria, and against the helpers already in `vm/setup.sh`, `tests/vm_support.py` and `tests/test_vm_setup_code_url.py`.
+
+   What holds:
+   - **Group 1, acceptance criteria:** all clear. Criterion 1 has rows for the default, `7`, `0`, `x`, `-1`, `1.5`, an empty value and a missing value. The refusal names the option, and the limit "0 or more" is tested on both sides (`-1` and `0`). The step's guards, its compare-before-write and its "found" text pin the second run that changes nothing. Criterion 2 has the writable, unset, missing and read-only rows. The read-only row is skipped under root. Each row checks the message, a status that is not 0, and that factory-run is not reached. The coder's journal entry 7 records `make check` green.
+   - **Groups 2 and 3, architecture and security:** clean. `src/` is unchanged, there is no cloud client and no silencing marker. The probe goes through no `eval`, and the folder's path is quoted everywhere.
+
+   Findings:
+   1. `vm/setup.sh:44` (`need_days`) is a second copy of `need_minutes` (`vm/setup.sh:50`). It has the same `case ''|*[!0-9]*)` refusal and differs only in the unit word. Fix: make one helper that takes the unit, for example `need_whole "$1" "$2" days`, and use it for both `--idle-shutdown` and `--transcript-days`, keeping each option's message text.
+   2. `tests/test_vm_job_start_transcripts.py:20` and `:49` split the two sides of one rule ("the folder given must be writable") into two test functions, `test_a_writable_or_unset_transcript_folder_starts_the_factory_as_before` and `test_a_transcript_folder_that_cannot_be_written_ends_the_start`. They should be rows of one test. Fix (the tester's): one parametrized test with rows writable, unset, missing and read-only (keeping the skip under root), plus a column for the expected outcome (starts, or ends with the message).
+
+   Open point, already noted in the coder's entry 7 and left open by the intake: with `--transcript-days 0`, a rule file written by an earlier run stays in `/etc/tmpfiles.d/`. systemd would then make the folder again at boot. This review does not change that; it is the human's choice whether a follow-up should remove the file.
+
+   Earlier tests: none. The diff only adds test files (`A`), and no test file on `main` is changed, renamed or deleted.
