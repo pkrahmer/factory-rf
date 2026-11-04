@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 531
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T02:48:44.549509Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-04T02:48:44.549509Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-04T02:50:44.491525Z'
+  stage: doing
+  run: d2f1efcd56214ec194521d97ace62d15
 ---
 
 # The stage image's documents say what the code does and why
@@ -106,3 +108,13 @@ Expect: `0`, `0`, `1`, then `documents ok`.
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: Nothing built, on purpose. The Interface says that no module under `src/factory/` and no test changes, because the story changes only `docs/operator-guide.md` and `docs/decisions.md`. Both are outside the coder's write paths: the documenter writes them in the docs stage from criteria 1 to 4. The tester wrote no tests, so `make test` had no failures to work from.
+      - Paths changed: none. The working tree is unchanged.
+      - Main choice: hand the work item forward with no change. I rejected writing the document corrections myself: `CLAUDE.md` gives `docs/` to the documenter, and a write there would be dropped from the take anyway. I also rejected adding code or tests to have something to show, because that would be outside the Interface (R13).
+      - Refactor: no diff, so nothing to refactor.
+      - Description: the journal did not change the task's meaning, so `## Description` is unchanged.
+      - Noticed but not touched: the stale texts the criteria name are still in place for the documenter. These are "gives the same text" and "A restart of `factory-run` also ends it" in `docs/operator-guide.md`, and "ends with the next start" in `docs/decisions.md`, which also has no mention of `mise.toml` yet.
+      - `make check`: green. It ended with `test: green (86.3 s)`, then `check: green`, at 99.51 % coverage.
+
+   `check`: check: green (not run again: passed on tree da88284d442d at 2026-11-04T02:41:58Z)
+   `duplicates`: duplicates: 0 new, 43 known, 0 gone
