@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: crash_cap
 round: 0
 attempts: 0
-crashes: 1
+crashes: 2
 pull_request: 539
 comments_read: [6628314128, 6628465356]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T10:39:46.787555Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,17 @@ journal:
   kind: started
   at: '2026-11-04T10:39:46.787555Z'
   stage: tests
+- number: 13
+  speaker: factory
+  kind: crash
+  at: '2026-11-04T10:44:59.770405Z'
+  stage: tests
+- number: 14
+  speaker: factory
+  kind: question
+  at: '2026-11-04T10:44:59.770405Z'
+  stage: tests
+  blocked: crash_cap
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -189,3 +196,5 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
 10. factory: started tests as vm.
 11. factory: crash 1: the run of stage tests ended without a result. Its work is discarded back to commit 08adcd814b8178dbdbc2269b2d733cc5a14da5c2.
 12. factory: started tests as vm.
+13. factory: crash 2: the run of stage tests ended without a result. Its work is discarded back to commit 0f4d410b4d8c7da0407b784d26baf08d552320a4.
+14. factory: Stage tests crashed 2 times, which is the crash cap of 2. The factory has not rerun it. Write a comment here and the stage reruns with the crash counter reset to 0 (your comment is copied into the journal). Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
