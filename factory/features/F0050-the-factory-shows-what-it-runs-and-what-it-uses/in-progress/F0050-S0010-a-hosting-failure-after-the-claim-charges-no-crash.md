@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T22:43:35.134159Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   at: '2026-11-04T22:43:29.616759Z'
   stage: doing
   run: f333dcaa1ef846958371354d2116873f
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-11-04T22:43:35.134159Z'
+  stage: tests
 ---
 
 # A hosting failure after the claim charges no crash
@@ -342,3 +351,4 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
     **Noticed, not touched:** when the release push fails, the release commit stays unpushed in the factory's local checkout. The next tick starts from the remote, so I left it alone.
 
     The factory left out changes outside the write paths: factory/features/F0050-the-factory-shows-what-it-runs-and-what-it-uses/in-progress/F0050-S0010-a-hosting-failure-after-the-claim-charges-no-crash.md.
+25. factory: started tests as vm.
