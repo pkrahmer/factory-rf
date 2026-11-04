@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T02:25:14.577147Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-04T02:25:14.577147Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-04T02:25:30.368432Z'
+  stage: intake
+  run: 6df60ff5a5044772b884f55244368e78
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -67,8 +69,9 @@ Since F0049-S0003 the factory fetches before every tick, in `_ProjectImageStart.
 1. After a start whose first tick ran, a fetch before the next tick that fails leaves the stop `fetch_failed` with scope `repository` and the fetch's error text as its detail in the health status; the factory log holds a `stop repository fetch_failed:` line and no `iteration failed` line, and no tick runs in that iteration. Row: a fetch that passes leaves no `fetch_failed` stop and the tick runs.
 2. While the fetch fails, the image, the identity and the `PATH` stay those in use before the outage, and no build is asked for; rows: a project without a stage file (the base image and its identity) and one with a stage file (the project image and the layer's identity).
 3. The first fetch that passes after the outage clears `fetch_failed`, and the tick of that iteration runs; when `main` changed the stage file during the outage, that file is built once before that tick and the tick takes the new image, identity and `PATH`.
-4. `make check` stays green.
-5. docs: `docs/operator-guide.md`: in "The stops of the tick" and in the stops table's `fetch-failed` row, that the fetch before every tick (the one that compares the stage file) raises the same stop. `docs/project-guide/stage-environment.md`: in *The project's stage image*, that `_ProjectImageStart.prepare` raises `fetch_failed` on a failed fetch and runs no tick. `docs/decisions.md`: one entry: a failed fetch before the tick stands as `fetch_failed`, because the operator and the container's health check read `factory-health`, and an `iteration failed` line alone left it `healthy` while nothing ran; it replaces what F0049-S0003 entry 11 accepted for now. `README.md`: none, it names no stop.
+4. A fetch before the tick that raises a `GitError` other than `FetchFailed` is not turned into the stop `fetch_failed`: no `fetch_failed` stop is raised, and the scheduler logs `iteration failed` for it, as before.
+5. `make check` stays green.
+6. docs: `docs/operator-guide.md`: in "The stops of the tick" and in the stops table's `fetch-failed` row, that the fetch before every tick (the one that compares the stage file) raises the same stop. `docs/project-guide/stage-environment.md`: in *The project's stage image*, that `_ProjectImageStart.prepare` raises `fetch_failed` on a failed fetch and runs no tick. `docs/decisions.md`: one entry: a failed fetch before the tick stands as `fetch_failed`, because the operator and the container's health check read `factory-health`, and an `iteration failed` line alone left it `healthy` while nothing ran; it replaces what F0049-S0003 entry 11 accepted for now. `README.md`: none, it names no stop.
 
 ## Smoke test
 
@@ -94,3 +97,9 @@ Expect: a line that ends in `passed` with no `failed`.
    - Scope: it follows S0003's accepted-for-now behaviour and stays inside F0049's rebuild scope, and nothing in the feature's Out of scope is touched.
 4. 2026-11-04 human: Yes, add that criterion before the two closing ones, as you propose.
 5. factory: started intake as vm.
+6. intake: accepted. Carried in from journal entry 4 (the human's yes to entry 3's question): I added the criterion for the `GitError` rule as new criterion 4, before the two closing ones. It reads: a `GitError` other than `FetchFailed` is not turned into `fetch_failed`, no such stop is raised, and the scheduler logs `iteration failed`, as before. The closing two are now 5 (`make check`) and 6 (`docs:`). I changed nothing else, and the Description keeps its meaning.
+   - Interface: `factory.entry.run._ProjectImageStart._follow_main(self) -> bool` is concrete. The stop's fields are named (`RepositoryStop`, scope `repository`, reason `fetch_failed`, detail `str(error)`), and so are `clear_stop("fetch_failed")` and the `prepare` return. The `GitError` rule now has criterion 4.
+   - Criteria: each is testable by one parametrized test. 1 covers the stop, its detail, the log lines, no `iteration failed`, no tick, and the pass row. 2 covers image, identity and `PATH` unchanged in two rows (no stage file, stage file). 3 covers the clear on the next passing fetch, the tick running, and the build of a changed stage file once. 4 is the failing side of the `GitError` rule. 5 and 6 close.
+   - Smoke test: the command runs pytest with no `-q`, and `addopts` already sets `-q`. So the last line ends in `passed`, and the Expect line can be checked.
+   - Architecture: the change stays in `factory.entry`, which wires the stop service, and calls `StopService` and `clear_stop` from the layers below. No layer is crossed, and no new dependency.
+   - Scope: it ends the "accepted for now" behaviour of F0049-S0003 inside F0049's rebuild scope. Nothing in the feature's Out of scope is touched. No existing test is changed.
