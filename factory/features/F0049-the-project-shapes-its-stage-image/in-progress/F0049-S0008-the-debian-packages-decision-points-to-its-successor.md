@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 536
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T03:26:35.177376Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-04T03:26:35.177376Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-04T03:26:52.156374Z'
+  stage: intake
+  run: 59fcf7c039984a5bbea50f25ce23bf37
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -58,3 +60,9 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names one file (`docs/decisions.md`), one entry (*Debian's packages follow the base image's release*, found at line 1306) and the exact bullet text to add as its last bullet, in the log's existing `Superseded in part by "<entry>": ...` form. The target entry *The factory's tools live apart, under `/opt/factory`, with their own Node* exists (line 1450). No module or signature is involved, and the story says so.
+   - Criteria: criterion 1 is checkable by one test or grep: the bullet is last in the entry, starts with the given text and names the six packages and `xz-utils` in place of `nodejs` and `npm`. It also says the other bullets and other entries are unchanged. There are no rules with a failing side: the story is a one-line docs change. The Interface states no behaviour beyond the line itself. Criteria 2 and 3 are the closing ones, in order.
+   - Smoke test: the three commands are runnable. Two greps and the document check, no pytest, so no `-q` problem. Each `Expect:` (`1`, `1`, `documents ok`) can be checked against the output. The `.` in the grep patterns stands for the apostrophe.
+   - Architecture: the change is documentation only, in the decision log, which the documenter stage keeps. It touches no layer. `STAGE_PACKAGES` in `tests/test_stage_image.py` does list the six names the line states.
+   - Scope: it is within F0049 (the image split that replaced `nodejs` and `npm` with `xz-utils` in S0001). It is not in the feature's "Out of scope", and it changes no test of another story.
