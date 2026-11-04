@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 534
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T03:15:18.662184Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-04T03:15:12.354910Z'
   stage: docs
   run: 1e1239296eeb4814baa8013e20a3894b
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:15:18.662184Z'
+  stage: smoke-test
 ---
 
 # The stops table and the test helper index follow the stage image
@@ -165,3 +174,4 @@ Expect: `0`, then `listed`, then `listed`, then `documents ok`.
     `check`: check: green (not run again: passed on tree c75cce644896 at 2026-11-04T02:57:19Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
