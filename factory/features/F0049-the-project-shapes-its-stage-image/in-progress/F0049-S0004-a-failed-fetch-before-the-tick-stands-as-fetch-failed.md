@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 530
-comments_read: []
+comments_read: [6620835040]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 44b2b4f9637e49c9a20ba737b532d0ba
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-04T02:25:11.270142Z'
+  stage: intake
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -78,3 +83,4 @@ Expect: a line that ends in `passed` with no `failed`.
    - Smoke test: `pyproject.toml` already sets `-q` in `addopts`, and the command passes none. The summary line therefore ends in `passed`, so the Expect line can be checked.
    - Architecture: the change sits in `factory.entry`, which wires the stop service, and calls `StopService` and `clear_stop`, so no layer is crossed.
    - Scope: it follows S0003's accepted-for-now behaviour and stays inside F0049's rebuild scope, and nothing in the feature's Out of scope is touched.
+4. 2026-11-04 human: Yes, add that criterion before the two closing ones, as you propose.
