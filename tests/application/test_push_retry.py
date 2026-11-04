@@ -147,28 +147,30 @@ def case(
     )
 
 
-def test_a_push_refused_twice_is_pushed_on_the_third_try_without_a_crash(case: PushCase) -> None:
-    case.arm(2)
-
-    case.push()
-
-    assert len(case.git.pushes) == 3
-    assert len(case.retry_lines()) == 2
-    assert case.waiter.waits == WAITS[:2]
-    assert pushed_state(case.boundaries, case.remote).crashes == 0
-
-
-def test_a_push_refused_four_times_raises_push_failed_after_three_retries(
-    case: PushCase,
+@pytest.mark.parametrize(
+    ("failures", "tries", "waits", "fails"),
+    [
+        pytest.param(2, 3, WAITS[:2], False, id="refused-twice"),
+        pytest.param(3, 4, WAITS, False, id="refused-three-times"),
+        pytest.param(4, 4, WAITS, True, id="refused-four-times"),
+    ],
+)
+def test_a_refused_push_is_retried_at_most_three_times(
+    case: PushCase, failures: int, tries: int, waits: list[timedelta], *, fails: bool
 ) -> None:
-    case.arm(4)
+    case.arm(failures)
 
-    with pytest.raises(PushFailed) as raised:
+    if fails:
+        with pytest.raises(PushFailed) as raised:
+            case.push()
+        assert "[remote rejected]" in str(raised.value)
+    else:
         case.push()
+        assert pushed_state(case.boundaries, case.remote).crashes == 0
 
-    assert len(case.git.pushes) == 4
-    assert case.waiter.waits == WAITS
-    assert "[remote rejected]" in str(raised.value)
+    assert len(case.git.pushes) == tries
+    assert len(case.retry_lines()) == min(failures, 3)
+    assert case.waiter.waits == waits
 
 
 @pytest.mark.parametrize("failures", [2, 4])

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T13:07:21.552883Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-04T13:07:21.552883Z'
   stage: tests
+- number: 26
+  speaker: tester
+  kind: result
+  at: '2026-11-04T13:08:13.789404Z'
+  stage: tests
+  run: 3edf4a6e31d44bd3a6fa3314b18ab66c
 ---
 
 # A refused push or hosting call is retried and logged
@@ -468,3 +470,24 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
 
     Open for the human: criterion 5 is still the xfail case. A crash is charged at the next tick for a stage in which no agent ran. The fix is not part of this story.
 25. factory: started tests as vm.
+26. tester: Mode: a test change the human approved. I made the two test changes the coder's entry 24 names, which come from the reviewer's findings in entry 22. Both are changes to tests this story wrote. I changed no code and no earlier story's test.
+
+    1. `tests/application/test_hosting_failure_after_claim.py`: the setup is now the fixture `failed_after_claim`. It makes `create_pull_request` fail next and runs the first tick. The asserts after that first tick now sit in a passing test, `test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_run`. They check that the claim was pushed and that `agent_runtime.requests() == []`. Only the next-tick asserts (no journal `crash` entry, `crashes == 0`) stay under `xfail(strict=True, reason="a crash is charged for a stage in which no agent ran")` in `test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick`. The fixture requests `work_item` only so that the story exists before the tick, and drops it with `del` so that ruff's ARG001 passes.
+    2. `tests/application/test_push_retry.py`: I merged `test_a_push_refused_twice_is_pushed_on_the_third_try_without_a_crash` and `test_a_push_refused_four_times_raises_push_failed_after_three_retries` into one test, `test_a_refused_push_is_retried_at_most_three_times`. It is parametrized over three rows:
+       - `refused-twice`: 3 tries, waits of 5 and 15 s, pushed, `crashes == 0`.
+       - `refused-three-times` (the new boundary row): 4 tries, waits of 5, 15 and 45 s, pushed, `crashes == 0`.
+       - `refused-four-times`: 4 tries, waits of 5, 15 and 45 s, `PushFailed` naming `[remote rejected]`.
+
+       Each row also checks the number of retry lines. Both `case` variants (`result` and `record`) stay, through the existing fixture.
+
+    Mapping changes:
+    - Criterion 5: `test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_run` (passes), plus the strict xfail test above.
+    - The retry-cap criterion: `tests/application/test_push_retry.py::test_a_refused_push_is_retried_at_most_three_times`.
+
+    Results:
+    - The one run of both files (`uv run pytest -q`) gave all passed and one xfailed.
+    - After that run I added the one-line `del work_item` for lint. I did not run the tests again.
+    - `make lint`: green.
+    - No files were created, and every module was imported.
+
+    `lint`: lint: green (0.2 s)
