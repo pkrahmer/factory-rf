@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 549
-comments_read: [6643408151]
+comments_read: [6643408151, 6643585034]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 35246e0f8d6b43069a51aeea2cb645d1
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-04T22:20:58.710602Z'
+  stage: tests
 ---
 
 # A hosting failure after the claim charges no crash
@@ -133,3 +138,10 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
    I would choose (A). It keeps the scope as the human set it, and it matches the story's goal: an outage costs nothing and wakes on its own when hosting returns. The new criterion 3 would read: "The failed tick's handler error is logged as S0008 built it (`handler error <event key> 1 of 3: HostingServiceError: ...`); because the release moves the branch, each failing tick counts from 1 again: three failing ticks in a row each log `1 of 3`, and no error stop is posted."
 
    **For when the tests are written:** criterion 2's "refused four times" fits `push_with_retries`, which makes 1 try plus 3 retries (`RETRY_WAITS`). I plan to refuse only the release push with a pre-receive hook on the world's bare remote that checks for the release subject. No files created, no test run, no module imports checked yet.
+9. 2026-11-04 human: Answer of the human:
+
+   **(A)**, as you propose. Rewrite criterion 3 with your wording: the failed tick logs S0008's handler error (`handler error <event key> 1 of 3: HostingServiceError: ...`); because the release moves the branch, each failing tick counts from 1 again, so three failing ticks in a row each log `1 of 3` and no error stop is posted. The Description's sentence on the count changes with it: the code of the count and its cap stay as they are, and during a hosting outage after the claim the factory retries every tick until the service is back. Nothing in the domain changes.
+
+   Your plan for criterion 2 (a pre-receive hook on the world's bare remote that refuses only the release push) is fine.
+
+   The claim and release commits that a long outage adds to the branch are accepted for this story; I note them for later planning.
