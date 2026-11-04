@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T21:20:42.744958Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-04T21:20:42.744958Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-04T21:21:44.113042Z'
+  stage: tests
+  run: d37a6294a04a4d7ebad820d940c9078d
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -136,3 +138,18 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
    - Architecture: the change stays in the domain layer. It does no I/O and adds no wiring. The records contract is unaffected.
    - Scope: it is the feature's story S0009 (from A0001) on tool-call timing, consistent with S0006's summary of tool calls. It touches nothing in the feature's Out of scope.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for the criteria in a new module, `tests/domain/test_tool_uses_replayed_lines.py` (the human, journal 4). Its own small line builder writes each line's `type` and `timestamp` (or none), so `tests/tool_use_support.py` and `tests/domain/test_tool_uses.py` were not changed and nothing was moved.
+
+   - criterion 1: tests/domain/test_tool_uses_replayed_lines.py::test_a_replayed_tool_use_without_a_time_keeps_the_call_s_seconds (rows: blob-after-the-assistant-line, blob-before-the-assistant-line, two-blob-lines)
+   - criterion 2: tests/domain/test_tool_uses_replayed_lines.py::test_a_tool_use_only_on_a_line_of_another_type_is_no_call (rows: api-request-blob, attachment, no-type; in each row a `Read` use that has no entry and a `Bash` use that `calls` does not count)
+   - criterion 3: tests/domain/test_tool_uses_replayed_lines.py::test_a_failed_result_marks_a_call_failed_only_on_a_user_line (rows: api-request-blob and attachment give failed 0, user gives failed 1)
+   - criterion 4: S0006's existing tests in tests/domain/test_tool_uses.py, unchanged (the criterion says "as written"; no new test)
+   - criterion 5: tests/domain/test_tool_uses_replayed_lines.py::test_a_repeated_assistant_tool_use_keeps_the_first_line_s_time (rows: second-line-later, second-line-null)
+   - criterion 6: tests/domain/test_tool_uses_replayed_lines.py::test_a_replayed_tool_result_with_another_time_does_not_change_seconds (rows: before/after × api-request-blob/attachment)
+   - criteria 7, 8: not tests (make check, docs).
+
+   Choices: criteria 3, 5 and 6 check only what they name (tool, calls, failed or seconds). They do not check `calls` for a repeated id, which no criterion states. In the criterion 3 rows the foreign result is the only result, so that call is unanswered.
+
+   File created: tests/domain/test_tool_uses_replayed_lines.py. No import failed: the module exists, and the tests fail on wrong results. 9 of them fail against the current code: the rows where the replayed copy now overwrites or adds. The rows where today's code already gives the right result pass, for example a blob before the `user` line, or criterion 3's `user` row. `make lint` is green after `ruff format`.
+
+   `lint`: lint: green (0.1 s)
