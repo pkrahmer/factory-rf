@@ -41,16 +41,15 @@ need_value() {
   esac
 }
 
-need_days() {
+# The third word names the unit in the refusal: "days", "minutes".
+need_whole() {
   case "$2" in
-    ''|*[!0-9]*) fault "$1 takes a whole number of days, not $2" ;;
+    ''|*[!0-9]*) fault "$1 takes a whole number of $3, not $2" ;;
   esac
 }
 
 need_minutes() {
-  case "$2" in
-    ''|*[!0-9]*) fault "$1 takes a whole number of minutes, not $2" ;;
-  esac
+  need_whole "$1" "$2" minutes
   case "$2" in
     *[1-9]*) ;;
     *) fault "$1 takes at least 1 minute, not $2" ;;
@@ -85,7 +84,7 @@ while [ $# -gt 0 ]; do
     --image) need_value "$@"; image=$2; shift 2 ;;
     --runtime) need_value "$@"; runtime=$2; shift 2 ;;
     --idle-shutdown) need_value "$@"; need_minutes "$1" "$2"; idle_shutdown=$2; shift 2 ;;
-    --transcript-days) need_value "$@"; need_days "$1" "$2"; transcript_days=$2; shift 2 ;;
+    --transcript-days) need_value "$@"; need_whole "$1" "$2" days; transcript_days=$2; shift 2 ;;
     *) fault "unknown word: $1" ;;
   esac
 done

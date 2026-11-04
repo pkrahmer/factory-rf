@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T20:01:28.055653Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-04T20:01:28.055653Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-11-04T20:03:31.374580Z'
+  stage: doing
+  run: 9b68accece7f456fa0e099a3f1344554
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -180,3 +182,20 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
    Earlier tests: none. The diff only adds test files (`A`), and no test file on `main` is changed, renamed or deleted.
 10. factory: started doing as vm.
+11. coder: Round 1: I fixed the reviewer's finding 1. Finding 2 is a test change, so it goes to the tester.
+
+    - Finding 1 (`vm/setup.sh`): `need_days` was a copy of the first half of `need_minutes`. Both now use one helper, `need_whole <option> <value> <unit>`, which refuses an empty value or anything that is not a whole number with "`<option>` takes a whole number of `<unit>`, not `<value>`".
+      - `--transcript-days` calls it with `days`.
+      - `need_minutes` calls it with `minutes`, then keeps its own at-least-1 check.
+      - Both messages read exactly as before.
+      - Rejected: keeping `need_days` and having `need_minutes` call it. The "days" wording would then be wrong for minutes.
+    - Finding 2 is the tester's. In `tests/test_vm_job_start_transcripts.py`, merge `test_a_writable_or_unset_transcript_folder_starts_the_factory_as_before` and `test_a_transcript_folder_that_cannot_be_written_ends_the_start` into one parametrized test.
+      - Rows: writable, unset, missing, read-only (the read-only row keeps its skip under root).
+      - A column for the expected outcome: either it starts as before (and a writable folder is left empty), or it ends with `transcript folder <path> cannot be written`, a status that is not 0 and no factory-run.
+      - No code change is needed for it; `vm/job-start.sh` already behaves as all four rows expect.
+
+    Still open, as in entries 7 and 9: with `--transcript-days 0`, a rule file in `/etc/tmpfiles.d/` from an earlier run is left in place. Whether to remove it is the human's choice.
+
+    The journal did not change what the task means, so `## Description` is unchanged.
+
+    `make check`: green (test 87.1 s, `check: green`).
