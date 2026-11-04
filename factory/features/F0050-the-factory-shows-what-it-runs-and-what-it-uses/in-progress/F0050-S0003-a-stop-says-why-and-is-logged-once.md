@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T13:40:09.904594Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T13:40:06.464572Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-04T13:40:09.904594Z'
   stage: intake
 ---
 
@@ -85,3 +94,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
    4. Only the probe of `main`. A stage's checks that the factory's stop cuts off already end in a crash and a rerun by the lease rules; they are not part of this story. Change the Interface line to "the probe of `main`".
 
    5. Your reading is right: a raise with another detail while the stop stands adds no record; the health status takes the new detail and the log writes the line once more. Add a row that pins it.
+5. factory: started intake as vm.
