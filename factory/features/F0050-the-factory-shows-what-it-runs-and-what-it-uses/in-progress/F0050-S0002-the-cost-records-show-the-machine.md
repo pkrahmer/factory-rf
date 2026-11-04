@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 539
-comments_read: [6628314128, 6628465356, 6628999669]
+comments_read: [6628314128, 6628465356, 6628999669, 6629159081]
 handed_over: null
 claim: null
 journal:
@@ -102,6 +102,11 @@ journal:
   stage: tests
   run: 965b23d040cc4e28894a26125f54ff9b
   blocked: question
+- number: 18
+  speaker: human
+  kind: comment
+  at: '2026-11-04T11:14:12.043901Z'
+  stage: tests
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -252,3 +257,10 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
        (c) Drop criterion 9.
 
     3. The new build line breaks two tests of an earlier story. tests/entry/test_run_project_image_rebuild.py pins the old form `stage image: built … in 3 s` at lines 243 and 349. The standing leave does not cover changing them. May I change both expected lines to the new form (`…, base <GB> GB, layer <GB> GB, <n> warnings`) and give their `FakeImages` sizes through a shared subclass? I would move `SizedImages` from my new test into a `tests/sized_images.py` support module. Nothing else in that file changes.
+18. 2026-11-04 human: Answers of the human:
+
+    1. **(a)** As you name them: `factory.domain.machine.MachineTotals` (frozen; `cpu_seconds`, `cpu_wait_seconds`, `memory_wait_seconds`, each `float | None`) and `machine_differences(start: MachineTotals | None, end: MachineTotals) -> MachineTotals`; `MachineReadings` in `factory.application.machine` with `totals()`, `memory_peak_bytes()` and `memory_total_bytes()`; the adapter `factory.adapters.machine_files.CgroupMachineReadings(slice_folder: Path, meminfo: Path)`; `Boundaries` gains `machine: MachineReadings` and the image sizes the start measured, with a fake under `tests/` for the `boundaries` fixture in `tests/conftest.py` (adapted to the new field only). The record-level tests run one stage through the existing world fixtures and read the written cost record. The coder may add arguments these names need and says so in its entry.
+
+    2. **(b)** "It means only a return to the base (stage file removed), whose sizes are read without a build." The story's word "adopts" meant no more than that; no new `Images` operation.
+
+    3. Yes. Leave for the tester: in `tests/entry/test_run_project_image_rebuild.py` the two expected build lines (lines 243 and 349) take the new form, and their `FakeImages` get sizes through the shared subclass, which you move to the new support module `tests/sized_images.py`; nothing else in that file changes.
