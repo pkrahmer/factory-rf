@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T09:25:03.623315Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-04T09:25:03.623315Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T09:26:04.846508Z'
+  stage: review
+  run: e8718e1d35ce4fb08bbfe91e861b91d9
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -419,3 +421,33 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 26. factory: started review as vm.
+27. reviewer: no findings
+
+    Round 1. Finding 1 from entry 19 is fixed. `_instruction_commands` now lives in `tests/dockerfile_support.py:113`, and `_commands` calls it with its name and behaviour unchanged. `_stage_commands` is gone from `tests/test_stage_image.py`, and both of its callers use the moved helper. No other helper in the diff copies one in `tests/dockerfile_support.py`, `tests/vm_support.py` or any other test module.
+
+    What I checked, group by group:
+    - Group 1:
+      - Criteria 1 to 8 each have a test, and each refused side named in the criteria and in the human's answers (entry 4) is a row of one parametrized test.
+      - The Interface's empty or unknown `AGENT_RUNTIME` is refused by the `*)` branch at `vm/Dockerfile:18-22`, and criterion 5's text check pins that.
+      - `make check` after the coder was green (entry 25).
+    - Group 2: the diff touches only `vm/` and tests, with no layer involved.
+    - Group 3:
+      - No secrets and no silencing markers.
+      - The build argument is quoted in `vm/job-start.sh:158`, and `FACTORY_AGENT_RUNTIME` gets its default at line 71 under `set -eu`.
+      - The runtime name is checked before any install.
+    - Group 4:
+      - `vm/Dockerfile` has two stages.
+      - The final stage takes only the resolved executable through one `COPY --from=install`. The human accepted this in entry 11.
+      - It cleans `/var/lib/apt/lists/*`, `/var/cache/debconf/*-old`, `/var/log/*.log`, `/var/log/apt/*` and `/tmp/*` in the same RUN as apt and uv.
+      - It writes the exec wrapper for the chosen runtime only.
+      - Each of `CLAUDE_CODE_VERSION`, `OPENCODE_VERSION` and `UV_VERSION` still has exactly one `ARG <name>=` line, because the stages declare them again without a value. So the `sed` readers in `vm/setup.sh:388,411-412` and `dockerfile_arg` in `vm/job-start.sh:41-43` read them unchanged, and `vm/setup.sh` does not change.
+      - The comments say why.
+    - Group 5:
+      - The Description and the Interface match what was built.
+      - The journal names the main choice (copy the one resolved executable) and what was rejected (the npm package directory with the baseline build).
+      - The docs criterion still says what the operator must know.
+
+    Earlier tests:
+    - `tests/dockerfile_support.py`: changed under the standing leave in CLAUDE.md to move a shared test helper. `_instruction_commands` was taken out of `_commands`, which keeps its name and behaviour (entry 23).
+    - `tests/test_stage_image.py`: changed under the human's leave in `feature.md` (line 46, "its tester may change `tests/test_stage_image.py` to the image S0001 describes"). The two lambda rows changed under the human's answer in journal entry 11, and `_stage_commands` was removed under the standing leave to move a shared test helper.
+    - `tests/test_vm_job_start.py`: `test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options` changed under the same `feature.md` leave (the row of the build command, for the runtime argument). `test_the_stage_image_is_built_for_the_instance_runtime` and its helpers are new, so they need no leave.
