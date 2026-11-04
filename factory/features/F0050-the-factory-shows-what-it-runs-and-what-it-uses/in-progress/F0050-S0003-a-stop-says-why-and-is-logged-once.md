@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T13:48:00.090233Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-04T13:48:00.090233Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T13:49:51.893617Z'
+  stage: review
+  run: 2d0b2614441946eea164f2332ddffb4e
 ---
 
 # A stop says why, and is logged once
@@ -189,3 +191,14 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
 11. factory: started review as vm.
+12. reviewer: Review of `git diff main...HEAD -- . ':!factory'` against the work item, round 0.
+
+    Findings:
+
+    1. `src/factory/entry/run.py:273` (`_ProjectImageStart._choose`): the preflight that probes `main` in production is built from new boundaries. `build_tick(chosen_boundaries, ...)` → `build_preflight(boundaries, ...)` (`src/factory/entry/wiring.py:715`, `:785`) gets them from `build_boundaries(chosen.settings, ...)`, and those carry the default `stop_requested=lambda: False`. The `replace(..., stop_requested=should_stop)` at `run.py:160-163` reaches only the start's own boundaries (disk recorder, waiter, image choice), never the tick's preflight. So the factory's own SIGTERM still raises `main_branch_failing` with the new `ended by signal 15` detail, and criterion 2 and the Interface's wiring line do not hold for the running factory. Fix: carry `stop_requested=boundaries.stop_requested` into the boundaries `_choose` builds (a `replace` after `build_boundaries`, or through `_sized`), so that every tick's preflight gets the flag.
+    2. Against the story, `## Acceptance criteria`: the Interface's rule "wired in `factory.entry.run` to the `is_set` of the event that `install_stop_handlers` sets" has no criterion and no test. That is why finding 1 passes `make check`: criterion 2's test (`tests/application/test_preflight_stop_detail.py::test_a_probe_cut_off_by_the_factorys_stop_is_not_judged_and_runs_again`) sets `Boundaries.stop_requested` by hand. Fix: a criterion that `run_instance`'s `should_stop` reaches the preflight of the tick built after the stage image is chosen. A probe of `main` during which `should_stop` turns true raises no `main_branch_failing` (entry-level test, as in `tests/entry/test_run*.py`). I did not add it myself because it needs the code change of finding 1. The human or the coder should route it to the tester.
+    3. `src/factory/application/preflight.py:578` (`_ended`): it decides again what `command_ending` (`src/factory/domain/checks.py:98`) already decides, `exit_status >= 0` versus a signal, so the rule "non-negative is an exit status" now lives in two places. Fix: pick "with" or "by" from the single decision `command_ending` makes, so that one place holds the sign rule (for example, let `_ended` branch on the kind of ending `command_ending` returns, not on `exit_status` itself).
+
+    Checked and holding: criteria 1, 3, 4, 5 and 6 each have a parametrized test with the rows the criterion names. Criterion 1 includes signal 15 with `stop_requested()` false. Criterion 4 includes the no-new-record row for another detail. Criterion 5 includes 0 and a negative status. `StopService.raise_stop` (`src/factory/application/stops.py:38`) does three things. It replaces a blank detail before any destination is written. It writes the line only when the stop does not stand yet or stands with another scope or detail. It adds a record only on a first raise. On a failed health read it still writes the line and adds no record, as before. The journal records the coder's `make check` as green. Layers: `command_ending` is in the domain, its use in the application, the wiring in the entry layer. No silencing markers, secrets or string-built commands. `make duplicates` shows 3 new findings, all of them dead-code hits in `src/factory/domain/cost_records.py:41-43`, a file this diff does not touch, so they are not under review. Description and docs criterion match what was built.
+
+    Earlier tests: none. The diff only adds test files (`tests/application/test_preflight_stop_detail.py`, `tests/application/test_stop_log_once.py`, `tests/domain/test_command_ending.py`).
