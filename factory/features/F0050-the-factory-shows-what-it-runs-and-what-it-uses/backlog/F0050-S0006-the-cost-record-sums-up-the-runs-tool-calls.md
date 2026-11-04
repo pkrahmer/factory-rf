@@ -24,7 +24,7 @@ The transcripts of S0005 stay inside the site, so an evaluation from a distance 
 
 ```bash
 grep -cE '^class ToolUse\(BaseModel\):$' src/factory/domain/cost_records.py
-uv run pytest tests/domain tests/adapters -q -k tool 2>&1 | tail -1
+uv run pytest tests/domain tests/adapters -k tool 2>&1 | tail -1
 ```
 
 Expect: `1`, then a line that ends in `passed` with no `failed`.

@@ -22,7 +22,7 @@ S0005 keeps transcripts in the folder `FACTORY_TRANSCRIPT_DIR` names; this story
 ```bash
 grep -c 'FACTORY_TRANSCRIPT_DIR=/srv/factory/' vm/setup.sh
 grep -c 'cannot be written' vm/job-start.sh
-uv run pytest tests/test_vm_setup.py tests/test_vm_job_start.py -q 2>&1 | tail -1
+uv run pytest tests/test_vm_setup.py tests/test_vm_job_start.py 2>&1 | tail -1
 ```
 
 Expect: a number of at least `1`, a number of at least `1`, then a line that ends in `passed` with no `failed`.
