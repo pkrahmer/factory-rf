@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T02:40:06.953540Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-04T02:40:00.411664Z'
   stage: tests
   run: 060cb4aa569b4380add99ac21f06a476
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:40:06.953540Z'
+  stage: doing
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -349,3 +358,4 @@ Expect: a line that ends in `passed` with no `failed`.
     `lint`: lint: green (0.1 s)
 
     `lint`: lint: green (0.2 s)
+24. factory: started doing as vm.
