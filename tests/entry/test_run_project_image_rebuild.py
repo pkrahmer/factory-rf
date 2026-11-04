@@ -19,8 +19,9 @@ from factory.domain.settings import InstanceSettings
 from factory.domain.stage_layer import STAGE_FILE, StageLayer, project_image_tag, stage_layer
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_store
-from git_support import run_git
+from git_support import remote_commit
 from human_clone import HumanClone
+from log_support import state_log_lines
 
 BASE_IDENTITY = "sha256-base"
 FIRST = "ARG FACTORY_BASE\nFROM ${FACTORY_BASE}\nRUN echo first\n"
@@ -122,16 +123,9 @@ def base(settings: InstanceSettings) -> str:
 
 
 def _commit(remote: Path) -> str:
-    return run_git(remote, "rev-parse", "main").strip()[:12]
-
-
-def _remove_stage_file(human_directory: Path) -> None:
-    run_git(human_directory, "fetch", "-q", "origin")
-    run_git(human_directory, "checkout", "-q", "-B", "main", "origin/main")
-    run_git(human_directory, "rm", "-q", STAGE_FILE)
-    identity = ["-c", "user.name=Human", "-c", "user.email=human@example.org"]
-    run_git(human_directory, *identity, "commit", "-q", "-m", f"remove {STAGE_FILE}")
-    run_git(human_directory, "push", "-q", "origin", "main")
+    commit = remote_commit(remote, "main")
+    assert commit is not None
+    return commit[:12]
 
 
 class World:
@@ -148,7 +142,6 @@ class World:
         self.settings = settings
         self.hosting = hosting
         self.human = human
-        self.human_directory = tmp_path / "human"
         self.remote = tmp_path / "origin" / "remote.git"
         self.monkeypatch = monkeypatch
 
@@ -162,7 +155,7 @@ class World:
 
     def remove(self) -> Callable[[], None]:
         """The push of a commit on `main` that removes the stage file."""
-        return lambda: _remove_stage_file(self.human_directory)
+        return lambda: self.human.remove_file("main", STAGE_FILE)
 
     def run(
         self,
@@ -209,9 +202,8 @@ class World:
         return Run(stages=stages, commits=commits, lines=self._lines()[lines_at_start[0] :])
 
     def _lines(self) -> list[str]:
-        log = self.settings.state_directory / "factory.log"
-        text = log.read_text(encoding="utf-8") if log.exists() else ""
-        return [line[line.index(MARK) :] for line in text.splitlines() if MARK in line]
+        lines = state_log_lines(self.settings.state_directory)
+        return [line[line.index(MARK) :] for line in lines if MARK in line]
 
 
 @pytest.fixture

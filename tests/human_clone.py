@@ -38,6 +38,13 @@ class HumanClone:
         self._git.commit(f"write {', '.join(files)}")
         self._push(branch)
 
+    def remove_file(self, branch: str, path: str) -> None:
+        """Remove `path` on `branch`, commit and push."""
+        self._on_branch(branch)
+        (self._directory / path).unlink()
+        self._git.commit(f"remove {path}")
+        self._push(branch)
+
     def merge(self, branch: str, method: Literal["merge", "squash", "rebase"]) -> None:
         """Bring `origin/<branch>` into `main` by `method` and push `main`."""
         self._on_branch("main")

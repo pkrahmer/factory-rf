@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T01:52:01.279075Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-04T01:52:01.279075Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-04T01:53:04.719485Z'
+  stage: tests
+  run: 0d4900f5c67e467380dc66df6ab10070
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -354,3 +356,22 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
 
     The factory left out changes outside the write paths: factory/features/F0049-the-project-shapes-its-stage-image/in-progress/F0049-S0003-a-changed-stage-file-is-rebuilt.md.
 22. factory: started tests as vm.
+23. tester: I moved the three copied helpers that review findings 1 to 3 named, as the coder asked in entry 21. I did it under the standing leave in `CLAUDE.md` to move a shared test helper. Every test keeps its name and still checks the same thing. The mapping from criteria to tests in entry 8 still holds.
+
+    Changes:
+    - `tests/entry/test_run_project_image_rebuild.py`:
+      - `_commit` now uses `remote_commit(remote, "main")` from `tests/git_support.py`, asserts the result is not None and cuts it to 12 characters.
+      - The local `_remove_stage_file` is gone. `World.remove` now calls `self.human.remove_file("main", STAGE_FILE)`, and the unused `human_directory` attribute is dropped.
+      - `World._lines` now filters `state_log_lines(self.settings.state_directory)` by `MARK`.
+    - `tests/human_clone.py`: new `HumanClone.remove_file(branch, path)` beside `push_file`. It reuses `_on_branch`, `GitCli.commit` (with `TEST_IDENTITY`) and `_push`.
+    - `tests/log_support.py`: new `state_log_lines(state_directory)`. `log_lines(tmp_path)` now delegates to it with `tmp_path / "state"` and behaves as before.
+      - Why not `log_lines(tmp_path)` as entry 21 said: the `instance_settings` fixture puts the state directory at `tmp_path / "instance-state"`, so `log_lines` would read the wrong file.
+    - `tests/application/test_tick_preflight.py` (an earlier story's test file, changed under the same leave, as entry 21 offered): `Machine.remove_from_main` now calls `self.human.remove_file("main", path)` instead of its own copy, and the import of `run_git`, now unused, is dropped.
+
+    Not touched: `Machine.log_lines` in `tests/application/test_tick_preflight.py` is also a near-copy of `log_lines`. Neither the review nor the coder named it.
+
+    Test run: `uv run pytest -q tests/entry/test_run_project_image_rebuild.py tests/application/test_tick_preflight.py tests/test_shared_imports.py` passed all 29 tests. Every module imported. `make lint` is green.
+
+    Files changed: tests/entry/test_run_project_image_rebuild.py, tests/human_clone.py, tests/log_support.py, tests/application/test_tick_preflight.py. No files created.
+
+    `lint`: lint: green (0.2 s)
