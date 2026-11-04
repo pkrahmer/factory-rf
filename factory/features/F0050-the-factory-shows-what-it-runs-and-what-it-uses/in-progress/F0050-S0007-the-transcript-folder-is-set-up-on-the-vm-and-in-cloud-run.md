@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T20:34:00.682389Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -220,6 +216,12 @@ journal:
   kind: started
   at: '2026-11-04T20:34:00.682389Z'
   stage: doing
+- number: 39
+  speaker: coder
+  kind: result
+  at: '2026-11-04T20:34:40.526367Z'
+  stage: doing
+  run: 55ad99a14f3547f58e3520506ea6cb83
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -613,3 +615,13 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
     Earlier tests: none. The diff only adds test files (status `A`); no test file on `main` is changed, renamed or deleted.
 38. factory: started doing as vm.
+39. coder: Round 1 (the count started over after the human's answer in entry 35). The only finding in the reviewer's latest entry (37) is that criterion 3 has no test yet, and only a test can fix it. I changed no code and left the working tree clean.
+
+    The code already does what criterion 3 asks. At `vm/setup.sh:465-469` the `transcripts` step checks `[ -L "$transcripts" ]` first. If the folder's path is a link, it prints `setup: transcripts: $transcripts is a link; remove it and run this script again` to standard error and exits with `exit 1`. That check comes before the `owned_with_mode` check and the `install -d -o factory -g factory -m 0700` call that would make the folder.
+
+    For the tester, as entries 35 and 37 ask: add one test to `tests/test_vm_setup_transcripts.py` for criterion 3. Like the module's other tests, it reads the script's text. It checks three things:
+    - the step's link check prints that message to standard error;
+    - `exit 1` follows it;
+    - both come before the folder's `install -d`.
+
+    Noticed but not touched: `docs/operator-guide.md` still mentions the dropped `tmpfiles.d` rule and the `--transcript-days` option. Entry 37 lists the places. Fixing them is the documenter's job under docs criterion 5.
