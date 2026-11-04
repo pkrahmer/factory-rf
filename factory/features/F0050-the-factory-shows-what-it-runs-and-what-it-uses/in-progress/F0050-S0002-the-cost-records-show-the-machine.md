@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 539
 comments_read: [6628314128]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T10:23:40.265823Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-04T10:22:47.457610Z'
   stage: intake
   run: 737b2ea3370c4482a31df1a77a922565
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-04T10:23:40.265823Z'
+  stage: tests
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
@@ -126,3 +135,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
    - Smoke test: the three commands are runnable. Pytest's config sets `-q` already, so the third now has none and its `Expect:` can be met. Each expectation (`1`, `9`, a line ending in `passed`) is checkable.
    - Architecture: the measures sit in the domain DTOs, and reading is left to wrappers and the existing disk-space interface, which fits the layering.
    - Scope: it is within F0050's S0002 scope (the `machine` object, the log lines, contract 4.2) and touches nothing in "Out of scope".
+7. factory: started tests as vm.
