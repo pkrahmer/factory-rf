@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T01:09:39.600673Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -209,6 +213,11 @@ journal:
   at: '2026-11-04T01:09:33.658120Z'
   stage: review
   run: 1ef441aa7b7f42c4ad94dfa3bda99a8b
+- number: 37
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:09:39.600673Z'
+  stage: doing
 ---
 
 # A project's stage file builds the image its stages run in
@@ -640,3 +649,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     - tests/test_second_user_removed.py: the human's leave, entry 17, item 1 (`images` in the parameter row).
     - tests/entry/test_health.py: the human's leave, entry 9, item 4 (the row and the machine-scope tuple).
     - tests/entry/test_wiring_handlers.py: the Interface's leave for rows that pin the `PATH` (the call gains the explicit `PATH` argument; the test checks the same thing).
+37. factory: started doing as vm.
