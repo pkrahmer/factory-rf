@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 553
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T23:55:27.725279Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-04T23:55:21.970397Z'
   stage: doing
   run: c4624e32ac144116bed2bf325bf9a82e
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:55:27.725279Z'
+  stage: review
 ---
 
 # The decision log marks the old tool-time entry as superseded
@@ -115,3 +124,4 @@ Expect: `1`.
 
    `check`: check: green (not run again: passed on tree 066290bec96a at 2026-11-04T23:41:19Z)
    `duplicates`: duplicates: 4 new, 41 known, 2 gone
+8. factory: started review as vm.
