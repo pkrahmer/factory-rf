@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 528
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T01:26:07.158256Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-04T01:26:07.158256Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-04T01:26:27.624676Z'
+  stage: intake
+  run: 9a99d43035f441629927f89ec1d7cde7
+  blocked: question
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -61,3 +64,12 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (format check passed; the story is not yet buildable):
+
+   1. Interface names no concrete module or signature. It says "where the factory handles a new origin/main", "the images interface of S0002" and "the one place S0002 named", but gives no module, class or method. S0002's code exists (`factory.domain.stage_layer.StageLayer`, `factory.entry.wiring` around lines 377-402), so please name the module and function where the comparison runs, the images-interface methods used for build and for removal of untagged images, and the holder of "image in use / identity / PATH". Proposal: name them as they stand in wiring.py and the S0002 images interface.
+   2. The Interface says the `stage_image_failed` detail names the commit by its first 12 hex digits. Criterion 5 only says "the commit in its detail". Please add the 12-digit form to the criterion. I would choose: "detail contains the first 12 hex digits of the commit".
+   3. The Interface's log line `stage image: failed at <commit>` has no criterion (criterion 2 covers `built`, criterion 3 covers `back to the base`). Add it to criterion 5. Also state whether `<commit>` in the log lines is the full id or the 12-digit form (I would choose 12 digits, as in the detail).
+   4. The Interface says "none for an unchanged file" and that the same digest after a failure does not log again. No criterion checks that no log line is written in the unchanged cases. Add it to criterion 1, and to the same-digest row of criterion 5.
+   5. Criterion 5's rows combine several behaviours. "Another digest ends the stop and builds" and "the file removed ends the stop and returns to the base" are two different outcomes in one test. Please say they are separate rows with their own expectations (stop ended, image/identity afterwards).
+   6. Criterion 3 combines "adds a file to a project without one builds it" with "removes returns to the base". They need not be one test, so please split them into two.
+   7. The smoke test greps only for the log-line text in the source. It shows the strings exist, not that a rebuild happens, but it is runnable and its Expect is checkable. I accept it as is, unless you want a stronger check.
