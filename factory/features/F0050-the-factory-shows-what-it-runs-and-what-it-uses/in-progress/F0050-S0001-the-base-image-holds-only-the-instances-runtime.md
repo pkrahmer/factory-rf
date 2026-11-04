@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T09:06:03.619975Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-04T09:05:56.907760Z'
   stage: tests
   run: d34ce2cc26cb43a8a4f75b4990d5b790
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-04T09:06:03.619975Z'
+  stage: doing
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -167,3 +176,4 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
    The factory left out changes outside the write paths: vm/Dockerfile, vm/job-start.sh.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
