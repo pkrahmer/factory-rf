@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -251,6 +251,11 @@ journal:
   at: '2026-11-04T09:40:20.034704Z'
   stage: smoke-test
   run: 8482a79d7f924c34bd12144e6fd52eb9
+- number: 45
+  speaker: factory
+  kind: done
+  at: '2026-11-04T09:59:22.817571Z'
+  stage: approval
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -740,3 +745,4 @@ Expect: `2`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     - I did not run `make check` again. The factory reports it green on this tree (entries 36 and 42).
 
     Findings: none.
+45. factory: done (pull request merged); cost: 19 runs, 29.1 min, 159 turns, 631381 tokens in (4698798 more from cache), 114332 out, $7.72
