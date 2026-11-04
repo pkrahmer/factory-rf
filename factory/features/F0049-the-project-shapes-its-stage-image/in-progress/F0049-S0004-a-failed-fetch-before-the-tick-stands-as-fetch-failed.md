@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T02:25:36.571414Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-04T02:25:36.571414Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-04T02:27:42.440865Z'
+  stage: tests
+  run: 29a2b1fd8be34755a0553bf3f4f2728f
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -113,3 +115,20 @@ Expect: a line that ends in `passed` with no `failed`.
    - Architecture: the change stays in `factory.entry`, which wires the stop service, and calls `StopService` and `clear_stop` from the layers below. No layer is crossed, and no new dependency.
    - Scope: it ends the "accepted for now" behaviour of F0049-S0003 inside F0049's rebuild scope. Nothing in the feature's Out of scope is touched. No existing test is changed.
 7. factory: started tests as vm.
+8. tester: I wrote the tests for criteria 1 to 4 in one new file, `tests/entry/test_run_fetch_before_tick.py`. It drives `run_instance` the way `tests/entry/test_run_project_image_rebuild.py` does: a real bare remote, `FakeHostingService`, a `FakeImages` subclass whose project `PATH` names how many builds were asked for, and a recording tick. Between iterations it renames the remote away and back.
+
+   - criterion 1: tests/entry/test_run_fetch_before_tick.py::test_a_failed_fetch_before_the_tick_stands_as_fetch_failed_and_runs_no_tick (rows `fails`, `passes`)
+   - criterion 2: tests/entry/test_run_fetch_before_tick.py::test_while_the_fetch_fails_the_image_in_use_stays_and_nothing_is_built (rows `no-stage-file`, `stage-file`)
+   - criterion 3: tests/entry/test_run_fetch_before_tick.py::test_the_first_fetch_that_passes_after_the_outage_clears_fetch_failed_and_ticks (rows `main-unchanged`, `stage-file-changed`)
+   - criterion 4: tests/entry/test_run_fetch_before_tick.py::test_a_fetch_that_fails_with_another_git_error_is_no_fetch_failed_stop
+
+   How the tests check some points:
+   - **Criterion 1, the detail:** the exact text depends on git's output, so the test checks that it starts with `git fetch` and contains ` failed (exit `. It also checks that a log line ends in `stop repository fetch_failed: <detail>`.
+   - **Criterion 3, the push during the outage:** the test brings the remote back, pushes the new stage file, and renames the remote away again before the next iteration.
+   - **Criterion 4, the other `GitError`:** `GitCli.fetch` only ever raises `FetchFailed`, so the test uses a `GitCli` subclass, `BreakableFetch`, whose `fetch` raises a plain `GitError` once it is switched on. It is put in place by wrapping `run_module.build_boundaries` with monkeypatch and swapping the boundaries' `git`. `tests/application/test_tick_stop_details.py` does the same with its `FailingFetch(GitCli)`.
+
+   Test run: `uv run pytest -q tests/entry/test_run_fetch_before_tick.py`. Three cases fail for the right reason: both rows of criterion 3 and the `fails` row of criterion 1. Today `prepare`'s `FetchFailed` escapes to the scheduler, so no stop is raised and no `stop cleared` line is written. Criteria 2 and 4 already pass, because they describe what happens today: while the fetch fails no tick runs and nothing is built, and a non-`FetchFailed` error still goes to `iteration failed`. They guard against a fix that breaks those points.
+
+   Every module the tests use imports; none was missing. `make lint` is green. I changed no earlier test file.
+
+   `lint`: lint: green (0.1 s)
