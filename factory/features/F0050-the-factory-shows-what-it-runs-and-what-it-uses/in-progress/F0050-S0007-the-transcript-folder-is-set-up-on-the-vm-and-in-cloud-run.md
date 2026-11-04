@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T20:03:37.451213Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-04T20:03:31.374580Z'
   stage: doing
   run: 9b68accece7f456fa0e099a3f1344554
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:03:37.451213Z'
+  stage: tests
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -199,3 +208,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
     The journal did not change what the task means, so `## Description` is unchanged.
 
     `make check`: green (test 87.1 s, `check: green`).
+12. factory: started tests as vm.
