@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T19:05:32.372023Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-04T19:05:26.410134Z'
   stage: review
   run: 7d177ed71d9142c2864b2593b66a634a
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-04T19:05:32.372023Z'
+  stage: doing
 ---
 
 # The cost record sums up the run's tool calls
@@ -236,3 +245,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     - `tests/domain/test_contract.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`).
     - `tests/domain/test_contract_version_4.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
     - `tests/domain/test_contract_version_4_2.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
+13. factory: started doing as vm.
