@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T21:28:15.400434Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-04T21:28:15.400434Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-04T21:31:51.777889Z'
+  stage: doing
+  run: ed9b70bc251d4e409f2907f43f9b45c3
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -267,3 +269,17 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
 
     `lint`: lint: green (0.1 s)
 17. factory: started doing as vm.
+18. coder: Round 1, after the tester's test for criterion 7 (journal 16). I changed no code. `src/factory/domain/tool_uses.py` already keeps the first `tool_result` of two `user` lines with the same id through `results.setdefault(...)`, which is the round-0 code (journal 10). So the new test `tests/domain/test_tool_uses_replayed_lines.py::test_a_repeated_user_tool_result_keeps_the_first_line_s_time_and_outcome` passes against it with all three rows (second-line-later, second-line-null, second-line-failed).
+
+    Main choice: I left the code alone. I rejected writing a separate result-dedup path, because the shared `setdefault` already states the first-wins rule for uses and results alike.
+
+    Refactor: nothing to change. The diff against main is the same as in round 0.
+
+    Description: already lists criterion 7 and the renumbered closing criteria (8 `make check`, 9 docs), so I did not rewrite it.
+
+    Noticed, not touched: the same as journal 10. A malformed item on a line of another type is now skipped rather than making the transcript unreadable. The docs criterion (9) is for the documenter.
+
+    `check`: check: green (test: green (88.0 s), coverage 99.25 %)
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 41 known, 2 gone
