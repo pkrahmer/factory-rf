@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 544
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T18:41:31.687184Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-04T18:41:31.687184Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-04T18:41:57.176285Z'
+  stage: intake
+  run: ace39bc97fb5450a9342fc4e0d35a38d
+  blocked: question
 ---
 
 # The cost record sums up the run's tool calls
@@ -60,3 +63,12 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed). The smoke test is fine: it passes no `-q`, and addopts already sets one. The Interface states several rules that no criterion tests:
+   1. `seconds` is `None` when the runtime gives no times. No criterion covers it, on either side. Which runtime gives no times, and should a row check `None` there and a float where times exist? I would add a criterion with one row per case.
+   2. `seconds` must be non-negative and finite. No criterion refuses a negative value, NaN or infinity, and none accepts 0. I would add a criterion with rows for -1, NaN and inf (refused) and 0 (accepted).
+   3. `tools` is sorted by `tool`, with one entry per tool. No criterion tests the ordering. I would add one with a run whose tools first appear out of alphabetical order.
+   4. `tools` is `None` on a `started` record. Criterion 5 covers an unreadable transcript but not the `started` record. I would add a row for it.
+   5. A name that breaks the form is counted under `other`. Criterion 3 lists a space, a slash and more than 64 characters. It does not list the exact limit (64 accepted, 65 to `other`) or the accepted characters `_`, `-`, `.` and `:`. Should two bad names merge into a single `other` entry, with their calls and seconds summed? And if a real tool is named `other`, does it merge with them? I would answer yes to both.
+   6. The `ToolUse.tool` form (at most 64 characters of the listed set) has no criterion on the model itself. Is a name that breaks the form refused by the model, with `other` produced only by the wrapper? I would say yes and add a row.
+   7. Criterion 1 says "one entry per tool used" but does not say that calls and failed calls are summed per tool when a tool is used several times. A row with repeated calls and one failure would show it.
+   8. A call with no `tool_result` (an interrupted run) has no stated handling: counted as a call, not failed, with no seconds? Which is meant?
