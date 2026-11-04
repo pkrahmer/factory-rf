@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T09:18:07.296312Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-04T09:18:07.296312Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T09:19:58.266341Z'
+  stage: review
+  run: 1edb1336802548c4995dd58aaf5a27b3
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -304,3 +306,17 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 18. factory: started review as vm.
+19. reviewer: Findings:
+
+    1. `tests/test_stage_image.py` `_stage_commands` (added beside `_final_stage`): this copies the body of the existing helper `_commands` in `tests/dockerfile_support.py:109`. Both flatten `_shell_lines` → `_pipelines` → commands, and the only difference is that `_stage_commands` takes the instruction list where `_commands` takes the text. CLAUDE.md and my lessons count a second copy of a helper as a finding. Fix (the tester's, under the standing leave): move the instruction-level body into `tests/dockerfile_support.py` (for example `_instruction_commands(instructions)`) and have `_commands` call it, so `_commands` keeps its name and behaviour. Then use the moved helper in place of `_stage_commands` in `_installs_one_runtime_by_its_name` and `_final_stage_cleans_up`.
+
+    What I checked and found sound:
+    - Group 1: every criterion from 1 to 8 has a test, and each refused side the criteria and the human's answers (entry 4) name is a row: a claude and an empty default; node, npm, the npm cache, the whole prefix, the other runtime's install and baseline as `COPY --from` sources; an `npm` line after the final FROM; two installs; an install whose package does not depend on the runtime; the check missing; a message without each of the three words; tmp, apt lists, debconf and logs removed from the cleanup; each ENV line removed; the first line without the argument; the job-start build without the argument.
+    - Group 1: the Interface's empty or unknown `AGENT_RUNTIME` is covered by criterion 5's text check. The `*)` branch at `vm/Dockerfile:18-22` refuses both. The coder's `make check` was green (entry 17).
+    - Groups 2 and 3: the diff touches only `vm/` and tests, with no layer involved. There are no silencing markers or secrets. The build argument is quoted in `vm/job-start.sh:158`, and the runtime name is checked before any install.
+    - Group 4: the Dockerfile does what the Interface says. The final stage holds no Node, npm, npm cache or other runtime, only the one resolved executable from `COPY --from=install` (the human accepted this choice in entry 11). It cleans `/var/lib/apt/lists/*`, `/var/cache/debconf/*-old`, `/var/log/*.log`, `/var/log/apt/*` and `/tmp/*`. Each version setting has one `ARG ...=` line, so `dockerfile_arg` in job-start reads them unchanged. The comments explain why.
+    - Group 5: the Description, the Interface and the docs criterion match what was built. The journal names the main choice (copy the resolved executable, not the package directory) and what it rejected.
+
+    Earlier tests:
+    - `tests/test_stage_image.py`: changed under the human's leave in `feature.md` ("A leave, for S0001: its tester may change `tests/test_stage_image.py` to the image S0001 describes"). The two lambda rows were changed under the human's answer in journal entry 11.
+    - `tests/test_vm_job_start.py`: `test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options` was changed under the same leave in `feature.md` (the row of the build command, for the runtime argument). `test_the_stage_image_is_built_for_the_instance_runtime` and its helpers are additions that need no leave.
