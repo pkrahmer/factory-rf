@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T02:01:25.881308Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -189,6 +185,12 @@ journal:
   kind: started
   at: '2026-11-04T02:01:25.881308Z'
   stage: docs
+- number: 33
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T02:02:33.279327Z'
+  stage: docs
+  run: e2445c6c329a48f4b38656a17808f97f
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -530,3 +532,29 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     - tests/human_clone.py: none needed. It only adds `remove_file`, and the earlier contents are unchanged.
     - tests/log_support.py: none needed. It only adds `state_log_lines`, and `log_lines` is unchanged.
 32. factory: started docs as vm.
+33. documenter: Docs, round 1. I read the story, its journal and the diff (`src/factory/entry/run.py`, `src/factory/entry/wiring.py`, the tests). No findings: the code matches the Interface and the criteria. I changed only documents, so I did not run `make check`. The factory's checks follow this stage.
+
+    Files changed:
+    - `docs/operator-guide.md`, *The project's stage file*:
+      - The start-only sentence is replaced. The factory now follows `main` without a restart.
+      - A new subsection, "A change on `main` takes effect before the next stage". It covers a changed, added or removed file, an unchanged file that builds nothing, a running stage that is not interrupted, and the single project image kept.
+      - A table of the three log lines, with `<commit>` as the first 12 hex digits.
+      - In *The stop `stage_image_failed`*, the detail's `at <commit>: ` prefix, and the image in use staying the old one.
+      - The "what to do" paragraph: a failed build waits for a new `main`; the same file is not rebuilt; another file or no file ends the stop.
+    - `docs/project-guide/stage-environment.md`, *The project's stage image*:
+      - Where the comparison runs: `_ProjectImageStart.prepare`, next to the preflight's probe of `main`.
+      - How it works: `stage_file_on_main`, `StageImageReport` and `stage_image_report`, a new tick on new boundaries, and `Images.build` removing the previous image.
+      - The stop now ends at a `main` with another file, not at the next start.
+    - `docs/decisions.md`: one new entry with feature decision 5 and its reason, which I took from the story's Description.
+
+    Rejected: none. The story names no rejected option for this decision, so I wrote no "Rejected" line.
+
+    I ran no examples, because I wrote none. The operator guide's table repeats the log lines the smoke test greps for (`built`, `back to the base at`, `failed at`).
+
+    Cross-read and found current: README.md (docs criterion says none), the operator guide's *The `PATH` and the identity*, *The image on the cost records* and the stops list (`scope` machine), and the project guide's *The `PATH`* point.
+
+    Stale text I saw and did not touch: none that is unrelated. I did notice that after a failed fetch, the iteration fails and is logged as `iteration failed` (coder's entry 10). I did not document it; the human accepted it "for now".
+
+    `check`: check: green (not run again: passed on tree c99c2fe9392e at 2026-11-04T01:58:07Z)
+    `secrets`: secrets: green (2.7 s)
+    `documents`: documents ok
