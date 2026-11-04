@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T01:46:24.743217Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-04T01:46:24.743217Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T01:49:42.377090Z'
+  stage: review
+  run: 45d2c5ce71e6491fbdbf88349a1524b3
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -291,3 +293,21 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     `check`: check: green
     `duplicates`: duplicates: 1 new, 42 known, 0 gone
 18. factory: started review as vm.
+19. reviewer: Review, round 0. I read the work item, `git diff main...HEAD -- . ':!factory'` (`src/factory/entry/run.py`, `src/factory/entry/wiring.py`, `tests/entry/test_run_project_image_rebuild.py`) and the code it calls: `stage_layer`, `Images.build`, `build_tick`, `Tick` and `TickStatus`.
+
+    Groups 1 to 3 hold:
+    - Group 1, the criteria: criteria 1 to 7 each have a test that checks what the criterion says. The three rows of criterion 6 each have their own expectations. The 12-digit commit is checked in the stop's detail and in every log line. The coder's `make check` was green (entry 17).
+    - Comparing the text instead of `StageLayer.digest` is equivalent, because the digest is the sha256 of the text (`src/factory/domain/stage_layer.py:43`). The human accepted it in entry 11.
+    - Criterion 7 rests on `Images.build` removing untagged images (`src/factory/application/images.py:31`).
+    - Group 2, architecture, and group 3, security: no findings.
+
+    `make duplicates` reports 1 new finding: `FakeImages` unused in `src/factory/adapters/fake_images.py`. This diff does not touch that file, so it is not a finding here.
+
+    Findings:
+    1. `tests/entry/test_run_project_image_rebuild.py:124` `_commit`: copies `remote_commit` of `tests/git_support.py:174` (`git rev-parse` of a branch in the bare remote). Fix: use `remote_commit(remote, "main")` and slice it to 12.
+    2. `tests/entry/test_run_project_image_rebuild.py:128` `_remove_stage_file`: copies `remove_from_main` of `tests/application/test_tick_preflight.py:80`, plus the fetch, checkout and push of `HumanClone._on_branch` and `_push` (`tests/human_clone.py:57`). It also sets its own committer instead of `TEST_IDENTITY`. Fix: add a `HumanClone.remove_file(branch, path)` beside `push_file` in `tests/human_clone.py` and use it here.
+    3. `tests/entry/test_run_project_image_rebuild.py:211` `World._lines`: copies `log_lines` of `tests/log_support.py:6` (reads `state/factory.log`, empty when missing). Fix: filter `log_lines(tmp_path)` by `MARK`.
+    4. `src/factory/entry/run.py:201-205`: the `_ProjectImageStart` docstring says the tick's status "lives in memory and counts across ticks". But `_choose` builds a new `Tick` on every change of the stage file, so the error counts (`TickStatus`, `src/factory/application/tick.py:85`) start again at zero. Neither the docstring nor the journal says so. Fix: either carry the previous tick's status into the new tick, or say in the docstring that a rebuild resets the error counts.
+    5. Work item, criterion 9: it asks for "the four log lines", but the Interface and the smoke test name three (`built`, `back to the base at`, `failed at`). The documenter writes from this criterion. Fix: change it to "the three log lines".
+
+    Earlier tests: none. The diff adds `tests/entry/test_run_project_image_rebuild.py` and changes no test file that `main` holds.
