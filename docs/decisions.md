@@ -1312,6 +1312,7 @@ Date: 2026-11-01 (F0047-S0006; decision 17 of the feature; the human, 2026-10-31
 - Why: a job rebuilds the image at every start, and Debian's mirror keeps only a package's current version, so an exact version breaks the build at the next point release. Within one stable release Debian ships only security and serious fixes. The three tools that shape a stage's result have registries that keep every version. A VM's next rebuild takes the current packages of the same release.
 - `tests/test_stage_image.py` allows the findings of an `apt-get install` of exactly those seven names and still fails any other floating reference. A new Debian release is a deliberate change of the digest.
 - Rejected: pinning the packages and refreshing the pins in every release (a broken start in between); dropping the digest (the release would float).
+- Superseded in part by "The factory's tools live apart, under `/opt/factory`, with their own Node": the image installs six Debian packages, `xz-utils` in place of `nodejs` and `npm`, and `tests/test_stage_image.py` allows those six names.
 
 ## opencode loads and contacts only what the company provider needs
 
