@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 539
 comments_read: [6628314128, 6628465356, 6628999669, 6629159081, 6629630973, 6630091305]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T12:07:45.689565Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -238,13 +234,19 @@ journal:
   kind: started
   at: '2026-11-04T12:07:45.689565Z'
   stage: review
+- number: 42
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T12:09:45.443080Z'
+  stage: review
+  run: 9565f6c553e74d13b02a16c6c12b0d94
 ---
 
 # The cost records show the image sizes, the free disk, the memory and the CPU
 
 ## Description
 
-The growth that F0050 removes came as a surprise: nothing the factory writes says how large its images are, how much disk is left, or how much memory and CPU the containers took. On 2026-11-04 factory-vm held a 2.4 GB image of an idle instance, a stage image that was two thirds leftovers, and a memory peak of 8.1 GB of 15.6 GB, and each was found only by hand; npm's `EBADENGINE` warning was printed by every build for days before anyone read it. This story adds one object, `machine`, to every completed cost record, so that the records on GitHub and the Factory Timeline show the machine from a distance: the sizes of the base image and of the project's layer, the free space of the image store and of the stage's dataset, the memory peak and total, and the run's own CPU time and the time its work waited for a CPU or for memory. The waits are the measures that say whether the machine is too small. Every value is read from a file or a command the factory already reaches, at the run's start and end; nothing samples during the run.
+The growth that F0050 removes came as a surprise: nothing the factory writes says how large its images are, how much disk is left, or how much memory and CPU the containers took. On 2026-11-04 factory-vm held a 2.4 GB image of an idle instance, a stage image that was two thirds leftovers, and a memory peak of 8.1 GB of 15.6 GB, and each was found only by hand; npm's `EBADENGINE` warning was printed by every build for days before anyone read it. This story adds one object, `machine`, to every completed cost record, so that the records on GitHub and the Factory Timeline show the machine from a distance: the sizes of the base image and of the project's layer, the free space of the image store and of the stage's dataset, the memory peak and total, and the run's own CPU time and the time its work waited for a CPU or for memory. The waits are the measures that say whether the machine is too small. Every value is read from a file or a command the factory already reaches: the image sizes when the factory builds or chooses an image, the rest at the run's start and end; nothing samples during the run.
 
 The memory peak is the kernel's high-water mark of the cgroup that holds the factory user's containers, which cannot be reset on the kernels in use (6.8 on factory-vm): it is the highest use since that cgroup began, on a VM with lingering since boot, not the peak of the run. Its name says so, and the first record in which it rises names the run that raised it. The CPU time and the two waits are differences of the kernel's running totals between the run's start and end, so they are the run's own; they count every container of the factory user, so two instances that run at once on one machine see each other's load. A value the machine cannot give is `None`, and a machine that gives none has `"machine": null`. The factory's log line for each built image also gives the sizes and the count of the build's warnings.
 
@@ -279,7 +281,7 @@ The memory peak is the kernel's high-water mark of the cgroup that holds the fac
 10. The warnings count is case-insensitive: a lowercase `warn` line and a mixed-case `Warning` line are each counted; one row each.
 11. A size that cannot be read is written `unknown` in the log lines (`base unknown`, `layer unknown`); a project image smaller than its base gives a layer of `None` (`layer unknown` in the log line); a running total that is lower at the run's end than at its start (the slice began again) gives `None` for its difference. One row each.
 12. `make check` stays green.
-13. docs: `docs/operator-guide.md`: in the section on cost records, the `machine` object and each of its fields, that the memory peak is a high-water mark since the slice began (since boot on a VM with lingering) and not the run's own peak, that the CPU time and the waits are the run's own but count every container of the factory user, and how to read them (CPU time over duration as the cores in use; a wait above zero as the machine being too small); in *The project's stage file*, the new log lines. `docs/decisions.md`: one entry that the records carry the machine's measures, why the peak is the slice's high-water mark (no reset before kernel 6.12, and sampling during a run was not worth its cost), and why the CPU and the waits are differences of running totals. `README.md` and the project guide: none.
+13. docs: `docs/operator-guide.md`: in the section on cost records, the `machine` object and each of its fields, that the memory peak is a high-water mark since the slice began (since boot on a VM with lingering) and not the run's own peak, that the CPU time and the waits are the run's own but count every container of the factory user, and how to read them (CPU time over duration as the cores in use; a wait above zero as the machine being too small); in *The project's stage file*, the new log lines, with `unknown` for a size that cannot be read; and one sentence that under the `job` container profile the containers run as root, so the user slice may be another cgroup and the measures may then be `None` or another slice's. `docs/decisions.md`: one entry that the records carry the machine's measures, why the peak is the slice's high-water mark (no reset before kernel 6.12, and sampling during a run was not worth its cost), and why the CPU and the waits are differences of running totals. `README.md` and the project guide: none.
 
 ## Smoke test
 
@@ -676,3 +678,31 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 3 new, 43 known, 0 gone
 41. factory: started review as vm.
+42. reviewer: Review of round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`. For the regenerated schemas I read only the stat. Entries 37 and 40 record the coder's `make check` as green. Round 0's findings 1 to 5 are met in the code and the tests: criterion 11 has its rows, the begin-then-complete row exists, `PodmanImages.size_bytes` and `store_path` have tests, the return-to-the-base test is rewritten, and `chosen_image` measures the sizes once. I met finding 6 myself, under the human's leave in entry 38: I added exactly the given text to criterion 13 after "in *The project's stage file*, the new log lines", and changed nothing else in the criteria. Groups 2 (architecture) and 3 (security) are clean. `factory.domain.machine` does no I/O, every podman call goes through `run_podman`, `os.getuid()` is called only in `factory.entry`, and no marker silences a check. The contract goes from 4.1 to 4.2, a minor bump for an added optional field. `make duplicates` reports 3 new vulture findings: the same false positives on `MachineMeasures` fields that entry 31 judged.
+
+    description corrected: "Every value is read from a file or a command the factory already reaches, at the run's start and end" -> "Every value is read from a file or a command the factory already reaches: the image sizes when the factory builds or chooses an image, the rest at the run's start and end". The Interface's bullet on timing settles this.
+
+    Findings:
+
+    1. `src/factory/entry/wiring.py:359` and `:350` (criteria 7 and 4). No test checks how `build_boundaries` wires the two inputs of the record.
+       - It sets `image_store=images.store_path()`. `test_cost_record_machine_measures.py` sets `image_store` by hand, and no test passes `SizedImages(store=...)`. So nothing checks that `store_free_bytes` is the free space of podman's store. With `image_store=None` every test still passes.
+       - It sets `machine=CgroupMachineReadings(_user_slice(), _MEMINFO)`. With `machine=None` every test passes too.
+       - Fix: a test in `tests/entry/` that calls `build_boundaries(..., images=SizedImages(sized_by_tag, store=<tmp folder>))` and asserts that `boundaries.image_store` is that folder and that `boundaries.machine` is a `CgroupMachineReadings`.
+    2. `src/factory/entry/run.py:261`, `told = report if has_stage_file or at_start else None` (criterion 8: "written once, at the factory's start"). No test checks the start side through the run.
+       - The wiring tests call `project_image_settings` with a report directly.
+       - `test_run_project_image_rebuild.py` reads the log lines only from after the first tick.
+       - So if `at_start` were dropped (`told = report if has_stage_file else None`), the factory would never write `stage image: base <GB> GB`, and every test would still pass.
+       - Fix: a run-level row, for example in `tests/entry/test_run_image_sizes.py` through `run_instance` with `SizedImages`. A start without a stage file writes `stage image: base 1.58 GB` to the state log exactly once.
+
+    Notes:
+    - `tests/application/test_cost_record_machine_measures.py:10` imports the private `_launch` from `cost_image_support`. A public name in the support module would say that it is shared.
+    - `tests/entry/test_wiring_stage_image_sizes.py`: `test_a_project_image_smaller_than_its_base_has_no_layer_size` and the `project-smaller-than-base` row of `test_a_size_that_cannot_be_read_is_logged_unknown` pin the same case at two levels.
+
+    Earlier tests:
+    - tests/adapters/test_podman_images.py: none needed. The diff only adds two test functions at the end, and every earlier test is unchanged.
+    - tests/conftest.py: the human's leave, entry 18 answer 1. The `boundaries` fixture gets `machine=FakeMachineReadings()` and its import.
+    - tests/disk_support.py: the human's leave, entry 23 answer 2. `FakeDiskSpace.free_bytes` answers an unknown path with `FileNotFoundError`, and its docstring says so.
+    - tests/domain/test_contract.py: the human's leave, entry 9 answer 2 (`"4.1"` → `"4.2"`).
+    - tests/domain/test_contract_version_4.py: the human's leave, entry 9 answer 2 (both `"4.1"` pins → `"4.2"`).
+    - tests/entry/test_run_project_image_rebuild.py: the human's leave, entry 18 answer 3. The two expected build lines take the new form, and `ScriptedImages` derives from the shared `SizedImages`, with its import.
+    - tests/test_docker_path_removed.py: the human's leave, entry 23 answer 1. `_no_module_reads_proc` is narrowed through `PROCESS_TABLE`, with one parametrized test whose rows are meminfo, pid, self and bare.
