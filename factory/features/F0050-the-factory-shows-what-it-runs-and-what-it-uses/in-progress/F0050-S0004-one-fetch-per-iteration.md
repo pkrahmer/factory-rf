@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 542
-comments_read: [6633278047, 6634278570, 6634494947]
+comments_read: [6633278047, 6634278570, 6634494947, 6634929291]
 handed_over: null
 claim: null
 journal:
@@ -165,6 +165,11 @@ journal:
   stage: doing
   run: eb89b169bb0a4d5887aa14bccf34f174
   blocked: question
+- number: 29
+  speaker: human
+  kind: comment
+  at: '2026-11-04T15:41:05.310546Z'
+  stage: doing
 ---
 
 # One fetch per iteration
@@ -446,3 +451,6 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     Doing all four in one tests round saves a round. With B, I end with `tests` naming only findings 1–3.
 
     No code changed in this run. `make check` was not run because the tree is the same as in entry 24, where it was green. Noticed, not touched: the 3 new `make duplicates` findings in `src/factory/domain/cost_records.py:41-43`, which are outside this story.
+29. 2026-11-04 human: Answer of the human: **A** "leave to change `TICK_RUN`."
+
+    Leave for the tester: in `tests/application/test_tick_docstrings.py`, `TICK_RUN` gets exactly the sentence "With `fetched`, the caller has already fetched in this iteration and raised or cleared `fetch_failed`: the tick skips its own fetch." after its first sentence; nothing else in that module. Do all four changes in one tests round, as you propose.
