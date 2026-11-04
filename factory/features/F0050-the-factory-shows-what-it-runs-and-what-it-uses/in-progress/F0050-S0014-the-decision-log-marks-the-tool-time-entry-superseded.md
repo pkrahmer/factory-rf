@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 553
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T23:51:56.738640Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-04T23:51:56.738640Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-04T23:52:16.499354Z'
+  stage: intake
+  run: 2133abc39b0d4450a7bb9075b5fbd7d0
 ---
 
 # The decision log marks the old tool-time entry as superseded
@@ -64,3 +66,9 @@ Expect: `1`.
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: a docs-only story. It names `docs/decisions.md` and gives the exact `Superseded by` line for the F0012 entry (line 407). It also gives the exact sentence for the S0006 entry (line 1537), to go after its Decision bullet. I checked that both entries exist and that the S0006 entry has a Decision bullet. No `src/` module changes, so there are no signatures to name.
+   - Criteria: 1 and 2 are each testable by grep for the exact line or sentence. Criterion 1 also requires the F0012 text to stay as it is, and criterion 3 requires that no other entry changes. Both can be checked against the committed diff. Nothing in the Interface states a rule with a failing side.
+   - Smoke test: both commands are plain `grep -c` calls on `docs/decisions.md` and run as written. Each `Expect:` is a checkable count of `1`. Neither pattern matches anywhere in the log yet, so the counts start at 0 and reach 1 only after the edit.
+   - Architecture: the change is only to the decision log, which the documenter stage keeps. It touches no layer and no file in the human's list.
+   - Scope: this is S0014 of F0050, which feature.md lists as "from A0002". It adds no code and no new behaviour. It is not in "Out of scope".
