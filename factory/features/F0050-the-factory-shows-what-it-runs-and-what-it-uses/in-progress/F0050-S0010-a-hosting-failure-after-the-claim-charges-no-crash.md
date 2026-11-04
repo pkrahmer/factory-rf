@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T22:24:21.490642Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-11-04T22:24:16.238274Z'
   stage: tests
   run: a159d51aedaa46dcbc251518bdcc2050
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T22:24:21.490642Z'
+  stage: doing
 ---
 
 # A hosting failure after the claim charges no crash
@@ -175,3 +184,4 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
     The factory left out changes outside the write paths: factory/features/F0050-the-factory-shows-what-it-runs-and-what-it-uses/in-progress/F0050-S0010-a-hosting-failure-after-the-claim-charges-no-crash.md.
 
     `lint`: lint: green (0.1 s)
+12. factory: started doing as vm.
