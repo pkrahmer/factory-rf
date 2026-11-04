@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T09:26:11.740715Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-04T09:26:11.740715Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T09:27:36.503349Z'
+  stage: docs
+  run: c14f4261b04d43cea7c80309357961cf
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -461,3 +463,28 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     - `tests/test_stage_image.py`: changed under the human's leave in `feature.md` (line 46, "its tester may change `tests/test_stage_image.py` to the image S0001 describes"). The two lambda rows changed under the human's answer in journal entry 11, and `_stage_commands` was removed under the standing leave to move a shared test helper.
     - `tests/test_vm_job_start.py`: `test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options` changed under the same `feature.md` leave (the row of the build command, for the runtime argument). `test_the_stage_image_is_built_for_the_instance_runtime` and its helpers are new, so they need no leave.
 28. factory: started docs as vm.
+29. documenter: Documentation written from the docs criterion; no code findings. I changed only documents, so I did not run `make check` (the factory's checks decide). I ran no example, because the image build is the human's check (criterion 9).
+
+    Files changed:
+    - `docs/operator-guide.md`, *The stage image*:
+      - The build command now carries `--build-arg AGENT_RUNTIME=<claude|opencode>`.
+      - A new paragraph says the argument has no default and that a missing, empty or unknown value fails the build. It also says the image holds only that runtime, which must match `FACTORY_AGENT_RUNTIME`, and that a runtime change needs a rebuild and a renewed `image-id` file.
+      - The contents list and the Node passage describe the two-stage build: what the final stage holds and clears, and the one native executable it copies.
+      - `xz-utils` lost its "(for the Node archive)" note, since the Node archive is now unpacked in the first stage.
+      - The pin-update list shows the new pins, Claude Code 2.1.318 and opencode 1.19.5.
+    - `docs/operator-guide.md`, the `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION` table rows: the example versions moved to the new pins.
+    - `docs/operator-guide.md`, *Running on opencode*: it said the image holds both runtimes. It now says the image must be built with `AGENT_RUNTIME=opencode`.
+    - `docs/decisions.md`: a new entry, "The stage image holds one agent runtime, built in a first stage". It says it supersedes the earlier `/opt/factory` entry where that one has both runtimes in the image. The Why is the Description's sizes and the one-runtime-per-instance fact. The Rejected line (copying the package directory) comes from the coder's journal and the human's acceptance in entry 11. The story does not quote feature decisions 1 and 2, and the documenter does not read `feature.md`, so the entry rests on the story's own text.
+
+    Cross-read and found current: `README.md`, `docs/project-guide/README.md`, and `docs/project-guide/agents.md` apart from the version example below. The operator guide's passages on the project stage file, the preflight's `agent-runtime-version` and `vm/setup.sh` still fit the diff.
+
+    Stale text noticed and not touched:
+    - `docs/operator-guide.md` line 336 says "opencode 1.19.3 asks `registry.npmjs.org`". It records an observation made on that version. I did not confirm it for 1.19.5.
+    - `docs/project-guide/agents.md` line 100 uses `1.19.3` as the example output of `opencode --version`. It is only an example.
+    - The final stage still installs `curl` and `xz-utils`, as the coder noted. The story does not ask to remove them.
+
+    Two statements rest on the coder's text, not on a run: that the preflight's `agent-runtime-version` fails on an image built for the other runtime, and that the retained executable is self-contained. The human's build in criterion 9 checks the second.
+
+    `check`: check: green (not run again: passed on tree 7efe7c4b2a4f at 2026-11-04T09:23:17Z)
+    `secrets`: secrets: green (2.5 s)
+    `documents`: documents ok

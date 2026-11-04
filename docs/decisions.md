@@ -1456,6 +1456,15 @@ Date: 2026-11-03 (F0049-S0001; decision 2 of the feature).
 - This supersedes the seven packages of "Debian's packages follow the base image's release" for `nodejs` and `npm`: the image installs six Debian packages, `xz-utils` in place of the two. The rest of that entry stands.
 - Why: Claude Code asks for Node 22 and Debian ships 18, so every build printed npm's `EBADENGINE` warning; and a project's layer must not change the runtime, which a project's own Node on the `PATH` would. The commands exec the runtimes directly because they are native executables that fail under Node (decision 6 of the feature).
 
+## The stage image holds one agent runtime, built in a first stage
+
+Date: 2026-11-04 (F0050-S0001; decisions 1 and 2 of the feature).
+
+- Decision: `vm/Dockerfile` has two stages and the build argument `AGENT_RUNTIME` (`claude` or `opencode`), which has no default; an empty or unknown value fails the build with a message that names the argument and both values. The first stage downloads Node, installs the one chosen runtime with npm, and the final stage copies from it only that runtime's resolved native executable. The final stage holds no Node, npm, npm cache or other runtime, and clears apt's lists, debconf's cache, the install logs and `/tmp`. The pins are Claude Code 2.1.318 and opencode 1.19.5.
+- This supersedes "The factory's tools live apart, under `/opt/factory`, with their own Node" where it has the image hold both runtimes and Node's `/opt/factory/node`; its Node pin and its exec commands stand, for the one runtime.
+- Why: an instance runs only the runtime `FACTORY_AGENT_RUNTIME` names, and the install left npm's cache (441 MB), the Node (201 MB) and opencode's unused "baseline" executable (178 MB) in the image.
+- Rejected: copying the runtime's npm package directory into the final stage, because it holds opencode's other CPU build and the other runtime's names (the human accepted copying the one resolved executable, 2026-11-04).
+
 ## A project adds a layer to the stage image with `factory/stage.Containerfile`
 
 Date: 2026-11-04 (F0049-S0002; decisions 1, 3 and 4 of the feature).
