@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034, 6643890182]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T22:35:56.678654Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-11-04T22:35:56.678654Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: result
+  at: '2026-11-04T22:36:20.346471Z'
+  stage: tests
+  run: b0a76fbbce95436c8196303c776bdd83
 ---
 
 # A hosting failure after the claim charges no crash
@@ -244,3 +246,12 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
 
     The code from journal 13 is already on the branch (`src/factory/application/stage.py`: `_release_after_hosting_failure` called from `_start`), and the human accepted how it handles a failed release push. With that one test deleted, `make check` was red only on that test in the last run, so it should come back green. I did not run `make check` this time because nothing changed. Journal 14 does not change what the task means, so the Description stays as it is.
 17. factory: started tests as vm.
+18. tester: Made the test change the human approved in journal 14, as the coder named it in journal 16. In `tests/application/test_hosting_failure_after_claim.py` I deleted `test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_run`. It pinned the claim being left in place after a hosting failure, which this story replaces. Its check that no agent ran is covered by criterion 1's test in `tests/application/test_hosting_failure_releases_claim.py`.
+
+    With that test gone, the module's import of `branch_state` from `proof_support` was unused, so I removed it from the import line. I made no other change. The `failed_after_claim` fixture stays, and so does `test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick`, which already had its `xfail` mark removed in journal 11.
+
+    Earlier test file changed: tests/application/test_hosting_failure_after_claim.py, under the human's leave (journals 4 and 14). No files created. Every module imported.
+
+    One run of `uv run pytest -q tests/application/test_hosting_failure_after_claim.py`: 1 passed. `make lint`: lint: green (0.1 s).
+
+    `lint`: lint: green (0.2 s)
