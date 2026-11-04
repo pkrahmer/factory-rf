@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 540
 comments_read: [6630647682]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T12:32:48.233812Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-04T12:32:48.233812Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-04T12:34:21.286427Z'
+  stage: tests
+  run: 62008eeeb5904f8989f2d6b8cf0589b2
+  blocked: question
 ---
 
 # A refused push or hosting call is retried and logged
@@ -131,3 +134,21 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
    - Architecture: the log line and the retry sit in the application layer, and the sleeper is an existing interface. The GitHub client change stays in the adapters, behind the hosting-service interface.
    - Scope: this is the feature's S0008 item. The stall push in `stalls.py` stays without a retry (answer 5). The cap of three tries stays.
 7. factory: started tests as vm.
+8. tester: I stopped before writing any tests. I read the work item, `dispatcher.py`, `stage.py` (`StageFinisher`), `handlers/recording.py` (`WorkItemRecorder`), `errors.py` (`PushFailed`), `git_cli.py` (`push`, `_failed_push`, `UNREACHABLE_MARKERS`), `machine.py`/`clock.py` (`Waiter`, `ManualWaiter`, already in the `boundaries` fixture) and `pygithub_hosting.py`. Criteria 1, 2, 4, 5, 7, 8, 9 and 10 can be tested. For 2, 7, 8 and 9 the plan is a real bare remote whose `pre-receive` hook fails a counted number of times, with `ManualWaiter.waits` checked for 5/15/45 s. Criteria 3 and 6 can't be tested as written without me choosing an interpretation, so I am asking.
+
+   Question: where does "git's reason" come from, and how does a test give git an output it controls?
+
+   `CLAUDE.md` says "do not fake git", so tests push to a real local remote. But when a real push is refused, git prints its own lines after the hook's `remote:` lines. With `--porcelain` and stderr merged, as `GitCli._execute` runs it, the output ends with the `To <url>` line, the `!\t<ref>\t[remote rejected] (pre-receive hook declined)` line and `error: failed to push some refs to ...`. So:
+   - (criterion 3) "the last three non-empty lines" of a real server refusal would hold `[remote rejected]`, but not `remote: Internal Server Error`. Is the row met when only the `[remote rejected]` line is in the message?
+   - (criterion 6) a hook that prints five lines doesn't produce output that ends in those five lines. A test can't build "five lines, keep the last three" or "a joined reason over 300 characters, cut at the end" through a real push without guessing git's own trailing lines.
+
+   The options I see:
+   - (a) The Interface names a pure function in `factory.domain`, e.g. `push_reason(output: str) -> str`: the last non-empty lines (at most three), joined, cut to 300 characters. Criteria 3 and 6 are text rows on that function. One further test per kind, on a real remote (hook refusal, non-fast-forward, removed remote), checks that `str(PushFailed)` from `StageFinisher`/`WorkItemRecorder.publish` holds the line that names the kind (`[remote rejected]`, `[rejected]` with `non-fast-forward`/`fetch first`, `does not appear to be a git repository`).
+   - (b) A stand-in `git` executable, given through `GitOptions.executable`, that prints a fixed output for `push` and hands everything else to the real git. That is a partial fake of git, which `CLAUDE.md` rules out.
+   - (c) Only real pushes, with criteria 3 and 6 reworded to what a real refusal prints (for example "the reason holds at most three lines and at most 300 characters, and its last line is git's last non-empty line").
+
+   I would choose (a), with the function's name and module put in the Interface.
+
+   A smaller point, to confirm with the same answer: for criterion 7, I would check "the same command, without `--force`" with a recording subclass of `GitCli`. It records each `push(branch)` call and the branch head before calling the real `push`, and the hook records the new commit id it got. Nothing is faked: the push runs. Real git can't be observed in any other way, because a server-side hook can't see `--force`.
+
+   Files created: none. No test run, so no import failures recorded yet.
