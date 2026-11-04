@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947, 6634929291]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T15:49:17.624542Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -223,6 +219,12 @@ journal:
   kind: started
   at: '2026-11-04T15:49:17.624542Z'
   stage: docs
+- number: 39
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T15:50:21.665333Z'
+  stage: docs
+  run: fb5fe29a67e8480db26050f7f5e14eeb
 ---
 
 # One fetch per iteration
@@ -606,3 +608,26 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     - `tests/entry/test_run_stop_requested.py`: the human's leave, entry 11 (only the signature of `run`).
     - `tests/scripted_tick_support.py`: the human's leave, entry 11 (only the signature of `run`).
 38. factory: started docs as vm.
+39. documenter: Docs round 1. I changed only documents, so I did not run `make check`; the factory's checks after this stage decide.
+
+    Files changed:
+    - `docs/project-guide/watching.md`: the heading line of the tick now shows `run(*, fetched=False)`. Step 1 (Fetch) says that `run(fetched=True)` skips the fetch and its raise and clear of `fetch_failed`, that `factory-run` fetches once per iteration in `_ProjectImageStart._follow_main` and builds its tick with `fetched=True`, and that every other caller fetches as before.
+    - `docs/project-guide/stage-environment.md`: in the paragraph on `_ProjectImageStart.prepare` I added that this is the iteration's one fetch. `_choose` passes `fetched=True`, so `Tick.run` neither fetches nor raises or clears `fetch_failed`.
+    - `docs/operator-guide.md`: in "The stops of the tick" the sentence about the fetch before every tick now begins with `factory-run` fetching once per iteration and the tick not fetching again. The rest of the sentence still follows from it.
+
+    Cross-read and found current against the diff:
+    - `README.md`.
+    - `docs/decisions.md`.
+    - The other sentences in `docs/operator-guide.md` that say the tick fetches: `factory-watch`, the disk check, the preflight and the archive pushes. They stay true, because `factory-watch` and other callers keep the default fetch.
+    - `docs/project-guide/git-and-hosting.md` and `agents.md` ("the tick fetches"). The first lists `fetch` as used by the tick; `agents.md` says a push to `main` is seen after the next fetch, and the fetch is still made every iteration.
+    - `docs/project-guide/stages.md` (the opening reads from what the tick fetched before).
+
+    I wrote no "Why" or "Rejected" lines, and `docs/decisions.md` is untouched.
+
+    The code matches the Interface, so I have no findings for the coder.
+
+    Stale text I saw but did not touch: none that this story makes stale. The reviewer's notes on the tests (`tests/remote_outage_support.py:15-29`, and the `explicit` parameter name in `tests/application/test_tick_own_fetch.py:49-55`) are not mine to fix.
+
+    `check`: check: green (not run again: passed on tree 686dce6a8d2a at 2026-11-04T15:45:35Z)
+    `secrets`: secrets: green (2.1 s)
+    `documents`: documents ok
