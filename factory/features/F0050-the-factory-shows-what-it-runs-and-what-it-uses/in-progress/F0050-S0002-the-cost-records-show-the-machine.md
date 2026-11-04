@@ -7,7 +7,11 @@ crashes: 1
 pull_request: 539
 comments_read: [6628314128, 6628465356]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T10:39:46.787555Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -68,6 +72,11 @@ journal:
   speaker: factory
   kind: crash
   at: '2026-11-04T10:39:38.314684Z'
+  stage: tests
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T10:39:46.787555Z'
   stage: tests
 ---
 
@@ -179,3 +188,4 @@ Expect: `1`, `9`, then a line that ends in `passed` with no `failed`.
    2. **(b)** "Both are set to `"4.2"`." The pinned value stays a deliberate guard: a version change must show up as a changed test, as in F0049 (decision 8). Leave for the tester: in `tests/domain/test_contract_version_4.py` the `"4.1"` pins and in `tests/domain/test_contract.py::test_a_schema_starts_with_the_dialect_and_the_contract_version` the `"4.1"` become `"4.2"`; nothing else in those modules.
 10. factory: started tests as vm.
 11. factory: crash 1: the run of stage tests ended without a result. Its work is discarded back to commit 08adcd814b8178dbdbc2269b2d733cc5a14da5c2.
+12. factory: started tests as vm.
