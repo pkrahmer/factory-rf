@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 1
@@ -203,6 +203,11 @@ journal:
   at: '2026-11-04T14:16:08.748996Z'
   stage: smoke-test
   run: fd1c3e2fdaa44350942d674f6e583762
+- number: 36
+  speaker: factory
+  kind: done
+  at: '2026-11-04T14:22:12.027172Z'
+  stage: approval
 ---
 
 # A stop says why, and is logged once
@@ -593,3 +598,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     Findings: none.
 
     Note, not a finding: the documenter (entry 33) saw that the code's detail reads `lint ended by signal 15 ...`, while the Interface's example reads `make lint ended ...`. Criterion 1 asks only that the detail name the command and its ending, so this does not contradict it.
+36. factory: done (pull request merged); cost: 16 runs, 27.2 min, 156 turns, 449462 tokens in (4286790 more from cache), 69123 out, $5.46
