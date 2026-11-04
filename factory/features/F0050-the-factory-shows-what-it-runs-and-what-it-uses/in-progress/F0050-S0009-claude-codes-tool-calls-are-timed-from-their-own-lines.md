@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T21:32:38.665560Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-11-04T21:32:32.980087Z'
   stage: review
   run: c8f780d6f6e1424bb6a41e750b016bc9
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:32:38.665560Z'
+  stage: docs
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -318,3 +327,4 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
     Considered and not reported: a malformed `tool_use` or `tool_result` item on a line of another type is now skipped, where S0006 returned `None` for it (noticed in journal 10). The Interface's rule that such a line "adds no call and no result" already covers this, and criterion 2 tests the rule, so I added no criterion.
 
     Earlier tests: none changed. The diff only adds `tests/domain/test_tool_uses_replayed_lines.py` (status `A`).
+21. factory: started docs as vm.
