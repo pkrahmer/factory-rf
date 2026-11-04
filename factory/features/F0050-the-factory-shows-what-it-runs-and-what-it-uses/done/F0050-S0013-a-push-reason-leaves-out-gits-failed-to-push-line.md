@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-11-04T23:45:08.769554Z'
   stage: smoke-test
   run: 76e490b8898a41dd8e8c257aa5db68dc
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-11-04T23:51:08.496584Z'
+  stage: approval
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -351,3 +356,4 @@ Expect: a line that ends in `passed` with no `failed`.
     No criterion is contradicted.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 8.5 min, 58 turns, 185780 tokens in (1031644 more from cache), 17612 out, $1.83
