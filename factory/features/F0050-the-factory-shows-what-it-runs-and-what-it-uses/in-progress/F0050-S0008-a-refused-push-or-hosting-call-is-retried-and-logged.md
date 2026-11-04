@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T12:23:35.918605Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T12:23:35.911782Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T12:23:35.918605Z'
+  stage: intake
+---
+
 # A refused push or hosting call is retried and logged
 
 ## Description
@@ -33,3 +60,6 @@ uv run pytest tests/application tests/adapters -k "push or handler or hosting" 2
 Expect: the two lines `handler error` and `push: retry`, then `1`, then a line that ends in `passed` with no `failed` (an `xfailed` count may stand beside it).
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
