@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T14:31:29.781306Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T14:31:26.065363Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-04T14:31:29.781306Z'
   stage: intake
 ---
 
@@ -86,3 +95,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
    3. Yes: add a criterion that a tick run alone (with `fetched=False`) whose fetch fails raises `fetch_failed` and runs nothing, and that the next one with a passed fetch clears it, as today.
 
    4. One parametrized test with two rows (a new commit on `main`, a new commit on a work-item branch), as the project's tests do for the sides of one rule; the criterion stays one.
+5. factory: started intake as vm.
