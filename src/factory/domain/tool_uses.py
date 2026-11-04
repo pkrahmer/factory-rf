@@ -25,8 +25,10 @@ class _Call:
 def claude_tool_uses(lines: list[str]) -> list[ToolUse] | None:
     """The tool calls of a Claude Code session transcript, one entry per tool, sorted by name.
 
-    A call is a `tool_use` item, failed when its `tool_result` has `is_error`, timed by the
-    `timestamp`s of the two lines. `None` when a line cannot be read; `[]` for no call.
+    A call is a `tool_use` item of an `assistant` line, failed when its `tool_result` on a
+    `user` line has `is_error`, timed by the `timestamp`s of the two lines. Lines of any other
+    type replay the conversation without its times and are not read; of two lines with the
+    same id, the first counts. `None` when a line cannot be read; `[]` for no call.
     """
     try:
         events = _objects(lines)
@@ -34,12 +36,15 @@ def claude_tool_uses(lines: list[str]) -> list[ToolUse] | None:
         results: dict[str, tuple[bool, datetime | None]] = {}
         for event in events:
             at = _timestamp(event)
+            line_type = event.get("type")
             for item in _content_items(event):
                 kind = item.get("type")
-                if kind == "tool_use":
-                    uses[_text(item, "id")] = (_text(item, "name"), at)
-                elif kind == "tool_result":
-                    results[_text(item, "tool_use_id")] = (item.get("is_error") is True, at)
+                if kind == "tool_use" and line_type == "assistant":
+                    uses.setdefault(_text(item, "id"), (_text(item, "name"), at))
+                elif kind == "tool_result" and line_type == "user":
+                    results.setdefault(
+                        _text(item, "tool_use_id"), (item.get("is_error") is True, at)
+                    )
     except _Unreadable:
         return None
     return _summed([_claude_call(use, results.get(call_id)) for call_id, use in uses.items()])

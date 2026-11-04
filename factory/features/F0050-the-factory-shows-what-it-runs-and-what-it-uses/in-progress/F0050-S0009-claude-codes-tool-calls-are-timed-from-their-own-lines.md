@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T21:21:50.327205Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-04T21:21:50.327205Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-04T21:25:48.287634Z'
+  stage: doing
+  run: e09c1a3a5f01482dabf4a2eb2a92f708
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -163,3 +165,21 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: I changed `claude_tool_uses` in `src/factory/domain/tool_uses.py`. Its signature is unchanged. It now takes a `tool_use` item only from a line whose `type` is `assistant` and a `tool_result` item only from a line whose `type` is `user`. A line of any other type, or with no `type`, adds no call and no result and changes no time. When two lines of the right type carry the same id, `dict.setdefault` keeps the first, for uses and results alike. I updated the function's docstring to say this.
+
+    Checks: `make check` is green (lint, types, layers, sast, secrets, licenses, test). All rows of `tests/domain/test_tool_uses_replayed_lines.py` pass, and so do S0006's rows in `tests/domain/test_tool_uses.py`, unchanged (criterion 4).
+
+    Main choice: I filter each item by its line's `type` inside the existing loop. I rejected two alternatives:
+    - Dropping non-`assistant`/`user` lines before the loop. It would put the type rule in a second place, away from the item kinds it pairs with.
+    - Letting a later line of the right type win. The Interface says the first time stays.
+
+    Applying first-wins to results as well as uses goes slightly beyond what the Interface spells out. It follows the same reasoning (a replay must not erase a time) and no criterion conflicts with it.
+
+    Noticed, not touched:
+    - A malformed `tool_use` or `tool_result` item (missing `id` or `name`) on a line of another type no longer makes the whole transcript unreadable (`None`). The item is now skipped, because those lines are no longer read. This matches the Interface ("a line of another type adds no call"), and no test pins either behaviour.
+    - The docs criterion (8) is for the documenter.
+
+    Refactor: I read the diff and found nothing to change.
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 41 known, 2 gone
