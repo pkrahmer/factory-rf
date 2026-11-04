@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T18:36:24.014147Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -217,6 +213,12 @@ journal:
   kind: started
   at: '2026-11-04T18:36:24.014147Z'
   stage: smoke-test
+- number: 38
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T18:36:48.315641Z'
+  stage: smoke-test
+  run: 1ba5fd8e68ef4f7fba855682d0e93028
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -693,3 +695,24 @@ Expect: the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: no
     `secrets`: secrets: green (3.4 s)
     `documents`: documents ok
 37. factory: started smoke-test as vm.
+38. smoke-tester: Smoke test, round 1. I ran both commands under `## Smoke test` from the repository root, as written and in order.
+
+    Command 1: `grep -rhoE 'FACTORY_TRANSCRIPT_(DIR|DAYS)' src/factory/domain/settings.py | sort -u`
+    ```
+    FACTORY_TRANSCRIPT_DIR
+    ```
+    Met its `Expect:` line: one line, `FACTORY_TRANSCRIPT_DIR`. No `FACTORY_TRANSCRIPT_DAYS` appears, which fits the description: the factory deletes no copies, and removing old ones is the site's job.
+
+    Command 2: `grep -rhoE 'transcript: (not kept for|removed)' src/factory | sort -u`
+    ```
+    transcript: not kept for
+    ```
+    Met its `Expect:` line: one line, `transcript: not kept for`. No `transcript: removed` line appears in `src/factory`, which fits the same rule.
+
+    Against the acceptance criteria: nothing in this output contradicts any criterion. The setting's name matches the Interface and criterion 5. The log line's prefix matches the Interface and criterion 4. The missing removal line agrees with the description.
+
+    Findings: none.
+
+    Not covered: these two commands only search the source. They do not run a stage, write a transcript or check the docs. I did not run `make check` (criterion 9), because the factory runs the stage's checks itself.
+
+    Decision: approval.
