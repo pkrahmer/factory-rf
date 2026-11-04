@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T02:47:43.356327Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T02:47:43.349560Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:47:43.356327Z'
+  stage: intake
+---
+
 # The stage image's documents say what the code does and why
 
 <!-- proposed by feature acceptance of 2026-11-04; refine before starting -->
@@ -36,3 +63,6 @@ uv run python -m factory.entry.check_documents
 Expect: `0`, `0`, `1`, then `documents ok`.
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
