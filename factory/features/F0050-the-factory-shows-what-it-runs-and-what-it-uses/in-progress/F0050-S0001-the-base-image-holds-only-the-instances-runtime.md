@@ -1,17 +1,13 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
-crashes: 1
+crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272, 6627457871]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T09:37:52.901870Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -238,6 +234,12 @@ journal:
   kind: started
   at: '2026-11-04T09:37:52.901870Z'
   stage: docs
+- number: 42
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T09:38:40.516315Z'
+  stage: docs
+  run: 9626916dc5de429aa340afefc075ea01
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -672,3 +674,23 @@ Expect: `2`, `2`, `1`, then a line that ends in `passed` with no `failed`.
 39. factory: started docs as vm.
 40. factory: crash 1: the run of stage docs ended without a result. Its work is discarded back to commit f5dbf1626cd0ed13a292536c6c8fa9f96137fc52.
 41. factory: started docs as vm.
+42. documenter: Round 2 docs pass. I changed no files. The only change since the documenter's first pass is the human's option (B) from entry 34: the global `ARG AGENT_RUNTIME` before the first `FROM` is gone, and the `install` stage (`vm/Dockerfile:8`) and the final stage (`vm/Dockerfile:39`) each declare it without a default. I read the documents against that diff. None of them mentions a global declaration, so none needed an edit.
+
+    Cross-read and found current against the diff:
+    - `docs/operator-guide.md`:
+      - The build command with `AGENT_RUNTIME`.
+      - The text that the image holds one runtime and must match `FACTORY_AGENT_RUNTIME`.
+      - The text that a runtime change needs a rebuild and a new `image-id`.
+      - The text about the first stage and the final stage's cleanups.
+      - The new pins, `2.1.318` and `1.19.5`, in the settings table and in *Update the pins*.
+      - The *Running on opencode* sentence about the image built for that runtime.
+    - `docs/decisions.md`: the new entry "The stage image holds one agent runtime, built in a first stage". It carries feature decisions 1 and 2 and its supersession of the earlier tools-under-`/opt/factory` entry. Its "Rejected" line (copying the package directory) comes from the coder's entry 10 and the human's acceptance in entry 11.
+    - `README.md` and `docs/project-guide/`: the docs criterion says none, and I found no stale text about the image in them.
+
+    I did not run the build commands. Criterion 9 leaves the image builds to the human on factory-vm, and the guide's command matches `vm/Dockerfile:1` and `vm/job-start.sh:158`. `make check` is not run, since I changed no file; the factory's checks follow.
+
+    Stale text noticed but not touched: none.
+
+    `check`: check: green (not run again: passed on tree 07da0eb18022 at 2026-11-04T09:33:42Z)
+    `secrets`: secrets: green (2.5 s)
+    `documents`: documents ok
