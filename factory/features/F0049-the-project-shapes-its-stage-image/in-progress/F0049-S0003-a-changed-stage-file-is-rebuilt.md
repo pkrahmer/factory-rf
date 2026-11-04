@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058, 6620208635]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T01:52:01.279075Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-04T01:51:55.787537Z'
   stage: doing
   run: 00283b525a80479485cbe5ab425681da
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-04T01:52:01.279075Z'
+  stage: tests
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -344,3 +353,4 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
     `make check`: check: green (test: green, coverage 99.51 %).
 
     The factory left out changes outside the write paths: factory/features/F0049-the-project-shapes-its-stage-image/in-progress/F0049-S0003-a-changed-stage-file-is-rebuilt.md.
+22. factory: started tests as vm.
