@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T01:11:49.412544Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -240,6 +236,12 @@ journal:
   kind: started
   at: '2026-11-04T01:11:49.412544Z'
   stage: doing
+- number: 42
+  speaker: coder
+  kind: result
+  at: '2026-11-04T01:15:28.011006Z'
+  stage: doing
+  run: b51c668364e8466789887ffe52050d15
 ---
 
 # A project's stage file builds the image its stages run in
@@ -705,3 +707,24 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
 
     `lint`: lint: green (0.2 s)
 41. factory: started doing as vm.
+42. coder: Round 2, after the tester's entry 40. I changed no files this run, and the working tree is clean.
+
+    I ran `make check` on the committed state, which includes the tester's two changes from the reviewer's findings 1 and 2 in entry 36. It is green: test 86.5 s, coverage 99.52 %, then `check: green`. Both new or changed tests pass against code that was already built:
+    - `tests/entry/test_wiring_image_path.py::test_the_tick_gives_the_agent_run_the_path_of_the_image_in_use` reaches `build_tick` → `production_environment(boundaries.image_path)` in `src/factory/entry/wiring.py`.
+    - `tests/entry/test_wiring_project_image.py::test_a_stage_file_that_breaks_the_rule_stands_as_a_stop_and_builds_nothing` now compares the stop's detail with the rule's own refusal. That detail is the `str()` of the `StageLayerRefused` from `src/factory/domain/stage_layer.py`, as `src/factory/entry/run.py` records it.
+
+    Main choice: I left the code as it stands. I rejected removing the `SYSTEM_PATH` defaults from `production_environment` and `agent_environment` so that a dropped argument would fail to type-check. The new tick test already catches a dropped argument, and that change would alter rows of earlier tests.
+
+    Refactor step: no code changed since the diff I read in entry 34, so nothing needs changing.
+
+    Description: the reviewer brought it up to date with entry 28 in entry 36. This round's entries do not change what the task means.
+
+    Noticed, not touched:
+    - From entry 36's notes: `STAND_IN` in `tests/adapters/test_podman_images.py` copies `PODMAN_SCRIPT` and `PodmanPlan` from `tests/podman_support.py`. That file has no row for inspect printing `null`, and it defines `SYSTEM_PATH` again.
+    - Entry 40 copies the `PROBE` and `COMPLETED` constants from `test_wiring_run.py`.
+    - Entry 17's notes still stand: a build that reaches its time limit gets podman's no-end text as its detail, an image that cannot be inspected falls back to the default `PATH`, and `image=None` reuses no stamp.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 42 known, 0 gone
