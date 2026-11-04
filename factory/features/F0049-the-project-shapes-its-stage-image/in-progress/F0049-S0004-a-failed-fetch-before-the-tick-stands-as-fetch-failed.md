@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T02:31:21.918597Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-04T02:31:21.918597Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-04T02:31:54.897462Z'
+  stage: tests
+  run: 0da224ae776945bba6dafe3fd990868c
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -206,3 +208,20 @@ Expect: a line that ends in `passed` with no `failed`.
 
     Noticed and not touched: the `fetch_failed` stop that the tick raises from its own fetch writes the same multi-line text to the log in the same way. No journal entry changed the meaning of the task, so the Description stays as it is.
 14. factory: started tests as vm.
+15. tester: I made the one test change that the human approved in entry 11 and that the coder named in entry 13.
+
+    **The change:** in `tests/entry/test_run_fetch_before_tick.py::test_a_failed_fetch_before_the_tick_stands_as_fetch_failed_and_runs_no_tick`, line 217 now reads `any(line.endswith(STOP_LINE + stop.detail.splitlines()[0]) for line in run.lines)`. It used to check `stop.detail` whole.
+
+    **Why:** git's error text runs over several lines, and the factory log writes each one as its own timestamped line. So no single log line can end with the whole detail. The stop still carries the whole text as `detail=str(error)`, and the test's other assertions on the detail stay as they were.
+
+    **Test run:** `uv run pytest -q tests/entry/test_run_fetch_before_tick.py`: all 7 cases pass with the coder's code in the working tree. `make lint` is green.
+
+    Criteria and their tests, unchanged:
+    - criterion 1: tests/entry/test_run_fetch_before_tick.py::test_a_failed_fetch_before_the_tick_stands_as_fetch_failed_and_runs_no_tick (rows `fails`, `passes`)
+    - criterion 2: tests/entry/test_run_fetch_before_tick.py::test_while_the_fetch_fails_the_image_in_use_stays_and_nothing_is_built (rows `no-stage-file`, `stage-file`)
+    - criterion 3: tests/entry/test_run_fetch_before_tick.py::test_the_first_fetch_that_passes_after_the_outage_clears_fetch_failed_and_ticks (rows `main-unchanged`, `stage-file-changed`)
+    - criterion 4: tests/entry/test_run_fetch_before_tick.py::test_a_fetch_that_fails_with_another_git_error_is_no_fetch_failed_stop
+
+    I created no files. The only file I changed is `tests/entry/test_run_fetch_before_tick.py`, which this story's tests stage wrote. Every module the tests use imports.
+
+    `lint`: lint: green (0.1 s)

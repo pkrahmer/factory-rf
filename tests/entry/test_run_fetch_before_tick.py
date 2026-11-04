@@ -214,7 +214,7 @@ def test_a_failed_fetch_before_the_tick_stands_as_fetch_failed_and_runs_no_tick(
         assert stop.scope == "repository"
         assert stop.detail.startswith("git fetch")
         assert " failed (exit " in stop.detail
-        assert any(line.endswith(STOP_LINE + stop.detail) for line in run.lines)
+        assert any(line.endswith(STOP_LINE + stop.detail.splitlines()[0]) for line in run.lines)
         assert run.ticked == [True, False]
     else:
         assert _fetch_failed(run) == []
