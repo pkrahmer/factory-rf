@@ -1550,3 +1550,4 @@ The five clean stories (first-pass, six runs each) cost 0.57 to 1.52 USD, 0.90 o
 - 15:01Z: the human raised the spending cap for F0050's runs from $80 to $120 (spent so far about $41.88). Heartbeat recreated with the new cap and the remaining order S0004 to S0007.
 - 15:12Z: F0050-S0004 PR #542 coder question 10 (Tick.run(fetched) breaks six test doubles that override run(self)): A, leave for the tester to change only those six signatures; the Outage copy may move under the standing leave.
 - 15:21Z: F0050-S0004 PR #542 coder question 17 (a seventh test double, recording_tick in tests/entry/test_run.py): A, and a general leave for any further double that only needs the fetched signature, named in the entry. Noted for the eval: a leave by list costs a question per missed place.
+- 15:39Z: F0050-S0004 PR #542 coder question 28 (round 1; Tick.run's docstring is pinned by TICK_RUN): A, leave for exactly that sentence; the four tests changes in one round.
