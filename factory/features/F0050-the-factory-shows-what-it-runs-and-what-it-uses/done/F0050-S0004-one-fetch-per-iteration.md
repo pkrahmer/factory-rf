@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -236,6 +236,11 @@ journal:
   at: '2026-11-04T15:51:00.031565Z'
   stage: smoke-test
   run: 42a25322ae80495ebe14fa49ee0285dc
+- number: 42
+  speaker: factory
+  kind: done
+  at: '2026-11-04T15:57:02.750313Z'
+  stage: approval
 ---
 
 # One fetch per iteration
@@ -666,3 +671,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     Findings: none.
 
     Open: nothing.
+42. factory: done (pull request merged); cost: 18 runs, 45.4 min, 150 turns, 422596 tokens in (3863654 more from cache), 63682 out, $5.09
