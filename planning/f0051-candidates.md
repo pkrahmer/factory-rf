@@ -52,3 +52,11 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 28. **Denied compound commands** (S0008: `cd $(mktemp -d) && ...` refused twice, one retry each). Fix: one line in the agent files on the allowed form.
 29. **A restart after a cap answer is a full run** (S0006: the reviewer re-read everything to apply one decided fix). Fix: the cap answer's run reads only the diff since the last review.
 30. **The first tester run is the most expensive single run** (S0001 $1.95, S0006: 25 turns). It is the price of good tests and seams; no fix, but it is where a token budget would bite first.
+
+## Added from the feature's sum (S0007's eval, 2026-11-04)
+
+31. **A human's close at approval counts toward `round_cap`.** S0007's send-back by closing #545 was its second send-back, so the next reviewer finding hit the cap and cost a stop. Fix: a human's send-back does not count as a round, or it resets the count as a cap answer does.
+32. **A send-back or cap answer cannot name the stage to go to.** S0007's narrow round had to go through `doing` again. Fix: the human's answer may name the next stage (for example `tests` or `docs`).
+33. **A behaviour the coder adds on its own is found rounds later.** S0007: the coder wrote the link refusal in its first run; the reviewer found it untested in round 2 ($1.22, 603 s). Fix: the coder names every behaviour it added beyond the Interface in its entry, and the reviewer checks those first.
+34. **`make duplicates` does not see shell**, and the coder runs the full Python suite (88 s) for a diff with no Python, where the relevant tests take 6 s. Fix: the coder's check follows what the diff touches; a duplicates check for `vm/*.sh`.
+35. **What worked: a leave that lists the reviewer's exact edits.** S0007: three edits made exactly, against about 24 in S0005. Keep it as the playbook's way to change a running story.
