@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913, 6640096367]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T19:40:17.919732Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -239,6 +235,12 @@ journal:
   kind: started
   at: '2026-11-04T19:40:17.919732Z'
   stage: docs
+- number: 42
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T19:41:19.764187Z'
+  stage: docs
+  run: 1b9453995f08478585bba07fc8d1d683
 ---
 
 # The cost record sums up the run's tool calls
@@ -664,3 +666,18 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     - `tests/application/test_stage_transcripts.py`: the standing leave to move a shared test helper (`_records` replaced by the shared `pushed_cost_records`, its unused imports removed; every test keeps its name and what it checks).
     - `tests/stage_run_support.py`: the standing leave to move a shared test helper (`pushed_cost_text` and `pushed_cost_records` added; nothing earlier changed).
 41. factory: started docs as vm.
+42. documenter: Docs round. I found no findings for the coder. I read the story, the diff of `src/` and `tests/`, and the code in `src/factory/domain/tool_uses.py` and `ToolUse`, and wrote the documents from them. I changed documents only, so I did not run `make check`. The factory's checks decide.
+
+    Files changed:
+    - `docs/operator-guide.md`: a new section "The tool calls on the cost records", placed after "The machine on the cost records". It covers `tools` and its four fields (`tool`, `calls`, `failed`, `seconds`). It also covers the `other` rule, the sort order, `[]` for no call and `null` for calls that cannot be read, and that a call without a result is a call, not failed, with no seconds. It states that the list holds no content, and that it is written whether or not `FACTORY_TRANSCRIPT_DIR` is set. The same file's records-contract paragraph now says `4.4` and lists what `4.4` added.
+    - `docs/decisions.md`: one new entry, "The cost record sums up the run's tool calls, without their content", with feature decision 6's second half as the Why. The story names no rejected option for it, so the entry has no "Rejected" line.
+
+    Cross-read and found current: `README.md`, the project guide (the docs criterion says none), and the operator guide's sections on transcripts, on refused tool calls in the sidecar and on the machine on the cost records. They match the code, apart from the contract version paragraph fixed above.
+
+    Stale text I saw and did not touch:
+    - `docs/operator-guide.md` line 1623 describes the transcript, and still reads right.
+    - `src/factory/adapters/opencode_runtime.py:351` (`_events`) still splits on `splitlines`. The reviewer already noted it, and it is code, so it is not mine to edit.
+
+    `check`: check: green (not run again: passed on tree b3ace9e4e2bb at 2026-11-04T19:37:43Z)
+    `secrets`: secrets: green (2.9 s)
+    `documents`: documents ok
