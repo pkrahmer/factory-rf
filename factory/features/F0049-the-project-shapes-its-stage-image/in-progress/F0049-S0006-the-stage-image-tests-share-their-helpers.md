@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 532
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T02:53:46.560940Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-04T02:53:46.560940Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-04T02:54:05.693191Z'
+  stage: intake
+  run: dedeb7b499f246449967edb6a2c29d36
 ---
 
 # The stage image's tests share their helpers and pin the image without an environment
@@ -64,3 +66,9 @@ Expect: `0`, `0`, then a line that ends in `passed` with no `failed`.
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete test modules and the shared sources (`factory.domain.containers.SYSTEM_PATH`, `tests/probe_support.py` and `tests/agent_definition_support.py` `COMPLETED`, `tests/log_support.py` `state_log_lines`). I checked that these exist and that the local copies it names exist (`SYSTEM_PATH` in `test_podman_images.py`, `BASE_PATH`/`PROBE`/`COMPLETED` in `test_wiring_image_path.py`, `PROBE`/`COMPLETED` in `test_wiring_run.py`). The `null` row has its printed output and expected value stated. No `src/` change, and `tests/vm_support.py` is explicitly kept.
+   - Criteria: 1 (the `null` row, which covers the untested side), 2, 3 and 4 are each testable by one check. Criterion 3 and the grep in the smoke test also pin that no module assigns `PROBE`/`COMPLETED`. The Interface states no new rule or behaviour beyond these, so no failing side is missing. The moves rest on the standing leave in `CLAUDE.md` (*Tests*), and every earlier test keeps its name.
+   - Smoke test: the grep and pytest commands are runnable. `pyproject.toml` already sets `-q` in `addopts` and the command passes none, so `tail -1` prints the summary line. Each `Expect:` (`0`, `0`, a line ending in `passed` with no `failed`) can be checked against the output.
+   - Architecture: tests only, in the folders that mirror the package. Shared helpers go into support modules, as `CLAUDE.md` requires.
+   - Scope: within F0049 as a follow-up of the S0002/S0003 reviewer notes. Nothing is in the feature's "Out of scope", and the story leaves `STAND_IN` alone.
