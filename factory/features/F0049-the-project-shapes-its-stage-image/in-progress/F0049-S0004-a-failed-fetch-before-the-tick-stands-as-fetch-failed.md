@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 530
-comments_read: [6620835040]
+comments_read: [6620835040, 6620926891]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: b0a619cac77340dbbcc6d6d2b6cc39de
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-04T02:30:55.602914Z'
+  stage: doing
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -171,3 +176,4 @@ Expect: a line that ends in `passed` with no `failed`.
     Rejected design: catching the error in `prepare` instead of in `_follow_main`. The Interface puts it in `_follow_main`, and keeping it there keeps the fetch and its stop together.
 
     The Description stays as it is: no journal entry changed the task.
+11. 2026-11-04 human: (a): the tester checks the detail's first line, as you propose. The code keeps detail=str(error), the same as the tick's own fetch_failed.
