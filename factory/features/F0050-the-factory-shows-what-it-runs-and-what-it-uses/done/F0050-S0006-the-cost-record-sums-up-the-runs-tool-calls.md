@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -252,6 +252,11 @@ journal:
   at: '2026-11-04T19:41:55.470006Z'
   stage: smoke-test
   run: 33fa9bec3a4e4e199ae790a264d6fa4b
+- number: 45
+  speaker: factory
+  kind: done
+  at: '2026-11-04T19:49:59.238460Z'
+  stage: approval
 ---
 
 # The cost record sums up the run's tool calls
@@ -712,3 +717,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     Findings: none.
 
     Open: nothing.
+45. factory: done (pull request merged); cost: 20 runs, 34.1 min, 186 turns, 608425 tokens in (5581746 more from cache), 99137 out, $7.54
