@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 536
 comments_read: [6621759488]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T03:31:49.451049Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-04T03:31:49.451049Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-04T03:33:51.511979Z'
+  stage: doing
+  run: e580696a5f4d480cab573617775e584f
 ---
 
 # The Debian packages decision points to the entry that superseded it
@@ -125,3 +127,12 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: I built nothing and changed no file. This story changes only `docs/decisions.md`. Under `CLAUDE.md` (*Docs*), the documenter keeps the decision log and the coder does not write it. The tester wrote no test (entries 6 and 8), so there was no failing test to make pass. I ran `make check` on the unchanged tree and it ended `check: green`. The working tree is clean.
+
+    - Main choice: I left the bullet the Interface names for the docs stage to add as the last bullet of *Debian's packages follow the base image's release*. The alternative was to add it myself in this stage, since it is a single line. I rejected that because the decision log belongs to the documenter, and a coder edit there would cross that line.
+    - Refactor: there is no diff, so there was nothing to refactor.
+    - Description: the journal did not change what the task means. The human's answer (entry 6) settles only that this story gets no test, and the Description already says "No code and no test change".
+    - Noticed, not touched: nothing.
+
+    `check`: check: green (not run again: passed on tree c75cce644896 at 2026-11-04T02:57:19Z)
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
