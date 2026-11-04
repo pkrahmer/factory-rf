@@ -9,10 +9,14 @@ from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoint, KillPoints
+from factory.domain.transcripts import Transcript
 
 
 class ScriptedRun(BaseModel):
-    """What one fake run does: files it writes and deletes, its result, and whether it dies."""
+    """What one fake run does: files it writes and deletes, its result, and whether it dies.
+
+    `transcript` is what the runtime keeps of the result's session once the run has played.
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -20,6 +24,7 @@ class ScriptedRun(BaseModel):
     deletes: list[str] = []
     result: AgentRunResult
     kill: bool = False
+    transcript: Transcript | None = None
 
 
 class FakeAgentRuntime(AgentRuntime):
@@ -31,6 +36,7 @@ class FakeAgentRuntime(AgentRuntime):
         self._version = version
         self._queue: deque[ScriptedRun] = deque()
         self._requests: list[AgentRunRequest] = []
+        self._played: list[ScriptedRun] = []
 
     def queue(self, run: ScriptedRun) -> None:
         """Add `run` to be played by a later call of `run`."""
@@ -46,6 +52,7 @@ class FakeAgentRuntime(AgentRuntime):
         if not self._queue:
             raise AgentRuntimeError("no scripted run is queued")
         scripted = self._queue.popleft()
+        self._played.append(scripted)
         _apply(scripted, request.working_directory)
         if scripted.kill and self._kill_points is not None:
             self._kill_points.reach(KillPoint.AGENT_RUN)
@@ -54,6 +61,14 @@ class FakeAgentRuntime(AgentRuntime):
     def version(self) -> str:
         """The version given at construction."""
         return self._version
+
+    def read_transcript(self, home: Path, session: str) -> Transcript | None:
+        """The transcript of the latest played run whose result has `session`, wherever `home`."""
+        del home
+        for scripted in reversed(self._played):
+            if scripted.result.session == session:
+                return scripted.transcript
+        return None
 
 
 def _apply(scripted: ScriptedRun, directory: Path) -> None:

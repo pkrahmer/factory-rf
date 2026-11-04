@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T16:25:55.132277Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,13 @@ journal:
   kind: started
   at: '2026-11-04T16:25:55.132277Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: question
+  at: '2026-11-04T18:11:54.856345Z'
+  stage: doing
+  run: 36ba896be8fe439b8586dca255f981cc
+  blocked: question
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -289,3 +292,42 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
 
     `lint`: lint: green (0.1 s)
 16. factory: started doing as vm.
+17. coder: Stopped with the implementation done and `make check` red, because tests contradict the Interface's seam (R9). A question for the human.
+
+    **Contradiction.** The Interface says `AgentRuntime` (`factory.application.agent_runtime`) gains `read_transcript(home, session) -> Transcript | None`, and `CLAUDE.md` says every interface operation is an `@abstractmethod`. Existing tests from other stories rule this out:
+    - `tests/application/test_interfaces.py::test_project_commands_and_agent_runtime_have_exactly_their_operations_abstract` pins `AgentRuntime.__abstractmethods__ == {"run", "version"}`. A non-abstract method would fail `test_an_interface_has_no_public_member_but_its_abstract_operations` in the same file instead.
+    - Six test stand-ins derive from `AgentRuntime` without `read_transcript`, so Python refuses to create them. This fails `make types` and about 40 tests:
+      - `WorkspaceRuntime` (tests/container_support.py), used by test_stall_container, test_container_environment_take and test_container_stage_checks
+      - `ObservingRuntime` (tests/observing_runtime.py), used by test_stage_launch
+      - `HeadNotingRuntime` (tests/application/test_stage_run.py)
+      - `RefusingRuntime` (tests/application/test_agent_run_probe.py)
+      - `SidecarRuntime` (tests/application/test_costs.py)
+      - `SwitchingRuntime` (tests/application/test_stall_environment.py)
+
+    The tester's own test has a separate bug: `tests/application/test_stage_transcripts.py::test_no_container_and_no_prompt_names_the_transcript_folder` (lines 264 and 266) calls `containers.calls()`. `FakeContainerRuns.calls` is a property (`src/factory/adapters/fake_containers.py:32`), so mypy reports `"list[ContainerCall]" not callable` and the test raises `TypeError: 'list' object is not callable`.
+
+    **Options:**
+    - (a) Keep the seam as named. The tester changes the pin in test_interfaces.py to `{"run", "version", "read_transcript"}` and gives each of the six stand-ins a `read_transcript` that returns `None` (or delegates, for `ObservingRuntime`). This touches tests other stories wrote, so it needs your leave.
+    - (b) Leave `AgentRuntime` unchanged. Add a separate ABC `TranscriptSource` in `factory.application.transcripts`, which the Claude, opencode and fake runtimes also implement; the stage would check `isinstance(agent_runtime, TranscriptSource)` and log "not kept" otherwise. No test of another story changes, but this departs from the Interface and adds a type check on a boundary.
+
+    Either way the tester changes `containers.calls()` to `containers.calls` in test_stage_transcripts.py. I would choose (a). With (a), the next doing round only runs `make check`. With (b), the coder moves `read_transcript` into the new ABC and the tester's three runtime transcript tests stay as they are.
+
+    **Built** (left in the working tree):
+    - `src/factory/domain/transcripts.py`: `Transcript`.
+    - `src/factory/domain/cost_records.py`: `TranscriptRef` (sha256 must be 64 lowercase hex; path refused when absolute, with `..`, or not ending in `.gz`) and `CostRecord.transcript`. The field sits before `machine` because `tests/domain/test_login_records.py` pins `login` as the last field. A started record refuses a transcript.
+    - `src/factory/adapters/cost_records_jsonl.py`: leaves out a `None` transcript, as it does for login and denials, so existing lines are written back as read.
+    - `src/factory/domain/contract.py`: version 4.3; schemas regenerated with `uv run python -m factory.entry.contract`.
+    - `src/factory/domain/settings.py`: `FACTORY_TRANSCRIPT_DIR` and `InstanceSettings.transcript_dir`. The new `transcript_dir_fault` refuses a relative path, or one inside the workspace, checkout, state directory or agent home. `read_settings` raises it as `SettingsInvalid` with the variable's name; a model validator applies the same rule.
+    - `src/factory/application/agent_runtime.py`: abstract `read_transcript`.
+    - `src/factory/application/transcripts.py`: `TranscriptStore` (ABC, `write` only, per journal 9), `TranscriptKeeper` (`keep`, plus a public `not_kept`, which writes the log line), `SessionTranscripts`, and `session_transcripts(store, log, runtime, workspace)`. `SessionTranscripts` handles a missing session, a missing workspace, a transcript the runtime does not have and an `OSError`, each with the `transcript: not kept for <run>: <reason>` line.
+    - `src/factory/adapters/transcript_files.py`: `FileTranscriptStore`. It opens the file `0600` from the start (folders `0700`) and returns the SHA-256.
+    - `src/factory/adapters/claude_runtime.py`: `read_transcript` globs `projects/*/<session>.jsonl` and also `.claude/projects/*/<session>.jsonl`. The test puts the file at `<home>/projects`, but inside the container `HOME=/work/home`, so Claude Code writes to `$HOME/.claude/projects`; only the `.claude` path would find a real session.
+    - `src/factory/adapters/opencode_runtime.py`: keeps what each run's calls printed (the first call and its resume) per session, and `read_transcript` returns those lines (`jsonl`).
+    - `src/factory/adapters/fake_agent_runtime.py`: `ScriptedRun.transcript`; `read_transcript` returns the transcript of the latest played run with that session.
+    - `src/factory/application/boundaries.py`: `transcripts: TranscriptStore | None = None`.
+    - `src/factory/entry/wiring.py`: a `FileTranscriptStore` only when `transcript_dir` is set.
+    - `src/factory/application/stage.py` and `src/factory/application/costs.py`: `StageLauncher.launch` keeps the transcript right after `run_agent` and before `complete`. A run that resumed within itself is kept once, after the resume. `CostRecorder.complete` gained an optional `transcript` argument; that, `printed` (opencode) and `SessionTranscripts` are the arguments and classes I added beyond the Interface.
+
+    **Main choice:** the keeping step runs once, in the launcher, after the whole patient run. The rejected alternative was keeping inside `PatientRuns` after every call, which would write a file and then replace it.
+
+    **Not done:** the refactor step, since `make check` is not green yet. I did not touch the Description: journal 9 removes the days setting, the deletion, criterion 6 and the `removed` log line, and journal 13 adds the opencode event-stream sentence. Both leave those edits to the intake or the reviewer.

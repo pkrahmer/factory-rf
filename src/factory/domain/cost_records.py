@@ -1,6 +1,7 @@
 """The cost record of one agent run, attributed to a work item, a stage and a role."""
 
 from decimal import Decimal
+from pathlib import PurePosixPath
 from typing import Annotated, Literal, Self
 
 from pydantic import (
@@ -18,6 +19,7 @@ from factory.domain.identifiers import Name, WorkItemId
 from factory.domain.times import UtcDatetime
 
 RunId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{32}$")]
+Sha256 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 Duration = Annotated[float, Field(ge=0, allow_inf_nan=False)]
 Cost = Annotated[Decimal, Field(ge=0, allow_inf_nan=False)]
 
@@ -47,6 +49,27 @@ class MachineMeasures(BaseModel):
     memory_wait_seconds: Duration | None = None
 
 
+class TranscriptRef(BaseModel):
+    """Where a run's transcript was kept and what it held when written.
+
+    `path` is relative to the transcript folder, `<work item>/<run id>.<ext>.gz`; `sha256` is
+    the SHA-256 of the file as written, so a reader can tell it is the file the record names.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    path: str
+    sha256: Sha256
+
+    @field_validator("path")
+    @classmethod
+    def _relative_gz_path(cls, path: str) -> str:
+        pure = PurePosixPath(path)
+        if pure.is_absolute() or ".." in pure.parts or not path.endswith(".gz"):
+            raise ValueError(f"{path} is not a relative .gz path inside the transcript folder")
+        return path
+
+
 class CostRecord(BaseModel):
     """One agent run: started, or completed with its measures; a measure `None` is unknown.
 
@@ -58,6 +81,7 @@ class CostRecord(BaseModel):
     token, or neither; it is `None` when the runtime had no login file.
     `machine` holds the machine's measures; it is `None` on a record written without them,
     and each of its measures is `None` when the machine could not give it.
+    `transcript` names the run's kept transcript; it is `None` when none was kept.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -79,6 +103,7 @@ class CostRecord(BaseModel):
     instance: Name | None = None
     denials: NonNegativeInt | None = None
     denied_paths: list[str] | None = None
+    transcript: TranscriptRef | None = None
     # Left out of a dump when unknown, so that a record copied through one never claims to have
     # asked the machine; the writer writes it null where it was asked.
     machine: MachineMeasures | None = Field(default=None, exclude_if=_is_none)
@@ -106,6 +131,7 @@ class CostRecord(BaseModel):
                 "denied_paths": self.denied_paths,
                 "login": self.login,
                 "machine": self.machine,
+                "transcript": self.transcript,
             }
             for field, value in measures.items():
                 if value is not None:

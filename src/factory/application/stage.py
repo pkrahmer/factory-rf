@@ -20,9 +20,11 @@ from factory.application.stage_environment import StageEnvironment, stage_enviro
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.take import TakeReport
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
+from factory.application.transcripts import session_transcripts
 from factory.domain.acceptance import acceptance_description
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.checks import CheckResult, command_line
+from factory.domain.cost_records import TranscriptRef
 from factory.domain.decisions import StageMove, StallReason, agent_entry, decide, stall_reason_of
 from factory.domain.died_runs import died_line
 from factory.domain.errors import HostingServiceError
@@ -120,11 +122,24 @@ class StageLauncher:
         )
         begun = self._costs.begin(started, _role_of(self._definition, stage))
         result = self._stage_environment.run_agent(request, run=PatientRuns(self._boundaries).run)
-        cost = self._costs.complete(begun, result)
+        transcript = self._keep_transcript(started.work_item, begun.run, result)
+        cost = self._costs.complete(begun, result, transcript)
         if result.died_text is not None:
             line = died_line(begun.run, started.work_item, started.stage, result.died_text)
             self._boundaries.log.line(line)
         return LaunchedStage(started=started, request=request, result=result, cost=cost)
+
+    def _keep_transcript(
+        self, work_item: str, run: str, result: AgentRunResult
+    ) -> TranscriptRef | None:
+        boundaries = self._boundaries
+        transcripts = session_transcripts(
+            boundaries.transcripts,
+            boundaries.log,
+            boundaries.agent_runtime,
+            boundaries.settings.workspace,
+        )
+        return None if transcripts is None else transcripts.keep(work_item, run, result)
 
     def _sync_time_limit(self) -> timedelta:
         sync = self._definition.project_commands.get("sync", ProjectCommandDefinition())

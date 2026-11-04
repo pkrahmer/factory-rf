@@ -61,6 +61,7 @@ from factory.domain.agent_runs import (
 from factory.domain.errors import AgentRuntimeError
 from factory.domain.kill_points import KillPoints
 from factory.domain.provider_limits import ProviderLimit, limit_in_text, named_wait
+from factory.domain.transcripts import Transcript
 
 # These names moved to the shared launch module; earlier callers still import them here.
 __all__ = [
@@ -84,6 +85,9 @@ SWITCHES = {
 }
 BUDGET_SUBTYPE = "error_max_budget_usd"
 _PATH_KEYS = ("file_path", "notebook_path")
+# Claude Code keeps its sessions under its configuration folder: `$HOME/.claude` by default,
+# the home itself when its configuration folder is pointed there.
+_SESSION_FOLDERS = ("projects", ".claude/projects")
 
 
 # A negative count or cost is no measure: such a reply does not parse, so the call is `died`.
@@ -382,6 +386,16 @@ class ClaudeCodeRuntime(AgentRuntime):
             return finished_run(result, started, self._kill_points)
         finally:
             files.remove()
+
+    def read_transcript(self, home: Path, session: str) -> Transcript | None:
+        """The session's `projects/<folder>/<session>.jsonl`, under `home` or its `.claude`.
+
+        `None` when no project folder holds it.
+        """
+        for folder in _SESSION_FOLDERS:
+            for found in sorted(home.glob(f"{folder}/*/{session}.jsonl")):
+                return Transcript(extension="jsonl", content=found.read_bytes())
+        return None
 
     def version(self) -> str:
         """The version `claude --version` prints, such as `2.1.289`.

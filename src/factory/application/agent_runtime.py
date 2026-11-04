@@ -1,8 +1,10 @@
 """The interface through which the factory runs an agent."""
 
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult
+from factory.domain.transcripts import Transcript
 
 
 class AgentRuntime(ABC):
@@ -19,6 +21,13 @@ class AgentRuntime(ABC):
     @abstractmethod
     def version(self) -> str:
         """The version of the runtime, as it reports it."""
+
+    @abstractmethod
+    def read_transcript(self, home: Path, session: str) -> Transcript | None:
+        """The transcript of `session`, as the runtime kept it in the agent's `home`.
+
+        `None` when the runtime kept none for it; `OSError` when one exists but cannot be read.
+        """
 
 
 class AgentDefinitionReader(ABC):

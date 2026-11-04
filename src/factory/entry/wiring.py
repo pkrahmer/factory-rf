@@ -32,6 +32,7 @@ from factory.adapters.power_off import ProcessExit, SystemctlPowerOff
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.adapters.pygithub_hosting import pygithub_service
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
+from factory.adapters.transcript_files import FileTranscriptStore
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.adapters.zfs_snapshots import DROP_CACHES_COMMAND, ZfsSnapshots
 from factory.application.acceptance import (
@@ -357,6 +358,9 @@ def build_boundaries(
         image_path=path,
         machine=CgroupMachineReadings(_user_slice(), _MEMINFO),
         image_store=None if images is None else images.store_path(),
+        transcripts=None
+        if settings.transcript_dir is None
+        else FileTranscriptStore(settings.transcript_dir),
     )
 
 
