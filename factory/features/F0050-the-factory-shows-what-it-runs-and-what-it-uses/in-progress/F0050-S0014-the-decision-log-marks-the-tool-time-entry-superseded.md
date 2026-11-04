@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 553
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-04T23:55:54.840625Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-04T23:55:49.648710Z'
   stage: review
   run: ed0eb3f963904949a7122140e23f2a7d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:55:54.840625Z'
+  stage: docs
 ---
 
 # The decision log marks the old tool-time entry as superseded
@@ -140,3 +149,4 @@ Expect: `1`.
       - The `- Superseded by *...*:` bullet the Interface gives follows the log's existing bullet form for this (for example `docs/decisions.md:152` and `:420`), so the documenter can write it as given.
 
    Earlier tests: none. The diff changes, renames or deletes no test file that `main` holds.
+10. factory: started docs as vm.
