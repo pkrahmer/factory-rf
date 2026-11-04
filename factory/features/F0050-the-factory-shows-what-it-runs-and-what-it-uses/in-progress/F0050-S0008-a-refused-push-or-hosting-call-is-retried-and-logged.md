@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 540
 comments_read: [6630647682, 6630816683, 6631188803]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T13:08:20.561295Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-04T13:08:20.561295Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-11-04T13:12:02.978248Z'
+  stage: doing
+  run: 3b37a1ca572543528ca6a54dba4eb8a4
 ---
 
 # A refused push or hosting call is retried and logged
@@ -501,3 +503,26 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
 
     `lint`: lint: green (0.2 s)
 27. factory: started doing as vm.
+28. coder: Round 1, after the tester's changes in entry 26. I changed no code and no test this round. On this round's run, `make check` was green (`check: green`, total coverage 99.41 %). The tester's changes from entry 26 are both in and pass: the passing `test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_run` with its strict xfail partner, and the parametrized `test_a_refused_push_is_retried_at_most_three_times` with the `refused-three-times` boundary row. The code already handled that row (`src/factory/application/pushes.py`).
+
+    What I built (unchanged since entry 20):
+    - `src/factory/domain/git.py`: `push_reason` and `push_is_retried`.
+    - `src/factory/domain/errors.py`: `PushFailed` now carries a `reason`.
+    - `src/factory/application/pushes.py`: `push_with_retries` and `push_failure`.
+    - The retried pushes, in `StageFinisher._commit_and_push` (`stage.py`) and `WorkItemRecorder.publish` (`handlers/recording.py`).
+    - `Git.last_push_output` in `src/factory/application/git.py` and `src/factory/adapters/git_cli.py`.
+    - `handler_error_line` in `src/factory/domain/tick_status.py`, used by `Dispatcher._count`.
+    - `hosting_retry()` in `src/factory/adapters/pygithub_hosting.py`.
+
+    Main choice (as in entry 20): git's reason crosses the `Git` interface through a separate `last_push_output()` operation. I rejected a `PushResult` return DTO from `push`, because it would have changed many tests.
+
+    Refactor step: nothing new to refactor; the diff is the same as at entry 20.
+
+    What the journal changed: entry 22 added the advice-line sentence to the Interface's `PushFailed` bullet. The meaning is the same, so I did not rewrite the Description.
+
+    Open for the human: criterion 5 is the xfail case. At the next tick a crash is charged for a stage in which no agent ran. The fix is not part of this story.
+
+    Noticed, not touched: `make duplicates` reported 3 new findings in round 0 (entry 20). They are vulture's warnings on unused variables in `src/factory/domain/cost_records.py:41-43`, a file outside this story.
+
+    `check`: check: green
+    `duplicates`: duplicates: 3 new, 43 known, 0 gone
