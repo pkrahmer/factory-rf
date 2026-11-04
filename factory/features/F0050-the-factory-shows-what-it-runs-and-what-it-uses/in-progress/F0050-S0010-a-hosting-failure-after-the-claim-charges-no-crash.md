@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T22:21:01.558602Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-04T22:21:01.558602Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-04T22:24:16.238274Z'
+  stage: tests
+  run: a159d51aedaa46dcbc251518bdcc2050
 ---
 
 # A hosting failure after the claim charges no crash
@@ -155,3 +157,21 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
 
    The claim and release commits that a long outage adds to the branch are accepted for this story; I note them for later planning.
 10. factory: started tests as vm.
+11. tester: Tests written from the criteria, with criterion 3 as the human reworded it in journal 9 (option A). I also carried that answer into `## Description`: criterion 3 now has the wording from journal 9, and the sentence on the count now says the factory retries every tick during an outage. Intake had not done this.
+
+    - criterion 1: tests/application/test_hosting_failure_releases_claim.py::test_a_hosting_failure_after_the_claim_releases_it_and_the_next_tick_runs_the_stage
+    - criterion 2: tests/application/test_hosting_failure_releases_claim.py::test_a_release_whose_push_is_refused_four_times_leaves_the_claim_and_a_crash_follows (rows pushed-first-try, pushed-after-two-refusals, refused-four-times). A pre-receive hook on the world's bare remote refuses only pushes whose head has the release subject, as the human approved in journal 9.
+    - criterion 3: tests/application/test_hosting_failure_releases_claim.py::test_each_failing_tick_counts_its_handler_error_from_one_and_reaches_no_cap (rows one-tick, three). Every `handler error` line counts `1 of 3`, all under the same `:<id>` event key, and no `error cap reached` line appears.
+    - criterion 4: tests/application/test_hosting_failure_releases_claim.py::test_an_error_other_than_a_hosting_failure_after_the_claim_releases_nothing. It drives `StageLauncher.launch` directly with a document that has no title line, which gives `WorkItemFormatError`. The claim stands, there is no release commit and no agent call.
+    - criterion 5: tests/application/test_hosting_failure_after_claim.py::test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick. Only its `xfail(strict=True, ...)` mark was removed, under the human's leave (journal 4, feature.md decision 12). Nothing else in that module changed.
+    - criterion 6: tests/application/test_hosting_failure_releases_claim.py::test_the_hosting_failure_reaches_the_caller_as_the_same_exception (rows release-pushed, release-refused). It uses a `FakeHostingService` subclass whose `create_pull_request` raises one known `HostingServiceError`, and checks the error with `is`.
+    - criterion 7: tests/application/test_hosting_failure_releases_claim.py::test_the_release_is_one_commit_with_its_subject_and_leaves_the_journal_and_counters. One commit has the subject `commit_subject(<id>, "claim released: hosting failed")`, it is the branch head, and its only parent is the claim commit. Journal, attempts, round and crashes are equal to the claim commit's.
+    - criteria 8 and 9: no test (`make check`, docs).
+
+    Files: created tests/application/test_hosting_failure_releases_claim.py; changed tests/application/test_hosting_failure_after_claim.py (mark only) and the work item's Description.
+
+    One run with `uv run pytest -q` on the two files: 6 failures plus S0008's test, all wrong results because no release happens yet (claim still set, crash entry, `crash:` event key on the second tick). Four pass today, as expected, because they pin behaviour that stays the same: the one-tick count, the WorkItemFormatError case, and both rows of the same-exception check. The release-refused row of criterion 2 checks the journal's crash entry only. After the crash, the queued run finishes the stage and the `crashes` field is 0 again. Every module imported; nothing failed to import. `make lint` is green; the type check was skipped as the stage says.
+
+    The factory left out changes outside the write paths: factory/features/F0050-the-factory-shows-what-it-runs-and-what-it-uses/in-progress/F0050-S0010-a-hosting-failure-after-the-claim-charges-no-crash.md.
+
+    `lint`: lint: green (0.1 s)

@@ -24,7 +24,6 @@ def test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_
     assert failed_after_claim.agent_runtime.requests() == []
 
 
-@pytest.mark.xfail(strict=True, reason="a crash is charged for a stage in which no agent ran")
 def test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick(
     failed_after_claim: World, work_item: WorkItemId
 ) -> None:
