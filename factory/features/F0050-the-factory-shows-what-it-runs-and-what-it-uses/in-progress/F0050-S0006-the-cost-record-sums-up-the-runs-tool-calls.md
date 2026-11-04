@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T19:14:46.957795Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-11-04T19:14:41.108872Z'
   stage: review
   run: 58949cf327d0409293838a84f50d04bd
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-04T19:14:46.957795Z'
+  stage: doing
 ---
 
 # The cost record sums up the run's tool calls
@@ -355,3 +364,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     - `tests/domain/test_contract_version_4_2.py`: the human's leave, journal entry 4 (`"4.3"` -> `"4.4"`, two pins).
     - `tests/application/test_stage_transcripts.py`: the standing leave to move a shared test helper. `_records` was replaced by the shared `pushed_cost_records`, and the imports it no longer needs went with it. Every test keeps its name and what it checks.
     - `tests/stage_run_support.py`: the standing leave to move a shared test helper (the shared `pushed_cost_text` and `pushed_cost_records` added; nothing earlier changed).
+21. factory: started doing as vm.
