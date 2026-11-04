@@ -35,7 +35,6 @@ from factory.entry.wiring import (
     read_environment_settings,
     read_hosting_token,
     system_clock,
-    with_image_path,
 )
 
 __all__ = [
@@ -233,9 +232,8 @@ class _ProjectImageStart:
         if chosen is None:
             self._failed = True
             return None
-        boundaries = with_image_path(
-            build_boundaries(chosen, inputs.token, hosting=inputs.boundaries.hosting),
-            inputs.images,
+        boundaries = build_boundaries(
+            chosen, inputs.token, hosting=inputs.boundaries.hosting, images=inputs.images
         )
         return activity_tick(build_tick(boundaries, chosen), inputs.idle)
 

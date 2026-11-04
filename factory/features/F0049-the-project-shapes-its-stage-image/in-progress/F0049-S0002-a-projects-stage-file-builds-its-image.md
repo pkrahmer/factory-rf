@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T00:37:21.109075Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -135,6 +131,12 @@ journal:
   kind: started
   at: '2026-11-04T00:37:21.109075Z'
   stage: doing
+- number: 23
+  speaker: coder
+  kind: result
+  at: '2026-11-04T00:43:23.439863Z'
+  stage: doing
+  run: 0acb3a2c2ae14aa99160b3213f03dfff
 ---
 
 # A project's stage file builds the image its stages run in
@@ -384,3 +386,22 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
 
     `lint`: lint: green (0.2 s)
 22. factory: started doing as vm.
+23. coder: I put the image's `PATH` into the check containers, which the human's answer in entry 17 (item 4) asked for. I also dropped the `with_image_path` workaround now that the conftest stand-in takes `images`. `make check` is green. On the first `make test`, `test_the_sync_the_check_and_the_agent_take_the_path_of_the_image_in_use[image-path]` was the only failure: the check's `PATH` was still the fixed one.
+
+    Built this round:
+    - `src/factory/adapters/make_commands.py`: `ContainerMakeCommands` takes a new keyword, `path: str = SYSTEM_PATH`. The check's environment is now `{**extra, **CHECK_ENVIRONMENT, "PATH": path}`. `CHECK_ENVIRONMENT` stays as it is, so the earlier `check` rows in `tests/application/test_container_environment_extra.py` and `tests/adapters/test_make_commands_container.py` still pass unchanged.
+    - `src/factory/entry/wiring.py`: `build_boundaries` reads the image's path once, through the private `_image_path(settings, images)`, before it builds anything. Without `images` it uses `SYSTEM_PATH`. It passes that one value to both `ContainerMakeCommands(path=...)` and `Boundaries(image_path=...)`. I removed the public `with_image_path` and its `__all__` entry, and the import of `dataclasses.replace`, which nothing used any more.
+    - `src/factory/entry/run.py`: `_ProjectImageStart._build_tick` now calls `build_boundaries(chosen, token, hosting=..., images=inputs.images)` directly.
+
+    The rest of the story (stage layer, images interface, podman adapter, fake, stop reason, start seam) is as entry 16 describes. The earlier rounds already committed it on the branch.
+
+    Main choice: the image's `PATH` is read once in `build_boundaries` and given to the check adapter's constructor, so the adapters stay immutable and the sync, the check and the agent all take the same value. I rejected setting the path after construction (`replace` on the boundaries, plus a setter on the check adapter). That would keep two sources for one value, and the check adapter would have to change after it is built.
+
+    Refactor step: removing `with_image_path` was the refactor. Reading the whole diff against `main` found nothing else to change.
+
+    Noticed, not touched:
+    - The Description still lists the watch criterion that entry 12 dropped. The factory left out the tester's edit to it, and I did not edit it either, since the work item may be outside my write paths. Someone who may write there has to remove it.
+    - These notes from entry 16 still stand, as entry 17 said: a build that reaches its time limit has podman's no-end text as its detail, not the tail. An image that cannot be inspected falls back to `SYSTEM_PATH`. With `image=None`, no preflight stamp is reused.
+
+    `check`: check: green
+    `duplicates`: duplicates: 1 new, 42 known, 0 gone

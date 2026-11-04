@@ -7,7 +7,7 @@ import shutil
 import sys
 import tempfile
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
@@ -148,7 +148,6 @@ __all__ = [
     "read_hosting_token",
     "repository_name",
     "system_clock",
-    "with_image_path",
 ]
 
 CREDENTIAL_HELPER = "/usr/local/bin/git-credential-factory"
@@ -302,7 +301,8 @@ def build_boundaries(
     git = GitCli(settings.checkout, git_options(settings))
     log = machine_log(state, clock)
     extra = extra_environment(settings, os.environ)
-    boundaries = Boundaries(
+    path = SYSTEM_PATH if images is None else _image_path(settings, images)
+    return Boundaries(
         git=git,
         hosting=hosting,
         agent_runtime=_agent_runtime(settings, containers, extra),
@@ -314,6 +314,7 @@ def build_boundaries(
                 checkout=settings.checkout,
                 extra_environment=extra,
                 ca_bundle=settings.ca_bundle,
+                path=path,
             ),
             git,
             JsonLinesRecordLog(state / _COMMAND_RECORDS_PATH, CommandRecord),
@@ -341,21 +342,19 @@ def build_boundaries(
         snapshots=snapshots,
         containers=containers,
         container_extra_environment=extra,
+        image_path=path,
     )
-    return boundaries if images is None else with_image_path(boundaries, images)
 
 
-def with_image_path(boundaries: Boundaries, images: Images) -> Boundaries:
-    """Return `boundaries` with the `PATH` that `images` reads from their stage image."""
-    image = boundaries.settings.stage_image
+def _image_path(settings: InstanceSettings, images: Images) -> str:
+    image = settings.stage_image
     if image is None:
         raise SettingsInvalid(STAGE_IMAGE_VARIABLE, _MISSING)
     try:
-        path = images.path(image)
+        return images.path(image)
     except ContainerError:
         # An image that cannot be read is the preflight's to report, as a missing stage image.
-        path = SYSTEM_PATH
-    return replace(boundaries, image_path=path)
+        return SYSTEM_PATH
 
 
 def build_images(settings: InstanceSettings) -> Images:
