@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T00:55:29.263113Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -174,6 +170,12 @@ journal:
   kind: started
   at: '2026-11-04T00:55:29.263113Z'
   stage: doing
+- number: 30
+  speaker: coder
+  kind: result
+  at: '2026-11-04T00:57:38.718384Z'
+  stage: doing
+  run: 064b9405a6a34dd3b54fd7bf5334eb19
 ---
 
 # A project's stage file builds the image its stages run in
@@ -491,3 +493,27 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     Refactor step: I read my diff. It is the one helper change and needs nothing more. Description: unchanged by me. The reviewer already rewrote it in entry 25.
 28. 2026-11-04 human: (c): keep the U+FFFD check in stage_layer. A stage file that holds U+FFFD, or bytes that are not UTF-8 (which reach the factory as U+FFFD), is refused with one reason that names both; the 64 KiB limit is measured on the UTF-8 encoding of the text as read. The operator guide says so in one sentence. Git.show_file and the process wrapper stay unchanged, so no leave is needed. The reviewer's tester findings go to the tests stage as usual.
 29. factory: started doing as vm.
+30. coder: Round 1, after the human's answer in entry 28 (option c). I changed one file and no tests.
+
+    Built:
+    - `src/factory/domain/stage_layer.py`: the U+FFFD check stays in `stage_layer`. Its refusal now names both cases in one reason: "the stage file holds U+FFFD or bytes that are not UTF-8, which read as U+FFFD". The comment on `_REPLACEMENT_CHARACTER` says why the two cannot be told apart: the reader decodes with replacement. The 64 KiB limit was already measured on the UTF-8 encoding of the text as read (`len(text.encode("utf-8"))`), so that code did not change. `Git.show_file` and the process wrapper are unchanged, as the answer says.
+
+    Main choice: I kept the one check and only made its reason say that it covers both cases. I rejected a separate reason for a real U+FFFD, because after the reader's replacement no code can tell it from an undecodable byte.
+
+    `make check`: green (test: 84.0 s, then `check: green`).
+
+    Refactor step: the diff is one reason and one comment. Nothing to change.
+
+    What the journal changed in the Description: entry 28 sets the rule. A stage file that holds U+FFFD, or bytes that are not UTF-8, is refused with one reason that names both. The 64 KiB limit is measured on the UTF-8 encoding of the text as read, and the operator guide gets one sentence about this, which is the documenter's. I did not rewrite the Description, because earlier edits to the work item from these stages were left out by the factory.
+
+    Open for the tests stage: the reviewer's tester findings from entry 25:
+    1. A `run_instance` test of the success path: the project image in the container runs, the preflight stamp keyed by the layer's identity, and the build before the preflight.
+    2. `tests/entry/test_wiring_project_image.py` uses `FakeImages`/`BuildCall` in place of its own `_RecordingImages`.
+    3. The same file uses the `instance_settings` fixture.
+    4. The accepted and refused rows of `tests/domain/test_stage_layer.py` become one parametrized test.
+    5. A test for criterion 13: podman `path` raises `ContainerError` on a failed inspect and on output that is not JSON, and `build_boundaries` then falls back to `/usr/local/bin:/usr/bin:/bin`.
+    6. A test for criterion 14: the `job` profile's global options come before `build`, `image prune -f` and `image inspect`; the `rootless` profile has none.
+
+    The code for criteria 13 and 14 is already built (`src/factory/adapters/podman_images.py`, `src/factory/entry/wiring.py` `_image_path`).
+
+    Noticed, not touched: the notes that entry 17 kept still stand. A build that reaches its time limit gets podman's no-end text as its detail. An image that cannot be inspected falls back to the default `PATH`. With `image=None`, no preflight stamp is reused.

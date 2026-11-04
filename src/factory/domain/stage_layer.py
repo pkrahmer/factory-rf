@@ -10,7 +10,8 @@ STAGE_FILE_LIMIT_BYTES = 64 * 1024
 _DIGEST_LENGTH = 12
 _BASE_ARGUMENT = "FACTORY_BASE"
 _BASE_REFERENCES = ("${FACTORY_BASE}", "$FACTORY_BASE")
-# The reader decodes with replacement, so this character marks bytes that were not UTF-8.
+# The reader decodes with replacement, so bytes that were not UTF-8 arrive as this character
+# and cannot be told from one the file holds; both are refused alike.
 _REPLACEMENT_CHARACTER = "�"
 
 
@@ -50,7 +51,9 @@ def _require_rule(text: str) -> None:
             f"the stage file is {size} bytes, more than {STAGE_FILE_LIMIT_BYTES}"
         )
     if _REPLACEMENT_CHARACTER in text:
-        raise StageLayerRefused("the stage file is not UTF-8")
+        raise StageLayerRefused(
+            "the stage file holds U+FFFD or bytes that are not UTF-8, which read as U+FFFD"
+        )
     instructions = [line.strip() for line in text.splitlines() if _is_instruction(line)]
     froms = [index for index, line in enumerate(instructions) if _keyword(line) == "FROM"]
     if not froms:
