@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T20:34:46.578479Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -231,6 +227,12 @@ journal:
   kind: started
   at: '2026-11-04T20:34:46.578479Z'
   stage: tests
+- number: 41
+  speaker: tester
+  kind: result
+  at: '2026-11-04T20:35:29.529968Z'
+  stage: tests
+  run: 981fe6e9cb6b466d8792bd7d5df291ae
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -635,3 +637,18 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
     Noticed but not touched: `docs/operator-guide.md` still mentions the dropped `tmpfiles.d` rule and the `--transcript-days` option. Entry 37 lists the places. Fixing them is the documenter's job under docs criterion 5.
 40. factory: started tests as vm.
+41. tester: Test change the human approved (entry 35, named by the coder in entry 39 and the reviewer in entry 37): I added one test, for criterion 3, to `tests/test_vm_setup_transcripts.py`. I changed no other test.
+
+    - criterion 3: tests/test_vm_setup_transcripts.py::test_the_step_refuses_a_link_at_the_folder_before_it_makes_anything
+
+    Like the module's other tests, it reads the script's text. It reuses the module's `_step`, `_path_words` and `_conditions` helpers. Within the `transcripts` step it checks four things:
+    - exactly one line prints `setup: transcripts: <the folder's path> is a link; remove it and run this script again` to standard error (`>&2`);
+    - that line sits under exactly one `if`, and that `if` tests `-L` on the folder's path;
+    - the next non-blank line is `exit 1`;
+    - the line comes before every `install -d` in the step.
+
+    Run: `uv run pytest -q tests/test_vm_setup_transcripts.py` gave 5 passed. The code at `vm/setup.sh:465-469` already does this, so the new test is green from the start and not red. `make lint` is green after `ruff format` joined one condition onto a single line.
+
+    Files changed: tests/test_vm_setup_transcripts.py. No new files. Every module imported.
+
+    `lint`: lint: green (0.1 s)

@@ -97,3 +97,26 @@ def test_the_setting_s_line_is_written_once_and_always(code: str) -> None:
 @pytest.mark.parametrize("word", ["--transcript-days", "tmpfiles.d"])
 def test_the_script_keeps_no_retention_for_the_transcripts(code: str, word: str) -> None:
     assert word not in code
+
+
+def test_the_step_refuses_a_link_at_the_folder_before_it_makes_anything(code: str) -> None:
+    lines = _step(code).splitlines()
+    words = _path_words(code, FOLDER_FORMS)
+    refusal = " is a link; remove it and run this script again"
+    said = [
+        index
+        for index, line in enumerate(lines)
+        if MARKER in line and any(f"{word}{refusal}" in line for word in words) and ">&2" in line
+    ]
+    made = [index for index, line in enumerate(lines) if "install -d" in line]
+
+    assert len(said) == 1
+    conditions = _conditions(lines, said[0])
+    assert len(conditions) == 1
+    assert "-L" in conditions[0]
+    assert any(word in conditions[0] for word in words)
+    following = [line.strip() for line in lines[said[0] + 1 :] if line.strip()]
+    assert following
+    assert following[0] == "exit 1"
+    assert made
+    assert all(said[0] < index for index in made)
