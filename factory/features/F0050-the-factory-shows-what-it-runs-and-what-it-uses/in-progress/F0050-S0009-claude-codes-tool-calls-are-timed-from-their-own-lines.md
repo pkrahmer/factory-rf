@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 547
 comments_read: [6642379279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T21:27:16.019550Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-04T21:27:10.021323Z'
   stage: review
   run: 209f4111d5fe48e4ae69c4b8808ff2cc
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-04T21:27:16.019550Z'
+  stage: doing
 ---
 
 # Claude Code's tool calls are timed from their own lines
@@ -211,3 +220,4 @@ Expect: `[ToolUse(tool='Bash', calls=1, failed=0, seconds=2.5)]`.
     Not reported, by judgment: the Interface also names a line with no `type` for results, and criteria 3 and 6 have no such row. The code handles it (`line_type == "user"`), and the failing side of the rule is tested through the `api-request-blob` and `attachment` rows.
 
     Earlier tests: none changed. The diff only adds `tests/domain/test_tool_uses_replayed_lines.py` (status `A`).
+13. factory: started doing as vm.
