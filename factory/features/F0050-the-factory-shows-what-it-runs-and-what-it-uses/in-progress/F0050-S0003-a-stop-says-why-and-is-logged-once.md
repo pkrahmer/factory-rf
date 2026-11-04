@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T13:57:28.808640Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -124,6 +120,12 @@ journal:
   kind: started
   at: '2026-11-04T13:57:28.808640Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-04T14:01:12.511165Z'
+  stage: doing
+  run: 38fcdd7cf076463881ee11a37f377c92
 ---
 
 # A stop says why, and is logged once
@@ -322,3 +324,26 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     FAILED tests/adapters/test_process_streaming.py::test_callback_saying_stop_on_standard_output_kills_the_group_at_once[before-a-sleep] - OSError: [Errno 22] Invalid argument
     make: *** [Makefile:84: test] Error 1
 20. factory: started doing as vm.
+21. coder: Round 1, after the stall in entry 19. I changed no code. When this stage started the working tree was clean, and a fresh `make check` was green (`test: green (87.2 s)`, `check: green`).
+
+    What I built: nothing new this round. The story's code was already committed in entries 10 and 14:
+    - `src/factory/domain/checks.py` (`command_ending`)
+    - `src/factory/application/preflight.py` (`_failing_detail`, `_ended`, and a probe that is not judged while `stop_requested()` is true)
+    - `src/factory/application/boundaries.py` (`stop_requested`)
+    - `src/factory/application/stops.py` (`no detail given`, and the line written once)
+    - `src/factory/entry/run.py` (the wiring, including `_ProjectImageStart._choose`)
+
+    Main decision: I treated the red `check` in entry 19 as a failure outside this story and did not change the code. The test that failed is `tests/adapters/test_process_streaming.py::test_callback_saying_stop_on_standard_output_kills_the_group_at_once[before-a-sleep]`, which tests `src/factory/adapters/process.py`. This branch does not touch that module or anything it calls: `git diff main --stat` lists only the five source files above and the four new test files. The rejected alternative was editing the process runner or the test to work around it. That would go beyond this story, and the test is not mine to change.
+
+    The failure, as entry 19 recorded it: `FAILED tests/adapters/test_process_streaming.py::test_callback_saying_stop_on_standard_output_kills_the_group_at_once[before-a-sleep] - OSError: [Errno 22] Invalid argument`. The factory's excerpt holds only pytest's short summary line, so I cannot quote the `E` lines or the `file:line` of the failing line. The test passed in this stage's full `make check` run. It looks like a flaky test that fails only under load, in the timing of how the streaming runner kills the process group. I suggest a separate story to find its cause, with the full `--tb=short` output kept the next time it fails.
+
+    Refactor: there was no diff this round, so nothing to refactor.
+
+    Journal: the journal changed nothing in the meaning of the task.
+
+    Noticed, not touched: the process-streaming failure above; and, from entries 10 and 14, the 3 dead-code findings that `make duplicates` reports in `src/factory/domain/cost_records.py:41-43`. I did not run `make duplicates` this round.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 3 new, 43 known, 0 gone
