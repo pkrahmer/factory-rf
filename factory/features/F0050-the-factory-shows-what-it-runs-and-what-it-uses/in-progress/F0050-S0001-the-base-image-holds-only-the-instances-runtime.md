@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272, 6627457871]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T09:31:28.179160Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -196,6 +200,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T09:31:24.787112Z'
+  stage: doing
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-11-04T09:31:28.179160Z'
   stage: doing
 ---
 
@@ -585,3 +594,4 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     Leave for the reviewer: in the story's `## Smoke test`, the first value of `Expect:` becomes `2` (one declaration per stage that uses the value); nothing else of the smoke test changes.
 
     `curl` and `xz-utils` in the final stage stay as they are in this story: the package list is pinned by an earlier test, and the gain is about 1 MB.
+35. factory: started doing as vm.
