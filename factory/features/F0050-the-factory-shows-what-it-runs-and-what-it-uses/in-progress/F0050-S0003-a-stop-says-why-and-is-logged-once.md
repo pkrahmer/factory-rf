@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T13:52:22.230600Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-04T13:52:22.230600Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-04T13:53:35.831644Z'
+  stage: tests
+  run: dcb3490fcea54a4fb427383b00fdb330
 ---
 
 # A stop says why, and is logged once
@@ -243,3 +245,22 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
     `check`: check: green
 15. factory: started tests as vm.
+16. tester: Round 1, an approved test change (coder's entry 14, from review finding 2). No existing test needed editing: this was a new test for the Interface rule that `Boundaries.stop_requested` is "wired in `factory.entry.run`" to the factory's own stop, and it had no test at the entry level.
+
+    - Interface wiring of `stop_requested` (finding 2): `tests/entry/test_run_stop_requested.py::test_the_tick_built_after_the_image_is_chosen_sees_the_factorys_own_stop`
+
+    How the test works: like `tests/entry/test_run_image_sizes.py`, it swaps in its own `run_module.build_tick`, which keeps the boundaries `_ProjectImageStart._choose` builds after the stage image is chosen. Inside its one tick it calls those boundaries' `stop_requested()`, turns `run_instance`'s `should_stop` true, and calls it again. It expects `[False, True]`.
+
+    What I rejected: driving a real probe of `main` that ends by signal 15 at the entry level. That needs a check container, and the preflight's handling of `stop_requested()` already has its own test in `tests/application/test_preflight_stop_detail.py`. This test checks only the wiring the reviewer found missing.
+
+    Run: `uv run pytest -q tests/entry/test_run_stop_requested.py` gives 1 passed, since the coder's fix is already there. As a check, I took the `replace(built, stop_requested=...)` out of `_choose` in a temporary copy and the test failed with `assert [False, False] == [False, True]`. Then I put the file back as it was; `git status` shows only the new test.
+
+    `make lint`: lint: green.
+
+    Files created: `tests/entry/test_run_stop_requested.py`. Modules the test run could not import: none. Earlier test files changed: none.
+
+    Open: the criterion is still not written into `## Description`, as the coder noted; the test rests on the Interface line.
+
+    The factory left out changes outside the write paths: src/factory/entry/run.py.
+
+    `lint`: lint: green (0.2 s)
