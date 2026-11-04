@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 540
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T12:23:35.918605Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-04T12:23:35.918605Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-04T12:24:06.454303Z'
+  stage: intake
+  run: 42c597e967034e93b8854e0a906e05a0
+  blocked: question
 ---
 
 # A refused push or hosting call is retried and logged
@@ -63,3 +66,20 @@ Expect: the two lines `handler error` and `push: retry`, then `1`, then a line t
 
 1. 2026-11-04 human: created.
 2. factory: started intake as vm.
+3. intake: The format check passed. The story is not buildable yet. Questions:
+
+   1. Interface: `PushFailed` carries "at most three" last non-empty lines and "at most 300 characters". Criterion 3 has rows only for three kinds of failure. Neither limit has a criterion, so neither the case of more than three lines nor the case over 300 characters is tested. I would add two rows: one with five lines of output, which keeps the last three; one with a very long line, which is cut at 300. Which characters are cut, and is the 300 per line or for the whole reason? I would take the whole reason, cut at the end.
+
+   2. Interface: "No force, no rebase, no new commit between the tries" has no criterion. I would add one: the retried push is the same command, with no `--force` and no new commit id. Add it?
+
+   3. Interface: the retry line `push: retry <n> of 3 in <s> s: <reason>` is not pinned in criterion 2, which says only "two retry lines". The numbers and the reason are not tested. I would add: lines `retry 1 of 3 in 5 s` and `retry 2 of 3 in 15 s`, each ending with the reason. Add it?
+
+   4. Interface: the retry covers a push that "is refused or cannot reach the remote". Criterion 2 does not say whether a refused push is retried too, for example a non-fast-forward rejection, which waiting does not cure. Criterion 3 has that row only for the message. Please state whether every `PushFailed` is retried, or only the server-error and unreachable kinds. If only those, the non-fast-forward kind needs a criterion that it fails at once without a wait.
+
+   5. Scope: `stalls.py:143` has a third `_commit_and_push` (`StallContext`). The story names only `StageFinisher._commit_and_push` and `WorkItemRecorder.publish`. Is the stall push meant to stay without a retry? I would assume it does. Please confirm.
+
+   6. Criterion 4 pins the retry's total, backoff factor and allowed methods. It does not say where the client is built or how a test reaches the retry. Please name the module and function (the "one place the client is built") in the Interface, so the test has a seam.
+
+   7. Interface, last bullet: criterion 5 says the test "pins the behaviour" but gives no expected behaviour, and no seam beyond `ensure_pull_request`. Please say what the test asserts: the outcome of the tick, the crash count and the journal. Please also say what makes it `xfail`: a crash charged although no agent ran.
+
+   Already fine: the pytest `addopts` has `-q`, and the smoke test passes none. The architecture fits: the log line and the retry sit in the application layer, and the sleeper (`machine.py`) is an existing interface. The scope fits the feature's list for S0008.
