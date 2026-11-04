@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T00:06:18.816139Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T00:06:15.669914Z'
+  stage: tests
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-04T00:06:18.816139Z'
   stage: tests
 ---
 
@@ -226,3 +235,4 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     Once these are answered I'll write the remaining tests and end with `doing`.
 12. 2026-11-04 human: 1. (a): Boundaries.image_path from images.path(settings.stage_image), default /usr/local/bin:/usr/bin:/bin; stage_environment_of(boundaries) and agent_environment(scripts, home, path) take it, as you describe.
     2. (a): drop criterion 13; factory-watch shows no stop of any reason today, and that stays so in this story.
+13. factory: started tests as vm.
