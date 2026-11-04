@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 552
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T23:38:57.486731Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-04T23:38:57.486731Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-11-04T23:43:29.873345Z'
+  stage: doing
+  run: cd592342125a456098acdb46b84c2937
 ---
 
 # A push reason leaves out git's "failed to push some refs" line
@@ -241,3 +243,16 @@ Expect: a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.1 s)
 14. factory: started doing as vm.
+15. coder: This round comes after the tester moved the copied `result_case` fixture into `tests/conftest.py` (entry 13). That move was the whole of the reviewer's finding in entry 9, so this round needed no code change. I changed nothing: no code and no test.
+
+    - Code: `src/factory/domain/git.py` is as it was in round 0. `PUSH_SUMMARY_PREFIX` holds `error: failed to push some refs to `, and `_is_reason_line` drops a line whose stripped text starts with it.
+    - Check: I ran `make check` on the current tree and it is green, with coverage at 99.26 %. That includes the moved fixture and the two test modules that now use it from `tests/conftest.py`.
+    - Main choice: the same as entry 7. A prefix match on the full phrase, which keeps every other `error:` line. I rejected dropping every `error:` line, and a regular expression that also matches the URL.
+    - Refactor: nothing to change. The diff in `src/` is the same as the one already reviewed.
+    - Description: not rewritten. The journal changed where a test fixture lives, not what the task means.
+    - Noticed but not touched: the docs criterion (`docs/operator-guide.md` and `docs/project-guide/git-and-hosting.md`) is the documenter's work.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 41 known, 2 gone
