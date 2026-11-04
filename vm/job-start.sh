@@ -81,6 +81,13 @@ if [ -z "$(find "$token_folder" -maxdepth 0 -user "$(id -u)" ! -perm /077)" ]; t
   export FACTORY_TOKEN_FILE="$secrets/hosting-token"
   printf 'job-start: token-file: copied to %s\n' "$secrets"
 fi
+# The folder is the operator's mount; a start that could not keep its transcripts ends here.
+if [ -n "${FACTORY_TRANSCRIPT_DIR:-}" ]; then
+  probe=$FACTORY_TRANSCRIPT_DIR/.job-start-probe
+  if [ ! -d "$FACTORY_TRANSCRIPT_DIR" ] || ! (: >"$probe") 2>/dev/null || ! rm -f "$probe"; then
+    stop 1 "transcript folder $FACTORY_TRANSCRIPT_DIR cannot be written"
+  fi
+fi
 # The tools step builds uv and the factory's own commands here; the preflight looks for them.
 export PATH="$root/tools/bin:$PATH"
 

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T19:54:22.971858Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-04T19:54:22.971858Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-04T20:00:08.929538Z'
+  stage: doing
+  run: 9a50f13b4fe442b09a84374110bd2083
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -110,3 +112,36 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: Built the transcript folder for both kinds of site, in shell only. `src/` is unchanged.
+
+   - `vm/setup.sh`:
+     - The new option `--transcript-days <n>` is in the usage line and its help text, with a default of `transcript_days=30` set before the option parsing.
+     - A new `need_days` refuses an empty value or anything that is not a whole number, with the option's name. That covers `x`, `-1` and `1.5`; a missing value is refused by the existing `need_value`.
+     - `factory.env` gets `FACTORY_TRANSCRIPT_DIR=/srv/factory/$instance/transcripts` only when days > 0. The line is staged before `FACTORY_IDLE_SHUTDOWN_MINUTES`, because the idle-shutdown test wants that setting to stay last.
+     - A new step `transcripts` comes after `service` and before the `done` lines. When days > 0 it:
+       - refuses a planted link, as the `folders` step does;
+       - makes `$base/transcripts` with `install -d -o factory -g factory -m 0700` only when `owned_with_mode` says it is not already so;
+       - stages the rule `d /srv/factory/$instance/transcripts 0700 factory factory ${days}d` and installs `/etc/tmpfiles.d/factory-$instance-transcripts.conf` only when `unchanged` says it differs;
+       - prints its "found ... unchanged" text, so a second run changes nothing.
+
+       With 0 it prints `not asked; no transcript is kept` and makes and writes nothing.
+   - `vm/job-start.sh`: when `FACTORY_TRANSCRIPT_DIR` is set, it checks after the token-file handling and before any install. The folder must exist, and a probe file `.job-start-probe` must be creatable and removable there. Otherwise the start stops with `job-start: transcript folder <path> cannot be written` and status 1. When the setting is unset nothing changes, and no new `job-start: <step>` line is printed, so the exact step list in `tests/test_vm_job_start.py` holds.
+
+   Main choice: the step is placed last, after `service`, and not near `folders`. `tests/vm_support.py` `STEPS` does not name `transcripts`, and `step_texts` cuts each listed step from the end of the previous listed one. A step placed between two listed steps would have joined the next step's text and could break those step-text tests. Rejected: placing it after `folders` (the folder would be made before the setting is written, which reads more naturally) for that reason. The setting's line still lives in the `environment` step, where `factory.env` is staged.
+
+   Two implementation details forced by tests or the shell:
+   - The rule is staged with `echo ... | stage` and not a heredoc. A heredoc body at column 0 hides the enclosing `if` from the tests' indentation-based guard check.
+   - The probe write is in a subshell, `(: >"$probe")`. dash exits the whole script when a redirection on the special builtin `:` fails.
+
+   Noticed, not touched:
+   - With `--transcript-days 0`, a rule file an earlier run wrote is left in place. The Interface and the intake left this open. Such a leftover `d` rule would make systemd-tmpfiles create the folder again at boot, though without the setting no transcript is written there. Removing it, as the `poweroff` step does with its right, would be a small follow-up if the human wants it.
+   - `--transcript-days 00` counts as 0.
+
+   Refactor pass: I read the diff and found nothing to change. The new code reuses the existing helpers (`need_value`, `owned_with_mode`, `stage`, `unchanged`, `changed`, `said`, `stop`).
+
+   The `docs:` criterion (operator guide *Transcripts*) is the documenter's.
+
+   `make check`: green (lint, types, layers, sast, secrets, licenses, test 88.4 s, `check: green`).
+
+   `check`: check: green
+   `duplicates`: duplicates: 4 new, 41 known, 2 gone
