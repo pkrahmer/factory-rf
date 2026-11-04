@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 545
 comments_read: [6640877810, 6640990331, 6641369315]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T20:39:34.080715Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -244,6 +248,11 @@ journal:
   at: '2026-11-04T20:39:28.154928Z'
   stage: doing
   run: d1e96118985f44559413bef358642898
+- number: 44
+  speaker: factory
+  kind: started
+  at: '2026-11-04T20:39:34.080715Z'
+  stage: review
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -676,3 +685,4 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
     `check`: check: green
     `duplicates`: duplicates: 4 new, 41 known, 2 gone
+44. factory: started review as vm.
