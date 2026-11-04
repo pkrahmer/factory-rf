@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 531
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T02:48:44.549509Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-04T02:48:38.693193Z'
   stage: tests
   run: 7322f29916944d1f9e4dc27b2bc50983
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:48:44.549509Z'
+  stage: doing
 ---
 
 # The stage image's documents say what the code does and why
@@ -96,3 +105,4 @@ Expect: `0`, `0`, `1`, then `documents ok`.
    Files created: none. Modules the test runner could not import: none, because no test was added and so `uv run pytest` was not run. `make lint` is green, and the working tree is unchanged. The coder has nothing to implement: no code changes, and the documenter writes criteria 1 to 4.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
