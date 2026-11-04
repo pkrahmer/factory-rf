@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T01:17:28.384074Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -262,6 +258,12 @@ journal:
   kind: started
   at: '2026-11-04T01:17:28.384074Z'
   stage: docs
+- number: 46
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T01:19:26.350858Z'
+  stage: docs
+  run: f9191294f5484ee4b25b29ea6897ed29
 ---
 
 # A project's stage file builds the image its stages run in
@@ -783,3 +785,27 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
     - tests/entry/test_health.py: the human's leave, entry 9, item 4 (the row and the machine-scope tuple).
     - tests/entry/test_wiring_handlers.py: the Interface's leave for rows that pin the `PATH` (the call gains the explicit `PATH` argument and the test checks the same thing).
 45. factory: started docs as vm.
+46. documenter: Round 2, docs. The earlier rounds had written no documentation, so this run wrote all of it from the docs criterion (criterion 16). I changed documents only, so I did not run `make check`. `uv run python -m factory.entry.check_documents` prints `documents ok`.
+
+    Files changed:
+    - `docs/operator-guide.md`: a new section *The project's stage file*, before *The image on the cost records*. It covers: what the file is; that only `main` counts and is read at the start; the rule, including the sentence that U+FFFD and bytes that are not UTF-8 are refused with one reason that names both, and that the 64 KiB limit is measured on the UTF-8 encoding of the text as read; the `build-essential` and `cmake` example; the build (network, empty context, no repository files, so the project pins its own versions and checksums); the `PATH` the image sets, which the sync, the checks and the agent take; the identity `<base identity>+<digest>` and where it shows; and the stop `stage_image_failed` with what to do about it.
+      - I also made these fixes in the same file. The cost-record paragraph now names the joined identity. The `PATH` paragraph in *The agent run's `PATH` and `HOME`* said the tools must sit in "one of those four directories", which is stale now. The health status file says `stage_image_failed` has scope `machine` and lists it among the reasons. The stops table has a `stage-image-failed` row.
+    - `docs/project-guide/stage-environment.md`: a new section *The project's stage image*. It names `stage_layer`, `Images`, `PodmanImages`, `FakeImages`, `project_image_settings` as the one place where the image in use is chosen, and `Boundaries.image_path`. I corrected the sync environment's `PATH`, the check environment's `PATH` and the signature of `build_boundaries`.
+    - `docs/project-guide/watching.md`: the agent run's environment is now `agent_environment(scripts, home, path)`, not the fixed `PATH`.
+    - `README.md`: one sentence about `factory/stage.Containerfile`.
+    - `docs/decisions.md`: one new entry, written only from the story's text.
+      - Why: it gives what the Description and Interface say, plus the human's answer in entry 9 for the machine scope.
+      - Rejected: it names only the `repository` scope, which the story names and the human did not choose.
+      - I wrote no reason for decisions 1, 3 and 4 beyond what the story states, because I did not read `feature.md`. The entry cites "decisions 1, 3 and 4 of the feature" as the criterion does.
+
+    Run: `stage_layer` on the example text gave `img-1+20733148ba61`. The broken-FROM file and a text holding U+FFFD gave the reasons I quote. I could not run the example's `podman build` here; the described build arguments come from `src/factory/adapters/podman_images.py` and the story.
+
+    Cross-read and found current: the *Stops* and *Configuration* sections of the operator guide, the preflight sections of the project guide, and the stamp section of the operator guide (its text on the image identity holds).
+
+    Findings for the coder: none. The code agrees with the Interface.
+
+    Stale text I saw and did not touch: none that is unrelated to this story.
+
+    `check`: check: green (not run again: passed on tree b152a7252873 at 2026-11-04T01:13:50Z)
+    `secrets`: secrets: green (3.3 s)
+    `documents`: documents ok

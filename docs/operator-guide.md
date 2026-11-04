@@ -228,7 +228,7 @@ The names the factory gives a container itself win over the list: a listed `PATH
 
 ### The agent run's `PATH` and `HOME`
 
-The factory builds the environment of an agent run itself, from an allow list of six names (see "The hosting-service token"). The agent runs in the stage image, so the two names that matter here are a `PATH` of the directory where the factory's console scripts are installed (the directory of the factory's Python) followed by `/usr/local/bin:/usr/bin:/bin`, and a `HOME` of `/work/home`, the dataset's. The `HOME` is the same whatever the instance's settings, and no preflight item checks it: it is a path inside the container, not a directory on the factory's machine. Nothing else reaches the agent but the locale and time-zone names `LANG`, `LC_ALL`, `TERM` and `TZ`, when the factory process has them, and the names of `FACTORY_CONTAINER_ENV` and `FACTORY_CA_BUNDLE` (see "Behind a proxy"). So the tools an agent needs must be in the stage image, in one of those four directories.
+The factory builds the environment of an agent run itself, from an allow list of six names (see "The hosting-service token"). The agent runs in the stage image, so the two names that matter here are a `PATH` of the directory where the factory's console scripts are installed (the directory of the factory's Python) followed by the `PATH` the stage image sets (`/usr/local/bin:/usr/bin:/bin` when it sets none; see "The project's stage file"), and a `HOME` of `/work/home`, the dataset's. The `HOME` is the same whatever the instance's settings, and no preflight item checks it: it is a path inside the container, not a directory on the factory's machine. Nothing else reaches the agent but the locale and time-zone names `LANG`, `LC_ALL`, `TERM` and `TZ`, when the factory process has them, and the names of `FACTORY_CONTAINER_ENV` and `FACTORY_CA_BUNDLE` (see "Behind a proxy"). So the tools an agent needs must be in the stage image, in a directory of that `PATH`.
 
 ### A provider's spend limit
 
@@ -506,9 +506,52 @@ The Debian packages carry no version, so a security or point update needs no edi
 
 After a change, rebuild the image and renew its id (see "The rebuild after a merge"); `vm/setup.sh` carries the pins into the environment file.
 
+### The project's stage file
+
+A project can add tools to the stage image (a compiler, a JDK, a browser) without changing the image for every project. It commits the file `factory/stage.Containerfile` to `main`. Every container of the instance (the sync, the agent and the checks) then runs in the image that file builds on top of the stage image.
+
+Only `main` counts. `factory-run` fetches when it starts, reads the file from `origin/main`, and builds it once, before the preflight. A file on a branch, or a change pushed to `main` after the start, has no effect until `factory-run` is started again. Without the file nothing changes: every container runs in the base image, `FACTORY_STAGE_IMAGE`, under the identity of `FACTORY_IMAGE_ID_FILE`.
+
+#### The rule
+
+The file must be a layer on the base and nothing else:
+
+- Before its one `FROM`, it holds only blank lines, comments and the line `ARG FACTORY_BASE`.
+- It holds exactly one `FROM` (in any case), and that is `FROM ${FACTORY_BASE}` or `FROM $FACTORY_BASE`, with nothing after the name: no `AS`, no `--platform`.
+- It is at most 64 KiB, measured on the UTF-8 encoding of the text as the factory reads it.
+- It holds no U+FFFD. The factory decodes the file with replacement, so a file with bytes that are not UTF-8 reads as one with U+FFFD; both are refused with one reason that names both.
+
+A file that breaks a rule is refused with the rule's reason, and nothing is built. This file satisfies the rule and adds `build-essential` and `cmake`:
+
+```dockerfile
+ARG FACTORY_BASE
+FROM ${FACTORY_BASE}
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential cmake && rm -rf /var/lib/apt/lists/*
+```
+
+#### How it is built
+
+The factory builds the file with `podman build --build-arg FACTORY_BASE=<the base image> --network=host` and an empty build context, tags the result `<FACTORY_STAGE_IMAGE>-project` (for `factory-stage:vm`, `factory-stage:vm-project`), and then removes the images the build left without a tag. A build may take 30 minutes; after that it fails.
+
+Two things follow for the project. The build has the network, so it can download. It has no file of the repository, so a `COPY` finds nothing, and the layer is only as repeatable as its commands: pin the versions and check the checksums of what it downloads, as `vm/Dockerfile` does. Debian packages installed by name take the version the release ships at the time of the build.
+
+The layer must not break the stage image's tools. The runtimes live under `/opt/factory` and the image has no `node` or `npm` on the `PATH` for projects, so a project that installs its own Node does not change the runtimes.
+
+#### The `PATH` and the identity
+
+Every container takes the `PATH` that the image in use sets, as `podman image inspect` reads it from the image's configuration, and `/usr/local/bin:/usr/bin:/bin` when the image sets none. The sync and the checks get that `PATH`; the agent gets the folder of the factory's console scripts first and then the same `PATH`. So an `ENV PATH=/opt/jdk/bin:$PATH` in the stage file puts the JDK on the `PATH` of `make check` and of the agent. If the factory cannot read the image's configuration, it uses the default `PATH`.
+
+The instance's image identity becomes the base's identity, a `+`, and the first 12 hex digits of the SHA-256 of the file, for example `<base identity>+20733148ba61`. It is what the preflight's stamp and the reuse of a passed check key on, so a changed file makes the preflight run its machine items again, the agent-run probe included, and confirms that the layer left the agent runtime working. It is also the image on the cost records (see "The image on the cost records"). The project image itself shows in `podman images` under the tag above.
+
+#### The stop `stage_image_failed`
+
+A file that breaks the rule, or does not build, raises the machine stop `stage_image_failed` (see "The stops"). Its detail is the rule's reason, or `the stage file did not build in <s> s:` followed by the last 20 lines of the build's output; a build that reaches its time limit gives the same text. While the stop stands the factory starts no stage, and it does not fall back to the base image. `factory-health` shows the stop; `factory-watch` shows no stop of any reason.
+
+What to do: read the detail, fix `factory/stage.Containerfile` on `main`, and start `factory-run` again. The stop ends at the next start, whether the file is then valid or gone. In a job, a machine stop that has stood for ten minutes ends the execution (see "The idle shutdown"), so the fix is a new commit on `main` and a new execution.
+
 ### The image on the cost records
 
-Every cost record names the image the agent run ran on (the identity from the file `FACTORY_IMAGE_ID_FILE` names). A record made when the instance has no image identity has none.
+Every cost record names the image the agent run ran on (the identity from the file `FACTORY_IMAGE_ID_FILE` names, joined with the stage file's digest when the project has one; see "The project's stage file"). A record made when the instance has no image identity has none.
 
 ### The code and the project apart
 
@@ -1432,8 +1475,8 @@ Missing parent directories are created. If the file cannot be written, the line 
 
 `health.json` in the state directory holds the stops in force for the repository or the machine, as one JSON object: `{"stops": [{"scope": ..., "reason": ..., "detail": ..., "at": ...}]}`. `factory-health` reads it (see "The preflight and the health check"); an empty `stops` list is healthy.
 
-- One stop per reason. `scope` is `machine` for `preflight_failed` and `disk_low`, and `repository` for every other reason; `detail` names the fault and is never blank; `at` is in UTC.
-- The reasons are `fetch_failed`, `checkout_restore_failed`, `pipeline_definition_invalid`, `agent_definition_invalid`, `repository_unavailable`, `main_branch_failing`, `preflight_failed` and `disk_low`.
+- One stop per reason. `scope` is `machine` for `preflight_failed`, `disk_low` and `stage_image_failed`, and `repository` for every other reason; `detail` names the fault and is never blank; `at` is in UTC.
+- The reasons are `fetch_failed`, `checkout_restore_failed`, `pipeline_definition_invalid`, `agent_definition_invalid`, `repository_unavailable`, `main_branch_failing`, `preflight_failed`, `disk_low` and `stage_image_failed`.
 - `factory-run` writes an empty status (`{"stops": []}`) when it starts and finds no file, before it reads the token file; an existing file is left as it is, its stops in force. If that write fails, `factory-run` fails with the `OSError` and clones nothing.
 - A file that is missing reads as not healthy for the health check (`no health status: <path> is missing`, exit 1). A file that cannot be read, is not JSON or is not a valid status reads as healthy (no stops). Do not repair it by hand: the next stop that is raised replaces the whole file, and a fault that lasts is raised again.
 - A write goes to a temporary file in the same directory and replaces `health.json` in one step, so a reader never sees half a file. If `health.json` is a directory, the write fails with an `OSError` and leaves nothing behind.
@@ -1544,6 +1587,7 @@ Every stop the factory raises has one destination. A stop of the repository or t
 | `main-branch-failing` | health status and factory log | `lint` fails on the main branch. Push a fix to `main`; see "The stamp and the probe of the main branch". |
 | `preflight-failed` | health status and factory log | A preflight item fails, or the settings are invalid. Fix what the detail names; see "The preflight's items" and "When the process refuses to start". When the state directory cannot be written, `factory-run` still ends with status 2 but writes no stop: the settings fault reaches standard error as two lines without a stamp. Check the `state` volume. |
 | `disk-low` | health status and factory log | The work or the state directory has less free space than `FACTORY_MIN_FREE_GB` asks for, or its free space cannot be read. Make room on the file system the detail names, and nothing more: the next tick clears the stop. |
+| `stage-image-failed` | health status and factory log | The project's `factory/stage.Containerfile` on `main` breaks the rule or does not build. No stage starts. Fix the file on `main` and start `factory-run` again; see "The project's stage file". |
 | `duplicate` | pull request | Two work items have one id. Keep one file and rename or delete the other; see "Stops that cannot be done". |
 | `pull-request-lookup` | pull request | The one pull request lookup fails. Fix the cause named after the colon; see "Stops that cannot be done". |
 | `ask-without-pull-request` | pull request | A question is recorded for a work item that has no pull request. Open one for the branch or push a commit to it; see "Stops that cannot be done". |
