@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 538
 comments_read: [6626791280, 6627107272]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T09:14:28.200504Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-04T09:14:28.200504Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-04T09:18:00.377604Z'
+  stage: doing
+  run: b78e1e4168db4f848b36c4c83e8e1dfe
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -273,3 +275,22 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
 
     `lint`: lint: green (0.1 s)
 16. factory: started doing as vm.
+17. coder: The tester changed the two test rows (entry 15) as the human allowed in entry 11. With that change in, `make check` is green (`check: green`, coverage 99.52 %). I changed no code this round. The work in `vm/` is what entry 10 describes.
+
+    What I built (on the branch, `git diff main -- vm`):
+    - `vm/Dockerfile` has two stages:
+      - Before the first `FROM`: a global `ARG AGENT_RUNTIME` with no default, and the pins `CLAUDE_CODE_VERSION=2.1.318` and `OPENCODE_VERSION=1.19.5`.
+      - Stage `install`: first a `case` check that stops the build with a message naming `AGENT_RUNTIME`, `claude` and `opencode`. Then apt, then the Node download and checksum check as before. Then one `npm install` of the package a `case` picks from `${AGENT_RUNTIME}`. Last, a copy of the resolved executable to `/opt/runtime/${AGENT_RUNTIME}`.
+      - Final stage: one RUN does apt, `pip install uv` and the cleanup (`/var/lib/apt/lists/*`, `/var/cache/debconf/*-old`, `/var/log/*.log`, `/var/log/apt/*`, `/tmp/*`). One `COPY --from=install` brings in only the chosen executable, and a `case` writes only that runtime's `/usr/local/bin/<runtime>` exec wrapper. The ENV lines, including `FACTORY_OPENCODE_MODELS`, stay as they were, and the first line names `--build-arg AGENT_RUNTIME=<claude|opencode>`.
+    - `vm/job-start.sh` passes `--build-arg "AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME"` to the build. `vm/setup.sh` is unchanged.
+
+    Main choice: the final stage copies one file, the resolved target of `/opt/factory/bin/<runtime>`. I rejected copying the runtime's npm package directory: it holds opencode's baseline CPU build, and the runtime names in it are ones the test refuses. The human accepted this in entry 11. No test can show that each runtime runs from that one file; the human's build (criterion 9) checks it.
+
+    Refactor pass: I read my own diff again and found nothing to change.
+
+    Journal: entries 11–15 changed only how two test rows are written, not what the task means, so the Description is unchanged.
+
+    Noticed but not touched: the final stage still installs `curl` and `xz-utils`, as the image did before. The story does not ask to remove them. No project skill was used.
+
+    `check`: check: green
+    `duplicates`: duplicates: 0 new, 43 known, 0 gone
