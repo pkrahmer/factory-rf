@@ -26,6 +26,13 @@ def _digest(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
 
 
+ACCEPTED = [
+    pytest.param(TEMPLATE, id="template"),
+    pytest.param("FROM ${FACTORY_BASE}\n", id="from-alone"),
+    pytest.param("from $FACTORY_BASE\n", id="lower-case"),
+    pytest.param("# tools\n\nARG FACTORY_BASE\nFROM ${FACTORY_BASE}\n", id="comment-and-blank"),
+    pytest.param(_padded(LIMIT), id="64-kib"),
+]
 REFUSED = [
     pytest.param("FROM debian:bookworm\n", id="other-image"),
     pytest.param("ARG FACTORY_BASE\nFROM ${FACTORY_BASE} AS build\n", id="as-name"),
@@ -37,33 +44,30 @@ REFUSED = [
     pytest.param("RUN true\nFROM ${FACTORY_BASE}\n", id="run-before-from"),
     pytest.param("ARG OTHER\nFROM ${FACTORY_BASE}\n", id="other-arg-before-from"),
     pytest.param(_padded(LIMIT + 1), id="one-byte-over-64-kib"),
+    # Bytes that are not UTF-8 reach the rule as U+FFFD, the reader's replacement.
+    pytest.param("FROM ${FACTORY_BASE}\n# \ufffd\n", id="not-utf-8-or-u-fffd"),
 ]
 
 
 @pytest.mark.parametrize(
-    "text",
+    ("text", "accepted"),
     [
-        pytest.param(TEMPLATE, id="template"),
-        pytest.param("FROM ${FACTORY_BASE}\n", id="from-alone"),
-        pytest.param("from $FACTORY_BASE\n", id="lower-case"),
-        pytest.param("# tools\n\nARG FACTORY_BASE\nFROM ${FACTORY_BASE}\n", id="comment-and-blank"),
-        pytest.param(_padded(LIMIT), id="64-kib"),
+        *(pytest.param(*case.values, True, id=case.id) for case in ACCEPTED),
+        *(pytest.param(*case.values, False, id=case.id) for case in REFUSED),
     ],
 )
-def test_a_stage_file_within_the_rule_is_accepted(text: str) -> None:
+def test_a_stage_file_is_accepted_or_refused_by_its_rule(text: str, *, accepted: bool) -> None:
+    if not accepted:
+        with pytest.raises(StageLayerRefused) as refusal:
+            stage_layer(text, BASE_IDENTITY)
+        assert str(refusal.value)
+        return
+
     layer = stage_layer(text, BASE_IDENTITY)
 
     assert layer.text == text
     assert layer.digest == _digest(text)
     assert layer.identity == f"{BASE_IDENTITY}+{_digest(text)}"
-
-
-@pytest.mark.parametrize("text", REFUSED)
-def test_a_stage_file_that_breaks_the_rule_is_refused(text: str) -> None:
-    with pytest.raises(StageLayerRefused) as refusal:
-        stage_layer(text, BASE_IDENTITY)
-
-    assert str(refusal.value)
 
 
 def test_each_broken_rule_gives_its_own_reason() -> None:

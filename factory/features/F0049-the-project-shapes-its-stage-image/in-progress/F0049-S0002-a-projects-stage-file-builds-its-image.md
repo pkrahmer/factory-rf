@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 527
 comments_read: [6618558222, 6618632675, 6618725845, 6619198883, 6619524143]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T00:57:44.296000Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -185,6 +181,12 @@ journal:
   kind: started
   at: '2026-11-04T00:57:44.296000Z'
   stage: tests
+- number: 32
+  speaker: tester
+  kind: result
+  at: '2026-11-04T01:02:29.584940Z'
+  stage: tests
+  run: c7c6ecf863734796b2372c728549a1f1
 ---
 
 # A project's stage file builds the image its stages run in
@@ -527,3 +529,34 @@ Expect: `1`, `1`, then the single line `"stage_image_failed"`.
 
     Noticed, not touched: the notes that entry 17 kept still stand. A build that reaches its time limit gets podman's no-end text as its detail. An image that cannot be inspected falls back to the default `PATH`. With `image=None`, no preflight stamp is reused.
 31. factory: started tests as vm.
+32. tester: Round 1, test changes. I made the six tester findings from the reviewer's entry 25 that the coder's entry 30 lists, and added one refused row for the human's answer in entry 28. I changed only test files this story wrote. No test from another story was touched.
+
+    Changes:
+    - Finding 1 (success path through `run_instance`): new `tests/entry/test_wiring_project_image.py::test_a_run_with_a_valid_stage_file_runs_its_preflight_on_the_project_image`. It has a valid stage file on `main`, `FakeImages`, the agents installed, and a preflight stamp seeded at `main`. There are two rows. With a stamp keyed by the layer's identity, the stamp is reused and no stop stands. With a stamp keyed by the base's identity, the machine items run again, and the stand-in `podman`'s `image exists` names only `<FACTORY_STAGE_IMAGE>-project`. The base image appears in no podman call in either row, and exactly one `BuildCall` is recorded. I rejected checking a sync, check or agent `podman run` here: with no work item in progress, a tick starts none, and setting up a stage only for that seemed too much. The preflight's stage-image item is the container call that this run makes. Passing `inputs.settings` in place of `chosen` would fail both rows.
+    - Finding 4: `_Build` and `_RecordingImages` are removed. The file uses `FakeImages(build_result=...)` and `BuildCall` from `factory.adapters.fake_images`.
+    - Finding 5: `test_no_stage_starts_while_the_stage_image_stop_stands` takes the `instance_settings` fixture.
+    - Finding 6: `tests/domain/test_stage_layer.py` now has one parametrized `test_a_stage_file_is_accepted_or_refused_by_its_rule` over the `ACCEPTED` and `REFUSED` rows. The 64 KiB / 64 KiB+1 rows are part of it. Entry 28 added a refused row `not-utf-8-or-u-fffd` (a text holding U+FFFD, which is how bytes that are not UTF-8 arrive), and `test_each_broken_rule_gives_its_own_reason` covers it too.
+    - Finding 7 (criterion 13): new `tests/adapters/test_podman_images.py::test_path_raises_a_container_error_when_the_image_cannot_be_read`, with two rows: inspect exits 125, and inspect prints no JSON. A third row, `path-raises`, is added to `tests/entry/test_wiring_image_path.py::test_the_sync_the_check_and_the_agent_take_the_path_of_the_image_in_use`. It gives `build_boundaries` a `PodmanImages` on the recording stand-in, which prints no JSON. The sync, the check and the agent then take `/usr/local/bin:/usr/bin:/bin`. The test's parameter changed from `paths` to an `images_of` callable, and the earlier two rows check the same things.
+    - Finding 8 (criterion 14): new `tests/adapters/test_podman_images.py::test_the_job_profile_puts_its_global_options_before_every_podman_command`, with `job` and `rootless` rows over `build`, `image prune` and `image inspect`.
+
+    Criterion → test:
+    criterion 1: tests/domain/test_stage_layer.py::test_a_stage_file_is_accepted_or_refused_by_its_rule, ::test_each_broken_rule_gives_its_own_reason, ::test_the_padded_files_lie_on_both_sides_of_64_kib
+    criterion 2: tests/domain/test_stage_layer.py::test_the_digest_follows_every_byte_and_the_identity_is_stable (named-once constants: ::test_the_stage_file_and_the_project_image_tag_are_named_once)
+    criterion 3: tests/entry/test_wiring_project_image.py::test_a_start_without_a_stage_file_builds_nothing_and_keeps_the_base
+    criterion 4: tests/entry/test_wiring_project_image.py::test_a_start_with_a_valid_stage_file_builds_it_once_and_takes_the_project_image, ::test_a_run_with_a_valid_stage_file_runs_its_preflight_on_the_project_image
+    criterion 5: tests/entry/test_wiring_image_path.py::test_the_sync_the_check_and_the_agent_take_the_path_of_the_image_in_use (rows image-path, no-image-path)
+    criterion 6: tests/entry/test_wiring_project_image.py::test_a_stage_file_that_does_not_build_stands_as_a_stop, ::test_a_stage_file_that_breaks_the_rule_stands_as_a_stop_and_builds_nothing, ::test_no_stage_starts_while_the_stage_image_stop_stands
+    criterion 7: tests/adapters/test_podman_images.py::test_the_build_passes_the_base_the_network_the_tag_and_an_empty_context
+    criterion 8: tests/adapters/test_podman_images.py::test_the_output_tail_is_the_last_twenty_lines_in_order
+    criterion 9: tests/adapters/test_podman_images.py::test_a_build_that_reaches_its_time_limit_has_not_passed; tests/entry/test_wiring_project_image.py::test_the_build_time_limit_is_thirty_minutes (and the BuildCall time limit in the criterion-4 tests)
+    criterion 10: tests/adapters/test_podman_images.py::test_path_is_the_images_configured_path_or_the_base_default
+    criterion 11: tests/entry/test_wiring_project_image.py::test_the_next_start_ends_a_stage_image_stop
+    criterion 12: tests/entry/test_health.py::test_every_stop_reason_makes_the_check_fail_until_it_is_cleared (row stage_image_failed, from round 0)
+    criterion 13: tests/adapters/test_podman_images.py::test_path_raises_a_container_error_when_the_image_cannot_be_read; tests/entry/test_wiring_image_path.py::test_the_sync_the_check_and_the_agent_take_the_path_of_the_image_in_use[path-raises]
+    criterion 14: tests/adapters/test_podman_images.py::test_the_job_profile_puts_its_global_options_before_every_podman_command
+
+    Files changed (none created): tests/entry/test_wiring_project_image.py, tests/domain/test_stage_layer.py, tests/adapters/test_podman_images.py, tests/entry/test_wiring_image_path.py.
+
+    One run of `uv run pytest -q` over the four files: all 44 tests passed. The code already exists, so the new tests are green and not red. Every module imported. `make lint`: green. `make types`: green.
+
+    `lint`: lint: green (0.1 s)

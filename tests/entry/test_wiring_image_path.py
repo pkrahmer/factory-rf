@@ -1,5 +1,6 @@
 """The containers' `PATH` is the one the image in use configures: sync, check and agent."""
 
+from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
 
@@ -8,6 +9,8 @@ import pytest
 from container_extra_support import CHECK_LIMIT, COMMIT, env_words
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.fake_images import FakeImages
+from factory.adapters.podman_images import PodmanImages
+from factory.application.images import Images
 from factory.application.stage_environment import stage_environment_of
 from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import agent_environment, build_boundaries
@@ -23,14 +26,18 @@ BASE_PATH = "/usr/local/bin:/usr/bin:/bin"
 
 @pytest.mark.usefixtures("checkout", "sudo_stand_in")
 @pytest.mark.parametrize(
-    ("paths", "expected"),
+    ("images_of", "expected"),
     [
-        pytest.param({IMAGE: JDK_PATH}, JDK_PATH, id="image-path"),
-        pytest.param({}, BASE_PATH, id="no-image-path"),
+        pytest.param(
+            lambda _podman: FakeImages(paths={IMAGE: JDK_PATH}), JDK_PATH, id="image-path"
+        ),
+        pytest.param(lambda _podman: FakeImages(), BASE_PATH, id="no-image-path"),
+        # The stand-in `podman` prints no JSON for `image inspect`, so `path` raises.
+        pytest.param(lambda podman: PodmanImages(str(podman)), BASE_PATH, id="path-raises"),
     ],
 )
 def test_the_sync_the_check_and_the_agent_take_the_path_of_the_image_in_use(
-    tmp_path: Path, agent_home: Path, paths: dict[str, str], expected: str
+    tmp_path: Path, agent_home: Path, images_of: Callable[[Path], Images], expected: str
 ) -> None:
     zfs = recording_stand_in(tmp_path / "zfs-bin")
     podman = recording_stand_in(tmp_path / "podman-bin")
@@ -49,7 +56,7 @@ def test_the_sync_the_check_and_the_agent_take_the_path_of_the_image_in_use(
         podman_executable=str(podman),
     )
     boundaries = build_boundaries(
-        settings, CREDENTIAL, hosting=FakeHostingService(), images=FakeImages(paths=paths)
+        settings, CREDENTIAL, hosting=FakeHostingService(), images=images_of(podman)
     )
     scripts = tmp_path / "scripts"
 

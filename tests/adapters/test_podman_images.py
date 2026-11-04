@@ -9,6 +9,9 @@ import pytest
 from pydantic import BaseModel, ConfigDict
 
 from factory.adapters.podman_images import PodmanImages
+from factory.domain.containers import JOB_PODMAN_OPTIONS
+from factory.domain.errors import ContainerError
+from factory.domain.settings import ContainerProfileName
 from factory.domain.stage_layer import stage_layer
 from run_layout_support import read_records, write_script
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
@@ -135,3 +138,44 @@ def test_path_is_the_images_configured_path_or_the_base_default(
     assert path == expected
     [call] = _calls(podman)
     assert call.arguments == ["image", "inspect", "--format", "{{json .Config.Env}}", TAG]
+
+
+@pytest.mark.parametrize(
+    ("printed", "status"),
+    [
+        pytest.param("Error: no such image\n", 125, id="inspect-fails"),
+        pytest.param("no environment here\n", 0, id="no-json"),
+    ],
+)
+def test_path_raises_a_container_error_when_the_image_cannot_be_read(
+    tmp_path: Path, printed: str, status: int
+) -> None:
+    podman = _podman(tmp_path, stdout=printed, status=status)
+
+    with pytest.raises(ContainerError):
+        PodmanImages(str(podman)).path(TAG)
+
+
+@pytest.mark.parametrize(
+    ("profile", "options"),
+    [
+        pytest.param("job", list(JOB_PODMAN_OPTIONS), id="job"),
+        pytest.param("rootless", [], id="rootless"),
+    ],
+)
+def test_the_job_profile_puts_its_global_options_before_every_podman_command(
+    tmp_path: Path, profile: ContainerProfileName, options: list[str]
+) -> None:
+    podman = _podman(tmp_path, stdout='["LANG=C.UTF-8"]\n')
+    images = PodmanImages(str(podman), profile=profile)
+
+    images.build(LAYER, BASE, TAG, LIMIT)
+    images.path(TAG)
+
+    calls = _calls(podman)
+    assert [call.arguments[: len(options)] for call in calls] == [options] * 3
+    assert [call.arguments[len(options) :][:2] for call in calls] == [
+        ["build", "--build-arg"],
+        ["image", "prune"],
+        ["image", "inspect"],
+    ]

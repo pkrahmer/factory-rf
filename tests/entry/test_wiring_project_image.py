@@ -1,24 +1,27 @@
 """The start reads the project's stage file, builds its image and names the image in use."""
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
 
 from factory.adapters.fake_hosting import FakeHostingService
+from factory.adapters.fake_images import BuildCall, FakeImages
+from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.application.boundaries import Boundaries
 from factory.application.images import IMAGE_BUILD_TIME_LIMIT, ImageBuild, Images
 from factory.application.stops import StopService
+from factory.domain.preflight import PreflightStamp
 from factory.domain.settings import InstanceSettings
-from factory.domain.stage_layer import STAGE_FILE, StageLayer, stage_layer
+from factory.domain.stage_layer import STAGE_FILE, project_image_tag, stage_layer
 from factory.domain.stops import RepositoryStop
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_store, project_image_settings
-from git_support import run_git
+from git_support import PIPELINE_YAML, install_agents, run_git
 from human_clone import HumanClone
-from wiring_support import with_dataset
+from podman_support import PodmanPlan
+from wiring_support import PODMAN_VERSION, dataset_podman
 
 BASE_IDENTITY = "sha256-base"
 VALID = "ARG FACTORY_BASE\nFROM ${FACTORY_BASE}\nRUN true\n"
@@ -28,28 +31,6 @@ FAILED = ImageBuild(
 )
 TIMED_OUT = ImageBuild(passed=False, duration=timedelta(minutes=30), output_tail="step 7\nfetching")
 AT = datetime(2026, 10, 12, 12, 0, tzinfo=UTC)
-
-
-@dataclass(frozen=True)
-class _Build:
-    layer: StageLayer
-    base: str
-    tag: str
-    time_limit: timedelta
-
-
-@dataclass
-class _RecordingImages(Images):
-    result: ImageBuild = PASSED
-    builds: list[_Build] = field(default_factory=list)
-    paths: dict[str, str] = field(default_factory=dict)
-
-    def build(self, layer: StageLayer, base: str, tag: str, time_limit: timedelta) -> ImageBuild:
-        self.builds.append(_Build(layer, base, tag, time_limit))
-        return self.result
-
-    def path(self, image: str) -> str:
-        return self.paths.get(image, "/usr/local/bin:/usr/bin:/bin")
 
 
 @pytest.fixture
@@ -86,7 +67,7 @@ def _push_bytes(tmp_path: Path, remote: Path, path: str, data: bytes) -> None:
 def test_a_start_without_a_stage_file_builds_nothing_and_keeps_the_base(
     boundaries: Boundaries, settings: InstanceSettings
 ) -> None:
-    images = _RecordingImages()
+    images = FakeImages()
 
     started = _start(boundaries, settings, images)
 
@@ -98,13 +79,13 @@ def test_a_start_with_a_valid_stage_file_builds_it_once_and_takes_the_project_im
     boundaries: Boundaries, settings: InstanceSettings, human: HumanClone
 ) -> None:
     human.push_file("main", STAGE_FILE, VALID)
-    images = _RecordingImages()
+    images = FakeImages()
 
     started = _start(boundaries, settings, images)
 
     layer = stage_layer(VALID, BASE_IDENTITY)
     assert images.builds == [
-        _Build(layer, "factory-stage:vm", "factory-stage:vm-project", IMAGE_BUILD_TIME_LIMIT)
+        BuildCall(layer, "factory-stage:vm", "factory-stage:vm-project", IMAGE_BUILD_TIME_LIMIT)
     ]
     assert started == settings.model_copy(
         update={"stage_image": "factory-stage:vm-project", "image": layer.identity}
@@ -128,7 +109,7 @@ def test_a_stage_file_that_does_not_build_stands_as_a_stop(
 ) -> None:
     human.push_file("main", STAGE_FILE, VALID)
 
-    started = _start(boundaries, settings, _RecordingImages(result=result))
+    started = _start(boundaries, settings, FakeImages(build_result=result))
 
     [(reason, detail)] = _stops(boundaries)
     assert started is None
@@ -162,7 +143,7 @@ def test_a_stage_file_that_breaks_the_rule_stands_as_a_stop_and_builds_nothing(
     push: _Push,
 ) -> None:
     push(human, tmp_path, remote)
-    images = _RecordingImages()
+    images = FakeImages()
 
     started = _start(boundaries, settings, images)
 
@@ -185,43 +166,79 @@ def test_the_next_start_ends_a_stage_image_stop(
     if stage_file is not None:
         human.push_file("main", STAGE_FILE, stage_file)
 
-    started = _start(boundaries, settings, _RecordingImages())
+    started = _start(boundaries, settings, FakeImages())
 
     assert started is not None
     assert "stage_image_failed" not in [reason for reason, _ in _stops(boundaries)]
 
 
 def test_no_stage_starts_while_the_stage_image_stop_stands(
-    tmp_path: Path, agent_home: Path, hosting: FakeHostingService, remote: Path, human: HumanClone
+    instance_settings: InstanceSettings, hosting: FakeHostingService, human: HumanClone
 ) -> None:
     human.push_file("main", STAGE_FILE, VALID)
-    token_file = tmp_path / "hosting-token"
-    token_file.write_text("example-value\n", encoding="utf-8")
-    state = tmp_path / "instance-state"
-    state.mkdir()
-    settings = with_dataset(
-        InstanceSettings(
-            repository_url=str(remote),
-            instance="factory-1",
-            checkout=tmp_path / "instance-checkout",
-            state_directory=state,
-            agent_home=agent_home,
-            claude_executable=str(tmp_path / "no-claude"),
-            token_file=token_file,
-        ),
-        tmp_path,
-    )
     sleeps: list[float] = []
-    images = _RecordingImages(result=FAILED)
+    images = FakeImages(build_result=FAILED)
 
     run_instance(
-        settings,
+        instance_settings,
         sleep=sleeps.append,
         should_stop=lambda: bool(sleeps),
         hosting=hosting,
         images=images,
     )
 
-    stops = health_store(state).read().stops
+    stops = health_store(instance_settings.state_directory).read().stops
     assert [stop.reason for stop in stops] == ["stage_image_failed"]
     assert len(images.builds) == 1
+
+
+@pytest.mark.parametrize(
+    ("stamped", "reasons", "inspected"),
+    [
+        pytest.param("layer", [], [], id="layer-identity-reused"),
+        pytest.param("base", ["preflight_failed"], ["project"], id="base-identity-checked-again"),
+    ],
+)
+def test_a_run_with_a_valid_stage_file_runs_its_preflight_on_the_project_image(
+    instance_settings: InstanceSettings,
+    hosting: FakeHostingService,
+    *,
+    boundaries: Boundaries,
+    human: HumanClone,
+    agent_home: Path,
+    remote: Path,
+    tmp_path: Path,
+    stamped: str,
+    reasons: list[str],
+    inspected: list[str],
+) -> None:
+    install_agents(agent_home, boundaries.pipeline_reader.parse(PIPELINE_YAML).roles)
+    human.push_file("main", STAGE_FILE, VALID)
+    settings = instance_settings.model_copy(update={"image": BASE_IDENTITY})
+    assert settings.stage_image is not None
+    layer = stage_layer(VALID, BASE_IDENTITY)
+    tag = project_image_tag(settings.stage_image)
+    names = {"layer": layer.identity, "base": BASE_IDENTITY, "project": tag}
+    main = run_git(remote, "rev-parse", "main").strip()
+    stamps = JsonPreflightStampFile(settings.state_directory / "preflight-stamp.json")
+    stamps.write(PreflightStamp(image=names[stamped], main_probed=main))
+    podman = dataset_podman(tmp_path, PodmanPlan(stdout=f"{PODMAN_VERSION}\n"))
+    sleeps: list[float] = []
+    images = FakeImages()
+
+    run_instance(
+        settings,
+        sleep=sleeps.append,
+        should_stop=lambda: len(sleeps) >= 2,
+        hosting=hosting,
+        images=images,
+    )
+
+    stops = health_store(settings.state_directory).read().stops
+    assert images.builds == [BuildCall(layer, settings.stage_image, tag, IMAGE_BUILD_TIME_LIMIT)]
+    assert [stop.reason for stop in stops] == reasons
+    images_named = {
+        call.arguments[-1] for call in podman.calls() if call.arguments[:1] == ["image"]
+    }
+    assert images_named == {names[name] for name in inspected}
+    assert settings.stage_image not in [word for call in podman.calls() for word in call.arguments]
