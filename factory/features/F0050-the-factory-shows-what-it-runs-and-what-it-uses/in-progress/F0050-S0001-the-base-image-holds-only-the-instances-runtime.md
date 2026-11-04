@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 538
-comments_read: []
+comments_read: [6626791280]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: feb756dad20f40b2a511e1f4301703ac
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-04T08:57:10.111349Z'
+  stage: intake
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -80,3 +85,14 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
    4. Criterion 2 says only the first stage installs, and installs exactly one runtime chosen by `AGENT_RUNTIME`. How is the test to see that? For example, must the install line use `${AGENT_RUNTIME}` to pick the package, so the test checks the text? Please name the check. As written, two testers could read it two ways.
 
    5. Criterion 4 is clear. Is the criterion 4 test also meant to refuse a `job-start.sh` build line without the argument? The "refused side" is implicit.
+4. 2026-11-04 human: Answers of the human:
+
+   1. Yes. Add a criterion: the stage-image test requires the Dockerfile to check `AGENT_RUNTIME` before any install (empty, and neither `claude` nor `opencode`) and to fail there with a message that contains `AGENT_RUNTIME`, `claude` and `opencode`. Rows: the file as built, the check missing, a message without one of the three words.
+
+   2. One criterion with one row per clause, all checks of the Dockerfile's text: the final stage leaves nothing in `/tmp`; it removes apt's lists; it removes debconf's cache and the install logs (`/var/cache/debconf/*-old`, `/var/log/*.log` or wider); and the final stage's `COPY --from` lines take only the chosen runtime's files. Yes, the baseline executable is a row of its own: no `COPY --from` of the final stage names a path that contains `baseline`.
+
+   3. Yes, one criterion each: the `ENV FACTORY_CLAUDE_VERSION`, `ENV FACTORY_OPENCODE_VERSION` and `ENV FACTORY_OPENCODE_MODELS` lines stay (rows: each line removed is refused); and the first line names the build command with `--build-arg AGENT_RUNTIME=<claude|opencode>` (row: a first line without it is refused).
+
+   4. The check is: every `npm` line lies before the final stage's `FROM`; there is exactly one `npm install`, and the package it installs is chosen from `${AGENT_RUNTIME}` (for example a shell `case` that maps `claude` to `@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}` and `opencode` to `opencode-ai@${OPENCODE_VERSION}`). The test checks the text: rows for an `npm` line after the final `FROM`, two `npm install` lines, and an install whose package does not depend on `${AGENT_RUNTIME}`.
+
+   5. Yes: the test refuses a `job-start.sh` build line without `--build-arg AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME`.
