@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 545
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T20:04:13.885938Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-04T20:04:13.885938Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-11-04T20:07:52.227611Z'
+  stage: doing
+  run: 31db6932c7c04796a0206730b36d7dbd
 ---
 
 # The transcript folder is set up on the VM and in Cloud Run
@@ -240,3 +242,15 @@ Expect: a number of at least `1`, a number of at least `1`, then a line that end
 
     `lint`: lint: green (0.2 s)
 14. factory: started doing as vm.
+15. coder: Round 1, after the tester's change. The tester merged the two job-start tests into one parametrized test, `test_the_factory_starts_only_with_a_writable_or_unset_transcript_folder`, in `tests/test_vm_job_start_transcripts.py`. That was the reviewer's finding 2, and it needs no code change. Finding 1 was already fixed in entry 11: `need_whole` in `vm/setup.sh` is now shared by `--idle-shutdown` and `--transcript-days`.
+
+    - Changes this stage: none. `vm/setup.sh` and `vm/job-start.sh` stay as they were after entry 11, and all four rows of the merged test pass against `vm/job-start.sh` as it is.
+    - Refactor pass: none needed. This stage added no diff.
+    - Main choice: I left the code as it was. The alternative I rejected was touching the scripts again, which would have gone beyond the findings.
+    - Noticed, not touched (as in entries 7, 9 and 11): with `--transcript-days 0`, a rule file in `/etc/tmpfiles.d/` from an earlier run is left in place. systemd would then make the folder again at boot. Whether to remove that file is the human's choice.
+    - `## Description`: unchanged. The journal did not change what the task means.
+
+    `make check`: green (test 86.7 s, `check: green`).
+
+    `check`: check: green
+    `duplicates`: duplicates: 4 new, 41 known, 2 gone
