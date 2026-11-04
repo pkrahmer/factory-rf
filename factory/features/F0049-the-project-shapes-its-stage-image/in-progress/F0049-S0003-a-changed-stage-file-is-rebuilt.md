@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 528
 comments_read: [6620015058]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T01:32:55.536824Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-04T01:32:55.536824Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-04T01:39:12.941930Z'
+  stage: doing
+  run: f4e3529a1b0f4ddabda59d9a4b65f05f
+  blocked: question
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -155,3 +158,35 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: Question: `tests/entry/test_run_project_image_rebuild.py` can't pass against any code, because of a wrong path in the test. `World.__init__` sets `self.remote = tmp_path / "origin"`. But the `remote` fixture (`tests/conftest.py`, through `copy_remote`) returns `tmp_path / "origin" / "remote.git"`. So `_commit(self.remote)` runs `git rev-parse main` outside any repository. All 10 tests in the file fail in the scheduler's first sleep with `E   AssertionError: git rev-parse main failed: fatal: not a git repository (or any of the parent directories): .git` (`tests/entry/test_run_project_image_rebuild.py:125` in `_commit`, from `tests/git_support.py:107`). That is before any expectation is checked.
+
+    Options:
+    (a) The tester changes that one line to `self.remote = tmp_path / "origin" / "remote.git"`. Better still, `World` takes the `remote` fixture as a parameter instead of building the path itself. I would choose this.
+    (b) Some other change to the test.
+
+    I ran the file with only that line changed, in a scratch copy, and then put the test back as the tester wrote it. All 10 tests passed, as did `tests/entry/test_wiring_project_image.py` and `tests/entry/test_run.py` (53 tests). If you answer (a), the next coder run ends with `tests`, naming that change.
+
+    What I built (left in the working tree):
+    - `src/factory/entry/run.py`: `_ProjectImageStart.prepare` now runs `_follow_main` before every tick, after the repository waiter. That fetches, reads the stage file on `origin/main` and compares it with the last one it handled.
+      - Same file: it does nothing. That also means it does not retry a file that failed.
+      - Changed file: `_choose` calls `project_image_settings` and builds a new tick with new boundaries, but only when the build passed.
+      - Failed build: the tick is dropped, so no tick runs while the stop stands. This matches the start behaviour from before.
+      - It writes `stage image: back to the base at <commit>` when the file is removed while a project image is in use.
+    - `src/factory/entry/wiring.py`:
+      - New `StageImageReport` (log, clock, 12-digit commit).
+      - New `stage_image_report(git, log, clock)`: resolves `origin/main`, and raises `GitError` when it is missing.
+      - New `stage_file_on_main(git)`.
+      - `project_image_settings` replaces its `clock=` keyword with `report=`. With a report, it writes the `built … in <s> s` and `failed at <commit>` lines and prefixes the stop's detail with `at <commit>: `. Without one, the detail and the behaviour are the same as before, so S0002's tests are unchanged.
+      - `_whole_seconds` is shared by the fault text and the built line.
+
+    Main choice: I compare the stage file's text, not `StageLayer.digest`. Equal text means equal digest, and the text also covers a file that breaks the rule, which has no digest. I rejected computing the digest separately, because a refused file would then need its own case. I moved the clock into the report because a sixth parameter broke ruff's PLR0913, and only the run passes either one.
+
+    Refactor: done once. I folded the clock into the report and named the second boundaries `chosen_boundaries`.
+
+    Noticed, not touched:
+    - A failed fetch in `prepare` now fails that iteration through the scheduler's catch-all, which logs `iteration failed`. Before, only the first iteration fetched.
+    - The start's own build also writes a `stage image: built` line. The tests leave that open.
+
+    `make check`: lint, types, layers, sast, secrets and licenses are green. `make test` is red only on those 10 tests.
+
+    The factory left out changes outside the write paths: tests/entry/test_run_project_image_rebuild.py.

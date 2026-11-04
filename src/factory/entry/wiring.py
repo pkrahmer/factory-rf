@@ -92,7 +92,7 @@ from factory.domain.containers import (
     extra_environment,
 )
 from factory.domain.disk import DiskRecord
-from factory.domain.errors import ContainerError, SettingsInvalid
+from factory.domain.errors import ContainerError, GitError, SettingsInvalid
 from factory.domain.events import EventKind
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import Name
@@ -123,6 +123,7 @@ from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopRecor
 __all__ = [
     "CREDENTIAL_HELPER",
     "WORK_HOME_ENVIRONMENT",
+    "StageImageReport",
     "agent_environment",
     "agent_run_environment",
     "boundaries_from_environment",
@@ -147,6 +148,8 @@ __all__ = [
     "read_environment_settings",
     "read_hosting_token",
     "repository_name",
+    "stage_file_on_main",
+    "stage_image_report",
     "system_clock",
 ]
 
@@ -165,6 +168,7 @@ _RESULT_RECORDS_PATH = Path("records", "known-results.jsonl")
 _MISSING = "missing"
 _ORIGIN_MAIN = f"{REMOTE}/{MAIN_BRANCH}"
 _STAGE_IMAGE_FAILED: RepositoryStopReason = "stage_image_failed"
+_SHORT_COMMIT_LENGTH = 12
 # Room for curl's own five seconds and the container's start.
 _METADATA_PROBE_TIME_LIMIT = timedelta(seconds=30)
 
@@ -362,21 +366,49 @@ def build_images(settings: InstanceSettings) -> Images:
     return PodmanImages(settings.podman_executable, profile=settings.container_profile)
 
 
+@dataclass(frozen=True)
+class StageImageReport:
+    """Where and when a change of the stage image is told: the log, its clock, the commit."""
+
+    log: FactoryLog
+    clock: Clock
+    # The first 12 hex digits of the commit.
+    commit: str
+
+
+def stage_image_report(git: Git, log: FactoryLog, clock: Clock) -> StageImageReport:
+    """Return the report of a stage image change to `log`, at the commit of `origin/main`.
+
+    `GitError` when `origin/main` does not exist.
+    """
+    commit = git.resolve(_ORIGIN_MAIN)
+    if commit is None:
+        raise GitError(f"resolve {_ORIGIN_MAIN}", None, "no such ref")
+    return StageImageReport(log=log, clock=clock, commit=commit[:_SHORT_COMMIT_LENGTH])
+
+
+def stage_file_on_main(git: Git) -> str | None:
+    """Return the text of the stage file on `origin/main`, or `None` without one."""
+    return git.show_file(_ORIGIN_MAIN, STAGE_FILE)
+
+
 def project_image_settings(
     settings: InstanceSettings,
     git: Git,
     images: Images,
     stops: StopService,
     *,
-    clock: Clock | None = None,
+    report: StageImageReport | None = None,
 ) -> InstanceSettings | None:
     """Return the settings of the image every container runs in, from the stage file on main.
 
     Without a stage file they are `settings`; with one that builds, they name the project image
     and the layer's identity. A file that breaks the rule or does not build stands as the stop
-    `stage_image_failed`, and the result is `None`. `git` has fetched before.
+    `stage_image_failed`, and the result is `None`. `git` has fetched before. With `report`, a
+    build that passed or failed writes its line to the log, and the stop's detail names the
+    commit and takes its time from the report's clock.
     """
-    text = git.show_file(_ORIGIN_MAIN, STAGE_FILE)
+    text = stage_file_on_main(git)
     if text is None:
         stops.clear_stop(_STAGE_IMAGE_FAILED)
         return settings
@@ -386,29 +418,39 @@ def project_image_settings(
     try:
         layer = stage_layer(text, settings.image or "")
     except StageLayerRefused as refusal:
-        _stage_image_failed(stops, str(refusal), clock)
+        _stage_image_failed(stops, str(refusal), report)
         return None
     tag = project_image_tag(base)
     build = images.build(layer, base, tag, IMAGE_BUILD_TIME_LIMIT)
     if not build.passed:
-        _stage_image_failed(stops, _build_fault(build), clock)
+        _stage_image_failed(stops, _build_fault(build), report)
         return None
     stops.clear_stop(_STAGE_IMAGE_FAILED)
+    if report is not None:
+        report.log.line(
+            f"stage image: built {layer.identity} at {report.commit} in {_whole_seconds(build)} s"
+        )
     # Without a base identity the layer's is unknown too, and no stamp is reused.
     identity = None if settings.image is None else layer.identity
     return settings.model_copy(update={"stage_image": tag, "image": identity})
 
 
-def _stage_image_failed(stops: StopService, detail: str, clock: Clock | None) -> None:
-    at = (system_clock() if clock is None else clock).now()
+def _stage_image_failed(stops: StopService, detail: str, report: StageImageReport | None) -> None:
+    at = (system_clock() if report is None else report.clock).now()
+    if report is not None:
+        report.log.line(f"stage image: failed at {report.commit}")
+        detail = f"at {report.commit}: {detail}"
     stops.raise_stop(
         RepositoryStop(scope="machine", reason=_STAGE_IMAGE_FAILED, detail=detail, at=at)
     )
 
 
 def _build_fault(build: ImageBuild) -> str:
-    seconds = math.ceil(build.duration.total_seconds())
-    return f"the stage file did not build in {seconds} s:\n{build.output_tail}"
+    return f"the stage file did not build in {_whole_seconds(build)} s:\n{build.output_tail}"
+
+
+def _whole_seconds(build: ImageBuild) -> int:
+    return math.ceil(build.duration.total_seconds())
 
 
 @dataclass(frozen=True)
