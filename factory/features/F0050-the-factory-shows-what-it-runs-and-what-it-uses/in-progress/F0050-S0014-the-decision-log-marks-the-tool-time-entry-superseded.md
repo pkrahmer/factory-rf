@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 553
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-04T23:56:22.763583Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-04T23:56:17.099755Z'
   stage: docs
   run: cc54fa39f0c94d05bf8578884905f524
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T23:56:22.763583Z'
+  stage: smoke-test
 ---
 
 # The decision log marks the old tool-time entry as superseded
@@ -167,3 +176,4 @@ Expect: `1`.
     `check`: check: green (not run again: passed on tree 066290bec96a at 2026-11-04T23:41:19Z)
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
