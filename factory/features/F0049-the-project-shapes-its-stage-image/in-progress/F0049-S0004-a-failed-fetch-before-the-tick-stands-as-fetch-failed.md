@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 530
 comments_read: [6620835040]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T02:27:48.430427Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-04T02:27:48.430427Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-04T02:29:03.464361Z'
+  stage: doing
+  run: b0a619cac77340dbbcc6d6d2b6cc39de
+  blocked: question
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -142,3 +145,29 @@ Expect: a line that ends in `passed` with no `failed`.
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: I stopped at one test that I think cannot pass as written. The code is in the working tree, in `src/factory/entry/run.py`, but `make check` is not green yet.
+
+    What I built: `_ProjectImageStart._follow_main` now returns `bool`. When `git.fetch()` raises `FetchFailed`, it raises `RepositoryStop(scope="repository", reason="fetch_failed", detail=str(error), at=clock.now())` through `StopService` and returns `False`. After a fetch that passes, it calls `clear_stop("fetch_failed")` and compares the stage file as before. `prepare` returns `False` when `_follow_main` does. Any other `GitError` is not caught. In `tests/entry/` (and `tests/application/test_tick.py`), everything passes except the `fails` row of criterion 1.
+
+    The contradiction is in `tests/entry/test_run_fetch_before_tick.py::test_a_failed_fetch_before_the_tick_stands_as_fetch_failed_and_runs_no_tick[fails]`:
+
+    ```
+    tests/entry/test_run_fetch_before_tick.py:217: in test_a_failed_fetch_before_the_tick_stands_as_fetch_failed_and_runs_no_tick
+        assert any(line.endswith(STOP_LINE + stop.detail) for line in run.lines)
+    E   assert False
+    ```
+
+    - The Interface sets `detail=str(error)`. For a `FetchFailed`, that is git's stderr, which runs over several lines (`... does not appear to be a git repository\nfatal: Could not read from remote repository.\n\nPlease make sure ...`).
+    - The factory log writes each line of a message as its own timestamped line, and `state_log_lines` splits the file by line. So no single log line can end in the whole detail.
+    - The log does hold `2026-11-04T02:28:30Z stop repository fetch_failed: git fetch --prune origin failed (exit 128): fatal: '...' does not appear to be a git repository`, followed by the rest of the detail on further lines.
+    - The tick's own `fetch_failed` writes the same multi-line detail the same way, so this is not specific to the new code.
+
+    Options:
+    (a) The tester changes that one assertion to check the detail's first line: `any(line.endswith(STOP_LINE + stop.detail.splitlines()[0]) for line in run.lines)`.
+    (b) The code folds the detail into one line before raising the stop. That goes against the Interface's `detail=str(error)`, and the stop would read differently from the tick's own `fetch_failed`.
+
+    I would choose (a). With your yes, I end with `tests` and the tester makes that one change.
+
+    Rejected design: catching the error in `prepare` instead of in `_follow_main`. The Interface puts it in `_follow_main`, and keeping it there keeps the fetch and its stop together.
+
+    The Description stays as it is: no journal entry changed the task.
