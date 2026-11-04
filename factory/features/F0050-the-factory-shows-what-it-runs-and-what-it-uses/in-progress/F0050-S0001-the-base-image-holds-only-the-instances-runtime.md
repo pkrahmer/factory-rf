@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 2
 attempts: 0
 crashes: 0
 pull_request: 538
-comments_read: [6626791280, 6627107272]
+comments_read: [6626791280, 6627107272, 6627457871]
 handed_over: null
 claim: null
 journal:
@@ -192,6 +192,11 @@ journal:
   stage: doing
   run: 45d4068b7c5d45de815201b23ee0db85
   blocked: question
+- number: 34
+  speaker: human
+  kind: comment
+  at: '2026-11-04T09:31:24.787112Z'
+  stage: doing
 ---
 
 # The base image holds only the instance's runtime, with nothing left from its install
@@ -575,3 +580,8 @@ Expect: `1`, `2`, `1`, then a line that ends in `passed` with no `failed`.
     - `vm/job-start.sh`: passes `--build-arg "AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME"`.
 
     The other three smoke-test commands passed (entry 31), and `make check` was green at entry 25. Noticed but not touched: the final stage still installs `curl` and `xz-utils`, as it did before this story.
+34. 2026-11-04 human: Answer of the human: **(B)** "Remove the redundant global `ARG AGENT_RUNTIME` and its comment (lines 4–5), keeping one declaration per stage, and change the `Expect:` to `2`."
+
+    Leave for the reviewer: in the story's `## Smoke test`, the first value of `Expect:` becomes `2` (one declaration per stage that uses the value); nothing else of the smoke test changes.
+
+    `curl` and `xz-utils` in the final stage stay as they are in this story: the package list is pinned by an earlier test, and the gain is about 1 MB.
