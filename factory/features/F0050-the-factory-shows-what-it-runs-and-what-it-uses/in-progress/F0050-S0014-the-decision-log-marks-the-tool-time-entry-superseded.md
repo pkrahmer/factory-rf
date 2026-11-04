@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 553
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-04T23:52:21.899629Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-04T23:52:21.899629Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-04T23:52:41.912999Z'
+  stage: tests
+  run: d24fff0d2a5b4e41838826f1417db3a7
 ---
 
 # The decision log marks the old tool-time entry as superseded
@@ -82,3 +84,12 @@ Expect: `1`.
    - Architecture: the change is only to the decision log, which the documenter stage keeps. It touches no layer and no file in the human's list.
    - Scope: this is S0014 of F0050, which feature.md lists as "from A0002". It adds no code and no new behaviour. It is not in "Out of scope".
 4. factory: started tests as vm.
+5. tester: No test written, because the Interface says so: "No module under `src/factory/` changes, and no test is written." This story only edits `docs/decisions.md`, which the documenter stage keeps. Criteria 1 to 3 fix exact text in that file. The smoke test's `grep -c` commands and the review of the diff check them, so a pytest test pinning the log's wording would go against the Interface.
+   - criterion 1: no test, per the Interface (checked by the first smoke-test grep and by the diff)
+   - criterion 2: no test, per the Interface (checked by the second smoke-test grep)
+   - criterion 3: no test, per the Interface (checked by review of the diff of `docs/decisions.md`)
+   - criterion 4: no test of its own (`make check`)
+   - criterion 5: no test of its own (docs stage)
+   Files created: none. Modules the test runner could not import: none. No test run, since there are no new tests. `make lint` is green. Rejected: a structural test that reads `docs/decisions.md` for the two sentences, because the Interface rules out writing one.
+
+   `lint`: lint: green (0.1 s)
