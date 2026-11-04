@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-04T02:20:55.662567Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-04T02:20:55.654969Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:20:55.662567Z'
+  stage: intake
+---
+
 # A fetch that fails before the tick stands as the stop fetch_failed
 
 <!-- proposed by feature acceptance of 2026-11-04; refine before starting -->
@@ -35,3 +62,6 @@ uv run pytest tests/entry/test_run_fetch_before_tick.py 2>&1 | tail -1
 Expect: a line that ends in `passed` with no `failed`.
 
 ## Journal
+
+1. 2026-11-04 human: created.
+2. factory: started intake as vm.
