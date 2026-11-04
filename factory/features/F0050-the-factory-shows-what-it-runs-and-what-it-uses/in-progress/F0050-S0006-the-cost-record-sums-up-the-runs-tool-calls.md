@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 544
 comments_read: [6639153913, 6640096367]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T19:35:36.335897Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -208,6 +212,11 @@ journal:
   at: '2026-11-04T19:35:29.701471Z'
   stage: tests
   run: bb348978b06b4f908ac855b9d7a6787f
+- number: 37
+  speaker: factory
+  kind: started
+  at: '2026-11-04T19:35:36.335897Z'
+  stage: doing
 ---
 
 # The cost record sums up the run's tool calls
@@ -583,3 +592,4 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
     Files created: none. Modules the test run could not import: none.
 
     `lint`: lint: green (0.1 s)
+37. factory: started doing as vm.
