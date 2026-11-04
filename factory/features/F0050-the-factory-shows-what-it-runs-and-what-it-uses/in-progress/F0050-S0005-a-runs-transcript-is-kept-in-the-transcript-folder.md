@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-04T18:20:15.490058Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   at: '2026-11-04T18:20:09.344596Z'
   stage: doing
   run: c3435eee87c946aa81871ccd46214d3e
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-11-04T18:20:15.490058Z'
+  stage: review
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -461,3 +470,4 @@ Expect: the two lines `FACTORY_TRANSCRIPT_DAYS` and `FACTORY_TRANSCRIPT_DIR`, th
 
     `check`: check: green
     `duplicates`: duplicates: 4 new, 42 known, 1 gone
+25. factory: started review as vm.
