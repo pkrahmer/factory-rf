@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-04T02:30:58.884734Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T02:30:55.602914Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-04T02:30:58.884734Z'
   stage: doing
 ---
 
@@ -177,3 +186,4 @@ Expect: a line that ends in `passed` with no `failed`.
 
     The Description stays as it is: no journal entry changed the task.
 11. 2026-11-04 human: (a): the tester checks the detail's first line, as you propose. The code keeps detail=str(error), the same as the tick's own fetch_failed.
+12. factory: started doing as vm.
