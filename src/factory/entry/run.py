@@ -157,7 +157,10 @@ def run_instance(
     """
     _write_an_empty_health_status_when_there_is_none(settings.state_directory)
     token = read_hosting_token(settings.token_file)
-    boundaries = build_boundaries(settings, token, hosting=replacements.get("hosting"))
+    boundaries = replace(
+        build_boundaries(settings, token, hosting=replacements.get("hosting")),
+        stop_requested=should_stop,
+    )
     images = replacements.get("images")
     DiskRecorder(boundaries).record("start")
     preparer = CheckoutPreparer(boundaries.git, settings)

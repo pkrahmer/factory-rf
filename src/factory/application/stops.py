@@ -1,5 +1,6 @@
 """Raising and clearing the stops of the repository and the machine; posting a work item's."""
 
+from collections.abc import Callable
 from datetime import datetime
 
 from factory.application.boundaries import Boundaries
@@ -19,6 +20,8 @@ from factory.domain.stops import (
     stop_records_text,
 )
 
+NO_DETAIL = "no detail given"
+
 
 class StopService:
     """Reports the stops of the repository, the machine and one work item.
@@ -33,31 +36,33 @@ class StopService:
         self._boundaries = boundaries
 
     def raise_stop(self, stop: RepositoryStop) -> None:
-        """Write the stop's line, put it into the health status and record a first raise.
+        """Put the stop into the health status, write its line if it changed, record a first raise.
 
-        Raises `OSError` after every destination was tried.
+        A blank detail becomes `NO_DETAIL`. The line is written when the stop does not stand yet
+        or stands with another detail. Raises `OSError` after every destination was tried.
         """
+        stop = _with_detail(stop)
         # Every destination is tried: one that cannot be written never loses the stop.
         errors: list[OSError] = []
         try:
-            self._boundaries.log.line(f"stop {stop.scope} {stop.reason}: {stop.detail}")
-        except OSError as error:
-            errors.append(error)
-        # Without a readable status no record: the records stay paired with the health status.
-        standing = True
-        try:
             status = self._boundaries.health.read()
-            standing = _stands(status, stop.reason)
-            self._boundaries.health.write(status.with_stop(stop))
         except OSError as error:
+            # Without a readable status the line is written and no record: the records stay
+            # paired with the health status.
+            _collect(errors, lambda: self._write_line(stop))
             errors.append(error)
-        if not standing:
-            try:
-                self._record("raised", stop, stop.at)
-            except OSError as error:
-                errors.append(error)
+            raise errors[0] from None
+        standing = _standing(status, stop.reason)
+        if not _same_line(standing, stop):
+            _collect(errors, lambda: self._write_line(stop))
+        _collect(errors, lambda: self._boundaries.health.write(status.with_stop(stop)))
+        if standing is None:
+            _collect(errors, lambda: self._record("raised", stop, stop.at))
         if errors:
             raise errors[0]
+
+    def _write_line(self, stop: RepositoryStop) -> None:
+        self._boundaries.log.line(f"stop {stop.scope} {stop.reason}: {stop.detail}")
 
     def clear_stop(self, reason: RepositoryStopReason) -> None:
         """Remove the stop of `reason` from the health status, say so and record the clear.
@@ -65,7 +70,7 @@ class StopService:
         Nothing happens when no stop of `reason` stands.
         """
         status = self._boundaries.health.read()
-        standing = next((stop for stop in status.stops if stop.reason == reason), None)
+        standing = _standing(status, reason)
         if standing is None:
             return
         # The status first: no line may say a stop is cleared that is still in force.
@@ -156,8 +161,27 @@ def _missing_records(local: list[StopRecord], published: list[StopRecord]) -> li
     return missing
 
 
-def _stands(status: HealthStatus, reason: RepositoryStopReason) -> bool:
-    return any(stop.reason == reason for stop in status.stops)
+def _standing(status: HealthStatus, reason: RepositoryStopReason) -> RepositoryStop | None:
+    return next((stop for stop in status.stops if stop.reason == reason), None)
+
+
+def _same_line(standing: RepositoryStop | None, stop: RepositoryStop) -> bool:
+    if standing is None:
+        return False
+    return (standing.scope, standing.detail) == (stop.scope, stop.detail)
+
+
+def _with_detail(stop: RepositoryStop) -> RepositoryStop:
+    if stop.detail.strip():
+        return stop
+    return stop.model_copy(update={"detail": NO_DETAIL})
+
+
+def _collect(errors: list[OSError], write: Callable[[], None]) -> None:
+    try:
+        write()
+    except OSError as error:
+        errors.append(error)
 
 
 def _without_stop(status: HealthStatus, reason: RepositoryStopReason) -> HealthStatus:

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 541
 comments_read: [6632127880]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T13:42:30.321924Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-04T13:42:30.321924Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-04T13:47:53.634880Z'
+  stage: doing
+  run: dfe17aa226ab4f0eb170d215a9d0002b
 ---
 
 # A stop says why, and is logged once
@@ -156,3 +158,24 @@ Expect: `1`, then a line that ends in `passed` with no `failed`.
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: I made the failing tests for criteria 1 to 6 pass without changing any test. `make check` is green.
+
+    What I built:
+    - `src/factory/domain/checks.py`: `command_ending(result)` gives `time_limit` when there is no exit status, `signal <n>` for a negative exit status, and `exit status <n>` otherwise.
+    - `src/factory/application/preflight.py`: when the last line is blank, `_failing_detail` now gives `lint ended with exit status <n>` or `lint ended by signal <n>`, followed by `and printed nothing on main at <commit>`. The small helper `_ended` picks between "with" and "by". In `_run_probe`, a probe that ends while `boundaries.stop_requested()` is true returns `None` straight away. It then raises no stop, clears none and writes no stamp, so the next start probes `main` again.
+    - `src/factory/application/boundaries.py`: `Boundaries` has a new field `stop_requested: Callable[[], bool] = lambda: False`.
+    - `src/factory/entry/run.py`: `run_instance` sets `stop_requested` to its `should_stop` with `dataclasses.replace`. `run_until_stopped` passes `event.is_set`, the event that `install_stop_handlers` sets.
+    - `src/factory/application/stops.py`: `raise_stop` first replaces a blank detail with `NO_DETAIL` ("no detail given"). It then reads the health status. It writes the log line only when no stop of that reason stands, or one stands with another scope or detail. It always writes the newest stop to the health status, and adds a `raised` record only when none stood. If the health status cannot be read, it still writes the line, writes no record, and raises once it has tried both. The record pairing is kept as before. `_stands` became `_standing`, which returns the standing stop, and `clear_stop` uses it too. A small helper `_collect` keeps the "every destination is tried" rule.
+
+    Main decision: the line is held back inside `StopService`, by comparing the new stop with the standing one in the health status. I rejected keeping a memory of the last line in the service or in the log adapter. The health status is already the truth about what stands, so a restart or a second service object gives the same answer.
+
+    Refactor: after `make check` was green I read the diff once. I folded a first, more tangled version of the error collection into `_collect` and `_write_line`, and changed nothing else.
+
+    The journal changed nothing in the meaning of the task beyond what intake had already written into the Description.
+
+    Noticed but not touched:
+    - When the probe is cut off, `Preflight.run` still clears `preflight_failed` and returns `None`. That seemed right: the machine's own checks had already passed.
+    - A standing stop whose detail changes now writes its line again, but its `at` in the health status moves to the newest raise. That was so before this change too.
+
+    `check`: check: green
+    `duplicates`: duplicates: 3 new, 43 known, 0 gone
