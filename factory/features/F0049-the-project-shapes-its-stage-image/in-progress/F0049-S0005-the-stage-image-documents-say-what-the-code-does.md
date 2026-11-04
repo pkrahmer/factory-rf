@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 531
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-04T02:51:16.547907Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-04T02:51:16.547907Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-04T02:51:43.991114Z'
+  stage: docs
+  run: 63992ac29fb14a229bb72421b43780ca
 ---
 
 # The stage image's documents say what the code does and why
@@ -151,3 +153,17 @@ Expect: `0`, `0`, `1`, then `documents ok`.
    - Group 5 (work item hygiene): entries 5 and 7 say why no test or code was written and what was rejected. The Description matches the plan. Criterion 6 names the two documents to change and says why `README.md` and the project guide need no change.
    - Item 6 (earlier tests): none changed.
 10. factory: started docs as vm.
+11. documenter: Documents written for criteria 1 to 4. No code, test or comment changed, so I did not run `make check`; the factory's checks follow.
+    - `docs/operator-guide.md`, *The project's stage file*: replaced "nothing changes" with the base image, the base's identity and the `PATH` the base image configures (the default only when it configures none).
+    - `docs/operator-guide.md`, *The stop `stage_image_failed`*: the time-limit case now reads `the stage file did not build in <s> s:` followed by podman's message that the build did not end within its limit, with no build output. The restart sentence now says a restart builds the same file again, which ends the stop when the build passes and raises it again when it fails.
+    - `docs/decisions.md`, entry "A project adds a layer…": the Why carries the reasons of decisions 1, 3 and 4 as the story's Interface states them. The Rejected line names the package list with a catalogue, `mise.toml` and named stack images beside the `repository` scope. "ends with the next start" now says the next entry replaced it.
+    - `docs/decisions.md`, entry "The factory follows `main`…": added the Cloud Run reason of decision 5.
+    - Ran: `grep -c 'gives the same text' docs/operator-guide.md` gives 0 and `grep -c 'mise.toml' docs/decisions.md` gives 1. `uv run python -m factory.entry.check_documents` printed `documents ok`.
+    - Cross-read and found current: `README.md` (one sentence on the stage file) and `docs/project-guide/stage-environment.md`, as criterion 6 says. The operator guide's *The `PATH` and the identity* section agrees with the code (the reviewer checked `images.py` and `containers.py`).
+    - Stale text noticed and not touched: none.
+    - Rejected lines: every entry I changed has a Rejected line from the story. The "A failed fetch…" entry has none and I did not touch it.
+    - Findings for the coder: none.
+
+    `check`: check: green (not run again: passed on tree da88284d442d at 2026-11-04T02:41:58Z)
+    `secrets`: secrets: green (2.2 s)
+    `documents`: documents ok
