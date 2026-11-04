@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 549
 comments_read: [6643408151, 6643585034]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-04T22:24:21.490642Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,13 @@ journal:
   kind: started
   at: '2026-11-04T22:24:21.490642Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-11-04T22:27:36.343131Z'
+  stage: doing
+  run: 18f2971367394c71bbe64aa49dba799d
+  blocked: question
 ---
 
 # A hosting failure after the claim charges no crash
@@ -185,3 +188,24 @@ Expect: `0`, then a line that ends in `passed` with no `failed` and no `xfailed`
 
     `lint`: lint: green (0.1 s)
 12. factory: started doing as vm.
+13. coder: I stopped with the code written and `make check` red on one of S0008's tests, which contradicts criterion 1. I may not change that test.
+
+    **Built:** `src/factory/application/stage.py`. In `StageLauncher._start`, a `HostingServiceError` from `ensure_pull_request` calls the new `_release_after_hosting_failure`. It clears the claim (`ClaimService.release`), writes the work item, commits it with `commit_subject(<id>, RELEASE_AFTER_HOSTING_FAILURE)` ("claim released: hosting failed") and pushes through `push_with_retries`. Then the same error is raised again with a bare `raise`. When the push fails with `PushFailed`, the method logs `claim release not pushed: ...` and swallows the failure, so the original `HostingServiceError` still reaches the caller and the claim on the remote stands, as before. Other errors are not caught. Main choice: catch at the one call in `_start`, where the claim and the document are at hand. Rejected: catching in the tick handler, which would need to know about claims and the work item's path. Every test in `tests/application/test_hosting_failure_releases_claim.py` passes, and so does `test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick` without its `xfail` mark. lint, types, layers, sast, secrets and licenses are green.
+
+    **The contradiction.** `make test` fails on one test only:
+
+    ```
+    FAILED tests/application/test_hosting_failure_after_claim.py::test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_run - AssertionError: assert None is not None
+    tests/application/test_hosting_failure_after_claim.py:23: AssertionError
+    ```
+
+    This S0008 test checks `claimed.claim is not None` after the failed tick. Criterion 1 requires "leaves the branch with no claim". Both cannot pass. The human's leave (journal 4) covers only the `xfail` mark of the other test in that module.
+
+    **Options:**
+    - (a) Leave for the tester to delete `test_a_hosting_failure_after_the_claim_leaves_the_claim_pushed_and_no_agent_run`. Its other check, no agent call, is covered by criterion 1's test `test_a_hosting_failure_after_the_claim_releases_it_and_the_next_tick_runs_the_stage`.
+    - (b) Leave for the tester to change line 23 to `assert claimed.claim is None` and rename the test, for example `..._releases_the_claim_and_runs_no_agent`. The standing leave keeps test names, so this needs the human too.
+    - (c) Keep the claim standing: this undoes approach (a) and is not recommended.
+
+    I would choose (a). After the answer, the coder ends with `tests` and names the change.
+
+    Noticed, not touched: a release whose push fails leaves an unpushed release commit in the factory's local checkout. The next tick starts from the remote, so I left that alone.
