@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 531
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-04T02:51:50.277268Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-04T02:51:50.277268Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-04T02:52:15.165943Z'
+  stage: smoke-test
+  run: 47c15519b26247e3a61dea903ea2f517
 ---
 
 # The stage image's documents say what the code does and why
@@ -177,3 +179,43 @@ Expect: `0`, `0`, `1`, then `documents ok`.
     `secrets`: secrets: green (2.2 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test run from the repository root, commands as written and in order. Every command met its `Expect:` line, and no acceptance criterion is contradicted. No findings.
+
+    1. `grep -c 'gives the same text' docs/operator-guide.md`
+    ```
+    0
+    ```
+    Met (expected `0`). grep exits with 1 when it finds no match, which is what an expected count of 0 means.
+
+    2. ``grep -c 'A restart of `factory-run` also ends it' docs/operator-guide.md``
+    ```
+    0
+    ```
+    Met (expected `0`). Exit code 1, for the same reason.
+
+    3. `grep -c 'mise.toml' docs/decisions.md`
+    ```
+    1
+    ```
+    Met (expected `1`).
+
+    4. `uv run python -m factory.entry.check_documents`
+    ```
+    Bytecode compiled 4164 files in 49ms
+    documents ok
+    ```
+    Met (expected `documents ok`). The first line is uv's own output.
+
+    Criteria read against `git diff main...HEAD -- docs`:
+    - Criterion 1: met. *The stop `stage_image_failed`* now says a build that reaches its time limit gives `the stage file did not build in <s> s:` followed by podman's message that the build did not end within its limit, with no build output.
+    - Criterion 2: met. The section now says that a restart builds the same file again. It ends the stop when that build passes and raises it again when it fails.
+    - Criterion 3: met. *The project's stage file* now names the base image, the base's identity and the `PATH` the base image configures, with the default only when the image configures none. "nothing changes" is gone.
+    - Criterion 4: met.
+      - The entry "A project adds a layer…" carries the reasons of decisions 1, 3 and 4 as the Interface states them.
+      - Its Rejected line names the package list with a catalogue, `mise.toml` and named stack images, beside the `repository` scope.
+      - "ends with the next start" now has "(the next entry replaced that)" after it (`docs/decisions.md:1462`).
+      - The entry "The factory follows `main`…" adds the Cloud Run reason.
+    - Criterion 5: not run again here. The coder's `make check` was green (entry 7), and the factory runs the checks after this stage.
+    - Criterion 6: met. Only `docs/operator-guide.md` and `docs/decisions.md` changed. `README.md` and the project guide did not.
+
+    Nothing was fixed or changed. Nothing is open.
