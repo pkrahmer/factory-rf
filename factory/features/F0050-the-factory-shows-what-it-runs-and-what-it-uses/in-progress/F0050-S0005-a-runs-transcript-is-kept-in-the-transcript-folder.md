@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 543
 comments_read: [6635484197, 6635579714, 6635598534, 6635866543, 6638353558]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T18:32:33.575470Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-11-04T18:32:33.575470Z'
   stage: review
+- number: 34
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T18:34:51.070720Z'
+  stage: review
+  run: 894cb4ec74fd4d469b36a2ac6cee0d23
 ---
 
 # A run's transcript is kept in the transcript folder
@@ -612,3 +614,41 @@ Expect: the one line `FACTORY_TRANSCRIPT_DIR`, then the one line `transcript: no
     `check`: check: green
     `duplicates`: duplicates: 4 new, 42 known, 1 gone
 33. factory: started review as vm.
+34. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'` (20 source files, 17 test files) against the work item. I read the code and every test in the diff against criteria 1 to 9 and the Interface. The factory's `make check` after the coder was green (journal 32: `check: green`). `make duplicates` still reports `4 new, 42 known, 1 gone`, the same count round 0 traced to line shifts of known findings.
+
+    Round 0's findings (journal 26) are all fixed:
+    - 1: `claude_runtime.py:316` `_is_plain_session` refuses an empty session, `.`, `..` and any session with `/`, `\`, `*`, `?`, `[` or `]` before the glob at `:403`. The refused rows in `tests/adapters/test_claude_runtime_transcript.py` are set up so that an unchecked glob would find a real file.
+    - 2: `opencode_runtime.py:587` keeps only `_last_stream`, the latest run's session and stream.
+    - 3: the opencode test has a `resumed-within-the-run` row and a `second-run` row.
+    - 4: the Claude found row asserts `extension == "jsonl"`.
+    - 5 and 6: both runtime tests are now one parametrized test each.
+    - 7: `_sha256` moved to `tests/transcript_support.py::sha256_of`, and both test files use it.
+    - 8: the two later-run tests are folded into `test_a_later_run_of_an_earlier_session_names_its_own_file_or_none` (rows `kept` and `not-kept`).
+
+    Checked, no finding:
+    - Layers: `Transcript` and `TranscriptRef` in domain; `TranscriptStore` (an ABC), `TranscriptKeeper` and `SessionTranscripts` in application; `FileTranscriptStore` and the runtime readers in adapters; the wiring in entry.
+    - The transcript is kept right after `run_agent` and before `complete` (`stage.py:125`), so before any rollback.
+    - An unset or empty folder writes no `transcript:` log line, because `session_transcripts` returns `None` without a store.
+    - Every failure path writes one `transcript: not kept for <run>: <reason>` line and leaves the result unchanged.
+    - The store opens each file `0600` from the start.
+    - The settings refuse a relative folder or one inside the four places, both in `read_settings` and in the model's validator, as the existing snapshot-base check does.
+    - `HOME_ON_THE_DATASET = "home"` follows the existing `MOUNTED_CHECKOUT` pattern in `take.py:22`.
+    - The contract went from 4.2 to 4.3 for an added optional field, with the schemas regenerated.
+    - No silencing markers.
+    - The Description, Interface and criteria match what was built.
+
+    no findings
+
+    Notes:
+    1. `tests/adapters/test_claude_runtime_transcript.py`: the refused rows cover `..`, `*` and `/`. The code (`claude_runtime.py:316-319`) also refuses `?`, `[`, `]`, `\`, an empty session and `.`, but no row tests those.
+    2. `tests/application/test_stage_transcripts.py::test_a_transcript_not_kept_writes_its_line_and_leaves_the_run_unchanged` checks that the `not kept` line is in the log, not that it is there exactly once. The "one line" rule is pinned only at keeper level (`tests/application/test_transcript_keeper.py::test_a_folder_that_cannot_be_written_logs_the_line_and_keeps_nothing`).
+
+    Earlier tests changed:
+    - tests/application/test_agent_run_probe.py: the human's leave, journal 18 (`RefusingRuntime.read_transcript` returns `None`, plus its import)
+    - tests/application/test_interfaces.py: the human's leave, journal 18 (the pin `{"run", "version", "read_transcript"}`)
+    - tests/application/test_stage_run.py: the human's leave, journal 18 (`HeadNotingRuntime.read_transcript` returns `None`, plus its import)
+    - tests/container_support.py: the human's leave, journal 18 (`WorkspaceRuntime.read_transcript` returns `None`, plus its import)
+    - tests/observing_runtime.py: the human's leave, journal 18 (`ObservingRuntime.read_transcript` delegates, plus its import)
+    - tests/domain/test_contract.py: the human's leave, journal 4 (the `"4.2"` pin becomes `"4.3"`)
+    - tests/domain/test_contract_version_4.py: the human's leave, journal 4 (the `"4.2"` pins become `"4.3"`)
+    - tests/domain/test_contract_version_4_2.py: the human's leave, journal 4 (the `"4.2"` pins become `"4.3"`)
