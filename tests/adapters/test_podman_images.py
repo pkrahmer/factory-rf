@@ -9,7 +9,7 @@ import pytest
 from pydantic import BaseModel, ConfigDict
 
 from factory.adapters.podman_images import PodmanImages
-from factory.domain.containers import JOB_PODMAN_OPTIONS
+from factory.domain.containers import JOB_PODMAN_OPTIONS, SYSTEM_PATH
 from factory.domain.errors import ContainerError
 from factory.domain.settings import ContainerProfileName
 from factory.domain.stage_layer import stage_layer
@@ -18,7 +18,6 @@ from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 BASE = "factory-stage:vm"
 TAG = "factory-stage:vm-project"
-SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 LIMIT = timedelta(minutes=5)
 
 # Records its arguments and, for `build`, what the folder of its last argument holds; then
@@ -126,6 +125,7 @@ def test_a_build_that_reaches_its_time_limit_has_not_passed(tmp_path: Path) -> N
             id="with-path",
         ),
         pytest.param('["LANG=C.UTF-8"]\n', SYSTEM_PATH, id="without-path"),
+        pytest.param("null\n", SYSTEM_PATH, id="null"),
     ],
 )
 def test_path_is_the_images_configured_path_or_the_base_default(
