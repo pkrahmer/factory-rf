@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 530
 comments_read: [6620835040, 6620926891]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-04T02:43:42.838465Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-04T02:43:42.838465Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-04T02:44:32.857738Z'
+  stage: review
+  run: 9a8e0fe08d8640be93f82369b4f9e9a5
 ---
 
 # A fetch that fails before the tick stands as the stop fetch_failed
@@ -394,3 +396,30 @@ Expect: a line that ends in `passed` with no `failed`.
     `check`: check: green
     `duplicates`: duplicates: 0 new, 43 known, 0 gone
 26. factory: started review as vm.
+27. reviewer: Round 1 review. I read `git diff main...HEAD -- . ':!factory'` against the work item: `src/factory/entry/run.py`, `tests/entry/test_run_fetch_before_tick.py`, `tests/stage_image_support.py`, `tests/conftest.py` and `tests/entry/test_run_project_image_rebuild.py`.
+
+    The code is the same as in round 0. `_ProjectImageStart._follow_main` (`src/factory/entry/run.py:227`) catches only `FetchFailed`. It raises `RepositoryStop(scope="repository", reason="fetch_failed", detail=str(error), at=clock.now())` through `StopService` and returns `False` before it reads the stage file. After a fetch that passes it calls `clear_stop("fetch_failed")`, which does nothing when no such stop stands (`src/factory/application/stops.py:62`), so a healthy loop adds no log noise. `prepare` returns `False` when `_follow_main` does. Any other `GitError` still reaches the scheduler. This matches the Interface and mirrors `Tick._fetch` (`src/factory/application/tick.py:139`).
+
+    Group 1, acceptance criteria:
+    - Criteria 1 to 4 each have one parametrized test that checks what the criterion says.
+    - Criterion 4 covers the failing side of the `GitError` rule.
+    - The Interface's "reads no stage file then" is pinned by the unchanged build count and the unchanged `StageSeen` in criterion 2.
+    - The Interface states no numeric limit.
+    - The coder's `make check` was green (entry 25), with `duplicates: 0 new`.
+
+    Group 2, architecture: the change stays in `factory.entry` and imports only from lower layers.
+
+    Group 3, security: no marker silences a check, no command is built from a string, and the stop's detail is git's error text, the same as the tick's own stop.
+
+    Group 4, quality: round 0's finding is resolved. `StageSeen`, `built_path`, `BASE_IDENTITY`, `FIRST` and `SECOND` now live once in `tests/stage_image_support.py`. The fixtures `base_identity_settings` and `base_image` live once in `tests/conftest.py`, and both test modules use them from there.
+
+    Group 5, work item hygiene: the journal names the main choice (catch in `_follow_main`, not in `prepare`) and what was rejected. The Description matches what was built, and the docs criterion still says what the reader needs to know.
+
+    no findings
+
+    Earlier tests:
+    - `tests/entry/test_run_project_image_rebuild.py`: changed under the standing leave to move a shared test helper. Its copies of the constants, `StageSeen`, `built_path`, `settings` and `base` moved to `tests/stage_image_support.py` and `tests/conftest.py`. Its tests take `base_identity_settings` and `base_image` instead. Every test keeps its name and checks the same thing.
+    - `tests/conftest.py`: changed under the same standing leave. It only adds the two moved fixtures and the `BASE_IDENTITY` import. No existing fixture changed.
+
+    Notes:
+    1. `tests/entry/test_run_fetch_before_tick.py:156` (`_project`) builds the same project `StageSeen` as `_project` in `tests/entry/test_run_project_image_rebuild.py:309`, with a different signature. A later move could put one version in `tests/stage_image_support.py`.
