@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 542
 comments_read: [6633278047, 6634278570, 6634494947]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T15:23:51.732732Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-11-04T15:23:45.104012Z'
   stage: doing
   run: 729b091edc144db0811584a17dbc4633
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-04T15:23:51.732732Z'
+  stage: tests
 ---
 
 # One fetch per iteration
@@ -313,3 +322,4 @@ Expect: a number not larger than before the story (3 on `main` when it was writt
     I did not run `make check` in this run. In entry 17 it was red only on the two rows of `test_run_instance_hands_the_idle_shutdown_of_its_settings_to_the_activity_tick`, and this change fixes them. When the work item comes back, I run `make check` and do the refactor step.
 
     Noticed, not touched: `Instance.go_away`/`come_back` in `tests/entry/test_run_one_fetch.py` copy `Outage` in `tests/entry/test_run_fetch_before_tick.py`. The tester may move that copy to a shared place under the standing leave.
+21. factory: started tests as vm.
