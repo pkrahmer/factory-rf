@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 536
 comments_read: [6621759488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-04T03:31:27.196446Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -41,6 +45,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-04T03:31:23.857353Z'
+  stage: tests
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-04T03:31:27.196446Z'
   stage: tests
 ---
 
@@ -94,3 +103,4 @@ Expect: `1`, then `1`, then `documents ok` (uv may print a `Bytecode compiled` l
 
    I would choose (a), because the Description and Interface both rule out a test, and the human wrote them. I'll proceed as you say.
 6. 2026-11-04 human: (a): no test for this story; the smoke test and the reviewer check criterion 1.
+7. factory: started tests as vm.
