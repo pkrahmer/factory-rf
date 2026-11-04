@@ -1,5 +1,6 @@
 """The one module that picks the concrete adapters behind the application's interfaces."""
 
+import math
 import os
 import re
 import shutil
@@ -24,6 +25,7 @@ from factory.adapters.make_commands import ContainerMakeCommands
 from factory.adapters.oauth_token import ClientCredentialsTokenSource
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.adapters.podman_images import PodmanImages
 from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.power_off import ProcessExit, SystemctlPowerOff
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
@@ -44,6 +46,7 @@ from factory.application.claims import ClaimService
 from factory.application.costs import BillService
 from factory.application.dispatcher import Handler
 from factory.application.files import PipelineDefinitionReader, WorkItemReader
+from factory.application.git import Git
 from factory.application.handlers.closed import ClosedHandler
 from factory.application.handlers.comments import CommentHandler
 from factory.application.handlers.hand_over import HandOverHandler
@@ -55,6 +58,7 @@ from factory.application.handlers.run import RunHandler
 from factory.application.handlers.run_gate import RunGate
 from factory.application.hosting import HostingService
 from factory.application.idle_shutdown import IdleShutdown
+from factory.application.images import IMAGE_BUILD_TIME_LIMIT, ImageBuild, Images
 from factory.application.machine import Clock, FactoryLog, HealthStatusStore, PowerOff
 from factory.application.machine_stop_exit import MachineStopExit
 from factory.application.preflight import (
@@ -81,17 +85,19 @@ from factory.domain.agent_runs import scrub_environment
 from factory.domain.command_records import CommandRecord
 from factory.domain.containers import (
     METADATA_PROBE_COMMAND,
+    SYSTEM_PATH,
     WORK,
     WORK_HOME,
     ContainerResult,
     extra_environment,
 )
 from factory.domain.disk import DiskRecord
-from factory.domain.errors import SettingsInvalid
+from factory.domain.errors import ContainerError, SettingsInvalid
 from factory.domain.events import EventKind
 from factory.domain.git import GitOptions
 from factory.domain.identifiers import Name
 from factory.domain.known_results import ResultRecord
+from factory.domain.paths import MAIN_BRANCH, REMOTE
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.preflight import PreflightItem
 from factory.domain.settings import (
@@ -106,7 +112,13 @@ from factory.domain.settings import (
     read_setting_file,
     read_settings,
 )
-from factory.domain.stops import StopRecord
+from factory.domain.stage_layer import (
+    STAGE_FILE,
+    StageLayerRefused,
+    project_image_tag,
+    stage_layer,
+)
+from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopRecord
 
 __all__ = [
     "CREDENTIAL_HELPER",
@@ -117,6 +129,7 @@ __all__ = [
     "build_bill_service",
     "build_boundaries",
     "build_handlers",
+    "build_images",
     "build_preflight",
     "build_tick",
     "build_token_refresher",
@@ -130,13 +143,12 @@ __all__ = [
     "machine_extras",
     "machine_log",
     "production_environment",
+    "project_image_settings",
     "read_environment_settings",
     "read_hosting_token",
     "repository_name",
     "system_clock",
 ]
-
-_SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 
 CREDENTIAL_HELPER = "/usr/local/bin/git-credential-factory"
 
@@ -151,6 +163,8 @@ _DISK_RECORDS_PATH = Path("records", "disk.jsonl")
 _STOP_RECORDS_PATH = Path("records", "stops.jsonl")
 _RESULT_RECORDS_PATH = Path("records", "known-results.jsonl")
 _MISSING = "missing"
+_ORIGIN_MAIN = f"{REMOTE}/{MAIN_BRANCH}"
+_STAGE_IMAGE_FAILED: RepositoryStopReason = "stage_image_failed"
 # Room for curl's own five seconds and the container's start.
 _METADATA_PROBE_TIME_LIMIT = timedelta(seconds=30)
 
@@ -270,11 +284,13 @@ def build_boundaries(
     token: str,
     *,
     hosting: HostingService | None = None,
+    images: Images | None = None,
 ) -> Boundaries:
     """Return the boundaries of the instance of `settings`; `hosting` replaces PyGithub.
 
-    `SettingsInvalid` naming the first of the dataset (the base for copy snapshots), the workspace
-    and the stage image that is missing, before anything is built.
+    The containers' `PATH` is the one `images` reads from the stage image, the base's without
+    `images`. `SettingsInvalid` naming the first of the dataset (the base for copy snapshots),
+    the workspace and the stage image that is missing, before anything is built.
     """
     adapters = _container_adapters(settings)
     snapshots, containers = adapters.snapshots.snapshots, adapters.containers
@@ -285,6 +301,7 @@ def build_boundaries(
     git = GitCli(settings.checkout, git_options(settings))
     log = machine_log(state, clock)
     extra = extra_environment(settings, os.environ)
+    path = SYSTEM_PATH if images is None else _image_path(settings, images)
     return Boundaries(
         git=git,
         hosting=hosting,
@@ -297,6 +314,7 @@ def build_boundaries(
                 checkout=settings.checkout,
                 extra_environment=extra,
                 ca_bundle=settings.ca_bundle,
+                path=path,
             ),
             git,
             JsonLinesRecordLog(state / _COMMAND_RECORDS_PATH, CommandRecord),
@@ -324,7 +342,73 @@ def build_boundaries(
         snapshots=snapshots,
         containers=containers,
         container_extra_environment=extra,
+        image_path=path,
     )
+
+
+def _image_path(settings: InstanceSettings, images: Images) -> str:
+    image = settings.stage_image
+    if image is None:
+        raise SettingsInvalid(STAGE_IMAGE_VARIABLE, _MISSING)
+    try:
+        return images.path(image)
+    except ContainerError:
+        # An image that cannot be read is the preflight's to report, as a missing stage image.
+        return SYSTEM_PATH
+
+
+def build_images(settings: InstanceSettings) -> Images:
+    """Return the images of the stage, reached through the podman of `settings`."""
+    return PodmanImages(settings.podman_executable, profile=settings.container_profile)
+
+
+def project_image_settings(
+    settings: InstanceSettings,
+    git: Git,
+    images: Images,
+    stops: StopService,
+    *,
+    clock: Clock | None = None,
+) -> InstanceSettings | None:
+    """Return the settings of the image every container runs in, from the stage file on main.
+
+    Without a stage file they are `settings`; with one that builds, they name the project image
+    and the layer's identity. A file that breaks the rule or does not build stands as the stop
+    `stage_image_failed`, and the result is `None`. `git` has fetched before.
+    """
+    text = git.show_file(_ORIGIN_MAIN, STAGE_FILE)
+    if text is None:
+        stops.clear_stop(_STAGE_IMAGE_FAILED)
+        return settings
+    base = settings.stage_image
+    if base is None:
+        raise SettingsInvalid(STAGE_IMAGE_VARIABLE, _MISSING)
+    try:
+        layer = stage_layer(text, settings.image or "")
+    except StageLayerRefused as refusal:
+        _stage_image_failed(stops, str(refusal), clock)
+        return None
+    tag = project_image_tag(base)
+    build = images.build(layer, base, tag, IMAGE_BUILD_TIME_LIMIT)
+    if not build.passed:
+        _stage_image_failed(stops, _build_fault(build), clock)
+        return None
+    stops.clear_stop(_STAGE_IMAGE_FAILED)
+    # Without a base identity the layer's is unknown too, and no stamp is reused.
+    identity = None if settings.image is None else layer.identity
+    return settings.model_copy(update={"stage_image": tag, "image": identity})
+
+
+def _stage_image_failed(stops: StopService, detail: str, clock: Clock | None) -> None:
+    at = (system_clock() if clock is None else clock).now()
+    stops.raise_stop(
+        RepositoryStop(scope="machine", reason=_STAGE_IMAGE_FAILED, detail=detail, at=at)
+    )
+
+
+def _build_fault(build: ImageBuild) -> str:
+    seconds = math.ceil(build.duration.total_seconds())
+    return f"the stage file did not build in {seconds} s:\n{build.output_tail}"
 
 
 @dataclass(frozen=True)
@@ -435,15 +519,18 @@ def build_bill_service(checkout: Path) -> BillService:
     return BillService(GitCli(checkout), JsonLinesCostRecordReader())
 
 
-def agent_environment(scripts: Path, home: Path) -> dict[str, str]:
-    """Return the agent run's environment: `scripts` first on the `PATH`, and `home`."""
-    return {"PATH": f"{scripts}:{_SYSTEM_PATH}", "HOME": str(home)}
+def agent_environment(scripts: Path, home: Path, path: str = SYSTEM_PATH) -> dict[str, str]:
+    """Return the agent run's environment: `scripts`, then `path` on the `PATH`, and `home`."""
+    return {"PATH": f"{scripts}:{path}", "HOME": str(home)}
 
 
-def production_environment() -> dict[str, str]:
-    """Return the agent environment: the allowed names of the process, its own `PATH` and home."""
+def production_environment(path: str = SYSTEM_PATH) -> dict[str, str]:
+    """Return the agent environment: the allowed names of the process, its own `PATH` and home.
+
+    The `PATH` holds the interpreter's folder, then `path`, the image's.
+    """
     # The console scripts sit next to the interpreter.
-    own = agent_environment(Path(sys.executable).parent, Path.home())
+    own = agent_environment(Path(sys.executable).parent, Path.home(), path)
     return scrub_environment({**os.environ, **own})
 
 
@@ -567,7 +654,7 @@ def build_tick(
 ) -> Tick:
     """Return a new tick of the instance of `settings`, its agents in the production environment."""
     instance = settings.instance
-    environment = agent_run_environment(settings, production_environment())
+    environment = agent_run_environment(settings, production_environment(boundaries.image_path))
     extras = machine_extras(boundaries, settings, environment)
     return Tick(
         boundaries,

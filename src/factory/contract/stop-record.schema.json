@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "x-records-contract": "4.0",
+  "x-records-contract": "4.1",
   "additionalProperties": false,
   "description": "One event of a stop of the repository or the machine, as the remote keeps it.",
   "properties": {
@@ -29,7 +29,8 @@
         "repository_unavailable",
         "main_branch_failing",
         "preflight_failed",
-        "disk_low"
+        "disk_low",
+        "stage_image_failed"
       ],
       "title": "Reason",
       "type": "string"

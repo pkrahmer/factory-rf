@@ -1,4 +1,4 @@
-"""The records contract at version 4.0: the stall reasons without `left_branch`."""
+"""The records contract at version 4.1: the stall reasons without `left_branch`."""
 
 from collections.abc import Callable
 
@@ -9,7 +9,7 @@ from factory.domain.contract import CONTRACT, RECORDS_CONTRACT
 
 
 def _version() -> None:
-    assert RECORDS_CONTRACT == "4.0"
+    assert RECORDS_CONTRACT == "4.1"
 
 
 def _no_left_branch() -> None:
@@ -20,7 +20,7 @@ def _no_left_branch() -> None:
     "check",
     [
         pytest.param(_version, id="version"),
-        *[pytest.param(committed_is_generated(entry, "4.0"), id=entry.name) for entry in CONTRACT],
+        *[pytest.param(committed_is_generated(entry, "4.1"), id=entry.name) for entry in CONTRACT],
         pytest.param(_no_left_branch, id="no-left-branch"),
     ],
 )

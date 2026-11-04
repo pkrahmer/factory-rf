@@ -13,6 +13,8 @@ from factory.domain.settings import InstanceSettings
 WORK = "/work"
 WORK_CHECKOUT = "/work/checkout"
 WORK_HOME = "/work/home"
+# The `PATH` of the base stage image, and of any image that configures none.
+SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
 # Node, OpenSSL and Python's requests each read the CA bundle from one of these.
 CA_BUNDLE_NAMES = ("NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE")
 # Podman's global options in a managed sandbox such as a Cloud Run job: crun refuses its hybrid

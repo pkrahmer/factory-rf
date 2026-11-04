@@ -25,11 +25,14 @@ RepositoryStopReason = Literal[
     "main_branch_failing",
     "preflight_failed",
     "disk_low",
+    "stage_image_failed",
 ]
 StopScope = Literal["repository", "machine"]
 StopEvent = Literal["raised", "cleared"]
 
-_MACHINE_REASONS: frozenset[RepositoryStopReason] = frozenset({"preflight_failed", "disk_low"})
+_MACHINE_REASONS: frozenset[RepositoryStopReason] = frozenset(
+    {"preflight_failed", "disk_low", "stage_image_failed"}
+)
 
 
 def _require_scope_of_reason(scope: StopScope, reason: RepositoryStopReason) -> None:

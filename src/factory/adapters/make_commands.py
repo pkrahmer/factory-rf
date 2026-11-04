@@ -22,7 +22,7 @@ from factory.domain.checks import (
     status_of,
     target_times,
 )
-from factory.domain.containers import WORK_CHECKOUT, bundle_mounts
+from factory.domain.containers import SYSTEM_PATH, WORK_CHECKOUT, bundle_mounts
 from factory.domain.errors import ContainerError, ProjectCommandError, SnapshotError
 from factory.domain.kill_points import KillPoints
 
@@ -101,15 +101,16 @@ class ContainerMakeCommands(ProjectCommands):
         checkout: Path,
         extra_environment: Mapping[str, str] = {},
         ca_bundle: Path | None = None,
+        path: str = SYSTEM_PATH,
     ) -> None:
         """Reset the dataset of `snapshots`, copy in what differs from `HEAD` in `checkout`.
 
-        The check's container gets `extra_environment` below its own and `ca_bundle` mounted
-        read-only at its own path.
+        The check's container gets `extra_environment` below its own, `path` (its image's) as
+        its `PATH`, and `ca_bundle` mounted read-only at its own path.
         """
         self._snapshots = snapshots
         # The check's own names win: its `PATH` and home never come from the host.
-        self._environment = {**extra_environment, **CHECK_ENVIRONMENT}
+        self._environment = {**extra_environment, **CHECK_ENVIRONMENT, "PATH": path}
         self._mounts = bundle_mounts(ca_bundle)
         self._containers = containers
         self._git = git

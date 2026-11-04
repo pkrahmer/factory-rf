@@ -50,6 +50,7 @@ ROWS = [
     ("main-branch-failing", ("L65",), "health_status", "main_branch_failing", REPOSITORY_TEST),
     ("preflight-failed", ("L55",), "health_status", "preflight_failed", REPOSITORY_TEST),
     ("disk-low", ("L64",), "health_status", "disk_low", REPOSITORY_TEST),
+    ("stage-image-failed", ("L55",), "health_status", "stage_image_failed", REPOSITORY_TEST),
     (
         "duplicate",
         ("L19",),

@@ -84,12 +84,17 @@ def test_a_given_store_is_read_and_each_stop_prints_one_line_in_order(
         "main_branch_failing",
         "preflight_failed",
         "disk_low",
+        "stage_image_failed",
     ],
 )
 def test_every_stop_reason_makes_the_check_fail_until_it_is_cleared(
     boundaries: Boundaries, tmp_path: Path, reason: RepositoryStopReason
 ) -> None:
-    scope: StopScope = "machine" if reason in ("preflight_failed", "disk_low") else "repository"
+    scope: StopScope = (
+        "machine"
+        if reason in ("preflight_failed", "disk_low", "stage_image_failed")
+        else "repository"
+    )
     stops = StopService(boundaries)
     arguments = ["--state-directory", str(tmp_path / "state")]
 
