@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 528
 comments_read: [6620015058]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-04T01:28:22.048587Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-04T01:28:22.048587Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-04T01:29:00.554423Z'
+  stage: intake
+  run: 66017b2814ed4632b278549ab569c80e
 ---
 
 # A changed stage file on main is rebuilt between stages
@@ -50,21 +52,22 @@ After S0002 the factory builds the project's stage file once, when `factory-run`
 
 ## Interface
 
-- The check runs where the factory handles a new `origin/main` before it starts a stage (the same place as the preflight's probe of `main`, which runs once per commit). It reads the file from that commit with the git wrapper and compares `StageLayer.digest`, or its absence, with the one in use.
-- A rebuild uses the images interface of S0002 with the same base and tag; the image in use, the identity and the containers' `PATH` change together, in the one place S0002 named, and only after the build passed.
-- The stop `stage_image_failed` of a failed rebuild names the commit (its first 12 hex digits) in its detail. A later `origin/main` whose file has another digest, or no file, ends the stop and is handled as above; the same digest again does not retry the build.
-- The factory log gets one line for each change, and none for an unchanged file: `stage image: built <identity> at <commit> in <s> s`, `stage image: back to the base at <commit>` and `stage image: failed at <commit>`.
+- The check runs in `factory.entry.run._ProjectImageStart.prepare`, before each tick and so before any stage starts, next to where `Preflight.run` (`factory.application.preflight`) probes `main` once per commit. It fetches, reads the file from `origin/main` with `Git.show_file`, and compares `factory.domain.stage_layer.StageLayer.digest`, or its absence, with the one in use.
+- A rebuild calls `Images.build(layer, base, tag, time_limit)` of `factory.application.images` (which removes untagged images after it) with the same base and tag, through `factory.entry.wiring.project_image_settings`; the image in use, the identity and the containers' `PATH` (`Boundaries.image_path`, built by `build_boundaries`) change together, in the new tick `_ProjectImageStart` builds, and only after the build passed. A tick that is running keeps the boundaries it started with.
+- The stop `stage_image_failed` of a failed rebuild has the first 12 hex digits of the commit in its detail. A later `origin/main` whose file has another digest, or no file, ends the stop and is handled as above; the same digest again does not retry the build.
+- The factory log gets one line for each change, and none for an unchanged file; `<commit>` is the first 12 hex digits in every line: `stage image: built <identity> at <commit> in <s> s`, `stage image: back to the base at <commit>` and `stage image: failed at <commit>`.
 
 ## Acceptance criteria
 
-1. A new `origin/main` whose stage file has the same digest as the one in use, and one that has no file while none is in use, build nothing and change neither the image nor the identity.
+1. A new `origin/main` whose stage file has the same digest as the one in use, and one that has no file while none is in use, build nothing, change neither the image nor the identity, and write no `stage image:` log line.
 2. A new `origin/main` with a changed file builds it once before the next stage starts; that stage and every later one take the new image, its identity and its `PATH`, and the log holds `stage image: built <identity> at <commit> in <s> s`.
-3. A new `origin/main` that adds a file to a project without one builds it; one that removes the file returns every later container to the base image under the base's identity, with the log line `stage image: back to the base at <commit>`, and builds nothing.
-4. A `main` that moves while a stage runs changes nothing for that stage: its remaining containers take the image it started with, and the rebuild happens before the next stage.
-5. A rebuild that fails stands as `stage_image_failed` with the commit in its detail, and the image in use stays the one before; a later `main` with the same digest does not build again, and one with another digest (or no file) builds (or returns to the base) and ends the stop. Rows: the same digest, another digest, the file removed.
-6. After a passed rebuild, the images interface's removal of untagged images runs, so the previous project image does not stay.
-7. `make check` stays green.
-8. docs: `docs/operator-guide.md`: in *The project's stage file*, that a merged change takes effect before the next stage without a restart, the four log lines, and that a failed build waits for a new `main`. The project guide: `stage-environment.md` says where the factory compares the stage file on a new `main`. `docs/decisions.md`: one entry with feature decision 5 and its reason. `README.md`: none.
+3. A new `origin/main` that adds a file to a project without one builds it: the later containers take the project image, its identity and its `PATH`.
+4. A new `origin/main` that removes the file returns every later container to the base image under the base's identity, with the log line `stage image: back to the base at <commit>`, and builds nothing.
+5. A `main` that moves while a stage runs changes nothing for that stage: its remaining containers take the image it started with, and the rebuild happens before the next stage.
+6. A rebuild that fails stands as `stage_image_failed` with the first 12 hex digits of the commit in its detail and the log line `stage image: failed at <commit>`, and the image in use stays the one before. Each row has its own expectations (stop ended or not, image and identity afterwards, log lines): a later `main` with the same digest (the stop stands, no build, no log line); another digest (the stop ends, it builds); the file removed (the stop ends, the base and its identity, no build).
+7. After a passed rebuild, the images interface's removal of untagged images runs, so the previous project image does not stay.
+8. `make check` stays green.
+9. docs: `docs/operator-guide.md`: in *The project's stage file*, that a merged change takes effect before the next stage without a restart, the four log lines, and that a failed build waits for a new `main`. The project guide: `stage-environment.md` says where the factory compares the stage file on a new `main`. `docs/decisions.md`: one entry with feature decision 5 and its reason. `README.md`: none.
 
 ## Smoke test
 
@@ -95,3 +98,16 @@ Expect: exactly the three lines `stage image: back to the base at`, `stage image
    6. Yes: two tests, adding and removing.
    7. The smoke test stays as it is.
 5. factory: started intake as vm.
+6. intake: accepted, after carrying the human's answers (journal entry 4) into the story.
+   - Interface: concrete now. The check is `factory.entry.run._ProjectImageStart.prepare`, next to `Preflight.run`'s probe of main. It reads the file with `Git.show_file` and compares `StageLayer.digest`. It rebuilds with `Images.build(layer, base, tag, time_limit)` through `wiring.project_image_settings` and `build_boundaries`. `Boundaries.image_path` changes with the new tick. Entry 4 also named `with_image_path`, but that function does not exist in `src`, so I left it out. The coder decides the mechanism for the digest in use and the new tick.
+   - Criteria: edited per entry 4.
+     - 1: no log line is written in the unchanged cases.
+     - 3 and 4: adding and removing are now two criteria (old 3 split).
+     - 5: the old 4, renumbered.
+     - 6: the old 5. It has the 12-digit commit in the detail, the `failed at` log line and separate rows with their own expectations: same digest, another digest, file removed.
+     - 7, 8 and 9: the old 6, 7 and 8, renumbered. `make check` and `docs:` stay last.
+     - Each criterion is testable by one test function. Each rule has both sides: changed or unchanged, failed or passed, kept or ended stop.
+   - Smoke test: unchanged, as the human said. It is runnable and its Expect names the three exact lines, so it can be checked.
+   - Architecture: the layers hold. The comparison and wiring sit in `factory.entry`, and the `Images` and `Git` interfaces are used as they are.
+   - Scope: within feature decision 5 and the feature's S0003 scope. Nothing in "Out of scope" is touched.
+   - Open for the coder: the commit in the log lines and the detail is the first 12 hex digits.
