@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T06:13:08.502652Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -88,6 +92,11 @@ journal:
   stage: doing
   run: 7d9e8cca0e7545ef8077a18390894673
   reason: check_red
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-05T06:13:08.502652Z'
+  stage: doing
 ---
 
 # The project guide has one file per area
@@ -261,3 +270,4 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
     FAILED tests/guards/test_project_guide_files.py::test_the_index_names_each_file_with_a_sentence[pipeline.md] - assert False
     FAILED tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file - AssertionError: assert ['docs/operat...aths.md', ...] == []
     make: *** [Makefile:89: test] Error 1
+15. factory: started doing as vm.
