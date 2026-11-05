@@ -346,3 +346,72 @@ Waits in S0008 add up to 1,540 s, in S0009 to 1,550 s. The delay each caused is 
 In order of saving per story: the intake's dry run of its criteria and its check of who writes each path class (finding 1: about $1.5 and 30 min for a story with a guard over documents); the factory scanning an entry for flagged lines before it commits it (finding 3: $0.5 and 26 min per false positive, and no wrong reword); the documents-story sentence in the story form (finding 5: $0.05 and 6 min, and fewer waits); the tie rule in the story text and a coder that runs the guard and `make documents` instead of `make check` for a documents diff (findings 4 and 6: $0.25 and about 150 s each).
 
 **Carried over (S0008, S0009).** Confirmed: 1 and 2 (four and two coder runs that changed nothing, about 540 s of suites), 12, 13 and 29 (the reviewer's rerun), 28 (three denials), 37 (finding 5), 49 (followed), 51 (the stage prompt would have stopped the S0009 stall; the intake lacks the check against write paths), 53 (the tester's three suites), 54 (S0008's Interface did not carry the sentence, so one more relay coder `d06b8391`, $0.204, 40 s, which read `pipeline.yml` at once and handed back correctly), 58 (cost and mechanism), 59 (cost). Reversed: 6 (finding 4). Not seen: 3, 4, 5, 7 to 11, 14, 50, 55 to 57.
+
+## 2026-11-05: F0051-S0010 (the operator guide is a folder of topics), F0051-S0011 (the agent files live in `agents/`) and F0051-S0012 (the VM's files and the template live in `operator/`)
+
+Figures are from the cost records, the journals and the transcripts in `session-logs/vm-f0051/`. Human waits are the gaps between a question or a cap entry and the answer. "Lean" is the six-run route (about $2.2, as S0005 and S0006).
+
+### 1. Totals
+
+| Measure | S0010 (guide folder) | S0011 (`agents/`) | S0012 (`operator/`) |
+|---|---|---|---|
+| Runs / turns | 17 / 190 | 18 / 173 | 11 / 99 |
+| Cost | $6.94 | $4.99 | $3.06 |
+| Tokens out / cache creation | 86.0 K / 544 K | 57.4 K / 405 K | 36.2 K / 252 K |
+| Run time; model time | 1,762 s; 1,138 s | 1,638 s; 939 s | 1,006 s; 551 s |
+| Created to done | 66.4 min | 58.3 min | 47.6 min |
+| Human waiting | 21.8 min (33 %) | 10.7 min (18 %) | 14.0 min (29 %) |
+| Questions; stalls | 3 (intake, tester, coder); 0 | 2 (tester, coder) and a cap question; 2 | 1 (tester) and a cap question; 2 |
+| Coder suites (about 145 s each) | 4, two on an unchanged tree | 5, two on an unchanged tree | 3, one on an unchanged tree |
+| Extra over lean (estimate) | about $3.7 | about $2.5 | about $0.85 |
+
+### 2. Candidate 63, checked against the transcripts
+
+The explanation holds in both stories, and the evidence is direct.
+- S0011, first coder `cfb3ee3b`: one `git mv claude agents`, which moves eight files (seven `agents/*.md` and `settings.json`), none edited. None reached the check. The coder's own `make check` was green (146 s); the factory's check failed with `AgentDefinitionMissing` (14 rows of `test_shipped_agents_effect.py`; the stall text shows no more). The retry coder `ed7f006d` found `claude/` still in the tree and no `agents/`, read `take.py` and `zfs_snapshots.py`, and moved the files with `cp` and a per-file `git rm`.
+- S0012, first coder `62a57642`: `git mv vm operator/vm && git mv template operator/template`, eight files. The four it also edited came through (`Dockerfile`, `factory.service`, `job-start.sh`, `setup.sh`). The four unedited ones were missing in the check: `vm/git-credential-factory`, `template/CLAUDE.md`, `template/Makefile`, `template/factory/pipeline.yml`. The retry coder `2f0cfa34` found `operator/vm` with four files, `vm/` with `git-credential-factory`, `template/` complete and no `operator/template`, so the take also kept the old copies; it moved the four one by one in 191 s. The stall text named three test rows and not the cause.
+- (new) Both Interfaces say "with `git mv`" for the folder, so the story text ordered the move that the take loses; S0012's was written after S0011's stall and still says it. Until candidate 63 is fixed, an Interface that renames a folder should say "move each file with its own `git mv`".
+- (new) The drop is silent: the "left out" paragraph covers write-path drops only, and the coder's check cannot see the loss, so it shows as a red gate and a used attempt. Change: when `zfs diff` has a directory line of kind `R`, the take lists the files under the new name itself (candidate 63's fix) and, until then, writes a line in the stall text, "a renamed directory was not taken: <old> to <new>".
+- Cost: S0011 $0.33 (`ed7f006d`, 254 s, 5 denials, candidate 28), S0012 $0.25 (`2f0cfa34`), and about 5.5 min each.
+
+### 3. Candidate 62, both stories (confirmed)
+
+The tester wrote a test that the old folder does not exist in S0011 (`test_the_old_agent_folder_is_gone`) and again in S0012 (`test_the_old_root_folder_is_gone[vm|template]`); the second tester could not know the first's lesson, because it lives on another branch. Stall 2 was `assert not True` and nothing else, both times. Cost: S0011 coder `6e69a1cf`, tester `d945f6ec`, coder `3b6582ee` = $0.51, 3.8 min of wait, 12 min in all; S0012 `1b1622da`, `b5e7a726`, `e97d04f1` = $0.49, 6.1 min of wait. Together $1.0 and 25 min, as candidate 62 says. The last coder in each (`3b6582ee`, `e97d04f1`) changed nothing and ran a full `make check` (143 s and 142 s) that the gate repeated (candidates 1, 2, 47).
+
+### 4. Findings
+
+**S0010: the review round after the split cost $2.69 (39 % of the story).** Reviewer `2a98a7f5` ($0.90) had seven findings, and the chain coder, tester, coder, tester, coder, reviewer `e3594f18` took six runs and 15 min.
+1. (new) Findings 1 to 3 (about 40 references to sections that moved to another file, two "above" pointers) were checkable by the coder: a script that resolves each `*X*` or quoted heading against the file it is in. The coder wrote exactly that script in round 1 ("covers every reference", 33 lines). Change in `coder.md`: after a split of a document, resolve every reference and every "above" and "below" in the new files. Saving $0.9 or more, with the round.
+2. (new) Finding 4 (`OPERATOR_GUIDE_SECTIONS` dead after the split): the coder's own entry 20 printed `duplicates: 6 new`, and nobody read them. Change: the coder lists the new `make duplicates` findings that its diff caused and fixes or names each.
+3. (confirms 8) Findings 5 and 6: the new guard copied two helpers of `test_project_guide_files.py`, and a support module copied two constants of `src`. S0011 had the same two kinds.
+4. (confirms 7) The tester's fix for finding 6 broke `mypy --strict` (an import not re-exported), so the coder handed back (`5f126942` $0.25, tester `4a9313bb` $0.24); the tester's entry says it ran mypy "without the project's configuration".
+5. (confirms 10 and 13) Finding 7 was the work item's wording after the human's answer; only the reviewer can write it, and coder and tester each noted it (S0011 and S0012 too). Round 1's reviewer read 132 KB of tool output, 39 KB in one result, to check references.
+
+**S0010: three questions, about $0.6 and 21.8 min of wait.** Intake: two criterion rows, "Yes" twice (candidate 37, 7.9 min, rerun $0.05). Tester `e86bea74`: six points, "all as you propose" (37; four were names of constants and an order that the Interface could give; 3.9 min). Coder `1e707fe8` ($0.99, 152 s of suite): two choices that one `grep` finds, a removed project-guide name `work-items.md` that the new topic file's name hits in `test_project_guide_files.py`, and two lines in `operator/README.md` and the playbook outside the coder's paths (confirms 60, 51, 4); wait 10.0 min, then `0e7e549c`, `7c8ce4a5`, `59e47563` = $0.46 (the last a 142 s suite on nothing).
+
+**S0011: the test side was wrong in five places that only the move could show.** Tester `e3dd099e` ($0.65): the name guard matched `.claude/settings.json`, the tick test used role `coder` although a first tick runs the intake, two tests held `factory/claude` in string form (`$base/factory/claude`; candidate 56), and the folder test above. It also asked about `docs/runs/` and the playbook in criterion 4 (0.8 min; rerun `eebe2efb` $0.10). The coder's question cost 6.1 min, `7cc6803e` $0.12 and `b7948b22` $0.18. (new, small) A test written before the code moves cannot be run green, so its flaws show late; candidate 54 accepts this, and the price here was about $1.0 in two cycles. Then round 1 ($1.21: coder `cd2ef9be`, tester `e9802b2f`, coder `64cd0be6` with a 143 s suite on nothing, reviewer `3cf8dc3c` reading a 46 KB result for "no findings") for two test-quality findings (confirms 8): `AGENT_FILE_NAMES` copied `SHIPPED_NAMES`, and `STAGE_DOCKERFILE` was copied from `test_stage_image.py`.
+
+**S0012: the same `docs/runs/` question, third story in a row.** The tester `706ecf4a` ($0.84, 24 earlier test files, the dearest single run) asked that a criterion over `docs/` fails on `docs/runs/`; the human said "(a)", as in S0010 (answer 6) and S0011 (entry 6). Cost: rerun `e1857675` $0.12 and 7.9 min of wait. (new) This is a standing answer: `feature.md` should say "a criterion that searches `docs/` leaves out `docs/decisions.md` and `docs/runs/`" (candidate 54), or the intake greps it (60). Saving $0.12 and up to 8 min per such story.
+
+**Carried over.** Confirmed: 1, 2 and 47 (seven coder suites on unchanged trees across the three, about 1,000 s with the gate's repeats), 4, 7, 8, 10, 12 and 13 (round-1 reviewers read 39 KB and 46 KB results), 28 (5 denials in `ed7f006d`), 37, 51, 54 (the sentence held: no relay before the first move in all three), 56, 60, 62 and 63. Not seen: 3, 5, 6, 9, 11, 14, 50, 55, 58 and 61 (no flagged line).
+
+### 5. F0051 in sum
+
+| Story | Runs | Cost | Questions | Stalls |
+|---|---|---|---|---|
+| S0001 (shared) | 13 | $5.63 | 0 | 1 |
+| S0002 (hosting) | 8 | $2.93 | 0 | 0 |
+| S0003 (work) | 11 | $2.95 | 1 | 0 |
+| S0004 (agents) | 9 | $3.04 | 1 | 0 |
+| S0005 (watching) | 6 | $2.15 | 0 | 0 |
+| S0006 (machine) | 8 | $2.21 | 0 | 0 |
+| S0007 (pipeline) | 10 | $5.26 | 2 | 0 |
+| S0008 (tests root) | 12 | $4.94 | 4 | 0 (a secrets false positive, asked as two coder questions) |
+| S0009 (project guide) | 10 | $4.69 | 3 | 1 |
+| S0010 (operator guide) | 17 | $6.94 | 3 | 0 |
+| S0011 (`agents/`) | 18 | $4.99 | 2 and a cap question | 2 |
+| S0012 (`operator/`) | 11 | $3.06 | 1 and a cap question | 2 |
+| S0013 (push error example) | 6 | $0.75 | 0 | 0 |
+| Sum | 139 | $49.55 | 20 | 8 |
+
+Against about $2.2 for a lean move story and $0.33 for the docs-only route of S0013, the feature cost roughly $22 more than the lean route, and I can name about $16 of it from the sections above, in three nearly equal parts: review rounds that came from findings an earlier role could have avoided (S0001 round 1, S0003, S0010, S0011; about $5.7), questions and their reruns (about $5, with about 130 minutes of human wait in eight stories), and stalls and relay runs, among them the two take bugs and the full suites that the gate repeated (about $5.3). The common cause is a fact that sat in one role (a grep result, a path class, the take's behaviour, a standing answer about `docs/runs/`) and reached the next only through a round, so the cheapest changes are those that give it earlier: the intake's dry run (60), the write paths and feature decisions in the stage prompt (51, 54), the take fix (63) and the tester rule for absence (62).
