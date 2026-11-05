@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506, 6656185279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T10:59:11.603856Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-05T10:59:06.329599Z'
   stage: tests
   run: 2737d5bc6cbe42c8b5cb8a0d3fb9d216
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:59:11.603856Z'
+  stage: doing
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -231,3 +240,4 @@ Expect: `1`
     I ran `uv run pytest -q tests/guards/test_operator_guide_pointers_search.py` once: all 8 tests passed. `make lint`: green (0.1 s). I did not run the type check in this stage; the coder's `make check` covers it.
 
     `lint`: lint: green (0.1 s)
+16. factory: started doing as vm.
