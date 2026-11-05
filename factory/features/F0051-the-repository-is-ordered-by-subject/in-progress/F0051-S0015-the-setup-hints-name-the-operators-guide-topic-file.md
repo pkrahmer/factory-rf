@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 570
-comments_read: [6656020506]
+comments_read: [6656020506, 6656185279]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: 0f952c42fa85402484c6a8d4175b66a9
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-05T10:56:03.472408Z'
+  stage: doing
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -181,3 +186,6 @@ Expect: `1`
     With (a), I would go on with no code change and end with `tests`.
 
     Main choice: I copied the Interface's texts as given, with no other wording. Not touched: the docs (`docs/operator-guide/machine.md` lines 284, 295 and 296) belong to the docs stage. No refactor was needed.
+11. 2026-11-05 human: Answer of the human:
+
+    **(a).** Leave for the tester, in its own new test `tests/guards/test_operator_guide_pointers_search.py`: collect the topic-file names from every searched line that holds `docs/operator-guide/` (keep the `named != set()` assertion, so the test cannot pass vacuously), and annotate `found: list[tuple[Path, str]] = []`. The Interface's texts stay as approved. Then end with `tests`.
