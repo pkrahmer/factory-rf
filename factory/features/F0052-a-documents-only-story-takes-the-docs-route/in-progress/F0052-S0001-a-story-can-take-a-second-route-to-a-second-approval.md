@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T21:47:18.190209Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-05T21:47:18.190209Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-05T21:50:38.620716Z'
+  stage: tests
+  run: b8b14106ed4c42e9891876b3876e8fdb
 ---
 
 # A story can take a second route to a second approval
@@ -79,3 +81,23 @@ Expect: `1`
    - Architecture: the test sits in `tests/pipeline/application/`, which mirrors the package. It uses the fake world and the fake agent runtime, and git is not faked. A fix would land in the `work` or `pipeline` area. The story makes no new package or dependency and does not touch `factory/pipeline.yml`.
    - Scope: the story is S0001 of F0052 and matches the feature's scope bullet 1. It makes no pipeline definition change (that is the human's at S0002's merge), changes no agent, and does not touch the code route. Nothing in "Out of scope" is touched.
 4. factory: started tests as vm.
+5. tester: wrote the walks of criteria 1 to 7 in the fake world. They run on a pipeline definition written in the test (`TWO_ROUTES`): the stages, caps, checks and reports of today's `factory/pipeline.yml`, `intake.next = [tests, docs-only]`, and after `smoke-test` the three stages from the feature's *The human's changes*. That puts `docs-only`, `docs-review` and `docs-approval` before `acceptance`, `approval` and `done`. The test pushes the definition to `main` with a Makefile that has every target the definition names, then starts the story.
+
+   - criterion 1: tests/pipeline/application/test_docs_route.py::test_an_intake_decision_docs_only_walks_the_docs_route_to_a_hand_over_at_docs_approval
+   - criterion 2: tests/pipeline/application/test_docs_route.py::test_a_merge_at_docs_approval_archives_the_story_to_done
+   - criterion 3: tests/pipeline/application/test_docs_route.py::test_a_close_at_docs_approval_sends_the_story_back_to_docs_only
+   - criterion 4: tests/pipeline/application/test_docs_route.py::test_a_send_back_at_docs_review_counts_a_round_and_the_third_asks_the_human (rows: first send-back, second at the cap, third past the cap)
+   - criterion 5: tests/pipeline/application/test_docs_route.py::test_a_documenter_decision_tests_takes_the_code_route_whose_close_sends_back_to_doing
+   - criterion 6: tests/pipeline/application/test_docs_route.py::test_an_intake_decision_tests_still_takes_todays_route_to_approval
+   - criterion 7: tests/pipeline/application/test_docs_route.py::test_only_the_docs_routes_working_stages_lie_before_the_approval (one row per stage)
+
+   How I read the criteria:
+   - Criterion 1's "one journal entry per stage" is checked as one `result` record each for intake, docs-only and docs-review. No agent runs at docs-approval.
+   - The hand-over is checked by `handed_over == "docs-approval"`, the pull request no longer a draft, and its description ending with `HAND_OVER_CLOSING`.
+   - For criteria 3 and 5, the human comments before the close, so the send-back has a reason and asks no question.
+
+   Files created: tests/pipeline/application/test_docs_route.py. No earlier test file was changed.
+
+   Result of the one run (`uv run pytest -q tests/pipeline/application/test_docs_route.py`): 13 passed. Every module imported, and nothing failed. The walk found no fault in today's code, so there are no red tests on this branch: the story's "fixes whatever the walk finds" comes down to nothing to fix, and the coder has only to confirm `make check`. Two lint-only edits came after that run: a line split, and the parametrized test's case values made keyword-only. `make lint` is green. The type check was skipped, as this stage says.
+
+   `lint`: lint: green (0.1 s)
