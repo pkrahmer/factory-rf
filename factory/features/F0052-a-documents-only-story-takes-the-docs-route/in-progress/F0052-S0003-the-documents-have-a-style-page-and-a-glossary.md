@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 574
 comments_read: [6671915202]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T23:16:40.079968Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -93,6 +97,11 @@ journal:
   at: '2026-11-05T23:16:34.738773Z'
   stage: doing
   run: d7de45b2c6cf4d218accf48a4f0dca12
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:16:40.079968Z'
+  stage: review
 ---
 
 # The documents have a style page and a glossary
@@ -246,3 +255,4 @@ Expect: `named`
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
+16. factory: started review as vm.
