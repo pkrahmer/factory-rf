@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T08:36:21.418993Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -181,6 +177,12 @@ journal:
   kind: started
   at: '2026-11-05T08:36:21.418993Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T08:37:58.896556Z'
+  stage: review
+  run: f4f8a74b3d294ec7bb75c072e7e4571e
 ---
 
 # The agent files live in `agents/`
@@ -479,3 +481,22 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 30. factory: started review as vm.
+31. reviewer: Review of round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`: the eight renames `claude/` → `agents/` (all 100 % similar), `src/factory/machine/application/stage_environment.py:30`, `vm/Dockerfile:58-59`, `vm/job-start.sh:68`, `vm/setup.sh:427`, the path edits in `docs/operator-guide/` and `docs/project-guide/`, and the test changes. The factory's `make check` after the coder was green (entry 29, no stall after it).
+
+    Group 1 (criteria): each of criteria 1 to 4 has a test that checks what it is named after. 1: `tests/agent_files/test_agent_folder.py`. 2: `tests/vm/test_stage_image.py::test_the_agent_files_are_copied_read_only_to_their_place` and `tests/vm/test_stage_image_agent_folder.py`. 3: `tests/entry/test_tick_shipped_agent_file.py` and the container mount test. 4: `tests/guards/test_agent_folder_names.py`, which uses the `(?<![\w.])` match from entry 11. The rename has no limit with two sides. Group 2 (architecture): no layer, wrapper or interface changes. Group 3 (security): no silencing marker, no secret, no command built from strings. Group 5 (hygiene): the Description, Interface and criterion 6 match what was built, and the journal names the main choice (`FACTORY_CLAUDE_HOME` keeps its name) and what was rejected. A grep of `src`, `vm`, `operator`, `docs` and `README.md` finds only `operator/claude/` paths, which the Description keeps.
+
+    Findings (group 4, test quality; round 0, so they are findings):
+    1. `tests/agent_files/test_agent_folder.py:7-15`: `AGENT_FILE_NAMES` writes out by hand the list that `SHIPPED_NAMES` in `tests/support/shipped_agents.py:130` already holds. Fix: build it from `SHIPPED_NAMES`, e.g. `sorted(f"{name}.md" for name in SHIPPED_NAMES)`, and drop the hand-written list.
+    2. `tests/vm/test_stage_image_agent_folder.py:5-6,16`: `ROOT` and `STAGE_DOCKERFILE` copy `tests/vm/test_stage_image.py:33-34`. The second assert (`COPY agents /etc/factory/agents`) repeats the check that `test_stage_image.py:413` already makes with `AGENT_FILES_COPY`. Fix: move `STAGE_DOCKERFILE` into `tests/support/dockerfile_support.py` under the standing leave and use it from both modules, and keep only the old-place assertion in the new test.
+
+    Earlier tests (item 6), each with the leave it was changed under:
+    - `tests/agent_files/__init__.py`: the story's Interface leave (feature decision 5), docstring path only.
+    - `tests/agents/domain/test_nested_claude_paths.py`: the Interface leave (feature decision 5), one row's path.
+    - `tests/guards/test_operator_guide_files.py`: the Interface leave (feature decision 5), the searched folder.
+    - `tests/guards/test_project_guide_files.py`: the Interface leave (feature decision 5), the searched folder.
+    - `tests/machine/application/test_container_environment.py`: the Interface leave (feature decision 5), `/etc/factory/agents`.
+    - `tests/machine/domain/test_containers.py`: the Interface leave (feature decision 5), the "deep" sample path.
+    - `tests/support/shipped_agents.py`: the Interface leave (feature decision 5), `AGENT_HOME`.
+    - `tests/vm/test_stage_image.py`: the Interface leave (feature decision 5), `AGENT_FILES_COPY` and `AGENT_FILES_MODES`.
+    - `tests/support/vm_support.py`: the human's answer, entry 11.
+    - `tests/vm/test_vm_job_start.py`: the human's answer, entry 11.
