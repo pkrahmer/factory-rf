@@ -25,8 +25,9 @@
 
 ## Stories
 
-The build order: the area with the most users first, then from the smallest to the largest, the pipeline last, because it holds `Boundaries`, which nearly every other area imports.
+The build order: S0013 first, a docs repair carried over from F0050 (F0050-A0003 proposed it as F0050-S0015), because its smoke test imports `factory.domain.git`, which S0002 moves. Then the area with the most users first, then from the smallest to the largest, the pipeline last, because it holds `Boundaries`, which nearly every other area imports.
 
+- S0013: The operator guide's push error example shows the ref line the factory writes (from F0050-A0003)
 - S0001: The shared area holds what every area uses
 - S0002: The hosting area holds git and the hosting service
 - S0003: The work area holds the work items

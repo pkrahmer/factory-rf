@@ -1,6 +1,6 @@
 # The operator guide's push error example shows the ref line the factory writes
 
-<!-- proposed by feature acceptance of 2026-11-05; refine before starting -->
+<!-- proposed by F0050's feature acceptance A0003 of 2026-11-05 as F0050-S0015; moved to F0051 by the human, so that it needs no further acceptance of F0050 -->
 
 ## Description
 

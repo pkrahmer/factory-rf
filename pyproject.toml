@@ -89,10 +89,34 @@ plugins = ["pydantic.mypy"]
 root_package = "factory"
 include_external_packages = true
 
+# F0051: the old layers are optional while the areas move in; the forbidden contracts hold the
+# layer rule inside and across every area from the story that moves it.
 [[tool.importlinter.contracts]]
 name = "Layers"
 type = "layers"
-layers = ["factory.entry", "factory.adapters", "factory.application", "factory.domain"]
+containers = ["factory"]
+layers = ["entry", "(adapters)", "(application)", "(domain)"]
+
+[[tool.importlinter.contracts]]
+name = "An area's domain imports no higher layer"
+type = "forbidden"
+source_modules = ["factory.*.domain", "factory.*.domain.**", "factory.domain", "factory.domain.**"]
+forbidden_modules = ["factory.*.application", "factory.*.application.**", "factory.*.adapters", "factory.*.adapters.**", "factory.application", "factory.application.**", "factory.adapters", "factory.adapters.**", "factory.entry", "factory.entry.**"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "An area's application imports no adapter"
+type = "forbidden"
+source_modules = ["factory.*.application", "factory.*.application.**", "factory.application", "factory.application.**"]
+forbidden_modules = ["factory.*.adapters", "factory.*.adapters.**", "factory.adapters", "factory.adapters.**", "factory.entry", "factory.entry.**"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "An area's adapters import no entry"
+type = "forbidden"
+source_modules = ["factory.*.adapters", "factory.*.adapters.**"]
+forbidden_modules = ["factory.entry", "factory.entry.**"]
+allow_indirect_imports = true
 
 # --- Tests -------------------------------------------------------------------
 [tool.pytest.ini_options]

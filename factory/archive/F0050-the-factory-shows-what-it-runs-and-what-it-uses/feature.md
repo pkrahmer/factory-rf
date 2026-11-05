@@ -50,6 +50,8 @@ The build order. S0008 comes right after S0002, because GitHub's incident of 202
 - S0013: A push reason leaves out git's "failed to push some refs" line (from A0002)
 - S0014: The decision log marks the old tool-time entry as superseded (from A0002)
 
+A0003 accepted the feature on 2026-11-05 and proposed one docs repair, F0050-S0015; the human moved it to F0051 as F0051-S0013, so that a two-line fix needs no further acceptance here.
+
 ## The human's changes
 
 After the merge, on factory-vm: rebuild `factory-stage:vm` with the runtime argument, renew `image-id`, and set the two version lines of `/srv/factory/vm/factory.env` (`FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION`) to the new pins, editing only those lines.
