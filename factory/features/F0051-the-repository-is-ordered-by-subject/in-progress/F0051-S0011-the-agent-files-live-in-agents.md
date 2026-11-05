@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T08:46:21.980514Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -227,6 +231,11 @@ journal:
   at: '2026-11-05T08:46:16.509744Z'
   stage: review
   run: 3cf8dc3c53754884953db5059169c1c7
+- number: 40
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:46:21.980514Z'
+  stage: docs
 ---
 
 # The agent files live in `agents/`
@@ -625,3 +634,4 @@ Expect: `1`
     - `tests/vm/test_vm_job_start.py`: the human's answer, entry 11.
     - `tests/vm/test_stage_image.py`: the Interface's leave (feature decision 5) for `AGENT_FILES_COPY` and `AGENT_FILES_MODES`. Also the standing leave to move a shared test helper (`ROOT` and `STAGE_DOCKERFILE` moved out, every test keeps its name and what it checks).
     - `tests/support/dockerfile_support.py`: the standing leave to move a shared test helper (`ROOT` and `STAGE_DOCKERFILE` moved in).
+40. factory: started docs as vm.
