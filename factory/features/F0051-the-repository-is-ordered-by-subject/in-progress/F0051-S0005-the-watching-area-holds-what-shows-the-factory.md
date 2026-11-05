@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 560
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T02:57:54.414442Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-05T02:57:54.414442Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T03:00:32.422734Z'
+  stage: review
+  run: 0992ce15260c4a1ea538a91824390e3f
 ---
 
 # The watching area holds what shows the factory and what it costs
@@ -179,3 +181,140 @@ Expect: `1`
    `check`: check: green
    `duplicates`: duplicates: 7 new, 38 known, 5 gone
 8. factory: started review as vm.
+9. reviewer: Round 0 review of `git diff main...HEAD -- . ':!factory'` against the work item.
+
+   no findings
+
+   What I checked:
+   - Group 1 (criteria): criteria 1 to 4 are rows of the parametrized tests in `tests/test_areas.py`, which run over `AREAS`. The new `watching` row holds exactly the 17 modules of the table, and nothing else in that module changed. Criterion 1's failing side (the old file still exists) and criterion 3's (an import from the old path) are covered by the same rows. The wording of the package docstrings is not tested, as the feature's standing answer 8 says. The coder's `make check` was green (entry 7: `check: green`, coverage 99.26 %).
+   - Group 2 (architecture): each of the 17 files moved with a rename to the same layer inside `factory.watching`. 12 are identical (R100) or differ only in import lines. Outside them, the `src/` diff changes only import lines and the import blocks ruff re-sorted. No old path remains under `src/` or `tests/` (checked with grep), and nothing is re-exported. The four package docstrings match the Interface word for word.
+   - Group 3 (security): no markers, no secrets, no new string-built commands.
+   - Group 4 (quality): there is no new logic. `make duplicates` reports `7 new, 38 known, 5 gone`. Two of the new findings are the old dead-code entries for `cost_records.py` (`attempt`, `ok`), now under the new path. The other new ones (the `store_free_bytes`, `dataset_free_bytes` and `memory_peak_since_boot_bytes` fields of `cost_records.py`, which kept its content in the move, and two similar-code pairs that only changed key) were not caused by this diff's logic.
+   - Group 5 (hygiene): the journal states the main choice (a mechanical rename, no shims) and what was rejected. The Description matches what was built. The docs criterion matches the pattern of S0001 to S0004.
+
+   Open, not findings:
+   - `security/duplicates-baseline.txt:22-23` still name `src/factory/domain/cost_records.py`. That file is outside every role's write path, so only the human can update it to `src/factory/watching/domain/cost_records.py`. `make duplicates` is a record, not a check.
+   - For the documenter: two moved test modules are still named at their old paths in the project guide, `tests/adapters/test_waiters.py` (`docs/project-guide/stages.md:199`) and `tests/domain/test_archive_texts.py` (`docs/project-guide/watching.md:152`). They now live at `tests/watching/adapters/test_waiters.py` and `tests/watching/domain/test_archive_texts.py`. The documenters of S0003 and S0004 updated moved test paths under the same criterion wording.
+
+   Earlier tests (item 6). Each of these was changed under the leave of feature decision 5, which the story's Interface names. Only import lines and the paths of moved modules changed, plus the `git mv` of the test modules criterion 4 selects. Every test keeps its name and what it checks.
+   - tests/acceptance_walk.py: feature decision 5 (imports)
+   - tests/adapters/test_health_file.py: feature decision 5 (imports)
+   - tests/adapters/test_opencode_events.py: feature decision 5 (imports)
+   - tests/adapters/test_record_log_jsonl.py: feature decision 5 (imports)
+   - tests/adapters/test_record_log_jsonl_torn.py: feature decision 5 (imports)
+   - tests/application/handlers/test_closed.py: feature decision 5 (imports)
+   - tests/application/handlers/test_hand_over.py: feature decision 5 (imports)
+   - tests/application/handlers/test_merged.py: feature decision 5 (imports)
+   - tests/application/handlers/test_run.py: feature decision 5 (imports)
+   - tests/application/test_acceptance_closed.py: feature decision 5 (imports)
+   - tests/application/test_acceptance_facts_disk.py: feature decision 5 (imports)
+   - tests/application/test_acceptance_hand_over.py: feature decision 5 (imports)
+   - tests/application/test_acceptance_merged.py: feature decision 5 (imports)
+   - tests/application/test_acceptance_merged_before_approval.py: feature decision 5 (imports)
+   - tests/application/test_acceptance_reading.py: feature decision 5 (imports)
+   - tests/application/test_acceptance_refusals.py: feature decision 5 (imports)
+   - tests/application/test_acceptance_repeated.py: feature decision 5 (imports)
+   - tests/application/test_acceptance_service.py: feature decision 5 (imports)
+   - tests/application/test_agent_run_probe.py: feature decision 5 (imports)
+   - tests/application/test_board_in_progress.py: feature decision 5 (imports)
+   - tests/application/test_board_reader.py: feature decision 5 (imports)
+   - tests/application/test_board_reader_acceptance.py: feature decision 5 (imports)
+   - tests/application/test_cost_image.py: feature decision 5 (imports)
+   - tests/application/test_cost_instance.py: feature decision 5 (imports)
+   - tests/application/test_cost_record_machine_measures.py: feature decision 5 (imports)
+   - tests/application/test_costs.py: feature decision 5 (imports)
+   - tests/application/test_costs_denials.py: feature decision 5 (imports)
+   - tests/application/test_costs_died_text.py: feature decision 5 (imports)
+   - tests/application/test_costs_login.py: feature decision 5 (imports)
+   - tests/application/test_costs_model_seconds.py: feature decision 5 (imports)
+   - tests/application/test_costs_provider_limit.py: feature decision 5 (imports)
+   - tests/application/test_disk_recorder.py: feature decision 5 (imports)
+   - tests/application/test_disk_space_interface.py: feature decision 5 (imports)
+   - tests/application/test_dispatcher.py: feature decision 5 (imports)
+   - tests/application/test_human_line_posts.py: feature decision 5 (imports)
+   - tests/application/test_pipeline_loading.py: feature decision 5 (imports)
+   - tests/application/test_preflight_stops_commit.py: feature decision 5 (imports)
+   - tests/application/test_recording_project_commands.py: feature decision 5 (imports)
+   - tests/application/test_recovery_crash.py: feature decision 5 (imports)
+   - tests/application/test_repository_waiter.py: feature decision 5 (imports)
+   - tests/application/test_scheduler.py: feature decision 5 (imports)
+   - tests/application/test_stage_known_results.py: feature decision 5 (imports)
+   - tests/application/test_stage_run.py: feature decision 5 (imports)
+   - tests/application/test_stage_tool_uses.py: feature decision 5 (imports)
+   - tests/application/test_stage_transcripts.py: feature decision 5 (imports)
+   - tests/application/test_stop_log_once.py: feature decision 5 (imports)
+   - tests/application/test_stop_publisher.py: feature decision 5 (imports)
+   - tests/application/test_stop_records_service.py: feature decision 5 (imports)
+   - tests/application/test_stops.py: feature decision 5 (imports)
+   - tests/application/test_tick.py: feature decision 5 (imports, and the moved module's file path `watching/application/watcher.py` in the guard's row)
+   - tests/application/test_tick_stop_records.py: feature decision 5 (imports)
+   - tests/application/test_watcher.py: feature decision 5 (imports)
+   - tests/application/test_watcher_acceptance.py: feature decision 5 (imports)
+   - tests/application/test_watcher_main_ref.py: feature decision 5 (imports)
+   - tests/application/test_watcher_move_rule.py: feature decision 5 (imports)
+   - tests/application/test_watcher_observer.py: feature decision 5 (imports)
+   - tests/bill_support.py: feature decision 5 (imports)
+   - tests/conftest.py: feature decision 5 (imports)
+   - tests/container_support.py: feature decision 5 (imports)
+   - tests/cost_records_support.py: feature decision 5 (imports)
+   - tests/disk_support.py: feature decision 5 (imports)
+   - tests/domain/test_acceptance_before_approval.py: feature decision 5 (imports)
+   - tests/domain/test_contract.py: feature decision 5 (imports)
+   - tests/domain/test_times.py: feature decision 5 (imports and the module path string `factory.watching.domain.cost_records`)
+   - tests/entry/test_bill.py: feature decision 5 (imports)
+   - tests/entry/test_health.py: feature decision 5 (imports)
+   - tests/entry/test_health_missing.py: feature decision 5 (imports)
+   - tests/entry/test_run.py: feature decision 5 (imports)
+   - tests/entry/test_watch.py: feature decision 5 (imports)
+   - tests/entry/test_watch_acceptance.py: feature decision 5 (imports)
+   - tests/entry/test_wiring_boundaries.py: feature decision 5 (imports)
+   - tests/entry/test_wiring_command_records.py: feature decision 5 (imports)
+   - tests/entry/test_wiring_known_results.py: feature decision 5 (imports)
+   - tests/entry/test_wiring_machine_inputs.py: feature decision 5 (imports)
+   - tests/entry/test_wiring_stop_records.py: feature decision 5 (imports)
+   - tests/entry/test_wiring_transcripts.py: feature decision 5 (imports)
+   - tests/known_results_support.py: feature decision 5 (imports)
+   - tests/machine_readings_support.py: feature decision 5 (imports)
+   - tests/observing_runtime.py: feature decision 5 (imports)
+   - tests/power_support.py: feature decision 5 (imports)
+   - tests/proof_support.py: feature decision 5 (imports)
+   - tests/recording_log.py: feature decision 5 (imports)
+   - tests/stage_run_support.py: feature decision 5 (imports)
+   - tests/test_areas.py: the story's Interface (the `watching` row of `AREAS`, nothing else)
+   - tests/tool_use_support.py: feature decision 5 (imports)
+   - tests/adapters/test_cost_records_jsonl.py -> tests/watching/adapters/: feature decision 5 (git mv, imports)
+   - tests/adapters/test_cost_records_jsonl_denials.py -> tests/watching/adapters/: feature decision 5 (git mv, imports)
+   - tests/adapters/test_cost_records_jsonl_instance.py -> tests/watching/adapters/: feature decision 5 (git mv, imports)
+   - tests/adapters/test_cost_records_jsonl_login.py -> tests/watching/adapters/: feature decision 5 (git mv, imports)
+   - tests/adapters/test_cost_records_jsonl_model_seconds.py -> tests/watching/adapters/: feature decision 5 (git mv, imports)
+   - tests/adapters/test_factory_log.py -> tests/watching/adapters/: feature decision 5 (git mv, imports)
+   - tests/adapters/test_machine_files.py -> tests/watching/adapters/: feature decision 5 (git mv, imports)
+   - tests/adapters/test_runtime_tool_uses.py -> tests/watching/adapters/: feature decision 5 (git mv, imports)
+   - tests/adapters/test_transcript_files.py -> tests/watching/adapters/: feature decision 5 (git mv, imports)
+   - tests/adapters/test_waiters.py -> tests/watching/adapters/: feature decision 5 (git mv, imports)
+   - tests/application/test_acceptance_ticks_merged.py -> tests/watching/application/: feature decision 5 (git mv, imports)
+   - tests/application/test_bill_service.py -> tests/watching/application/: feature decision 5 (git mv, imports)
+   - tests/application/test_machine.py -> tests/watching/application/: feature decision 5 (git mv, imports)
+   - tests/application/test_transcript_keeper.py -> tests/watching/application/: feature decision 5 (git mv, imports)
+   - tests/domain/test_acceptance_booking.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_acceptance_refusal_edges.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_archive_texts.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_bills.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_bills_model_time.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_board.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_board_absent_values.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_cost_record_denials.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_cost_record_instance.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_cost_record_machine.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_cost_record_model_seconds.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_cost_records.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_human_waits.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_journal_stamps.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_login_records.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_machine.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_tool_use_model.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_tool_uses.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_tool_uses_replayed_lines.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+   - tests/domain/test_transcript_ref.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
+
+   I compared each moved test module with its file on `main`: none differs in anything but import lines.
