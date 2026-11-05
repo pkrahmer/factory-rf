@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 574
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T23:06:14.952388Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -54,6 +58,11 @@ journal:
   at: '2026-11-05T23:06:09.347516Z'
   stage: docs-only
   run: 1fdc345f7d3847e19fe8c05af69ec58c
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:06:14.952388Z'
+  stage: tests
 ---
 
 # The documents have a style page and a glossary
@@ -149,3 +158,4 @@ Expect: `named`
    Open from entry 5: the drafts' rules 8 to 10 are left out, since the story asks for seven rules plus the link rule. Sentence length was not measured by tool.
 
    Stale text noticed, not mine to fix: version names in the header comments of `factory/pipeline.yml` and in older `docs/decisions.md` entries.
+9. factory: started tests as vm.
