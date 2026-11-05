@@ -96,6 +96,8 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 
 62. **A test of a folder's absence fails where git leaves the folder.** F0051-S0011: `test_the_old_agent_folder_is_gone` checked `not (ROOT / "claude").exists()`; the take deletes the files but leaves the empty folder in the check's tree, so the check after `doing` stalled twice and reached the cap (about $1.5 and 25 min). Fix: a tester rule that a removal is checked by what git tracks (`git ls-files`), never by a folder's existence.
 
+63. **The take loses the unedited files of a renamed directory (a bug).** `zfs diff` names a renamed directory in one line and lists none of the unchanged files inside it; `ZfsSnapshots._read_diff_line` skips directory lines, so the take keeps only the files that were also edited. F0051-S0012 lost all of `template/` and `vm/git-credential-factory` (one stall), and S0011's first stall had the same cause. Workaround: move files one by one. Fix: on a directory rename, list the files under the new name from the dataset and record each as deleted under the old name and added under the new one; a test with a renamed folder of unedited files.
+
 ## The repository is easier to navigate (the human, 2026-11-04)
 
 38. **`claude/` becomes `agents/`.** It holds the factory's agent files and `settings.json` in Claude Code's format, which the opencode runtime translates per run (decision of 2026-10-19, F0020-S0004); the name says one runtime. Touches `vm/Dockerfile`, the wiring, the coder's write paths in `factory/pipeline.yml`, the docs and tests.
