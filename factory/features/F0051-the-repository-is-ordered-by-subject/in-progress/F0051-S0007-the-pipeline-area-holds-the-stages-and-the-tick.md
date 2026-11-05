@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 562
-comments_read: [6649241093]
+comments_read: [6649241093, 6649574994]
 handed_over: null
 claim: null
 journal:
@@ -98,6 +98,11 @@ journal:
   stage: review
   run: 55e125550bef4aa481102a956ad4c1da
   blocked: question
+- number: 17
+  speaker: human
+  kind: comment
+  at: '2026-11-05T04:21:17.902128Z'
+  stage: review
 ---
 
 # The pipeline area holds the stages and the tick
@@ -742,3 +747,8 @@ Expect: `1`
     domain/test_decide_docs_slip.py -> work/domain/test_decide_docs_slip.py: FD5
     domain/test_decision_rules.py -> work/domain/test_decision_rules.py: FD5
     domain/test_send_back.py -> work/domain/test_send_back.py: FD5
+17. 2026-11-05 human: Answer of the human:
+
+    **(a)**, with your wording. Extend criterion 7: every place in `README.md`, `docs/operator-guide.md` or `docs/project-guide/` that names `factory.domain`, `factory.application` or `factory.adapters` as a package names the area package or layer that holds it now. For the `make mutants` examples, use an existing area package, for example `MODULES='factory.machine.domain.disk factory.pipeline.application'`. Then pass the story to `docs`.
+
+    The baseline lines and the mutmut deselect are mine; they follow after the merge.
