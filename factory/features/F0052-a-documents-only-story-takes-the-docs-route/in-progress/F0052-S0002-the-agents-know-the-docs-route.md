@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T22:47:52.524302Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -219,6 +223,11 @@ journal:
   at: '2026-11-05T22:47:46.758438Z'
   stage: review
   run: 58655432f02443a9914673dd781f9fb9
+- number: 39
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:47:52.524302Z'
+  stage: docs
 ---
 
 # The agents know the docs route
@@ -541,3 +550,4 @@ Expect: `named`
     Notes:
     - `tests/agent_files/test_claude_agent_texts_docs_route.py`, `test_the_reviewer_in_docs_review_replaces_its_code_review_and_judges_the_facts`: the rows `its checklist` and `its decisions, and steps 1 to 3` are loose substrings. Each could match outside the "replaces" sentence. One row holding the whole sentence would pin it more tightly.
     - `tests/agent_files/test_claude_agent_texts_docs_route.py`: the `docs-review` and `tests` hand-offs of the documenter are still separate tests. The single-bullet checks (the `tests` hand-off, the return from `docs-review`) are separate functions, not rows. The tester gave the reason in entry 26.
+39. factory: started docs as vm.
