@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T04:38:38.488706Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-05T04:38:38.488706Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-05T04:40:46.875742Z'
+  stage: tests
+  run: 7f173847a0b74385af2524e5a0aca39e
 ---
 
 # The root of `tests/` holds only its folders
@@ -130,3 +132,26 @@ Expect: `support.bill_support`
    - Architecture: the change touches only the layout of `tests/`, the test-layout rules in CLAUDE.md, and the project guide's docs. `operator_scripts` avoids the clash with the standard library's `operator`. No source code changes.
    - Scope: it is within F0051's scope ("the root of `tests/` holds only `conftest.py` and folders") and touches none of its "Out of scope" items. Feature decision 5 covers the tester's changes. The human's change for S0008's start (CLAUDE.md's *Tests*) is the human's own.
 7. factory: started tests as vm.
+8. tester: Wrote the layout guard. It is self-contained, so it imports none of the helpers that are about to move, and it reads `tests/` as `Path(__file__).parents[1]`.
+
+   - criterion 1: tests/guards/test_tests_layout.py::test_the_root_holds_only_conftest_and_packages
+   - criterion 2: tests/guards/test_tests_layout.py::test_a_former_root_helper_lives_only_in_support. There is one row per name in `FORMER_ROOT_HELPERS`: every root module on `origin/main` whose name does not start with `test_`, except `conftest.py`, taken from `git ls-tree origin/main tests/`. Each row checks that `support/<name>.py` is the only file of that name under `tests/`.
+   - criterion 3: tests/guards/test_tests_layout.py::test_no_module_imports_a_helper_by_its_bare_name. It uses `ast` to find `import X` / `from X import` where X's first segment is a former root helper. Relative imports are not counted.
+   - criterion 4: this is a recorded figure, not a test (the human's answer 4). Before the story, `uv run pytest --collect-only -q` on this branch, whose `tests/` equals `origin/main`'s, collected **9955 tests in 681 files**. The project's `-q` prints one line per file, so this is the sum of those lines. My new guard adds its own tests on top: the after-figure must be 9955 plus the guard's tests.
+   - criterion 5: tests/guards/test_tests_layout.py::test_a_root_test_module_fitting_a_pattern_sits_in_its_folder. There are 16 rows, one per pattern in `PLACEMENTS`, in the human's order. A module counts only under the first rule that fits it. Each row checks:
+     - the pattern fits at least one of the root test modules on `origin/main`, listed in `FORMER_ROOT_TEST_MODULES`;
+     - each fitting module sits at `tests/<folder>/<name>`;
+     - no copy of it is left at the root.
+   - criteria 6 and 7: no test (`make check`, docs).
+
+   Files created:
+   - `tests/guards/__init__.py`, with a one-line docstring. It is the package for the guard; the coder keeps it.
+   - `tests/guards/test_tests_layout.py`.
+
+   The coder will need these, which are not tests of mine:
+   - The list of "imports most" placements and the list of `__file__` path changes belong to the coder's or the next tester's entry (the human's answers 2 and 3). I moved no modules.
+   - The guard's new file must itself stay in `tests/guards/`.
+
+   Run: `uv run pytest -q tests/guards/test_tests_layout.py` ends with all its tests failing for the right reason. Each shows a helper still at the root (for example `['zfs_support.py'] == ['support/zfs_support.py']`), a non-package root, bare imports, or test modules not yet moved. The runner could import every module; nothing was missing. `make lint`: green.
+
+   `lint`: lint: green (0.1 s)
