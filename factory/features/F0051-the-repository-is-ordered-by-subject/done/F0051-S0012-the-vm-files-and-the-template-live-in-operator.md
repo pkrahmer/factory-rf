@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -171,6 +171,11 @@ journal:
   at: '2026-11-05T09:39:17.718302Z'
   stage: smoke-test
   run: 6ac711aae5324b90b73871156986e3d1
+- number: 30
+  speaker: factory
+  kind: done
+  at: '2026-11-05T09:47:16.677382Z'
+  stage: approval
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -518,3 +523,4 @@ Expect: `parsed`
     **Findings:** none.
 
     **Open:** nothing.
+30. factory: done (pull request merged); cost: 11 runs, 16.8 min, 99 turns, 252271 tokens in (2684618 more from cache), 36216 out, $3.06
