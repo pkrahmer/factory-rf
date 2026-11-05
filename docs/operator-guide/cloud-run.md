@@ -4,7 +4,7 @@ A topic of the [operator guide](README.md).
 
 ## On Cloud Run
 
-A Cloud Run job runs the factory without a VM. The job starts bare: the root file system is memory, nothing is installed and nothing persists, so every start installs the tools, clones the code and builds the stage image again. `vm/job-start.sh` is the job's command. It is a POSIX `sh` script that turns a bare `debian:trixie-slim` into a running instance and ends in `exec factory-run`. Creating the job, its secrets and its schedule is yours; this chapter says what to give it. The pieces it uses are described under *The job profile*, *The metadata server in a job*, *Without ZFS* and *The idle shutdown* in [machine.md](machine.md).
+A Cloud Run job runs the factory without a VM. The job starts bare: the root file system is memory, nothing is installed and nothing persists, so every start installs the tools, clones the code and builds the stage image again. `operator/vm/job-start.sh` is the job's command. It is a POSIX `sh` script that turns a bare `debian:trixie-slim` into a running instance and ends in `exec factory-run`. Creating the job, its secrets and its schedule is yours; this chapter says what to give it. The pieces it uses are described under *The job profile*, *The metadata server in a job*, *Without ZFS* and *The idle shutdown* in [machine.md](machine.md).
 
 ### What the job needs
 
@@ -26,7 +26,7 @@ The job's environment is the instance's configuration. The script reads these va
 | --- | --- |
 | `FACTORY_INSTANCE` | required: the instance's name |
 | `FACTORY_REPOSITORY_URL` | required: the project |
-| `FACTORY_CODE_URL` | required: the repository the factory's code and `vm/Dockerfile` come from; cloned without a credential (see *The code and the project apart* in [machine.md](machine.md)) |
+| `FACTORY_CODE_URL` | required: the repository the factory's code and `operator/vm/Dockerfile` come from; cloned without a credential (see *The code and the project apart* in [machine.md](machine.md)) |
 | `FACTORY_CODE_REF` | required: a tag or a commit of the code repository. There is no default, so nothing pushed to its `main` reaches a job unseen: you move the ref deliberately. |
 | `FACTORY_TOKEN_FILE` | required: the path of the file that holds the hosting token; a file the script can read, else `job-start: FACTORY_TOKEN_FILE is not a file`, status 2. If its folder is not private, the script copies it into `<root>/secrets` and uses the copy (see *Secrets are files*). The script never prints it. |
 | `HTTPS_PROXY` or `https_proxy` | optional: when set (`HTTPS_PROXY` wins when both are given and not empty), `apt` and every download use it. The script exports all four spellings, `HTTPS_PROXY`, `https_proxy`, `HTTP_PROXY` and `http_proxy`, to every later step, because the stage image's package manager fetches over plain HTTP. An `HTTP_PROXY` or `http_proxy` the job sets to a value that is not empty keeps its own value. |
@@ -40,7 +40,7 @@ The job's environment is the instance's configuration. The script reads these va
 
 Beside these the job carries the settings of any instance (the hosting token's companions, the agent runtime's login, `FACTORY_CONTAINER_ENV`, `FACTORY_CA_BUNDLE`, `FACTORY_OPENCODE_MODELS`); the script never changes those.
 
-The script sets the following only where the job gave no value: `FACTORY_SNAPSHOTS=copy`, `FACTORY_SNAPSHOT_BASE`, `FACTORY_WORKSPACE`, `FACTORY_CHECKOUT`, `FACTORY_STATE`, `FACTORY_CLAUDE_HOME` and `FACTORY_IMAGE_ID_FILE` (all under `<root>`), `FACTORY_CONTAINER_PROFILE=job`, `FACTORY_AGENT_RUNTIME=opencode` and `FACTORY_IDLE_SHUTDOWN_ACTION=exit`. It also sets `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION` from the `ARG` lines `CLAUDE_CODE_VERSION=` and `OPENCODE_VERSION=` of the cloned `vm/Dockerfile`, which the preflight's item `agent-runtime-version` compares with the stage image.
+The script sets the following only where the job gave no value: `FACTORY_SNAPSHOTS=copy`, `FACTORY_SNAPSHOT_BASE`, `FACTORY_WORKSPACE`, `FACTORY_CHECKOUT`, `FACTORY_STATE`, `FACTORY_CLAUDE_HOME` and `FACTORY_IMAGE_ID_FILE` (all under `<root>`), `FACTORY_CONTAINER_PROFILE=job`, `FACTORY_AGENT_RUNTIME=opencode` and `FACTORY_IDLE_SHUTDOWN_ACTION=exit`. It also sets `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION` from the `ARG` lines `CLAUDE_CODE_VERSION=` and `OPENCODE_VERSION=` of the cloned `operator/vm/Dockerfile`, which the preflight's item `agent-runtime-version` compares with the stage image.
 
 ### The steps
 
@@ -53,9 +53,9 @@ The script prints `job-start: <step>` on standard output at each step, in this o
 5. `metadata`: loads the `nft` rule of *The metadata server in a job* in [machine.md](machine.md) from `<root>/metadata-block.nft`.
 6. `directories`: the workspace, the empty base, the checkout and the state.
 7. `storage`: mounts a tmpfs at `/var/lib/containers`, Podman's storage root, so that images use the kernel's overlay. A failed mount stops with `job-start: storage: cannot mount a tmpfs at <path>`, status 1.
-8. `code`: clones `FACTORY_CODE_URL` and checks out `FACTORY_CODE_REF`, with no credential and no prompt. A ref that does not exist stops with `job-start: code: no ref <ref> in <url>`, status 1. Then it installs the checkout's own `vm/git-credential-factory` as `/usr/local/bin/git-credential-factory` (mode `0755`); a failing install stops with `job-start: code: failed`, status 1. The factory's git takes its credential only from that helper, which answers for the project's host only, so without it no fetch of a private project and no push could authenticate (see "The hosting-service token" in [health.md](health.md)). `vm/setup.sh` installs the same helper on a VM.
-9. `tools`: a virtual environment `<root>/tools` with `uv` at the version of `vm/Dockerfile`, then `uv sync --frozen --no-dev` in the code checkout.
-10. `image`: builds the stage image from the checkout's `vm/Dockerfile` with the job's Podman options (the three words of *The job profile* in [machine.md](machine.md)) and writes a new uuid to the image-id file.
+8. `code`: clones `FACTORY_CODE_URL` and checks out `FACTORY_CODE_REF`, with no credential and no prompt. A ref that does not exist stops with `job-start: code: no ref <ref> in <url>`, status 1. Then it installs the checkout's own `operator/vm/git-credential-factory` as `/usr/local/bin/git-credential-factory` (mode `0755`); a failing install stops with `job-start: code: failed`, status 1. The factory's git takes its credential only from that helper, which answers for the project's host only, so without it no fetch of a private project and no push could authenticate (see "The hosting-service token" in [health.md](health.md)). `operator/vm/setup.sh` installs the same helper on a VM.
+9. `tools`: a virtual environment `<root>/tools` with `uv` at the version of `operator/vm/Dockerfile`, then `uv sync --frozen --no-dev` in the code checkout.
+10. `image`: builds the stage image from the checkout's `operator/vm/Dockerfile` with the job's Podman options (the three words of *The job profile* in [machine.md](machine.md)) and writes a new uuid to the image-id file.
 11. `token`: when `FACTORY_TOKEN_URL` is set, runs the refresher once and waits for it, which must succeed, then starts it in the background.
 12. `start`: `exec factory-run` of the code checkout's environment.
 
@@ -107,7 +107,7 @@ Before it builds the call, `create` and `update` refuse three kinds of value, wi
 
 The second rule has a consequence: an SSH repository URL such as `git@host:owner/name.git` holds an `@`, so a job needs the `https://` form of `SITE_REPOSITORY_URL` (the factory itself accepts both, see *Configuration* in [install.md](install.md)).
 
-The job's command is one line of shell that decodes a script (base64, gzip). The script only makes `/srv/factory/<instance>`, writes the provider file `provider.json` from the site's model values, writes `vm/job-start.sh` to `/tmp/job-start.sh` and hands over to it (`exec sh /tmp/job-start.sh`). The text of `vm/job-start.sh` is taken from `SITE_CODE_REF` of the repository that holds `job.sh`, not from its working tree, so the job runs the code the ref names. A ref the repository does not know stops `create` and `update` with `job: <ref> is not known here; fetch it first`, status 1. A `vm/job-start.sh` that holds a line `JOB_START_SH_END` is refused, because that line ends the text in the wrapper.
+The job's command is one line of shell that decodes a script (base64, gzip). The script only makes `/srv/factory/<instance>`, writes the provider file `provider.json` from the site's model values, writes `operator/vm/job-start.sh` to `/tmp/job-start.sh` and hands over to it (`exec sh /tmp/job-start.sh`). The text of `operator/vm/job-start.sh` is taken from `SITE_CODE_REF` of the repository that holds `job.sh`, not from its working tree, so the job runs the code the ref names. A ref the repository does not know stops `create` and `update` with `job: <ref> is not known here; fetch it first`, status 1. A `operator/vm/job-start.sh` that holds a line `JOB_START_SH_END` is refused, because that line ends the text in the wrapper.
 
 `create` refuses a job that exists (`job: <job> exists; use update`) and `update` one that does not (`job: <job> does not exist; use create`), both with status 1. `--dry-run` runs no `gcloud` call, not even the check for the job: it prints the call, one argument per line, with the wrapper as `<wrapper: N bytes>`, so you can read it before it runs. A failing `gcloud` shows its standard error and `job.sh` exits with its status.
 

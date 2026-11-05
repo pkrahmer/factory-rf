@@ -110,7 +110,7 @@ The preflight has the item `snapshots` in place of `zfs` and `dataset` (see *The
 
 ### The stage image
 
-Every container of a v1.2 stage (the sync, the agent, the checks) starts from one image that holds the tools and nothing of the factory. `vm/Dockerfile` builds it.
+Every container of a v1.2 stage (the sync, the agent, the checks) starts from one image that holds the tools and nothing of the factory. `operator/vm/Dockerfile` builds it.
 
 It holds:
 
@@ -125,28 +125,28 @@ The image only carries the agent files. The sync container copies them into the 
 Build it on the VM as the user `factory`, from a checkout:
 
 ```bash
-podman build -f vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> <the checkout>
+podman build -f operator/vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> <the checkout>
 ```
 
-`AGENT_RUNTIME` has no default. The image holds only that runtime, so it must be the instance's `FACTORY_AGENT_RUNTIME` (the preflight's `agent-runtime-version` fails on an image built for the other one). A build without it, with an empty value or with any other value, fails at once with a message that names `AGENT_RUNTIME`, `claude` and `opencode`. `vm/job-start.sh` passes `FACTORY_AGENT_RUNTIME` itself. After a change of runtime, rebuild the image and renew the file `FACTORY_IMAGE_ID_FILE` names, so that the instance gets a new `image-id`.
+`AGENT_RUNTIME` has no default. The image holds only that runtime, so it must be the instance's `FACTORY_AGENT_RUNTIME` (the preflight's `agent-runtime-version` fails on an image built for the other one). A build without it, with an empty value or with any other value, fails at once with a message that names `AGENT_RUNTIME`, `claude` and `opencode`. `operator/vm/job-start.sh` passes `FACTORY_AGENT_RUNTIME` itself. After a change of runtime, rebuild the image and renew the file `FACTORY_IMAGE_ID_FILE` names, so that the instance gets a new `image-id`.
 
-`--build-arg FACTORY_IMAGE=<ref>` sets the label `factory.image`; it defaults to `unlabelled`. The label is not the identity of the image. The settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, and you renew that file after every build. `vm/setup.sh` makes the file with a fresh uuid when it is missing or empty (see *The script*). Nothing in `make check` builds the image.
+`--build-arg FACTORY_IMAGE=<ref>` sets the label `factory.image`; it defaults to `unlabelled`. The label is not the identity of the image. The settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, and you renew that file after every build. `operator/vm/setup.sh` makes the file with a fresh uuid when it is missing or empty (see *The script*). Nothing in `make check` builds the image.
 
-`vm/Dockerfile` installs six Debian packages by name alone: `git`, `make`, `curl`, `ca-certificates`, `procps` and `xz-utils`. Debian's mirror keeps only a package's current version, so an exact version stops building at the next point release, and a job rebuilds the image at every start. The base image's digest fixes the Debian release instead, and within one stable release Debian ships only security and serious fixes. Everything that shapes a result is still pinned: the base image is named with its digest, and `uv`, Node, Claude Code and opencode have exact versions. A pin is changed in `vm/Dockerfile` alone and checked with `uv run pytest tests/vm/test_stage_image.py`, which reports any reference that floats (a `FROM` without a digest, `latest`, a download piped into a shell, an `apt-get install` of anything but those six names) and checks that each pin has its form.
+`operator/vm/Dockerfile` installs six Debian packages by name alone: `git`, `make`, `curl`, `ca-certificates`, `procps` and `xz-utils`. Debian's mirror keeps only a package's current version, so an exact version stops building at the next point release, and a job rebuilds the image at every start. The base image's digest fixes the Debian release instead, and within one stable release Debian ships only security and serious fixes. Everything that shapes a result is still pinned: the base image is named with its digest, and `uv`, Node, Claude Code and opencode have exact versions. A pin is changed in `operator/vm/Dockerfile` alone and checked with `uv run pytest tests/vm/test_stage_image.py`, which reports any reference that floats (a `FROM` without a digest, `latest`, a download piped into a shell, an `apt-get install` of anything but those six names) and checks that each pin has its form.
 
 A VM's next rebuild takes the current packages of the same release.
 
-The agent runtime is installed by a Node of its own, in a first build stage. That stage downloads Node 22 from nodejs.org, pinned by `NODE_VERSION` and `NODE_SHA256`, checks the archive with `sha256sum -c` before it unpacks it into `/opt/factory/node`, and installs the one runtime `AGENT_RUNTIME` names with that Node's npm. The final stage copies from it only that runtime's native executable, to `/opt/factory/bin/<runtime>`; `/usr/local/bin/<runtime>` execs it and passes its arguments on. The final stage therefore holds no Node, no npm, no npm cache, no other runtime and no opencode `baseline` executable, and it clears apt's lists, debconf's cache, the install logs and `/tmp`. The image has no command for the other runtime, and no `node` or `npm` for projects: a project that needs one installs its own, and that cannot change the runtimes. To change the Node pin, set both `ARG`s in `vm/Dockerfile`: `NODE_VERSION` to a `22.<n>.<n>` release and `NODE_SHA256` to the SHA-256 that nodejs.org's `SHASUMS256.txt` lists for `node-v<NODE_VERSION>-linux-x64.tar.xz` (64 lowercase hex digits). A wrong checksum fails the build.
+The agent runtime is installed by a Node of its own, in a first build stage. That stage downloads Node 22 from nodejs.org, pinned by `NODE_VERSION` and `NODE_SHA256`, checks the archive with `sha256sum -c` before it unpacks it into `/opt/factory/node`, and installs the one runtime `AGENT_RUNTIME` names with that Node's npm. The final stage copies from it only that runtime's native executable, to `/opt/factory/bin/<runtime>`; `/usr/local/bin/<runtime>` execs it and passes its arguments on. The final stage therefore holds no Node, no npm, no npm cache, no other runtime and no opencode `baseline` executable, and it clears apt's lists, debconf's cache, the install logs and `/tmp`. The image has no command for the other runtime, and no `node` or `npm` for projects: a project that needs one installs its own, and that cannot change the runtimes. To change the Node pin, set both `ARG`s in `operator/vm/Dockerfile`: `NODE_VERSION` to a `22.<n>.<n>` release and `NODE_SHA256` to the SHA-256 that nodejs.org's `SHASUMS256.txt` lists for `node-v<NODE_VERSION>-linux-x64.tar.xz` (64 lowercase hex digits). A wrong checksum fails the build.
 
 #### Update the pins
 
-The Debian packages carry no version, so a security or point update needs no edit. Moving to a new Debian release is a deliberate change of the base image's digest. Edit the line in `vm/Dockerfile`, then run the test:
+The Debian packages carry no version, so a security or point update needs no edit. Moving to a new Debian release is a deliberate change of the base image's digest. Edit the line in `operator/vm/Dockerfile`, then run the test:
 
 - Base image: `podman pull <image>`, then take the digest from `podman inspect --format '{{index .RepoDigests 0}}'` and put it after `@sha256:` in the `BASE_IMAGE` default.
 - `uv`: the `UV_VERSION` default. Node: `NODE_VERSION` and `NODE_SHA256` together (see above). Claude Code: the `CLAUDE_CODE_VERSION` default (three numbers; now `2.1.318`). Claude Code is installed from its npm package, `@anthropic-ai/claude-code`, with its auto-update off (`DISABLE_AUTOUPDATER=1`); the version is in the environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it.
 - opencode: the `OPENCODE_VERSION` default (now `1.19.5`) and the `FACTORY_OPENCODE_MODELS` value. Check the model ids with `opencode models anthropic`.
 
-After a change, rebuild the image and renew its id (see "The rebuild after a merge"); `vm/setup.sh` carries the pins into the environment file.
+After a change, rebuild the image and renew its id (see "The rebuild after a merge"); `operator/vm/setup.sh` carries the pins into the environment file.
 
 ### The project's stage file
 
@@ -194,7 +194,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
 
 The factory builds the file with `podman build --build-arg FACTORY_BASE=<the base image> --network=host` and an empty build context, tags the result `<FACTORY_STAGE_IMAGE>-project` (for `factory-stage:vm`, `factory-stage:vm-project`), and then removes the images the build left without a tag. A build may take 30 minutes; after that it fails.
 
-Two things follow for the project. The build has the network, so it can download. It has no file of the repository, so a `COPY` finds nothing, and the layer is only as repeatable as its commands: pin the versions and check the checksums of what it downloads, as `vm/Dockerfile` does. Debian packages installed by name take the version the release ships at the time of the build.
+Two things follow for the project. The build has the network, so it can download. It has no file of the repository, so a `COPY` finds nothing, and the layer is only as repeatable as its commands: pin the versions and check the checksums of what it downloads, as `operator/vm/Dockerfile` does. Debian packages installed by name take the version the release ships at the time of the build.
 
 The layer must not break the stage image's tools. The runtimes live under `/opt/factory` and the image has no `node` or `npm` on the `PATH` for projects, so a project that installs its own Node does not change the runtimes.
 
@@ -221,7 +221,7 @@ Every cost record names the image the agent run ran on (the identity from the fi
 Some projects live on a host of their own, such as a company's enterprise host, and run the factory's public code from a public repository. Give `--repository-url` the project and `--code-url` the code:
 
 ```bash
-sudo sh vm/setup.sh --device /dev/sdb \
+sudo sh operator/vm/setup.sh --device /dev/sdb \
   --repository-url https://git.company.example/team/project.git \
   --code-url https://github.com/pkrahmer/kumpel-factory.git
 ```
@@ -229,23 +229,23 @@ sudo sh vm/setup.sh --device /dev/sdb \
 - **The code is cloned without a credential.** The clone of `/srv/factory/<instance>/factory` runs with `GIT_TERMINAL_PROMPT=0` and without `GIT_ASKPASS` and `core.askPass`, after the wait for the secrets, in the same pass as the install of the helper and the unit. A code repository that asks for a credential fails the clone: `setup: checkout: cannot clone <url> without a credential; the code repository must be readable without a token`, exit status 1. `--code-url` equal to `--repository-url`, or absent, keeps the checkout as it was, with the token.
 - **`factory.env` holds the project only.** `FACTORY_REPOSITORY_URL` is `--repository-url`; the code url is written nowhere.
 - **The project brings its own files.** The factory reads `factory/pipeline.yml`, `factory/story-form.md` and `factory/feature-form.md` from the project, and optionally `factory/agents/`. Its `Makefile` has the targets `check`, `lint`, `test` and `sync`.
-- **The stage image comes from the code.** `vm/Dockerfile` is the one in the code checkout, not the project's.
-- **An update of the code is a new ref and a rebuild.** Run `vm/setup.sh` again with the new `--code-ref`, as *The rebuild after a merge* describes. A checkout that exists is not cloned again, so a changed `--code-url` alone changes nothing on a machine that has one.
+- **The stage image comes from the code.** `operator/vm/Dockerfile` is the one in the code checkout, not the project's.
+- **An update of the code is a new ref and a rebuild.** Run `operator/vm/setup.sh` again with the new `--code-ref`, as *The rebuild after a merge* describes. A checkout that exists is not cloned again, so a changed `--code-url` alone changes nothing on a machine that has one.
 - **The helper answers only the project's host.** With `FACTORY_REPOSITORY_URL` set, `git-credential-factory` gives the token only when git asks for the host of that URL, so the token is never offered to the code repository's host or to any other (see *The hosting-service token*).
 
 ### The script
 
-`vm/setup.sh` makes the machine from a fresh Ubuntu 24.04 with a spare disk and installs the service. It is POSIX `sh`, runs as root and does only what is missing, so a second run changes nothing.
+`operator/vm/setup.sh` makes the machine from a fresh Ubuntu 24.04 with a spare disk and installs the service. It is POSIX `sh`, runs as root and does only what is missing, so a second run changes nothing.
 
 ```bash
-sudo sh vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner>/<repo>.git
+sudo sh operator/vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner>/<repo>.git
 ```
 
 | Option | Default | Meaning |
 |---|---|---|
 | `--device <path>` | required | The disk, or a file such as `/var/lib/factory-pool.img`, the pool is made on. The script does not test it: a pool that exists is found whatever `--device` names. |
 | `--repository-url <url>` | required | The repository the factory works on, and runs from when `--code-url` is not given. |
-| `--code-url <url>` | the `--repository-url` | The repository the factory's code and its stage image's `vm/Dockerfile` come from. When it differs from `--repository-url` it is cloned without any credential (see *The code and the project apart*). |
+| `--code-url <url>` | the `--repository-url` | The repository the factory's code and its stage image's `operator/vm/Dockerfile` come from. When it differs from `--repository-url` it is cloned without any credential (see *The code and the project apart*). |
 | `--instance <name>` | `vm` | The instance's name; its folder is `/srv/factory/<instance>`. |
 | `--pool <name>` | `tank` | The ZFS pool. |
 | `--quota <size>` | `30G` | The quota of the instance's dataset. |
@@ -274,9 +274,9 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 10. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` (mode `0755`), and `/home/factory/.secrets` (mode `0700`). If `state`, `repo` or `/home/factory/.secrets` is a link, the script prints `setup: folders: ...` to standard error and exits 1 before it makes anything in the step: remove the link and run it again. The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
 11. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
 12. `checkout`: the factory at `--code-ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
-13. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `vm/git-credential-factory` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
+13. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `operator/vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `operator/vm/git-credential-factory` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
 14. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`). With `--idle-shutdown` its last line is `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>`; without the option the file holds no such line, so a run without it takes the setting back. It always holds `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` before that line.
-15. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
+15. `service`: the unit `operator/vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
 16. `transcripts`: the folder `/srv/factory/<instance>/transcripts` (owner `factory`, mode `0700`), made only when it is not already so. If the folder is a link, the script prints `setup: transcripts: <path> is a link; remove it and run this script again` to standard error and exits 1, before it makes anything there. The script writes no `tmpfiles.d` rule and has no option for an age. See *Transcripts* in [health.md](health.md).
 
 The script writes the files under `/srv/factory/<instance>` (`image-id`, the askpass script and `factory.env`) as `factory`, with `cat` from its own standard input, because a process started by `runuser` may not reopen root's `/dev/stdin`.
@@ -292,14 +292,14 @@ The token is written into no file. Git asks the askpass script (`/srv/factory/<i
 The unit and the credential helper come from the checkout, and root installs them only in the run that made the clone (whose content is the remote's at `--code-ref`, before the service ever ran) or when the installed file is missing. So a first run that stopped after the clone is completed by the next. A later run that finds the installed file in place but different from the checkout installs nothing and prints one of these two lines to standard error:
 
 ```text
-setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed; install it from your own copy of vm/git-credential-factory (operator guide, "The rebuild after a merge")
-setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed; install it from your own copy of vm/factory.service (operator guide, "The rebuild after a merge")
+setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed; install it from your own copy of operator/vm/git-credential-factory (operator guide, "The rebuild after a merge")
+setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed; install it from your own copy of operator/vm/factory.service (operator guide, "The rebuild after a merge")
 ```
 
 Root installs nothing from the checkout, because `factory` can write it; your own copy of the ref is the trusted text. So install the new file yourself, from your copy, before you run the script again. On your own computer, in your checkout of the ref the instance runs, copy the script and both files to the VM:
 
 ```bash
-gcloud compute scp --zone=europe-west3-a --tunnel-through-iap vm/setup.sh vm/factory.service vm/git-credential-factory factory-vm:
+gcloud compute scp --zone=europe-west3-a --tunnel-through-iap operator/vm/setup.sh operator/vm/factory.service operator/vm/git-credential-factory factory-vm:
 ```
 
 On the VM from your own account, install the file the script named:
@@ -313,7 +313,7 @@ Then run the script as in *The rebuild after a merge*: it runs `systemctl daemon
 
 #### The environment file
 
-Every run rewrites `factory.env` from the arguments and from the pins in the checkout's `vm/Dockerfile` (the Claude Code and opencode versions and the opencode model ids), and writes it only when its text differs. A change therefore goes into the script's arguments (or the Dockerfile), never into the file: an edit by hand is lost at the next run.
+Every run rewrites `factory.env` from the arguments and from the pins in the checkout's `operator/vm/Dockerfile` (the Claude Code and opencode versions and the opencode model ids), and writes it only when its text differs. A change therefore goes into the script's arguments (or the Dockerfile), never into the file: an edit by hand is lost at the next run.
 
 For values the script does not know (a model map for a company's proxy, the path of a provider file, the names of the proxy variables), make a second file, `/srv/factory/<instance>/factory.local.env`, in the same `NAME=value` form. The unit reads it after `factory.env`, so a value in it wins over the same name there. It is optional: without it the unit starts as before. The script never creates, changes or removes it, and says so in its last line (`setup: local: ...`). Restart the instance after a change: the factory reads its environment when it starts.
 
@@ -333,7 +333,7 @@ The rule names `diff -FH` because the factory runs `zfs diff` with those flags a
 
 ### The service
 
-The unit `vm/factory.service` is a systemd template, installed as `factory@.service`; the text after the `@` is the instance. For the default instance it is `factory@vm`. The unit runs as `factory`, with `/srv/factory/%i` as its working directory, reads `/srv/factory/%i/factory.env` and then, if it exists, `/srv/factory/%i/factory.local.env` (see *The environment file*), and starts `/srv/factory/%i/factory/.venv/bin/factory-run`. `Restart=always` with `RestartSec=15` restarts it fifteen seconds after any exit.
+The unit `operator/vm/factory.service` is a systemd template, installed as `factory@.service`; the text after the `@` is the instance. For the default instance it is `factory@vm`. The unit runs as `factory`, with `/srv/factory/%i` as its working directory, reads `/srv/factory/%i/factory.env` and then, if it exists, `/srv/factory/%i/factory.local.env` (see *The environment file*), and starts `/srv/factory/%i/factory/.venv/bin/factory-run`. `Restart=always` with `RestartSec=15` restarts it fifteen seconds after any exit.
 
 ```bash
 sudo systemctl start factory@vm      # also stop, restart, status
@@ -361,7 +361,7 @@ The environment file holds these variables, which *Configuration* in [install.md
 | `FACTORY_TOKEN_FILE` | `/home/factory/.secrets/hosting-token` |
 | `FACTORY_CLAUDE_LOGIN_FILE` | `/home/factory/.secrets/claude-token` |
 | `FACTORY_API_LOGIN_FILE` | `/home/factory/.secrets/anthropic-api-key` |
-| `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION`, `FACTORY_OPENCODE_MODELS` | the pins of `vm/Dockerfile` |
+| `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION`, `FACTORY_OPENCODE_MODELS` | the pins of `operator/vm/Dockerfile` |
 | `PATH` | `/srv/factory/<instance>/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin` (`/usr/sbin` holds `zfs`) |
 | `XDG_RUNTIME_DIR` | `/run/user/<uid of factory>`, where rootless Podman finds its runtime folder |
 | `FACTORY_TRANSCRIPT_DIR` | `/srv/factory/<instance>/transcripts` |
@@ -417,11 +417,11 @@ This is the machine of the decisions of 2026-10-24: instance `vm`, an `e2-standa
 6. Copy the script to the VM through the tunnel, and open a shell there. Copy it from a checkout of the ref you will run.
 
    ```bash
-   gcloud compute scp --zone=europe-west3-a --tunnel-through-iap vm/setup.sh factory-vm:
+   gcloud compute scp --zone=europe-west3-a --tunnel-through-iap operator/vm/setup.sh factory-vm:
    gcloud compute ssh factory-vm --zone=europe-west3-a --tunnel-through-iap
    ```
 
-   The script is `vm/setup.sh`.
+   The script is `operator/vm/setup.sh`.
 
 7. On the VM, run the script as root, the first time. The disk is `/dev/disk/by-id/google-factory-data` (`ls -l /dev/disk/by-id/ | grep google` shows it). `--code-ref` is the tag or branch to run.
 
@@ -455,7 +455,7 @@ This is the machine of the decisions of 2026-10-24: instance `vm`, an `e2-standa
     ```bash
     sudo -iu factory
     cd /srv/factory/vm/factory
-    podman build -f vm/Dockerfile -t factory-stage:vm --build-arg FACTORY_IMAGE=<ref> /srv/factory/vm/factory
+    podman build -f operator/vm/Dockerfile -t factory-stage:vm --build-arg FACTORY_IMAGE=<ref> /srv/factory/vm/factory
     exit
     ```
 
@@ -487,7 +487,7 @@ This is the machine of the decisions of 2026-10-24: instance `vm`, an `e2-standa
 
 ### On any Ubuntu 24.04 VM
 
-A Hyper-V VM at home or a VM on TrueNAS SCALE does as well as GCP. Take the steps of *On GCP, step by step* from step 6 on, without `gcloud`: copy `vm/setup.sh` to the VM, run it as root with `--device` naming a spare disk (or a file such as `/var/lib/factory-pool.img`), place the three secrets, run the script again, build the image, start the service.
+A Hyper-V VM at home or a VM on TrueNAS SCALE does as well as GCP. Take the steps of *On GCP, step by step* from step 6 on, without `gcloud`: copy `operator/vm/setup.sh` to the VM, run it as root with `--device` naming a spare disk (or a file such as `/var/lib/factory-pool.img`), place the three secrets, run the script again, build the image, start the service.
 
 The script needs:
 
@@ -553,7 +553,7 @@ A VM costs money for every hour it runs, also while the factory has nothing to d
 **Turning it on and off.** To turn it on, or to change the minutes, run the script again with the option, then restart the service so that it reads the new environment file:
 
 ```bash
-sudo sh vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner>/<repo>.git --idle-shutdown 30
+sudo sh operator/vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner>/<repo>.git --idle-shutdown 30
 sudo systemctl restart factory@vm
 ```
 
@@ -577,7 +577,7 @@ Stop it first. An agent run lasts up to its role's `time_limit`, so a running in
 sudo systemctl stop factory@vm
 ```
 
-A stop of the service also ends the instance's running agent and check containers. The unit runs `podman stop --filter label=factory.instance=%i` as `factory` after every end of `factory-run`, a stop or a crash, and every container the factory starts carries that label, so containers of another instance, or without the label, are left alone. A stage cut off this way is a crash for the factory, and the next start takes it up again (see "A restart during a stage" in [work-items.md](work-items.md)). A machine set up before this change keeps the old unit until you install the new one by hand: copy `vm/factory.service` from your checkout to the VM, then run `sudo install -m 0644 factory.service /etc/systemd/system/factory@.service` and `sudo systemctl daemon-reload`. `vm/setup.sh` prints that the file differs and leaves it (see below).
+A stop of the service also ends the instance's running agent and check containers. The unit runs `podman stop --filter label=factory.instance=%i` as `factory` after every end of `factory-run`, a stop or a crash, and every container the factory starts carries that label, so containers of another instance, or without the label, are left alone. A stage cut off this way is a crash for the factory, and the next start takes it up again (see "A restart during a stage" in [work-items.md](work-items.md)). A machine set up before this change keeps the old unit until you install the new one by hand: copy `operator/vm/factory.service` from your checkout to the VM, then run `sudo install -m 0644 factory.service /etc/systemd/system/factory@.service` and `sudo systemctl daemon-reload`. `operator/vm/setup.sh` prints that the file differs and leaves it (see below).
 
 Then bring the checkout and the image up to date. On the VM as `factory` (`sudo -iu factory`):
 
@@ -585,7 +585,7 @@ Then bring the checkout and the image up to date. On the VM as `factory` (`sudo 
 git -C /srv/factory/vm/factory pull --ff-only          # for a tagged ref: git fetch --tags, then git checkout <tag>
 cd /srv/factory/vm/factory
 /srv/factory/vm/tools/bin/uv sync --frozen --no-dev
-podman build -f vm/Dockerfile -t factory-stage:vm --build-arg FACTORY_IMAGE=<ref> /srv/factory/vm/factory
+podman build -f operator/vm/Dockerfile -t factory-stage:vm --build-arg FACTORY_IMAGE=<ref> /srv/factory/vm/factory
 podman image prune -f
 cat /proc/sys/kernel/random/uuid > /srv/factory/vm/image-id
 exit
@@ -593,16 +593,16 @@ exit
 
 `podman image prune -f` removes the previous stage image, which the build left untagged, and the build's leftovers. It removes only untagged images that no container uses, so another instance's tagged image and a running container are safe. Without it every rebuild leaves an image behind in the factory's storage. The prune also removes the intermediate images the build's layer cache would reuse, so the next build is slower without the cache.
 
-The new uuid in `image-id` is what tells the settings the image is new; the label is not its identity. Then run the setup script from a copy of your own, as root: copy `vm/setup.sh` from your checkout of the ref the instance runs, as in step 6 of *On GCP, step by step*, and run it from your own account with the arguments of the first run. Root runs nothing from `/srv/factory/vm/factory`, because `factory` can write that checkout.
+The new uuid in `image-id` is what tells the settings the image is new; the label is not its identity. Then run the setup script from a copy of your own, as root: copy `operator/vm/setup.sh` from your checkout of the ref the instance runs, as in step 6 of *On GCP, step by step*, and run it from your own account with the arguments of the first run. Root runs nothing from `/srv/factory/vm/factory`, because `factory` can write that checkout.
 
 On your own computer, in your checkout, copy the script and the two files it may need to install to the VM, and open a shell there:
 
 ```bash
-gcloud compute scp --zone=europe-west3-a --tunnel-through-iap vm/setup.sh vm/factory.service vm/git-credential-factory factory-vm:
+gcloud compute scp --zone=europe-west3-a --tunnel-through-iap operator/vm/setup.sh operator/vm/factory.service operator/vm/git-credential-factory factory-vm:
 gcloud compute ssh factory-vm --zone=europe-west3-a --tunnel-through-iap
 ```
 
-On a VM outside GCP, copy `vm/setup.sh`, `vm/factory.service` and `vm/git-credential-factory` from your own checkout by your own means, such as `scp`, as *On any Ubuntu 24.04 VM* does.
+On a VM outside GCP, copy `operator/vm/setup.sh`, `operator/vm/factory.service` and `operator/vm/git-credential-factory` from your own checkout by your own means, such as `scp`, as *On any Ubuntu 24.04 VM* does.
 
 On the VM from your own account, run the script and start the instance again:
 
@@ -612,4 +612,4 @@ sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
 sudo systemctl start factory@vm
 ```
 
-`vm/setup.sh` is idempotent, so run it after every merge: it carries a changed pin of `vm/Dockerfile` into the environment file, updates `uv` and the factory's virtual environment, and reports the rest found. It does not replace an installed `/etc/systemd/system/factory@.service` or `/usr/local/bin/git-credential-factory` that differs from the checkout: it prints that the file differs and leaves it. When a merge changed `vm/factory.service` or `vm/git-credential-factory`, install it from your own copy with the commands of *The two passes* before you run the script.
+`operator/vm/setup.sh` is idempotent, so run it after every merge: it carries a changed pin of `operator/vm/Dockerfile` into the environment file, updates `uv` and the factory's virtual environment, and reports the rest found. It does not replace an installed `/etc/systemd/system/factory@.service` or `/usr/local/bin/git-credential-factory` that differs from the checkout: it prints that the file differs and leaves it. When a merge changed `operator/vm/factory.service` or `operator/vm/git-credential-factory`, install it from your own copy with the commands of *The two passes* before you run the script.
