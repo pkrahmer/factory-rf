@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T00:23:02.115043Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-05T00:22:57.151643Z'
   stage: intake
   run: b60043aa03ae4cb8903c8e448754262f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:23:02.115043Z'
+  stage: tests
 ---
 
 # The shared area holds what every area uses
@@ -99,3 +108,4 @@ Expect: `1`
    - Smoke test: the three commands are runnable and each Expect line can be checked. pyproject.toml's addopts already sets `-q`, and the pytest command passes none, so the summary line is printed and `grep -c passed` gives 1.
    - Architecture: the moves keep the layer inside `factory.shared`, which matches CLAUDE.md and feature decision 1. The wildcard import-linter contracts are set by the human at S0001's start (feature "The human's changes"). The `process.py` exception already names the new path.
    - Scope: within F0051 S0001 and decisions 1 to 5. `shared` is the area decision 2 gives it, and kill_points and kill_point_cases are in it. Nothing in Out of scope is touched.
+4. factory: started tests as vm.
