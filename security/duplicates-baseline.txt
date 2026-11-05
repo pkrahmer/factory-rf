@@ -1,5 +1,5 @@
 # Accepted findings of make duplicates, one key per line.
-similar-code factory.application.acceptance, factory.application.handlers.hand_over: handed_over = state.model_copy(update={"handed_over": state.stage})
+similar-code factory.work.application.acceptance, factory.application.handlers.hand_over: handed_over = state.model_copy(update={"handed_over": state.stage})
 similar-code factory.application.stage, factory.application.stalls: model_config = ConfigDict(frozen=True, extra="forbid")
 dead-code src/factory/adapters/fake_agent_runtime.py: unused class 'FakeAgentRuntime'
 dead-code src/factory/adapters/fake_agent_runtime.py: unused method 'queue'
@@ -12,10 +12,10 @@ dead-code src/factory/hosting/adapters/fake_hosting.py: unused method 'merge_by_
 dead-code src/factory/hosting/adapters/fake_hosting.py: unused method 'fail_next'
 dead-code src/factory/hosting/adapters/fake_hosting.py: unused method 'factory_posts'
 dead-code src/factory/hosting/adapters/fake_hosting.py: unused method 'pull_requests'
-dead-code src/factory/adapters/work_item_markdown.py: unused attribute 'Representer'
-dead-code src/factory/adapters/work_item_markdown.py: unused attribute 'width'
-dead-code src/factory/adapters/work_item_markdown.py: unused variable 'kwargs'
-dead-code src/factory/adapters/work_item_markdown.py: unused method 'export'
+dead-code src/factory/work/adapters/work_item_markdown.py: unused attribute 'Representer'
+dead-code src/factory/work/adapters/work_item_markdown.py: unused attribute 'width'
+dead-code src/factory/work/adapters/work_item_markdown.py: unused variable 'kwargs'
+dead-code src/factory/work/adapters/work_item_markdown.py: unused method 'export'
 dead-code src/factory/application/dispatcher.py: unused function 'unhandled_kinds'
 dead-code src/factory/application/stage.py: unused variable 'next_stage'
 dead-code src/factory/domain/agent_runs.py: unused property 'ok'
@@ -26,7 +26,7 @@ dead-code src/factory/shared/domain/identifiers.py: unused variable 'slug'
 dead-code src/factory/shared/domain/kill_point_cases.py: unused variable 'dies'
 dead-code src/factory/shared/domain/kill_points.py: unused method 'arm'
 dead-code src/factory/shared/domain/kill_points.py: unused method 'reached'
-dead-code src/factory/domain/move_rule.py: unused function 'factory_moves'
+dead-code src/factory/work/domain/move_rule.py: unused function 'factory_moves'
 dead-code src/factory/shared/domain/paths.py: unused variable 'FACTORY_DIRECTORY'
 dead-code src/factory/domain/write_paths.py: unused function 'is_writable'
 dead-code src/factory/shared/adapters/clock.py: unused class 'ManualWaiter'
