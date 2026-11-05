@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 563
 comments_read: [6649815295]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T04:57:45.217934Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,13 @@ journal:
   kind: started
   at: '2026-11-05T04:57:45.217934Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: question
+  at: '2026-11-05T05:00:59.669977Z'
+  stage: doing
+  run: bef942c9c7cf44ed94c61a58679c7738
+  blocked: question
 ---
 
 # The root of `tests/` holds only its folders
@@ -266,3 +269,20 @@ Expect: `support.bill_support`
 
     `lint`: lint: green (0.1 s)
 13. factory: started doing as vm.
+14. coder: Coder, round 0. I changed no file. The tester's moves (entry 12) already do everything this story asks of the code: the root of `tests/` holds only `conftest.py` and packages, and there is nothing to build under `src/`. I found nothing to refactor, because my diff is empty.
+
+    `make check` is red at one step, `make secrets`. Every other step is green: lint, types, layers, sast, licenses, and `make test` (`test: green (130.1 s)`, coverage 99.26 %). The finding is in this work item, not in any code:
+
+        ERROR: Potential secrets about to be committed to git repo!
+        Secret Type: Secret Keyword
+        Location:    factory/features/F0051-the-repository-is-ordered-by-subject/in-progress/F0051-S0008-the-root-of-tests-holds-only-its-folders.md:243
+
+    `uv run detect-secrets scan` on the file reports one result there, with hashed_secret `0a0c9dacbd2a77bd92cf3b7a316f2699ed083805`. Line 243 is in `## Journal`, in the tester's entry 12. It is the line "- `test_no_agent_login`: `CONFTEST` and `VERSION_TEST` now start from `.parents[1]`.", which detect-secrets' keyword plugin takes for a secret. It is a false positive. The journal is the factory's (R5), so I cannot reword it, and a `.secrets.baseline` entry or a `pragma: allowlist secret` needs your leave (CLAUDE.md, *Not without asking*). Until something changes, the factory's `make check` after this stage stays red, and the work item stays at doing.
+
+    Options:
+    (a) You add this hash for this file to `.secrets.baseline`, or give me leave to add it. The cost is a baseline entry that stays until the work item moves to `done/`, where the path changes and the entry has to follow it.
+    (b) You reword that journal line in a commit of your own, for example "`test_no_agent_login`'s two path constants now start from `.parents[1]`". After that, no baseline entry is needed.
+    (c) You add `pragma: allowlist secret` to that line yourself.
+    My choice is (b): it leaves no lasting exception in the baseline, and only you may edit the journal.
+
+    Noticed, not touched. As entry 12 says, the mutmut `--deselect` lines in `pyproject.toml` still name the old root paths of six guards that now sit in `tests/guards/`. That change is yours. It affects only `make mutants`.
