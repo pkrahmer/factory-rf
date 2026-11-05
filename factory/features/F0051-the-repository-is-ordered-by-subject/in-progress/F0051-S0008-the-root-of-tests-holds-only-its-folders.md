@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295, 6650280748, 6650410311, 6650650704]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T05:37:43.714749Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T05:37:41.107099Z'
+  stage: review
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-05T05:37:43.714749Z'
   stage: review
 ---
 
@@ -426,3 +435,4 @@ Expect: `support.bill_support`
     3. **(a).** It stays in `guards/`, as point 2 says.
 
     With these, pass the story to `docs`.
+24. factory: started review as vm.
