@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 557
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T01:15:41.042824Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-05T01:15:34.884310Z'
   stage: tests
   run: f97c4c6fdd524d31932fd8f2619d8b59
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:15:41.042824Z'
+  stage: doing
 ---
 
 # The hosting area holds git and the hosting service
@@ -201,3 +210,4 @@ Expect: `1`
    I ran the tests once: `uv run pytest -q` over `tests/hosting`, `tests/test_areas.py`, `tests/test_test_names.py`, `tests/domain/test_hosting.py`, `tests/test_no_journal_reading.py`, `tests/test_retrying_wording.py`, `tests/test_wrapper_search.py`, `tests/test_hosting_search.py` and `tests/domain/test_times.py`. `tail -5` showed only progress dots up to `[100%]`, with no failure or error lines. The pass/fail summary line was not in the last five lines, and I did not run it again to get counts. Every module imported; none was missing. `make lint` is green. I did not run `make check`; that is the coder's step.
 
    `lint`: lint: green (0.1 s)
+10. factory: started doing as vm.
