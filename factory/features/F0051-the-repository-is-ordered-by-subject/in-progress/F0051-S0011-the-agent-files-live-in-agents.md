@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T08:46:21.980514Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -236,6 +232,12 @@ journal:
   kind: started
   at: '2026-11-05T08:46:21.980514Z'
   stage: docs
+- number: 41
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T08:47:37.032225Z'
+  stage: docs
+  run: a91979d624a14b67bb78e9d25d06c75e
 ---
 
 # The agent files live in `agents/`
@@ -635,3 +637,19 @@ Expect: `1`
     - `tests/vm/test_stage_image.py`: the Interface's leave (feature decision 5) for `AGENT_FILES_COPY` and `AGENT_FILES_MODES`. Also the standing leave to move a shared test helper (`ROOT` and `STAGE_DOCKERFILE` moved out, every test keeps its name and what it checks).
     - `tests/support/dockerfile_support.py`: the standing leave to move a shared test helper (`ROOT` and `STAGE_DOCKERFILE` moved in).
 40. factory: started docs as vm.
+41. documenter: Docs for the rename of `claude/` to `agents/`. I changed only documents, so I did not run `make check`; the factory's checks decide.
+
+    Files changed:
+    - `README.md`: a line under *Where to look next* names the `agents/` folder (`agents/agents/<role>.md`, `agents/settings.json`), says both runtimes read it, and gives the image's `/etc/factory/agents`.
+    - `docs/operator-guide/agent-runtime.md`: *The shipped agents and settings* says where the files live in the checkout and the image. It says why the folder has no runtime's name and that `FACTORY_CLAUDE_HOME` keeps its name.
+    - `docs/decisions.md`: new entry "The agent files live in `agents/`" (F0051-S0011), with Decision and Why from the story's Description. Its Rejected line is the one rejected option the journal names: renaming `FACTORY_CLAUDE_HOME`. The entry also says that older entries naming `claude/agents/*.md` and `claude/settings.json` mean this folder.
+
+    Cross-read and found current: the operator guide's `install.md`, `machine.md`, `health.md`, `cloud-run.md` and `records.md`; the project guide's `README.md`, `agents.md`, `machine.md`, `operator.md` and `pipeline.md`. The coder already changed the paths in them. A grep of README, `docs/` (without `docs/runs/` and `docs/decisions.md`) for `claude/` and `/etc/factory/claude` finds only `operator/claude/commands/kumpel.md` in `docs/project-guide/operator.md`, which keeps its name.
+
+    Stale text seen and not touched: older entries in `docs/decisions.md` (lines 11, 764, 850) still say `claude/`. They are history, and criterion 4 leaves that file out. Not a docs matter: the human's steps on factory-vm after the merge (`FACTORY_CLAUDE_HOME` line, image rebuild, `image-id`), already in the journal.
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 6d1f3396bb2c at 2026-11-05T08:42:47Z)
+    `secrets`: secrets: green (3.0 s)
+    `documents`: documents ok

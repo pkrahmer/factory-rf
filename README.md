@@ -27,6 +27,7 @@ The factory runs as a service on a Linux VM with ZFS and rootless Podman, and ev
 
 - `docs/operator-guide/`: install, configure, the stops and what to do about each, an index `README.md` and one file per topic; *Setting up an operator's machine* in `site.md` takes a new machine to a running job, and `operator/README.md` is the map of the operator's scripts
 - `docs/project-guide/README.md`: the guide for agents working on this code, an index of its files by domain
+- `agents/`: the agent files the factory ships (`agents/agents/<role>.md` and `agents/settings.json`), written in Claude Code's format and read by both runtimes; the stage image copies them to `/etc/factory/agents`
 - `docs/decisions.md`: lasting decisions and what was rejected
 - `docs/operator-playbook.md`: how the human runs the factory day to day
 - `CLAUDE.md`: the rules every change follows (architecture, tests, checks)
