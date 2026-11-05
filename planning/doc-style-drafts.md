@@ -39,7 +39,7 @@ Example (the chosen style):
 
        make check
 
-3. Prepare the VM with `operator/vm/setup.sh`. It creates the VM, installs the factory and its service, and builds the image the agents run in. See "The machine".
+3. Prepare the machine: run `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>` on a fresh Ubuntu 24.04 machine. It installs the packages, the ZFS pool, the factory and its service. See "The machine".
 
 4. Set the instance's settings, as "Configuration" describes.
 

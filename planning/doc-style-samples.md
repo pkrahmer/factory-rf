@@ -1,5 +1,7 @@
 # Style samples: today's text and three new styles
 
+(Corrected 2026-11-05 after the human's review: the setup script prepares a fresh machine, it does not create a VM. The full, checked samples are the throwaway files of that day.)
+
 Two real paragraphs from each document, first as they read today, then rewritten in three styles. The facts stay the same in every version; only the writing changes. The style you chose in the first quiz is marked "chosen", but every option is open again.
 
 ---
@@ -24,7 +26,7 @@ Two real paragraphs from each document, first as they read today, then rewritten
 >
 >        make check
 >
-> 3. Prepare the VM with `operator/vm/setup.sh`. It creates the VM, installs the factory and its service, and builds the image the agents run in. See "The machine".
+> 3. Prepare the machine: run `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>` on a fresh Ubuntu 24.04 machine. It installs the packages, the ZFS pool, the factory and its service. See "The machine".
 > 4. Set the instance's settings, as "Configuration" describes.
 >
 > Use a repository that the older factory never worked in. The factory does not recognise the older factory's work items.
@@ -33,7 +35,7 @@ Two real paragraphs from each document, first as they read today, then rewritten
 
 > You install the factory with `uv sync`. Then you run `make check`. When everything works, its last line is `check: green`.
 >
-> An instance runs on a Linux VM. The script `operator/vm/setup.sh` prepares it: it creates the VM, installs the factory and its service, and builds the image the agents run in (see "The machine"). Then you set the instance's settings, as "Configuration" describes.
+> An instance runs on a Linux VM. The script `operator/vm/setup.sh` prepares it: run as root on a fresh Ubuntu 24.04 machine, it installs the packages, the ZFS pool, the factory and its service (see "The machine"). Then you set the instance's settings, as "Configuration" describes.
 >
 > Use a repository that the older factory never worked in. The factory does not recognise the older factory's work items.
 
@@ -41,7 +43,7 @@ Two real paragraphs from each document, first as they read today, then rewritten
 
 > - **Install:** `uv sync`
 > - **Check:** `make check`; the last line is `check: green`
-> - **VM:** `operator/vm/setup.sh` creates the VM, the factory, its service and the agents' image ("The machine")
+> - **Machine:** `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>` on a fresh Ubuntu 24.04 machine installs the packages, the ZFS pool, the factory and its service ("The machine")
 > - **Settings:** see "Configuration"
 > - **Repository:** a fresh one; the older factory's work items are not recognised
 
