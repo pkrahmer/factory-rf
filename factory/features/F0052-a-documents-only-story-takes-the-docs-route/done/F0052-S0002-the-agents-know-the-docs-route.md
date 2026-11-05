@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -241,6 +241,11 @@ journal:
   at: '2026-11-05T22:49:05.981666Z'
   stage: smoke-test
   run: 9300279560d04d8ca4789ca91cb2451e
+- number: 43
+  speaker: factory
+  kind: done
+  at: '2026-11-05T22:53:01.130259Z'
+  stage: approval
 ---
 
 # The agents know the docs route
@@ -606,3 +611,4 @@ Expect: `named`
     Findings: none.
 
     Note for the human, not a smoke-test finding: in entry 40 the documenter says the `docs/decisions.md` entry does not spell out feature decisions 1 to 3 and 5 beyond what the Description says. It could not read `feature.md`. Criterion 7 asks for an entry "for feature decisions 1 to 6", so you may want to check that entry before you merge. You also still need to make the `factory/pipeline.yml` change for the route at merge.
+43. factory: done (pull request merged); cost: 19 runs, 20.6 min, 127 turns, 400931 tokens in (2668427 more from cache), 49259 out, $4.40
