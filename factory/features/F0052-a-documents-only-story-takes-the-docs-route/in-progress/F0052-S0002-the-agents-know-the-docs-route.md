@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T22:22:26.017895Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T22:22:23.414706Z'
+  stage: doing
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:22:26.017895Z'
   stage: doing
 ---
 
@@ -205,3 +214,4 @@ Expect: `named`
 
     Test results: `uv run pytest -q tests/agent_files` passes the new docs-route tests and fails only on the CRC test above. I have not run `make check`, because it cannot go green until that test changes. After your answer: with (a) or (b) the coder ends with `tests` and names that change. The refactor step has not been done yet.
 14. 2026-11-05 human: (a), with the human's leave: the tester changes `tests/agent_files/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged` to cut the `### docs-review` subsection (from its heading to the next `#` line) out of the body before the CRC; the rest of the reviewer body stays pinned as before, and the test keeps its name. The bulleted list in the documenter's subsection is fine.
+15. factory: started doing as vm.
