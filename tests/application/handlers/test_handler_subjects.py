@@ -1,7 +1,5 @@
 """The subjects of the commits the handlers record on the work item's branch."""
 
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.closed import ClosedHandler
 from factory.application.handlers.comments import CommentCopier
@@ -9,6 +7,8 @@ from factory.application.handlers.reject import RejectHandler
 from factory.domain.events import Event
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
 from human_clone import HumanClone
 
 BRANCH = "work-item/F0001-S0001"

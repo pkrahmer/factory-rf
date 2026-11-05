@@ -16,7 +16,7 @@ from factory.adapters.make_commands import ContainerMakeCommands
 from factory.application.boundaries import Boundaries
 from factory.application.stage import StageReport
 from factory.application.stage_environment import ContainerEnvironment
-from factory.domain.git import CommitId
+from factory.hosting.domain.git import CommitId
 from git_support import write_files
 from human_clone import HumanClone
 from stage_run_support import BRANCH, INSIDE, NOTES, branch_head

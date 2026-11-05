@@ -4,12 +4,12 @@ from collections.abc import Callable
 
 import pytest
 
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.domain.events import Event, EventKind
 from factory.domain.journal import HUMAN, JournalRecord
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
 from human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"

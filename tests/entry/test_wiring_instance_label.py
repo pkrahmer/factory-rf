@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.podman_runs import PodmanRuns
 from factory.entry.wiring import build_boundaries
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
 from podman_support import IMAGE, launch_words
 from recording_stand_in_support import recording_stand_in

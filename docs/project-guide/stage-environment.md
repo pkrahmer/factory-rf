@@ -22,7 +22,7 @@ A stage runs in the order below (`planning/v1.2-plan.md`, "The cycle of a stage"
 - `mount_point` (property): the dataset's path on the host. `changed_paths` are relative to it.
 - `reset()`: puts the dataset back to the base.
 - `advance()`: moves the base to the dataset's current state; what the base held before is gone.
-- `changed_paths()`: every non-directory entry that differs from the base, as `ChangedPath` (`factory.domain.git`: `path` and `change`, one of `added`, `modified`, `deleted`), sorted by path.
+- `changed_paths()`: every non-directory entry that differs from the base, as `ChangedPath` (`factory.hosting.domain.git`: `path` and `change`, one of `added`, `modified`, `deleted`), sorted by path.
 
 `changed_paths` lists files and symbolic links. It never lists a directory, also an empty one, and a rename is a deletion and an addition. `reset` and `changed_paths` need a base: without one they raise `SnapshotError`.
 
@@ -114,7 +114,7 @@ Every fault is `SnapshotError(command, detail)`. `command` is the words run join
 
 ### The stand-in
 
-No test runs a real `zfs`; it runs only on the VM. `tests/zfs_support.py` writes a stand-in `zfs` into `tmp_path`. `snapshots_on` also passes a drop stand-in that succeeds (`Drop` and `write_drop`), and `tests/adapters/test_zfs_snapshots_drop_caches.py` uses stand-ins that append their words to one shared file, so a test reads the order of rollback and drop. The `zfs` stand-in records its arguments, environment and working directory, then answers by a plan keyed on its first argument (`rollback`, `list`, `destroy`, `snapshot`, `diff`, `--version`): planned output and exit status, or a sleep past a short limit. The limit itself cannot be seen from the stand-in, so tests of the default limit and its rounding replace the module's `run_process` with the `Recorder` of `tests/run_process_recorder.py`. The tests are `tests/adapters/test_zfs_snapshots.py` and `tests/adapters/test_zfs_snapshots_diff.py`.
+No test runs a real `zfs`; it runs only on the VM. `tests/zfs_support.py` writes a stand-in `zfs` into `tmp_path`. `snapshots_on` also passes a drop stand-in that succeeds (`Drop` and `write_drop`), and `tests/adapters/test_zfs_snapshots_drop_caches.py` uses stand-ins that append their words to one shared file, so a test reads the order of rollback and drop. The `zfs` stand-in records its arguments, environment and working directory, then answers by a plan keyed on its first argument (`rollback`, `list`, `destroy`, `snapshot`, `diff`, `--version`): planned output and exit status, or a sleep past a short limit. The limit itself cannot be seen from the stand-in, so tests of the default limit and its rounding replace the module's `run_process` with the `Recorder` of `tests/run_process_recorder.py`. The tests are `tests/adapters/test_zfs_snapshots.py` and `tests/hosting/adapters/test_zfs_snapshots_diff.py`.
 
 ## The podman adapter
 
@@ -315,7 +315,7 @@ The service makes no commit, runs no git command on the dataset and never writes
 
 `WorkItemFormatError` (step 1), `ValueError` from `copy_changed`, and `GitError` from `ignored` (see *The git wrapper*, `git-and-hosting.md`). A `ValueError` or `GitError` can come after the baseline was read but before step 5 copies anything.
 
-Tests: `tests/application/test_take.py` and `tests/application/test_take_edges.py`, built on `tests/undo_support.py` and `tests/take_support.py` with a dataset folder in `tmp_path`; `tests/adapters/test_git_cli_check_ignore.py` for `ignored`.
+Tests: `tests/application/test_take.py` and `tests/application/test_take_edges.py`, built on `tests/undo_support.py` and `tests/take_support.py` with a dataset folder in `tmp_path`; `tests/hosting/adapters/test_git_cli_check_ignore.py` for `ignored`.
 
 ## The checks
 

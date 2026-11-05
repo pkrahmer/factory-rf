@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from datetime import date, timedelta
 
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.dispatcher import Handler
@@ -17,6 +16,7 @@ from factory.domain.work_item import (
     WorkItemState,
     initial_state,
 )
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.identifiers import branch_name
 from git_support import PIPELINE_YAML

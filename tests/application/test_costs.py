@@ -9,16 +9,16 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
-from factory.application.git import Git
-from factory.application.opening import WorkItemOpening
 from factory.application.stage import LaunchedStage, StageLauncher, StageReport, StageRunner
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, EndReason, TokenCounts
 from factory.domain.cost_records import CostRecord
-from factory.domain.git import CommitId
 from factory.domain.journal import JournalRecord
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.application.git import Git
+from factory.hosting.application.opening import WorkItemOpening
+from factory.hosting.domain.git import CommitId
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.application.files import CostRecordReader
 from factory.shared.domain.identifiers import branch_name

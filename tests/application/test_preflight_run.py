@@ -8,16 +8,16 @@ from datetime import timedelta
 from pathlib import Path
 
 import preflight_support
-from factory.adapters.git_cli import GitCli
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.application.preflight import (
     PROBE_COMMAND,
     PROBE_TIME_LIMIT,
 )
 from factory.domain.checks import CheckResult
-from factory.domain.git import GitOptions
 from factory.domain.preflight import PreflightStamp
 from factory.domain.stops import RepositoryStop
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.git import GitOptions
 from factory.shared.domain.errors import ProjectCommandError
 from git_support import CHECKOUT, TEST_IDENTITY, clone, run_git
 from preflight_support import (

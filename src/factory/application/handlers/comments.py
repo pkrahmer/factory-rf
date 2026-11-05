@@ -15,8 +15,6 @@ from factory.application.handlers.recording import (
 )
 from factory.domain.answers import unblock
 from factory.domain.events import Event
-from factory.domain.git import CommitId
-from factory.domain.hosting import PostKey, PullRequestComment
 from factory.domain.journal import HUMAN, NewEntry, append_entry, last_record
 from factory.domain.work_item import (
     WorkItemDocument,
@@ -24,6 +22,8 @@ from factory.domain.work_item import (
     WorkItemState,
     require_state,
 )
+from factory.hosting.domain.git import CommitId
+from factory.hosting.domain.hosting import PostKey, PullRequestComment
 
 Adjust = Callable[[WorkItemDocument, Sequence[PullRequestComment]], WorkItemDocument]
 

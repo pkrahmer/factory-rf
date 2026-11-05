@@ -5,7 +5,6 @@ from datetime import datetime
 
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.recording import WorkItemRecorder
-from factory.domain.post_texts import opened_for_stop_description
 from factory.domain.stops import (
     HealthStatus,
     RepositoryStop,
@@ -17,6 +16,7 @@ from factory.domain.stops import (
     parse_stop_records,
     stop_records_text,
 )
+from factory.hosting.domain.post_texts import opened_for_stop_description
 from factory.shared.domain.errors import HostingServiceError
 from factory.shared.domain.paths import MAIN_BRANCH, REMOTE, STOP_RECORDS_FILE
 

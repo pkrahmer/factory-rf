@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.write_paths import WritePathService
 from factory.domain.agent_runs import WritePathSettings
 from factory.domain.stops import HealthStatus
 from factory.domain.write_paths import PROTECTED_PATHS
+from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.errors import PipelineDefinitionInvalid
 from git_support import PIPELINE_YAML
 from human_clone import HumanClone

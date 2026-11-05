@@ -21,13 +21,10 @@ from crash_support import (
     remote_state,
     snapshot,
 )
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.application.dispatcher import Handler
 from factory.domain.events import Event
-from factory.domain.hosting import PostKey
 from factory.domain.journal import (
     FACTORY,
     JournalRecord,
@@ -36,8 +33,11 @@ from factory.domain.journal import (
     entry_text,
     last_record,
 )
-from factory.domain.post_texts import crash_cap_question
 from factory.domain.work_item import Blocked, WorkItemSnapshot, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.hosting import PostKey
+from factory.hosting.domain.post_texts import crash_cap_question
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import CannotHandle, HostingServiceError
 from git_support import PIPELINE_YAML, remote_commit

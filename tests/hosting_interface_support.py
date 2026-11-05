@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from factory.domain.hosting import PullRequestComment, PullRequestView
+from factory.hosting.domain.hosting import PullRequestComment, PullRequestView
 
 OPERATIONS = {
     "create_pull_request": PullRequestView,

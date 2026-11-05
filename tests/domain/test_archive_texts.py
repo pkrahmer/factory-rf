@@ -4,7 +4,7 @@ import pytest
 
 from bill_support import completed_records
 from factory.domain.bills import bill, cost_line
-from factory.domain.post_texts import done_entry_text
+from factory.hosting.domain.post_texts import done_entry_text
 
 PREFIX = "done (pull request merged); cost: "
 

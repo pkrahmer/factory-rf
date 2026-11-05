@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.recording import (
     Target,
@@ -17,6 +16,7 @@ from factory.application.handlers.recording import (
 from factory.domain.events import Event, EventKind
 from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.work_item import WorkItemSnapshot, WorkItemState
+from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.errors import CannotHandle, PushFailed
 from git_support import remote_commit
 from human_clone import HumanClone

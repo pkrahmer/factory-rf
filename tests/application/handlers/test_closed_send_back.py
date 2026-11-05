@@ -8,13 +8,10 @@ from pathlib import Path
 import pytest
 
 from branch_reading import remote_document
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.closed import ClosedHandler
 from factory.application.handlers.questions import AskHandler
 from factory.domain.events import Event, EventKind
-from factory.domain.hosting import PostKey
 from factory.domain.journal import (
     FACTORY,
     HUMAN,
@@ -25,13 +22,16 @@ from factory.domain.journal import (
     entry_text,
 )
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.post_texts import (
+from factory.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.hosting import PostKey
+from factory.hosting.domain.post_texts import (
     CLOSE_ENTRY_TEXT,
     SEND_BACK_QUESTION,
     send_back_entry_text,
     send_back_question,
 )
-from factory.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import CannotHandle, HostingServiceError, PushFailed
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints

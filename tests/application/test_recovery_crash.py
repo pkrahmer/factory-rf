@@ -9,8 +9,6 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.dispatcher import Handler
@@ -18,7 +16,6 @@ from factory.application.machine import Clock
 from factory.application.recovery import RecoveryHandler
 from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event, EventKind
-from factory.domain.git import ChangedPath
 from factory.domain.journal import (
     FACTORY,
     HUMAN,
@@ -37,6 +34,9 @@ from factory.domain.work_item import (
     WorkItemState,
     initial_state,
 )
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.git import ChangedPath
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import CannotHandle, GitError, PushFailed
 from factory.shared.domain.identifiers import branch_name

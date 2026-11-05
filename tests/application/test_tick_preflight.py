@@ -6,8 +6,6 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
@@ -17,6 +15,8 @@ from factory.application.stops import StopService
 from factory.application.tick import IdleHandler, Tick, TickOutcome
 from factory.domain.events import EventKind
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.settings import InstanceSettings
 from git_support import CHECKOUT, PIPELINE_YAML, install_agents, remote_commit

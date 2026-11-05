@@ -6,11 +6,11 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import BaseModel
 
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.domain.disk import DiskRecord, DiskUse
 from factory.domain.known_results import ResultKey, ResultRecord
 from factory.entry.wiring import build_boundaries
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.application.files import RecordLog
 from factory.shared.domain.settings import InstanceSettings
 from wiring_support import CREDENTIAL

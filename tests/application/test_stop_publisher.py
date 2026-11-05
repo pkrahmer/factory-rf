@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.git_cli import GitCli
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.stops import StopPublisher
 from factory.domain.stops import StopRecord, stop_records_text
+from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.adapters.process import ProcessRequest, run_process
 from factory.shared.domain.errors import GitError, PushFailed
 from factory.shared.domain.paths import STOP_RECORDS_FILE

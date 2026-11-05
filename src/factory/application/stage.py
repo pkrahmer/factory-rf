@@ -13,9 +13,7 @@ from factory.application.claims import ClaimService, StageStart
 from factory.application.costs import CostRecorder, CostRun
 from factory.application.handlers.recording import commit_subject
 from factory.application.known_results import KnownResults
-from factory.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.application.provider_limits import PatientRuns
-from factory.application.pushes import push_with_retries
 from factory.application.stage_environment import StageEnvironment, stage_environment_of
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.take import TakeReport
@@ -27,14 +25,16 @@ from factory.domain.checks import CheckResult, command_line
 from factory.domain.cost_records import ToolUse, TranscriptRef
 from factory.domain.decisions import StageMove, StallReason, agent_entry, decide, stall_reason_of
 from factory.domain.died_runs import died_line
-from factory.domain.git import CommitId
-from factory.domain.hand_over import hand_over_description
-from factory.domain.hosting import PullRequestView
 from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.labels import labels_for
 from factory.domain.pipeline_definition import PipelineDefinition, ProjectCommandDefinition
 from factory.domain.story_form import FormFinding
 from factory.domain.work_item import WorkItemDocument, require_state
+from factory.hosting.application.opening import PreparedWorkItem, WorkItemOpening
+from factory.hosting.application.pushes import push_with_retries
+from factory.hosting.domain.git import CommitId
+from factory.hosting.domain.hand_over import hand_over_description
+from factory.hosting.domain.hosting import PullRequestView
 from factory.shared.domain.errors import HostingServiceError, PushFailed
 from factory.shared.domain.identifiers import Name, WorkItemId, is_acceptance
 from factory.shared.domain.paths import MAIN_BRANCH, cost_records_path

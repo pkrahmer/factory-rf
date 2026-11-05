@@ -4,11 +4,15 @@ from datetime import UTC, datetime
 
 import pytest
 
-from factory.domain.git import CommitInfo
-from factory.domain.hand_over import HAND_OVER_CLOSING, REPORT_SECTIONS, hand_over_description
 from factory.domain.journal import HUMAN, JournalKind, JournalRecord
-from factory.domain.post_texts import cost_table_post
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.hosting.domain.git import CommitInfo
+from factory.hosting.domain.hand_over import (
+    HAND_OVER_CLOSING,
+    REPORT_SECTIONS,
+    hand_over_description,
+)
+from factory.hosting.domain.post_texts import cost_table_post
 from factory.shared.domain.sections import DESCRIPTION
 
 DESCRIPTION_TEXT = "Build it.\n\nWith care, and\n  an indented line."

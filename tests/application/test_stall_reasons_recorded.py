@@ -7,10 +7,10 @@ import pytest
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
-from factory.application.opening import WorkItemOpening
 from factory.application.stalls import StallContext, StallService
 from factory.domain.decisions import StallReason
 from factory.domain.work_item import WorkItemState
+from factory.hosting.application.opening import WorkItemOpening
 from git_support import PIPELINE_YAML
 from human_clone import HumanClone
 from stage_run_support import (

@@ -5,13 +5,6 @@ from datetime import UTC, datetime
 
 from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
 from factory.domain.events import Event
-from factory.domain.hosting import (
-    PostKey,
-    PostKind,
-    PullRequestComment,
-    PullRequestState,
-    PullRequestView,
-)
 from factory.domain.journal import JournalKind, JournalRecord
 from factory.domain.lease import ClaimStatus
 from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition, StageDefinition
@@ -22,6 +15,13 @@ from factory.domain.work_item import (
     WorkItemSnapshot,
     WorkItemState,
     initial_state,
+)
+from factory.hosting.domain.hosting import (
+    PostKey,
+    PostKind,
+    PullRequestComment,
+    PullRequestState,
+    PullRequestView,
 )
 from factory.shared.domain.errors import HostingServiceError
 

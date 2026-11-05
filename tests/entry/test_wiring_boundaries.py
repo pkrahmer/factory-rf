@@ -13,16 +13,12 @@ from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.adapters.pygithub_hosting import PyGithubHostingService
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.project_agents import ProjectAgentDefinitions
 from factory.application.project_commands import RecordingProjectCommands
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
-from factory.domain.git import GitIdentity
 from factory.domain.stops import HealthStatus
 from factory.entry.wiring import (
     build_boundaries,
@@ -31,6 +27,10 @@ from factory.entry.wiring import (
     read_hosting_token,
     repository_name,
 )
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.adapters.pygithub_hosting import PyGithubHostingService
+from factory.hosting.domain.git import GitIdentity
 from factory.shared.adapters.clock import SystemClock
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings

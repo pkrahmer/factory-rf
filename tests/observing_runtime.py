@@ -5,13 +5,13 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.agent_runtime import AgentRuntime
-from factory.application.git import Git
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.cost_records import ToolUse
-from factory.domain.hosting import PullRequestView
 from factory.domain.transcripts import Transcript
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.application.git import Git
+from factory.hosting.domain.hosting import PullRequestView
 from git_support import remote_commit
 
 

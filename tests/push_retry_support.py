@@ -6,13 +6,13 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.recording import WorkItemRecorder
-from factory.application.opening import WorkItemOpening
 from factory.application.stage import AfterAgent, AgentAftermath, StageFinisher, StageLauncher
-from factory.domain.git import CommitId, GitOptions, PushOutcome
 from factory.domain.journal import FACTORY, NewEntry, append_entry
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.application.opening import WorkItemOpening
+from factory.hosting.domain.git import CommitId, GitOptions, PushOutcome
 from factory.shared.adapters.clock import ManualWaiter
 from factory.shared.domain.kill_points import KillPoints
 from git_support import CHECKOUT, PIPELINE_YAML, TEST_IDENTITY

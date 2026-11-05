@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from human_clone import HumanClone
 from stage_run_support import CREATED, CREATED_LINE, PATH, STORY, open_story, run_stage
 

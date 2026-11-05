@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.podman_runs import PodmanRuns
 from factory.domain.containers import JOB_PODMAN_OPTIONS
 from factory.entry.wiring import build_boundaries
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
 from podman_support import IMAGE
 from recording_stand_in_support import recording_stand_in

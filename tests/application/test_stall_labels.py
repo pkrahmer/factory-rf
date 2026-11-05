@@ -7,15 +7,15 @@ import pytest
 
 from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
-from factory.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.application.stage import StageReport, StageRunner
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.hosting import PostKey
 from factory.domain.journal import JournalRecord, entry_text
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.application.opening import PreparedWorkItem, WorkItemOpening
+from factory.hosting.domain.hosting import PostKey
 from factory.shared.domain.errors import HostingServiceError
 from factory.shared.domain.identifiers import branch_name
 from git_support import install_agents

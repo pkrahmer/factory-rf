@@ -5,7 +5,7 @@ from typing import get_args
 import pytest
 
 from factory.domain.decisions import StallReason
-from factory.domain.post_texts import expiry_note, stall_note
+from factory.hosting.domain.post_texts import expiry_note, stall_note
 
 LEAD = "The run that held this stage ended without finishing: its lease expired"
 

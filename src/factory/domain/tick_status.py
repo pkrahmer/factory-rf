@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, ConfigDict, PositiveInt
 
-from factory.domain.git import CommitId
+from factory.hosting.domain.git import CommitId
 
 ERROR_CAP = 3
 

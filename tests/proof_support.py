@@ -15,8 +15,6 @@ from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
@@ -28,13 +26,15 @@ from factory.application.tick import Tick
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.cost_records import CostRecord
 from factory.domain.disk import DiskRecord
-from factory.domain.git import CommitId, GitOptions
-from factory.domain.hosting import PostKind, PullRequestComment, PullRequestView
 from factory.domain.journal import HUMAN, JournalRecord, NewEntry, append_entry
 from factory.domain.known_results import ResultRecord
 from factory.domain.stops import StopRecord
 from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 from factory.entry.wiring import agent_environment, handler_factory
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.git import CommitId, GitOptions
+from factory.hosting.domain.hosting import PostKind, PullRequestComment, PullRequestView
 from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from factory.shared.domain.identifiers import Name, WorkItemId, branch_name
 from factory.shared.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase

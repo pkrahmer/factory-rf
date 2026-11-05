@@ -11,10 +11,10 @@ from crash_support import (
     remote_state,
     snapshot,
 )
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.comments import CommentHandler
 from factory.domain.events import Event
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from human_clone import HumanClone
 
 

@@ -7,8 +7,6 @@ from pathlib import Path
 import pytest
 
 from bill_support import completed_records, sidecar_text
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.acceptance import AcceptanceClosed, AcceptanceService
 from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
@@ -17,7 +15,6 @@ from factory.domain.bills import bill
 from factory.domain.board import AcceptanceStatus
 from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event, EventKind
-from factory.domain.hosting import PostKey
 from factory.domain.journal import (
     FACTORY,
     HUMAN,
@@ -28,8 +25,11 @@ from factory.domain.journal import (
     entry_text,
 )
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.post_texts import CLOSE_ENTRY_TEXT
 from factory.domain.work_item import Blocked, WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.hosting import PostKey
+from factory.hosting.domain.post_texts import CLOSE_ENTRY_TEXT
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import CannotHandle, PushFailed
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints

@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.tick import IdleHandler, Tick, TickOutcome
-from factory.domain.git import GitOptions
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.git import GitOptions
 from factory.shared.domain.errors import FetchFailed, GitError
 from factory.shared.domain.kill_points import KillPoints
 from git_support import CHECKOUT, TEST_IDENTITY

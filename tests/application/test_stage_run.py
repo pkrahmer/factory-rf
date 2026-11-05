@@ -9,10 +9,10 @@ import pytest
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
-from factory.application.git import Git
 from factory.domain.agent_runs import QUESTION, AgentRunRequest, AgentRunResult
 from factory.domain.cost_records import ToolUse
 from factory.domain.transcripts import Transcript
+from factory.hosting.application.git import Git
 from human_clone import HumanClone
 from stage_run_support import (
     BRANCH,

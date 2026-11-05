@@ -7,7 +7,6 @@ import pytest
 
 from crash_support import Rerun
 from definition_support import pipeline_definition
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.application.recovery import RecoveryHandler
@@ -16,6 +15,7 @@ from factory.application.task import TaskComposer, TaskContext
 from factory.domain.agent_runs import AgentDefinition
 from factory.domain.journal import JournalRecord
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.errors import CannotHandle, WorkItemFormatError
 from factory.shared.domain.identifiers import branch_name
 from git_support import remote_commit

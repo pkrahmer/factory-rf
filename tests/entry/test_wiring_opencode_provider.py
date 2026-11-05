@@ -8,8 +8,8 @@ import pytest
 
 from adapters.opencode_stand_in import REPLY_EVENTS, opencode_request, write_agent_settings
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.entry.wiring import build_boundaries
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
 from opencode_provider_support import CONFIGURATION, write_provider
 from podman_support import IMAGE, PodmanPlan

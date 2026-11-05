@@ -3,7 +3,6 @@
 from pathlib import Path
 
 from bill_support import completed_records, sidecar_text
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
 from factory.application.tick import Tick, TickOutcome
@@ -15,6 +14,7 @@ from factory.domain.events import Event, EventKind
 from factory.domain.journal import FACTORY, NewEntry, append_entry, entry_text
 from factory.domain.work_item import Blocked, WorkItemDocument
 from factory.entry.wiring import handler_factory
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.identifiers import FeatureId, branch_name
 from factory.shared.domain.paths import (
     LifecycleFolder,

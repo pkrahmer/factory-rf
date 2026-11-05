@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_store
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
 from git_support import run_git
 from wiring_support import with_dataset

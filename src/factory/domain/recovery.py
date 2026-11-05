@@ -1,7 +1,7 @@
 """The crash and the expiry: the count they raise and the journal texts that record the discard."""
 
-from factory.domain.git import CommitId
 from factory.domain.work_item import WorkItemState
+from factory.hosting.domain.git import CommitId
 
 
 def crashed(state: WorkItemState) -> WorkItemState:

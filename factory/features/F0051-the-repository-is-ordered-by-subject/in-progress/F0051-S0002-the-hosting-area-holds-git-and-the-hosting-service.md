@@ -1,3 +1,109 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 557
+comments_read: []
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-05T01:05:48.014859Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:05:48.021384Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T01:06:11.767541Z'
+  stage: intake
+  run: 5e6779303a574eaf999e8c8cb8ee7694
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:06:17.478196Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-05T01:06:58.805963Z'
+  stage: tests
+  run: 74f5c749261c455c83c99263b55e3599
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:07:04.434712Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-05T01:13:45.280578Z'
+  stage: doing
+  run: 25f09fa43ca84cbda5598f0204aabb6d
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:13:53.096759Z'
+  stage: tests
+- number: 9
+  speaker: tester
+  kind: result
+  at: '2026-11-05T01:15:34.884310Z'
+  stage: tests
+  run: f97c4c6fdd524d31932fd8f2619d8b59
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:15:41.042824Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-11-05T01:20:48.234906Z'
+  stage: doing
+  run: 8101208270174e28af54fe04f814b89f
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:20:53.640317Z'
+  stage: review
+- number: 13
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T01:25:47.443639Z'
+  stage: review
+  run: 1010ee9a1c9b484caeb8c7a9068ac237
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:25:52.888950Z'
+  stage: docs
+- number: 15
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T01:26:45.629791Z'
+  stage: docs
+  run: 0aca49918895424e82bdff790b01272f
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:26:53.268895Z'
+  stage: smoke-test
+- number: 17
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T01:27:47.015673Z'
+  stage: smoke-test
+  run: 72abfd9869a248e88cbb0b0fe7b7c71d
+---
+
 # The hosting area holds git and the hosting service
 
 ## Description
@@ -54,3 +160,394 @@ uv run pytest tests/test_areas.py 2>&1 | tail -1 | grep -c passed
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-05 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: concrete. It names 11 old to new module paths, 4 new source packages and the matching test packages, and says `AREAS` in `tests/test_areas.py` gains a `hosting` row. `tests/test_areas.py` exists (from S0001) and `src/factory/shared` exists.
+   - Criteria: each can be tested by one parametrized test.
+     - Criterion 1 has one row per module, with the import succeeding and the old file absent. Criterion 2 covers the 4 package imports and docstrings. Criterion 3 is a source scan of import lines, one row per module. Criterion 4 is a scan of the left-over test modules.
+     - The rules have their failing side: the old path must not exist (criterion 1) and no import of an old path may remain (criterion 3). Criterion 5 is `make check`. Criterion 6 is docs.
+     - Minor note: criterion 1 says "for `handlers`, the folder", but no table row is a folder and `src/factory/handlers` does not exist. I read it as a leftover. The tester should ignore it, and I did not turn it into a question.
+   - Smoke test: the three commands are runnable. pyproject's `addopts` already sets `-q`, and the pytest command passes none, so the summary line exists and `grep -c passed` gives `1`. Each `Expect:` can be checked against the output.
+   - Architecture: matches `CLAUDE.md` and feature decisions 1 to 4. Each module keeps its layer inside `factory.hosting`, and the layer rule is covered by the import-linter contracts that S0001 set.
+   - Scope: within F0051's scope (S0002, the hosting area). The story changes no behaviour, and the test moves rest on the leave of feature decision 5. Nothing in it is out of scope.
+4. factory: started tests as vm.
+5. tester: Added the `hosting` row to the `AREAS` table in `tests/test_areas.py`: the 11 modules of the Interface, as `<layer>.<name>`. I changed nothing else in the module, as the Interface says. The parametrized tests that S0001 wrote are driven by that table, so the new row gives each hosting module and package its own test case:
+   - criterion 1: tests/test_areas.py::test_a_moved_module_imports_from_its_area_and_is_gone_from_its_layer (one row per module, `hosting.<layer>.<name>`)
+   - criterion 2: tests/test_areas.py::test_an_area_package_imports_and_has_a_docstring (rows `factory.hosting`, `factory.hosting.domain`, `factory.hosting.application`, `factory.hosting.adapters`)
+   - criterion 3: tests/test_areas.py::test_no_file_imports_a_moved_module_from_its_old_path (one row per module)
+   - criterion 4: tests/test_areas.py::test_no_test_module_stays_in_its_layer_folder_when_all_it_imports_has_moved. It counts `hosting` and `shared`, by old or new path, as moved. Separately, test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own will check every test module the coder moves to `tests/hosting/`.
+   - criterion 5: `make check`, run by the factory; no test of its own.
+   - criterion 6: docs; no test.
+
+   Files changed: tests/test_areas.py. No files created.
+
+   The test run failed for the right reasons. The import cases fail because the `factory.hosting.*` modules and packages do not exist yet. The old-path import cases fail because those paths are still imported. The run printed failures and no collection errors, so the test module itself imports fine. Modules the runner could not import: `factory.hosting` and its subpackages and the 11 moved modules; these are imported inside the tests, not at collection.
+
+   `make lint`: green.
+
+   Note: criterion 1 says "for `handlers`, the folder", but no row of the table is a folder. The existing test already checks both the `.py` file and a folder at the old path, so no question is needed.
+
+   `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
+7. coder: Round 0. The source side of the move is done. What is left is test work, which only the tester may write, so I'm sending it to the tester with the exact changes, the same way S0001 did (its entries 10 and 12). With every change below in my working tree, `make check` was green (`test: green (122.9 s)`, `check: green`). The factory will drop my edits under `tests/`, so the tester has to make them again.
+
+   What I built (in my write paths):
+   - `src/factory/hosting/__init__.py`, `src/factory/hosting/domain/__init__.py`, `src/factory/hosting/application/__init__.py` and `src/factory/hosting/adapters/__init__.py`, each with a one-line docstring.
+   - The 11 modules of the Interface, moved with `git mv` to `src/factory/hosting/<layer>/<name>.py`. Only their import lines changed.
+   - Every import under `src/` of an old path now names `factory.hosting.<layer>.<name>`. That is 54 files, all import lines; `ruff check --fix` and `ruff format` re-sorted the blocks.
+   - `uv run python -m factory.entry.contract` leaves the schemas unchanged. No old path is left in `src/`, `Makefile` or `pyproject.toml`.
+
+   Test changes for the tester (covered by the Interface's leave of feature decision 5; every test keeps its name and checks the same thing):
+   1. Under `tests/`, rewrite every dotted reference to one of the 11 modules, `factory.<layer>.<name>` → `factory.hosting.<layer>.<name>`. This covers import lines and module-name strings, for example in `tests/test_no_journal_reading.py`, `tests/test_retrying_wording.py`, `tests/test_wrapper_search.py`, `tests/test_hosting_search.py`, `tests/domain/test_times.py` and `tests/domain/test_hosting.py`. A word-bounded sed over the 11 paths does it (about 194 files). Two exceptions:
+      - Leave `tests/test_areas.py` unchanged.
+      - Leave `tests/shared/domain/test_duplicates.py` unchanged: its `factory.domain.git` strings are sample report text, not imports.
+      Two `from <package> import <name>` forms need a hand edit: `tests/domain/test_default_git_identity.py` (`from factory.domain import git` → `from factory.hosting.domain import git`) and `tests/adapters/test_git_cli_arguments.py` (`from factory.adapters import git_cli` → `from factory.hosting.adapters import git_cli`). Then run `ruff check --fix` and `ruff format`.
+   2. Create `tests/hosting/__init__.py`, `tests/hosting/domain/__init__.py`, `tests/hosting/application/__init__.py` and `tests/hosting/adapters/__init__.py`, all empty, as under `tests/shared/`. Then `git mv` these 34 modules to the same layer under `tests/hosting/`:
+      - from `tests/domain/`: test_correction_texts, test_default_git_identity, test_error_report_text, test_git, test_git_history, test_post_texts, test_post_texts_crash_cap, test_push_reason, test_push_reason_porcelain, test_push_reason_summary_line, test_question_post_texts, test_send_back_texts, test_settings, test_stall_note_block, test_tree_id
+      - from `tests/application/`: test_acceptance_ticks_repeated, test_git_interface, test_hosting_interface
+      - from `tests/adapters/`: test_fake_hosting, test_git_cli_arguments, test_git_cli_branches, test_git_cli_check_ignore, test_git_cli_history, test_git_cli_reading, test_git_cli_restoring, test_git_cli_seal, test_git_cli_work_tree, test_git_cli_work_tree_dash, test_git_cli_work_tree_tick, test_git_cli_writing, test_pygithub_hosting, test_pygithub_retry, test_pygithub_service, test_zfs_snapshots_diff
+      This is the list that criterion 4's test (`test_no_test_module_stays_in_its_layer_folder_when_all_it_imports_has_moved`) reports once step 1 is done.
+   3. `tests/test_test_names.py`: the two `is_file()` paths become `TESTS / "hosting" / "application" / "test_git_interface.py"` and `TESTS / "hosting" / "application" / "test_hosting_interface.py"`.
+   4. `tests/domain/test_hosting.py::_is_domain`: also count `factory.hosting.domain` and `factory.hosting.domain.*` as the domain layer, beside `factory.domain` and `factory.shared.domain`. Without this, two tests fail on the moved modules' own imports: `test_domain_modules_import_only_stdlib_pydantic_and_domain[factory.hosting.domain.hosting]` and `test_application_hosting_imports_only_stdlib_and_domain`.
+
+   Once those are in, I expect `make check` to be green with no further code change.
+
+   Main choice: a straight move with every import rewritten and nothing left at the old paths (feature decision 4). I rejected re-export shims at the old paths: the story forbids them, and criterion 1 checks the old files are gone. I also rejected making the test edits myself: they are outside my write paths and would be dropped.
+
+   Refactor: I read the source diff. It is moves and import lines only, so there was nothing to change.
+
+   Noticed, not touched:
+   - `security/duplicates-baseline.txt` still names `src/factory/adapters/fake_hosting.py` and `src/factory/domain/git.py`. `make duplicates` reports `13 new, 32 known, 11 gone`, partly the same accepted findings under old and new paths. That file is in no role's write paths, so only the human can update it.
+   - `tests/adapters/test_work_item_markdown.py`'s module filter (`name.split(".")[1:2]`) still does not look at area packages, and the gap now includes `factory.hosting.*`.
+   - `CLAUDE.md` names `factory.adapters.git_cli`-era wrappers only by class name, so nothing in it needs changing for this move. Docs are the documenter's, by criterion 6.
+
+   Description unchanged: no journal entry changed the meaning of the task.
+
+   The factory left out changes outside the write paths: tests/acceptance_support.py, tests/acceptance_walk.py, tests/adapters/claude_stand_in.py, tests/adapters/container_runtime_support.py, tests/adapters/opencode_stand_in.py, tests/adapters/test_agent_file_keys.py, tests/adapters/test_agent_files.py, tests/adapters/test_agent_files_parse.py, tests/adapters/test_agent_launch.py, tests/adapters/test_agent_launch_call_end.py, tests/adapters/test_agent_launch_container.py, tests/adapters/test_agent_launch_container_kill.py, tests/adapters/test_agent_launch_extra.py, tests/adapters/test_agent_launch_login.py, tests/adapters/test_agent_launch_state_directory.py, tests/adapters/test_calls_as_the_factory_user.py, tests/adapters/test_claude_runtime.py, tests/adapters/test_claude_runtime_api_login.py, tests/adapters/test_claude_runtime_container.py, tests/adapters/test_claude_runtime_denial_paths.py, tests/adapters/test_claude_runtime_environment.py, tests/adapters/test_claude_runtime_login.py, tests/adapters/test_claude_runtime_no_hook.py, tests/adapters/test_claude_runtime_provider_limit.py, tests/adapters/test_claude_runtime_resume.py, tests/adapters/test_claude_runtime_resume_session.py, tests/adapters/test_claude_runtime_transcript.py, tests/adapters/test_copy_snapshots.py, tests/adapters/test_cost_records_jsonl.py, tests/adapters/test_cost_records_jsonl_denials.py, tests/adapters/test_cost_records_jsonl_instance.py, tests/adapters/test_cost_records_jsonl_login.py, tests/adapters/test_cost_records_jsonl_model_seconds.py, tests/adapters/test_died_text.py, tests/adapters/test_disk_space.py, tests/adapters/test_factory_log.py, tests/adapters/test_fake_agent_runtime.py, tests/adapters/test_fake_containers.py, tests/adapters/test_fake_hosting.py, tests/adapters/test_fake_snapshots.py, tests/adapters/test_git_cli_arguments.py, tests/adapters/test_git_cli_branches.py, tests/adapters/test_git_cli_check_ignore.py, tests/adapters/test_git_cli_history.py, tests/adapters/test_git_cli_reading.py, tests/adapters/test_git_cli_restoring.py, tests/adapters/test_git_cli_seal.py, tests/adapters/test_git_cli_work_tree.py, tests/adapters/test_git_cli_work_tree_dash.py, tests/adapters/test_git_cli_work_tree_tick.py, tests/adapters/test_git_cli_writing.py, tests/adapters/test_health_file.py, tests/adapters/test_journal_as_data.py, tests/adapters/test_journal_causes_file.py, tests/adapters/test_journal_stamps_file.py, tests/adapters/test_kill_at_the_limit_stays.py, tests/adapters/test_machine_files.py, tests/adapters/test_make_commands.py, tests/adapters/test_make_commands_container.py, tests/adapters/test_make_last_line_shared.py, tests/adapters/test_oauth_token.py, tests/adapters/test_opencode_budget.py, tests/adapters/test_opencode_events.py, tests/adapters/test_opencode_left_out_tools.py, tests/adapters/test_opencode_measures.py, tests/adapters/test_opencode_provider_limit.py, tests/adapters/test_opencode_result_block.py, tests/adapters/test_opencode_resumed_words.py, tests/adapters/test_opencode_runtime.py, tests/adapters/test_opencode_runtime_container.py, tests/adapters/test_opencode_runtime_launch.py, tests/adapters/test_opencode_runtime_lockdown.py, tests/adapters/test_opencode_runtime_provider.py, tests/adapters/test_opencode_runtime_runs_folder.py, tests/adapters/test_pipeline_rules.py, tests/adapters/test_pipeline_strict_values.py, tests/adapters/test_pipeline_yaml.py, tests/adapters/test_pipeline_yaml_one_line_fault.py, tests/adapters/test_pipeline_yaml_tool_paths.py, tests/adapters/test_podman_images.py, tests/adapters/test_podman_runs.py, tests/adapters/test_podman_runs_fence.py, tests/adapters/test_podman_runs_instance_label.py, tests/adapters/test_podman_runs_job_profile.py, tests/adapters/test_podman_runs_results.py, tests/adapters/test_podman_timeout_status.py, tests/adapters/test_power_off.py, tests/adapters/test_preflight_stamp_file.py, tests/adapters/test_process_exit.py, tests/adapters/test_pygithub_hosting.py, tests/adapters/test_pygithub_retry.py, tests/adapters/test_pygithub_service.py, tests/adapters/test_record_log_jsonl.py, tests/adapters/test_record_log_jsonl_torn.py, tests/adapters/test_runtime_died_text.py, tests/adapters/test_runtime_podman_timeout_status.py, tests/adapters/test_runtime_state_directory_write.py, tests/adapters/test_runtime_tool_uses.py, tests/adapters/test_runtimes_without_wrapper.py, tests/adapters/test_shipped_agents_effect.py, tests/adapters/test_transcript_files.py, tests/adapters/test_waiters.py, tests/adapters/test_work_item_markdown.py, tests/adapters/test_work_item_markdown_acceptance.py, tests/adapters/test_zfs_snapshots.py, tests/adapters/test_zfs_snapshots_diff.py, tests/adapters/test_zfs_snapshots_drop_caches.py, tests/agent_definition_support.py, tests/agent_run_support.py, tests/application/handlers/conftest.py, tests/application/handlers/test_closed.py, tests/application/handlers/test_closed_send_back.py, tests/application/handlers/test_comment_handler.py, tests/application/handlers/test_comments.py, tests/application/handlers/test_comments_crash_cap.py, tests/application/handlers/test_hand_over.py, tests/application/handlers/test_handler_subjects.py, tests/application/handlers/test_handlers_raise.py, tests/application/handlers/test_lookups.py, tests/application/handlers/test_merged.py, tests/application/handlers/test_questions.py, tests/application/handlers/test_recording.py, tests/application/handlers/test_reject.py, tests/application/handlers/test_run.py, tests/application/handlers/test_run_gate.py, tests/application/test_acceptance_closed.py, tests/application/test_acceptance_due_handler.py, tests/application/test_acceptance_facts_disk.py, tests/application/test_acceptance_facts_human.py, tests/application/test_acceptance_hand_over.py, tests/application/test_acceptance_merged.py, tests/application/test_acceptance_merged_before_approval.py, tests/application/test_acceptance_no_state_refusals.py, tests/application/test_acceptance_reading.py, tests/application/test_acceptance_refusals.py, tests/application/test_acceptance_repeated.py, tests/application/test_acceptance_reviewer_role.py, tests/application/test_acceptance_service.py, tests/application/test_acceptance_snapshots.py, tests/application/test_acceptance_ticks_closed.py, tests/application/test_acceptance_ticks_merged.py, tests/application/test_acceptance_ticks_repeated.py, tests/application/test_after_agent.py, tests/application/test_after_agent_edges.py, tests/application/test_agent_definition_reader.py, tests/application/test_agent_run_probe.py, tests/application/test_agent_run_probe_api_login.py, tests/application/test_agent_run_probe_environment.py, tests/application/test_agent_run_probe_factory_user.py, tests/application/test_agent_run_probe_login.py, tests/application/test_agent_run_probe_opencode.py, tests/application/test_agent_run_probe_project_agent.py, tests/application/test_bill_service.py, tests/application/test_board_in_progress.py, tests/application/test_board_reader.py, tests/application/test_board_reader_acceptance.py, tests/application/test_boundaries.py, tests/application/test_boundaries_required.py, tests/application/test_boundaries_settings.py, tests/application/test_checkout_preparer.py, tests/application/test_claims.py, tests/application/test_claims_observed.py, tests/application/test_claims_refusals.py, tests/application/test_container_environment.py, tests/application/test_container_environment_extra.py, tests/application/test_container_environment_take.py, tests/application/test_container_items.py, tests/application/test_container_stage_checks.py, tests/application/test_container_sync_origin.py, tests/application/test_containers_interface.py, tests/application/test_cost_image.py, tests/application/test_cost_instance.py, tests/application/test_cost_record_machine_measures.py, tests/application/test_costs.py, tests/application/test_costs_denials.py, tests/application/test_costs_died_text.py, tests/application/test_costs_login.py, tests/application/test_costs_model_seconds.py, tests/application/test_costs_provider_limit.py, tests/application/test_disk_recorder.py, tests/application/test_disk_space_interface.py, tests/application/test_dispatcher.py, tests/application/test_dispatcher_counts_every_error.py, tests/application/test_dispatcher_error_lines.py, tests/application/test_dispatcher_without_state.py, tests/application/test_git_interface.py, tests/application/test_hosting_failure_releases_claim.py, tests/application/test_hosting_interface.py, tests/application/test_human_line_posts.py, tests/application/test_idle_shutdown.py, tests/application/test_interfaces.py, tests/application/test_known_results.py, tests/application/test_known_results_torn.py, tests/application/test_left_out_stage.py, tests/application/test_machine.py, tests/application/test_machine_checks_container.py, tests/application/test_machine_checks_runtime.py, tests/application/test_no_branch_check.py, tests/application/test_no_state_refusals.py, tests/application/test_opencode_item.py, tests/application/test_opencode_item_container.py, tests/application/test_opening.py, tests/application/test_opening_journal_edges.py, tests/application/test_patient_runs.py, tests/application/test_pipeline_definition_reader.py, tests/application/test_pipeline_loading.py, tests/application/test_pipeline_loading_agents.py, tests/application/test_pipeline_loading_project_agents.py, tests/application/test_pipeline_loading_rules.py, tests/application/test_pipeline_loading_stage_moves.py, tests/application/test_pipeline_loading_strict_values.py, tests/application/test_pipeline_loading_yaml_fault.py, tests/application/test_preflight.py, tests/application/test_preflight_login_line.py, tests/application/test_preflight_metadata_block.py, tests/application/test_preflight_run.py, tests/application/test_preflight_run_environment.py, tests/application/test_preflight_snapshots_item.py, tests/application/test_preflight_stale_main_stop.py, tests/application/test_preflight_stop_detail.py, tests/application/test_preflight_stops_commit.py, tests/application/test_probe_nested_repository.py, tests/application/test_project_agents.py, tests/application/test_push_retry.py, tests/application/test_question_causes_recorded.py, tests/application/test_recording_project_commands.py, tests/application/test_recovery_cap.py, tests/application/test_recovery_crash.py, tests/application/test_recovery_expiry.py, tests/application/test_recovery_expiry_key.py, tests/application/test_recovery_subjects.py, tests/application/test_repository_waiter.py, tests/application/test_request_working_directory.py, tests/application/test_scheduler.py, tests/application/test_sealed_runs_runner.py, tests/application/test_snapshots_interface.py, tests/application/test_split_by_work_item_kind.py, tests/application/test_stage_changes.py, tests/application/test_stage_died_line.py, tests/application/test_stage_environment_calls.py, tests/application/test_stage_environment_of.py, tests/application/test_stage_finish.py, tests/application/test_stage_finish_causes.py, tests/application/test_stage_known_results.py, tests/application/test_stage_launch.py, tests/application/test_stage_nested_repository.py, tests/application/test_stage_on_container_fakes.py, tests/application/test_stage_provider_limit.py, tests/application/test_stage_run.py, tests/application/test_stage_run_acceptance.py, tests/application/test_stage_time_limited_report.py, tests/application/test_stage_tool_uses.py, tests/application/test_stage_transcripts.py, tests/application/test_stale_branches.py, tests/application/test_stall_container.py, tests/application/test_stall_edges.py, tests/application/test_stall_environment.py, tests/application/test_stall_labels.py, tests/application/test_stall_reasons_recorded.py, tests/application/test_stalls.py, tests/application/test_stop_log_once.py, tests/application/test_stop_posting.py, tests/application/test_stop_publisher.py, tests/application/test_stop_records_service.py, tests/application/test_stops.py, tests/application/test_take.py, tests/application/test_take_edges.py, tests/application/test_take_rule.py, tests/application/test_task.py, tests/application/test_task_acceptance.py, tests/application/test_tick.py, tests/application/test_tick_agent_definition.py, tests/application/test_tick_disk.py, tests/application/test_tick_docstrings.py, tests/application/test_tick_own_fetch.py, tests/application/test_tick_preflight.py, tests/application/test_tick_project_agent.py, tests/application/test_tick_restore_ignored.py, tests/application/test_tick_stale_branch.py, tests/application/test_tick_stop_details.py, tests/application/test_tick_stop_records.py, tests/application/test_token_file_item.py, tests/application/test_tokens.py, tests/application/test_transcript_keeper.py, tests/application/test_watcher.py, tests/application/test_watcher_acceptance.py, tests/application/test_watcher_main_ref.py, tests/application/test_watcher_move_rule.py, tests/application/test_watcher_observer.py, tests/application/test_work_items.py, tests/application/test_work_items_duplicate.py, tests/application/test_write_paths.py, tests/application/test_write_paths_guard.py, tests/bill_support.py, tests/branch_reading.py, tests/claude_resume_support.py, tests/conftest.py, tests/container_extra_support.py, tests/container_support.py, tests/cost_image_support.py, tests/cost_records_support.py, tests/crash_support.py, tests/definition_support.py, tests/disk_support.py, tests/document_texts.py, tests/domain/test_acceptance.py, tests/domain/test_acceptance_before_approval.py, tests/domain/test_acceptance_booking.py, tests/domain/test_acceptance_description.py, tests/domain/test_acceptance_facts.py, tests/domain/test_acceptance_facts_disk.py, tests/domain/test_acceptance_facts_human.py, tests/domain/test_acceptance_facts_limit.py, tests/domain/test_acceptance_refusal_edges.py, tests/domain/test_acceptance_status.py, tests/domain/test_agent_entry.py, tests/domain/test_agent_environment.py, tests/domain/test_agent_runs.py, tests/domain/test_agent_runs_session.py, tests/domain/test_answers.py, tests/domain/test_answers_round_cap.py, tests/domain/test_archive.py, tests/domain/test_archive_texts.py, tests/domain/test_bills.py, tests/domain/test_bills_model_time.py, tests/domain/test_board.py, tests/domain/test_board_absent_values.py, tests/domain/test_checks.py, tests/domain/test_checks_last_line.py, tests/domain/test_command_ending.py, tests/domain/test_command_line.py, tests/domain/test_command_line_time_limit.py, tests/domain/test_command_records.py, tests/domain/test_container_extra_environment.py, tests/domain/test_containers.py, tests/domain/test_containers_beneath_or_at.py, tests/domain/test_containers_job_options.py, tests/domain/test_contract.py, tests/domain/test_correction_texts.py, tests/domain/test_cost_record_denials.py, tests/domain/test_cost_record_instance.py, tests/domain/test_cost_record_machine.py, tests/domain/test_cost_record_model_seconds.py, tests/domain/test_cost_records.py, tests/domain/test_decide_docs_slip.py, tests/domain/test_decision_rules.py, tests/domain/test_decisions.py, tests/domain/test_default_git_identity.py, tests/domain/test_died_runs.py, tests/domain/test_disk.py, tests/domain/test_disk_records.py, tests/domain/test_documents.py, tests/domain/test_error_report_text.py, tests/domain/test_evaluation.py, tests/domain/test_evaluation_details.py, tests/domain/test_evaluation_due.py, tests/domain/test_evaluation_reject.py, tests/domain/test_events.py, tests/domain/test_fault_paths.py, tests/domain/test_fault_paths_all_rows.py, tests/domain/test_git.py, tests/domain/test_git_history.py, tests/domain/test_hand_over.py, tests/domain/test_hosting.py, tests/domain/test_human_waits.py, tests/domain/test_journal.py, tests/domain/test_journal_acceptance.py, tests/domain/test_journal_causes.py, tests/domain/test_journal_records.py, tests/domain/test_journal_stamps.py, tests/domain/test_known_results.py, tests/domain/test_labels.py, tests/domain/test_lease.py, tests/domain/test_lease_observed.py, tests/domain/test_login_records.py, tests/domain/test_machine.py, tests/domain/test_move_rule.py, tests/domain/test_nested_claude_paths.py, tests/domain/test_opencode_provider.py, tests/domain/test_pipeline_definition.py, tests/domain/test_pipeline_not_read.py, tests/domain/test_post_texts.py, tests/domain/test_post_texts_crash_cap.py, tests/domain/test_post_texts_notes.py, tests/domain/test_preflight.py, tests/domain/test_preflight_stamp.py, tests/domain/test_preflight_stop_records_paths.py, tests/domain/test_project_agent_paths.py, tests/domain/test_prompts.py, tests/domain/test_provider_limit_stall_text.py, tests/domain/test_provider_limit_wait.py, tests/domain/test_provider_limits.py, tests/domain/test_provider_limits_one_second.py, tests/domain/test_push_reason.py, tests/domain/test_push_reason_porcelain.py, tests/domain/test_push_reason_summary_line.py, tests/domain/test_question_post_texts.py, tests/domain/test_question_texts.py, tests/domain/test_recovery.py, tests/domain/test_recovery_cap.py, tests/domain/test_recovery_expiry_text.py, tests/domain/test_resumed_result.py, tests/domain/test_resumed_result_time_limit.py, tests/domain/test_section_edges.py, tests/domain/test_send_back.py, tests/domain/test_send_back_records.py, tests/domain/test_send_back_texts.py, tests/domain/test_settings.py, tests/domain/test_stage_layer.py, tests/domain/test_stall_note_block.py, tests/domain/test_stall_reason_removed.py, tests/domain/test_stall_texts.py, tests/domain/test_stop_records.py, tests/domain/test_stop_table.py, tests/domain/test_stops.py, tests/domain/test_story_form.py, tests/domain/test_story_form_edges.py, tests/domain/test_story_place.py, tests/domain/test_target_times.py, tests/domain/test_tick_status.py, tests/domain/test_tick_status_mark.py, tests/domain/test_times.py, tests/domain/test_tokens.py, tests/domain/test_tokens_masked.py, tests/domain/test_tool_use_model.py, tests/domain/test_tool_uses.py, tests/domain/test_tool_uses_replayed_lines.py, tests/domain/test_transcript_ref.py, tests/domain/test_tree_id.py, tests/domain/test_work_item.py, tests/domain/test_work_item_require_state.py, tests/domain/test_work_item_snapshot.py, tests/domain/test_work_item_stop.py, tests/domain/test_write_paths.py, tests/entry/test_bill.py, tests/entry/test_entry_arguments.py, tests/entry/test_git_hooks.py, tests/entry/test_git_nested_repositories.py, tests/entry/test_health.py, tests/entry/test_health_missing.py, tests/entry/test_mutation_report_removed.py, tests/entry/test_refresh_token.py, tests/entry/test_refresh_token_signals.py, tests/entry/test_run.py, tests/entry/test_run_fetch_before_tick.py, tests/entry/test_run_health_file.py, tests/entry/test_run_idle_exit.py, tests/entry/test_run_idle_shutdown.py, tests/entry/test_run_image_sizes.py, tests/entry/test_run_machine_stop_exit.py, tests/entry/test_run_one_fetch.py, tests/entry/test_run_project_image_rebuild.py, tests/entry/test_run_stop_requested.py, tests/entry/test_run_waiter.py, tests/entry/test_watch.py, tests/entry/test_watch_acceptance.py, tests/entry/test_watch_agent_definition.py, tests/entry/test_watch_main.py, tests/entry/test_watch_own_claim.py, tests/entry/test_watch_settings.py, tests/entry/test_wiring.py, tests/entry/test_wiring_acceptance.py, tests/entry/test_wiring_api_login.py, tests/entry/test_wiring_boundaries.py, tests/entry/test_wiring_command_records.py, tests/entry/test_wiring_constants.py, tests/entry/test_wiring_container_extra.py, tests/entry/test_wiring_container_extras.py, tests/entry/test_wiring_container_profile.py, tests/entry/test_wiring_copy_snapshots.py, tests/entry/test_wiring_drop_caches.py, tests/entry/test_wiring_environment.py, tests/entry/test_wiring_extras.py, tests/entry/test_wiring_handlers.py, tests/entry/test_wiring_human_handlers.py, tests/entry/test_wiring_idle_shutdown.py, tests/entry/test_wiring_idle_shutdown_action.py, tests/entry/test_wiring_image_path.py, tests/entry/test_wiring_instance_label.py, tests/entry/test_wiring_known_results.py, tests/entry/test_wiring_login.py, tests/entry/test_wiring_machine_inputs.py, tests/entry/test_wiring_metadata_block.py, tests/entry/test_wiring_one_environment.py, tests/entry/test_wiring_one_preflight.py, tests/entry/test_wiring_opencode.py, tests/entry/test_wiring_opencode_provider.py, tests/entry/test_wiring_preflight.py, tests/entry/test_wiring_project_agents.py, tests/entry/test_wiring_project_image.py, tests/entry/test_wiring_provider_limit.py, tests/entry/test_wiring_record_logs.py, tests/entry/test_wiring_recovery.py, tests/entry/test_wiring_recovery_expired.py, tests/entry/test_wiring_run.py, tests/entry/test_wiring_stage_environment.py, tests/entry/test_wiring_stage_image_sizes.py, tests/entry/test_wiring_stop_records.py, tests/entry/test_wiring_transcripts.py, tests/entry/test_wiring_waiter.py, tests/entry/test_wiring_without_agent_user.py, tests/evaluation_support.py, tests/git_support.py, tests/hosting/__init__.py, tests/hosting/adapters/__init__.py, tests/hosting/adapters/test_fake_hosting.py, tests/hosting/adapters/test_git_cli_arguments.py, tests/hosting/adapters/test_git_cli_branches.py, tests/hosting/adapters/test_git_cli_check_ignore.py, tests/hosting/adapters/test_git_cli_history.py, tests/hosting/adapters/test_git_cli_reading.py, tests/hosting/adapters/test_git_cli_restoring.py, tests/hosting/adapters/test_git_cli_seal.py, tests/hosting/adapters/test_git_cli_work_tree.py, tests/hosting/adapters/test_git_cli_work_tree_dash.py, tests/hosting/adapters/test_git_cli_work_tree_tick.py, tests/hosting/adapters/test_git_cli_writing.py, tests/hosting/adapters/test_pygithub_hosting.py, tests/hosting/adapters/test_pygithub_retry.py, tests/hosting/adapters/test_pygithub_service.py, tests/hosting/adapters/test_zfs_snapshots_diff.py, tests/hosting/application/__init__.py, tests/hosting/application/test_acceptance_ticks_repeated.py, tests/hosting/application/test_git_interface.py, tests/hosting/application/test_hosting_interface.py, tests/hosting/domain/__init__.py, tests/hosting/domain/test_correction_texts.py, tests/hosting/domain/test_default_git_identity.py, tests/hosting/domain/test_error_report_text.py, tests/hosting/domain/test_git.py, tests/hosting/domain/test_git_history.py, tests/hosting/domain/test_post_texts.py, tests/hosting/domain/test_post_texts_crash_cap.py, tests/hosting/domain/test_push_reason.py, tests/hosting/domain/test_push_reason_porcelain.py, tests/hosting/domain/test_push_reason_summary_line.py, tests/hosting/domain/test_question_post_texts.py, tests/hosting/domain/test_send_back_texts.py, tests/hosting/domain/test_settings.py, tests/hosting/domain/test_stall_note_block.py, tests/hosting/domain/test_tree_id.py, tests/hosting_interface_support.py, tests/human_clone.py, tests/known_results_support.py, tests/machine_readings_support.py, tests/observing_runtime.py, tests/podman_support.py, tests/power_support.py, tests/preflight_support.py, tests/probe_support.py, tests/project_command_support.py, tests/proof_support.py, tests/push_retry_support.py, tests/recording_log.py, tests/remote_outage_support.py, tests/run_layout_support.py, tests/scripted_tick_support.py, tests/shipped_agents.py, tests/sized_images.py, tests/stage_image_support.py, tests/stage_run_support.py, tests/stall_support.py, tests/story_form_support.py, tests/take_support.py, tests/test_agent_launch_search.py, tests/test_agent_run_request_search.py, tests/test_approval_description.py, tests/test_checkout_hygiene_removed.py, tests/test_claim_ownership.py, tests/test_claude_files.py, tests/test_docker_path_removed.py, tests/test_fault_paths.py, tests/test_fault_paths_7_to_13.py, tests/test_fault_paths_table.py, tests/test_home_reset_removed.py, tests/test_hook_removed.py, tests/test_hosting_search.py, tests/test_kernel_guard_removed.py, tests/test_kill_points.py, tests/test_layers.py, tests/test_leftovers_program_removed.py, tests/test_make_search.py, tests/test_model_configuration.py, tests/test_no_agent_login.py, tests/test_no_journal_reading.py, tests/test_no_state_copies.py, tests/test_one_stage_environment.py, tests/test_opencode_runtime_search.py, tests/test_operator_job.py, tests/test_operator_site_example.py, tests/test_proof_support.py, tests/test_removed_layer_names.py, tests/test_retrying_wording.py, tests/test_second_user_removed.py, tests/test_shared_branch_helpers.py, tests/test_shared_definition.py, tests/test_shared_imports.py, tests/test_stop_table.py, tests/test_suite_fixtures.py, tests/test_suite_leftovers.py, tests/test_template_sync.py, tests/test_test_names.py, tests/test_undo_removed.py, tests/test_vm_job_start.py, tests/test_wrapper_out_of_the_call_path.py, tests/test_wrapper_search.py, tests/tick_support.py, tests/token_support.py, tests/tool_use_support.py, tests/torn_record_support.py, tests/undo_support.py, tests/watch_support.py, tests/wiring_support.py, tests/work_item_support.py, tests/write_path_support.py, tests/zfs_support.py.
+8. factory: started tests as vm.
+9. tester: Mode: a test change the human approved. I made the four test changes the coder's entry 7 named, under the leave of feature decision 5 (and the standing leave in `CLAUDE.md` *Tests*). Every test keeps its name and checks the same thing.
+
+   1. Under `tests/`, I rewrote every word-bounded dotted reference `factory.<layer>.<name>` to `factory.hosting.<layer>.<name>` for the 11 modules of the Interface, with sed. That touched 227 files, where the coder estimated about 194. I left `tests/test_areas.py` and `tests/shared/domain/test_duplicates.py` alone, as the entry said. Two imports needed a hand edit: `tests/domain/test_default_git_identity.py` now reads `from factory.hosting.domain import git`, and `tests/adapters/test_git_cli_arguments.py` now reads `from factory.hosting.adapters import git_cli`. A grep afterwards found no old dotted path and no old `src/` file path left in `tests/` outside those two files. Then I ran `ruff check --fix` and `ruff format`.
+   2. I created `tests/hosting/__init__.py` and the empty `__init__.py` files in `tests/hosting/domain/`, `tests/hosting/application/` and `tests/hosting/adapters/`. I moved the 34 named modules with `git mv`, each to the same layer folder under `tests/hosting/`:
+      - 15 from `tests/domain/`
+      - 3 from `tests/application/`
+      - 16 from `tests/adapters/`
+      None of them uses `__file__` or relative imports.
+   3. `tests/test_test_names.py`: the two `is_file()` paths now point to `TESTS / "hosting" / "application" / ...`.
+   4. `tests/domain/test_hosting.py::_is_domain`: it now also counts `factory.hosting.domain` and `factory.hosting.domain.*` as the domain layer.
+
+   Earlier test files I changed: the 227 files of the import rewrite, with the 34 moved modules among them, plus `tests/test_test_names.py` and `tests/domain/test_hosting.py`.
+
+   Files I created: the four `tests/hosting/**/__init__.py` files.
+
+   I ran the tests once: `uv run pytest -q` over `tests/hosting`, `tests/test_areas.py`, `tests/test_test_names.py`, `tests/domain/test_hosting.py`, `tests/test_no_journal_reading.py`, `tests/test_retrying_wording.py`, `tests/test_wrapper_search.py`, `tests/test_hosting_search.py` and `tests/domain/test_times.py`. `tail -5` showed only progress dots up to `[100%]`, with no failure or error lines. The pass/fail summary line was not in the last five lines, and I did not run it again to get counts. Every module imported; none was missing. `make lint` is green. I did not run `make check`; that is the coder's step.
+
+   `lint`: lint: green (0.1 s)
+10. factory: started doing as vm.
+11. coder: Round 0, second pass in doing. The tester has made the four test changes I named in entry 7. I changed no code this time. The source move from entry 7 is already committed: 4 new packages under `src/factory/hosting/`, the 11 modules moved with `git mv` to `src/factory/hosting/<layer>/<name>.py`, and every import under `src/` rewritten to the new paths. I ran `make check` on the committed state with a clean working tree and it passed (`test: green (122.0 s)`, total coverage 99.26 %, `check: green`).
+
+    What I built: nothing new in this pass. The paths are the ones in entry 7: `src/factory/hosting/{__init__,domain/__init__,application/__init__,adapters/__init__}.py`, `src/factory/hosting/domain/{git,hosting,hand_over,post_texts}.py`, `src/factory/hosting/application/{git,hosting,pushes,opening}.py` and `src/factory/hosting/adapters/{git_cli,pygithub_hosting,fake_hosting}.py`.
+
+    Main choice: I moved the modules straight across, with nothing left at the old paths. I rejected re-export shims, because feature decision 4 forbids them and criterion 1 checks that the old files are gone.
+
+    Refactor: the diff is moves and import lines only, so nothing needed changing.
+
+    Noticed, not touched:
+    - `security/duplicates-baseline.txt` still names the old paths `src/factory/adapters/fake_hosting.py` and `src/factory/domain/git.py`. So `make duplicates` reports some known findings as both new and gone. That file is in no role's write paths, so only the human can update it.
+    - In `tests/adapters/test_work_item_markdown.py`, the module filter `name.split(".")[1:2]` does not look inside area packages, and that gap now includes `factory.hosting.*`.
+
+    Description unchanged: no journal entry changed what the task means.
+
+    `check`: check: green
+    `duplicates`: duplicates: 13 new, 32 known, 11 gone
+12. factory: started review as vm.
+13. reviewer: Round 0 review of `git diff main...HEAD -- . ':!factory'` (292 files) against the work item.
+
+    no findings
+
+    What I checked:
+    - Group 1 (criteria): criteria 1 to 4 are covered by the `hosting` row of `AREAS` in `tests/test_areas.py`, which drives S0001's parametrized tests. Criterion 1 is `test_a_moved_module_imports_from_its_area_and_is_gone_from_its_layer`: one row per module, checking that the new import succeeds and that the old `.py` file or folder is gone. Criterion 2 is `test_an_area_package_imports_and_has_a_docstring`: the 4 packages. Criterion 3 is `test_no_file_imports_a_moved_module_from_its_old_path`: one row per module. It goes through `source_search.imported_modules`, so the `from factory.domain import git` form is caught too. Criterion 4 is `test_no_test_module_stays_in_its_layer_folder_when_all_it_imports_has_moved`. The Interface's "at least one is of hosting" side is pinned by `test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own`. The coder's `make check` was green (entry 11). The criterion-1 note "for `handlers`, the folder" is a leftover from S0001's wording; the test checks both a file and a folder.
+    - Group 2 (architecture): under `src/` the diff is 11 renames plus import lines only, and 4 new `__init__.py` files that each hold a one-line docstring. I filtered the diff for any non-import line in `src/` and found none. Every module stays in its own layer inside `factory.hosting`. The import-linter contracts in `pyproject.toml` (`factory.*.domain` etc., unchanged since S0001) cover the new area. A grep of `src`, `tests`, `pyproject.toml` and `Makefile` finds no dotted or file path of an old module. The only hits are the report sample strings in `tests/shared/domain/test_duplicates.py`, which are not imports.
+    - Group 3 (security): no new markers, no secrets, no strings built into commands.
+    - Group 4 (quality): the names and content of the moved modules are unchanged, and the new package docstrings say what each package holds. `make duplicates` gives `13 new, 32 known, 11 gone`. Nine of the new findings are the same accepted baseline entries under the new paths (`src/factory/hosting/adapters/fake_hosting.py` and `src/factory/hosting/domain/git.py`). The other new ones (in `cost_records`, and claude_runtime/opencode_runtime similar code) come from modules whose content this diff does not change. `security/duplicates-baseline.txt` is in no role's write paths. Updating it is the human's follow-up, as it was after S0001 (commit 159f946a2).
+    - Group 5 (hygiene): entry 11 gives the main choice (a straight move, no re-export shims) and what was rejected. The Description matches what was built. The docs criterion still holds. The project guide also names some of the 34 moved test modules by their old paths (for example `docs/project-guide/git-and-hosting.md:29,38,101` and `docs/project-guide/stage-environment.md:318`). S0001's documenter updated test paths under the same wording (commit ce87b8c22), so the documenter should do the same here.
+    - I rejected two possible findings. The coder's note on `tests/adapters/test_work_item_markdown.py` is out of date: `_layer` there already reads `factory.<area>.<layer>`. And `tests/hosting/adapters/test_zfs_snapshots_diff.py` landing under `hosting` is odd, but it follows the Interface's import rule (it imports only `factory.hosting.domain.git` and `factory.shared`).
+
+    Earlier tests changed (every diff line is an import line, a dotted module path or a file path, or a `git mv`; every test keeps its name and what it checks). "FD5" below means the human's leave in feature decision 5 of `feature.md`:
+    - tests/test_areas.py: the human's leave, this story's Interface (adds the `hosting` row of `AREAS` and nothing else)
+    - tests/domain/test_hosting.py: FD5, the guard `test_domain_modules_import_only_stdlib_pydantic_and_domain` over the new layout (`_is_domain` also counts `factory.hosting.domain`), plus import lines and module paths
+    - tests/test_test_names.py: FD5, file paths of the moved test modules
+    - tests/acceptance_walk.py: FD5, import lines and module paths
+    - tests/adapters/test_claude_runtime_environment.py: FD5, import lines and module paths
+    - tests/adapters/test_copy_snapshots.py: FD5, import lines and module paths
+    - tests/adapters/test_fake_snapshots.py: FD5, import lines and module paths
+    - tests/adapters/test_make_commands_container.py: FD5, import lines and module paths
+    - tests/application/handlers/conftest.py: FD5, import lines and module paths
+    - tests/application/handlers/test_closed.py: FD5, import lines and module paths
+    - tests/application/handlers/test_closed_send_back.py: FD5, import lines and module paths
+    - tests/application/handlers/test_comment_handler.py: FD5, import lines and module paths
+    - tests/application/handlers/test_comments.py: FD5, import lines and module paths
+    - tests/application/handlers/test_comments_crash_cap.py: FD5, import lines and module paths
+    - tests/application/handlers/test_hand_over.py: FD5, import lines and module paths
+    - tests/application/handlers/test_handler_subjects.py: FD5, import lines and module paths
+    - tests/application/handlers/test_lookups.py: FD5, import lines and module paths
+    - tests/application/handlers/test_merged.py: FD5, import lines and module paths
+    - tests/application/handlers/test_questions.py: FD5, import lines and module paths
+    - tests/application/handlers/test_recording.py: FD5, import lines and module paths
+    - tests/application/handlers/test_reject.py: FD5, import lines and module paths
+    - tests/application/handlers/test_run.py: FD5, import lines and module paths
+    - tests/application/handlers/test_run_gate.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_closed.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_hand_over.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_merged.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_merged_before_approval.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_no_state_refusals.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_repeated.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_reviewer_role.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_service.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_snapshots.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_ticks_closed.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_ticks_merged.py: FD5, import lines and module paths
+    - tests/application/test_after_agent.py: FD5, import lines and module paths
+    - tests/application/test_after_agent_edges.py: FD5, import lines and module paths
+    - tests/application/test_agent_run_probe_environment.py: FD5, import lines and module paths
+    - tests/application/test_bill_service.py: FD5, import lines and module paths
+    - tests/application/test_checkout_preparer.py: FD5, import lines and module paths
+    - tests/application/test_claims.py: FD5, import lines and module paths
+    - tests/application/test_claims_refusals.py: FD5, import lines and module paths
+    - tests/application/test_container_environment.py: FD5, import lines and module paths
+    - tests/application/test_container_stage_checks.py: FD5, import lines and module paths
+    - tests/application/test_container_sync_origin.py: FD5, import lines and module paths
+    - tests/application/test_costs.py: FD5, import lines and module paths
+    - tests/application/test_dispatcher.py: FD5, import lines and module paths
+    - tests/application/test_dispatcher_without_state.py: FD5, import lines and module paths
+    - tests/application/test_hosting_failure_releases_claim.py: FD5, import lines and module paths
+    - tests/application/test_human_line_posts.py: FD5, import lines and module paths
+    - tests/application/test_interfaces.py: FD5, import lines and module paths
+    - tests/application/test_known_results.py: FD5, import lines and module paths
+    - tests/application/test_no_state_refusals.py: FD5, import lines and module paths
+    - tests/application/test_opening.py: FD5, import lines and module paths
+    - tests/application/test_opening_journal_edges.py: FD5, import lines and module paths
+    - tests/application/test_pipeline_loading.py: FD5, import lines and module paths
+    - tests/application/test_pipeline_loading_agents.py: FD5, import lines and module paths
+    - tests/application/test_pipeline_loading_rules.py: FD5, import lines and module paths
+    - tests/application/test_pipeline_loading_stage_moves.py: FD5, import lines and module paths
+    - tests/application/test_pipeline_loading_strict_values.py: FD5, import lines and module paths
+    - tests/application/test_pipeline_loading_yaml_fault.py: FD5, import lines and module paths
+    - tests/application/test_preflight.py: FD5, import lines and module paths
+    - tests/application/test_preflight_login_line.py: FD5, import lines and module paths
+    - tests/application/test_preflight_run.py: FD5, import lines and module paths
+    - tests/application/test_preflight_stale_main_stop.py: FD5, import lines and module paths
+    - tests/application/test_preflight_stop_detail.py: FD5, import lines and module paths
+    - tests/application/test_question_causes_recorded.py: FD5, import lines and module paths
+    - tests/application/test_recording_project_commands.py: FD5, import lines and module paths
+    - tests/application/test_recovery_cap.py: FD5, import lines and module paths
+    - tests/application/test_recovery_crash.py: FD5, import lines and module paths
+    - tests/application/test_recovery_expiry.py: FD5, import lines and module paths
+    - tests/application/test_recovery_expiry_key.py: FD5, import lines and module paths
+    - tests/application/test_recovery_subjects.py: FD5, import lines and module paths
+    - tests/application/test_repository_waiter.py: FD5, import lines and module paths
+    - tests/application/test_scheduler.py: FD5, import lines and module paths
+    - tests/application/test_snapshots_interface.py: FD5, import lines and module paths
+    - tests/application/test_stage_environment_calls.py: FD5, import lines and module paths
+    - tests/application/test_stage_finish.py: FD5, import lines and module paths
+    - tests/application/test_stage_known_results.py: FD5, import lines and module paths
+    - tests/application/test_stage_launch.py: FD5, import lines and module paths
+    - tests/application/test_stage_provider_limit.py: FD5, import lines and module paths
+    - tests/application/test_stage_run.py: FD5, import lines and module paths
+    - tests/application/test_stage_run_acceptance.py: FD5, import lines and module paths
+    - tests/application/test_stale_branches.py: FD5, import lines and module paths
+    - tests/application/test_stall_edges.py: FD5, import lines and module paths
+    - tests/application/test_stall_environment.py: FD5, import lines and module paths
+    - tests/application/test_stall_labels.py: FD5, import lines and module paths
+    - tests/application/test_stall_reasons_recorded.py: FD5, import lines and module paths
+    - tests/application/test_stalls.py: FD5, import lines and module paths
+    - tests/application/test_stop_posting.py: FD5, import lines and module paths
+    - tests/application/test_stop_publisher.py: FD5, import lines and module paths
+    - tests/application/test_stops.py: FD5, import lines and module paths
+    - tests/application/test_take_edges.py: FD5, import lines and module paths
+    - tests/application/test_tick.py: FD5, import lines and module paths
+    - tests/application/test_tick_agent_definition.py: FD5, import lines and module paths
+    - tests/application/test_tick_own_fetch.py: FD5, import lines and module paths
+    - tests/application/test_tick_preflight.py: FD5, import lines and module paths
+    - tests/application/test_tick_restore_ignored.py: FD5, import lines and module paths
+    - tests/application/test_tick_stale_branch.py: FD5, import lines and module paths
+    - tests/application/test_tick_stop_details.py: FD5, import lines and module paths
+    - tests/application/test_tick_stop_records.py: FD5, import lines and module paths
+    - tests/application/test_watcher.py: FD5, import lines and module paths
+    - tests/application/test_watcher_acceptance.py: FD5, import lines and module paths
+    - tests/application/test_watcher_main_ref.py: FD5, import lines and module paths
+    - tests/application/test_watcher_move_rule.py: FD5, import lines and module paths
+    - tests/application/test_work_items.py: FD5, import lines and module paths
+    - tests/application/test_work_items_duplicate.py: FD5, import lines and module paths
+    - tests/application/test_write_paths.py: FD5, import lines and module paths
+    - tests/application/test_write_paths_guard.py: FD5, import lines and module paths
+    - tests/branch_reading.py: FD5, import lines and module paths
+    - tests/conftest.py: FD5, import lines and module paths
+    - tests/container_extra_support.py: FD5, import lines and module paths
+    - tests/container_support.py: FD5, import lines and module paths
+    - tests/cost_image_support.py: FD5, import lines and module paths
+    - tests/crash_support.py: FD5, import lines and module paths
+    - tests/domain/test_acceptance_booking.py: FD5, import lines and module paths
+    - tests/domain/test_archive_texts.py: FD5, import lines and module paths
+    - tests/domain/test_decide_docs_slip.py: FD5, import lines and module paths
+    - tests/domain/test_decision_rules.py: FD5, import lines and module paths
+    - tests/domain/test_evaluation.py: FD5, import lines and module paths
+    - tests/domain/test_evaluation_details.py: FD5, import lines and module paths
+    - tests/domain/test_evaluation_due.py: FD5, import lines and module paths
+    - tests/domain/test_evaluation_reject.py: FD5, import lines and module paths
+    - tests/domain/test_hand_over.py: FD5, import lines and module paths
+    - tests/domain/test_human_waits.py: FD5, import lines and module paths
+    - tests/domain/test_post_texts_notes.py: FD5, import lines and module paths
+    - tests/domain/test_preflight_stop_records_paths.py: FD5, import lines and module paths
+    - tests/domain/test_provider_limit_stall_text.py: FD5, import lines and module paths
+    - tests/domain/test_question_texts.py: FD5, import lines and module paths
+    - tests/domain/test_stall_reason_removed.py: FD5, import lines and module paths
+    - tests/domain/test_stall_texts.py: FD5, import lines and module paths
+    - tests/domain/test_times.py: FD5, import lines and module paths
+    - tests/domain/test_work_item_stop.py: FD5, import lines and module paths
+    - tests/entry/test_bill.py: FD5, import lines and module paths
+    - tests/entry/test_git_hooks.py: FD5, import lines and module paths
+    - tests/entry/test_git_nested_repositories.py: FD5, import lines and module paths
+    - tests/entry/test_run.py: FD5, import lines and module paths
+    - tests/entry/test_run_fetch_before_tick.py: FD5, import lines and module paths
+    - tests/entry/test_run_health_file.py: FD5, import lines and module paths
+    - tests/entry/test_run_idle_exit.py: FD5, import lines and module paths
+    - tests/entry/test_run_image_sizes.py: FD5, import lines and module paths
+    - tests/entry/test_run_machine_stop_exit.py: FD5, import lines and module paths
+    - tests/entry/test_run_one_fetch.py: FD5, import lines and module paths
+    - tests/entry/test_run_project_image_rebuild.py: FD5, import lines and module paths
+    - tests/entry/test_run_stop_requested.py: FD5, import lines and module paths
+    - tests/entry/test_run_waiter.py: FD5, import lines and module paths
+    - tests/entry/test_watch.py: FD5, import lines and module paths
+    - tests/entry/test_watch_main.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_acceptance.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_api_login.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_boundaries.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_command_records.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_container_extra.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_container_profile.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_copy_snapshots.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_drop_caches.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_image_path.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_instance_label.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_known_results.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_login.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_machine_inputs.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_one_environment.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_opencode.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_opencode_provider.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_project_agents.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_project_image.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_provider_limit.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_record_logs.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_run.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_stage_environment.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_stop_records.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_transcripts.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_waiter.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_without_agent_user.py: FD5, import lines and module paths
+    - tests/evaluation_support.py: FD5, import lines and module paths
+    - tests/git_support.py: FD5, import lines and module paths
+    - tests/hosting_interface_support.py: FD5, import lines and module paths
+    - tests/human_clone.py: FD5, import lines and module paths
+    - tests/observing_runtime.py: FD5, import lines and module paths
+    - tests/preflight_support.py: FD5, import lines and module paths
+    - tests/proof_support.py: FD5, import lines and module paths
+    - tests/push_retry_support.py: FD5, import lines and module paths
+    - tests/scripted_tick_support.py: FD5, import lines and module paths
+    - tests/stage_run_support.py: FD5, import lines and module paths
+    - tests/stall_support.py: FD5, import lines and module paths
+    - tests/take_support.py: FD5, import lines and module paths
+    - tests/test_approval_description.py: FD5, import lines and module paths
+    - tests/test_checkout_hygiene_removed.py: FD5, import lines and module paths
+    - tests/test_hosting_search.py: FD5, import lines and module paths
+    - tests/test_kill_points.py: FD5, import lines and module paths
+    - tests/test_no_journal_reading.py: FD5, import lines and module paths
+    - tests/test_retrying_wording.py: FD5, import lines and module paths
+    - tests/test_shared_branch_helpers.py: FD5, import lines and module paths
+    - tests/test_stop_table.py: FD5, import lines and module paths
+    - tests/test_wrapper_search.py: FD5, import lines and module paths
+    - tests/write_path_support.py: FD5, import lines and module paths
+    - tests/adapters/test_fake_hosting.py -> tests/hosting/adapters/test_fake_hosting.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_arguments.py -> tests/hosting/adapters/test_git_cli_arguments.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_branches.py -> tests/hosting/adapters/test_git_cli_branches.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_check_ignore.py -> tests/hosting/adapters/test_git_cli_check_ignore.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_history.py -> tests/hosting/adapters/test_git_cli_history.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_reading.py -> tests/hosting/adapters/test_git_cli_reading.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_restoring.py -> tests/hosting/adapters/test_git_cli_restoring.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_seal.py -> tests/hosting/adapters/test_git_cli_seal.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_work_tree.py -> tests/hosting/adapters/test_git_cli_work_tree.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_work_tree_dash.py -> tests/hosting/adapters/test_git_cli_work_tree_dash.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_work_tree_tick.py -> tests/hosting/adapters/test_git_cli_work_tree_tick.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_writing.py -> tests/hosting/adapters/test_git_cli_writing.py: FD5, git mv and import lines
+    - tests/adapters/test_pygithub_hosting.py -> tests/hosting/adapters/test_pygithub_hosting.py: FD5, git mv and import lines
+    - tests/adapters/test_pygithub_retry.py -> tests/hosting/adapters/test_pygithub_retry.py: FD5, git mv and import lines
+    - tests/adapters/test_pygithub_service.py -> tests/hosting/adapters/test_pygithub_service.py: FD5, git mv and import lines
+    - tests/adapters/test_zfs_snapshots_diff.py -> tests/hosting/adapters/test_zfs_snapshots_diff.py: FD5, git mv and import lines
+    - tests/application/test_acceptance_ticks_repeated.py -> tests/hosting/application/test_acceptance_ticks_repeated.py: FD5, git mv and import lines
+    - tests/application/test_git_interface.py -> tests/hosting/application/test_git_interface.py: FD5, git mv and import lines
+    - tests/application/test_hosting_interface.py -> tests/hosting/application/test_hosting_interface.py: FD5, git mv and import lines
+    - tests/domain/test_correction_texts.py -> tests/hosting/domain/test_correction_texts.py: FD5, git mv and import lines
+    - tests/domain/test_default_git_identity.py -> tests/hosting/domain/test_default_git_identity.py: FD5, git mv and import lines
+    - tests/domain/test_error_report_text.py -> tests/hosting/domain/test_error_report_text.py: FD5, git mv and import lines
+    - tests/domain/test_git.py -> tests/hosting/domain/test_git.py: FD5, git mv and import lines
+    - tests/domain/test_git_history.py -> tests/hosting/domain/test_git_history.py: FD5, git mv and import lines
+    - tests/domain/test_post_texts.py -> tests/hosting/domain/test_post_texts.py: FD5, git mv and import lines
+    - tests/domain/test_post_texts_crash_cap.py -> tests/hosting/domain/test_post_texts_crash_cap.py: FD5, git mv and import lines
+    - tests/domain/test_push_reason.py -> tests/hosting/domain/test_push_reason.py: FD5, git mv and import lines
+    - tests/domain/test_push_reason_porcelain.py -> tests/hosting/domain/test_push_reason_porcelain.py: FD5, git mv and import lines
+    - tests/domain/test_push_reason_summary_line.py -> tests/hosting/domain/test_push_reason_summary_line.py: FD5, git mv and import lines
+    - tests/domain/test_question_post_texts.py -> tests/hosting/domain/test_question_post_texts.py: FD5, git mv and import lines
+    - tests/domain/test_send_back_texts.py -> tests/hosting/domain/test_send_back_texts.py: FD5, git mv and import lines
+    - tests/domain/test_settings.py -> tests/hosting/domain/test_settings.py: FD5, git mv and import lines
+    - tests/domain/test_stall_note_block.py -> tests/hosting/domain/test_stall_note_block.py: FD5, git mv and import lines
+    - tests/domain/test_tree_id.py -> tests/hosting/domain/test_tree_id.py: FD5, git mv and import lines
+14. factory: started docs as vm.
+15. documenter: Docs stage, round 0. Only documents changed, so I did not run `make check`; the factory's checks after this stage decide.
+
+    Files changed:
+    - `docs/project-guide/README.md`: the moved modules are named at their `factory.hosting.<layer>.<name>` paths. The section *The code's layout* has a new sentence naming the area `hosting` and what it holds: git, the hosting service, pushes, the hand-over and the opening of pull requests.
+    - `docs/project-guide/git-and-hosting.md`, `stages.md`, `watching.md`, `costs.md`, `processes-and-checks.md`, `stage-environment.md`, `work-items.md`: the dotted module paths of the 11 moved modules are replaced with the new ones. The same files also have the moved tests' paths changed from `tests/<layer>/` to `tests/hosting/<layer>/`: the 34 renames the diff shows under `tests/domain`, `tests/application` and `tests/adapters`.
+
+    Checked, no change needed:
+    - I searched `README.md` and `docs/operator-guide.md` for an old path of a moved module and found none.
+    - Every `tests/(domain|application|adapters)/*.py` path the docs name still exists.
+    - `tests/adapters/pygithub_stand_ins.py` is not a test module and did not move, so `git-and-hosting.md` still names it correctly.
+    - `docs/decisions.md` is left alone, as the criterion says. I added no "Why" or "Rejected" text.
+    - I did not compare the docs' prose with the code, only the module and test paths.
+
+    Not touched: `docs/operator-playbook.md` and `docs/runs/` are outside this stage's write paths, and I did not search them for old paths.
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 4cc7b7dab2a3 at 2026-11-05T01:18:30Z)
+    `secrets`: secrets: green (5.3 s)
+    `documents`: documents ok
+16. factory: started smoke-test as vm.
+17. smoke-tester: Smoke test, round 0. I ran the three commands under `## Smoke test` from the repository root, as written and in order. All three met their `Expect:` lines.
+
+    1. `uv run python -c "import factory.hosting.domain.git as m; print(m.__name__)"`
+    ```
+    Bytecode compiled 4164 files in 57ms
+    factory.hosting.domain.git
+    ```
+    Expect `factory.hosting.domain.git`: met. The first line is uv's own bytecode notice, not output of the command.
+
+    2. `test -e src/factory/domain/git.py && echo still there || echo moved`
+    ```
+    moved
+    ```
+    Expect `moved`: met.
+
+    3. `uv run pytest tests/test_areas.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    Against the acceptance criteria: I also checked that none of the 11 modules in the table is left at its old path, and grepped `src/` and `tests/` for each old dotted path. The only hits are string test data in `tests/shared/domain/test_duplicates.py` (lines 22, 26 and 45, sample pylint duplicate-code output that names `factory.domain.git`). None is an import line, so criterion 3 holds. Nothing contradicts criteria 1 to 4. I did not run `make check` (criterion 5): the factory runs it as the stage's check.
+
+    Findings: none.

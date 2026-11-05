@@ -6,14 +6,14 @@ from typing import get_args
 
 import pytest
 
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.stops import StopService
-from factory.domain.hosting import PostKey, PullRequestComment
 from factory.domain.journal import NewEntry, append_entry
 from factory.domain.stop_table import STOP_TABLE, StopRow
 from factory.domain.stops import RepositoryStop, RepositoryStopReason
 from factory.domain.work_item import WorkItemDocument, initial_state
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.domain.hosting import PostKey, PullRequestComment
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.identifiers import WorkItemId, branch_name
 from proof_support import (

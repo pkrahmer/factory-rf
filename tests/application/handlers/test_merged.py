@@ -7,16 +7,16 @@ from pathlib import Path
 import pytest
 
 from bill_support import completed_records, sidecar_text
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.merged import MergedHandler
 from factory.domain.bills import bill
 from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry, entry_text
-from factory.domain.post_texts import done_entry_text
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.post_texts import done_entry_text
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import PushFailed
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints

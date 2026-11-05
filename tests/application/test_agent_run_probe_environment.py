@@ -17,10 +17,10 @@ from container_support import (
     sync_makefile,
 )
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import PROBE_PROMPT, agent_run_probe_item
-from factory.domain.git import GitOptions
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.git import GitOptions
 from factory.shared.domain.settings import InstanceSettings
 from git_support import TEST_IDENTITY, clone, install_agents, run_git
 from human_clone import HumanClone

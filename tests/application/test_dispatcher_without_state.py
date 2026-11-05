@@ -2,15 +2,15 @@
 
 from pathlib import Path
 
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Dispatcher
 from factory.application.stops import StopService
 from factory.domain.events import Event
-from factory.domain.hosting import PostKey
 from factory.domain.tick_status import TickStatus
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.hosting import PostKey
 from git_support import remote_commit
 from human_clone import HumanClone
 from tick_support import Failing

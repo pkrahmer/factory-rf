@@ -4,9 +4,9 @@ import json
 from pathlib import Path
 
 from adapters.claude_stand_in import claude_request
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.provider_limits import ProviderLimit
 from factory.entry.wiring import build_boundaries
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
 from podman_support import PodmanPlan
 from wiring_support import CREDENTIAL, dataset_podman, with_dataset

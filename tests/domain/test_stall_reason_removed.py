@@ -7,9 +7,9 @@ from typing import get_args
 
 import pytest
 
-import factory.domain.post_texts
+import factory.hosting.domain.post_texts
 from factory.domain.journal import StallReason
-from factory.domain.post_texts import stall_cause
+from factory.hosting.domain.post_texts import stall_cause
 from source_search import string_literals
 
 REMOVED = "left_branch"
@@ -20,7 +20,7 @@ def _not_a_reason() -> None:
 
 
 def _no_sentence() -> None:
-    path = Path(factory.domain.post_texts.__file__)
+    path = Path(factory.hosting.domain.post_texts.__file__)
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     assert REMOVED not in string_literals(tree)
 

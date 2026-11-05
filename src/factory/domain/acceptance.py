@@ -10,8 +10,8 @@ from factory.domain.bills import Bill, cost_line
 from factory.domain.board import AcceptanceStatus
 from factory.domain.journal import FACTORY, HUMAN, NewEntry, append_entry, entry_text, last_record
 from factory.domain.pipeline_definition import DONE_STAGE, PipelineDefinition
-from factory.domain.post_texts import done_entry_text
 from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
+from factory.hosting.domain.post_texts import done_entry_text
 from factory.shared.domain.identifiers import (
     FeatureId,
     WorkItemId,

@@ -21,7 +21,6 @@ from factory.domain.agent_runs import (
 )
 from factory.domain.checks import CheckResult, command_ending
 from factory.domain.containers import ContainerResult
-from factory.domain.git import CommitId
 from factory.domain.preflight import (
     PreflightItem,
     PreflightReport,
@@ -31,6 +30,7 @@ from factory.domain.preflight import (
     version_matches,
 )
 from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
+from factory.hosting.domain.git import CommitId
 from factory.shared.domain.errors import (
     AgentDefinitionError,
     AgentRuntimeError,

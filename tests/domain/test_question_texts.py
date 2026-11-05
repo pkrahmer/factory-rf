@@ -1,7 +1,7 @@
 """The questions the factory asks the human by itself."""
 
-from factory.domain.post_texts import findings_question, round_cap_question
 from factory.domain.story_form import FormFinding
+from factory.hosting.domain.post_texts import findings_question, round_cap_question
 
 
 def test_the_round_cap_question_names_the_rounds_and_the_cap() -> None:

@@ -8,14 +8,14 @@ from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
-from factory.application.opening import WorkItemOpening
 from factory.application.stage import LaunchedStage, StageLauncher, StartedStage
 from factory.application.stalls import StallContext
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
-from factory.domain.git import CommitId
-from factory.domain.hosting import PullRequestView
 from factory.domain.journal import JournalRecord
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.hosting.application.opening import WorkItemOpening
+from factory.hosting.domain.git import CommitId
+from factory.hosting.domain.hosting import PullRequestView
 from git_support import install_agents
 from human_clone import HumanClone
 from observing_runtime import ObservingRuntime

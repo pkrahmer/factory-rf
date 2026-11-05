@@ -8,8 +8,6 @@ import pytest
 
 from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.acceptance import AcceptanceDueHandler, AcceptanceService
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import unhandled_kinds
@@ -20,6 +18,8 @@ from factory.domain.events import Event, EventKind
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.entry.wiring import build_handlers, handler_factory
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.errors import CannotHandle
 from git_support import PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone

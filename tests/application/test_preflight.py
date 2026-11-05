@@ -9,10 +9,10 @@ import pytest
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import MachineChecks, tool_item
 from factory.domain.preflight import PreflightItem
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
 
 PINNED = "2.1.289"

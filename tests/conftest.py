@@ -24,8 +24,6 @@ from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonL
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.adapters.fake_containers import FakeContainerRuns
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
@@ -33,14 +31,16 @@ from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
-from factory.application.hosting import HostingService
 from factory.application.images import Images
 from factory.domain.disk import DiskRecord
-from factory.domain.git import GitOptions
 from factory.domain.known_results import ResultRecord
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.stops import StopRecord
 from factory.entry.wiring import machine_log
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.application.hosting import HostingService
+from factory.hosting.domain.git import GitOptions
 from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from factory.shared.domain.identifiers import WorkItemId
 from factory.shared.domain.kill_points import KillPoints

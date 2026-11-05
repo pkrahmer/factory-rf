@@ -6,8 +6,6 @@ from pathlib import Path
 import pytest
 
 from definition_support import pipeline_definition
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.application.handlers.closed import ClosedHandler
@@ -20,6 +18,8 @@ from factory.domain.work_item import (
     WorkItemState,
     initial_state,
 )
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from git_support import CHECKOUT, install_agents, remote_commit

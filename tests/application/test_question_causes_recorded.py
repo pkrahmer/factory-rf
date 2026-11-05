@@ -20,13 +20,13 @@ from crash_support import (
     snapshot,
 )
 from definition_support import pipeline_definition
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.closed import ClosedHandler
 from factory.application.handlers.questions import AskHandler
 from factory.domain.events import Event, EventKind
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.adapters.clock import ManualClock
 from human_clone import HumanClone
 

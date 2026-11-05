@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.handlers.recording import commit_subject
-from factory.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.application.stage import StageLauncher
-from factory.domain.git import CommitInfo
-from factory.domain.hosting import PullRequestView
 from factory.domain.work_item import WorkItemDocument
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.application.opening import PreparedWorkItem, WorkItemOpening
+from factory.hosting.domain.git import CommitInfo
+from factory.hosting.domain.hosting import PullRequestView
 from factory.shared.domain.errors import HostingServiceError, WorkItemFormatError
 from factory.shared.domain.identifiers import WorkItemId, branch_name
 from factory.shared.domain.kill_points import KillPoints

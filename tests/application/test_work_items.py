@@ -5,11 +5,11 @@ from pathlib import Path
 import pytest
 
 from definition_support import pipeline_definition
-from factory.adapters.git_cli import GitCli
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
 from factory.application.boundaries import Boundaries
 from factory.application.work_items import RemoteWorkItems
 from factory.domain.work_item import StoryFile, initial_state
+from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import LIFECYCLE_FOLDERS

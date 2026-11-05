@@ -15,8 +15,6 @@ from factory.application.stops import StopService
 from factory.application.work_items import RemoteWorkItems
 from factory.domain.evaluation import required_claim_status
 from factory.domain.events import Event, EventKind
-from factory.domain.git import CommitId
-from factory.domain.hosting import PostKey
 from factory.domain.journal import (
     FACTORY,
     JournalKind,
@@ -26,7 +24,6 @@ from factory.domain.journal import (
     last_record,
 )
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.post_texts import crash_cap_question, expiry_note
 from factory.domain.recovery import (
     asking_crash_cap,
     at_crash_cap,
@@ -40,6 +37,9 @@ from factory.domain.work_item import (
     WorkItemSnapshot,
     require_state,
 )
+from factory.hosting.domain.git import CommitId
+from factory.hosting.domain.hosting import PostKey
+from factory.hosting.domain.post_texts import crash_cap_question, expiry_note
 from factory.shared.domain.errors import CannotHandle
 from factory.shared.domain.identifiers import WorkItemId, work_item_of_branch
 from factory.shared.domain.paths import LifecycleFolder

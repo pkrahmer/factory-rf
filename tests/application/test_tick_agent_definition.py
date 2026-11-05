@@ -6,11 +6,11 @@ import pytest
 
 from agent_definition_support import COMPLETED
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.tick import Tick, TickOutcome
 from factory.domain.stops import RepositoryStop
 from factory.entry.wiring import handler_factory
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.adapters.clock import ManualClock
 from git_support import COLOURED_AGENT_FILE, PIPELINE_YAML, install_agents, write_agent
 from human_clone import HumanClone

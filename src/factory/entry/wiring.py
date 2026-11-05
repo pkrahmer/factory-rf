@@ -17,7 +17,6 @@ from factory.adapters.copy_snapshots import CopySnapshots
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
-from factory.adapters.git_cli import GitCli
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.machine_files import CgroupMachineReadings
 from factory.adapters.make_commands import ContainerMakeCommands
@@ -28,7 +27,6 @@ from factory.adapters.podman_images import PodmanImages
 from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.power_off import ProcessExit, SystemctlPowerOff
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
-from factory.adapters.pygithub_hosting import pygithub_service
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.transcript_files import FileTranscriptStore
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
@@ -45,7 +43,6 @@ from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.application.costs import BillService
 from factory.application.dispatcher import Handler
-from factory.application.git import Git
 from factory.application.handlers.closed import ClosedHandler
 from factory.application.handlers.comments import CommentHandler
 from factory.application.handlers.hand_over import HandOverHandler
@@ -55,7 +52,6 @@ from factory.application.handlers.questions import AskHandler
 from factory.application.handlers.reject import RejectHandler
 from factory.application.handlers.run import RunHandler
 from factory.application.handlers.run_gate import RunGate
-from factory.application.hosting import HostingService
 from factory.application.idle_shutdown import IdleShutdown
 from factory.application.images import IMAGE_BUILD_TIME_LIMIT, ImageBuild, Images
 from factory.application.machine import Clock, FactoryLog, HealthStatusStore, PowerOff
@@ -92,7 +88,6 @@ from factory.domain.containers import (
 )
 from factory.domain.disk import DiskRecord
 from factory.domain.events import EventKind
-from factory.domain.git import GitOptions
 from factory.domain.known_results import ResultRecord
 from factory.domain.machine import gigabytes
 from factory.domain.pipeline_definition import PipelineDefinition
@@ -104,6 +99,11 @@ from factory.domain.stage_layer import (
     stage_layer,
 )
 from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopRecord
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.adapters.pygithub_hosting import pygithub_service
+from factory.hosting.application.git import Git
+from factory.hosting.application.hosting import HostingService
+from factory.hosting.domain.git import GitOptions
 from factory.shared.adapters.atomic_file import replace_text
 from factory.shared.adapters.clock import SleepingWaiter, SystemClock
 from factory.shared.application.files import PipelineDefinitionReader, WorkItemReader

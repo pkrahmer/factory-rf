@@ -6,7 +6,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from factory.application.snapshots import Snapshots
-from factory.domain.git import ChangedPath
+from factory.hosting.domain.git import ChangedPath
 from factory.shared.domain.errors import SnapshotError
 
 # The bytes of a file are compared this many at a time, so a large file is never held whole.

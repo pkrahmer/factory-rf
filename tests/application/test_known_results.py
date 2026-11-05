@@ -8,12 +8,12 @@ from typing import override
 
 import pytest
 
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.known_results import KnownResults
 from factory.domain.checks import CheckResult, ReusedRun
-from factory.domain.git import TreeId
 from factory.domain.known_results import ResultKey, ResultRecord, definition_digest
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.git import TreeId
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.application.files import RecordLog
 from factory.shared.domain.errors import GitError, ProjectCommandError

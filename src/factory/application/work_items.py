@@ -3,8 +3,6 @@
 from collections.abc import Callable
 from pathlib import PurePosixPath
 
-from factory.application.git import Git
-from factory.domain.git import CommitId
 from factory.domain.move_rule import StageChange
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import (
@@ -14,6 +12,8 @@ from factory.domain.work_item import (
     WorkItemState,
     initial_state,
 )
+from factory.hosting.application.git import Git
+from factory.hosting.domain.git import CommitId
 from factory.shared.application.files import WorkItemReader
 from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.identifiers import (

@@ -16,8 +16,8 @@ from factory.domain.acceptance import (
 )
 from factory.domain.bills import Bill, bill, cost_line
 from factory.domain.journal import FACTORY, HUMAN, JournalKind, JournalRecord, entry_text
-from factory.domain.post_texts import done_entry_text
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
+from factory.hosting.domain.post_texts import done_entry_text
 from factory.shared.domain.sections import section_text, sections
 
 ROLE = "acceptance-reviewer"

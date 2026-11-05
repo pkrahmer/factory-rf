@@ -6,10 +6,10 @@ from factory.application.claims import ClaimService
 from factory.application.work_items import RemoteWorkItems
 from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
 from factory.domain.events import Event
-from factory.domain.git import CommitId
 from factory.domain.move_rule import IllegalChange, is_legal_change
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemSnapshot
+from factory.hosting.domain.git import CommitId
 from factory.shared.domain.errors import GitError
 from factory.shared.domain.identifiers import Name
 from factory.shared.domain.paths import MAIN_BRANCH, REMOTE

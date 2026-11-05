@@ -4,9 +4,9 @@ from collections.abc import Sequence
 
 import pytest
 
-from factory.domain.git import CommitInfo
-from factory.domain.hand_over import HAND_OVER_CLOSING, hand_over_description
 from factory.domain.work_item import WorkItemDocument
+from factory.hosting.domain.git import CommitInfo
+from factory.hosting.domain.hand_over import HAND_OVER_CLOSING, hand_over_description
 from factory.shared.domain.identifiers import WorkItemId, branch_name
 from factory.shared.domain.kill_points import InjectedKill, KillPoint
 from proof_support import (

@@ -31,7 +31,7 @@ ANOTHER_HTTP_CLIENT_IMPORTER = {"factory.adapters.elsewhere": ast.parse("import 
 def test_only_the_pygithub_client_imports_github() -> None:
     importers = {name for name, tree in modules().items() if imports(tree, "github")}
 
-    assert importers == {"factory.adapters.pygithub_hosting"}
+    assert importers == {"factory.hosting.adapters.pygithub_hosting"}
 
 
 @pytest.mark.parametrize(

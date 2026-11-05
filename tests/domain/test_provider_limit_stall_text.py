@@ -2,8 +2,8 @@
 
 from factory.domain import decisions, journal
 from factory.domain.journal import FACTORY, JournalRecord
-from factory.domain.post_texts import stall_cause, stall_note
 from factory.domain.work_item import WorkItemState, initial_state
+from factory.hosting.domain.post_texts import stall_cause, stall_note
 
 SENTENCE = "the provider's spend limit lasted past the waiting ceiling"
 

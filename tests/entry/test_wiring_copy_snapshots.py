@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.copy_snapshots import CopySnapshots
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.zfs_snapshots import ZfsSnapshots
 from factory.application.boundaries import Boundaries
 from factory.entry.wiring import build_boundaries, machine_extras
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import (
     SNAPSHOT_BASE_VARIABLE,

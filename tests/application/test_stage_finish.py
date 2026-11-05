@@ -8,9 +8,7 @@ import pytest
 from pydantic import BaseModel, ValidationError
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
-from factory.application.opening import WorkItemOpening
 from factory.application.project_commands import ProjectCommands
 from factory.application.stage import (
     STALL_TAIL_LINES,
@@ -24,8 +22,10 @@ from factory.domain.agent_runs import QUESTION, AgentRunResult
 from factory.domain.checks import CheckResult
 from factory.domain.journal import JournalRecord, entry_text
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.post_texts import findings_question, round_cap_question
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.application.opening import WorkItemOpening
+from factory.hosting.domain.post_texts import findings_question, round_cap_question
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import HostingServiceError, PushFailed
 from factory.shared.domain.identifiers import branch_name

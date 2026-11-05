@@ -12,8 +12,8 @@ from pydantic import (
 )
 
 from factory.domain import journal
-from factory.domain.git import CommitId
 from factory.domain.journal import JournalRecord
+from factory.hosting.domain.git import CommitId
 from factory.shared.domain.identifiers import Name, WorkItemId
 from factory.shared.domain.paths import LifecycleFolder
 from factory.shared.domain.times import UtcDatetime

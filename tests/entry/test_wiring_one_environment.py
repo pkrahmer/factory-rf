@@ -5,13 +5,13 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.make_commands import ContainerMakeCommands
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.zfs_snapshots import ZfsSnapshots
 from factory.application.project_commands import RecordingProjectCommands
 from factory.entry.wiring import agent_run_environment, build_boundaries
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings
 from podman_support import IMAGE, Podman

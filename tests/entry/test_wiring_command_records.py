@@ -5,11 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.project_commands import RecordingProjectCommands
 from factory.domain.command_records import CommandRecord
 from factory.entry.wiring import build_boundaries
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
 from git_support import clone
 from podman_support import PodmanPlan
