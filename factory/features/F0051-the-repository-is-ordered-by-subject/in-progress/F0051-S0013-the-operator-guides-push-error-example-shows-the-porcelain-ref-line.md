@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 555
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T00:12:18.857226Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-05T00:12:13.541453Z'
   stage: doing
   run: de5fb6ac684a44b295738439e6ab0d9d
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:12:18.857226Z'
+  stage: review
 ---
 
 # The operator guide's push error example shows the ref line the factory writes
@@ -123,3 +132,4 @@ Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [re
 
    `check`: check: green
    `duplicates`: duplicates: 4 new, 41 known, 2 gone
+8. factory: started review as vm.
