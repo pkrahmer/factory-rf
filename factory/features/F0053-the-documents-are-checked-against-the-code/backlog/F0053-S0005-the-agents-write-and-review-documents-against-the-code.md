@@ -9,7 +9,7 @@ The checks catch names, settings and examples; the rest of a document's truth de
 - `agents/agents/documenter.md`: one rule each for: read the code first; examples are runnable, or marked and copied from a real run that the text names; keep detail in *Reference*; run `make documents` and end only on `documents ok`.
 - `agents/agents/reviewer.md`: in its checklist, an item *Documents*: the changed documents' claims against the code, and examples runnable or marked; a failure is a finding.
 - `agents/agents/intake.md`: a docs criterion that dictates sentences is a question; it should name what the reader must know.
-- Tests of the agent texts: `tests/agent_files/test_claude_agent_texts_documents.py`, one row per rule.
+- Tests of the agent texts: `tests/agent_files/test_claude_agent_texts_documents.py`, one row per rule. The human's leave (2026-11-05): the tester may change the earlier tests that pin an agent file's whole text (such as `test_the_rest_of_the_reviewer_body_is_unchanged` in `tests/agent_files/test_claude_agent_texts_review_groups.py`) so that they leave out the new rules' lines, as F0052-S0002 did for its `### docs-review` subsection; each keeps its name and pins the rest as before.
 
 ## Acceptance criteria
 
