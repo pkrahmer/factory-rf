@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T03:31:17.387383Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-05T03:31:17.387383Z'
   stage: smoke-test
+- number: 17
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T03:32:37.423918Z'
+  stage: smoke-test
+  run: 1d57400f920447ca864dab2eab05fb90
 ---
 
 # The machine area holds containers, images and disks
@@ -330,3 +332,31 @@ Expect: `1`
     `secrets`: secrets: green (3.0 s)
     `documents`: documents ok
 16. factory: started smoke-test as vm.
+17. smoke-tester: Round 0 smoke test. I ran the three commands under `## Smoke test` from the repository root, as written and in order. All three met their `Expect:` line.
+
+    1. `uv run python -c "import factory.machine.domain.containers as m; print(m.__name__)"`
+    ```
+    Bytecode compiled 4164 files in 45ms
+    factory.machine.domain.containers
+    ```
+    Met `Expect: factory.machine.domain.containers`. The first line is uv's own stderr notice. The program's stdout is exactly the expected line, and the exit code was 0.
+
+    2. `test -e src/factory/domain/containers.py && echo still there || echo moved`
+    ```
+    moved
+    ```
+    Met `Expect: moved`.
+
+    3. `uv run pytest tests/test_areas.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Met `Expect: 1`. Without the `grep -c`, that last line is `489 passed in 26.06s`.
+
+    I also read the acceptance criteria against the smoke test, and nothing contradicts any of them:
+    - `src/factory/machine/` holds 5 modules under `domain/`, 8 under `application/` and 11 under `adapters/`, each beside an `__init__.py`. These are the 24 modules of the table (criteria 1 and 2).
+    - `tests/test_areas.py` passes. It covers criteria 1 to 4 through `AREAS`.
+    - Criterion 5 is the factory's `make check` gate. Entry 11 records it green, and I did not run it again here.
+    - Criterion 6 is the documenter's entry 15. The smoke test reads no document.
+
+    Findings: none.
