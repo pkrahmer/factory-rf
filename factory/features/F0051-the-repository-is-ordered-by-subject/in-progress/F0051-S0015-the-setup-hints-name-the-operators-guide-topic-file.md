@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506, 6656185279]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T11:05:43.475241Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-05T11:05:43.475241Z'
   stage: smoke-test
+- number: 23
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T11:06:09.657208Z'
+  stage: smoke-test
+  run: 45cadcc653574c1bb60ce6222c2990f6
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -339,3 +341,38 @@ Expect: `1`
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok
 22. factory: started smoke-test as vm.
+23. smoke-tester: I ran the four smoke-test commands as written from the repository root. All four met their `Expect:` lines. No findings.
+
+    1. `grep -c 'docs/operator-guide/machine.md, "The rebuild after a merge")' operator/vm/setup.sh`
+    ```
+    2
+    ```
+    Expect `2`: met.
+
+    2. `grep -c 'operator guide, "' operator/vm/setup.sh`
+    ```
+    0
+    ```
+    (grep exit status 1, which is normal for zero matches.) Expect `0`: met.
+
+    3. `grep -c 'docs/operator-guide/machine.md' operator/skill/kumpel/references/approving.md`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    4. `uv run pytest tests/vm/test_vm_setup_install_hint.py tests/guards/test_operator_guide_pointers_search.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Expect `1`: met. The line it matched, from a second run without the grep: `10 passed in 0.02s`.
+
+    I read the acceptance criteria again and checked them against the files. The smoke test contradicts none of them:
+    - Criterion 1: `operator/vm/setup.sh:405` (tools) and `:453` (service) each end with `(docs/operator-guide/machine.md, "The rebuild after a merge")' >&2`, which sends them to stderr. Each appears once, and no line holds `(operator guide, `.
+    - Criterion 2: `setup.sh:476` is `printf 'setup: done: build the stage image and start factory@%s; see "The machine" in docs/operator-guide/machine.md\n' "$instance"`. No line holds `see the operator guide, `.
+    - Criterion 3: `grep -rn 'operator guide' operator/vm operator/skill` prints nothing. The guard tests passed.
+    - `approving.md:25` matches the Interface's wording.
+    - Criterion 4: I did not run `make check` myself. The coder's run was green (entry 17), and the documenter reused that passed result (entry 21).
+    - Criterion 5: `docs/operator-guide/machine.md` lines 284, 295 and 296 quote the three new lines word for word.
+
+    Open: nothing for this story. The documenter noted stale "operator guide" pointers in `docs/decisions.md` at lines 179, 572 and 1432. They are outside this story's scope.
