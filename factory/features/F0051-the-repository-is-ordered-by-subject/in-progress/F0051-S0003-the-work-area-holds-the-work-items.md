@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T01:39:22.530581Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-05T01:39:17.476226Z'
   stage: intake
   run: d2f740c301a64b8ba5bf665f4dacc5e0
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:39:22.530581Z'
+  stage: tests
 ---
 
 # The work area holds the work items
@@ -130,3 +139,4 @@ Expect: `1`
    - Smoke test: the three commands are runnable. Each `Expect:` line is checkable. The pytest command passes no `-q`, and I did not check the pytest configuration's `addopts`. The `tail -1 | grep -c passed` expectation needs a summary line, so the tester should confirm `addopts` doesn't set `-qq`.
    - Architecture: each module moves to the same layer inside `factory.work`, which fits the areas-with-layers design (feature decisions 1, 2 and 4). No re-export is left.
    - Scope: within F0051 and not in its "Out of scope". The tester's leave is feature decision 5, and the standing answers are decision 8.
+7. factory: started tests as vm.
