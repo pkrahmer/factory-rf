@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T03:30:29.446271Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-05T03:30:29.446271Z'
   stage: docs
+- number: 15
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T03:31:12.024137Z'
+  stage: docs
+  run: 668be5127eb748089091ab3f084c5898
 ---
 
 # The machine area holds containers, images and disks
@@ -299,3 +301,22 @@ Expect: `1`
       - tests/test_stop_table.py: the module prefix filter gains `factory.machine.application`. This is a guard of the old layout, changed so it checks the same set of modules. The coder asked for it in entry 7 and the tester made it in entry 9, so it came after the tester's first run, not in it.
       - tests/test_areas.py: the `machine` row of `AREAS` only, as the Interface asks.
 14. factory: started docs as vm.
+15. documenter: Round 0. I changed documents only, so I did not run `make check`. The factory's checks after this stage decide.
+
+    Files changed:
+    - `docs/project-guide/README.md`: the layout section gains one sentence for the area `machine` (its three layer packages, and that it holds containers, images, the stage environment, snapshots, disks, the preflight, the project's commands and the machine's power). The index line for `processes-and-checks.md` now has the new module paths.
+    - `docs/project-guide/processes-and-checks.md`, `docs/project-guide/stage-environment.md`, `docs/project-guide/watching.md`: every `factory.<layer>.<name>` of the 24 moved modules is now `factory.machine.<layer>.<name>`. I rewrote them with an exact-name sed, and a grep first showed that only the dotted form occurs, nowhere as `src/...` paths.
+    - `docs/project-guide/stage-environment.md`: the test paths of the 41 moved test modules, such as `tests/adapters/test_podman_runs.py`, are now `tests/machine/<layer>/...`. I took the list from the git renames against `main`.
+
+    Cross-read and found current: `README.md` and `docs/operator-guide.md` name none of the moved modules or test paths, so they needed no change. The other files under `docs/project-guide/` hold no old path of the 24 modules. I grepped them for every old dotted path. `docs/decisions.md` is untouched, as criterion 6 says, and keeps the old paths as history.
+
+    Not touched, not mine:
+    - `pyproject.toml` lines 63 and 66 still hold per-file-ignores for the old `src/factory/adapters/` paths.
+    - `security/duplicates-baseline.txt` lines 37 to 41 still name the old `src/factory/adapters/` paths. Both are the human's files, and the coder and reviewer noted the same.
+    - Some bare test file names in `stage-environment.md`, for example `test_machine_checks_container.py` after a `tests/application/` prefix, belong to tests that did not move. I left them.
+
+    Findings for the coder: none. I did not run the smoke test commands, because they check code and tests, not the docs. The reviewer found the diff correct.
+
+    `check`: check: green (not run again: passed on tree bbce8ae4ff85 at 2026-11-05T03:26:21Z)
+    `secrets`: secrets: green (3.0 s)
+    `documents`: documents ok
