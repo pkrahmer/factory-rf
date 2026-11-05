@@ -8,14 +8,14 @@ from factory.application.handlers.recording import (
     require_pull_request,
     target_of,
 )
-from factory.domain.bills import bills_by_stage, cost_table
 from factory.domain.events import Event
-from factory.domain.human_waits import human_line, human_waits
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.domain.hand_over import cost_table_key, hand_over_description
 from factory.hosting.domain.post_texts import cost_table_post
 from factory.shared.domain.errors import CannotHandle
 from factory.shared.domain.paths import MAIN_BRANCH, cost_records_path
+from factory.watching.domain.bills import bills_by_stage, cost_table
+from factory.watching.domain.human_waits import human_line, human_waits
 from factory.work.domain.work_item import (
     WorkItemDocument,
     WorkItemSnapshot,

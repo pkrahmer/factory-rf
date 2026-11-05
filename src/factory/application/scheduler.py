@@ -5,13 +5,13 @@ from collections.abc import Callable
 from datetime import timedelta
 
 from factory.application.boundaries import Boundaries
-from factory.application.machine import FactoryLog
 from factory.application.stops import StopService
 from factory.domain.stops import RepositoryStop, RepositoryStopReason
 from factory.hosting.application.git import Git
 from factory.shared.domain.errors import GitError
 from factory.shared.domain.paths import MAIN_BRANCH, PIPELINE_DEFINITION_FILE, REMOTE
 from factory.shared.domain.settings import InstanceSettings
+from factory.watching.application.machine import FactoryLog
 
 _UNAVAILABLE: RepositoryStopReason = "repository_unavailable"
 _ORIGIN_MAIN = f"{REMOTE}/{MAIN_BRANCH}"

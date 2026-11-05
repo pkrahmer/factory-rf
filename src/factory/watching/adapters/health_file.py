@@ -5,9 +5,9 @@ from typing import override
 
 from pydantic import ValidationError
 
-from factory.application.machine import HealthStatusStore
 from factory.domain.stops import HealthStatus
 from factory.shared.adapters.atomic_file import replace_text
+from factory.watching.application.machine import HealthStatusStore
 
 
 class JsonHealthStatusFile(HealthStatusStore):

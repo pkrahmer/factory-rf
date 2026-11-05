@@ -4,7 +4,7 @@ import hashlib
 import os
 from pathlib import Path
 
-from factory.application.transcripts import TranscriptStore
+from factory.watching.application.transcripts import TranscriptStore
 
 _OWNER_ONLY = 0o600
 _OWNER_ONLY_FOLDER = 0o700

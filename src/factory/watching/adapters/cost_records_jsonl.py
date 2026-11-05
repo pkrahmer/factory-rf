@@ -7,10 +7,10 @@ from typing import override
 
 from pydantic import ValidationError
 
-from factory.domain.cost_records import CostRecord
 from factory.shared.adapters.validation_faults import first_fault
 from factory.shared.application.files import CostRecordReader, CostRecordWriter
 from factory.shared.domain.errors import CostRecordFormatError
+from factory.watching.domain.cost_records import CostRecord
 
 _SEPARATORS = (",", ":")
 

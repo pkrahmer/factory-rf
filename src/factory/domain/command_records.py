@@ -3,9 +3,9 @@
 from pydantic import BaseModel, ConfigDict
 
 from factory.domain.checks import CheckStatus, CommandName, TargetTime
-from factory.domain.cost_records import Duration
 from factory.hosting.domain.git import CommitId
 from factory.shared.domain.times import UtcDatetime
+from factory.watching.domain.cost_records import Duration
 
 
 class CommandRecord(BaseModel):

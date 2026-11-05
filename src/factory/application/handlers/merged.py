@@ -8,11 +8,11 @@ from factory.application.handlers.recording import (
     move_with_cost_records,
     target_of,
 )
-from factory.domain.bills import bill
 from factory.domain.events import Event
 from factory.domain.pipeline_definition import DONE_STAGE
 from factory.hosting.domain.post_texts import done_entry_text
 from factory.shared.domain.paths import MAIN_BRANCH, cost_records_path
+from factory.watching.domain.bills import bill
 from factory.work.domain.journal import FACTORY, NewEntry, append_entry
 from factory.work.domain.work_item import WorkItemDocument, require_state
 

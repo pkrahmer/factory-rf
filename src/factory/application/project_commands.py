@@ -4,13 +4,13 @@ from abc import ABC, abstractmethod
 from datetime import timedelta
 from typing import override
 
-from factory.application.machine import Clock, FactoryLog
 from factory.domain.checks import CheckResult
 from factory.domain.command_records import CommandRecord
 from factory.hosting.application.git import Git
 from factory.hosting.domain.git import CommitId
 from factory.shared.application.files import RecordLog
 from factory.shared.domain.errors import GitError
+from factory.watching.application.machine import Clock, FactoryLog
 
 
 class ProjectCommands(ABC):

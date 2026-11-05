@@ -8,9 +8,9 @@ from pydantic import BaseModel, ConfigDict
 
 from factory.agents.application.agent_runtime import AgentRuntime
 from factory.agents.domain.agent_runs import AgentRunResult
-from factory.application.machine import FactoryLog
-from factory.domain.cost_records import TranscriptRef
-from factory.domain.transcripts import Transcript
+from factory.watching.application.machine import FactoryLog
+from factory.watching.domain.cost_records import TranscriptRef
+from factory.watching.domain.transcripts import Transcript
 
 HOME_ON_THE_DATASET = "home"
 

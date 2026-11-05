@@ -7,8 +7,8 @@ from decimal import ROUND_HALF_UP, Decimal
 from pydantic import BaseModel, ConfigDict, NonNegativeInt
 
 from factory.agents.domain.agent_runs import TokenCounts
-from factory.domain.cost_records import CostRecord
 from factory.shared.domain.identifiers import Name
+from factory.watching.domain.cost_records import CostRecord
 
 _ZERO_TOKENS = TokenCounts(input=0, output=0)
 _ONE_DECIMAL = Decimal("0.1")

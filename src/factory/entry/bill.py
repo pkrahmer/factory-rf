@@ -6,9 +6,9 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TextIO
 
-from factory.application.costs import BillService, WorkItemBill
 from factory.entry.wiring import build_bill_service
 from factory.shared.domain.identifiers import ACCEPTANCE_ID, STORY_ID
+from factory.watching.application.costs import BillService, WorkItemBill
 
 _USAGE = "usage: factory-bill [<work item id>]"
 _OK = 0

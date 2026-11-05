@@ -12,7 +12,6 @@ from factory.application.pipeline_loading import PipelineLoader
 from factory.application.preflight import Preflight
 from factory.application.recovery import delete_stale_branches
 from factory.application.stops import StopPublisher, StopService
-from factory.application.watcher import Watcher
 from factory.domain.disk import disk_low_detail
 from factory.domain.events import Event, EventKind
 from factory.domain.pipeline_definition import PipelineDefinition
@@ -27,6 +26,7 @@ from factory.shared.domain.errors import (
 )
 from factory.shared.domain.identifiers import Name, branch_name, work_item_of_branch
 from factory.shared.domain.paths import MAIN_BRANCH, REMOTE
+from factory.watching.application.watcher import Watcher
 from factory.work.application.work_items import RemoteWorkItems
 
 HandlerFactory = Callable[[PipelineDefinition], Mapping[EventKind, Handler]]

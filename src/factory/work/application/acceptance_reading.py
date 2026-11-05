@@ -4,7 +4,6 @@ from collections.abc import Sequence
 from pathlib import PurePosixPath
 
 from factory.application.boundaries import Boundaries
-from factory.domain.board import FeatureRow
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.identifiers import (
@@ -25,6 +24,7 @@ from factory.shared.domain.paths import (
     LifecycleFolder,
     work_item_path,
 )
+from factory.watching.domain.board import FeatureRow
 from factory.work.application.work_items import RemoteWorkItems, parse_at
 from factory.work.domain.acceptance import (
     AcceptanceState,

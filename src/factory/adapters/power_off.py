@@ -3,9 +3,9 @@
 from collections.abc import Callable
 from datetime import timedelta
 
-from factory.application.machine import PowerOff
 from factory.shared.adapters.process import run_or_raise
 from factory.shared.domain.errors import PowerOffError
+from factory.watching.application.machine import PowerOff
 
 # The one command the machine's `sudoers` line allows the factory.
 POWER_OFF_COMMAND = ("-n", "/usr/bin/systemctl", "poweroff")

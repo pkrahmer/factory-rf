@@ -5,7 +5,7 @@ from datetime import UTC
 from pathlib import Path
 from typing import override
 
-from factory.application.machine import Clock, FactoryLog
+from factory.watching.application.machine import Clock, FactoryLog
 
 _STAMP_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 

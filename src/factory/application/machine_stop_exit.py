@@ -3,8 +3,8 @@
 from collections.abc import Callable
 from datetime import datetime, timedelta
 
-from factory.application.machine import Clock, FactoryLog, HealthStatusStore
 from factory.domain.stops import RepositoryStop, RepositoryStopReason
+from factory.watching.application.machine import Clock, FactoryLog, HealthStatusStore
 
 MACHINE_STOP_LIMIT = timedelta(minutes=10)
 

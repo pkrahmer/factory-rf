@@ -3,8 +3,8 @@
 from collections.abc import Callable
 from pathlib import Path
 
-from factory.application.machine import MachineReadings
-from factory.domain.machine import (
+from factory.watching.application.machine import MachineReadings
+from factory.watching.domain.machine import (
     MachineTotals,
     cpu_usage_seconds,
     mem_total_bytes,

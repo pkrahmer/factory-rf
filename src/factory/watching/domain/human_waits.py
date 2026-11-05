@@ -7,8 +7,8 @@ from typing import get_args
 
 from pydantic import BaseModel, ConfigDict, PositiveInt
 
-from factory.domain.bills import one_decimal
 from factory.shared.domain.times import UtcDatetime
+from factory.watching.domain.bills import one_decimal
 from factory.work.domain.journal import HUMAN, Blocked, JournalRecord
 
 _SECONDS_PER_HOUR = Decimal(3600)

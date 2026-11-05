@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 560
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T02:52:43.319986Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-05T02:52:43.319986Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-05T02:57:49.042852Z'
+  stage: doing
+  run: ba9d48b9a6704afc8c69459be6417919
 ---
 
 # The watching area holds what shows the factory and what it costs
@@ -147,3 +149,23 @@ Expect: `1`
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: Round 0. I changed only `src/`.
+
+   What I built:
+   - New packages, with the docstrings exactly as the Interface gives them: `src/factory/watching/__init__.py`, `src/factory/watching/domain/__init__.py`, `src/factory/watching/application/__init__.py` and `src/factory/watching/adapters/__init__.py`.
+   - I moved the 17 modules of the table with `git mv` from `src/factory/<layer>/<name>.py` to `src/factory/watching/<layer>/<name>.py`. Their content is unchanged.
+   - I rewrote every `factory.<layer>.<name>` import of a moved module under `src/` with sed, using a word boundary so that `machine_stop_exit` and `machine_files` stay untouched. After that I ran `ruff check --fix` and `ruff format` to re-sort the import blocks. 53 files in `src/` changed, by import lines only. No `from factory.<layer> import <name>` form and no relative import of a moved module existed. Nothing is re-exported at an old path.
+   - Check: `make check` is green (`test: green (117.4 s)`, `check: green`, total coverage 99.26 %).
+
+   Main choice: a mechanical rename of the import paths, with the module content unchanged. I rejected leaving re-export shims at the old paths: feature decision 4 forbids them.
+
+   Refactor step: I read the diff. It holds only renamed import lines and re-sorted import blocks, so there was nothing to change.
+
+   Description: the journal did not change the meaning of the task.
+
+   Noticed, not touched:
+   - `security/duplicates-baseline.txt` lines 22 and 23 still name `src/factory/domain/cost_records.py`, which now lives at `src/factory/watching/domain/cost_records.py`. The baseline is outside my write paths. `make duplicates` is a record, not a check, so these two known findings may show as "gone" and two as "new" until the file is updated.
+   - `pyproject.toml` has no per-file ignore under an old path of a moved module, so it needs no change.
+
+   `check`: check: green
+   `duplicates`: duplicates: 7 new, 38 known, 5 gone
