@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T01:40:37.024813Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-05T01:40:31.695373Z'
   stage: tests
   run: e27f1848590449218b893d5f81600b43
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:40:37.024813Z'
+  stage: doing
 ---
 
 # The work area holds the work items
@@ -158,3 +167,4 @@ Expect: `1`
    Open: on the intake's note about `addopts` and `-qq` in the smoke test's pytest command: following the stage's rule against reading tool configuration, I did not check it.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
