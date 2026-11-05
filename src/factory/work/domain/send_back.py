@@ -1,8 +1,8 @@
 """The rules of a send-back at an approval: the reason, the target stage and the round cap."""
 
-from factory.domain.journal import JournalKind, JournalRecord
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemDocument
+from factory.work.domain.journal import JournalKind, JournalRecord
+from factory.work.domain.work_item import WorkItemDocument
 
 
 def _records(document: WorkItemDocument) -> list[JournalRecord]:

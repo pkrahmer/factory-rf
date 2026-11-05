@@ -14,7 +14,6 @@ from factory.domain.agent_runs import AgentRunResult
 from factory.domain.bills import Bill, StageBill, bill, bills_by_stage, cost_line, cost_table
 from factory.domain.cost_records import CostRecord, MachineMeasures, ToolUse, TranscriptRef
 from factory.domain.machine import MachineTotals, machine_differences
-from factory.domain.work_item import require_state
 from factory.hosting.application.git import Git
 from factory.shared.application.files import CostRecordReader
 from factory.shared.domain.identifiers import (
@@ -25,6 +24,7 @@ from factory.shared.domain.identifiers import (
     work_item_order,
 )
 from factory.shared.domain.paths import FEATURES_DIRECTORY, MAIN_BRANCH, REMOTE, cost_records_path
+from factory.work.domain.work_item import require_state
 
 if TYPE_CHECKING:
     from factory.application.stage import StartedStage

@@ -5,14 +5,14 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, NonNegativeInt
 
-from factory.domain import journal
 from factory.domain.agent_runs import QUESTION, AgentRunResult
-from factory.domain.journal import JournalKind, NewEntry
 from factory.domain.pipeline_definition import PipelineDefinition, StageDefinition
-from factory.domain.story_form import FormFinding
-from factory.domain.work_item import Blocked, WorkItemState
 from factory.hosting.domain.post_texts import findings_question, round_cap_question
 from factory.shared.domain.identifiers import Name
+from factory.work.domain import journal
+from factory.work.domain.journal import JournalKind, NewEntry
+from factory.work.domain.story_form import FormFinding
+from factory.work.domain.work_item import Blocked, WorkItemState
 
 StallReason = journal.StallReason
 

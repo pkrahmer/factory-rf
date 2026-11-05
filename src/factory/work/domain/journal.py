@@ -23,7 +23,7 @@ from factory.shared.domain.sections import (
 from factory.shared.domain.times import UtcDatetime
 
 if TYPE_CHECKING:
-    from factory.domain.work_item import WorkItemDocument, WorkItemState
+    from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 
 HUMAN = "human"
 FACTORY = "factory"
@@ -139,7 +139,7 @@ def render_entry(number: int, entry: NewEntry) -> str:
     return "\n".join([*rendered, *_closing_line(rendered, indent)])
 
 
-# Not `require_state`: `factory.domain.work_item` imports `JournalRecord` from this module.
+# Not `require_state`: `factory.work.domain.work_item` imports `JournalRecord` from this module.
 def _state_of(document: WorkItemDocument) -> WorkItemState:
     if document.state is None:
         raise WorkItemFormatError("the document has no state")

@@ -13,17 +13,17 @@ from factory.application.handlers.recording import (
     require_pull_request,
     target_of,
 )
-from factory.domain.answers import unblock
 from factory.domain.events import Event
-from factory.domain.journal import HUMAN, NewEntry, append_entry, last_record
-from factory.domain.work_item import (
+from factory.hosting.domain.git import CommitId
+from factory.hosting.domain.hosting import PostKey, PullRequestComment
+from factory.work.domain.answers import unblock
+from factory.work.domain.journal import HUMAN, NewEntry, append_entry, last_record
+from factory.work.domain.work_item import (
     WorkItemDocument,
     WorkItemSnapshot,
     WorkItemState,
     require_state,
 )
-from factory.hosting.domain.git import CommitId
-from factory.hosting.domain.hosting import PostKey, PullRequestComment
 
 Adjust = Callable[[WorkItemDocument, Sequence[PullRequestComment]], WorkItemDocument]
 

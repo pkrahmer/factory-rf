@@ -3,15 +3,7 @@
 from collections.abc import Callable
 from pathlib import PurePosixPath
 
-from factory.domain.move_rule import StageChange
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import (
-    StoryFile,
-    WorkItemDocument,
-    WorkItemSnapshot,
-    WorkItemState,
-    initial_state,
-)
 from factory.hosting.application.git import Git
 from factory.hosting.domain.git import CommitId
 from factory.shared.application.files import WorkItemReader
@@ -31,6 +23,14 @@ from factory.shared.domain.paths import (
     LifecycleFolder,
     feature_file_path,
     folder_of,
+)
+from factory.work.domain.move_rule import StageChange
+from factory.work.domain.work_item import (
+    StoryFile,
+    WorkItemDocument,
+    WorkItemSnapshot,
+    WorkItemState,
+    initial_state,
 )
 
 _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"

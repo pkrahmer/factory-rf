@@ -5,7 +5,6 @@ from typing import override
 
 from pydantic import ValidationError
 
-from factory.adapters.work_item_markdown import RuamelYamlHandler, split_front_matter
 from factory.application.agent_runtime import AgentDefinitionReader
 from factory.domain.agent_runs import (
     APPLIED_AGENT_KEYS,
@@ -22,6 +21,7 @@ from factory.shared.domain.errors import (
 )
 from factory.shared.domain.identifiers import is_name
 from factory.shared.domain.paths import AGENT_SUFFIX
+from factory.work.adapters.work_item_markdown import RuamelYamlHandler, split_front_matter
 
 _BUDGET_KEY = "budget_usd"
 

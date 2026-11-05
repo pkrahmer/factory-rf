@@ -8,9 +8,7 @@ from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from factory.domain.bills import Bill, cost_line
 from factory.domain.board import AcceptanceStatus
-from factory.domain.journal import FACTORY, HUMAN, NewEntry, append_entry, entry_text, last_record
 from factory.domain.pipeline_definition import DONE_STAGE, PipelineDefinition
-from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 from factory.hosting.domain.post_texts import done_entry_text
 from factory.shared.domain.identifiers import (
     FeatureId,
@@ -27,6 +25,15 @@ from factory.shared.domain.sections import (
     section_text,
     split_lines,
 )
+from factory.work.domain.journal import (
+    FACTORY,
+    HUMAN,
+    NewEntry,
+    append_entry,
+    entry_text,
+    last_record,
+)
+from factory.work.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 
 ACCEPTANCE_SLUG = "acceptance"
 AcceptanceOutcome = Literal["accepted", "refused"]

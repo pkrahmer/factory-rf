@@ -4,10 +4,10 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from factory.domain.work_item import WorkItemSnapshot
 from factory.hosting.domain.git import CommitId
 from factory.hosting.domain.hosting import PullRequestView
 from factory.shared.domain.identifiers import FeatureId
+from factory.work.domain.work_item import WorkItemSnapshot
 
 EventKind = Literal[
     "run",

@@ -5,8 +5,8 @@ from collections.abc import Sequence
 from pydantic import BaseModel, ConfigDict, NonNegativeInt, PositiveInt
 
 from factory.domain.agent_runs import QUESTION
-from factory.domain.story_form import FormFinding
 from factory.shared.domain.identifiers import Name, WorkItemId
+from factory.work.domain.story_form import FormFinding
 
 TESTER_ROLE = "tester"
 CODER_ROLE = "coder"

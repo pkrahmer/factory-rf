@@ -4,7 +4,6 @@ from datetime import UTC, date
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
 from factory.application.costs import read_cost_records
 from factory.application.disk_records import DiskRecorder
@@ -18,32 +17,12 @@ from factory.application.handlers.recording import (
     require_pull_request,
     target_of,
 )
-from factory.application.work_items import read_feature_file
-from factory.domain.acceptance import (
-    AcceptanceFacts,
-    FeatureAcceptance,
-    acceptance_description,
-    acceptance_facts,
-    acceptance_file_name,
-    acceptance_head,
-    book_merge,
-    book_refusal,
-    is_before_approval,
-)
-from factory.domain.archive import destination_path
 from factory.domain.bills import bill, bills_by_stage, cost_line, cost_table
 from factory.domain.cost_records import CostRecord
 from factory.domain.disk import disk_line
 from factory.domain.events import Event
 from factory.domain.human_waits import HumanWait, human_line, human_waits
-from factory.domain.journal import HUMAN, NewEntry, append_entry, last_record
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import (
-    WorkItemDocument,
-    WorkItemSnapshot,
-    WorkItemState,
-    require_state,
-)
 from factory.hosting.application.pushes import push_failure
 from factory.hosting.domain.git import CommitId
 from factory.hosting.domain.hand_over import cost_table_key
@@ -64,6 +43,27 @@ from factory.shared.domain.paths import (
     work_item_path,
 )
 from factory.shared.domain.sections import title
+from factory.work.application.acceptance_reading import AcceptanceReader
+from factory.work.application.work_items import read_feature_file
+from factory.work.domain.acceptance import (
+    AcceptanceFacts,
+    FeatureAcceptance,
+    acceptance_description,
+    acceptance_facts,
+    acceptance_file_name,
+    acceptance_head,
+    book_merge,
+    book_refusal,
+    is_before_approval,
+)
+from factory.work.domain.archive import destination_path
+from factory.work.domain.journal import HUMAN, NewEntry, append_entry, last_record
+from factory.work.domain.work_item import (
+    WorkItemDocument,
+    WorkItemSnapshot,
+    WorkItemState,
+    require_state,
+)
 
 _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 _KIND = "acceptance_due"

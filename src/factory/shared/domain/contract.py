@@ -6,11 +6,11 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from factory.domain.acceptance import AcceptanceState
 from factory.domain.cost_records import CostRecord
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.stops import StopRecord
-from factory.domain.work_item import WorkItemState
+from factory.work.domain.acceptance import AcceptanceState
+from factory.work.domain.work_item import WorkItemState
 
 RECORDS_CONTRACT = "4.4"
 CONTRACT_KEY = "x-records-contract"

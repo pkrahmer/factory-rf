@@ -1,6 +1,6 @@
 """What an answer does to a waiting work item: the wait ends and its own counter starts over."""
 
-from factory.domain.work_item import WorkItemState
+from factory.work.domain.work_item import WorkItemState
 
 
 def unblock(state: WorkItemState) -> WorkItemState:

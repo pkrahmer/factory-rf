@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T01:40:37.024813Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-05T01:40:37.024813Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-05T01:45:47.998402Z'
+  stage: doing
+  run: 940de3a8374c4d2d88462ab2d153e424
 ---
 
 # The work area holds the work items
@@ -168,3 +170,35 @@ Expect: `1`
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: Round 0. The source side of the move is done. The rest is test work, which only the tester may write, so I am sending it to the tester with the exact changes below, the way S0002 did (its entries 7 and 9). With all of them in my working tree, `make check` was green (`test: green (123.7 s)`, `check: green`). The factory drops my edits under `tests/`, so the tester has to make them again.
+
+    What I built (in my write paths):
+    - `src/factory/work/__init__.py`, `src/factory/work/domain/__init__.py`, `src/factory/work/application/__init__.py`, `src/factory/work/adapters/__init__.py`, each with a one-line docstring.
+    - The 14 modules of the Interface, moved with `git mv` to `src/factory/work/<layer>/<name>.py`. Only their import lines changed.
+    - Every import under `src/` of an old path now names `factory.work.<layer>.<name>`: 45 files, all of them import lines, re-sorted by `ruff check --fix` and `ruff format`. That includes the two `from factory.domain import journal` lines in `work/domain/work_item.py` and `work/domain/decisions.py`.
+    - `uv run python -m factory.entry.contract` leaves the schemas unchanged. `lint-imports`: 4 kept, 0 broken.
+
+    Main choice: I followed S0002's split (the coder moves `src/`, the tester moves and rewrites `tests/`). I rejected ending with `review` and leaving the test edits in the tree, because the factory would drop them and `make check` would be red.
+
+    Test changes for the tester. The Interface's leave (feature decision 5) covers them, and every test keeps its name and checks the same thing:
+    1. Under `tests/`, rewrite every word-bounded dotted reference to the 14 modules, `factory.<layer>.<name>` → `factory.work.<layer>.<name>`, with sed over the regex `\bfactory\.(domain\.(acceptance|answers|archive|decisions|journal|labels|move_rule|send_back|story_form|work_item)|application\.(acceptance|acceptance_reading|work_items)|adapters\.work_item_markdown)\b` → `factory.work.\1`. That covers 168 files. Leave `tests/test_areas.py` unchanged. Three spots need a hand edit:
+       - `tests/domain/test_provider_limit_stall_text.py`: `from factory.domain import decisions, journal` → `from factory.work.domain import decisions, journal`
+       - `tests/domain/test_journal_causes.py`: `from factory.domain import decisions, journal, work_item` → `from factory.work.domain import decisions, journal, work_item`
+       - `tests/application/test_tick.py`, the parametrize row of `test_the_tick_knows_no_run_record_and_no_lock`: `"application/work_items.py"` → `"work/application/work_items.py"`
+
+       Then run `ruff check --fix tests` and `ruff format tests`.
+    2. Create empty `tests/work/__init__.py`, `tests/work/domain/__init__.py`, `tests/work/application/__init__.py` and `tests/work/adapters/__init__.py`. Then `git mv` these 34 modules to the same layer under `tests/work/`. They are exactly the modules that criterion 4's rule selects after step 1:
+       - from `tests/domain/` (29): test_acceptance, test_acceptance_description, test_acceptance_facts, test_acceptance_facts_disk, test_acceptance_facts_human, test_acceptance_facts_limit, test_acceptance_status, test_answers, test_answers_round_cap, test_archive, test_hand_over, test_journal, test_journal_acceptance, test_journal_causes, test_journal_records, test_labels, test_post_texts_notes, test_provider_limit_stall_text, test_question_texts, test_section_edges, test_send_back_records, test_stall_reason_removed, test_stall_texts, test_story_form, test_story_form_edges, test_story_place, test_work_item, test_work_item_require_state, test_work_item_snapshot
+       - from `tests/adapters/` (5): test_journal_as_data, test_journal_causes_file, test_journal_stamps_file, test_work_item_markdown, test_work_item_markdown_acceptance
+       - none from `tests/application/`
+
+       None of them reads a path relative to its own file. No other test, Makefile or pyproject entry names their old paths.
+
+    Refactor: the diff is mechanical (moves and import lines), so nothing needed changing.
+
+    Noticed, not touched:
+    - `make duplicates` reports `11 new, 34 known, 8 gone`. The new findings are the known findings of `work_item_markdown.py`, `move_rule.py` and the similar-code pairs under their new `factory.work.*` paths. `security/duplicates-baseline.txt` needs those paths, as the human did for S0002 in 63bd1e18b; it is outside my write paths.
+    - Two of the "gone" findings are unrelated to this story: the `claude_runtime`/`opencode_runtime` similar-code pair and `fake_containers.calls`.
+    - The docs that name the old paths (`docs/project-guide/*.md`) are for the docs stage (criterion 6).
+
+    The factory left out changes outside the write paths: tests/acceptance_support.py, tests/acceptance_walk.py, tests/adapters/test_journal_as_data.py, tests/adapters/test_journal_causes_file.py, tests/adapters/test_journal_stamps_file.py, tests/adapters/test_work_item_markdown.py, tests/adapters/test_work_item_markdown_acceptance.py, tests/application/handlers/conftest.py, tests/application/handlers/test_closed.py, tests/application/handlers/test_closed_send_back.py, tests/application/handlers/test_comment_handler.py, tests/application/handlers/test_comments.py, tests/application/handlers/test_hand_over.py, tests/application/handlers/test_handler_subjects.py, tests/application/handlers/test_lookups.py, tests/application/handlers/test_merged.py, tests/application/handlers/test_questions.py, tests/application/handlers/test_recording.py, tests/application/handlers/test_reject.py, tests/application/handlers/test_run_gate.py, tests/application/test_acceptance_closed.py, tests/application/test_acceptance_due_handler.py, tests/application/test_acceptance_facts_disk.py, tests/application/test_acceptance_facts_human.py, tests/application/test_acceptance_hand_over.py, tests/application/test_acceptance_merged.py, tests/application/test_acceptance_merged_before_approval.py, tests/application/test_acceptance_no_state_refusals.py, tests/application/test_acceptance_reading.py, tests/application/test_acceptance_refusals.py, tests/application/test_acceptance_repeated.py, tests/application/test_acceptance_reviewer_role.py, tests/application/test_acceptance_service.py, tests/application/test_acceptance_snapshots.py, tests/application/test_acceptance_ticks_closed.py, tests/application/test_acceptance_ticks_merged.py, tests/application/test_after_agent.py, tests/application/test_after_agent_edges.py, tests/application/test_board_reader.py, tests/application/test_board_reader_acceptance.py, tests/application/test_claims.py, tests/application/test_claims_observed.py, tests/application/test_claims_refusals.py, tests/application/test_costs.py, tests/application/test_dispatcher.py, tests/application/test_dispatcher_without_state.py, tests/application/test_hosting_failure_releases_claim.py, tests/application/test_human_line_posts.py, tests/application/test_left_out_stage.py, tests/application/test_no_branch_check.py, tests/application/test_no_state_refusals.py, tests/application/test_opening.py, tests/application/test_question_causes_recorded.py, tests/application/test_recovery_cap.py, tests/application/test_recovery_crash.py, tests/application/test_recovery_expiry.py, tests/application/test_request_working_directory.py, tests/application/test_split_by_work_item_kind.py, tests/application/test_stage_changes.py, tests/application/test_stage_finish.py, tests/application/test_stage_finish_causes.py, tests/application/test_stage_known_results.py, tests/application/test_stage_launch.py, tests/application/test_stage_nested_repository.py, tests/application/test_stage_on_container_fakes.py, tests/application/test_stage_run_acceptance.py, tests/application/test_stage_time_limited_report.py, tests/application/test_stall_edges.py, tests/application/test_stall_environment.py, tests/application/test_stall_labels.py, tests/application/test_stall_reasons_recorded.py, tests/application/test_stalls.py, tests/application/test_task.py, tests/application/test_task_acceptance.py, tests/application/test_tick.py, tests/application/test_tick_stale_branch.py, tests/application/test_watcher.py, tests/application/test_watcher_acceptance.py, tests/application/test_watcher_move_rule.py, tests/application/test_work_items.py, tests/application/test_work_items_duplicate.py, tests/branch_reading.py, tests/conftest.py, tests/cost_image_support.py, tests/crash_support.py, tests/domain/test_acceptance.py, tests/domain/test_acceptance_before_approval.py, tests/domain/test_acceptance_booking.py, tests/domain/test_acceptance_description.py, tests/domain/test_acceptance_facts.py, tests/domain/test_acceptance_facts_disk.py, tests/domain/test_acceptance_facts_human.py, tests/domain/test_acceptance_facts_limit.py, tests/domain/test_acceptance_refusal_edges.py, tests/domain/test_acceptance_status.py, tests/domain/test_agent_entry.py, tests/domain/test_answers.py, tests/domain/test_answers_round_cap.py, tests/domain/test_archive.py, tests/domain/test_board.py, tests/domain/test_board_absent_values.py, tests/domain/test_contract.py, tests/domain/test_decide_docs_slip.py, tests/domain/test_decision_rules.py, tests/domain/test_decisions.py, tests/domain/test_evaluation.py, tests/domain/test_evaluation_details.py, tests/domain/test_evaluation_due.py, tests/domain/test_evaluation_reject.py, tests/domain/test_events.py, tests/domain/test_hand_over.py, tests/domain/test_human_waits.py, tests/domain/test_journal.py, tests/domain/test_journal_acceptance.py, tests/domain/test_journal_causes.py, tests/domain/test_journal_records.py, tests/domain/test_journal_stamps.py, tests/domain/test_labels.py, tests/domain/test_lease.py, tests/domain/test_lease_observed.py, tests/domain/test_move_rule.py, tests/domain/test_post_texts_notes.py, tests/domain/test_prompts.py, tests/domain/test_provider_limit_stall_text.py, tests/domain/test_question_texts.py, tests/domain/test_recovery.py, tests/domain/test_recovery_cap.py, tests/domain/test_section_edges.py, tests/domain/test_send_back.py, tests/domain/test_send_back_records.py, tests/domain/test_stall_reason_removed.py, tests/domain/test_stall_texts.py, tests/domain/test_story_form.py, tests/domain/test_story_form_edges.py, tests/domain/test_story_place.py, tests/domain/test_times.py, tests/domain/test_work_item.py, tests/domain/test_work_item_require_state.py, tests/domain/test_work_item_snapshot.py, tests/entry/test_run.py, tests/entry/test_watch.py, tests/entry/test_wiring.py, tests/entry/test_wiring_acceptance.py, tests/entry/test_wiring_boundaries.py, tests/entry/test_wiring_handlers.py, tests/entry/test_wiring_human_handlers.py, tests/evaluation_support.py, tests/proof_support.py, tests/push_retry_support.py, tests/shipped_agents.py, tests/stage_run_support.py, tests/stall_support.py, tests/story_form_support.py, tests/test_approval_description.py, tests/test_checkout_hygiene_removed.py, tests/test_claude_files.py, tests/test_fault_paths.py, tests/test_fault_paths_7_to_13.py, tests/test_model_configuration.py, tests/test_no_journal_reading.py, tests/test_no_state_copies.py, tests/test_proof_support.py, tests/test_shared_branch_helpers.py, tests/test_stop_table.py, tests/undo_support.py, tests/watch_support.py, tests/work/__init__.py, tests/work/adapters/__init__.py, tests/work/adapters/test_journal_as_data.py, tests/work/adapters/test_journal_causes_file.py, tests/work/adapters/test_journal_stamps_file.py, tests/work/adapters/test_work_item_markdown.py, tests/work/adapters/test_work_item_markdown_acceptance.py, tests/work/application/__init__.py, tests/work/domain/__init__.py, tests/work/domain/test_acceptance.py, tests/work/domain/test_acceptance_description.py, tests/work/domain/test_acceptance_facts.py, tests/work/domain/test_acceptance_facts_disk.py, tests/work/domain/test_acceptance_facts_human.py, tests/work/domain/test_acceptance_facts_limit.py, tests/work/domain/test_acceptance_status.py, tests/work/domain/test_answers.py, tests/work/domain/test_answers_round_cap.py, tests/work/domain/test_archive.py, tests/work/domain/test_hand_over.py, tests/work/domain/test_journal.py, tests/work/domain/test_journal_acceptance.py, tests/work/domain/test_journal_causes.py, tests/work/domain/test_journal_records.py, tests/work/domain/test_labels.py, tests/work/domain/test_post_texts_notes.py, tests/work/domain/test_provider_limit_stall_text.py, tests/work/domain/test_question_texts.py, tests/work/domain/test_section_edges.py, tests/work/domain/test_send_back_records.py, tests/work/domain/test_stall_reason_removed.py, tests/work/domain/test_stall_texts.py, tests/work/domain/test_story_form.py, tests/work/domain/test_story_form_edges.py, tests/work/domain/test_story_place.py, tests/work/domain/test_work_item.py, tests/work/domain/test_work_item_require_state.py, tests/work/domain/test_work_item_snapshot.py, tests/work_item_support.py, tests/write_path_support.py.

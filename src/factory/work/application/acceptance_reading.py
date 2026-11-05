@@ -4,19 +4,8 @@ from collections.abc import Sequence
 from pathlib import PurePosixPath
 
 from factory.application.boundaries import Boundaries
-from factory.application.work_items import RemoteWorkItems, parse_at
-from factory.domain.acceptance import (
-    AcceptanceState,
-    FeatureAcceptance,
-    FeatureFiles,
-    ReportFacts,
-    acceptance_status,
-    next_acceptance_id,
-    story_file_ids,
-)
 from factory.domain.board import FeatureRow
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot
 from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.identifiers import (
     FeatureId,
@@ -36,6 +25,17 @@ from factory.shared.domain.paths import (
     LifecycleFolder,
     work_item_path,
 )
+from factory.work.application.work_items import RemoteWorkItems, parse_at
+from factory.work.domain.acceptance import (
+    AcceptanceState,
+    FeatureAcceptance,
+    FeatureFiles,
+    ReportFacts,
+    acceptance_status,
+    next_acceptance_id,
+    story_file_ids,
+)
+from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot
 
 _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 
