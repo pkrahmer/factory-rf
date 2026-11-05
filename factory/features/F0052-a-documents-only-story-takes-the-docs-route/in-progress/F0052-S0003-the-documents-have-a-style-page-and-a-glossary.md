@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 574
 comments_read: [6671915202]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T23:11:18.336304Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -91,6 +87,12 @@ journal:
   kind: started
   at: '2026-11-05T23:11:18.336304Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-11-05T23:16:34.738773Z'
+  stage: doing
+  run: d7de45b2c6cf4d218accf48a4f0dca12
 ---
 
 # The documents have a style page and a glossary
@@ -232,3 +234,15 @@ Expect: `named`
 
     `lint`: lint: green (0.1 s)
 14. factory: started doing as vm.
+15. coder: I built nothing, because there was nothing to build. The story is documents only, and its Interface rules out code, tests and agent file changes. The documenter wrote the documents in entry 5: `docs/project-guide/style.md`, `docs/project-guide/glossary.md`, the two index lines in `docs/project-guide/README.md` and the last entry in `docs/decisions.md`. The tester changed the guard in `tests/guards/test_project_guide_files.py` in entry 13, with the human's leave in entry 11. All of these are already on the branch. My working tree was clean at the start (`git status --short` printed nothing), and I changed no file.
+
+    Main choice: I changed no code and only confirmed the branch is green. `make check` ends with `test: green (140.8 s)` and `check: green`, at 99.26 % coverage. I rejected touching the documents or adding code: the documents are the documenter's to write, and the Interface says no code. Refactor step: there is no diff of mine to refactor.
+
+    The journal did not change what the task means. Entry 11 settled only the guard change and that no new tests are written, so the Description stays as it is.
+
+    Seen but not touched:
+    - The open points from entries 5 and 8 are still for the reviewer to decide. The drafts' rules 8 to 10 were left out of the style page, and no tool measured sentence length.
+    - The pipeline definition's header comments and older decision-log entries still use version names.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
