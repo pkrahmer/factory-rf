@@ -14,10 +14,10 @@ from factory.application.stage import AfterAgent, AgentAftermath, LaunchedStage,
 from factory.application.stage_environment import StageEnvironment
 from factory.application.take import TakeReport
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
-from factory.domain.errors import SnapshotError
 from factory.domain.git import CommitId
-from factory.domain.paths import cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.shared.domain.errors import SnapshotError
+from factory.shared.domain.paths import cost_records_path
 from git_support import PIPELINE_YAML, remote_commit
 from human_clone import HumanClone
 from stage_run_support import (

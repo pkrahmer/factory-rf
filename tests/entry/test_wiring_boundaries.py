@@ -10,7 +10,6 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.adapters.clock import SystemClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
@@ -23,9 +22,7 @@ from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, Front
 from factory.application.project_agents import ProjectAgentDefinitions
 from factory.application.project_commands import RecordingProjectCommands
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
-from factory.domain.errors import SettingsInvalid
 from factory.domain.git import GitIdentity
-from factory.domain.settings import InstanceSettings, read_settings
 from factory.domain.stops import HealthStatus
 from factory.entry.wiring import (
     build_boundaries,
@@ -34,6 +31,9 @@ from factory.entry.wiring import (
     read_hosting_token,
     repository_name,
 )
+from factory.shared.adapters.clock import SystemClock
+from factory.shared.domain.errors import SettingsInvalid
+from factory.shared.domain.settings import InstanceSettings, read_settings
 from git_support import clone, install_agents, write_executable
 from podman_support import PodmanPlan
 from wiring_support import (

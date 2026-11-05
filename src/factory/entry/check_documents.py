@@ -4,7 +4,7 @@ import argparse
 from collections.abc import Sequence
 from pathlib import Path
 
-from factory.domain.documents import (
+from factory.shared.domain.documents import (
     DOCUMENT_PATHS,
     PROJECT_GUIDE_FOLDER,
     check_documents,

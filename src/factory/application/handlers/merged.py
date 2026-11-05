@@ -11,10 +11,10 @@ from factory.application.handlers.recording import (
 from factory.domain.bills import bill
 from factory.domain.events import Event
 from factory.domain.journal import FACTORY, NewEntry, append_entry
-from factory.domain.paths import MAIN_BRANCH, cost_records_path
 from factory.domain.pipeline_definition import DONE_STAGE
 from factory.domain.post_texts import done_entry_text
 from factory.domain.work_item import WorkItemDocument, require_state
+from factory.shared.domain.paths import MAIN_BRANCH, cost_records_path
 
 
 class MergedHandler(Handler):

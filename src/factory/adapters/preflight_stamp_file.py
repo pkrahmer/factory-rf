@@ -5,9 +5,9 @@ from typing import override
 
 from pydantic import ValidationError
 
-from factory.adapters.atomic_file import replace_text
 from factory.application.preflight import PreflightStampStore
 from factory.domain.preflight import PreflightStamp
+from factory.shared.adapters.atomic_file import replace_text
 
 
 class JsonPreflightStampFile(PreflightStampStore):

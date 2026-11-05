@@ -35,7 +35,7 @@ def _confine_command() -> object:
             id="guard-command",
         ),
         pytest.param(
-            lambda: has_name("factory.domain.errors", "GuardSettingsInvalid"),
+            lambda: has_name("factory.shared.domain.errors", "GuardSettingsInvalid"),
             False,
             id="settings-error",
         ),

@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from factory.domain.identifiers import branch_name
 from factory.domain.work_item import WorkItemState
+from factory.shared.domain.identifiers import branch_name
 from proof_support import (
     FEATURE,
     CaseResult,

@@ -9,9 +9,9 @@ import pytest
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.tick import IdleHandler, Tick, TickOutcome
-from factory.domain.errors import FetchFailed, GitError
 from factory.domain.git import GitOptions
-from factory.domain.kill_points import KillPoints
+from factory.shared.domain.errors import FetchFailed, GitError
+from factory.shared.domain.kill_points import KillPoints
 from git_support import CHECKOUT, TEST_IDENTITY
 from log_support import log_lines
 from stage_run_support import INSTANCE

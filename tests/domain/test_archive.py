@@ -3,7 +3,7 @@
 import pytest
 
 from factory.domain.archive import destination_path
-from factory.domain.paths import LifecycleFolder
+from factory.shared.domain.paths import LifecycleFolder
 
 IN_PROGRESS = "factory/features/F0001-todo/in-progress/F0001-S0001-x.md"
 

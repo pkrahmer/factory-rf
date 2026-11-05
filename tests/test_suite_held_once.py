@@ -70,9 +70,9 @@ def _runtime_end_once() -> None:
 
 def _container_once() -> None:
     for module in (
-        "domain/test_settings_agent_user_unread.py",
-        "domain/test_settings_one_environment.py",
-        "domain/test_settings_stage_environment.py",
+        "shared/domain/test_settings_agent_user_unread.py",
+        "shared/domain/test_settings_one_environment.py",
+        "shared/domain/test_settings_stage_environment.py",
     ):
         assert "CONTAINER" not in _defined(_tree(module)), module
 

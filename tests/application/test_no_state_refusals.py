@@ -14,10 +14,10 @@ from factory.application.recovery import RecoveryHandler
 from factory.application.stalls import StallContext, StallService
 from factory.application.task import TaskComposer, TaskContext
 from factory.domain.agent_runs import AgentDefinition
-from factory.domain.errors import CannotHandle, WorkItemFormatError
-from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.shared.domain.errors import CannotHandle, WorkItemFormatError
+from factory.shared.domain.identifiers import branch_name
 from git_support import remote_commit
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

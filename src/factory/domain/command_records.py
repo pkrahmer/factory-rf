@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict
 from factory.domain.checks import CheckStatus, CommandName, TargetTime
 from factory.domain.cost_records import Duration
 from factory.domain.git import CommitId
-from factory.domain.times import UtcDatetime
+from factory.shared.domain.times import UtcDatetime
 
 
 class CommandRecord(BaseModel):

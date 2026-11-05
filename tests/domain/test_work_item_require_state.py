@@ -2,8 +2,8 @@
 
 import pytest
 
-from factory.domain.errors import CannotHandle, WorkItemFormatError
 from factory.domain.work_item import WorkItemDocument, initial_state, require_state
+from factory.shared.domain.errors import CannotHandle, WorkItemFormatError
 
 
 def test_require_state_returns_the_documents_state() -> None:

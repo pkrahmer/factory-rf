@@ -7,11 +7,11 @@ from typing import override
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.tick import TickOutcome
-from factory.domain.settings import InstanceSettings
 from factory.entry.run import run_until_stopped
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.settings import InstanceSettings
 from power_support import IDLE, OTHER
 from scripted_tick_support import ScriptedTick, Step, run_loop, run_main, scripted
 

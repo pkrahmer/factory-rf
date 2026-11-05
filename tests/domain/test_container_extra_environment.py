@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from factory.domain.containers import extra_environment
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 from settings_support import AGENT_HOME
 
 _PROXY = "http://proxy.example.invalid:3128"

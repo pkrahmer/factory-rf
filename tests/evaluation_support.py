@@ -3,7 +3,6 @@
 from collections.abc import Sequence
 from datetime import UTC, datetime
 
-from factory.domain.errors import HostingServiceError
 from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
 from factory.domain.events import Event
 from factory.domain.hosting import (
@@ -24,6 +23,7 @@ from factory.domain.work_item import (
     WorkItemState,
     initial_state,
 )
+from factory.shared.domain.errors import HostingServiceError
 
 MAIN = "a" * 40
 BRANCH_COMMIT = "b" * 40

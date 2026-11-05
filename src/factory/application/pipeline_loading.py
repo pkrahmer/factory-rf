@@ -2,14 +2,14 @@
 
 from factory.application.boundaries import Boundaries
 from factory.application.stops import StopService
-from factory.domain.errors import (
+from factory.domain.pipeline_definition import PipelineDefinition
+from factory.domain.stops import RepositoryStop, RepositoryStopReason
+from factory.shared.domain.errors import (
     AgentDefinitionError,
     AgentDefinitionInvalid,
     PipelineDefinitionInvalid,
 )
-from factory.domain.paths import MAIN_BRANCH, PIPELINE_DEFINITION_FILE, REMOTE
-from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.stops import RepositoryStop, RepositoryStopReason
+from factory.shared.domain.paths import MAIN_BRANCH, PIPELINE_DEFINITION_FILE, REMOTE
 
 PIPELINE_REF = f"{REMOTE}/{MAIN_BRANCH}"
 

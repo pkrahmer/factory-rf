@@ -15,7 +15,7 @@ ALLOWED = {
         "factory.application.recovery",
     },
     "JOURNAL": {
-        "factory.domain.sections",
+        "factory.shared.domain.sections",
         "factory.domain.journal",
         "factory.domain.story_form",
         "factory.adapters.work_item_markdown",
@@ -24,7 +24,7 @@ ALLOWED = {
     },
 }
 LITERALS = {"Journal", "## Journal"}
-LITERAL_MODULE = "factory.domain.sections"
+LITERAL_MODULE = "factory.shared.domain.sections"
 OUTSIDE = "factory.application.example"
 
 
@@ -66,7 +66,7 @@ def test_no_module_reads_data_from_the_journal_text() -> None:
         "from factory.domain.journal import entry_text\n",
         "entry_text(document, 1)\n",
         "journal.entry_text(document, 1)\n",
-        "from factory.domain.sections import JOURNAL\n",
+        "from factory.shared.domain.sections import JOURNAL\n",
         "heading = JOURNAL\n",
         "heading = sections.JOURNAL\n",
         'section_text(body, "Journal")\n',
@@ -92,7 +92,7 @@ def test_a_journal_reference_outside_the_allowed_modules_is_found(source: str) -
     [
         ("factory.domain.journal", "entry_text(document, 1)\n"),
         ("factory.application.opening", "heading = JOURNAL\n"),
-        ("factory.domain.sections", 'JOURNAL = "Journal"\n'),
+        ("factory.shared.domain.sections", 'JOURNAL = "Journal"\n'),
     ],
     ids=["entry-text", "journal", "literal"],
 )

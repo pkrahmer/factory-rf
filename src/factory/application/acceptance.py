@@ -35,35 +35,35 @@ from factory.domain.archive import destination_path
 from factory.domain.bills import bill, bills_by_stage, cost_line, cost_table
 from factory.domain.cost_records import CostRecord
 from factory.domain.disk import disk_line
-from factory.domain.errors import CannotHandle, WorkItemFormatError
 from factory.domain.events import Event
 from factory.domain.git import CommitId
 from factory.domain.hand_over import cost_table_key
 from factory.domain.human_waits import HumanWait, human_line, human_waits
-from factory.domain.identifiers import (
-    FeatureId,
-    WorkItemId,
-    branch_name,
-    is_acceptance,
-    parse_work_item_file_name,
-)
 from factory.domain.journal import HUMAN, NewEntry, append_entry, last_record
-from factory.domain.paths import (
-    MAIN_BRANCH,
-    REMOTE,
-    cost_records_path,
-    feature_file_path,
-    work_item_path,
-)
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import CLOSE_ENTRY_TEXT, cost_table_post
-from factory.domain.sections import title
 from factory.domain.work_item import (
     WorkItemDocument,
     WorkItemSnapshot,
     WorkItemState,
     require_state,
 )
+from factory.shared.domain.errors import CannotHandle, WorkItemFormatError
+from factory.shared.domain.identifiers import (
+    FeatureId,
+    WorkItemId,
+    branch_name,
+    is_acceptance,
+    parse_work_item_file_name,
+)
+from factory.shared.domain.paths import (
+    MAIN_BRANCH,
+    REMOTE,
+    cost_records_path,
+    feature_file_path,
+    work_item_path,
+)
+from factory.shared.domain.sections import title
 
 _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 _KIND = "acceptance_due"

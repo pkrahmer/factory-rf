@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 
 from factory.application.boundaries import Boundaries
-from factory.domain.errors import GitError
 from factory.entry.watch import main
+from factory.shared.domain.errors import GitError
 from stage_run_support import INSTANCE
 
 HOSTED_URL = "https://github.com/owner/project.git"

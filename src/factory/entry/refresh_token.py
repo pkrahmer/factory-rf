@@ -10,11 +10,11 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from factory.application.tokens import TokenRefresher, TokenSource
-from factory.domain.errors import TokenError
 from factory.domain.tokens import RETRY_INTERVAL, masked
 from factory.entry.inputs import UnreadableInput, read_input
 from factory.entry.run import install_stop_handlers
 from factory.entry.wiring import build_token_refresher, client_credentials_source
+from factory.shared.domain.errors import TokenError
 
 _PROGRAM = "refresh_token"
 _OK = 0

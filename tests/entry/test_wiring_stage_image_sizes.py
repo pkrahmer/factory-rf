@@ -7,7 +7,6 @@ import pytest
 from factory.application.boundaries import Boundaries
 from factory.application.images import ImageBuild
 from factory.application.stops import StopService
-from factory.domain.settings import InstanceSettings
 from factory.domain.stage_layer import STAGE_FILE, project_image_tag, stage_layer
 from factory.entry.wiring import (
     ImageSizes,
@@ -16,6 +15,7 @@ from factory.entry.wiring import (
     image_sizes,
     project_image_settings,
 )
+from factory.shared.domain.settings import InstanceSettings
 from human_clone import HumanClone
 from recording_log import RecordingLog
 from sized_images import SizedImages

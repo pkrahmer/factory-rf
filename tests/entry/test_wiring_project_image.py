@@ -13,7 +13,6 @@ from factory.application.boundaries import Boundaries
 from factory.application.images import IMAGE_BUILD_TIME_LIMIT, ImageBuild, Images
 from factory.application.stops import StopService
 from factory.domain.preflight import PreflightStamp
-from factory.domain.settings import InstanceSettings
 from factory.domain.stage_layer import (
     STAGE_FILE,
     StageLayerRefused,
@@ -23,6 +22,7 @@ from factory.domain.stage_layer import (
 from factory.domain.stops import RepositoryStop
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_store, project_image_settings
+from factory.shared.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents, run_git
 from human_clone import HumanClone
 from podman_support import PodmanPlan

@@ -3,10 +3,10 @@
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.domain.agent_runs import WritePathSettings
-from factory.domain.errors import PipelineDefinitionInvalid
-from factory.domain.paths import PIPELINE_DEFINITION_FILE, folder_of
 from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition
 from factory.domain.write_paths import PROTECTED_PATHS, expand_write_paths
+from factory.shared.domain.errors import PipelineDefinitionInvalid
+from factory.shared.domain.paths import PIPELINE_DEFINITION_FILE, folder_of
 
 
 class WritePathService:

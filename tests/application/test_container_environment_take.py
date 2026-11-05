@@ -17,11 +17,11 @@ from container_support import (
     timing_lines,
     whole_stage,
 )
-from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.stage_environment import ContainerEnvironment
 from factory.application.take import TakeReport
+from factory.shared.adapters.clock import ManualClock
 from git_support import write_files
 from human_clone import HumanClone
 from take_support import AGENT_TEXT

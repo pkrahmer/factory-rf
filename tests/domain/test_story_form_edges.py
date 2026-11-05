@@ -2,9 +2,9 @@
 
 import pytest
 
-from factory.domain.paths import LifecycleFolder
 from factory.domain.story_form import FormFinding, check_story_form
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.shared.domain.paths import LifecycleFolder
 from story_form_support import FORM, SMOKE, _state
 
 START = "# A story\n\n## Description\n\nText.\n\n## Interface\n\n"

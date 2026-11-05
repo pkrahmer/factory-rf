@@ -4,7 +4,6 @@ from collections.abc import Mapping, Sequence
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.process import ProcessRequest, run_process
 from factory.application.containers import ContainerRuns
 from factory.domain.containers import (
     WORK,
@@ -15,7 +14,8 @@ from factory.domain.containers import (
     beneath_or_at,
     check_container_call,
 )
-from factory.domain.errors import ContainerError
+from factory.shared.adapters.process import ProcessRequest, run_process
+from factory.shared.domain.errors import ContainerError
 
 # The shell goes to the working directory and then becomes the command, as a container would.
 _ENTER = ["/bin/sh", "-c", 'cd "$1" && shift && exec "$@"', "fake-container"]

@@ -9,8 +9,8 @@ import pytest
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult
-from factory.domain.errors import AgentRuntimeError
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.shared.domain.errors import AgentRuntimeError
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 
 
 def _request(working_directory: Path, prompt: str = "Stage: tests") -> AgentRunRequest:

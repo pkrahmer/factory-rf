@@ -16,13 +16,13 @@ from factory.application.acceptance import (
 )
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
-from factory.application.files import WorkItemReader
-from factory.domain.errors import CannotHandle
 from factory.domain.events import Event
-from factory.domain.identifiers import branch_name
-from factory.domain.paths import MAIN_BRANCH
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument
+from factory.shared.application.files import WorkItemReader
+from factory.shared.domain.errors import CannotHandle
+from factory.shared.domain.identifiers import branch_name
+from factory.shared.domain.paths import MAIN_BRANCH
 from git_support import remote_commit
 
 HandlerFactory = Callable[[Boundaries, PipelineDefinition], Handler]

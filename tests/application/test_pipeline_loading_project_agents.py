@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.application.boundaries import Boundaries
 from factory.application.pipeline_loading import PipelineLoader
 from factory.application.project_agents import ProjectAgentDefinitions
-from factory.domain.errors import AgentDefinitionInvalid, PipelineDefinitionInvalid
 from factory.domain.stops import RepositoryStop
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.errors import AgentDefinitionInvalid, PipelineDefinitionInvalid
 from git_support import AGENT_FILE, COLOURED_AGENT_FILE, PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 

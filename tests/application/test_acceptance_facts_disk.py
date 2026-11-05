@@ -11,7 +11,7 @@ from factory.application.acceptance import AcceptanceService
 from factory.application.boundaries import Boundaries
 from factory.application.disk_records import DiskRecorder
 from factory.domain.disk import DiskRecord, disk_line
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 
 
 @pytest.fixture

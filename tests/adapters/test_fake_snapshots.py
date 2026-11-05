@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.fake_snapshots import FakeSnapshots
-from factory.domain.errors import SnapshotError
 from factory.domain.git import ChangedPath
+from factory.shared.domain.errors import SnapshotError
 
 
 @pytest.fixture

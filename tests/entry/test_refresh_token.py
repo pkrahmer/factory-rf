@@ -8,9 +8,9 @@ import pytest
 
 from factory.adapters.oauth_token import ClientCredentialsTokenSource
 from factory.application.tokens import TokenSource
-from factory.domain.errors import TokenError
 from factory.domain.tokens import Token
 from factory.entry.refresh_token import main
+from factory.shared.domain.errors import TokenError
 from token_support import (
     ENDPOINT,
     HIDDEN,

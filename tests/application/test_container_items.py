@@ -5,8 +5,8 @@ from collections.abc import Callable
 import pytest
 
 from factory.application.preflight import dataset_item, stage_image_item, tool_version_item
-from factory.domain.errors import ContainerError, SnapshotError
 from factory.domain.preflight import PreflightItem
+from factory.shared.domain.errors import ContainerError, SnapshotError
 from podman_support import IMAGE
 from zfs_support import DATASET
 

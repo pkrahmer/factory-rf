@@ -6,8 +6,8 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from factory.domain.git import CommitId
 from factory.domain.hosting import PullRequestView
-from factory.domain.identifiers import FeatureId
 from factory.domain.work_item import WorkItemSnapshot
+from factory.shared.domain.identifiers import FeatureId
 
 EventKind = Literal[
     "run",

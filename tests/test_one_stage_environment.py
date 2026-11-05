@@ -8,8 +8,8 @@ import pytest
 
 from factory.application import preflight, stage_environment
 from factory.application.boundaries import Boundaries
-from factory.domain import settings
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain import settings
+from factory.shared.domain.settings import InstanceSettings
 
 SETUP = Path(__file__).resolve().parents[1] / "vm" / "setup.sh"
 

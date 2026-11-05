@@ -6,7 +6,6 @@ from dataclasses import dataclass, replace
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.fake_snapshots import FakeSnapshots
@@ -22,8 +21,9 @@ from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.domain.cost_records import ToolUse
 from factory.domain.git import ChangedPath, CommitId
-from factory.domain.settings import InstanceSettings
 from factory.domain.transcripts import Transcript
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.settings import InstanceSettings
 from git_support import install_agents, run_git, write_files
 from human_clone import HumanClone
 from podman_support import IMAGE

@@ -11,12 +11,12 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.handlers.recording import commit_subject
 from factory.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.application.stage import StageLauncher
-from factory.domain.errors import HostingServiceError, WorkItemFormatError
 from factory.domain.git import CommitInfo
 from factory.domain.hosting import PullRequestView
-from factory.domain.identifiers import WorkItemId, branch_name
-from factory.domain.kill_points import KillPoints
 from factory.domain.work_item import WorkItemDocument
+from factory.shared.domain.errors import HostingServiceError, WorkItemFormatError
+from factory.shared.domain.identifiers import WorkItemId, branch_name
+from factory.shared.domain.kill_points import KillPoints
 from git_support import PIPELINE_YAML
 from log_support import state_log_lines
 from proof_support import (

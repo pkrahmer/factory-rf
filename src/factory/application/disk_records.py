@@ -6,7 +6,7 @@ from pathlib import Path
 from factory.application.boundaries import Boundaries
 from factory.application.machine import DiskSpace
 from factory.domain.disk import DiskOccasion, DiskRecord, DiskUse, disk_line
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 
 
 class DiskRecorder:

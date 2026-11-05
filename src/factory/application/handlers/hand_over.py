@@ -9,11 +9,9 @@ from factory.application.handlers.recording import (
     target_of,
 )
 from factory.domain.bills import bills_by_stage, cost_table
-from factory.domain.errors import CannotHandle
 from factory.domain.events import Event
 from factory.domain.hand_over import cost_table_key, hand_over_description
 from factory.domain.human_waits import human_line, human_waits
-from factory.domain.paths import MAIN_BRANCH, cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import cost_table_post
 from factory.domain.work_item import (
@@ -22,6 +20,8 @@ from factory.domain.work_item import (
     WorkItemState,
     require_state,
 )
+from factory.shared.domain.errors import CannotHandle
+from factory.shared.domain.paths import MAIN_BRANCH, cost_records_path
 
 _KIND = "hand_over"
 

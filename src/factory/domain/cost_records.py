@@ -15,8 +15,8 @@ from pydantic import (
 )
 
 from factory.domain.agent_runs import EndReason, Login, TokenCounts
-from factory.domain.identifiers import Name, WorkItemId
-from factory.domain.times import UtcDatetime
+from factory.shared.domain.identifiers import Name, WorkItemId
+from factory.shared.domain.times import UtcDatetime
 
 RunId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{32}$")]
 Sha256 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]

@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters import process
-from factory.adapters.process import ProcessResult
 from factory.adapters.zfs_snapshots import SNAPSHOT_TIME_LIMIT, ZfsSnapshots
 from factory.application.snapshots import Snapshots
-from factory.domain.errors import SnapshotError
+from factory.shared.adapters import process
+from factory.shared.adapters.process import ProcessResult
+from factory.shared.domain.errors import SnapshotError
 from run_process_recorder import Recorder
 from time_limits import ROOMY_BOUND_SECONDS
 from zfs_support import DATASET, MOUNT_POINT, Answer, snapshots_on, write_zfs

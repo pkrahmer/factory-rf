@@ -15,19 +15,19 @@ from factory.application.stops import StopPublisher, StopService
 from factory.application.watcher import Watcher
 from factory.application.work_items import RemoteWorkItems
 from factory.domain.disk import disk_low_detail
-from factory.domain.errors import (
+from factory.domain.events import Event, EventKind
+from factory.domain.pipeline_definition import PipelineDefinition
+from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
+from factory.domain.tick_status import TickStatus
+from factory.shared.domain.errors import (
     AgentDefinitionInvalid,
     FetchFailed,
     GitError,
     PipelineDefinitionInvalid,
     PushFailed,
 )
-from factory.domain.events import Event, EventKind
-from factory.domain.identifiers import Name, branch_name, work_item_of_branch
-from factory.domain.paths import MAIN_BRANCH, REMOTE
-from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
-from factory.domain.tick_status import TickStatus
+from factory.shared.domain.identifiers import Name, branch_name, work_item_of_branch
+from factory.shared.domain.paths import MAIN_BRANCH, REMOTE
 
 HandlerFactory = Callable[[PipelineDefinition], Mapping[EventKind, Handler]]
 

@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.agent_launch import killed_at_limit
-from factory.adapters.process import ProcessRequest, run_process
+from factory.shared.adapters.process import ProcessRequest, run_process
 from time_limits import ROOMY_BOUND_SECONDS
 
 LIMIT = timedelta(seconds=30)

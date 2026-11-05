@@ -9,8 +9,8 @@ from factory.application.boundaries import Boundaries
 from factory.application.opening import WorkItemOpening
 from factory.application.stage import LaunchedStage, StageLauncher
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.settings import InstanceSettings
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.shared.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 from settings_support import AGENT_HOME

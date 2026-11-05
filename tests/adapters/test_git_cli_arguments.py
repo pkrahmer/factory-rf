@@ -8,7 +8,7 @@ import pytest
 from factory.adapters import git_cli
 from factory.adapters.git_cli import GitCli
 from factory.domain.git import GitOptions
-from factory.domain.kill_points import KillPoint, KillPoints
+from factory.shared.domain.kill_points import KillPoint, KillPoints
 from git_support import CHECKOUT, remote_commit, run_git, write_executable, write_files
 from human_clone import HumanClone
 

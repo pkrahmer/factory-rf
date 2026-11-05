@@ -22,7 +22,7 @@ from factory.adapters.opencode_runtime import (
     OpencodeRuntime,
 )
 from factory.domain.agent_runs import AgentRunRequest
-from factory.domain.errors import AgentRuntimeError
+from factory.shared.domain.errors import AgentRuntimeError
 from shipped_agents import AGENT_HOME, SHIPPED_AGENTS, SHIPPED_NAMES, ShippedAgent
 
 SHIPPED_MODELS = {**MODELS, "opus": "anthropic/claude-opus-5-5"}

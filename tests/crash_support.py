@@ -3,14 +3,12 @@
 from dataclasses import dataclass
 from datetime import date, timedelta
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.dispatcher import Handler
 from factory.application.recovery import RecoveryHandler
 from factory.domain.events import Event
-from factory.domain.identifiers import branch_name
 from factory.domain.journal import HUMAN, NewEntry, append_entry
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import (
@@ -19,6 +17,8 @@ from factory.domain.work_item import (
     WorkItemState,
     initial_state,
 )
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.identifiers import branch_name
 from git_support import PIPELINE_YAML
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

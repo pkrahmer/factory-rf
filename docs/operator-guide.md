@@ -53,7 +53,7 @@ Install the factory with `uv sync`, then check the installation with `make check
 
 ## Configuration
 
-One factory instance runs one project and is told what it needs through environment variables. `factory.domain.settings.read_settings` reads them and refuses a bad one with `SettingsInvalid`, whose message is `<variable>: <fault>`; it reports the first fault in this order: the repository, the instance, `FACTORY_CHECKOUT`, `FACTORY_STATE`, the image identity file, `FACTORY_WORKSPACE`'s faults (a relative path, a checkout or state directory inside it), then the variables below those in the table. `factory-run` calls it first; `factory-watch` reads the same environment.
+One factory instance runs one project and is told what it needs through environment variables. `factory.shared.domain.settings.read_settings` reads them and refuses a bad one with `SettingsInvalid`, whose message is `<variable>: <fault>`; it reports the first fault in this order: the repository, the instance, `FACTORY_CHECKOUT`, `FACTORY_STATE`, the image identity file, `FACTORY_WORKSPACE`'s faults (a relative path, a checkout or state directory inside it), then the variables below those in the table. `factory-run` calls it first; `factory-watch` reads the same environment.
 
 | Variable | Required | Meaning |
 |---|---|---|

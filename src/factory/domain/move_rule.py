@@ -2,8 +2,8 @@
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.domain.identifiers import Name, WorkItemId
 from factory.domain.pipeline_definition import DONE_STAGE, PipelineDefinition
+from factory.shared.domain.identifiers import Name, WorkItemId
 
 
 class StageChange(BaseModel):

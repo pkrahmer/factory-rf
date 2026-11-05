@@ -9,10 +9,10 @@ from factory.adapters.git_cli import GitCli
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
 from factory.application.boundaries import Boundaries
 from factory.application.work_items import RemoteWorkItems
-from factory.domain.errors import WorkItemFormatError
-from factory.domain.identifiers import branch_name
-from factory.domain.paths import LIFECYCLE_FOLDERS
 from factory.domain.work_item import StoryFile, initial_state
+from factory.shared.domain.errors import WorkItemFormatError
+from factory.shared.domain.identifiers import branch_name
+from factory.shared.domain.paths import LIFECYCLE_FOLDERS
 from git_support import CHECKOUT, remote_commit, write_files
 from human_clone import HumanClone
 

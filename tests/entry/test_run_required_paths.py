@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualClock
-from factory.domain.settings import InstanceSettings
 from factory.entry.run import main
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.settings import InstanceSettings
 
 
 class Runner:

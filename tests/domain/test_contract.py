@@ -5,16 +5,16 @@ import json
 import pytest
 
 from factory.domain.acceptance import AcceptanceState
-from factory.domain.contract import (
+from factory.domain.cost_records import CostRecord
+from factory.domain.pipeline_definition import PipelineDefinition
+from factory.domain.stops import StopRecord
+from factory.domain.work_item import WorkItemState
+from factory.shared.domain.contract import (
     CONTRACT,
     ContractEntry,
     contract_schema,
     schema_file_name,
 )
-from factory.domain.cost_records import CostRecord
-from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.stops import StopRecord
-from factory.domain.work_item import WorkItemState
 
 
 def _entry(name: str) -> ContractEntry:

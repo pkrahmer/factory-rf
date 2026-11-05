@@ -12,12 +12,12 @@ from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.write_paths import WritePathService
 from factory.domain.agent_runs import WritePathSettings
-from factory.domain.errors import WorkItemFormatError
 from factory.domain.git import ChangedPath, check_repository_path
 from factory.domain.journal import restore_state_and_journal
-from factory.domain.paths import FEATURES_DIRECTORY
 from factory.domain.work_item import WorkItemDocument
 from factory.domain.write_paths import refusal
+from factory.shared.domain.errors import WorkItemFormatError
+from factory.shared.domain.paths import FEATURES_DIRECTORY
 
 MOUNTED_CHECKOUT = "checkout"
 _GIT_FOLDER = ".git"

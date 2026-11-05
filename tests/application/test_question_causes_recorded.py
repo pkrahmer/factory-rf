@@ -20,7 +20,6 @@ from crash_support import (
     snapshot,
 )
 from definition_support import pipeline_definition
-from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.closed import ClosedHandler
@@ -28,6 +27,7 @@ from factory.application.handlers.questions import AskHandler
 from factory.domain.events import Event, EventKind
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.shared.adapters.clock import ManualClock
 from human_clone import HumanClone
 
 BODY = "# First story\n\n## Journal\n\n1. 2026-10-12 human: created.\n"

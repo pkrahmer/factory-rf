@@ -5,8 +5,8 @@ from collections.abc import Sequence
 from pydantic import AwareDatetime, BaseModel, ConfigDict
 
 from factory.domain.git import ChangedPath, CommitId
-from factory.domain.paths import STOP_RECORDS_FILE
 from factory.domain.stops import RepositoryStop
+from factory.shared.domain.paths import STOP_RECORDS_FILE
 
 
 class PreflightItem(BaseModel):

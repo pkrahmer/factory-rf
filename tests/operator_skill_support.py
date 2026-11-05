@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from factory.adapters.process import ProcessResult
+from factory.shared.adapters.process import ProcessResult
 from git_support import commit_all, run_git, write_executable, write_files
 from operator_support import CURL_STAND_IN, ROOT, hosting_env, run_script
 

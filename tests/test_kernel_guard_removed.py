@@ -23,7 +23,7 @@ def test_the_wrapper_and_the_kernel_s_modules_are_gone(module: str) -> None:
     ("check", "expected"),
     [
         pytest.param(
-            lambda: has_name("factory.adapters.process", "replace_process"),
+            lambda: has_name("factory.shared.adapters.process", "replace_process"),
             False,
             id="replace-process",
         ),

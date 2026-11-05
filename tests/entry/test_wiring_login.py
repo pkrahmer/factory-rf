@@ -7,8 +7,8 @@ import pytest
 from adapters.claude_stand_in import REPLY, claude_request
 from factory.adapters.agent_launch import LoginFiles, login_argv
 from factory.adapters.fake_hosting import FakeHostingService
-from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
+from factory.shared.domain.settings import InstanceSettings
 from podman_support import PodmanPlan
 from wiring_support import CREDENTIAL, after_image, dataset_podman, run_words, with_dataset
 

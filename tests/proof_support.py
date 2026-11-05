@@ -12,7 +12,6 @@ from typing import Final
 from container_support import fake_dataset
 from disk_support import FakeDiskSpace
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
-from factory.adapters.clock import ManualClock, ManualWaiter
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
@@ -31,16 +30,17 @@ from factory.domain.cost_records import CostRecord
 from factory.domain.disk import DiskRecord
 from factory.domain.git import CommitId, GitOptions
 from factory.domain.hosting import PostKind, PullRequestComment, PullRequestView
-from factory.domain.identifiers import Name, WorkItemId, branch_name
 from factory.domain.journal import HUMAN, JournalRecord, NewEntry, append_entry
-from factory.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.domain.known_results import ResultRecord
-from factory.domain.paths import cost_records_path
-from factory.domain.settings import InstanceSettings
 from factory.domain.stops import StopRecord
 from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 from factory.entry.wiring import agent_environment, handler_factory
+from factory.shared.adapters.clock import ManualClock, ManualWaiter
+from factory.shared.domain.identifiers import Name, WorkItemId, branch_name
+from factory.shared.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.shared.domain.paths import cost_records_path
+from factory.shared.domain.settings import InstanceSettings
 from git_support import (
     CHECKOUT,
     PIPELINE_YAML,

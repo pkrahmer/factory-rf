@@ -9,7 +9,7 @@ import pytest
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.application.boundaries import Boundaries
 from factory.application.project_agents import ProjectAgentDefinitions
-from factory.domain.errors import (
+from factory.shared.domain.errors import (
     AgentDefinitionError,
     AgentDefinitionInvalid,
     AgentDefinitionMissing,

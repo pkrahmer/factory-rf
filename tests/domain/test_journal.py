@@ -8,7 +8,6 @@ from datetime import UTC, date, datetime
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from factory.domain.errors import WorkItemFormatError
 from factory.domain.journal import (
     JournalKind,
     JournalRecord,
@@ -19,9 +18,10 @@ from factory.domain.journal import (
     render_entry,
     restore_state_and_journal,
 )
-from factory.domain.sections import sections
 from factory.domain.story_form import check_story_form
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState, initial_state
+from factory.shared.domain.errors import WorkItemFormatError
+from factory.shared.domain.sections import sections
 from source_search import modules
 
 CREATED_ON = date(2026, 10, 12)

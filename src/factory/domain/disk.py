@@ -6,8 +6,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, NonNegativeInt
 
-from factory.domain.settings import MIN_FREE_SPACE_VARIABLE
-from factory.domain.times import UtcDatetime
+from factory.shared.domain.settings import MIN_FREE_SPACE_VARIABLE
+from factory.shared.domain.times import UtcDatetime
 
 GIGABYTE = 10**9
 

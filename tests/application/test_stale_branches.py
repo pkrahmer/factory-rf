@@ -8,7 +8,7 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.recovery import delete_stale_branches
-from factory.domain.identifiers import branch_name
+from factory.shared.domain.identifiers import branch_name
 from git_support import CHECKOUT, remote_commit, run_git
 from human_clone import HumanClone
 from log_support import log_lines

@@ -14,7 +14,7 @@ from factory.domain.agent_runs import (
     AgentDefinition,
     AgentRunRequest,
 )
-from factory.domain.kill_points import KillPoints
+from factory.shared.domain.kill_points import KillPoints
 
 LIMIT = timedelta(seconds=30)
 

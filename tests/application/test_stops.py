@@ -7,7 +7,6 @@ from typing import override
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.health_file import JsonHealthStatusFile
@@ -15,6 +14,7 @@ from factory.application.boundaries import Boundaries
 from factory.application.machine import HealthStatusStore
 from factory.application.stops import StopService
 from factory.domain.stops import HealthStatus, RepositoryStop
+from factory.shared.adapters.clock import ManualClock
 
 LOG = Path("state") / "factory.log"
 HEALTH = Path("state") / "health.json"

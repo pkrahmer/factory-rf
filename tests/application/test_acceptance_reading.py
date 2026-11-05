@@ -7,9 +7,9 @@ from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
 from factory.domain.acceptance import AcceptanceState, FeatureAcceptance, FeatureFiles
 from factory.domain.board import FeatureRow
-from factory.domain.errors import WorkItemFormatError
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument
+from factory.shared.domain.errors import WorkItemFormatError
 from git_support import write_files
 from human_clone import HumanClone
 

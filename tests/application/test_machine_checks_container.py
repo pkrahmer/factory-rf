@@ -8,7 +8,7 @@ from container_support import CONTAINER
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import MachineChecks
 from factory.domain.preflight import PreflightItem
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 from wiring_support import every_tool
 
 CONTAINER_ITEMS = ["tool:git", "tool:uv", "hosting-service", "agents", "agent-runtime-version"]

@@ -27,8 +27,8 @@ from factory.adapters.opencode_runtime import (
     result_instructions,
 )
 from factory.application.agent_runtime import AgentRuntime
-from factory.domain.errors import AgentRuntimeError
-from factory.domain.kill_points import KillPoint, KillPoints
+from factory.shared.domain.errors import AgentRuntimeError
+from factory.shared.domain.kill_points import KillPoint, KillPoints
 
 LIMIT = timedelta(seconds=30)
 # A few seconds, so the child has room to start; the stand-in waits far longer.

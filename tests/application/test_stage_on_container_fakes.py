@@ -12,8 +12,8 @@ from factory.application.preflight import agent_run_probe_item
 from factory.application.task import TaskComposer, TaskContext
 from factory.domain.agent_runs import AgentDefinition, AgentRunResult
 from factory.domain.journal import entry_text
-from factory.domain.settings import InstanceSettings
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.shared.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 from probe_support import COMPLETED, ENVIRONMENT

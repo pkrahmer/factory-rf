@@ -8,18 +8,18 @@ from typing import Literal, override
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.machine import FactoryLog, HealthStatusStore
 from factory.application.stops import StopService
-from factory.domain.settings import InstanceSettings
 from factory.domain.stops import (
     HealthStatus,
     RepositoryStop,
     RepositoryStopReason,
     StopRecord,
 )
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.settings import InstanceSettings
 from log_support import log_lines
 from record_support import UnwritableRecordLog
 from stage_run_support import INSTANCE

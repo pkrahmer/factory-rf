@@ -23,8 +23,8 @@ from factory.domain.containers import (
     Mount,
     bundle_mounts,
 )
-from factory.domain.errors import ContainerError
 from factory.domain.git import CommitId
+from factory.shared.domain.errors import ContainerError
 
 UPSTREAM = "/upstream"
 AGENT_FILES = "/etc/factory/claude"

@@ -15,11 +15,11 @@ from ruamel.yaml.nodes import ScalarNode
 from ruamel.yaml.representer import RoundTripRepresenter
 from ruamel.yaml.scalarstring import SingleQuotedScalarString
 
-from factory.adapters.validation_faults import first_fault
-from factory.application.files import WorkItemReader, WorkItemWriter
 from factory.domain.acceptance import AcceptanceState
-from factory.domain.errors import WorkItemFormatError
 from factory.domain.work_item import WorkItemDocument, WorkItemState, require_state
+from factory.shared.adapters.validation_faults import first_fault
+from factory.shared.application.files import WorkItemReader, WorkItemWriter
+from factory.shared.domain.errors import WorkItemFormatError
 
 # Words a YAML 1.1 or 1.2 reader takes for null or a boolean; written quoted, they stay text.
 _AMBIGUOUS_WORDS = frozenset({"null", "true", "false", "yes", "no", "on", "off", "y", "n"})

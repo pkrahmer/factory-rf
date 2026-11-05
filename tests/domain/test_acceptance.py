@@ -9,12 +9,12 @@ from factory.domain.acceptance import (
     acceptance_id,
     next_acceptance_id,
 )
-from factory.domain.identifiers import (
+from factory.domain.work_item import WorkItemState
+from factory.shared.domain.identifiers import (
     parse_feature_directory_name,
     parse_work_item_file_name,
     work_item_order,
 )
-from factory.domain.work_item import WorkItemState
 
 ORDERED = ["F0002-S0001", "F0002-S0009", "F0002-A0001", "F0003-S0001"]
 

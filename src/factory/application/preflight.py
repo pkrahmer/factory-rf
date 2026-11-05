@@ -21,17 +21,7 @@ from factory.domain.agent_runs import (
 )
 from factory.domain.checks import CheckResult, command_ending
 from factory.domain.containers import ContainerResult
-from factory.domain.errors import (
-    AgentDefinitionError,
-    AgentRuntimeError,
-    ContainerError,
-    GitError,
-    HostingServiceError,
-    ProjectCommandError,
-    SnapshotError,
-)
 from factory.domain.git import CommitId
-from factory.domain.paths import MAIN_BRANCH, REMOTE
 from factory.domain.preflight import (
     PreflightItem,
     PreflightReport,
@@ -40,15 +30,25 @@ from factory.domain.preflight import (
     machine_stop,
     version_matches,
 )
-from factory.domain.printed_lines import printed_lines
-from factory.domain.settings import (
+from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
+from factory.shared.domain.errors import (
+    AgentDefinitionError,
+    AgentRuntimeError,
+    ContainerError,
+    GitError,
+    HostingServiceError,
+    ProjectCommandError,
+    SnapshotError,
+)
+from factory.shared.domain.paths import MAIN_BRANCH, REMOTE
+from factory.shared.domain.printed_lines import printed_lines
+from factory.shared.domain.settings import (
     API_LOGIN_FILE_VARIABLE,
     CLAUDE_VERSION_VARIABLE,
     OPENCODE_MODELS_VARIABLE,
     OPENCODE_VERSION_VARIABLE,
     InstanceSettings,
 )
-from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
 
 # Make and the agent's runtime run only inside the containers, from the stage image.
 REQUIRED_TOOLS = ("git", "uv")

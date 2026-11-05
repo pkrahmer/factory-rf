@@ -7,7 +7,6 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
@@ -23,12 +22,13 @@ from factory.application.stage import (
 )
 from factory.domain.agent_runs import QUESTION, AgentRunResult
 from factory.domain.checks import CheckResult
-from factory.domain.errors import HostingServiceError, PushFailed
-from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord, entry_text
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import findings_question, round_cap_question
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.errors import HostingServiceError, PushFailed
+from factory.shared.domain.identifiers import branch_name
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 from stage_run_support import ENVIRONMENT, INSTANCE, branch_head, pushed, pushed_state

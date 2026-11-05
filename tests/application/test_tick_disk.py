@@ -13,8 +13,8 @@ from factory.application.tick import IdleHandler, Tick, TickOutcome
 from factory.domain.disk import GIGABYTE, disk_low_detail
 from factory.domain.events import EventKind
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.settings import InstanceSettings
 from factory.domain.stops import RepositoryStop
+from factory.shared.domain.settings import InstanceSettings
 from git_support import CHECKOUT, remote_commit
 from human_clone import HumanClone
 from log_support import log_lines

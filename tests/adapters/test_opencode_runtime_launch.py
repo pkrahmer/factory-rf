@@ -18,7 +18,7 @@ from agent_login_support import API_LOGIN
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.domain.agent_runs import AgentRunRequest
-from factory.domain.errors import AgentRuntimeError
+from factory.shared.domain.errors import AgentRuntimeError
 from run_layout_support import (
     Layout,
 )

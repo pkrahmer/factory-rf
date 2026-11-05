@@ -12,8 +12,8 @@ import pytest
 
 from factory.adapters.copy_snapshots import CopySnapshots
 from factory.adapters.fake_snapshots import FakeSnapshots
-from factory.domain.errors import SnapshotError
 from factory.domain.git import ChangedPath
+from factory.shared.domain.errors import SnapshotError
 
 MEBIBYTE = 1024 * 1024
 

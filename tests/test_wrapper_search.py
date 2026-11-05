@@ -7,7 +7,8 @@ def test_only_the_three_wrappers_import_the_process_module() -> None:
     importers = {
         name
         for name, tree in modules().items()
-        if name != "factory.adapters.process" and imports(tree, "factory.adapters.process")
+        if name != "factory.shared.adapters.process"
+        and imports(tree, "factory.shared.adapters.process")
     }
 
     assert importers == {

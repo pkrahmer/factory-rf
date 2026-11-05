@@ -19,8 +19,6 @@ from factory.application.machine import Clock
 from factory.application.scheduler import CheckoutPreparer, RepositoryWaiter, Scheduler
 from factory.application.stops import StopService
 from factory.application.tick import Tick, TickOutcome
-from factory.domain.errors import FetchFailed, MachineStopStood, SettingsInvalid
-from factory.domain.settings import STATE_DIRECTORY, InstanceSettings, named_state_directory
 from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.wiring import (
     ImageSizes,
@@ -39,6 +37,8 @@ from factory.entry.wiring import (
     stage_image_report,
     system_clock,
 )
+from factory.shared.domain.errors import FetchFailed, MachineStopStood, SettingsInvalid
+from factory.shared.domain.settings import STATE_DIRECTORY, InstanceSettings, named_state_directory
 
 __all__ = [
     "activity",

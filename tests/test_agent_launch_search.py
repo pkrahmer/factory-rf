@@ -18,4 +18,4 @@ def test_neither_runtime_module_reads_os_environ() -> None:
 
 
 def test_the_launch_module_does_not_import_the_process_module() -> None:
-    assert not imports(modules()[LAUNCH], "factory.adapters.process")
+    assert not imports(modules()[LAUNCH], "factory.shared.adapters.process")

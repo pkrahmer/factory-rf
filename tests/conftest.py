@@ -20,7 +20,6 @@ from disk_support import FakeDiskSpace
 from factory.adapters import claude_runtime, podman_runs
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
-from factory.adapters.clock import ManualClock, ManualWaiter
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
@@ -38,13 +37,14 @@ from factory.application.hosting import HostingService
 from factory.application.images import Images
 from factory.domain.disk import DiskRecord
 from factory.domain.git import GitOptions
-from factory.domain.identifiers import WorkItemId
-from factory.domain.kill_points import KillPoints
 from factory.domain.known_results import ResultRecord
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.settings import InstanceSettings
 from factory.domain.stops import StopRecord
 from factory.entry.wiring import machine_log
+from factory.shared.adapters.clock import ManualClock, ManualWaiter
+from factory.shared.domain.identifiers import WorkItemId
+from factory.shared.domain.kill_points import KillPoints
+from factory.shared.domain.settings import InstanceSettings
 from git_support import (
     CHECKOUT,
     PIPELINE_YAML,

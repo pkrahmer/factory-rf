@@ -9,9 +9,9 @@ import pytest
 
 import preflight_support
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
-from factory.domain.paths import STOP_RECORDS_FILE
 from factory.domain.preflight import PreflightStamp
 from factory.domain.stops import StopRecord, stop_records_text
+from factory.shared.domain.paths import STOP_RECORDS_FILE
 from log_support import log_lines
 from preflight_support import CLEARED_LINE, IMAGE, OTHER_IMAGE, Rig, fail_once
 

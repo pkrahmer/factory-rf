@@ -6,8 +6,8 @@ from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.application.stage import StageRunner
 from factory.domain.events import Event
-from factory.domain.identifiers import Name
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.shared.domain.identifiers import Name
 
 
 class RunHandler(Handler):

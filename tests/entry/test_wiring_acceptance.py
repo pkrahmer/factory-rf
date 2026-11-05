@@ -16,11 +16,11 @@ from factory.application.dispatcher import unhandled_kinds
 from factory.application.tick import Tick
 from factory.domain.acceptance import AcceptanceState
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.errors import CannotHandle
 from factory.domain.events import Event, EventKind
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.entry.wiring import build_handlers, handler_factory
+from factory.shared.domain.errors import CannotHandle
 from git_support import PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

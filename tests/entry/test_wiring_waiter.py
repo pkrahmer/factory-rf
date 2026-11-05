@@ -1,9 +1,9 @@
 """The wired boundaries wait by sleeping."""
 
-from factory.adapters.clock import SleepingWaiter
 from factory.adapters.fake_hosting import FakeHostingService
-from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
+from factory.shared.adapters.clock import SleepingWaiter
+from factory.shared.domain.settings import InstanceSettings
 from wiring_support import CREDENTIAL
 
 

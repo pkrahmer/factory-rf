@@ -8,7 +8,7 @@ import pytest
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import MachineChecks
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 from wiring_support import every_tool
 
 MISMATCH = "the agent runtime reports 1.19.4, the image pins 1.19.3; "

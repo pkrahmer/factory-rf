@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, NonNegativeInt
 
 from factory.domain.agent_runs import TokenCounts
 from factory.domain.cost_records import CostRecord
-from factory.domain.identifiers import Name
+from factory.shared.domain.identifiers import Name
 
 _ZERO_TOKENS = TokenCounts(input=0, output=0)
 _ONE_DECIMAL = Decimal("0.1")

@@ -10,21 +10,21 @@ from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
 from factory.application.disk_records import bytes_or_unknown
-from factory.application.files import CostRecordReader
 from factory.application.git import Git
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.bills import Bill, StageBill, bill, bills_by_stage, cost_line, cost_table
 from factory.domain.cost_records import CostRecord, MachineMeasures, ToolUse, TranscriptRef
-from factory.domain.identifiers import (
+from factory.domain.machine import MachineTotals, machine_differences
+from factory.domain.work_item import require_state
+from factory.shared.application.files import CostRecordReader
+from factory.shared.domain.identifiers import (
     WorkItemId,
     branch_name,
     parse_work_item_file_name,
     work_item_of_branch,
     work_item_order,
 )
-from factory.domain.machine import MachineTotals, machine_differences
-from factory.domain.paths import FEATURES_DIRECTORY, MAIN_BRANCH, REMOTE, cost_records_path
-from factory.domain.work_item import require_state
+from factory.shared.domain.paths import FEATURES_DIRECTORY, MAIN_BRANCH, REMOTE, cost_records_path
 
 if TYPE_CHECKING:
     from factory.application.stage import StartedStage

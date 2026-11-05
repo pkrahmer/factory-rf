@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from factory.application.agent_runtime import AgentRuntime
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
-from factory.domain.errors import AgentRuntimeError
+from factory.shared.domain.errors import AgentRuntimeError
 
 LIMIT = timedelta(seconds=30)
 

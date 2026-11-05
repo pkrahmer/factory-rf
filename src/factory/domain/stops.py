@@ -13,8 +13,8 @@ from pydantic import (
 )
 
 from factory.domain.hosting import PostKey, PostOutcome
-from factory.domain.identifiers import Name, branch_name
-from factory.domain.times import UtcDatetime
+from factory.shared.domain.identifiers import Name, branch_name
+from factory.shared.domain.times import UtcDatetime
 
 RepositoryStopReason = Literal[
     "fetch_failed",

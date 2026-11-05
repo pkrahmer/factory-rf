@@ -19,14 +19,14 @@ from factory.application.pipeline_loading import PipelineLoader
 from factory.application.tick import IdleHandler, Tick
 from factory.application.watcher import Watcher
 from factory.domain.board import render_board
-from factory.domain.errors import GitError, PipelineDefinitionInvalid
 from factory.domain.events import Event, EventKind
 from factory.domain.git import GitOptions
 from factory.domain.hosting import PullRequestComment, PullRequestView
-from factory.domain.identifiers import branch_name
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemState
 from factory.entry.watch import main, render_event, run_watch
+from factory.shared.domain.errors import GitError, PipelineDefinitionInvalid
+from factory.shared.domain.identifiers import branch_name
 from git_support import PIPELINE_YAML, TEST_IDENTITY, run_git
 from human_clone import HumanClone
 from source_search import SRC
@@ -268,7 +268,7 @@ def test_no_tick_and_no_watch_run_writes_a_last_line_file(
 
 def _names_the_replaced_phrases(root: Path, path: Path) -> bool:
     # The document check's list of replaced phrases has to name them to reject them.
-    return path == root / "domain" / "documents.py"
+    return path == root / "shared" / "domain" / "documents.py"
 
 
 def _files_naming(root: Path, text: bytes) -> list[Path]:
@@ -291,7 +291,7 @@ def test_no_source_file_knows_the_follow_mode(text: bytes) -> None:
     ("name", "mode", "found"),
     [
         pytest.param("entry/run.py", 0o644, True, id="python-source"),
-        pytest.param("domain/documents.py", 0o644, False, id="document-check"),
+        pytest.param("shared/domain/documents.py", 0o644, False, id="document-check"),
         pytest.param("domain/__pycache__/watch.cpython-312.pyc", 0o000, False, id="bytecode"),
         pytest.param("entry/notes.txt", 0o644, False, id="text-file"),
         pytest.param("entry/run.py.140000", 0o644, False, id="temporary-name"),

@@ -5,7 +5,8 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from factory.domain.duplicates import (
+from factory.entry.inputs import UnreadableInput, read_input
+from factory.shared.domain.duplicates import (
     DuplicateFinding,
     compare,
     dead_code_findings,
@@ -13,7 +14,6 @@ from factory.domain.duplicates import (
     report_lines,
     similar_code_findings,
 )
-from factory.entry.inputs import UnreadableInput, read_input
 
 _PROGRAM = "check-duplicates"
 _BASELINE_HEADER = "# Accepted findings of make duplicates, one key per line."

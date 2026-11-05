@@ -12,7 +12,7 @@ from factory.adapters.agent_launch import (
     read_call_end,
     state_directory_error,
 )
-from factory.domain.errors import AgentRuntimeError
+from factory.shared.domain.errors import AgentRuntimeError
 
 STARTERS = Starters(login_files=LoginFiles())
 LIMIT = timedelta(seconds=30)

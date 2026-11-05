@@ -21,7 +21,7 @@ from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import PROBE_PROMPT, agent_run_probe_item
 from factory.domain.git import GitOptions
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 from git_support import TEST_IDENTITY, clone, install_agents, run_git
 from human_clone import HumanClone
 from probe_support import COMPLETED, ENVIRONMENT

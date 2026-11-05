@@ -13,8 +13,8 @@ from factory.application.boundaries import Boundaries
 from factory.application.handlers.run import RunHandler
 from factory.application.watcher import Watcher
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.errors import HostingServiceError
 from factory.domain.events import Event
+from factory.shared.domain.errors import HostingServiceError
 from git_support import install_agents
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

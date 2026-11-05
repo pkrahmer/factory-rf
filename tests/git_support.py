@@ -8,9 +8,9 @@ from collections.abc import Iterable
 from pathlib import Path
 
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.adapters.process import ProcessRequest, run_process
-from factory.domain.errors import PipelineDefinitionInvalid
 from factory.domain.git import GitIdentity
+from factory.shared.adapters.process import ProcessRequest, run_process
+from factory.shared.domain.errors import PipelineDefinitionInvalid
 
 CHECKOUT = "checkout"
 

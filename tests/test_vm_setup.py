@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import ProcessRequest, run_process
+from factory.shared.adapters.process import ProcessRequest, run_process
 from vm_support import REQUIRED, SETUP, SYSTEM_PATH, entries, run_setup
 
 OPTIONS = (

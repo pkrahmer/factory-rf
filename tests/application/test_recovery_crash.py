@@ -8,7 +8,6 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
@@ -18,10 +17,8 @@ from factory.application.dispatcher import Handler
 from factory.application.machine import Clock
 from factory.application.recovery import RecoveryHandler
 from factory.domain.cost_records import CostRecord
-from factory.domain.errors import CannotHandle, GitError, PushFailed
 from factory.domain.events import Event, EventKind
 from factory.domain.git import ChangedPath
-from factory.domain.identifiers import branch_name
 from factory.domain.journal import (
     FACTORY,
     HUMAN,
@@ -31,8 +28,6 @@ from factory.domain.journal import (
     entry_text,
     last_record,
 )
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
-from factory.domain.paths import cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.recovery import crash_entry_text
 from factory.domain.work_item import (
@@ -42,6 +37,11 @@ from factory.domain.work_item import (
     WorkItemState,
     initial_state,
 )
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.errors import CannotHandle, GitError, PushFailed
+from factory.shared.domain.identifiers import branch_name
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.shared.domain.paths import cost_records_path
 from git_support import PIPELINE_YAML, remote_commit, write_files
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

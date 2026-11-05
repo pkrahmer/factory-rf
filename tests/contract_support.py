@@ -4,7 +4,12 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from factory.domain.contract import CONTRACT_KEY, ContractEntry, contract_schema, schema_file_name
+from factory.shared.domain.contract import (
+    CONTRACT_KEY,
+    ContractEntry,
+    contract_schema,
+    schema_file_name,
+)
 from source_search import SRC
 
 SCHEMAS = SRC / "contract"

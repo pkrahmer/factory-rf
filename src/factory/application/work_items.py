@@ -3,27 +3,9 @@
 from collections.abc import Callable
 from pathlib import PurePosixPath
 
-from factory.application.files import WorkItemReader
 from factory.application.git import Git
-from factory.domain.errors import WorkItemFormatError
 from factory.domain.git import CommitId
-from factory.domain.identifiers import (
-    branch_name,
-    feature_of,
-    is_acceptance,
-    parse_feature_directory_name,
-    parse_work_item_file_name,
-    work_item_order,
-)
 from factory.domain.move_rule import StageChange
-from factory.domain.paths import (
-    FEATURES_DIRECTORY,
-    MAIN_BRANCH,
-    REMOTE,
-    LifecycleFolder,
-    feature_file_path,
-    folder_of,
-)
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import (
     StoryFile,
@@ -31,6 +13,24 @@ from factory.domain.work_item import (
     WorkItemSnapshot,
     WorkItemState,
     initial_state,
+)
+from factory.shared.application.files import WorkItemReader
+from factory.shared.domain.errors import WorkItemFormatError
+from factory.shared.domain.identifiers import (
+    branch_name,
+    feature_of,
+    is_acceptance,
+    parse_feature_directory_name,
+    parse_work_item_file_name,
+    work_item_order,
+)
+from factory.shared.domain.paths import (
+    FEATURES_DIRECTORY,
+    MAIN_BRANCH,
+    REMOTE,
+    LifecycleFolder,
+    feature_file_path,
+    folder_of,
 )
 
 _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"

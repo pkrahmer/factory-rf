@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from factory.domain.errors import SnapshotError
 from factory.domain.git import ChangedPath
+from factory.shared.domain.errors import SnapshotError
 from zfs_support import DATASET, Answer, snapshots_on, write_zfs
 
 DIFF = ["diff", "-FH", f"{DATASET}@base"]

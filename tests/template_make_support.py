@@ -7,7 +7,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from adapters.claude_stand_in import Step, write_stand_in
-from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_process
 from shipped_agents import ROOT
 
 MAKEFILE = ROOT / "template" / "Makefile"

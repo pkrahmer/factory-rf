@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import pytest
 
-from factory.domain.sections import section_text
+from factory.shared.domain.sections import section_text
 from shipped_agents import SHIPPED_NAMES, agent_body, template_definition
 
 REWORK_RULE = (

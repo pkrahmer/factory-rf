@@ -7,15 +7,15 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.comments import CommentCopier, CopyResult
 from factory.domain.hosting import FACTORY_MARKER, PostKey, PullRequestComment
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry, entry_text
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from git_support import remote_commit
 
 StateWith = Callable[[int | None], WorkItemState]

@@ -1,6 +1,6 @@
 # The stage environment
 
-This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.stage_environment`, `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.copy_snapshots`, `factory.adapters.podman_runs`, `factory.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. The stage protocol calls the stage environment (*The cycle* lists its steps, *The stage environment* the interface). There is one environment, the dataset and the containers: v1.1's `inline` environment and its setting went with F0044-S0008 (*The settings and the wiring*). The wiring also lives in `factory.domain.settings` and `factory.entry.wiring`.
+This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.application.stage_environment`, `factory.application.snapshots`, `factory.application.containers`, `factory.application.take`, `factory.domain.containers`, `factory.adapters.zfs_snapshots`, `factory.adapters.copy_snapshots`, `factory.adapters.podman_runs`, `factory.shared.adapters.printed_output`, `factory.adapters.fake_snapshots` and `factory.adapters.fake_containers`. The stage protocol calls the stage environment (*The cycle* lists its steps, *The stage environment* the interface). There is one environment, the dataset and the containers: v1.1's `inline` environment and its setting went with F0044-S0008 (*The settings and the wiring*). The wiring also lives in `factory.shared.domain.settings` and `factory.entry.wiring`.
 
 ## The cycle
 
@@ -26,7 +26,7 @@ A stage runs in the order below (`planning/v1.2-plan.md`, "The cycle of a stage"
 
 `changed_paths` lists files and symbolic links. It never lists a directory, also an empty one, and a rename is a deletion and an addition. `reset` and `changed_paths` need a base: without one they raise `SnapshotError`.
 
-`SnapshotError(command, detail)` (`factory.domain.errors`, a `BoundaryError`) is the one error of the interface: a snapshot command failed, could not start or reached its time limit. The message is `snapshot command <command> failed: <detail>`; `command` and `detail` are attributes.
+`SnapshotError(command, detail)` (`factory.shared.domain.errors`, a `BoundaryError`) is the one error of the interface: a snapshot command failed, could not start or reached its time limit. The message is `snapshot command <command> failed: <detail>`; `command` and `detail` are attributes.
 
 ## The container runs
 
@@ -59,7 +59,7 @@ Both fakes let the suite and the smoke tests run without `zfs` and `podman`.
 
 `FakeSnapshots(folder, base)` is a subclass of `CopySnapshots` (`factory.adapters.fake_snapshots`) with the same constructor and no code of its own: the suite's fake and the real copy adapter are one implementation, so a rule of the copy is tested by both. Tests: `tests/adapters/test_fake_snapshots.py` (through the fake) and `tests/adapters/test_copy_snapshots.py` (a real tree in `tmp_path`, the chunked read, the operating system's faults).
 
-`FakeContainerRuns(workspace)` plays a container as a child process on the host, through `run_process` (`factory.adapters.process`; the structural test `tests/test_wrapper_search.py` names this module as one that reaches it). It maps container paths to host folders:
+`FakeContainerRuns(workspace)` plays a container as a child process on the host, through `run_process` (`factory.shared.adapters.process`; the structural test `tests/test_wrapper_search.py` names this module as one that reaches it). It maps container paths to host folders:
 
 - The mounts given plus a fixed mount of `workspace` at `/work`. A command word, an `environment` value or the `working_directory` that equals a target, or starts with the target and a `/`, has that target replaced by the mount's `source`. The longer target wins; `/workspace` is not under `/work`. Keys of `environment` are never mapped.
 - `launch` returns `/bin/sh -c 'cd "$1" && shift && exec "$@"' fake-container <working directory> <command...>`, all mapped, with the time limit as given.
@@ -70,7 +70,7 @@ The suite's stages run on these fakes (*Wiring and tests*). Because the agent's 
 
 What the fake cannot do: it does not enforce `read_only` (a mount is only a path mapping), isolates nothing, and the command sees the host's programs.
 
-Tests: `tests/domain/test_containers.py`, `tests/domain/test_errors_environment.py`, `tests/application/test_snapshots_interface.py`, `tests/application/test_containers_interface.py` (and the two interfaces in `tests/application/test_interfaces.py`), `tests/adapters/test_fake_snapshots.py` and `tests/adapters/test_fake_containers.py`. The fakes' tests work in `tmp_path` and start only `/bin/sh` and `printf`.
+Tests: `tests/domain/test_containers.py`, `tests/shared/domain/test_errors_environment.py`, `tests/application/test_snapshots_interface.py`, `tests/application/test_containers_interface.py` (and the two interfaces in `tests/application/test_interfaces.py`), `tests/adapters/test_fake_snapshots.py` and `tests/adapters/test_fake_containers.py`. The fakes' tests work in `tmp_path` and start only `/bin/sh` and `printf`.
 
 ## The ZFS adapter
 
@@ -78,7 +78,7 @@ Tests: `tests/domain/test_containers.py`, `tests/domain/test_errors_environment.
 
 ### The commands
 
-Every command runs through `run_process` (`factory.adapters.process`; `tests/test_wrapper_search.py` names the module) with the working directory `/`, the factory's own environment, the time limit and standard error merged into the output.
+Every command runs through `run_process` (`factory.shared.adapters.process`; `tests/test_wrapper_search.py` names the module) with the working directory `/`, the factory's own environment, the time limit and standard error merged into the output.
 
 | Member | Runs | When |
 | --- | --- | --- |
@@ -169,7 +169,7 @@ Mounts, the grace, the reading of the end (255 at or after the limit is the time
 
 ### Reading the end
 
-`run` starts the launch's words through `run_process` (`factory.adapters.process`; `tests/test_wrapper_search.py` names the module) with the working directory `/` (podman reads no file from it; a missing workspace is podman's own fault, 125), the factory's environment and standard error merged into `output`.
+`run` starts the launch's words through `run_process` (`factory.shared.adapters.process`; `tests/test_wrapper_search.py` names the module) with the working directory `/` (podman reads no file from it; a missing workspace is podman's own fault, 125), the factory's environment and standard error merged into `output`.
 
 - `timed_out` is true when `run_process` says so, or when the exit status is in `CONTAINER_KILL_STATUSES` (`factory.adapters.agent_launch`: 137, -9 and 255) and the run lasted at least `time_limit`: podman's `--timeout` sent the kill. `exit_status` is then `None`.
 - The same statuses before the limit are the command's own, as is any other status at or after the limit.
@@ -187,7 +187,7 @@ Mounts, the grace, the reading of the end (255 at or after the limit is the time
 - `printed nothing`, for `version` only, when exit status 0 comes with no output;
 - the operating system's message when the executable cannot start.
 
-The preflight reads a missing `podman` from this error. The line helpers (`first_printed_line`, `failure_detail`, `no_end_detail`) are in `factory.adapters.printed_output`, shared with `ZfsSnapshots`.
+The preflight reads a missing `podman` from this error. The line helpers (`first_printed_line`, `failure_detail`, `no_end_detail`) are in `factory.shared.adapters.printed_output`, shared with `ZfsSnapshots`.
 
 ### The stand-in
 
@@ -325,7 +325,7 @@ What is copied is what differs from `HEAD` on the host (`git.changed_paths("HEAD
 
 ## The settings and the wiring
 
-An instance names its dataset, workspace and stage image in its environment variables (`factory.domain.settings`; the operator guide, *Configuration*, has the table).
+An instance names its dataset, workspace and stage image in its environment variables (`factory.shared.domain.settings`; the operator guide, *Configuration*, has the table).
 
 | Variable | `InstanceSettings` field | Default |
 |---|---|---|
@@ -341,7 +341,7 @@ An instance names its dataset, workspace and stage image in its environment vari
 
 `FACTORY_SNAPSHOTS` unset or blank is `zfs`; `zfs` and `copy` are accepted and anything else is `SettingsInvalid(FACTORY_SNAPSHOTS, "is neither zfs nor copy")`. `FACTORY_SNAPSHOT_BASE` is read like the other optional paths (blank is `None`, a relative path is refused). `snapshot_base_fault(snapshots, base, workspace, checkout, state_directory)` holds the rule on the base, for `read_settings` (as a `SettingsInvalid` on `FACTORY_SNAPSHOT_BASE`) and for the model validator (a `ValidationError`): with `zfs` a base is `is only used with FACTORY_SNAPSHOTS=copy`; with `copy` a base that is, holds or lies inside the workspace, the checkout or the state directory is `<base> overlaps <workspace|checkout|state>`, because every reset empties the workspace and the base must survive it. A missing base with `copy` is no fault of the settings; the wiring raises it.
 
-One function, `workspace_overlap_fault(workspace, checkout, state_directory)` (`factory.domain.settings`), holds that rule and gives `None` for a `None` workspace. `read_settings` calls it, and so does the model validator of `InstanceSettings`, so a model built directly refuses the same combinations with a `ValidationError` (the validator's message is `<variable>: <fault>`; it is not turned back into a `SettingsInvalid`).
+One function, `workspace_overlap_fault(workspace, checkout, state_directory)` (`factory.shared.domain.settings`), holds that rule and gives `None` for a `None` workspace. `read_settings` calls it, and so does the model validator of `InstanceSettings`, so a model built directly refuses the same combinations with a `ValidationError` (the validator's message is `<variable>: <fault>`; it is not turned back into a `SettingsInvalid`).
 
 `build_boundaries(settings, token, *, hosting=None, images=None)` (`factory.entry.wiring`) refuses an incomplete instance first, before it builds anything and before PyGithub's `get_repo` is called: `_container_adapters` raises `SettingsInvalid(FACTORY_DATASET, "missing")`, then `SettingsInvalid(FACTORY_WORKSPACE, "missing")`, then `SettingsInvalid(FACTORY_STAGE_IMAGE, "missing")`, the first of the three that is `None`. With `FACTORY_SNAPSHOTS=copy` the dataset is not read and the first is `SettingsInvalid(FACTORY_SNAPSHOT_BASE, "missing")`, before the workspace and the image. Then it builds:
 
@@ -355,7 +355,7 @@ One function, `workspace_overlap_fault(workspace, checkout, state_directory)` (`
 
 `build_boundaries` takes no `which`. It runs no tool: `zfs` and `podman` start only when a stage uses them. `RecordingProjectCommands.inner` is the implementation it records, which the wiring's tests read.
 
-`agent_run_environment(settings, base)` copies `base` and sets `HOME` to `/work/home` (`WORK_HOME_ENVIRONMENT`), on the dataset, whatever the settings; the dict it is given is unchanged. The preflight's items are in *The preflight* below. Tests of the copy snapshots' settings and wiring: `tests/domain/test_settings_snapshots.py` and `tests/entry/test_wiring_copy_snapshots.py`. Tests: `tests/domain/test_settings_stage_environment.py`, `tests/domain/test_settings_one_environment.py`, `tests/entry/test_wiring_stage_environment.py` and `tests/entry/test_wiring_one_environment.py`.
+`agent_run_environment(settings, base)` copies `base` and sets `HOME` to `/work/home` (`WORK_HOME_ENVIRONMENT`), on the dataset, whatever the settings; the dict it is given is unchanged. The preflight's items are in *The preflight* below. Tests of the copy snapshots' settings and wiring: `tests/shared/domain/test_settings_snapshots.py` and `tests/entry/test_wiring_copy_snapshots.py`. Tests: `tests/shared/domain/test_settings_stage_environment.py`, `tests/shared/domain/test_settings_one_environment.py`, `tests/entry/test_wiring_stage_environment.py` and `tests/entry/test_wiring_one_environment.py`.
 
 ## The project's stage image
 
@@ -378,7 +378,7 @@ The items that reach the machine take callables, so `application` knows no adapt
 | `dataset` | `dataset_item(dataset, exists)` | `ZfsSnapshots.dataset_exists` | `the dataset <dataset> does not exist; make it with zfs create, and its base with zfs snapshot <dataset>@base`, or `cannot list the dataset <dataset>: <error>` on `SnapshotError` |
 | `snapshots` (`copy` only) | `snapshots_item(workspace, base)` (`factory.application.preflight`; it reads the file system with `Path.is_dir`) | none | `the workspace <w> is not a directory`, `the base <b> does not exist; make it empty with mkdir, the first advance fills it` or `the base <b> is not a directory`; passes with `workspace <w>, base <b>` |
 | `stage-image` | `stage_image_item(image, exists)` | `PodmanRuns.image_exists` | `the stage image <image> is not built; build it with podman build`, or `cannot look for the stage image <image>: <error>` on `ContainerError` |
-| `metadata-block` (`job` only) | `metadata_block_item(probe)`; `_container_items` adds it after `stage-image` | `_metadata_probe`: `PodmanRuns.run(list(METADATA_PROBE_COMMAND), mounts=[], environment={}, time_limit=30 s, working_directory=WORK)` | passes with `refused` when the last non-blank output line is `000`; fails, `timed_out` first, with `the metadata probe did not end within its limit`, `a container reached the metadata server (HTTP <code>); reject tcp port 80 to 169.254.169.254 in the job's firewall`, `the metadata probe could not tell (exit <status>): <line or "no output">`, or `cannot run the metadata probe: <error>` on `ContainerError`. The constants are in `factory.domain.containers`, the line reader is `factory.domain.printed_lines` |
+| `metadata-block` (`job` only) | `metadata_block_item(probe)`; `_container_items` adds it after `stage-image` | `_metadata_probe`: `PodmanRuns.run(list(METADATA_PROBE_COMMAND), mounts=[], environment={}, time_limit=30 s, working_directory=WORK)` | passes with `refused` when the last non-blank output line is `000`; fails, `timed_out` first, with `the metadata probe did not end within its limit`, `a container reached the metadata server (HTTP <code>); reject tcp port 80 to 169.254.169.254 in the job's firewall`, `the metadata probe could not tell (exit <status>): <line or "no output">`, or `cannot run the metadata probe: <error>` on `ContainerError`. The constants are in `factory.domain.containers`, the line reader is `factory.shared.domain.printed_lines` |
 
 `MachineChecks.run` checks `REQUIRED_TOOLS` (`git`, `uv`) and asks for no runtime executable on the host: no `tool:make` (it runs only in the sync and check containers) and no `tool:claude` or `tool:opencode` (the executable is the stage image's; `agent-runtime-version` runs it there and is the check of its presence). There is no `agent-environment` item: the agent's `HOME` is a path inside the container. `opencode_item(settings, agent_models)` checks the aliases only.
 

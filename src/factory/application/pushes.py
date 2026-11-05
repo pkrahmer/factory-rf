@@ -4,8 +4,8 @@ from datetime import timedelta
 
 from factory.application.boundaries import Boundaries
 from factory.application.git import Git
-from factory.domain.errors import PushFailed
 from factory.domain.git import PushOutcome, push_is_retried, push_reason
+from factory.shared.domain.errors import PushFailed
 
 # A short outage of the hosting service passes within a minute; a longer one is a crash.
 RETRY_WAITS = (timedelta(seconds=5), timedelta(seconds=15), timedelta(seconds=45))

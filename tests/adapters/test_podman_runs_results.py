@@ -7,10 +7,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters import process
 from factory.adapters.podman_runs import PODMAN_TIME_LIMIT, PodmanRuns
-from factory.adapters.process import ProcessResult
-from factory.domain.errors import ContainerError
+from factory.shared.adapters import process
+from factory.shared.adapters.process import ProcessResult
+from factory.shared.domain.errors import ContainerError
 from podman_support import IMAGE, INSTANCE, Podman, PodmanPlan
 from run_process_recorder import Recorder
 from time_limits import ROOMY_BOUND_SECONDS

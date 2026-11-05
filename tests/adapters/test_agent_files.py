@@ -7,7 +7,7 @@ import pytest
 
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.domain.agent_runs import AgentDefinition
-from factory.domain.errors import (
+from factory.shared.domain.errors import (
     AgentDefinitionError,
     AgentDefinitionInvalid,
     AgentDefinitionMissing,

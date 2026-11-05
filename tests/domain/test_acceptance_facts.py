@@ -117,7 +117,7 @@ def test_the_head_is_an_initial_acceptance_state_a_title_and_an_empty_journal() 
 def test_the_head_builds_its_journal_heading_from_the_section_name() -> None:
     tree = modules()["factory.domain.acceptance"]
 
-    assert "factory.domain.sections.JOURNAL" in imported_modules(tree)
+    assert "factory.shared.domain.sections.JOURNAL" in imported_modules(tree)
 
 
 @pytest.mark.parametrize(

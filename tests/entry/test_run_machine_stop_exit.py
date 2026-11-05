@@ -7,12 +7,12 @@ from typing import Literal
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.tick import TickOutcome
-from factory.domain.settings import STATE_VARIABLE, InstanceSettings
 from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.wiring import health_store
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.settings import STATE_VARIABLE, InstanceSettings
 from power_support import IDLE
 from scripted_tick_support import MainRun, ScriptedTick, installed, run_main
 

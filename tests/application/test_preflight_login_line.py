@@ -10,7 +10,7 @@ from factory.application.boundaries import Boundaries
 from factory.application.preflight import MachineChecks, Preflight
 from factory.application.stops import StopService
 from factory.domain.preflight import PreflightItem
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 from git_support import install_agents
 from human_clone import HumanClone
 from log_support import log_lines

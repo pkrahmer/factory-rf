@@ -8,7 +8,7 @@ from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.fake_snapshots import FakeSnapshots
 from factory.application.boundaries import Boundaries
 from factory.application.stage_environment import ContainerEnvironment, stage_environment_of
-from factory.domain.identifiers import branch_name
+from factory.shared.domain.identifiers import branch_name
 from git_support import PIPELINE_YAML, clone
 from proof_support import (
     PASSING_MAKEFILE,

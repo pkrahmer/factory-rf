@@ -5,19 +5,20 @@ from collections.abc import Sequence
 
 from pydantic import BaseModel, ConfigDict, PositiveInt
 
-from factory.domain.identifiers import (
+from factory.domain.work_item import WorkItemDocument
+from factory.shared.domain.identifiers import (
     feature_of,
     is_acceptance,
     parse_feature_directory_name,
     parse_work_item_file_name,
 )
-from factory.domain.paths import (
+from factory.shared.domain.paths import (
     FEATURE_FILE_NAME,
     FEATURES_DIRECTORY,
     LIFECYCLE_FOLDERS,
     LifecycleFolder,
 )
-from factory.domain.sections import (
+from factory.shared.domain.sections import (
     ACCEPTANCE_CRITERIA,
     JOURNAL,
     SMOKE_TEST,
@@ -29,7 +30,6 @@ from factory.domain.sections import (
     split_lines,
     title,
 )
-from factory.domain.work_item import WorkItemDocument
 
 _NUMBERED_ITEM = re.compile(r"^(\d+)\. ")
 _DOCS_PREFIX = "docs:"

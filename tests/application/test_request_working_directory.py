@@ -10,8 +10,8 @@ from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
 from factory.application.task import TaskComposer, TaskContext
 from factory.domain.agent_runs import AgentDefinition
-from factory.domain.settings import InstanceSettings
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.shared.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents
 from probe_support import COMPLETED, ENVIRONMENT
 from stage_run_support import BRANCH, CREATED, CREATED_LINE, PATH, STORY, WORK_ITEM

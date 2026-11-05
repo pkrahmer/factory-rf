@@ -15,8 +15,10 @@ from factory.domain.acceptance import (
     story_file_ids,
 )
 from factory.domain.board import FeatureRow
-from factory.domain.errors import WorkItemFormatError
-from factory.domain.identifiers import (
+from factory.domain.pipeline_definition import PipelineDefinition
+from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot
+from factory.shared.domain.errors import WorkItemFormatError
+from factory.shared.domain.identifiers import (
     FeatureId,
     WorkItemId,
     branch_name,
@@ -27,15 +29,13 @@ from factory.domain.identifiers import (
     work_item_of_branch,
     work_item_order,
 )
-from factory.domain.paths import (
+from factory.shared.domain.paths import (
     FEATURES_DIRECTORY,
     MAIN_BRANCH,
     REMOTE,
     LifecycleFolder,
     work_item_path,
 )
-from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot
 
 _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 

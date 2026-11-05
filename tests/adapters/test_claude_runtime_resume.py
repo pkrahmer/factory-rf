@@ -21,8 +21,8 @@ from factory.domain.agent_runs import (
     PermissionDenial,
     TokenCounts,
 )
-from factory.domain.errors import AgentRuntimeError
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.shared.domain.errors import AgentRuntimeError
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from run_process_recorder import Recorder
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 

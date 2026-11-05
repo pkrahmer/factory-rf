@@ -13,11 +13,9 @@ from factory.application.handlers.recording import (
     target_of,
 )
 from factory.domain.archive import destination_path
-from factory.domain.errors import CannotHandle
 from factory.domain.events import Event
 from factory.domain.journal import FACTORY, HUMAN, NewEntry, append_entry
 from factory.domain.labels import labels_for
-from factory.domain.paths import MAIN_BRANCH
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import CLOSE_ENTRY_TEXT, send_back_entry_text, send_back_question
 from factory.domain.send_back import (
@@ -27,6 +25,8 @@ from factory.domain.send_back import (
     send_back_target,
 )
 from factory.domain.work_item import Blocked, WorkItemDocument, WorkItemSnapshot, require_state
+from factory.shared.domain.errors import CannotHandle
+from factory.shared.domain.paths import MAIN_BRANCH
 
 _KIND = "closed"
 

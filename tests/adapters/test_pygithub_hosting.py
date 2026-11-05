@@ -18,9 +18,9 @@ from adapters.pygithub_stand_ins import (
 )
 from factory.adapters.pygithub_hosting import PyGithubHostingService
 from factory.application.hosting import HostingService
-from factory.domain.errors import HostingServiceError
 from factory.domain.hosting import FACTORY_MARKER, PostKey, render_post
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.shared.domain.errors import HostingServiceError
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 
 COMMIT = "a" * 40
 BRANCH = "work-item/F0001-S0001"

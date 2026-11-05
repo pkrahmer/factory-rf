@@ -12,9 +12,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
-from factory.adapters.atomic_file import replace_text
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.adapters.clock import SleepingWaiter, SystemClock
 from factory.adapters.copy_snapshots import CopySnapshots
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.disk_space import ShutilDiskSpace
@@ -47,7 +45,6 @@ from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.application.costs import BillService
 from factory.application.dispatcher import Handler
-from factory.application.files import PipelineDefinitionReader, WorkItemReader
 from factory.application.git import Git
 from factory.application.handlers.closed import ClosedHandler
 from factory.application.handlers.comments import CommentHandler
@@ -94,16 +91,26 @@ from factory.domain.containers import (
     extra_environment,
 )
 from factory.domain.disk import DiskRecord
-from factory.domain.errors import ContainerError, GitError, SettingsInvalid
 from factory.domain.events import EventKind
 from factory.domain.git import GitOptions
-from factory.domain.identifiers import Name
 from factory.domain.known_results import ResultRecord
 from factory.domain.machine import gigabytes
-from factory.domain.paths import MAIN_BRANCH, REMOTE
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.preflight import PreflightItem
-from factory.domain.settings import (
+from factory.domain.stage_layer import (
+    STAGE_FILE,
+    StageLayerRefused,
+    project_image_tag,
+    stage_layer,
+)
+from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopRecord
+from factory.shared.adapters.atomic_file import replace_text
+from factory.shared.adapters.clock import SleepingWaiter, SystemClock
+from factory.shared.application.files import PipelineDefinitionReader, WorkItemReader
+from factory.shared.domain.errors import ContainerError, GitError, SettingsInvalid
+from factory.shared.domain.identifiers import Name
+from factory.shared.domain.paths import MAIN_BRANCH, REMOTE
+from factory.shared.domain.settings import (
     CREDENTIAL_FILE_VARIABLE,
     DATASET_VARIABLE,
     REPOSITORY_URL_VARIABLE,
@@ -115,13 +122,6 @@ from factory.domain.settings import (
     read_setting_file,
     read_settings,
 )
-from factory.domain.stage_layer import (
-    STAGE_FILE,
-    StageLayerRefused,
-    project_image_tag,
-    stage_layer,
-)
-from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopRecord
 
 __all__ = [
     "CREDENTIAL_HELPER",

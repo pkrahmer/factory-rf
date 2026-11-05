@@ -7,8 +7,8 @@ import pytest
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.project_agents import ProjectAgentDefinitions
-from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
+from factory.shared.domain.settings import InstanceSettings
 from git_support import PROJECT_CODER, install_agents
 from human_clone import HumanClone
 from wiring_support import CREDENTIAL

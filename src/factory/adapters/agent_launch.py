@@ -11,8 +11,8 @@ from pydantic import BaseModel, ConfigDict, JsonValue
 from factory.application.containers import ContainerRuns
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, EndReason, Login
 from factory.domain.containers import WORK_CHECKOUT, read_only_at_own_path
-from factory.domain.errors import AgentRuntimeError
-from factory.domain.kill_points import KillPoint, KillPoints
+from factory.shared.domain.errors import AgentRuntimeError
+from factory.shared.domain.kill_points import KillPoint, KillPoints
 
 ENTRY_DESCRIPTION = (
     "your journal entry, without its number or your name: "

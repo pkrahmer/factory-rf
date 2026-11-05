@@ -7,7 +7,7 @@ import pytest
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.pipeline_loading import PipelineLoader
-from factory.domain.errors import PipelineDefinitionInvalid
+from factory.shared.domain.errors import PipelineDefinitionInvalid
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 

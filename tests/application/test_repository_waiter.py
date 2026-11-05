@@ -7,15 +7,15 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.machine import FactoryLog
 from factory.application.scheduler import CheckoutPreparer, RepositoryWaiter
 from factory.application.stops import StopService
 from factory.domain.git import GitOptions
-from factory.domain.settings import InstanceSettings
 from factory.domain.stops import RepositoryStop
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.settings import InstanceSettings
 from git_support import (
     PIPELINE_YAML,
     TEST_IDENTITY,

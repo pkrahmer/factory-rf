@@ -14,10 +14,10 @@ from factory.application.handlers.recording import (
     require_pull_request,
     target_of,
 )
-from factory.domain.errors import CannotHandle, PushFailed
 from factory.domain.events import Event, EventKind
 from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.work_item import WorkItemSnapshot, WorkItemState
+from factory.shared.domain.errors import CannotHandle, PushFailed
 from git_support import remote_commit
 from human_clone import HumanClone
 

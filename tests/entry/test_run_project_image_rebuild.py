@@ -15,10 +15,10 @@ from factory.application.boundaries import Boundaries
 from factory.application.images import IMAGE_BUILD_TIME_LIMIT, ImageBuild
 from factory.application.tick import Tick, TickOutcome
 from factory.domain.containers import SYSTEM_PATH
-from factory.domain.settings import InstanceSettings
 from factory.domain.stage_layer import STAGE_FILE, StageLayer, project_image_tag, stage_layer
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_store
+from factory.shared.domain.settings import InstanceSettings
 from git_support import remote_commit
 from human_clone import HumanClone
 from log_support import state_log_lines

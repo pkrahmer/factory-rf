@@ -6,14 +6,6 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.application.files import WorkItemReader
-from factory.domain.errors import WorkItemFormatError
-from factory.domain.paths import (
-    FEATURE_FILE_NAME,
-    FEATURES_DIRECTORY,
-    STORY_FORM_FILE,
-    LifecycleFolder,
-)
 from factory.domain.story_form import (
     FormFinding,
     check_story_form,
@@ -22,6 +14,14 @@ from factory.domain.story_form import (
 )
 from factory.domain.work_item import WorkItemDocument
 from factory.entry.wiring import build_work_item_reader
+from factory.shared.application.files import WorkItemReader
+from factory.shared.domain.errors import WorkItemFormatError
+from factory.shared.domain.paths import (
+    FEATURE_FILE_NAME,
+    FEATURES_DIRECTORY,
+    STORY_FORM_FILE,
+    LifecycleFolder,
+)
 
 _USAGE = "usage: factory-check-story <path>..."
 _NO_FRONT_MATTER = "no front matter"

@@ -5,7 +5,7 @@ from pathlib import Path
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.domain.journal import entry_text
-from factory.domain.paths import cost_records_path
+from factory.shared.domain.paths import cost_records_path
 from human_clone import HumanClone
 from stage_run_support import PATH, completed, open_story, pushed, run_stage
 from take_support import AGENT_TEXT

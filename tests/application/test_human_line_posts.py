@@ -17,12 +17,12 @@ from factory.domain.bills import bills_by_stage, cost_table
 from factory.domain.events import Event
 from factory.domain.hand_over import cost_table_key
 from factory.domain.hosting import render_post
-from factory.domain.identifiers import branch_name
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord
-from factory.domain.paths import cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import cost_table_post
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.shared.domain.identifiers import branch_name
+from factory.shared.domain.paths import cost_records_path
 from git_support import PIPELINE_YAML
 from human_clone import HumanClone
 

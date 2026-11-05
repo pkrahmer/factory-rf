@@ -4,8 +4,8 @@ import json
 
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
-from factory.domain.identifiers import branch_name
 from factory.domain.work_item import WorkItemDocument
+from factory.shared.domain.identifiers import branch_name
 from git_support import PIPELINE_YAML, write_files
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

@@ -8,10 +8,10 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.git_cli import GitCli
-from factory.adapters.process import ProcessRequest, run_process
 from factory.application.git import Git
-from factory.domain.errors import GitError
 from factory.domain.git import ChangedPath, CommitInfo
+from factory.shared.adapters.process import ProcessRequest, run_process
+from factory.shared.domain.errors import GitError
 from git_support import TEST_IDENTITY, commit_all, run_git, write_files
 
 

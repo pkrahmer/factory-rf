@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import ProcessResult
+from factory.shared.adapters.process import ProcessResult
 from git_support import write_executable
 from operator_skill_support import Request, recorded_requests
 from operator_support import CURL_STAND_IN, ROOT, hosting_env, run_script

@@ -9,12 +9,12 @@ from typing import override
 import pytest
 
 import factory.entry.run as run_module
-from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.tick import Tick, TickOutcome
-from factory.domain.settings import InstanceSettings
 from factory.entry.run import main, run_instance
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.settings import InstanceSettings
 
 # (minutes and seconds after the loop starts at which a tick runs, its outcome)
 Step = tuple[int, int, TickOutcome]

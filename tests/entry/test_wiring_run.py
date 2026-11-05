@@ -9,15 +9,15 @@ from agent_definition_support import COMPLETED
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
-from factory.domain.errors import SettingsInvalid
-from factory.domain.identifiers import branch_name
-from factory.domain.settings import InstanceSettings, read_settings
 from factory.entry.wiring import (
     agent_run_environment,
     boundaries_from_environment,
     build_tick,
     production_environment,
 )
+from factory.shared.domain.errors import SettingsInvalid
+from factory.shared.domain.identifiers import branch_name
+from factory.shared.domain.settings import InstanceSettings, read_settings
 from git_support import PIPELINE_YAML, install_agents, remote_commit, run_git
 from human_clone import HumanClone
 from probe_support import COMPLETED as PROBE

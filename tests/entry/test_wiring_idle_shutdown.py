@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.power_off import SystemctlPowerOff
 from factory.application.boundaries import Boundaries
 from factory.entry.wiring import idle_shutdown_of
+from factory.shared.adapters.clock import ManualClock
 from power_support import IDLE
 
 

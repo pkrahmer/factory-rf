@@ -13,15 +13,15 @@ from factory.application.dispatcher import Handler
 from factory.application.handlers.closed import ClosedHandler
 from factory.application.tick import IdleHandler, Tick, TickOutcome
 from factory.domain.events import Event
-from factory.domain.identifiers import branch_name
 from factory.domain.journal import HUMAN, JournalRecord
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.domain.work_item import (
     WorkItemDocument,
     WorkItemSnapshot,
     WorkItemState,
     initial_state,
 )
+from factory.shared.domain.identifiers import branch_name
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from git_support import CHECKOUT, install_agents, remote_commit
 from human_clone import HumanClone
 from log_support import log_lines

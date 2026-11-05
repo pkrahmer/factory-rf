@@ -11,11 +11,11 @@ from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.application import preflight
-from factory.domain import settings
 from factory.domain.agent_runs import AgentRunRequest
-from factory.domain.settings import InstanceSettings
 from factory.entry import wiring
 from factory.entry.wiring import build_boundaries
+from factory.shared.domain import settings
+from factory.shared.domain.settings import InstanceSettings
 
 
 def _parameters(callable_: Callable[..., object]) -> list[str]:

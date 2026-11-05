@@ -10,8 +10,8 @@ from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.tick import TickOutcome
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_tick, machine_extras
+from factory.shared.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 from wiring_support import CONTAINER_ITEMS, every_tool, with_dataset

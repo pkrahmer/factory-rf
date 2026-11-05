@@ -10,10 +10,10 @@ from crash_support import (
     other_handler,
     snapshot,
 )
-from factory.adapters.clock import ManualClock
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.domain.hosting import PostKey
+from factory.shared.adapters.clock import ManualClock
 from human_clone import HumanClone
 
 EXPIRY_KEY = PostKey(work_item="F0001-S0001", kind="expiry", n="3")

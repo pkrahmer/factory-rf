@@ -17,17 +17,17 @@ from factory.application.handlers.recording import commit_subject
 from factory.application.stops import StopService
 from factory.domain.bills import bills_by_stage, cost_table
 from factory.domain.cost_records import CostRecord
-from factory.domain.errors import CannotHandle, HostingServiceError
 from factory.domain.events import Event
 from factory.domain.git import CommitInfo
 from factory.domain.hand_over import hand_over_description
 from factory.domain.hosting import PostKey, PullRequestComment, render_post
 from factory.domain.journal import HUMAN, JournalRecord
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
-from factory.domain.paths import cost_records_path
 from factory.domain.post_texts import cost_table_post
 from factory.domain.tick_status import TickStatus
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.shared.domain.errors import CannotHandle, HostingServiceError
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.shared.domain.paths import cost_records_path
 from git_support import remote_commit
 from human_clone import HumanClone
 

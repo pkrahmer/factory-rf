@@ -6,9 +6,9 @@ import pytest
 
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.hosting import HostingService
-from factory.domain.errors import HostingServiceError
 from factory.domain.hosting import PostKey, PullRequestView, render_post
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.shared.domain.errors import HostingServiceError
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 
 BRANCH = "work-item/F0001-S0001"
 COMMIT = "a" * 40

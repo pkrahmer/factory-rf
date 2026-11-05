@@ -11,10 +11,10 @@ from factory.adapters.work_item_markdown import (
     FrontmatterWorkItemWriter,
     RuamelYamlHandler,
 )
-from factory.application.files import WorkItemReader, WorkItemWriter
-from factory.domain.errors import WorkItemFormatError
 from factory.domain.journal import JournalRecord
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState, initial_state
+from factory.shared.application.files import WorkItemReader, WorkItemWriter
+from factory.shared.domain.errors import WorkItemFormatError
 from source_search import imports, modules
 
 STARTED_AT = datetime(2026, 10, 13, 8, 30, tzinfo=UTC)
@@ -440,13 +440,21 @@ def test_handler_keeps_the_boundary_and_delimiters_of_the_yaml_handler() -> None
     assert RuamelYamlHandler.END_DELIMITER == YAMLHandler.END_DELIMITER
 
 
+def _layer(name: str) -> str:
+    """The layer of `name`, whether it sits at `factory.<layer>` or `factory.<area>.<layer>`."""
+    parts = name.split(".")
+    if parts[1:2] and parts[1] in ("domain", "application", "adapters", "entry"):
+        return parts[1]
+    return parts[2] if parts[2:3] else ""
+
+
 def test_only_the_work_item_adapter_imports_frontmatter_and_ruamel() -> None:
     trees = modules()
     adapter = trees["factory.adapters.work_item_markdown"]
     others = [
         name
         for name, tree in trees.items()
-        if name.split(".")[1:2] in (["domain"], ["application"], ["entry"])
+        if _layer(name) in ("domain", "application", "entry")
         and (imports(tree, "frontmatter") or imports(tree, "ruamel.yaml"))
     ]
 

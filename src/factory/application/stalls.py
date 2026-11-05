@@ -13,12 +13,12 @@ from factory.application.take import TakeReport
 from factory.domain.decisions import StallReason
 from factory.domain.git import CommitId
 from factory.domain.hosting import PostKey, PostOutcome, PullRequestView
-from factory.domain.identifiers import Name, WorkItemId
 from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.labels import labels_for
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import stall_cause, stall_note
 from factory.domain.work_item import WorkItemDocument, require_state
+from factory.shared.domain.identifiers import Name, WorkItemId
 
 
 class StallContext(BaseModel):

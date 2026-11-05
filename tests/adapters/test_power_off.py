@@ -9,8 +9,8 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.power_off import SystemctlPowerOff
-from factory.adapters.printed_output import no_end_detail
-from factory.domain.errors import PowerOffError
+from factory.shared.adapters.printed_output import no_end_detail
+from factory.shared.domain.errors import PowerOffError
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 LIMIT = timedelta(seconds=1)

@@ -4,15 +4,15 @@ from collections.abc import Callable, Sequence
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.domain.errors import HostingServiceError
 from factory.domain.events import Event, EventKind
 from factory.domain.git import CommitId
 from factory.domain.hosting import PullRequestComment, PullRequestView
-from factory.domain.identifiers import FeatureId, work_item_order
 from factory.domain.lease import ClaimStatus
 from factory.domain.move_rule import IllegalChange
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemSnapshot, WorkItemState, require_state
+from factory.shared.domain.errors import HostingServiceError
+from factory.shared.domain.identifiers import FeatureId, work_item_order
 
 
 class PullRequestObservation(BaseModel):

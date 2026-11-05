@@ -18,8 +18,8 @@ from factory.domain.agent_runs import (
     PermissionDenial,
     TokenCounts,
 )
-from factory.domain.errors import AgentRuntimeError
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.shared.domain.errors import AgentRuntimeError
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 
 LIMIT = timedelta(seconds=30)
 SWITCHES = {

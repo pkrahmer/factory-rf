@@ -7,7 +7,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 
 from dockerfile_support import _uncommented
-from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_process
 from git_support import write_executable
 from time_limits import ROOMY_LIMIT
 

@@ -7,7 +7,7 @@ import pytest
 
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import installed_models, opencode_item
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 from git_support import AGENT_FILE, write_agent
 from settings_support import AGENT_HOME
 

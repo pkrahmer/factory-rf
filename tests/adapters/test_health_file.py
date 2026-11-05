@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.domain.stops import HealthStatus, RepositoryStop
+from factory.shared.adapters.clock import ManualClock
 
 AT = datetime(2026, 10, 12, 12, 0, tzinfo=UTC)
 STATUS = HealthStatus(

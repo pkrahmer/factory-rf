@@ -16,8 +16,8 @@ from pydantic import (
     model_validator,
 )
 
-from factory.domain.errors import AgentDefinitionMissing
-from factory.domain.identifiers import Name, is_name
+from factory.shared.domain.errors import AgentDefinitionMissing
+from factory.shared.domain.identifiers import Name, is_name
 
 QUESTION = "question"
 

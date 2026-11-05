@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import ProcessRequest, run_process
+from factory.shared.adapters.process import ProcessRequest, run_process
 from tmp_path_support import file_mode, reopen
 
 TESTS = Path(__file__).parent

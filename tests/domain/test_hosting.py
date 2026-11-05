@@ -19,7 +19,7 @@ from factory.domain.hosting import (
     parse_post_key,
     render_post,
 )
-from factory.domain.paths import LABEL_PREFIX, MAIN_BRANCH
+from factory.shared.domain.paths import LABEL_PREFIX, MAIN_BRANCH
 
 KINDS = (
     "question",
@@ -276,16 +276,18 @@ def _is_stdlib(name: str) -> bool:
 
 
 def _is_domain(name: str) -> bool:
-    return name == "factory.domain" or name.startswith("factory.domain.")
+    return name in {"factory.domain", "factory.shared.domain"} or name.startswith(
+        ("factory.domain.", "factory.shared.domain.")
+    )
 
 
 @pytest.mark.parametrize(
     "module",
     [
         "factory.domain.hosting",
-        "factory.domain.identifiers",
+        "factory.shared.domain.identifiers",
         "factory.domain.git",
-        "factory.domain.paths",
+        "factory.shared.domain.paths",
     ],
 )
 def test_domain_modules_import_only_stdlib_pydantic_and_domain(module: str) -> None:

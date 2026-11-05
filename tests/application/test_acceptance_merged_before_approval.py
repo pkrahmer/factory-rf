@@ -16,10 +16,10 @@ from factory.domain.acceptance import AcceptanceState
 from factory.domain.bills import bill, cost_line
 from factory.domain.events import Event
 from factory.domain.journal import FACTORY, JournalRecord, entry_text
-from factory.domain.paths import cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.post_texts import done_entry_text
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot
+from factory.shared.domain.paths import cost_records_path
 from git_support import remote_commit
 from human_clone import HumanClone
 

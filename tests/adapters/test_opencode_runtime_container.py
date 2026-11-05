@@ -35,8 +35,8 @@ from factory.adapters.agent_launch import (
 )
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.opencode_runtime import OpencodeRuntime
-from factory.adapters.process import ProcessRequest, ProcessResult, Stream
 from factory.domain.containers import WORK_CHECKOUT, ContainerCall
+from factory.shared.adapters.process import ProcessRequest, ProcessResult, Stream
 from run_process_recorder import Recorder
 from time_limits import ROOMY_BOUND_SECONDS
 

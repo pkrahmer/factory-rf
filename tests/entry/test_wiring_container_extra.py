@@ -14,8 +14,8 @@ from factory.application.project_commands import RecordingProjectCommands
 from factory.application.stage_environment import stage_environment_of
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.containers import CA_BUNDLE_NAMES
-from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
+from factory.shared.domain.settings import InstanceSettings
 from git_support import CHECKOUT
 from podman_support import IMAGE
 from recording_stand_in_support import recorded_calls, recording_stand_in

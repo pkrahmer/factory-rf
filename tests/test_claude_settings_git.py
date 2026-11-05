@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from factory.domain.sections import section_text
+from factory.shared.domain.sections import section_text
 from shipped_agents import AGENT_HOME, SHIPPED_NAMES, front_matter_and_body
 
 

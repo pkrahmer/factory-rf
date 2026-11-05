@@ -15,8 +15,8 @@ from acceptance_walk import (
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.domain.bills import bill, cost_line
-from factory.domain.identifiers import branch_name
 from factory.domain.work_item import Blocked
+from factory.shared.domain.identifiers import branch_name
 from git_support import remote_commit
 
 BEFORE_APPROVAL = "done (pull request merged before approval); cost: "

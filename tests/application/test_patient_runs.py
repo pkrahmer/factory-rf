@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualClock, ManualWaiter
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.provider_limits import CONTINUE_PROMPT, PatientRuns
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult, EndReason
 from factory.domain.provider_limits import ProviderLimit
-from factory.domain.settings import InstanceSettings
+from factory.shared.adapters.clock import ManualClock, ManualWaiter
+from factory.shared.domain.settings import InstanceSettings
 from log_support import log_lines
 from settings_support import AGENT_HOME
 

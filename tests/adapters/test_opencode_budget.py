@@ -26,7 +26,7 @@ from adapters.opencode_stand_in import (
 from factory.adapters.agent_launch import FINISH_MESSAGE
 from factory.adapters.opencode_runtime import CONFIG_VARIABLE
 from factory.domain.agent_runs import TokenCounts
-from factory.domain.kill_points import KillPoint, KillPoints
+from factory.shared.domain.kill_points import KillPoint, KillPoints
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 # What one `step_finish` of the stand-in's builders counts, as the runtime sums it.

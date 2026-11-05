@@ -11,15 +11,15 @@ from factory.application.boundaries import Boundaries
 from factory.application.pipeline_loading import PIPELINE_REF, PipelineLoader
 from factory.application.watcher import Watcher
 from factory.domain.board import render_board
-from factory.domain.errors import (
+from factory.domain.events import Event
+from factory.entry.wiring import boundaries_from_environment
+from factory.shared.domain.errors import (
     AgentDefinitionInvalid,
     GitError,
     PipelineDefinitionInvalid,
     SettingsInvalid,
 )
-from factory.domain.events import Event
-from factory.domain.identifiers import Name
-from factory.entry.wiring import boundaries_from_environment
+from factory.shared.domain.identifiers import Name
 
 _PROGRAM = "factory-watch"
 _OK = 0
