@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T10:48:00.089047Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-05T10:48:00.089047Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-05T10:48:13.403469Z'
+  stage: intake
+  run: 032c998b2dea4513a95e5fe323661a29
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -109,3 +111,9 @@ Expect: `1`
 
    **(a).** `feature.md` on `main` now has your line under *The human's changes*: "At S0015's start: a leave for its tester: `tests/vm/test_vm_setup_install_hint.py` (`HINTS`) and `tests/vm/test_vm_setup_text.py` (row `done-line`) may change their expected strings to the new texts, nothing else; each test keeps its name and what it checks." Go on.
 5. factory: started intake as vm.
+6. intake: accepted
+   Interface: names concrete files and exact lines (`operator/vm/setup.sh` tools and service hints, the closing line, `approving.md` *After a merge*), and the two tests that change with the exact files, `HINTS` and row `done-line`.
+   Criteria: each is testable by one test function. Every rule has a failing side. The old hint and the old done-line must be absent, and criterion 3 has a row where the made-up line is caught and rows where it is not caught. The leave for the two tests that other stories wrote is now in `feature.md`, under *The human's changes*, "At S0015's start". It comes from the human's answer in journal entry 4, so the story needed no edit.
+   Smoke test: the four commands are runnable. Every `Expect:` is a count or a "passed" match that the output can be checked against. The pytest command passes no `-q`, because `addopts` already sets it.
+   Architecture: the change touches the operator's VM script, the skill reference and one guard test, and no `src/factory` layer. The tests go in `tests/guards/`, which is where `CLAUDE.md` puts them.
+   Scope: within F0051, where S0015 is listed. The left-out items (`wiring.py` docstring, the playbook, the demo README, the Makefile example) are named in the Description.
