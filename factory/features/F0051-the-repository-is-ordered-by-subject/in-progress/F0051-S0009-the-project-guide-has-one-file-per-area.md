@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T06:03:26.859907Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T06:03:24.087004Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-05T06:03:26.859907Z'
   stage: tests
 ---
 
@@ -145,3 +154,4 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
    2. **(a)**: each distinct heading is found as many times in the new files as it was on `origin/main`, one row per heading with its count.
    3. **(a)**: the search covers `claude/`, `docs/` without `docs/runs/` and `docs/decisions.md`, and `README.md`, for the seven removed names, bare or as `project-guide/<name>`. Yes, `docs/operator-guide.md`'s two lines change in this story; criterion 6 names them.
    4. **Yes**: the seven area files and `operator.md`; the index does not name itself.
+10. factory: started tests as vm.
