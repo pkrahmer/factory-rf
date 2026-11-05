@@ -155,15 +155,15 @@ pytest_add_cli_args = [
     "-p", "no:cov",
     "--deselect", "tests/hosting/domain/test_hosting.py::test_domain_modules_import_only_stdlib_pydantic_and_domain",
     "--deselect", "tests/hosting/domain/test_hosting.py::test_application_hosting_imports_only_stdlib_and_domain",
-    "--deselect", "tests/test_agent_home_wiring.py::test_the_agent_definition_reader_is_built_once_from_the_settings_agent_home",
-    "--deselect", "tests/test_atomic_replace_search.py::test_exactly_one_call_of_os_replace_exists_in_the_package",
-    "--deselect", "tests/test_no_state_copies.py::test_no_function_but_the_allowed_two_checks_a_state_itself",
-    "--deselect", "tests/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper",
+    "--deselect", "tests/guards/test_agent_home_wiring.py::test_the_agent_definition_reader_is_built_once_from_the_settings_agent_home",
+    "--deselect", "tests/guards/test_atomic_replace_search.py::test_exactly_one_call_of_os_replace_exists_in_the_package",
+    "--deselect", "tests/guards/test_no_state_copies.py::test_no_function_but_the_allowed_two_checks_a_state_itself",
+    "--deselect", "tests/guards/test_process_search.py::test_the_only_suppression_markers_are_the_four_in_the_process_wrapper",
     "--deselect", "tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones",
-    "--deselect", "tests/test_agent_launch_search.py::test_neither_runtime_module_reads_os_environ",
-    "--deselect", "tests/test_agent_launch_search.py::test_the_launch_module_does_not_import_the_process_module",
+    "--deselect", "tests/guards/test_agent_launch_search.py::test_neither_runtime_module_reads_os_environ",
+    "--deselect", "tests/guards/test_agent_launch_search.py::test_the_launch_module_does_not_import_the_process_module",
     "--deselect", "tests/shared/adapters/test_process_streaming.py::test_run_process_shares_the_one_popen_line_and_reports_no_stop",
-    "--deselect", "tests/test_opencode_runtime_search.py::test_neither_the_opencode_runtime_nor_the_launch_module_reads_os_environ",
+    "--deselect", "tests/guards/test_opencode_runtime_search.py::test_neither_the_opencode_runtime_nor_the_launch_module_reads_os_environ",
 ]
 # The tests read these from the repository root; mutmut runs them in its own copy.
 also_copy = ["claude/", "demo/", "docs/", "factory/", "security/", "template/", "vm/", "README.md", "Makefile", "pyproject.toml", "uv.lock", ".secrets.baseline"]
