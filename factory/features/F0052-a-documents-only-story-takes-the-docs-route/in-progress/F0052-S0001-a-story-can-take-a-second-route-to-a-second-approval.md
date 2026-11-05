@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T22:06:48.962506Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-11-05T22:06:48.962506Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T22:07:35.612161Z'
+  stage: smoke-test
+  run: 9b52232c91f24367a7a86906ebda5ae3
 ---
 
 # A story can take a second route to a second approval
@@ -303,3 +305,28 @@ Expect: `1`
     `secrets`: secrets: green (0.7 s)
     `documents`: documents ok
 20. factory: started smoke-test as vm.
+21. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` from the repository root, exactly as written. It met its `Expect:` line. I fixed nothing.
+
+    Command 1: `uv run pytest tests/pipeline/application/test_docs_route.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Expect: `1`. **Met.** To see what that last line held, I ran the same pytest command again with `tail -3` in place of `tail -1 | grep -c passed`:
+    ```
+    Bytecode compiled 4164 files in 53ms
+    ...............                                                          [100%]
+    15 passed in 9.95s
+    ```
+
+    Judgement against the acceptance criteria:
+    - Criteria 1 to 8: the 15 tests in `tests/pipeline/application/test_docs_route.py` that the tester mapped to these criteria (entries 5 and 13) all pass. Nothing in the run contradicts any of the criteria.
+    - Criterion 9 (`make check`): this stage did not run it. The coder's entry 15 records `check: green`, and the documenter's entry 19 records the factory's reuse of that result on the same code.
+    - Criterion 10 (docs): I read the diff of `docs/` against `main`.
+      - `docs/project-guide/pipeline.md` has a new paragraph in *The pipeline definition*. It says that a definition may hold more than one route and more than one approval stage, and that a close at an approval stage sends the story to that stage's second `next`. It also covers `send_back_cap` and `is_before_approval`.
+      - `docs/operator-guide/pipeline.md` has one sentence for the operator that says the same.
+      - `docs/decisions.md` is unchanged, as the criterion asks.
+      - The criterion is met.
+
+    The branch diff, leaving out `factory/`, holds only the new test file and these two documents. Nothing under `src/` or in a shipped pipeline definition changed, which matches the Description.
+
+    Findings: none.
