@@ -81,6 +81,9 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 52. **A mechanical move by hand twice.** F0051-S0001: the coder wrote a `sed -E` over `src` and `tests`, and the tester then wrote the same rewrite again as a Python script over 406 files. Fix: a move script driven by `tests/test_areas.py`'s table, which the tester and the coder both run (about $0.3 to $0.5 per move).
 53. **A full suite after a pure rewrite.** A rename of imports changes no behaviour; `mypy`, `lint-imports` and `pytest --collect-only` would show a broken import in a fraction of the 131 s. Fix to decide: a lighter check for a story whose Interface says "moves only".
 
+54. **The stage prompt does not carry the feature's decisions.** F0051-S0002 and S0003: feature decision 5 said the tester makes all test changes in its first run, but the testers never saw `feature.md`, wrote only the `AREAS` row, and the coder did the rewrite and handed it back (about $0.4 to $0.6 and 5 to 8 min per move). Fix: the prompt names `feature.md`'s decisions, or the story's Interface states what a role must do; the human wrote it into S0005 to S0007's Interfaces.
+55. **A round for a free-text docstring.** F0051-S0003: one review round ($0.59, 6.3 min) because a new package's docstring called a concrete reader a "port". Fix: a story that adds packages gives their docstrings.
+
 ## The repository is easier to navigate (the human, 2026-11-04)
 
 38. **`claude/` becomes `agents/`.** It holds the factory's agent files and `settings.json` in Claude Code's format, which the opencode runtime translates per run (decision of 2026-10-19, F0020-S0004); the name says one runtime. Touches `vm/Dockerfile`, the wiring, the coder's write paths in `factory/pipeline.yml`, the docs and tests.

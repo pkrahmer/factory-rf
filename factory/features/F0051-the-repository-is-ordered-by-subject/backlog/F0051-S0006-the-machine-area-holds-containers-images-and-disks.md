@@ -38,7 +38,8 @@ The moves (old → new), each file moved with `git mv`:
 - No module under `src/` or `tests/` imports an old path of a moved module, and no file is left at an old path.
 - `tests/test_areas.py`: the table `AREAS` gains the row of `machine` with the modules above; nothing else in that module changes.
 - A test module under `tests/domain/`, `tests/application/` or `tests/adapters/` moves to `tests/machine/<its layer>/` when every one of its imports from `factory` is a module of the `machine` area or of an area already moved before it and at least one is of `machine`.
-- The leave of feature decision 5 covers every other change to tests that the move needs.
+- The tester makes every test change the move needs in its first run, before the code moves: it rewrites every import of a moved module under `tests/`, moves the test modules with `git mv`, creates the test packages and changes the guards that pin the old layout, under the leave of feature decision 5. The coder changes only `src/`: its write paths do not hold `tests/`, so a test change it makes is dropped.
+- The package docstrings are exactly: `factory.machine`: "The machine area: containers, images, snapshots, disks and the preflight."; each layer package: "The machine area's <layer> layer." (with `domain`, `application` or `adapters`).
 
 ## Acceptance criteria
 
