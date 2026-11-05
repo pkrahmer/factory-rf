@@ -2,16 +2,12 @@
 stage: doing
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T06:04:59.979265Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,19 @@ journal:
   kind: started
   at: '2026-11-05T06:04:59.979265Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-05T06:13:01.304606Z'
+  stage: doing
+  run: 7d9e8cca0e7545ef8077a18390894673
+- number: 14
+  speaker: factory
+  kind: stall
+  at: '2026-11-05T06:13:01.467712Z'
+  stage: doing
+  run: 7d9e8cca0e7545ef8077a18390894673
+  reason: check_red
 ---
 
 # The project guide has one file per area
@@ -200,3 +209,55 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
 
     `lint`: lint: green (0.1 s)
 12. factory: started doing as vm.
+13. coder: I regrouped the project guide into one file per area. Afterwards `tests/guards/test_project_guide_files.py` passes (all rows), `make check` is green and `make documents` reports `documents ok`. The smoke-test listing matches what the story expects.
+
+    What I built (all under `docs/project-guide/`, plus one other file):
+    - **Whole-file moves with `git mv`:**
+      - `git-and-hosting.md` → `hosting.md`
+      - `work-items.md` → `work.md`
+      - `stage-environment.md` → `machine.md`
+      - `stages.md` → `pipeline.md`
+    - **Sections moved by hand, by the human's rule (journal 4.1: a section goes to the area of the first `factory.<area>` module it names):**
+      - `shared.md` is new. It holds *Starting a process*, *The duplicates report* and *The document check*, from `processes-and-checks.md`.
+      - `machine.md` gains *Project commands*, *Mutation testing* and *Replaced in v1.2*, from `processes-and-checks.md`.
+      - `pipeline.md` gains *The take's rule* (from `write-paths.md`), plus *The tick*, *The handlers of the events* and *Stops, the clock and the factory log* (from `watching.md`).
+      - `watching.md` now holds *The evaluation* plus *Cost records* and *Bills*, from `costs.md`.
+      - `agents.md` keeps its sections and gains *The write paths* and that file's *Replaced in v1.2*.
+      - `README.md` gains *The demos*, which names no area module.
+      - `write-paths.md`, `costs.md` and `processes-and-checks.md` are removed.
+    - **The index `README.md`:** the intro now says "one file per area". *The files* has one entry per file in area order. Each entry names its `src/factory/<area>/` folder and its modules, with the old module lists regrouped.
+    - **Titles:** the files whose content changed got a new title and opening sentence.
+    - **Pointers:** every guide-file name in the guide now uses the new name. References to a section that is now in the same file drop the file name. Two references in `watching.md` that now cross files gain "`pipeline.md`". The opening line of `watching.md` points to `pipeline.md` for the tick, the handlers, the stops and the boundaries.
+    - **`docs/operator-guide.md`:** lines 1870, 1977 and 2109 now name `pipeline.md` and `work.md`. `claude/` named no guide file, so nothing there changed.
+
+    Main choice: I applied the regrouping rule only to the ten per-domain files the Description lists, and left the index's own sections where they were (*The code's layout*, *Shared test helpers*, *Errors*, *The models' configuration*, *Kill points*, *Fault-injection paths*). The index describes them as "what holds for all code". The alternative I rejected was moving *Errors* and *Kill points* to `shared.md`, because they name `factory.shared` first. I also kept these sections in the file of the topic they follow, rather than sending them to `README.md`, even though they name no area module:
+    - the "Replaced" sections (they are appendices of that topic);
+    - *The shipped agents, settings and template*.
+
+    The reviewer may judge both readings.
+
+    Refactor: I re-read the diff and found nothing to change. The section bodies are unchanged except for the pointers.
+
+    Seen but not touched:
+    - The Description still has its pre-journal-9 wording (the tester's rewrite was left out by the factory). It is outside my write paths, so I did not rewrite it. Journal 9 changed the Interface line to "no module under `src/factory/` changes", and criteria 2, 3, 4 and 6 now follow the tester's entry 11.
+    - `docs/decisions.md:775` and `docs/runs/` still name the old files, and are excluded on purpose.
+    - `CLAUDE.md` still names `docs/project-guide/README.md` only; the human changes it after the merge.
+    - Some unchanged cross-file references (for example in `work.md` and `agents.md`) name a section without its file, as they did before.
+
+    The factory left out changes outside the write paths: docs/operator-guide.md, docs/project-guide/README.md, docs/project-guide/agents.md, docs/project-guide/costs.md, docs/project-guide/git-and-hosting.md, docs/project-guide/hosting.md, docs/project-guide/machine.md, docs/project-guide/operator.md, docs/project-guide/pipeline.md, docs/project-guide/processes-and-checks.md, docs/project-guide/shared.md, docs/project-guide/stage-environment.md, docs/project-guide/stages.md, docs/project-guide/watching.md, docs/project-guide/work-items.md, docs/project-guide/work.md, docs/project-guide/write-paths.md.
+14. factory: Stage doing stalled (attempt 1 of 2): a check is red after the stage: `check`
+    src/factory/work/domain/acceptance.py                  186      1     46      1    99%   356
+    ------------------------------------------------------------------------------------------------
+    TOTAL                                                10634     49   2128     46    99%
+
+    154 files skipped due to complete coverage.
+    Required test coverage of 90.0% reached. Total coverage: 99.26%
+    ======================================================================================= short test summary info ========================================================================================
+    FAILED tests/guards/test_project_guide_files.py::test_the_guide_holds_the_index_operator_and_the_seven_area_files - AssertionError: assert ['README.md',...ecks.md', ...] == ['README.md',...line.md'...
+    FAILED tests/guards/test_project_guide_files.py::test_the_index_names_each_file_with_a_sentence[shared.md] - assert False
+    FAILED tests/guards/test_project_guide_files.py::test_the_index_names_each_file_with_a_sentence[hosting.md] - assert False
+    FAILED tests/guards/test_project_guide_files.py::test_the_index_names_each_file_with_a_sentence[work.md] - assert False
+    FAILED tests/guards/test_project_guide_files.py::test_the_index_names_each_file_with_a_sentence[machine.md] - assert False
+    FAILED tests/guards/test_project_guide_files.py::test_the_index_names_each_file_with_a_sentence[pipeline.md] - assert False
+    FAILED tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file - AssertionError: assert ['docs/operat...aths.md', ...] == []
+    make: *** [Makefile:89: test] Error 1
