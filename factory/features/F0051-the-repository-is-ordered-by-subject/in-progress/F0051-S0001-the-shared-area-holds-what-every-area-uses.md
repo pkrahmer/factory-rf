@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T00:37:53.844446Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-11-05T00:37:53.844446Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-05T00:43:06.334826Z'
+  stage: doing
+  run: 4f351c0615b8448da87fa903f851d1b2
 ---
 
 # The shared area holds what every area uses
@@ -269,3 +271,29 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 13. factory: started doing as vm.
+14. coder: Round 0, third run in doing. The tester's changes from entry 12 completed the move, and `make check` is green with no further edit (`test: green (119.8 s)`, `check: green`, total coverage 99.26 %). I changed nothing in this run, and the working tree is clean.
+
+    What is built (committed in earlier runs):
+    - `src/factory/shared/__init__.py`, `src/factory/shared/domain/__init__.py`, `src/factory/shared/application/__init__.py` and `src/factory/shared/adapters/__init__.py`, each with a one-line docstring.
+    - All 18 modules of the Interface, moved with `git mv` to `src/factory/shared/<layer>/<name>.py`. Only their import lines changed. The source diff against main is 121 files, almost all of them import rewrites.
+    - Tests: the tester's entry 12 covers them. That includes `tests/shared/...` with its 60 moved test modules, and `tests/test_areas.py` is untouched.
+
+    Checks I ran in this run:
+    - `uv run python -m factory.entry.contract` leaves the schemas unchanged.
+    - No old dotted path of a moved module is left under `src/`, in `Makefile` or in `pyproject.toml` (grep).
+
+    Main choice: a straight move with every import rewritten and nothing left at the old paths, as feature decision 4 asks. I rejected re-export shims at the old paths: the story forbids them, and criterion 1 checks that the old files are gone.
+
+    Refactor: I read the source diff again and found nothing to change. It is moves and import lines only.
+
+    Noticed, not touched:
+    - `make duplicates` reports `11 new, 34 known, 8 gone`. Most of the "gone" and "new" lines are the same accepted findings under their old and new paths: `kill_points.arm`/`reached`, `paths.FACTORY_DIRECTORY`, `clock.ManualWaiter`, and the claude/opencode `finished_run` similarity. `security/duplicates-baseline.txt` needs the human to rename these entries, because it is outside every role's write paths. It is a record, not a check.
+    - `tests/adapters/test_work_item_markdown.py::test_only_the_work_item_adapter_imports_frontmatter_and_ruamel` filters modules by `name.split(".")[1:2]`, so it does not look at `factory.shared.*`. It passes but covers less, and the gap grows with every later move.
+    - `tests/test_layers.py` checks only the four top-level layer packages.
+    - `CLAUDE.md` still names `factory.domain.contract.CONTRACT` and `src/factory/adapters/process.py` as the current path. That file is the human's.
+    - The docs still name old paths. Updating them is the documenter's job under criterion 6.
+
+    Description unchanged: no journal entry changed the meaning of the task.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 34 known, 8 gone
