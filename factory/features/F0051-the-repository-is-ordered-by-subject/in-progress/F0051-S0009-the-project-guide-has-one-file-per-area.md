@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T05:50:02.002233Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-05T05:50:01.995292Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-05T05:50:02.002233Z'
+  stage: intake
+---
+
 # The project guide has one file per area
 
 ## Description
@@ -27,3 +54,6 @@ ls docs/project-guide | tr '\n' ' '
 Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md shared.md watching.md work.md `
 
 ## Journal
+
+1. 2026-11-05 human: created.
+2. factory: started intake as vm.
