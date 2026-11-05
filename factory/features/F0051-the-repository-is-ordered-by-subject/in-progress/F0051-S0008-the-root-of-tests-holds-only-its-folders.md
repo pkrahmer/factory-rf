@@ -260,7 +260,7 @@ Expect: `support.bill_support`
     **`__file__` changes.** Only module-level walks changed. The `here = Path(__file__)...` lines inside the stand-in script texts are unchanged.
     - `.parent` to `.parents[1]` (`TESTS`): guards `test_areas`, `test_hosting_fake_search`, `test_old_layer_packages_removed`, `test_proof_support`, `test_shared_bodies`, `test_shared_branch_helpers`, `test_shared_definition`, `test_shared_environments`, `test_shared_fixtures`, `test_shared_imports`, `test_shared_test_helpers`, `test_suite_held_once`, `test_suite_leftovers`, `test_suite_old_names`, `test_test_children`, `test_test_names`, `test_tests_run_under_the_starting_umask`, and `support/search_support.py`.
     - `test_no_agent_login`'s two path constants now start from `.parents[1]`.
-    - `.parent.parent` to `.parents[2]` (`ROOT`): `support/operator_support.py`, `support/shipped_agents.py`, `support/vm_support.py`, `agent_files/test_demo_makefile_secrets.py`, `guards/test_docker_path_removed.py`, `guards/test_pins.py`, `vm/test_stage_image.py`; `guards/test_wrapper_out_of_the_call_path.py` (`.resolve().parents[2]`).
+    - `.parent.parent` to `.parents[2]` (`ROOT`): `support/operator_support.py`, `support/shipped_agents.py`, `support/vm_support.py`, `guards/test_docker_path_removed.py`, `guards/test_pins.py`, `vm/test_stage_image.py`, and the demo Makefile's secrets test in `agent_files/`; `guards/test_wrapper_out_of_the_call_path.py` (`.resolve().parents[2]`).
     - `entry/test_demos.py`: `.parents[1]` to `.parents[2]`.
     - `machine/application/test_one_stage_environment.py`: `.resolve().parents[1]` to `.resolve().parents[3]`.
     - `shared/adapters/test_tmp_path_reopening.py`: `.parent` to `.parents[2]`.
