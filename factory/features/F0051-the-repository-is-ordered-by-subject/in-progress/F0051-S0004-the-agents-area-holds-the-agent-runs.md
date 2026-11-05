@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 559
 comments_read: [6648033321]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T02:34:11.882358Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-05T02:34:06.421781Z'
   stage: tests
   run: 6c888f24a35c484092cf37a031d63260
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:34:11.882358Z'
+  stage: doing
 ---
 
 # The agents area holds the agent runs
@@ -265,3 +274,4 @@ Expect: `1`
     - The docs belong to the docs stage.
 
     `lint`: lint: green (0.1 s)
+13. factory: started doing as vm.
