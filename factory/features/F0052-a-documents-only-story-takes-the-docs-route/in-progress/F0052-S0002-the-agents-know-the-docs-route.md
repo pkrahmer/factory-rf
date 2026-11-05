@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T22:22:46.229570Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-11-05T22:22:46.229570Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: result
+  at: '2026-11-05T22:23:18.021002Z'
+  stage: tests
+  run: ce56fd7a20c744dd9f92fe23c163daac
 ---
 
 # The agents know the docs route
@@ -230,3 +232,18 @@ Expect: `named`
 
     I changed no code in this run. The agent texts from my last run were committed on the branch (`agents/agents/intake.md`, `agents/agents/documenter.md`, `agents/agents/reviewer.md`). `make check` has not run, because it cannot pass until this test changes. The refactor step is still open: I will do it when the work item comes back to doing.
 17. factory: started tests as vm.
+18. tester: I made the test change the human allowed in journal 14, as the coder's entry 16 named it.
+
+    - I changed one test: `tests/agent_files/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged`. It now cuts the `### docs-review` subsection out of the reviewer's body before it computes the CRC-32. The cut runs from the heading to the next line that starts with `#`, using the module-level regex `_DOCS_REVIEW_SUBSECTION`.
+    - The rest of the body is still checked against `_EARLIER_BODY_CRC32`, and the value did not change. The two sentence swaps are unchanged, and the test keeps its name.
+    - With the subsection cut out, the body matches the earlier CRC exactly. The coder's subsection sits between the Stage text and `## Lessons`, with a blank line before the next heading.
+
+    Criteria: no new test is mapped. The criteria's tests are still the ones listed in journal 11, in `tests/agent_files/test_claude_agent_texts_docs_route.py`.
+
+    Files created: none. Files changed: `tests/agent_files/test_claude_agent_texts_review_groups.py`, from an earlier story, with the human's leave in journal 14.
+
+    Modules the test run could not import: none.
+
+    Test run: `uv run pytest -q tests/agent_files/test_claude_agent_texts_review_groups.py` gave 9 passed. `make lint` gave `lint: green (0.2 s)`.
+
+    `lint`: lint: green (0.1 s)
