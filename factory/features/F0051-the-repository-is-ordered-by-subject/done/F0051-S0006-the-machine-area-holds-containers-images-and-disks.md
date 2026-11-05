@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -102,6 +102,11 @@ journal:
   at: '2026-11-05T03:32:37.423918Z'
   stage: smoke-test
   run: 1d57400f920447ca864dab2eab05fb90
+- number: 18
+  speaker: factory
+  kind: done
+  at: '2026-11-05T03:38:34.375903Z'
+  stage: approval
 ---
 
 # The machine area holds containers, images and disks
@@ -360,3 +365,4 @@ Expect: `1`
     - Criterion 6 is the documenter's entry 15. The smoke test reads no document.
 
     Findings: none.
+18. factory: done (pull request merged); cost: 8 runs, 15.4 min, 74 turns, 190888 tokens in (1975613 more from cache), 26426 out, $2.21
