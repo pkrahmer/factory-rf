@@ -5,7 +5,7 @@ round: 0
 attempts: 2
 crashes: 0
 pull_request: 567
-comments_read: [6654125104]
+comments_read: [6654125104, 6654318355]
 handed_over: null
 claim: null
 journal:
@@ -95,6 +95,11 @@ journal:
   at: '2026-11-05T09:23:22.458658Z'
   stage: doing
   blocked: attempts_cap
+- number: 16
+  speaker: human
+  kind: comment
+  at: '2026-11-05T09:23:31.403965Z'
+  stage: doing
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -283,3 +288,8 @@ Expect: `parsed`
     make: *** [Makefile:89: test] Error 1
 
     Comment anything to retry: the attempts go back to 0 and the stage runs again. Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
+16. 2026-11-05 human: Note of the human for the next doing run:
+
+    The first stall is not in your work. The factory takes your result from `zfs diff`, which lists a renamed *directory* as one line and none of the unchanged files inside it; the take skips directory lines (`ZfsSnapshots._read_diff_line`). So every file that `git mv template operator/template` moved without editing was lost (all of `template/`, and `vm/git-credential-factory`), while the files you also edited came through.
+
+    Move the files one by one instead: `mkdir -p operator/template/factory operator/vm`, then `git mv` each file to its new path (`template/CLAUDE.md`, `template/Makefile`, `template/factory/pipeline.yml`, `vm/git-credential-factory`, and any other unedited file), and remove the empty old folders. A file rename is a file line in `zfs diff`, and the take keeps it. Then end as before.
