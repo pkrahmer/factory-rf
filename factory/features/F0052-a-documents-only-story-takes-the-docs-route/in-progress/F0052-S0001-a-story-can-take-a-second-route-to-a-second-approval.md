@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T21:50:44.049380Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-05T21:50:38.620716Z'
   stage: tests
   run: b8b14106ed4c42e9891876b3876e8fdb
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-05T21:50:44.049380Z'
+  stage: doing
 ---
 
 # A story can take a second route to a second approval
@@ -101,3 +110,4 @@ Expect: `1`
    Result of the one run (`uv run pytest -q tests/pipeline/application/test_docs_route.py`): 13 passed. Every module imported, and nothing failed. The walk found no fault in today's code, so there are no red tests on this branch: the story's "fixes whatever the walk finds" comes down to nothing to fix, and the coder has only to confirm `make check`. Two lint-only edits came after that run: a line split, and the parametrized test's case values made keyword-only. `make lint` is green. The type check was skipped, as this stage says.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
