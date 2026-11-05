@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T22:47:05.076403Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -217,6 +213,12 @@ journal:
   kind: started
   at: '2026-11-05T22:47:05.076403Z'
   stage: review
+- number: 38
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T22:47:46.758438Z'
+  stage: review
+  run: 58655432f02443a9914673dd781f9fb9
 ---
 
 # The agents know the docs route
@@ -512,3 +514,30 @@ Expect: `named`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 37. factory: started review as vm.
+38. reviewer: no findings
+
+    Checked, nothing to report:
+    - Group 1: every criterion has a test that checks what the criterion says.
+      - Criterion 1: the Interface's routing rule appears word for word, exactly once, in the intake's `## Stage` (step 6 of `agents/agents/intake.md`).
+      - Criterion 2: rows for `make documents` and `docs-review`. One bullet must hold "outside the documents", "end with `tests`" and "entry names that change".
+      - Criterion 3: rows for the diff command, "work item", `docs/project-guide/style.md`, `docs-approval`, `docs-only` and "numbered". Each of the seven style rules from journal 9 must appear exactly once.
+      - Criterion 4: the sentence saying the bullets replace steps 1 to 6. One bullet must hold "the reviewer's from `docs-review`", "fix exactly its numbered findings" and "end with `docs-review`".
+      - Criterion 5: four rows, for the scope, the checklist, the decisions with steps 1 to 3, and "Judge the facts against the code and the criteria".
+      - Each rule's two sides are covered: `docs-only` or `tests` for the intake, `docs-review` or `tests` for the documenter, `docs-approval` or `docs-only` for the reviewer.
+      - The factory's `make check` after the coder was green (entry 36). The smoke test's grep finds `docs-only` in all three agent files.
+    - Group 2: the diff changes only agent texts and tests. Nothing under `src/` changed, so no architecture rule is touched.
+    - Group 3: no secrets, no silencing markers, no commands built from strings.
+    - Group 4: `stage_section` has one copy, in `tests/support/shipped_agents.py`, with a docstring. `duplicates: 5 new` comes from `src/factory`, which this diff does not touch.
+    - Group 5:
+      - The Description matches what was built: the intake's route choice, the documenter's `docs-only` with its hand-off to `tests`, and the reviewer's `docs-review` with the style-page fallback.
+      - The docs criterion (7) still says what the reader needs to know.
+      - The journal explains the main choices and what was rejected: the `###` subsections, the bulleted list, the CRC cut-out, and the "replaces" sentences kept inside the subsections.
+
+    Earlier tests:
+    - `tests/agent_files/test_claude_agent_texts_docs_slip.py`: changed under the standing leave to move a shared test helper. `_stage_section` moved to `tests/support/shipped_agents.py` as `stage_section`. Every test keeps its name and checks the same thing.
+    - `tests/agent_files/test_claude_agent_texts_review_groups.py`: changed under the human's leave in journal entry 14. `_DOCS_REVIEW_SUBSECTION` cuts the `### docs-review` subsection out of the body, up to the next `#` line, before the CRC. `_EARLIER_BODY_CRC32` and the test's name are unchanged.
+    - `tests/support/shipped_agents.py` (a support module, not a test): no leave needed. It only gains `stage_section` and its import; nothing it held before changed.
+
+    Notes:
+    - `tests/agent_files/test_claude_agent_texts_docs_route.py`, `test_the_reviewer_in_docs_review_replaces_its_code_review_and_judges_the_facts`: the rows `its checklist` and `its decisions, and steps 1 to 3` are loose substrings. Each could match outside the "replaces" sentence. One row holding the whole sentence would pin it more tightly.
+    - `tests/agent_files/test_claude_agent_texts_docs_route.py`: the `docs-review` and `tests` hand-offs of the documenter are still separate tests. The single-bullet checks (the `tests` hand-off, the return from `docs-review`) are separate functions, not rows. The tester gave the reason in entry 26.
