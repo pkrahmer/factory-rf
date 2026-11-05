@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T06:57:20.814822Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-05T06:57:20.814822Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-05T06:57:38.919760Z'
+  stage: intake
+  run: 56d20cce934141f0adb737575a12c6a7
 ---
 
 # The operator guide is a folder of topics
@@ -59,7 +61,7 @@ journal:
 
 1. `docs/operator-guide.md` does not exist; `docs/operator-guide/` holds `README.md` and the ten topic files named in the Description.
 2. Every section heading (`##` and `###`) of the guide before this story is found exactly once in the folder (one row per heading, from `origin/main` before the story).
-3. `factory-check-documents` reports `docs/operator-guide/stops.md: section 'The stops' is missing` when that heading is removed from `stops.md`, `docs/operator-guide/install.md: missing` when `install.md` is removed, and nothing for the folder as it is (rows of one test).
+3. `factory-check-documents` reports `docs/operator-guide/stops.md: section 'The stops' is missing` when that heading is removed from `stops.md`, `docs/operator-guide/install.md: section 'Install' is missing` and `docs/operator-guide/install.md: section 'Configuration' is missing` when those headings are removed from `install.md`, `docs/operator-guide/install.md: missing` when `install.md` is removed, `docs/operator-guide/README.md: missing` when the index is removed, and nothing for the folder as it is (rows of one test).
 4. No file under `src/`, `claude/`, `operator/`, `vm/`, `docs/` or `README.md` names `docs/operator-guide.md`, except `docs/decisions.md`, which is history.
 5. `make check` stays green.
 6. docs: as criteria 1, 2 and 4; the index says in one sentence per file what it covers. `docs/project-guide/shared.md` (the document check): the new paths. `docs/decisions.md`: an entry for the split, naming F0051-S0010.
@@ -94,3 +96,17 @@ Expect: `split`
 
    One note for the later stages: for the rest of F0051 the coder may write `docs/operator-guide.md`, `docs/operator-guide/*`, `docs/project-guide/*` and `README.md` (`factory/pipeline.yml`, the human, 2026-11-05), because this story's tests check documents in the check after `doing`. So the coder makes the split itself, and the documenter keeps the docs criterion's other parts.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: accepted. It names `factory.shared.domain.documents` and `OPERATOR_GUIDE`, the per-file required sections and the `docs/operator-guide/<file>: missing` message.
+   - Criteria: accepted. Journal entry 4 (the human's answers) is carried into criterion 3 and nothing else changed. Criterion 3 now has these rows:
+     - `install.md: section 'Install' is missing`
+     - `install.md: section 'Configuration' is missing`
+     - `install.md: missing`
+     - `README.md: missing`
+     - `stops.md: section 'The stops' is missing`
+     - the clean folder reports nothing
+
+     Each rule has its failing side, and each criterion is testable by one test function.
+   - Smoke test: accepted. Both commands are runnable and both `Expect:` lines can be checked.
+   - Architecture: accepted. The change is in documents plus `factory.shared.domain.documents`, which fits the shared area.
+   - Scope: accepted. S0010 is listed in `feature.md`, and the leave of decision 5 and the human's note in entry 4 cover the test and coder write paths.
