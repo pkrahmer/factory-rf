@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T07:21:45.685085Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-11-05T07:21:40.633718Z'
   stage: doing
   run: 0e7e549c226042e69cfd5fdcffbe3655
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:21:45.685085Z'
+  stage: tests
 ---
 
 # The operator guide is a folder of topics
@@ -277,3 +286,4 @@ Expect: `split`
     Test change for the tester, with the human's leave from entry 14 point 1: `tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file` should leave `docs/operator-guide/` out of its search, and should not count a removed name that follows `operator-guide/`. The test keeps its name and still checks that no file names a removed project-guide file.
 
     Still open: for the documenter, the project guide's "the operator guide, *Section*" references (for example `docs/project-guide/machine.md:54` and `docs/project-guide/pipeline.md:116`) should name the topic file. The human assigned this to the documenter in entry 14.
+17. factory: started tests as vm.
