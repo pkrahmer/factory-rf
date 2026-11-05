@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 576
 comments_read: [6672543099]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T23:46:27.738072Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T23:46:25.362068Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:46:27.738072Z'
   stage: intake
 ---
 
@@ -91,3 +100,4 @@ Expect: `1`
    2. Yes to both rows: (i) two problems give the sorted `["missing: a.md", "not in the index: z.md"]`; (ii) a page that the index names and `required` names, and that is missing, gives `["missing: shared.md"]` once.
    3. (i) Yes: a folder with `README.md` and `notes.txt`, neither named, gives `[]`. (ii) A name counts only inside `## The files`: a page named only in a bullet of another section gives `["not in the index: other.md"]`. One row.
    4. The surviving test is `test_the_guide_holds_the_index_and_its_named_files`; `test_the_index_names_each_file_with_a_sentence` goes, and criterion 3 holds for every other test. The check `names == sorted(...)` is dropped: `index_problems` replaces it and ignores non-Markdown files.
+5. factory: started intake as vm.
