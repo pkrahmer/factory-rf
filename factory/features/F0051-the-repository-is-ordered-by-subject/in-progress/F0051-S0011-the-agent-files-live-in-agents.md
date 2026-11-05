@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T08:01:46.052042Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -41,6 +45,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T08:01:43.366131Z'
+  stage: tests
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:01:46.052042Z'
   stage: tests
 ---
 
@@ -131,3 +140,4 @@ Expect: `1`
    `docs/runs/` is left out of criterion 4 (history, mine). The playbook is mine too: I changed its line on `main` to `agents/agents/intake.md`, and the next stage merges it in. So the test keeps checking the playbook and leaves out `docs/decisions.md` and `docs/runs/`, as you wrote it; criterion 6 stays as it is.
 
    `CLAUDE.md`'s two lines that name the agent files change after the merge; they are mine and outside your search.
+7. factory: started tests as vm.
