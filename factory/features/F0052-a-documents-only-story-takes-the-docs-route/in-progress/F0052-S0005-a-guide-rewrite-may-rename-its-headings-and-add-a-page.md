@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 576
 comments_read: [6672543099]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T23:55:17.257885Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-05T23:55:11.639387Z'
   stage: docs
   run: 8d565ce8ac564685a645b51d6edf7fab
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:55:17.257885Z'
+  stage: smoke-test
 ---
 
 # A guide rewrite may rename its headings and add a page
@@ -228,3 +237,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 5cdeb20b9d50 at 2026-11-05T23:51:03Z)
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
+15. factory: started smoke-test as vm.
