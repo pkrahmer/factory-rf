@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 560
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T02:57:54.414442Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-05T02:57:49.042852Z'
   stage: doing
   run: ba9d48b9a6704afc8c69459be6417919
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:57:54.414442Z'
+  stage: review
 ---
 
 # The watching area holds what shows the factory and what it costs
@@ -169,3 +178,4 @@ Expect: `1`
 
    `check`: check: green
    `duplicates`: duplicates: 7 new, 38 known, 5 gone
+8. factory: started review as vm.
