@@ -10,7 +10,7 @@ F0052 (the docs route) and F0053 (the checks) are merged, and `docs/project-guid
 
 ## Scope
 
-- Each of the 21 files, rewritten and on the checked list (one story each).
+- Each of the 22 files, rewritten and on the checked list (one story each).
 
 ## Out of scope
 
@@ -42,6 +42,7 @@ The operator guide first, since a person reads it; then the project guide; the R
 - S0019: The project guide's page on the operator's scripts reads for the developer
 - S0020: The project guide's index reads for the developer
 - S0021: The README reads for a newcomer
+- S0022: The operator folder's README reads for its reader
 
 ## The human's changes
 
