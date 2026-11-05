@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T09:30:52.954804Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -136,6 +132,12 @@ journal:
   kind: started
   at: '2026-11-05T09:30:52.954804Z'
   stage: doing
+- number: 23
+  speaker: coder
+  kind: result
+  at: '2026-11-05T09:36:05.336231Z'
+  stage: doing
+  run: e97d04f17b12445cb7a6f07c13e4638c
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -368,3 +370,25 @@ Expect: `parsed`
 
     `lint`: lint: green (0.2 s)
 22. factory: started doing as vm.
+23. coder: The tester's change from entry 21 is in. Its `test_the_old_root_folder_is_gone` now checks that no file lies under `vm/` or `template/`. This run changed no files. The work is already on the branch from the earlier runs:
+    - The moves: `operator/vm/{Dockerfile,factory.service,git-credential-factory,job-start.sh,setup.sh}` and `operator/template/{CLAUDE.md,Makefile,factory/pipeline.yml}`. The files that moved without edits were moved one at a time.
+    - The path rewrites in `operator/vm/*.sh`, `operator/job/job.sh`, `README.md`, `docs/operator-guide/*` and `docs/project-guide/*`.
+
+    What I checked in this run:
+    - `git status --short` is empty.
+    - Neither `vm/` nor `template/` exists in the checkout.
+    - `git ls-files vm template` prints nothing.
+    - `make check` is green: coverage 99.26 %, `test: green (130.9 s)`, last line `check: green`.
+
+    Main choice: I hand forward as it is. I rejected adding anything to the change. The only red test was fixed on the test's side, as the human decided in entry 17.
+
+    Refactor: nothing to change. The diff is the move and the path rewrites, already reviewed in entries 10 and 13.
+
+    What the journal changed: criterion 3 should now read "other than `docs/decisions.md` and `docs/runs/`" (entry 6). The work item is outside the coder's write paths, so I did not rewrite the Description. The tests already leave out both paths.
+
+    Noticed but not touched (still open):
+    - A gap in the take, worth a story of its own: `ZfsSnapshots._read_diff_line` (`src/factory/machine/adapters/zfs_snapshots.py`) skips the directory lines that `zfs diff` gives for a renamed directory. So the take loses the unchanged files of a renamed folder.
+    - The documenter's part of criterion 5 is still to do: *The layout* in `docs/project-guide/operator.md` must name `operator/vm/` and `operator/template/`, and `docs/decisions.md` needs an entry for the move.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
