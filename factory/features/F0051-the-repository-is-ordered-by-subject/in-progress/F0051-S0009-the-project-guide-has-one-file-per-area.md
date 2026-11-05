@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T05:56:17.233565Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T05:56:14.852314Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-05T05:56:17.233565Z'
   stage: intake
 ---
 
@@ -81,3 +90,4 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
    4. **As you propose:** each of the eight files is named in *The files* with a sentence, and every `src/factory/<area>/` path the index names exists.
    5. **Criterion 4 as it stands.**
    6. **`CLAUDE.md` is left out of the test.** I change its guide-file names after the merge, as the Interface says.
+5. factory: started intake as vm.
