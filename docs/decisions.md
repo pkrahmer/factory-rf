@@ -1566,3 +1566,11 @@ Date: 2026-11-05 (F0051-S0011).
 - Decision: the folder of the shipped agent files and their settings is `agents/` (`agents/agents/*.md` and `agents/settings.json`), renamed with `git mv` from `claude/`, and the stage image copies it to `/etc/factory/agents`. The format of the files does not change. `operator/claude/` and `operator/opencode/`, the operator's commands for each runtime, keep their names, and so does the setting `FACTORY_CLAUDE_HOME`, whose value now ends in `factory/agents`. This changes the folder named in the entries above that say `claude/agents/*.md` and `claude/settings.json`.
 - Why: the files are written in Claude Code's format, but the opencode runtime reads them too and translates them per run (the decision of 2026-10-19, F0020-S0004), so the name `claude/` said one runtime where there are two.
 - Rejected: renaming the variable `FACTORY_CLAUDE_HOME` with the folder, because it is outside this story.
+
+## The VM files and the project template live in `operator/`
+
+Date: 2026-11-05 (F0051-S0012).
+
+- Decision: `vm/` is `operator/vm/` and `template/` is `operator/template/`, moved with `git mv`; every path inside the files that names another (the build command `podman build -f operator/vm/Dockerfile`, the setup and start scripts) names the new place. `demo/` stays at the root, since it is runnable code that `make check` checks.
+- Why: everything about where an instance runs and how a project starts sits in one place, beside the operator's other tools (the human, 2026-11-04).
+- No rejected option is named by the story for this entry, so none is written.

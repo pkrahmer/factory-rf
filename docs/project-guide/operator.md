@@ -10,6 +10,8 @@ The shell and Python scripts under `operator/`, which let an operator set up one
 - `operator/bin/site`: the command for the site file (`path`, `init`, `show`, `get`, `check`).
 - `operator/bin/sanitise`: the sanitiser.
 - `operator/job/job.sh`: the factory's Cloud Run job.
+- `operator/vm/`: what sets up and runs an instance on a VM (`setup.sh`, `job-start.sh`, `factory.service`, `git-credential-factory`) and the base image's `Dockerfile`.
+- `operator/template/`: what the operator copies into a new project (`CLAUDE.md`, `Makefile`, `factory/`).
 - `operator/skill/kumpel/`: the skill. `SKILL.md`, `references/` (the standing orders and how to answer, approve and shape) and `scripts/` (`settings.sh`, `status.sh`, `wait.sh`, `approval.sh`, `next-story.sh`, `start-story.sh`, `comment.sh`, `merge.sh`, `reset-to-tag.sh`).
 - `operator/opencode/command/kumpel.md` and `operator/claude/commands/kumpel.md`: the `/kumpel` command for each tool.
 - `operator/README.md` is the documenter's (decision 22 of F0048): its table maps each file to the story that made it. Keep it current from the docs criterion; do not copy the table here.

@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T09:38:02.490784Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -158,6 +154,12 @@ journal:
   kind: started
   at: '2026-11-05T09:38:02.490784Z'
   stage: docs
+- number: 27
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T09:38:37.845877Z'
+  stage: docs
+  run: 4f88344b99bb44628ebffac6a623396b
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -464,3 +466,14 @@ Expect: `parsed`
     - tests/vm/test_vm_service_stop.py: feature decision 5
     - tests/vm/test_vm_setup_install_hint.py: feature decision 5
 26. factory: started docs as vm.
+27. documenter: Files I changed:
+    - `docs/project-guide/operator.md`: *The layout* now names `operator/vm/` and `operator/template/`, as the docs criterion asks.
+    - `docs/decisions.md`: one new entry, "The VM files and the project template live in `operator/`" (F0051-S0012). The story names no rejected option for it, so the entry has no "Rejected" line.
+
+    Cross-read and found current: the coder had already updated `README.md`, `docs/operator-guide/*` (install, machine, cloud-run, health, agent-runtime, records, README) and `docs/project-guide/*` (README, agents, hosting, machine, pipeline) to the new paths. A grep of `README.md`, `docs`, `src`, `agents` and `operator` found no remaining bare `vm/<file>` or root `template/` name outside `docs/decisions.md` and `docs/runs/`. The decision log's older entries name the old paths on purpose, and I left them alone. I did not run `make check`: I changed only documents. The factory's checks run after this stage.
+
+    Stale text I noticed but did not touch: none. `operator/README.md` has no `vm/` or `template/` rows to update. I found no code that contradicts the Interface.
+
+    `check`: check: green (not run again: passed on tree 0a050c1b7b61 at 2026-11-05T09:33:40Z)
+    `secrets`: secrets: green (3.6 s)
+    `documents`: documents ok
