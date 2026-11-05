@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 576
 comments_read: [6672543099]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T23:46:27.738072Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-05T23:46:27.738072Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-05T23:46:49.426688Z'
+  stage: intake
+  run: afbf83952cd34acd99fe95f73b65b0b1
 ---
 
 # A guide rewrite may rename its headings and add a page
@@ -57,18 +59,18 @@ The docs route exists so that the rewrite of the guides can run without a tester
       """What the index `README.md` of `guide` and the folder's pages disagree on, one line each."""
   ```
 
-  - A Markdown file of `guide` other than `README.md` that no line of the index's `## The files` section names as ``- `<name>` <a sentence>.`` gives the line `not in the index: <name>`.
+  - A Markdown file of `guide` other than `README.md` that no line of the index's `## The files` section names as ``- `<name>` `` followed by any text with a word character and ending in a full stop (a colon after the name is allowed) gives the line `not in the index: <name>`.
   - A name that the section names and that is not a file of `guide` gives the line `missing: <name>`.
   - A name in `required` that is not a file of `guide` gives the line `missing: <name>`, once.
   - A guide with no problem gives `[]`. The lines are sorted.
-- `tests/guards/test_project_guide_files.py`, an earlier story's test: `HEADINGS` and `test_every_earlier_heading_is_kept_as_often_as_before` go. `test_the_guide_holds_the_index_and_its_named_files` and `test_the_index_names_each_file_with_a_sentence` become one test of `index_problems(GUIDE, AREA_FILES) == []`. `REMOVED_FILES` and `test_no_file_names_a_removed_guide_file` stay.
+- `tests/guards/test_project_guide_files.py`, an earlier story's test: `HEADINGS` and `test_every_earlier_heading_is_kept_as_often_as_before` go. `test_the_guide_holds_the_index_and_its_named_files` and `test_the_index_names_each_file_with_a_sentence` become one test of `index_problems(GUIDE, AREA_FILES) == []`; the surviving name is `test_the_guide_holds_the_index_and_its_named_files`, `test_the_index_names_each_file_with_a_sentence` goes, and the check `names == sorted(...)` is dropped. `REMOVED_FILES` and `test_no_file_names_a_removed_guide_file` stay.
 - `tests/guards/test_operator_guide_files.py`, an earlier story's test: `HEADINGS` and `test_every_earlier_heading_is_kept_in_the_folder` go. The other tests stay.
 - `tests/guards/test_guide_index_problems.py` (new): the rows of `index_problems` on guide folders written under `tmp_path`.
 - The two earlier modules belong to earlier stories. Feature decision 7 gives the leave for changing them, and the tester names it in its entry.
 
 ## Acceptance criteria
 
-1. `index_problems` on a folder under `tmp_path` gives these results, one row each of one parametrized test. A folder whose index names each page gives `[]`. A page that the index does not name gives `["not in the index: extra.md"]`. A named page that is missing gives `["missing: gone.md"]`. A required page that is missing gives `["missing: shared.md"]`. An index line for a page with no sentence (``- `page.md` ``) counts as not naming it. A heading renamed in a page gives `[]`.
+1. `index_problems` on a folder under `tmp_path` gives these results, one row each of one parametrized test. A folder whose index names each page gives `[]`. A page that the index does not name gives `["not in the index: extra.md"]`. A named page that is missing gives `["missing: gone.md"]`. A required page that is missing gives `["missing: shared.md"]`. An index line for a page with no sentence (``- `page.md` ``) counts as not naming it. A heading renamed in a page gives `[]`. An index line with a colon (``- `page.md`: A sentence.``) gives `[]`. A folder with a missing `a.md` named by the index and an unnamed `z.md` gives `["missing: a.md", "not in the index: z.md"]`. A page that the index names and `required` names, and that is missing, gives `["missing: shared.md"]` once. A folder with `README.md` and `notes.txt`, neither named, gives `[]`. A page named only in a bullet of another section gives `["not in the index: other.md"]`.
 2. `index_problems(docs/project-guide, AREA_FILES)` on the repository gives `[]`.
 3. No test under `tests/guards/` reads a list of the guides' headings. `tests/guards/test_project_guide_files.py` and `tests/guards/test_operator_guide_files.py` hold no `HEADINGS` table, and every test that remains in them keeps its name.
 4. `make check` stays green.
@@ -101,3 +103,10 @@ Expect: `1`
    3. (i) Yes: a folder with `README.md` and `notes.txt`, neither named, gives `[]`. (ii) A name counts only inside `## The files`: a page named only in a bullet of another section gives `["not in the index: other.md"]`. One row.
    4. The surviving test is `test_the_guide_holds_the_index_and_its_named_files`; `test_the_index_names_each_file_with_a_sentence` goes, and criterion 3 holds for every other test. The check `names == sorted(...)` is dropped: `index_problems` replaces it and ignores non-Markdown files.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answers (journal entry 4) carried into the story. I made these edits in the story and changed nothing else: the Interface now states the index line format (colon allowed, per 4.1a). Criterion 1 gained the rows from 4.1 to 4.3. Those are the colon form, the two sorted problems, the `required` plus index duplicate that appears once, `README.md` and `notes.txt` unnamed, and a name outside `## The files`. The Interface also names the surviving test `test_the_guide_holds_the_index_and_its_named_files` and drops `test_the_index_names_each_file_with_a_sentence` and the `names == sorted(...)` check (4.4).
+   - Interface: names concrete modules and one signature, `index_problems(guide, required)` in `tests/support/guide_files_support.py`, and the edits to two named guard modules and one new one. Each line of its behaviour is now stated exactly.
+   - Criteria: each is testable by one parametrized or plain test. Each rule has its failing side: not in the index, missing, required missing, and a sentence-less line. Sorting and the duplicate case now have rows. Criterion 3 holds for the remaining tests, and the surviving name is given.
+   - Smoke test: both commands are runnable. Pytest's `addopts` sets `-q` and the command passes no second one, so `tail -1 | grep -c " passed"` can be met. Each `Expect:` line is checkable.
+   - Architecture: the changes are tests and a support module, in the places CLAUDE.md prescribes: `tests/support/*_support.py` and `tests/guards/`. A new support module function is shared and no test module is imported by another.
+   - Scope: within feature decision 7, which gives the leave to change the two earlier guard modules. The tester must name that leave in its entry. The project guide's file-list rule is replaced by the index rule, which is the story's own description.
+   Route: tests, because the Interface changes test files and a support module, none of which the documenter may write.
