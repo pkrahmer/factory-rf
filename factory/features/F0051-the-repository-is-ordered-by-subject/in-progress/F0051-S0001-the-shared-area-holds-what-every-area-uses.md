@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T00:54:35.959367Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-11-05T00:54:30.223510Z'
   stage: doing
   run: c14b005ed4f542c2a85afa32947e1ef7
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:54:35.959367Z'
+  stage: review
 ---
 
 # The shared area holds what every area uses
@@ -810,3 +819,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 11 new, 34 known, 8 gone
+23. factory: started review as vm.
