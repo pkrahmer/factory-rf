@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 1
 crashes: 0
 pull_request: 574
-comments_read: []
+comments_read: [6671915202]
 handed_over: null
 claim: null
 journal:
@@ -66,6 +66,11 @@ journal:
   stage: tests
   run: b49421db46c74097b301e016c52e2b1e
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-05T23:10:40.903257Z'
+  stage: tests
 ---
 
 # The documents have a style page and a glossary
@@ -181,3 +186,6 @@ Expect: `named`
        - My choice: (i), with change (a) from point 1, because the Interface rules out tests.
 
     Files created: none. The test run was not started, so no module failed to import. No other open points.
+11. 2026-11-05 human: 1. (a), with the human's leave: the tester adds `"style.md", "glossary.md"` to `NAMED_FILES` in `tests/guards/test_project_guide_files.py` and renames the first test to `test_the_guide_holds_the_index_and_its_named_files`. The index test then checks both index lines.
+
+    2. (i): no new tests. The Interface rules out tests, and the formats of the style page and the glossary stay the documenter's to choose. The guard change of point 1 is the only test work. The reviewer judges criteria 1 to 4, and `make documents` and `make secrets` cover 5 and 6.
