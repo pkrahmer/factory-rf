@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T07:36:40.098015Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-05T07:36:40.098015Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-11-05T07:37:26.742213Z'
+  stage: doing
+  run: 5f12694203d446fbbb2de734c25ff27d
 ---
 
 # The operator guide is a folder of topics
@@ -457,3 +459,23 @@ Expect: `split`
 
     `lint`: lint: green (0.2 s)
 27. factory: started doing as vm.
+28. coder: Round 1, after the tester's entry 26: I changed no code this run. `make check` is red, and only because of a type error in the tests. The tester's fix for finding 6 caused it.
+
+    `make types` (`mypy --strict`) fails 3 times:
+    - `tests/pipeline/domain/test_documents.py:22: error: Module "support.document_texts" does not explicitly export attribute "OPERATOR_INSTALL"  [attr-defined]`
+    - the same line for `OPERATOR_STOPS`
+    - `tests/entry/test_check_documents.py:17` for `OPERATOR_INSTALL`
+
+    `tests/support/document_texts.py` now imports these two constants from `factory.shared.domain.documents`. Under `--strict` a name that a module only imports is not re-exported, so the two test modules that still import them from `support.document_texts` fail.
+
+    Test change for the tester (the fix for finding 6 under the standing leave, not finished yet): in `tests/pipeline/domain/test_documents.py` and `tests/entry/test_check_documents.py`, import `OPERATOR_INSTALL` and `OPERATOR_STOPS` from `factory.shared.domain.documents` instead of `support.document_texts`. The other choice is to re-export them in `document_texts.py` with `__all__` or `import X as X`. I'd take the direct import, since the support module shouldn't pass on names from `src`.
+
+    Checked, all good:
+    - `uv run pytest -q` over the two guard modules, `tests/pipeline/domain/test_documents.py`, `tests/entry/test_check_documents.py` and `tests/entry/test_check_documents_operator_guide.py` passes.
+    - `make duplicates` now reports `5 new, 40 known, 3 gone`, down from 6 new. The dead-code finding for `OPERATOR_GUIDE_SECTIONS` (finding 4) is gone. The other five findings are outside this diff, as the reviewer noted.
+
+    What I built (round 1, entry 24; unchanged this run): `src/factory/shared/domain/documents.py` takes its sections from `OPERATOR_GUIDE_SECTIONS` through `_OPERATOR_SECTION_FILES`. In `docs/operator-guide/*.md`, every reference to a section in another topic file now names that file.
+
+    Still open:
+    - Finding 7: rewrite criteria 2 and 4 and the Interface's path `tests/operator_scripts/test_operator_site_check.py` to match entry 9, answer 6. I can't write the work item.
+    - For the documenter: the "the operator guide, *Section*" references in the project guide (entry 14).
