@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T22:23:23.159107Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-11-05T22:23:18.021002Z'
   stage: tests
   run: ce56fd7a20c744dd9f92fe23c163daac
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:23:23.159107Z'
+  stage: doing
 ---
 
 # The agents know the docs route
@@ -247,3 +256,4 @@ Expect: `named`
     Test run: `uv run pytest -q tests/agent_files/test_claude_agent_texts_review_groups.py` gave 9 passed. `make lint` gave `lint: green (0.2 s)`.
 
     `lint`: lint: green (0.1 s)
+19. factory: started doing as vm.
