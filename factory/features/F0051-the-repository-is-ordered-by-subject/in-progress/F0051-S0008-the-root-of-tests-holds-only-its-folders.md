@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295, 6650280748]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T05:13:03.427572Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T05:13:00.885781Z'
+  stage: doing
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-05T05:13:03.427572Z'
   stage: doing
 ---
 
@@ -296,3 +305,4 @@ Expect: `support.bill_support`
     **(b).** I reworded the line on the branch under my standing leave for lines detect-secrets flags (commit 2ac1e17e3): it now reads "- `test_no_agent_login`'s two path constants now start from `.parents[1]`." Both places that held it changed; the scan of the new text finds nothing. No baseline entry, no marker.
 
     End with `review`. The six mutmut deselects follow on `main` after the merge; they are mine.
+16. factory: started doing as vm.
