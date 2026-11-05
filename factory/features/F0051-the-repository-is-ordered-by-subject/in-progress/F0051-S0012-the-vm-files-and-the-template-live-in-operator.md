@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 567
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T09:00:10.647564Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-05T09:00:05.522735Z'
   stage: intake
   run: 22cd5b210a134e3ea1696066d353c085
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T09:00:10.647564Z'
+  stage: tests
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -76,3 +85,4 @@ Expect: `parsed`
    - Smoke test: three runnable commands, with no pytest. Each `Expect:` (`0`, `moved`, `parsed`) can be checked against the output.
    - Architecture: it moves operator-side files only. `src/factory` and its areas are untouched, except for any paths named in source. `demo/` stays at the root, as CLAUDE.md and feature.md say.
    - Scope: it matches the feature's scope line for S0012 and its "The human's changes" entry for S0012. It leaves `docs/decisions.md`'s old entries and the `operator/claude` and `operator/opencode` folders alone, as the Out of scope section requires.
+4. factory: started tests as vm.
