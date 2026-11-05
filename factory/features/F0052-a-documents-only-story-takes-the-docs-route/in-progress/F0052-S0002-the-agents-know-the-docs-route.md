@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T22:28:47.446727Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-11-05T22:28:47.446727Z'
   stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T22:29:58.298302Z'
+  stage: review
+  run: 03cde6d9101940e68f8d371b586e2283
 ---
 
 # The agents know the docs route
@@ -288,3 +290,18 @@ Expect: `named`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 21. factory: started review as vm.
+22. reviewer: Findings:
+
+    1. `agents/agents/documenter.md`, `### docs-only`: the subsection comes after steps 1 to 6 of `## Stage` but does not say that it replaces them. Step 3 (run `make check`) and step 5 (end with `smoke-test`) contradict the subsection's `make documents` and `docs-review`. The subsection also does not say what to do when the story comes back from `docs-review` with numbered findings. Fix: open the subsection with one sentence saying that in the stage `docs-only` these bullets replace steps 1 to 6. Add a bullet: when the latest entry is the reviewer's from `docs-review`, fix exactly its numbered findings and end with `docs-review`.
+    2. `agents/agents/reviewer.md`, `### docs-review`: the subsection does not say that it replaces the Role's scope, the checklist (groups 1 to 6) and Stage steps 1 to 3. Those still say "Go through all of groups 1 to 5 in every review" and "`docs` passes, `doing` sends the work item back", which contradicts `docs-approval`/`docs-only`. Fix: one opening sentence saying that in the stage `docs-review` this subsection replaces the Role's scope, checklist and decisions, and Stage steps 1 to 3.
+    3. `tests/agent_files/test_claude_agent_texts_docs_route.py`, rows `entry-names-the-change` and `ends-with-tests`: neither row tests what criterion 2 names it for. The row "entry" already passes on the unrelated bullet "Your entry: which files you changed", and `` `tests` `` passes on any mention of the word. Fix: one row that requires the sentence or bullet naming "outside the documents" to also hold "end with `tests`" and "entry names that change".
+    4. `tests/agent_files/test_claude_agent_texts_docs_route.py:27`, `_stage_section`: this is a second copy of `_stage_section` in `tests/agent_files/test_claude_agent_texts_docs_slip.py:46`. Fix: move it to `tests/support/shipped_agents.py` under the standing leave, and have both modules use it from there.
+
+    Checked with nothing to report:
+    - Group 1: criterion 1 (the routing rule word for word, exactly once) and criterion 3 (the diff command, the work item, the style page, `docs-approval`, `docs-only`, "numbered" and the seven rules, each once) have tests that pin them. The journal says the factory's `make check` after the coder was green (entry 20).
+    - Group 2: only agent texts and tests changed, so no architecture rule is touched.
+    - Group 3: no secrets and no silencing markers.
+    - Group 5: the Description and the docs criterion still match what was built. The journal explains the bulleted list and the CRC test change.
+
+    Earlier tests:
+    - `tests/agent_files/test_claude_agent_texts_review_groups.py`: changed under the human's leave in journal entry 14. The `### docs-review` subsection is cut before the CRC, and the test keeps its name and its `_EARLIER_BODY_CRC32`. The change stays within that leave.
