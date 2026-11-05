@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 1
 crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T06:13:08.502652Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -97,6 +93,13 @@ journal:
   kind: started
   at: '2026-11-05T06:13:08.502652Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: question
+  at: '2026-11-05T06:13:34.161906Z'
+  stage: doing
+  run: dab7d95781294e1393bdf77e52e57024
+  blocked: question
 ---
 
 # The project guide has one file per area
@@ -271,3 +274,17 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
     FAILED tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file - AssertionError: assert ['docs/operat...aths.md', ...] == []
     make: *** [Makefile:89: test] Error 1
 15. factory: started doing as vm.
+16. coder: I wrote nothing in this run. The coder role is not allowed to write the files this story changes, so the work cannot get through this stage.
+
+    What happened: the previous doing run (journal 13) did the whole regrouping under `docs/project-guide/` and the three lines in `docs/operator-guide.md`. `make check` and `make documents` were green on the agent's side. The factory then dropped every one of those changes as "outside the write paths": `docs/project-guide/*.md` and `docs/operator-guide.md` (journal 13, last paragraph). It ran `make check` on what was left, which was the unchanged guide plus the tester's new guard, and the guard failed (journal 14). The committed tree I started from today is still the old guide: `costs.md`, `git-and-hosting.md`, `processes-and-checks.md`, `stage-environment.md`, `stages.md`, `work-items.md`, `write-paths.md`, and no `shared.md`/`hosting.md`/`work.md`/`machine.md`/`pipeline.md`. If I redo the work, the same thing happens again, and that would use up the last stall attempt (attempt 2 of 2).
+
+    `tests/guards/test_project_guide_files.py` can only pass once `docs/project-guide/` and `docs/operator-guide.md` have changed. In this pipeline only the docs stage (the documenter) writes those files, and doing comes before docs. As things stand, nothing the coder can write makes `make check` green.
+
+    Options I see:
+    (a) Add `docs/project-guide/**` and `docs/operator-guide.md` to the doing stage's write paths for this story. That is a human change to `factory/pipeline.yml`. Then I redo the regrouping exactly as journal 13 describes it.
+    (b) Move the work to the docs stage. The human or the tester marks the guard module so it does not block the doing stage's `make check`, the doing stage hands forward with no change, and the documenter does the regrouping, which is the work its role already covers. This needs a decision on how the guard waits, and that is a test change.
+    (c) The human makes the docs change on the branch by their own commit, and doing then hands forward with no change.
+
+    I would choose (a): the work is done and checked once already (journal 13), and only the write paths stand in the way.
+
+    Journal 9 changed the Description: the Interface reads "no module under `src/factory/` changes", criterion 2 counts each heading as often as before, and criterion 4's search leaves out `docs/runs/` and `docs/decisions.md`. The tester's rewrite of the Description was also dropped by the factory, so the work item still carries the wording from before journal 9. I can't rewrite it either, because the work item is outside my write paths.
