@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506, 6656185279]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T10:59:11.603856Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-05T10:59:11.603856Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-05T11:04:15.739370Z'
+  stage: doing
+  run: b91a47b295fc46389193d37664f18c15
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -241,3 +243,21 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 16. factory: started doing as vm.
+17. coder: In entry 15 the tester changed `tests/guards/test_operator_guide_pointers_search.py` as the human allowed. With that change, `make check` is green (it ends with `check: green`). `make test` passes with 99.26 % coverage. This round I changed no code.
+
+    Built (already on the branch from the earlier doing rounds):
+    - `operator/vm/setup.sh`:
+      - lines 405 and 453: the `tools` and `service` hints for an installed file that differs from the checkout now end with `(docs/operator-guide/machine.md, "The rebuild after a merge")`. Both still go to stderr.
+      - line 476: the closing line now reads `setup: done: build the stage image and start factory@%s; see "The machine" in docs/operator-guide/machine.md`.
+    - `operator/skill/kumpel/references/approving.md:25`: the *After a merge* bullet now reads "on a VM the rebuild of `docs/operator-guide/machine.md`, *The rebuild after a merge*".
+
+    Main choice: I used the Interface's texts word for word. I rejected rewording the lines so they would keep the words "operator guide" (option (b) in entry 10), because that would change wording the human approved.
+
+    Refactor: I read the diff and found nothing to change. It is four replaced lines of text.
+
+    Description: the journal changed only the tests (entries 11 and 15). The task's meaning is the same, so the Description stays as it is.
+
+    Noticed but not touched: `docs/operator-guide/machine.md` lines 284, 295 and 296 still quote the old texts. That is the docs stage's work under criterion 5. The items the Description leaves out also stay as they are: the docstring in `wiring.py`, the playbook, the demo README and the Makefile example.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
