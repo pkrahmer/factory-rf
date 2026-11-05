@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 562
 comments_read: [6649241093]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T03:55:48.881975Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T03:55:46.295451Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-05T03:55:48.881975Z'
   stage: doing
 ---
 
@@ -222,3 +231,4 @@ Expect: `1`
    - the removed-module checks count a `ModuleNotFoundError` from `find_spec` or `import_module` (the parent package being gone) as "gone", each test keeping its name and what it checks;
    - `tests/pipeline/application/test_tick.py`'s paths take the `pipeline/` prefix;
    - `tests/test_areas.py`'s guard accepts a bare `import factory` in an area folder (it belongs to no area, as S0001's tester already wrote), so the two modules stay where they moved.
+9. factory: started doing as vm.
