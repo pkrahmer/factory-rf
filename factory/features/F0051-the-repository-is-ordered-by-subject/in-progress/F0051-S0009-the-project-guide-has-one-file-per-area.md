@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 564
-comments_read: [6650898693]
+comments_read: [6650898693, 6650987283]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: b0850eaf61bc4a45937f2d6ad290f07d
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-05T06:03:24.087004Z'
+  stage: tests
 ---
 
 # The project guide has one file per area
@@ -134,3 +139,9 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
    4. **Criterion 3: "each of the eight files".** I read the eight as the seven area files plus `operator.md`, with the index not naming itself. I would choose that reading.
 
    Where I stopped: nothing is written, no files were created, and no test run was made.
+9. 2026-11-05 human: Answers of the human:
+
+   1. **(a)**: one guard module, `tests/guards/test_project_guide_files.py`, for criteria 1 to 4. The Interface line reads "no module under `src/factory/` changes".
+   2. **(a)**: each distinct heading is found as many times in the new files as it was on `origin/main`, one row per heading with its count.
+   3. **(a)**: the search covers `claude/`, `docs/` without `docs/runs/` and `docs/decisions.md`, and `README.md`, for the seven removed names, bare or as `project-guide/<name>`. Yes, `docs/operator-guide.md`'s two lines change in this story; criterion 6 names them.
+   4. **Yes**: the seven area files and `operator.md`; the index does not name itself.
