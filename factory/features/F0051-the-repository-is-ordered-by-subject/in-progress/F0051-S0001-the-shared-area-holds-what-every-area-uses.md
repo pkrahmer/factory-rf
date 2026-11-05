@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T00:48:14.428736Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-11-05T00:48:14.428736Z'
   stage: tests
+- number: 20
+  speaker: tester
+  kind: result
+  at: '2026-11-05T00:49:36.322835Z'
+  stage: tests
+  run: 1c6ae20e08894fbabf643e7f97344ca0
 ---
 
 # The shared area holds what every area uses
@@ -767,3 +769,18 @@ Expect: `1`
 
     The reviewer also flagged two things outside every write path, and I left both alone: `security/duplicates-baseline.txt` lines 25 to 32 still name the old paths, and `CLAUDE.md` still names `factory.domain.contract.CONTRACT`. Both are for the human.
 19. factory: started tests as vm.
+20. tester: Mode: an approved test change, round 1. I made the three test changes that coder entry 18 lists, from reviewer entry 16, and nothing under `src/`.
+
+    1. Reviewer finding 3 (new criterion 5): `tests/test_areas.py::test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own`. It is parametrized with one row per `test_*.py` under `tests/<area>/` for each area of `AREAS`. A row fails if the module imports a `factory` module outside the moved areas (checked with `_in_a_moved_area`), or if it imports nothing under `factory.<area>.`. All rows are green today, as entry 18 expected.
+    2. Reviewer finding 2: `tests/test_areas.py::_factory_imports` no longer walks the tree itself. It now filters `imported_modules(tree)` from `tests/source_search.py` to the names that are `factory` or start with `factory.`. The extra `<module>.<alias>` names this adds don't change which modules `_in_a_moved_area` accepts.
+    3. Reviewer finding 1: in `tests/adapters/test_work_item_markdown.py::test_only_the_work_item_adapter_imports_frontmatter_and_ruamel`, the filter `name.split(".")[1:2]` is replaced by a private `_layer(name)`. It gives the layer whether the module sits at `factory.<layer>.*` or at `factory.<area>.<layer>.*`, the same way `_is_domain` in `tests/domain/test_hosting.py` was changed. The 13 moved domain and application modules fall under the rule again. The test keeps its name and checks the same rule over the new layout.
+
+    On finding 1: I read it as covered by the Interface's leave of feature decision 5 ("covers every other change to tests that the move needs") and by the Description ("the guards that pin the old layout made to check the same rule over the new one"). That is why I did not ask.
+
+    Earlier test files changed: `tests/adapters/test_work_item_markdown.py` (under decision 5's leave, as above) and `tests/test_areas.py` (this story's own). No files created.
+
+    Run: `uv run pytest -q tests/test_areas.py tests/adapters/test_work_item_markdown.py` passed, and `make lint` is green. The new test is green rather than red, because the move it checks is already done. Every module the run needed imported.
+
+    Still open, outside my write paths, from entry 16: `security/duplicates-baseline.txt` still names old paths, and `CLAUDE.md` still names `factory.domain.contract.CONTRACT`.
+
+    `lint`: lint: green (0.1 s)

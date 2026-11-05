@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from source_search import SRC, imports
+from source_search import SRC, imported_modules, imports
 
 TESTS = Path(__file__).parent
 LAYER_TESTS = ("domain", "application", "adapters")
@@ -92,13 +92,9 @@ def test_no_file_imports_a_moved_module_from_its_old_path(
 
 
 def _factory_imports(tree: ast.Module) -> list[str]:
-    found: list[str] = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            found.extend(alias.name for alias in node.names)
-        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
-            found.append(node.module)
-    return [name for name in found if name == "factory" or name.startswith("factory.")]
+    return sorted(
+        name for name in imported_modules(tree) if name == "factory" or name.startswith("factory.")
+    )
 
 
 def _in_a_moved_area(module: str) -> bool:
@@ -121,3 +117,23 @@ def test_no_test_module_stays_in_its_layer_folder_when_all_it_imports_has_moved(
     ]
 
     assert left == [], "\n".join(left)
+
+
+AREA_TESTS = [
+    pytest.param(area, path, id=path.relative_to(TESTS).as_posix())
+    for area in AREAS
+    for path in sorted((TESTS / area).rglob("test_*.py"))
+]
+
+
+@pytest.mark.parametrize(("area", "path"), AREA_TESTS)
+def test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own(
+    area: str, path: Path
+) -> None:
+    found = _factory_imports(ast.parse(path.read_text(encoding="utf-8")))
+
+    outside = [module for module in found if not _in_a_moved_area(module)]
+    own = [module for module in found if module.startswith(f"factory.{area}.")]
+
+    assert outside == [], f"{path.name} imports areas not yet moved: {outside}"
+    assert own != [], f"{path.name} imports nothing of {area}"
