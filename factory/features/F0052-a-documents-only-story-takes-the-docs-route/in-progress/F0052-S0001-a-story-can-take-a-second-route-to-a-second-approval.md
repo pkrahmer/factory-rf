@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T21:58:33.586146Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-05T21:58:28.661718Z'
   stage: doing
   run: 7b341a9cffa34e6c9c8b72d47d064693
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T21:58:33.586146Z'
+  stage: tests
 ---
 
 # A story can take a second route to a second approval
@@ -175,3 +184,4 @@ Expect: `1`
     - **Change the fixture at `test_docs_route.py:271`.** `test_only_the_docs_routes_working_stages_lie_before_the_approval` should take `world`, or a `RuamelPipelineDefinitionReader()`, instead of the `two_routes` fixture. It only parses the `TWO_ROUTES` text, and `two_routes` pushes a definition and a Makefile to `main` for every row.
 
     Description: the reviewer already updated it to name three order-dependent places (`send_back_cap` is the third) and added criterion 8. That makes the closing criteria 9 and 10, so there is nothing left for me to rewrite. Once the tester has made these changes, the next doing round runs `make check` on the new test. If the round-three row fails, the fix goes in `send_back_cap` or `ClosedHandler._send_back` (`src/factory/pipeline/application/handlers/closed.py`).
+12. factory: started tests as vm.
