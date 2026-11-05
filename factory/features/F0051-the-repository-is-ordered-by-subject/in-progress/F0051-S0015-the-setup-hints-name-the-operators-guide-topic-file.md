@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506, 6656185279]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T11:05:10.587802Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-05T11:05:10.587802Z'
   stage: docs
+- number: 21
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T11:05:37.971598Z'
+  stage: docs
+  run: 710e15d302da44b295e3898fa50bad39
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -310,3 +312,20 @@ Expect: `1`
     - tests/vm/test_vm_setup_install_hint.py: the human's leave in `feature.md`, "At S0015's start" (journal entry 4). Only `HINTS`' expected strings changed.
     - tests/vm/test_vm_setup_text.py: the human's leave in `feature.md`, "At S0015's start" (journal entry 4). Only the row `done-line`'s expected string changed.
 20. factory: started docs as vm.
+21. documenter: Files changed:
+    - `docs/operator-guide/machine.md`: line 284 now quotes the new closing line, `setup: done: ...; see "The machine" in docs/operator-guide/machine.md`. Lines 295 and 296 now quote the `tools` and `service` hints ending `(docs/operator-guide/machine.md, "The rebuild after a merge")`. I compared all three with `operator/vm/setup.sh` lines 405, 453 and 476, and they match word for word. `grep` finds no `operator guide, "` left in the file.
+
+    Cross-read and found current: the diff (`operator/vm/setup.sh`, `approving.md`, the guard test and the two earlier tests' expected strings) against `README.md`, `docs/operator-guide/` and `docs/project-guide/operator.md`. The docs criterion says `operator.md`, `README.md` and `docs/decisions.md` need no change, and I found nothing stale in them. `docs/operator-guide/machine.md` holds both sections the hints name, *The machine* and *The rebuild after a merge*.
+
+    I made no code finding. The code matches the Interface.
+
+    I did not run `make check`, because I changed only a document. The factory's checks after this stage decide.
+
+    Stale text I noticed and did not touch, because it is unrelated to this story or the Description leaves it out:
+    - `docs/decisions.md:179` and `:572` still say "(operator guide)" and "(operator guide, ...)" without a file.
+    - `docs/decisions.md:1432` points to `docs/operator-guide.md`, which is now a folder.
+    - The Description also leaves out `src/factory/entry/wiring.py:746`, `docs/operator-playbook.md:82`, `demo/todo-service/README.md` and the `Makefile` example.
+
+    `check`: check: green (not run again: passed on tree 0f5911d1f100 at 2026-11-05T11:01:52Z)
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok
