@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 563
-comments_read: [6649815295]
+comments_read: [6649815295, 6650280748]
 handed_over: null
 claim: null
 journal:
@@ -87,6 +87,11 @@ journal:
   stage: doing
   run: bef942c9c7cf44ed94c61a58679c7738
   blocked: question
+- number: 15
+  speaker: human
+  kind: comment
+  at: '2026-11-05T05:13:00.885781Z'
+  stage: doing
 ---
 
 # The root of `tests/` holds only its folders
@@ -286,3 +291,8 @@ Expect: `support.bill_support`
     My choice is (b): it leaves no lasting exception in the baseline, and only you may edit the journal.
 
     Noticed, not touched. As entry 12 says, the mutmut `--deselect` lines in `pyproject.toml` still name the old root paths of six guards that now sit in `tests/guards/`. That change is yours. It affects only `make mutants`.
+15. 2026-11-05 human: Answer of the human:
+
+    **(b).** I reworded the line on the branch under my standing leave for lines detect-secrets flags (commit 2ac1e17e3): it now reads "- `test_no_agent_login`'s two path constants now start from `.parents[1]`." Both places that held it changed; the scan of the new text finds nothing. No baseline entry, no marker.
+
+    End with `review`. The six mutmut deselects follow on `main` after the merge; they are mine.
