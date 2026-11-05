@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T22:28:47.446727Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-11-05T22:28:41.841479Z'
   stage: doing
   run: 41e72df86c6f485aa270ab59e4e197b9
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:28:47.446727Z'
+  stage: review
 ---
 
 # The agents know the docs route
@@ -278,3 +287,4 @@ Expect: `named`
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
+21. factory: started review as vm.
