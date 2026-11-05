@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 574
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-05T23:05:49.149810Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -43,6 +47,11 @@ journal:
   stage: docs-only
   run: ee04e77905884528ac7e9d5eb6c8c563
   reason: check_red
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:05:49.149810Z'
+  stage: docs-only
 ---
 
 # The documents have a style page and a glossary
@@ -123,3 +132,4 @@ Expect: `named`
    ======================================================================================= short test summary info ========================================================================================
    FAILED tests/guards/test_project_guide_files.py::test_the_guide_holds_the_index_operator_and_the_seven_area_files - AssertionError: assert ['README.md',...ator.md', ...] == ['README.md',...line.md'...
    make: *** [Makefile:89: test] Error 1
+7. factory: started docs-only as vm.
