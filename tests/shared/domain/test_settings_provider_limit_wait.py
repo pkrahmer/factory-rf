@@ -10,7 +10,7 @@ from factory.shared.domain.settings import (
     PROVIDER_LIMIT_COOLDOWN_VARIABLE,
     read_settings,
 )
-from settings_support import BASE
+from support.settings_support import BASE
 
 COOLDOWN = "FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES"
 CEILING = "FACTORY_PROVIDER_LIMIT_CEILING_MINUTES"

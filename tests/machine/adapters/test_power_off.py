@@ -11,7 +11,7 @@ import pytest
 from factory.machine.adapters.power_off import SystemctlPowerOff
 from factory.shared.adapters.printed_output import no_end_detail
 from factory.shared.domain.errors import PowerOffError
-from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
+from support.time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 LIMIT = timedelta(seconds=1)
 REFUSAL = "sudo: a password is required"

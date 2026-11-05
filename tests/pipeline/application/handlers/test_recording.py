@@ -18,8 +18,8 @@ from factory.pipeline.domain.events import Event, EventKind
 from factory.shared.domain.errors import CannotHandle, PushFailed
 from factory.work.domain.journal import FACTORY, NewEntry, append_entry
 from factory.work.domain.work_item import WorkItemSnapshot, WorkItemState
-from git_support import remote_commit
-from human_clone import HumanClone
+from support.git_support import remote_commit
+from support.human_clone import HumanClone
 
 SnapshotOf = Callable[[WorkItemState | None], WorkItemSnapshot]
 StateWith = Callable[[int | None], WorkItemState]

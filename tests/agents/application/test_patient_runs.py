@@ -19,8 +19,8 @@ from factory.agents.domain.provider_limits import ProviderLimit
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from factory.shared.domain.settings import InstanceSettings
-from log_support import log_lines
-from settings_support import AGENT_HOME
+from support.log_support import log_lines
+from support.settings_support import AGENT_HOME
 
 SESSION = "ses_a"
 SECONDS = timedelta(seconds=5)

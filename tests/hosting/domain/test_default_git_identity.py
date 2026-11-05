@@ -4,8 +4,8 @@ from factory.hosting.domain import git
 from factory.hosting.domain.git import DEFAULT_GIT_IDENTITY, GitIdentity, GitOptions
 from factory.shared.domain import settings
 from factory.shared.domain.settings import read_settings
-from settings_support import BASE
-from source_search import modules, string_literals
+from support.settings_support import BASE
+from support.source_search import modules, string_literals
 
 DEFAULT_EMAIL = "factory@noreply.invalid"
 

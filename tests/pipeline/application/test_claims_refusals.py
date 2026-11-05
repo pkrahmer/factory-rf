@@ -9,8 +9,8 @@ from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.claims import ClaimService
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.work.domain.work_item import WorkItemDocument
-from git_support import remote_commit
-from work_item_support import checkout_text, created_state, put_work_item
+from support.git_support import remote_commit
+from support.work_item_support import checkout_text, created_state, put_work_item
 
 BRANCH = "work-item/F0001-S0001"
 OTHER_BRANCH = "work-item/F0001-S0002"

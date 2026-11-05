@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 
-from acceptance_walk import FEATURE, FIRST, TODO, AcceptanceWalk, report_of
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.errors import CannotHandle
 from factory.shared.domain.identifiers import branch_name
@@ -15,8 +14,9 @@ from factory.work.application.acceptance import AcceptanceService
 from factory.work.application.acceptance_reading import AcceptanceReader
 from factory.work.domain.acceptance import AcceptanceOutcome, AcceptanceState
 from factory.work.domain.work_item import WorkItemDocument
-from git_support import PIPELINE_YAML, remote_commit, run_git
-from human_clone import HumanClone
+from support.acceptance_walk import FEATURE, FIRST, TODO, AcceptanceWalk, report_of
+from support.git_support import PIPELINE_YAML, remote_commit, run_git
+from support.human_clone import HumanClone
 
 ARCHIVED = ["F0002-S0001", "F0002-S0002"]
 OUTCOMES: dict[AcceptanceStatus, AcceptanceOutcome] = {"accepted": "accepted", "refused": "refused"}

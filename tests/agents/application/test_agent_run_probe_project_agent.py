@@ -10,9 +10,9 @@ from factory.agents.application.project_agents import ProjectAgentDefinitions
 from factory.machine.application.preflight import PROBE_BUDGET_USD, agent_run_probe_item
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import InstanceSettings
-from git_support import COLOURED_AGENT_FILE, PROJECT_CODER, install_agents
-from human_clone import HumanClone
-from probe_support import COMPLETED, ENVIRONMENT
+from support.git_support import COLOURED_AGENT_FILE, PROJECT_CODER, install_agents
+from support.human_clone import HumanClone
+from support.probe_support import COMPLETED, ENVIRONMENT
 
 
 @pytest.mark.parametrize(

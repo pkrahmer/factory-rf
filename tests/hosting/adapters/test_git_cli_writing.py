@@ -10,7 +10,7 @@ from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitIdentity, GitOptions
 from factory.shared.domain.errors import GitError, NothingToCommit
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
-from git_support import (
+from support.git_support import (
     CHECKOUT,
     REMOTE_FILES,
     clone,

@@ -5,8 +5,6 @@ from datetime import UTC, date, datetime
 
 import pytest
 
-from acceptance_support import report_of
-from bill_support import completed_records
 from factory.hosting.domain.post_texts import done_entry_text
 from factory.shared.domain.sections import section_text, sections
 from factory.watching.domain.bills import Bill, bill, cost_line
@@ -19,6 +17,8 @@ from factory.work.domain.acceptance import (
 )
 from factory.work.domain.journal import FACTORY, HUMAN, JournalKind, JournalRecord, entry_text
 from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemState
+from support.acceptance_support import report_of
+from support.bill_support import completed_records
 
 ROLE = "acceptance-reviewer"
 ON = date(2026, 10, 12)

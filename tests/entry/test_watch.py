@@ -8,8 +8,6 @@ from pathlib import Path
 
 import pytest
 
-from branch_reading import push_state
-from definition_support import pipeline_definition
 from factory.entry.watch import main, render_event, run_watch
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
@@ -27,10 +25,12 @@ from factory.watching.application.board import BoardReader
 from factory.watching.application.watcher import Watcher
 from factory.watching.domain.board import render_board
 from factory.work.domain.work_item import WorkItemState
-from git_support import PIPELINE_YAML, TEST_IDENTITY, run_git
-from human_clone import HumanClone
-from source_search import SRC
-from stage_run_support import INSTANCE
+from support.branch_reading import push_state
+from support.definition_support import pipeline_definition
+from support.git_support import PIPELINE_YAML, TEST_IDENTITY, run_git
+from support.human_clone import HumanClone
+from support.source_search import SRC
+from support.stage_run_support import INSTANCE
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

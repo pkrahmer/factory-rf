@@ -2,12 +2,12 @@
 
 import pytest
 
-from bill_support import completed_records
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.watching.domain.bills import bill, cost_line
 from factory.work.domain.acceptance import AcceptanceState, book_merge, is_before_approval
 from factory.work.domain.journal import FACTORY, JournalRecord, entry_text
 from factory.work.domain.work_item import WorkItemDocument
+from support.bill_support import completed_records
 
 BEFORE_APPROVAL = "done (pull request merged before approval); cost: "
 JOURNAL = [JournalRecord(number=1, speaker=FACTORY, kind="started")]

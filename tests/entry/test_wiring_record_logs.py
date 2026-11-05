@@ -13,7 +13,7 @@ from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.domain.known_results import ResultKey, ResultRecord
 from factory.shared.application.files import RecordLog
 from factory.shared.domain.settings import InstanceSettings
-from wiring_support import CREDENTIAL
+from support.wiring_support import CREDENTIAL
 
 AT = datetime(2026, 10, 12, 12, 0, tzinfo=UTC)
 RESULT_RECORD = ResultRecord(

@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from factory.shared.domain.paths import LifecycleFolder
 from factory.work.domain.story_form import FormFinding, check_story_form
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
-from story_form_support import FORM, SMOKE, _state
+from support.story_form_support import FORM, SMOKE, _state
 
 FORM_WITHOUT_JOURNAL = (
     "# Story form\n\n## Description\n\n## Interface\n\n## Acceptance criteria\n\n## Smoke test\n"

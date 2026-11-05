@@ -3,7 +3,7 @@
 import contextlib
 
 from factory.shared.domain.errors import PushFailed
-from push_retry_support import PushCase
+from support.push_retry_support import PushCase
 
 ONE_LINE = "  echo 'Internal Server Error' >&2\n"
 TWO_LINES = "  echo 'Internal Server Error' >&2\n  echo 'request id 1234' >&2\n"

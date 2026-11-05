@@ -8,8 +8,8 @@ import pytest
 from factory.machine.application.preflight import installed_models, opencode_item
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import InstanceSettings
-from git_support import AGENT_FILE, write_agent
-from settings_support import AGENT_HOME
+from support.git_support import AGENT_FILE, write_agent
+from support.settings_support import AGENT_HOME
 
 
 def _no_model(alias: str) -> str:

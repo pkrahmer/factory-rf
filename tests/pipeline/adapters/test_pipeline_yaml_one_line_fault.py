@@ -5,7 +5,7 @@ from ruamel.yaml.error import FileMark, MarkedYAMLError, YAMLError
 
 from factory.pipeline.adapters.pipeline_yaml import RuamelPipelineDefinitionReader, yaml_fault
 from factory.shared.domain.errors import PipelineDefinitionInvalid
-from git_support import PIPELINE_YAML
+from support.git_support import PIPELINE_YAML
 
 REPEATED_KEY = PIPELINE_YAML + "  done: {}\n"
 UNCLOSED_LIST = PIPELINE_YAML + "x: [\n"

@@ -12,7 +12,7 @@ from factory.shared.domain.settings import (
     InstanceSettings,
     read_settings,
 )
-from settings_support import AGENT_HOME, BASE
+from support.settings_support import AGENT_HOME, BASE
 
 # A workspace apart from a checkout and a state directory, so that each overlap has its own rows.
 APART = {

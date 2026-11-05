@@ -2,7 +2,7 @@
 
 from factory.entry.wiring import build_work_item_reader
 from factory.work.adapters.work_item_markdown import FrontmatterWorkItemReader
-from source_search import imports, modules
+from support.source_search import imports, modules
 
 
 def test_the_work_item_reader_is_the_frontmatter_reader() -> None:

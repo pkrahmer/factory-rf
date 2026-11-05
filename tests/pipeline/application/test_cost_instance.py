@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from cost_image_support import _launch, _settings
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.application.costs import CostRecorder
-from human_clone import HumanClone
+from support.cost_image_support import _launch, _settings
+from support.human_clone import HumanClone
 
 
 @pytest.mark.parametrize(

@@ -5,13 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import StandInCall, read_calls, without_locale
-from container_runtime_support import container_environment, container_request
 from factory.agents.adapters.opencode_runtime import CONFIG_VARIABLE, LOCKDOWN_SWITCHES
 from factory.machine.adapters.fake_containers import FakeContainerRuns
 from factory.shared.domain.errors import AgentRuntimeError
-from opencode_provider_support import PROVIDER, write_provider
-from opencode_stand_in import (
+from support.claude_stand_in import StandInCall, read_calls, without_locale
+from support.container_runtime_support import container_environment, container_request
+from support.opencode_provider_support import PROVIDER, write_provider
+from support.opencode_stand_in import (
     REPLY,
     REQUEST_ENVIRONMENT,
     RESUME_REPLY,

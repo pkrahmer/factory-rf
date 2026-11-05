@@ -13,7 +13,7 @@ from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.errors import GitError
 from factory.watching.application.watcher import Watcher
-from git_support import TEST_IDENTITY, run_git
+from support.git_support import TEST_IDENTITY, run_git
 
 UNRESOLVED = "resolve origin/main failed (no exit status): origin/main does not resolve"
 

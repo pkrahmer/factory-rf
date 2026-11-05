@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from definition_support import pipeline_definition
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import (
     QUESTION,
@@ -29,10 +28,11 @@ from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import cost_records_path
 from factory.work.domain.journal import JournalRecord, entry_text
 from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemState
-from git_support import install_agents
-from human_clone import HumanClone
-from stage_run_support import ENVIRONMENT, INSTANCE, pushed, pushed_state
-from take_support import AGENT_TEXT
+from support.definition_support import pipeline_definition
+from support.git_support import install_agents
+from support.human_clone import HumanClone
+from support.stage_run_support import ENVIRONMENT, INSTANCE, pushed, pushed_state
+from support.take_support import AGENT_TEXT
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

@@ -20,7 +20,7 @@ from factory.shared.domain.paths import (
     folder_of,
     work_item_path,
 )
-from source_search import imported_modules, modules
+from support.source_search import imported_modules, modules
 
 
 def test_path_constants_have_their_stated_values() -> None:

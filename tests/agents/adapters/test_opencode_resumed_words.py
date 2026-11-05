@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import Step, read_calls
 from factory.agents.adapters.agent_launch import FINISH_MESSAGE
 from factory.agents.domain.agent_runs import AgentRunRequest
-from opencode_stand_in import (
+from support.claude_stand_in import Step, read_calls
+from support.opencode_stand_in import (
     REPLY,
     RESUME_REPLY,
     SESSION,

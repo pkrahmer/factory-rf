@@ -6,7 +6,7 @@ import pytest
 
 from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.errors import GitError
-from git_support import CHECKOUT, commit_all, head_of, run_git, write_files
+from support.git_support import CHECKOUT, commit_all, head_of, run_git, write_files
 
 
 def _status(directory: Path) -> str:

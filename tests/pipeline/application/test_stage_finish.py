@@ -29,10 +29,10 @@ from factory.shared.domain.errors import HostingServiceError, PushFailed
 from factory.shared.domain.identifiers import branch_name
 from factory.work.domain.journal import JournalRecord, entry_text
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML, install_agents
-from human_clone import HumanClone
-from stage_run_support import ENVIRONMENT, INSTANCE, branch_head, pushed, pushed_state
-from take_support import AGENT_TEXT
+from support.git_support import PIPELINE_YAML, install_agents
+from support.human_clone import HumanClone
+from support.stage_run_support import ENVIRONMENT, INSTANCE, branch_head, pushed, pushed_state
+from support.take_support import AGENT_TEXT
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

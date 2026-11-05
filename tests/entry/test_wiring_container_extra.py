@@ -6,8 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import REPLY
-from container_extra_support import COMMIT, OTHER, PROXY, env_words, volume, write_bundle
 from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
@@ -15,12 +13,14 @@ from factory.machine.application.project_commands import RecordingProjectCommand
 from factory.machine.application.stage_environment import stage_environment_of
 from factory.machine.domain.containers import CA_BUNDLE_NAMES
 from factory.shared.domain.settings import InstanceSettings
-from git_support import CHECKOUT
-from opencode_stand_in import write_agent_settings
-from podman_support import IMAGE
-from recording_stand_in_support import recorded_calls, recording_stand_in
-from wiring_support import CREDENTIAL
-from zfs_support import DATASET
+from support.claude_stand_in import REPLY
+from support.container_extra_support import COMMIT, OTHER, PROXY, env_words, volume, write_bundle
+from support.git_support import CHECKOUT
+from support.opencode_stand_in import write_agent_settings
+from support.podman_support import IMAGE
+from support.recording_stand_in_support import recorded_calls, recording_stand_in
+from support.wiring_support import CREDENTIAL
+from support.zfs_support import DATASET
 
 
 def _request(tmp_path: Path) -> AgentRunRequest:

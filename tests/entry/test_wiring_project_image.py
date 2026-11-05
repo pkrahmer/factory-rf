@@ -23,10 +23,10 @@ from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.stops import StopService
 from factory.pipeline.domain.stops import RepositoryStop
 from factory.shared.domain.settings import InstanceSettings
-from git_support import PIPELINE_YAML, install_agents, run_git
-from human_clone import HumanClone
-from podman_support import PodmanPlan
-from wiring_support import PODMAN_VERSION, dataset_podman
+from support.git_support import PIPELINE_YAML, install_agents, run_git
+from support.human_clone import HumanClone
+from support.podman_support import PodmanPlan
+from support.wiring_support import PODMAN_VERSION, dataset_podman
 
 BASE_IDENTITY = "sha256-base"
 VALID = "ARG FACTORY_BASE\nFROM ${FACTORY_BASE}\nRUN true\n"

@@ -9,7 +9,6 @@ from typing import get_args, override
 import pytest
 
 import factory.pipeline.application.stalls
-from definition_support import pipeline_definition
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.hosting.adapters.fake_hosting import FakeHostingService
@@ -31,10 +30,11 @@ from factory.shared.domain.errors import ContainerError, SnapshotError, WorkItem
 from factory.shared.domain.paths import cost_records_path
 from factory.work.domain.decisions import StallReason
 from factory.work.domain.work_item import WorkItemState
-from git_support import install_agents, remote_commit
-from human_clone import HumanClone
-from source_search import imported_modules
-from stage_run_support import (
+from support.definition_support import pipeline_definition
+from support.git_support import install_agents, remote_commit
+from support.human_clone import HumanClone
+from support.source_search import imported_modules
+from support.stage_run_support import (
     BRANCH,
     INSTANCE,
     PATH,
@@ -43,7 +43,7 @@ from stage_run_support import (
     open_story,
     stage_makefile,
 )
-from stall_support import (
+from support.stall_support import (
     CREATED,
     DIED,
     SwitchingRuntime,

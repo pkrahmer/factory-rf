@@ -4,23 +4,6 @@ from pathlib import Path
 
 import pytest
 
-from crash_support import (
-    BRANCH,
-    PATH,
-    STAGE,
-    STORY,
-    STORY_TITLE,
-    WORK_ITEM,
-    Rerun,
-    claim,
-    crash_event,
-    document_at,
-    handler,
-    open_pull_request,
-    remote_head,
-    remote_state,
-    snapshot,
-)
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.hosting import PostKey
@@ -40,9 +23,26 @@ from factory.work.domain.journal import (
     last_record,
 )
 from factory.work.domain.work_item import Blocked, WorkItemSnapshot, WorkItemState
-from git_support import PIPELINE_YAML, remote_commit
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
+from support.crash_support import (
+    BRANCH,
+    PATH,
+    STAGE,
+    STORY,
+    STORY_TITLE,
+    WORK_ITEM,
+    Rerun,
+    claim,
+    crash_event,
+    document_at,
+    handler,
+    open_pull_request,
+    remote_head,
+    remote_state,
+    snapshot,
+)
+from support.git_support import PIPELINE_YAML, remote_commit
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
 
 CAP = 2
 

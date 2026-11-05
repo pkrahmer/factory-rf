@@ -6,13 +6,13 @@ from typing import get_args
 import pytest
 
 import factory.entry.wiring
-from definition_support import pipeline_definition
 from factory.entry.wiring import build_handlers
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.dispatcher import Handler, unhandled_kinds
 from factory.pipeline.domain.events import EventKind
-from stage_run_support import INSTANCE
-from wiring_support import ENVIRONMENT
+from support.definition_support import pipeline_definition
+from support.stage_run_support import INSTANCE
+from support.wiring_support import ENVIRONMENT
 
 KEPT = (
     "CREDENTIAL_HELPER",

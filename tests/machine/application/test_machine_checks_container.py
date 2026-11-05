@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from container_support import CONTAINER
 from factory.machine.application.preflight import MachineChecks
 from factory.machine.domain.preflight import PreflightItem
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import InstanceSettings
-from wiring_support import every_tool
+from support.container_support import CONTAINER
+from support.wiring_support import every_tool
 
 CONTAINER_ITEMS = ["tool:git", "tool:uv", "hosting-service", "agents", "agent-runtime-version"]
 EXTRA = "extra"

@@ -9,9 +9,9 @@ from factory.entry.wiring import machine_extras
 from factory.machine.application.preflight import MachineChecks, opencode_item
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import InstanceSettings
-from podman_support import IMAGE, Podman
-from wiring_support import CONTAINER_ITEMS, every_tool
-from zfs_support import DATASET, Zfs
+from support.podman_support import IMAGE, Podman
+from support.wiring_support import CONTAINER_ITEMS, every_tool
+from support.zfs_support import DATASET, Zfs
 
 FIRST_ITEMS = ["tool:git", "tool:uv", "hosting-service", "agents", "agent-runtime-version"]
 SONNET = {"sonnet": "anthropic/claude-sonnet-5-5"}

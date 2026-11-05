@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from claude_resume_support import _after, _budget_reply
-from claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
 from factory.agents.adapters.claude_runtime import FINISH_MESSAGE, ClaudeCodeRuntime
 from factory.agents.domain.agent_runs import AgentRunRequest
+from support.claude_resume_support import _after, _budget_reply
+from support.claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
 
 INSTRUCTIONS_FLAG = "--append-system-prompt-file"
 

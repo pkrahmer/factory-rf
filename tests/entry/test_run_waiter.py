@@ -6,8 +6,8 @@ from factory.entry.run import run_instance
 from factory.entry.wiring import health_store
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
-from git_support import run_git
-from wiring_support import with_dataset
+from support.git_support import run_git
+from support.wiring_support import with_dataset
 
 
 def test_run_instance_over_a_remote_without_commits_stops_and_pauses_thirty_seconds(

@@ -8,8 +8,6 @@ from pathlib import Path
 
 import pytest
 
-from agent_definition_support import COMPLETED
-from container_extra_support import CHECK_LIMIT, COMMIT, env_words
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.entry.wiring import agent_environment, build_boundaries, build_tick
 from factory.hosting.adapters.fake_hosting import FakeHostingService
@@ -20,14 +18,16 @@ from factory.machine.application.stage_environment import stage_environment_of
 from factory.machine.domain.containers import SYSTEM_PATH
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import InstanceSettings
-from git_support import CHECKOUT, PIPELINE_YAML, install_agents
-from human_clone import HumanClone
-from podman_support import IMAGE
-from probe_support import COMPLETED as PROBE
-from recording_stand_in_support import recorded_calls, recording_stand_in
-from stage_run_support import BACKLOG_PATH, STORY
-from wiring_support import CREDENTIAL, every_tool, with_dataset
-from zfs_support import DATASET
+from support.agent_definition_support import COMPLETED
+from support.container_extra_support import CHECK_LIMIT, COMMIT, env_words
+from support.git_support import CHECKOUT, PIPELINE_YAML, install_agents
+from support.human_clone import HumanClone
+from support.podman_support import IMAGE
+from support.probe_support import COMPLETED as PROBE
+from support.recording_stand_in_support import recorded_calls, recording_stand_in
+from support.stage_run_support import BACKLOG_PATH, STORY
+from support.wiring_support import CREDENTIAL, every_tool, with_dataset
+from support.zfs_support import DATASET
 
 JDK_PATH = "/opt/jdk/bin:/usr/local/bin:/usr/bin:/bin"
 

@@ -12,7 +12,7 @@ from factory.shared.domain.settings import (
     InstanceSettings,
     read_settings,
 )
-from settings_support import AGENT_HOME, BASE, NOT_A_NAME, SET_BY_FACTORY
+from support.settings_support import AGENT_HOME, BASE, NOT_A_NAME, SET_BY_FACTORY
 
 
 @pytest.mark.parametrize(

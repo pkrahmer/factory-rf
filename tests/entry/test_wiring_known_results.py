@@ -9,8 +9,8 @@ from factory.machine.application.project_commands import RecordingProjectCommand
 from factory.pipeline.domain.known_results import ResultKey, ResultRecord
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
-from git_support import clone
-from wiring_support import CREDENTIAL
+from support.git_support import clone
+from support.wiring_support import CREDENTIAL
 
 RECORD = ResultRecord(
     key=ResultKey(command="check", tree="a" * 40, definition="b" * 64, image=None),

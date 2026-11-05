@@ -9,8 +9,8 @@ from factory.shared.domain.identifiers import branch_name
 from factory.work.adapters.work_item_markdown import FrontmatterWorkItemReader
 from factory.work.application.work_items import RemoteWorkItems
 from factory.work.domain.work_item import initial_state
-from git_support import PIPELINE_YAML
-from human_clone import HumanClone
+from support.git_support import PIPELINE_YAML
+from support.human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

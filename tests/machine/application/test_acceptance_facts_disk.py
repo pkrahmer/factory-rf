@@ -4,14 +4,14 @@ from dataclasses import replace
 
 import pytest
 
-from acceptance_walk import FEATURE, AcceptanceWalk
-from disk_support import FakeDiskSpace
 from factory.machine.application.disk_records import DiskRecorder
 from factory.machine.domain.disk import DiskRecord, disk_line
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.work.application.acceptance import AcceptanceService
+from support.acceptance_walk import FEATURE, AcceptanceWalk
+from support.disk_support import FakeDiskSpace
 
 
 @pytest.fixture

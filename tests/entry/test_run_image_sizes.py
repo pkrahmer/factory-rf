@@ -13,10 +13,10 @@ from factory.machine.domain.stage_layer import STAGE_FILE
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.tick import Tick, TickOutcome
 from factory.shared.domain.settings import InstanceSettings
-from human_clone import HumanClone
-from log_support import state_log_lines
-from sized_images import BASE_BYTES, PROJECT_BYTES, SizedImages, sized_by_tag
-from stage_image_support import FIRST
+from support.human_clone import HumanClone
+from support.log_support import state_log_lines
+from support.sized_images import BASE_BYTES, PROJECT_BYTES, SizedImages, sized_by_tag
+from support.stage_image_support import FIRST
 
 
 @dataclass(frozen=True)

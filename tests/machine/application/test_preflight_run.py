@@ -7,7 +7,6 @@ from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 
-import preflight_support
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions
 from factory.machine.adapters.make_commands import MakeProjectCommands
@@ -19,8 +18,9 @@ from factory.machine.domain.preflight import PreflightStamp
 from factory.pipeline.domain.checks import CheckResult
 from factory.pipeline.domain.stops import RepositoryStop
 from factory.shared.domain.errors import ProjectCommandError
-from git_support import CHECKOUT, TEST_IDENTITY, clone, run_git
-from preflight_support import (
+from support import preflight_support
+from support.git_support import CHECKOUT, TEST_IDENTITY, clone, run_git
+from support.preflight_support import (
     IMAGE,
     OTHER_IMAGE,
     TOOLS,

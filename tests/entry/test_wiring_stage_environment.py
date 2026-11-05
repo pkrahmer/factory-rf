@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import REPLY
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest
@@ -18,10 +17,11 @@ from factory.machine.adapters.zfs_snapshots import ZfsSnapshots
 from factory.machine.application.project_commands import RecordingProjectCommands
 from factory.pipeline.application.tick import Tick
 from factory.shared.domain.settings import InstanceSettings
-from podman_support import IMAGE
-from recording_stand_in_support import recorded_calls, recording_stand_in
-from wiring_support import CREDENTIAL, every_tool
-from zfs_support import DATASET
+from support.claude_stand_in import REPLY
+from support.podman_support import IMAGE
+from support.recording_stand_in_support import recorded_calls, recording_stand_in
+from support.wiring_support import CREDENTIAL, every_tool
+from support.zfs_support import DATASET
 
 
 @pytest.fixture

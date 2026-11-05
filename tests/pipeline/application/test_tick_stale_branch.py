@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from definition_support import pipeline_definition
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.pipeline.application.boundaries import Boundaries
@@ -22,11 +21,12 @@ from factory.work.domain.work_item import (
     WorkItemState,
     initial_state,
 )
-from git_support import CHECKOUT, install_agents, remote_commit
-from human_clone import HumanClone
-from log_support import log_lines
-from stage_run_support import INSTANCE
-from tick_support import handlers_of
+from support.definition_support import pipeline_definition
+from support.git_support import CHECKOUT, install_agents, remote_commit
+from support.human_clone import HumanClone
+from support.log_support import log_lines
+from support.stage_run_support import INSTANCE
+from support.tick_support import handlers_of
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

@@ -8,7 +8,7 @@ import pytest
 from factory.machine.adapters.podman_runs import PodmanRuns
 from factory.machine.application.containers import ContainerRuns
 from factory.machine.domain.containers import Mount
-from podman_support import IMAGE, INSTANCE, Podman
+from support.podman_support import IMAGE, INSTANCE, Podman
 
 
 def test_launch_pins_the_podman_command_line(runs: PodmanRuns, podman: Podman) -> None:

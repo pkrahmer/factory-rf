@@ -15,8 +15,8 @@ from factory.shared.adapters.process import (
     run_process,
     run_streaming,
 )
-from process_support import Recorder, is_gone, python_argv
-from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
+from support.process_support import Recorder, is_gone, python_argv
+from support.time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 # A child that starts a grandchild, writes its pid to `sys.argv[1]` and then runs `REST`.
 GRANDCHILD = (

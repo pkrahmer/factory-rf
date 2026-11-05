@@ -1,6 +1,10 @@
 """The human's answer to the crash-cap question ends the wait and resets the crash counter."""
 
-from crash_support import (
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.handlers.comments import CommentHandler
+from factory.pipeline.domain.events import Event
+from support.crash_support import (
     BRANCH,
     STORY_TITLE,
     WORK_ITEM,
@@ -11,11 +15,7 @@ from crash_support import (
     remote_state,
     snapshot,
 )
-from factory.hosting.adapters.fake_hosting import FakeHostingService
-from factory.pipeline.application.boundaries import Boundaries
-from factory.pipeline.application.handlers.comments import CommentHandler
-from factory.pipeline.domain.events import Event
-from human_clone import HumanClone
+from support.human_clone import HumanClone
 
 
 def test_an_answer_to_the_crash_cap_question_unblocks_and_resets_the_crashes(

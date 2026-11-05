@@ -11,9 +11,9 @@ from factory.machine.application.project_commands import RecordingProjectCommand
 from factory.machine.domain.command_records import CommandRecord
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
-from git_support import clone
-from podman_support import PodmanPlan
-from wiring_support import CREDENTIAL, dataset_podman
+from support.git_support import clone
+from support.podman_support import PodmanPlan
+from support.wiring_support import CREDENTIAL, dataset_podman
 
 
 @pytest.mark.usefixtures("sudo_stand_in")

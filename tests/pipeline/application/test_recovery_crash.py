@@ -42,9 +42,9 @@ from factory.work.domain.work_item import (
     WorkItemState,
     initial_state,
 )
-from git_support import PIPELINE_YAML, remote_commit, write_files
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
+from support.git_support import PIPELINE_YAML, remote_commit, write_files
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
 
 OTHER_INSTANCE = "factory-2"
 STAGE = "doing"

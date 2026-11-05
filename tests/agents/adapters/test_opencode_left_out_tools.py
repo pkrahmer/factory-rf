@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import StandInCall, read_calls
 from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.agents.adapters.opencode_runtime import (
     CONFIG_VARIABLE,
@@ -16,14 +15,15 @@ from factory.agents.adapters.opencode_runtime import (
 )
 from factory.agents.domain.agent_runs import AgentRunRequest
 from factory.shared.domain.errors import AgentRuntimeError
-from opencode_stand_in import (
+from support.claude_stand_in import StandInCall, read_calls
+from support.opencode_stand_in import (
     MODELS,
     REPLY,
     opencode_request,
     stand_in_runtime,
     write_opencode,
 )
-from shipped_agents import AGENT_HOME, SHIPPED_AGENTS, SHIPPED_NAMES, ShippedAgent
+from support.shipped_agents import AGENT_HOME, SHIPPED_AGENTS, SHIPPED_NAMES, ShippedAgent
 
 SHIPPED_MODELS = {**MODELS, "opus": "anthropic/claude-opus-5-5"}
 

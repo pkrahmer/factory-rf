@@ -1,6 +1,5 @@
 """The board reader counts the story files on origin/main and reads the work items in progress."""
 
-from definition_support import pipeline_definition
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.identifiers import branch_name
@@ -8,8 +7,9 @@ from factory.watching.application.board import BoardReader, BoardView
 from factory.watching.domain.board import FeatureRow
 from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemState
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
+from support.definition_support import pipeline_definition
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
 
 FEATURES = "factory/features"
 FEATURE = f"{FEATURES}/F0001-example"

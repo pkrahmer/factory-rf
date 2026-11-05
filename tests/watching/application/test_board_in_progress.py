@@ -3,8 +3,8 @@
 from factory.pipeline.application.boundaries import Boundaries
 from factory.watching.application.board import BoardReader
 from factory.watching.domain.board import FeatureRow
-from git_support import PIPELINE_YAML
-from human_clone import HumanClone
+from support.git_support import PIPELINE_YAML
+from support.human_clone import HumanClone
 
 FEATURE = "factory/features/F0001-example"
 

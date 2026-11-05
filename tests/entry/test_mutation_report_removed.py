@@ -2,7 +2,7 @@
 
 import pytest
 
-from module_names import module_exists
+from support.module_names import module_exists
 
 
 @pytest.mark.parametrize(

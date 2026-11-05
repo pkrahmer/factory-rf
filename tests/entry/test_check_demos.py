@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_demos import check_demos, main
-from git_support import PIPELINE_YAML, STORY_FORM
+from support.git_support import PIPELINE_YAML, STORY_FORM
 
 GOOD_STORY = """\
 # A story

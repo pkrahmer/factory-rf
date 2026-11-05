@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from container_runtime_support import read_only
 from factory.agents.adapters.agent_launch import (
     CallEnd,
     Launch,
@@ -19,6 +18,7 @@ from factory.agents.adapters.agent_launch import (
 )
 from factory.machine.adapters.fake_containers import FakeContainerRuns
 from factory.machine.domain.containers import WORK_CHECKOUT, ContainerCall, ContainerLaunch, Mount
+from support.container_runtime_support import read_only
 
 INSTRUCTIONS = Path("/state/runs/instructions-1.md")
 TOKEN = Path("/home/factory/.claude-token")

@@ -4,8 +4,8 @@ from collections.abc import Callable
 
 import pytest
 
-from contract_support import committed_is_generated, schemas_naming
 from factory.shared.domain.contract import CONTRACT
+from support.contract_support import committed_is_generated, schemas_naming
 
 
 def _no_nested_repository() -> None:

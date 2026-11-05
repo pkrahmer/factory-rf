@@ -2,11 +2,11 @@
 
 from pathlib import Path
 
-from container_support import FIVE_MINUTES, container_dataset, push_main, sync_makefile
 from factory.machine.application.stage_environment import ContainerEnvironment, stage_environment_of
 from factory.pipeline.application.boundaries import Boundaries
-from git_support import install_agents
-from human_clone import HumanClone
+from support.container_support import FIVE_MINUTES, container_dataset, push_main, sync_makefile
+from support.git_support import install_agents
+from support.human_clone import HumanClone
 
 STRAY = "stray.txt"
 

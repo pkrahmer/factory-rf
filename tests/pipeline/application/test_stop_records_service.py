@@ -20,9 +20,9 @@ from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.watching.application.machine import FactoryLog, HealthStatusStore
-from log_support import log_lines
-from record_support import UnwritableRecordLog
-from stage_run_support import INSTANCE
+from support.log_support import log_lines
+from support.record_support import UnwritableRecordLog
+from support.stage_run_support import INSTANCE
 
 AT = datetime(2026, 10, 18, 10, 0, tzinfo=UTC)
 

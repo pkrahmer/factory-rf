@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from container_support import (
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.machine.application.stage_environment import ContainerEnvironment
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.take import TakeReport
+from factory.shared.adapters.clock import ManualClock
+from support.container_support import (
     FIRST,
     FIVE_MINUTES,
     SECOND,
@@ -17,15 +22,10 @@ from container_support import (
     timing_lines,
     whole_stage,
 )
-from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
-from factory.machine.application.stage_environment import ContainerEnvironment
-from factory.pipeline.application.boundaries import Boundaries
-from factory.pipeline.application.take import TakeReport
-from factory.shared.adapters.clock import ManualClock
-from git_support import write_files
-from human_clone import HumanClone
-from take_support import AGENT_TEXT
-from undo_support import BRANCH, GUIDE, GUIDE_TEXT, PATH
+from support.git_support import write_files
+from support.human_clone import HumanClone
+from support.take_support import AGENT_TEXT
+from support.undo_support import BRANCH, GUIDE, GUIDE_TEXT, PATH
 
 NEW = "src/new.py"
 

@@ -16,9 +16,9 @@ from factory.machine.domain.stage_layer import STAGE_FILE, project_image_tag, st
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.stops import StopService
 from factory.shared.domain.settings import InstanceSettings
-from human_clone import HumanClone
-from recording_log import RecordingLog
-from sized_images import SizedImages
+from support.human_clone import HumanClone
+from support.recording_log import RecordingLog
+from support.sized_images import SizedImages
 
 BASE = "factory-stage:vm"
 BASE_IDENTITY = "sha256-base"

@@ -13,8 +13,8 @@ from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from factory.shared.domain.paths import cost_records_path
 from factory.shared.domain.settings import InstanceSettings
-from human_clone import HumanClone
-from stage_run_support import PATH, branch_head, open_story, pushed_state, run_stage
+from support.human_clone import HumanClone
+from support.stage_run_support import PATH, branch_head, open_story, pushed_state, run_stage
 
 SECONDS = timedelta(seconds=5)
 LIMITED = AgentRunResult(

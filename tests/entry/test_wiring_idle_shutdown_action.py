@@ -9,7 +9,7 @@ from factory.entry.wiring import idle_shutdown_of
 from factory.machine.adapters.power_off import ProcessExit, SystemctlPowerOff
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import read_settings
-from settings_support import BASE
+from support.settings_support import BASE
 
 
 @pytest.mark.parametrize("minutes", [pytest.param(0, id="off"), pytest.param(30, id="thirty")])

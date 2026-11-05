@@ -18,9 +18,9 @@ from factory.shared.domain.errors import UnhandledEvent
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.watching.application.machine import FactoryLog
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, initial_state
-from git_support import remote_commit
-from human_clone import HumanClone
-from tick_support import Failing
+from support.git_support import remote_commit
+from support.human_clone import HumanClone
+from support.tick_support import Failing
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = "work-item/F0001-S0001"

@@ -9,7 +9,7 @@ import pytest
 from factory.agents.application.tokens import TokenSource
 from factory.agents.domain.tokens import Token
 from factory.entry.refresh_token import main
-from token_support import ISSUED, never_sleep, scripted
+from support.token_support import ISSUED, never_sleep, scripted
 
 pytestmark = pytest.mark.usefixtures("restored_signals")
 

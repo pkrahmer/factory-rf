@@ -10,7 +10,7 @@ import pytest
 
 from factory.shared.adapters.printed_output import no_end_detail
 from factory.shared.adapters.process import run_or_raise
-from source_search import SRC
+from support.source_search import SRC
 
 _LIMIT = timedelta(seconds=10)
 _DEFAULT = "default"

@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 
-from definition_support import pipeline_definition
 from factory.hosting.adapters.git_cli import GitCli
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.errors import WorkItemFormatError
@@ -13,8 +12,9 @@ from factory.shared.domain.paths import LIFECYCLE_FOLDERS
 from factory.work.adapters.work_item_markdown import FrontmatterWorkItemReader
 from factory.work.application.work_items import RemoteWorkItems
 from factory.work.domain.work_item import StoryFile, initial_state
-from git_support import CHECKOUT, remote_commit, write_files
-from human_clone import HumanClone
+from support.definition_support import pipeline_definition
+from support.git_support import CHECKOUT, remote_commit, write_files
+from support.human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

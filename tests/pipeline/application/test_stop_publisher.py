@@ -14,8 +14,8 @@ from factory.shared.adapters.process import ProcessRequest, run_process
 from factory.shared.domain.errors import GitError, PushFailed
 from factory.shared.domain.paths import STOP_RECORDS_FILE
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
-from git_support import clone, commit_all, remote_commit, run_git
-from human_clone import HumanClone
+from support.git_support import clone, commit_all, remote_commit, run_git
+from support.human_clone import HumanClone
 
 AT = datetime(2026, 10, 18, 10, 0, tzinfo=UTC)
 FIRST = StopRecord(event="raised", scope="repository", reason="fetch_failed", at=AT)

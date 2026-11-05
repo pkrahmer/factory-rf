@@ -10,8 +10,16 @@ from typing import override
 
 import pytest
 
-from agent_run_support import COMPLETED, RecordingRun, run_request
-from container_support import (
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
+from factory.hosting.domain.git import CommitId
+from factory.machine.application.containers import ContainerRuns
+from factory.machine.application.stage_environment import ContainerEnvironment
+from factory.machine.domain.containers import ContainerLaunch, ContainerResult, Mount
+from factory.pipeline.application.boundaries import Boundaries
+from factory.shared.domain.errors import ContainerError, SnapshotError
+from support.agent_run_support import COMPLETED, RecordingRun, run_request
+from support.container_support import (
     FIVE_MINUTES,
     GONE,
     SYNC_MARKER,
@@ -23,17 +31,9 @@ from container_support import (
     push_main,
     sync_makefile,
 )
-from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
-from factory.hosting.domain.git import CommitId
-from factory.machine.application.containers import ContainerRuns
-from factory.machine.application.stage_environment import ContainerEnvironment
-from factory.machine.domain.containers import ContainerLaunch, ContainerResult, Mount
-from factory.pipeline.application.boundaries import Boundaries
-from factory.shared.domain.errors import ContainerError, SnapshotError
-from git_support import AGENT_FILE, install_agents, run_git, write_agent, write_files
-from human_clone import HumanClone
-from undo_support import BRANCH, start_stage
+from support.git_support import AGENT_FILE, install_agents, run_git, write_agent, write_files
+from support.human_clone import HumanClone
+from support.undo_support import BRANCH, start_stage
 
 AGENT = "tester"
 CHANGED_AGENT_FILE = AGENT_FILE.replace("Do the work.", "Do the work again.")

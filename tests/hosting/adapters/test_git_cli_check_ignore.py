@@ -8,8 +8,8 @@ import pytest
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions
 from factory.shared.domain.errors import GitError
-from git_support import write_executable
-from human_clone import HumanClone
+from support.git_support import write_executable
+from support.human_clone import HumanClone
 
 GITIGNORE = ".venv/\n*.log\n!keep.log\n"
 KEPT_LOG = "docs/kept.log"

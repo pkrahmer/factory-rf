@@ -8,7 +8,7 @@ from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.adapters.transcript_files import FileTranscriptStore
-from wiring_support import CREDENTIAL, with_dataset
+from support.wiring_support import CREDENTIAL, with_dataset
 
 
 @pytest.mark.parametrize("with_folder", [False, True], ids=["no-folder", "folder"])

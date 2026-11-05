@@ -35,10 +35,10 @@ from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import PIPELINE_YAML, install_agents, run_git
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
-from wiring_support import ENVIRONMENT, HOSTED_URL, with_dataset
+from support.git_support import PIPELINE_YAML, install_agents, run_git
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
+from support.wiring_support import ENVIRONMENT, HOSTED_URL, with_dataset
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 STORY = """\

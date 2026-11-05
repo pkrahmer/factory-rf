@@ -12,9 +12,9 @@ from factory.agents.domain.agent_runs import AgentRunResult
 from factory.entry.wiring import handler_factory, production_environment
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.tick import Tick
-from git_support import PIPELINE_YAML, install_agents
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
+from support.git_support import PIPELINE_YAML, install_agents
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 SECRET_NAMES = ("GH_TOKEN", "GITHUB_TOKEN", "FACTORY_TOKEN_FILE", "GIT_ASKPASS")

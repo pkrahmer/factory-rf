@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from branch_reading import error_posts, remote_document
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.hosting import FACTORY_MARKER, PostKey
@@ -20,8 +19,9 @@ from factory.pipeline.domain.tick_status import TickStatus
 from factory.shared.domain.errors import CannotHandle, HostingServiceError
 from factory.work.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
 from factory.work.domain.work_item import Blocked, WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import remote_commit
-from human_clone import HumanClone
+from support.branch_reading import error_posts, remote_document
+from support.git_support import remote_commit
+from support.human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = f"work-item/{WORK_ITEM}"

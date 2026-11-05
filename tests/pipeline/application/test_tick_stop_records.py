@@ -9,7 +9,6 @@ from typing import override
 
 import pytest
 
-from disk_support import FakeDiskSpace
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions
 from factory.machine.domain.disk import GIGABYTE
@@ -23,7 +22,8 @@ from factory.shared.adapters.process import ProcessRequest, run_process
 from factory.shared.domain.paths import STOP_RECORDS_FILE
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
-from git_support import (
+from support.disk_support import FakeDiskSpace
+from support.git_support import (
     CHECKOUT,
     COLOURED_AGENT_FILE,
     PIPELINE_YAML,
@@ -32,9 +32,9 @@ from git_support import (
     run_git,
     write_agent,
 )
-from human_clone import HumanClone
-from log_support import log_lines
-from stage_run_support import INSTANCE
+from support.human_clone import HumanClone
+from support.log_support import log_lines
+from support.stage_run_support import INSTANCE
 
 MIN_FREE_GB = 2
 ENOUGH = MIN_FREE_GB * GIGABYTE

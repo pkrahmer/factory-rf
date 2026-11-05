@@ -7,7 +7,7 @@ import pytest
 
 from factory.pipeline.domain.known_results import ResultRecord
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
-from torn_record_support import line_of, result_record, torn_inside
+from support.torn_record_support import line_of, result_record, torn_inside
 
 
 @pytest.fixture

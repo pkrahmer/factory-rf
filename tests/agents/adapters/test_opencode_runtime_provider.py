@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import Step, read_calls
 from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.shared.domain.errors import AgentRuntimeError
-from opencode_provider_support import CONFIGURATION, write_provider
-from opencode_stand_in import (
+from support.claude_stand_in import Step, read_calls
+from support.opencode_provider_support import CONFIGURATION, write_provider
+from support.opencode_stand_in import (
     MODELS,
     REPLY_EVENTS,
     configuration_text,

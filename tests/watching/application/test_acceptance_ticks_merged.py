@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from acceptance_walk import (
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.shared.domain.identifiers import branch_name
+from factory.watching.domain.bills import bill, cost_line
+from factory.work.domain.work_item import Blocked
+from support.acceptance_walk import (
     FIRST,
     FIRST_RECORDS,
     SECOND,
@@ -12,12 +17,7 @@ from acceptance_walk import (
     booked_state,
     last_entry,
 )
-from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
-from factory.hosting.adapters.fake_hosting import FakeHostingService
-from factory.shared.domain.identifiers import branch_name
-from factory.watching.domain.bills import bill, cost_line
-from factory.work.domain.work_item import Blocked
-from git_support import remote_commit
+from support.git_support import remote_commit
 
 BEFORE_APPROVAL = "done (pull request merged before approval); cost: "
 AT_APPROVAL = "done (pull request merged); cost: "

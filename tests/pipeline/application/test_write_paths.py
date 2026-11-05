@@ -12,9 +12,9 @@ from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.claims import StageStart
 from factory.pipeline.domain.stops import HealthStatus
 from factory.shared.domain.errors import PipelineDefinitionInvalid
-from git_support import PIPELINE_YAML
-from human_clone import HumanClone
-from write_path_support import PIPELINE_FILE, push_definition, stage_start
+from support.git_support import PIPELINE_YAML
+from support.human_clone import HumanClone
+from support.write_path_support import PIPELINE_FILE, push_definition, stage_start
 
 PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
 FEATURE = "factory/features/F0001-example"

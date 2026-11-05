@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from claude_resume_support import _budget_reply, _reply
-from claude_stand_in import REPLY, Step, claude_request, write_stand_in
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.application.agent_runtime import AgentRuntime
 from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult, EndReason
-from opencode_stand_in import (
+from support.claude_resume_support import _budget_reply, _reply
+from support.claude_stand_in import REPLY, Step, claude_request, write_stand_in
+from support.opencode_stand_in import (
     REPLY_EVENTS,
     error,
     opencode_request,

@@ -5,7 +5,7 @@ from typing import get_type_hints
 
 from factory.hosting.application.hosting import HostingService
 from factory.hosting.domain.hosting import PullRequestView
-from hosting_interface_support import OPERATIONS
+from support.hosting_interface_support import OPERATIONS
 
 
 def _public_operations() -> set[str]:

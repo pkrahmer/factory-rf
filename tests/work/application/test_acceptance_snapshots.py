@@ -12,8 +12,8 @@ from factory.work.application.acceptance import AcceptanceService
 from factory.work.application.acceptance_reading import AcceptanceReader
 from factory.work.domain.acceptance import AcceptanceState
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import run_git
-from human_clone import HumanClone
+from support.git_support import run_git
+from support.human_clone import HumanClone
 
 FEATURES = "factory/features"
 EXAMPLE = f"{FEATURES}/F0001-example"

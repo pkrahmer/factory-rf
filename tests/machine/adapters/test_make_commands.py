@@ -13,9 +13,9 @@ from factory.pipeline.domain.checks import TargetTime
 from factory.shared.adapters.process import ProcessResult
 from factory.shared.domain.errors import ProjectCommandError
 from factory.shared.domain.kill_points import KillPoint, KillPoints
-from process_support import is_gone
-from run_process_recorder import Recorder
-from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
+from support.process_support import is_gone
+from support.run_process_recorder import Recorder
+from support.time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 LIMIT = timedelta(seconds=30)
 

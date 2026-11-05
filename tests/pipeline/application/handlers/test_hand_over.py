@@ -5,9 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from bill_support import completed_records, sidecar_text
-from branch_reading import error_posts
-from definition_support import pipeline_definition
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import CommitInfo
@@ -28,8 +25,11 @@ from factory.watching.domain.bills import bills_by_stage, cost_table
 from factory.watching.domain.cost_records import CostRecord
 from factory.work.domain.journal import HUMAN, JournalRecord
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import remote_commit
-from human_clone import HumanClone
+from support.bill_support import completed_records, sidecar_text
+from support.branch_reading import error_posts
+from support.definition_support import pipeline_definition
+from support.git_support import remote_commit
+from support.human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = f"work-item/{WORK_ITEM}"

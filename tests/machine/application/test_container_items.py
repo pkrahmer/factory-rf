@@ -7,8 +7,8 @@ import pytest
 from factory.machine.application.preflight import dataset_item, stage_image_item, tool_version_item
 from factory.machine.domain.preflight import PreflightItem
 from factory.shared.domain.errors import ContainerError, SnapshotError
-from podman_support import IMAGE
-from zfs_support import DATASET
+from support.podman_support import IMAGE
+from support.zfs_support import DATASET
 
 
 def _returning[T](value: T) -> Callable[[], T]:

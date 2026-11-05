@@ -2,8 +2,8 @@
 
 import pytest
 
-from document_texts import clean_texts
 from factory.shared.domain.documents import DocumentFinding, check_documents
+from support.document_texts import clean_texts
 
 AGENTS = "docs/project-guide/agents.md"
 TICKET = [DocumentFinding(document=AGENTS, message="uses the v1 word 'ticket'")]

@@ -19,11 +19,11 @@ from factory.pipeline.domain.events import EventKind
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.settings import InstanceSettings
-from git_support import CHECKOUT, PIPELINE_YAML, install_agents, remote_commit
-from human_clone import HumanClone
-from log_support import state_log_lines
-from stage_run_support import INSTANCE
-from wiring_support import every_tool
+from support.git_support import CHECKOUT, PIPELINE_YAML, install_agents, remote_commit
+from support.human_clone import HumanClone
+from support.log_support import state_log_lines
+from support.stage_run_support import INSTANCE
+from support.wiring_support import every_tool
 
 IMAGE = "build-7"
 MAKEFILE = "lint:\n\ttest ! -f BROKEN\nsync:\n\t@:\n"

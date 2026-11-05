@@ -8,7 +8,7 @@ import pytest
 from factory.entry.wiring import git_environment
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions
-from git_support import CHECKOUT, clone, commit_all, run_git, write_fsmonitor
+from support.git_support import CHECKOUT, clone, commit_all, run_git, write_fsmonitor
 
 FACTORY = GitOptions(environment=git_environment())
 PLAIN = GitOptions()

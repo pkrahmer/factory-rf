@@ -6,7 +6,7 @@ from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.sections import CodeBlock, code_blocks, section_text
 from factory.work.domain.journal import entry_text
 from factory.work.domain.work_item import WorkItemDocument, initial_state
-from sections_support import TICKS
+from support.sections_support import TICKS
 
 
 @pytest.mark.parametrize(

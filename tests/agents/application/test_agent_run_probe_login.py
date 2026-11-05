@@ -12,9 +12,9 @@ from factory.agents.domain.agent_runs import AgentRunResult, EndReason
 from factory.machine.application.preflight import agent_run_probe_item
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import InstanceSettings
-from git_support import install_agents
-from probe_login_support import HINT, LOGIN_FILE
-from probe_support import ENVIRONMENT
+from support.git_support import install_agents
+from support.probe_login_support import HINT, LOGIN_FILE
+from support.probe_support import ENVIRONMENT
 
 FAILED_REASONS: list[EndReason] = ["died", "no_result", "time_limit", "budget"]
 FACTORY_USER = "the factory user"

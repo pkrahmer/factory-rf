@@ -22,19 +22,19 @@ from factory.shared.domain.errors import PushFailed, WorkItemFormatError
 from factory.shared.domain.identifiers import branch_name
 from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState, initial_state
-from git_support import (
+from support.git_support import (
     CHECKOUT,
     PIPELINE_YAML,
     TEST_IDENTITY,
     remote_commit,
     write_files,
 )
-from human_clone import HumanClone
-from log_support import log_lines
-from remote_outage_support import move_remote_away
-from source_search import SRC
-from stage_run_support import INSTANCE
-from tick_support import handlers_of
+from support.human_clone import HumanClone
+from support.log_support import log_lines
+from support.remote_outage_support import move_remote_away
+from support.source_search import SRC
+from support.stage_run_support import INSTANCE
+from support.tick_support import handlers_of
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

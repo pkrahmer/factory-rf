@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from claude_stand_in import REPLY, Step, read_calls, write_stand_in
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
-from run_layout_support import Layout, run_request
+from support.claude_stand_in import REPLY, Step, read_calls, write_stand_in
+from support.run_layout_support import Layout, run_request
 
 
 def test_no_run_registers_a_hook(layout: Layout) -> None:

@@ -10,8 +10,8 @@ from factory.agents.domain.agent_runs import AgentRunResult
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.pipeline.application.boundaries import Boundaries
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
-from human_clone import HumanClone
-from stage_run_support import CREATED, CREATED_LINE, PATH, STORY, open_story, run_stage
+from support.human_clone import HumanClone
+from support.stage_run_support import CREATED, CREATED_LINE, PATH, STORY, open_story, run_stage
 
 BLOCK = "```bash\ntrue\n```\n"
 WITHOUT_EXPECT = STORY.replace("```\nExpect: nothing.\n", "```\n")

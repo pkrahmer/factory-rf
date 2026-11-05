@@ -10,7 +10,7 @@ import factory
 from factory.shared.domain import settings
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import CONTAINER_ENV_VARIABLE, InstanceSettings, read_settings
-from settings_support import BASE, NOT_A_NAME, SET_BY_FACTORY
+from support.settings_support import BASE, NOT_A_NAME, SET_BY_FACTORY
 
 REQUIRED: dict[str, object] = {"repository_url": "/srv/project.git", "instance": "factory-1"}
 _AGENTS = "/srv/agents"

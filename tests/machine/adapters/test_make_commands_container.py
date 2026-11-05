@@ -19,7 +19,7 @@ from factory.machine.application.project_commands import ProjectCommands
 from factory.machine.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.pipeline.domain.checks import TargetTime
 from factory.shared.domain.errors import ContainerError, GitError, ProjectCommandError
-from git_support import CHECKOUT, TEST_IDENTITY, commit_all, write_files
+from support.git_support import CHECKOUT, TEST_IDENTITY, commit_all, write_files
 
 LIMIT = timedelta(minutes=1)
 CHECK_MARKER = ".checked"

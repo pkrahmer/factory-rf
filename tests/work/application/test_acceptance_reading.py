@@ -10,8 +10,8 @@ from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.work.application.acceptance_reading import AcceptanceReader
 from factory.work.domain.acceptance import AcceptanceState, FeatureAcceptance, FeatureFiles
 from factory.work.domain.work_item import WorkItemDocument
-from git_support import write_files
-from human_clone import HumanClone
+from support.git_support import write_files
+from support.human_clone import HumanClone
 
 FEATURES = "factory/features"
 EXAMPLE = f"{FEATURES}/F0001-example"

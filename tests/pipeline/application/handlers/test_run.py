@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from definition_support import pipeline_definition
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.hosting.adapters.fake_hosting import FakeHostingService
@@ -15,10 +14,11 @@ from factory.pipeline.application.handlers.run import RunHandler
 from factory.pipeline.domain.events import Event
 from factory.shared.domain.errors import HostingServiceError
 from factory.watching.application.watcher import Watcher
-from git_support import install_agents
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
-from wiring_support import ENVIRONMENT
+from support.definition_support import pipeline_definition
+from support.git_support import install_agents
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
+from support.wiring_support import ENVIRONMENT
 
 WORK_ITEM = "F0001-S0001"
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"

@@ -11,7 +11,7 @@ from factory.agents.application.tokens import TokenSource
 from factory.agents.domain.tokens import Token
 from factory.entry.refresh_token import main
 from factory.shared.domain.errors import TokenError
-from token_support import (
+from support.token_support import (
     ENDPOINT,
     HIDDEN,
     ISSUED,

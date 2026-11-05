@@ -6,7 +6,6 @@ from datetime import UTC, datetime
 
 import pytest
 
-from bill_support import completed_records, sidecar_text
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.domain.hand_over import cost_table_key
 from factory.hosting.domain.hosting import render_post
@@ -23,8 +22,9 @@ from factory.work.application.acceptance import AcceptanceHandOver, AcceptanceSe
 from factory.work.domain.acceptance import AcceptanceState
 from factory.work.domain.journal import FACTORY, HUMAN, JournalRecord
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import PIPELINE_YAML
-from human_clone import HumanClone
+from support.bill_support import completed_records, sidecar_text
+from support.git_support import PIPELINE_YAML
+from support.human_clone import HumanClone
 
 APPROVAL = "approval"
 TODO = "factory/features/F0002-todo"

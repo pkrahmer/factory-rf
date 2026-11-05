@@ -12,8 +12,8 @@ import pytest
 from factory.machine.adapters.zfs_snapshots import ZfsSnapshots
 from factory.shared.adapters.printed_output import no_end_detail
 from factory.shared.domain.errors import SnapshotError
-from time_limits import ROOMY_BOUND_SECONDS
-from zfs_support import DATASET, MOUNT_POINT, Answer, write_drop, write_zfs
+from support.time_limits import ROOMY_BOUND_SECONDS
+from support.zfs_support import DATASET, MOUNT_POINT, Answer, write_drop, write_zfs
 
 LIMIT = timedelta(seconds=1)
 REFUSAL = "sudo: a password is required"

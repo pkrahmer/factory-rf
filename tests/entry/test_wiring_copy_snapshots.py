@@ -18,9 +18,9 @@ from factory.shared.domain.settings import (
     InstanceSettings,
     read_settings,
 )
-from podman_support import IMAGE, Podman
-from settings_support import BASE, CONTAINER
-from wiring_support import CONTAINER_ITEMS, CREDENTIAL
+from support.podman_support import IMAGE, Podman
+from support.settings_support import BASE, CONTAINER
+from support.wiring_support import CONTAINER_ITEMS, CREDENTIAL
 
 
 @pytest.fixture

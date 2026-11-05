@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from acceptance_walk import FIRST, FIRST_RECORDS, REVIEWER, AcceptanceWalk, report_of
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.identifiers import branch_name
@@ -13,8 +12,9 @@ from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoint
 from factory.shared.domain.sections import section_text
 from factory.work.domain.journal import NewEntry, append_entry
 from factory.work.domain.work_item import WorkItemDocument
-from git_support import remote_commit
-from human_clone import HumanClone
+from support.acceptance_walk import FIRST, FIRST_RECORDS, REVIEWER, AcceptanceWalk, report_of
+from support.git_support import remote_commit
+from support.human_clone import HumanClone
 
 ROLE = REVIEWER
 BRANCH = branch_name(FIRST)

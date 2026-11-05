@@ -2,7 +2,11 @@
 
 import pytest
 
-from evaluation_support import (
+from factory.hosting.domain.hosting import PullRequestComment, PullRequestView
+from factory.pipeline.domain.evaluation import question_posted
+from factory.pipeline.domain.lease import ClaimStatus
+from factory.work.domain.work_item import WorkItemState
+from support.evaluation_support import (
     _at_approval,
     _blocked,
     _claimed,
@@ -13,10 +17,6 @@ from evaluation_support import (
     _snapshot,
     _view,
 )
-from factory.hosting.domain.hosting import PullRequestComment, PullRequestView
-from factory.pipeline.domain.evaluation import question_posted
-from factory.pipeline.domain.lease import ClaimStatus
-from factory.work.domain.work_item import WorkItemState
 
 
 @pytest.mark.parametrize(

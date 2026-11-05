@@ -8,7 +8,7 @@ import pytest
 from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.agents.domain.agent_runs import APPLIED_AGENT_KEYS, KEY_NOT_APPLIED
 from factory.shared.domain.errors import AgentDefinitionInvalid
-from git_support import write_agent
+from support.git_support import write_agent
 
 APPLIED = "model: opus\ntools: [Read, Edit]\neffort: medium\nbudget_usd: 4\n"
 

@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from factory.hosting.domain.git import GitIdentity
 from factory.shared.domain.errors import FactoryError, SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings
-from settings_support import AGENT_HOME, BASE, raising
+from support.settings_support import AGENT_HOME, BASE, raising
 
 URL = "/srv/project.git"
 OTHER_IMAGE_PATH = Path("/images/image-id")

@@ -16,7 +16,7 @@ from factory.pipeline.domain.stops import RepositoryStop
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.application.machine import FactoryLog
-from git_support import (
+from support.git_support import (
     PIPELINE_YAML,
     TEST_IDENTITY,
     clone,
@@ -25,8 +25,8 @@ from git_support import (
     run_git,
     write_files,
 )
-from human_clone import HumanClone
-from settings_support import AGENT_HOME
+from support.human_clone import HumanClone
+from support.settings_support import AGENT_HOME
 
 NO_MAIN = "the repository has no main branch yet"
 NO_PIPELINE = "origin/main has no factory/pipeline.yml yet"

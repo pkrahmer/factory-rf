@@ -4,7 +4,7 @@ import inspect
 
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.application.git import Git
-from git_interface_support import OPERATIONS
+from support.git_interface_support import OPERATIONS
 
 
 def test_git_has_exactly_the_twenty_two_operations_and_git_cli_has_each() -> None:

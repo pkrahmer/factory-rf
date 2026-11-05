@@ -6,16 +6,16 @@ from pathlib import Path
 
 import pytest
 
-from cost_image_support import _launch
-from disk_support import FakeDiskSpace
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.pipeline.application.boundaries import Boundaries
 from factory.watching.application.costs import CostRecorder, CostRun
 from factory.watching.domain.cost_records import CostRecord, MachineMeasures
 from factory.watching.domain.machine import MachineTotals
-from human_clone import HumanClone
-from machine_readings_support import FakeMachineReadings
+from support.cost_image_support import _launch
+from support.disk_support import FakeDiskSpace
+from support.human_clone import HumanClone
+from support.machine_readings_support import FakeMachineReadings
 
 SIDECAR = "F0001-S0001-first.costs.jsonl"
 STARTED = CostRecord(

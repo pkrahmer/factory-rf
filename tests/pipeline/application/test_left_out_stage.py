@@ -6,9 +6,9 @@ from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, Scripte
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.paths import cost_records_path
 from factory.work.domain.journal import entry_text
-from human_clone import HumanClone
-from stage_run_support import PATH, completed, open_story, pushed, run_stage
-from take_support import AGENT_TEXT
+from support.human_clone import HumanClone
+from support.stage_run_support import PATH, completed, open_story, pushed, run_stage
+from support.take_support import AGENT_TEXT
 
 KEPT = "tests/test_new.py"
 FORBIDDEN = "src/forbidden.py"

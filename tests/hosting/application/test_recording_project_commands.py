@@ -18,9 +18,9 @@ from factory.shared.application.files import RecordLog
 from factory.shared.domain.errors import GitError, ProjectCommandError
 from factory.watching.adapters.factory_log import TimestampedFactoryLog
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
-from preflight_support import RecordingCommands
-from project_command_support import raising
-from record_support import UnwritableRecordLog
+from support.preflight_support import RecordingCommands
+from support.project_command_support import raising
+from support.record_support import UnwritableRecordLog
 
 TIME_LIMIT = timedelta(minutes=10)
 TARGETS = [TargetTime(target="lint", seconds=4.5), TargetTime(target="test", seconds=170.0)]

@@ -14,8 +14,8 @@ from factory.shared.domain.errors import AgentRuntimeError, GitError
 from factory.shared.domain.kill_points import InjectedKill, KillPoint
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.application.machine import FactoryLog
-from git_support import CHECKOUT, TEST_IDENTITY
-from settings_support import AGENT_HOME
+from support.git_support import CHECKOUT, TEST_IDENTITY
+from support.settings_support import AGENT_HOME
 
 Outcome = bool | BaseException
 

@@ -12,7 +12,7 @@ from factory.pipeline.domain.stops import RepositoryStop, StopRecord
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
-from log_support import log_lines
+from support.log_support import log_lines
 
 FIRST = "origin unreachable"
 OTHER = "origin refused the connection"

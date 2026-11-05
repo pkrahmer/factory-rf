@@ -5,7 +5,6 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from bill_support import completed_records, sidecar_text
 from factory.agents.application.write_paths import WritePathService
 from factory.agents.domain.write_paths import is_writable
 from factory.hosting.adapters.fake_hosting import FakeHostingService
@@ -21,8 +20,9 @@ from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.work.application.acceptance import AcceptanceService, OpenedAcceptance
 from factory.work.domain.acceptance import AcceptanceState, acceptance_head
 from factory.work.domain.work_item import WorkItemDocument
-from git_support import remote_commit, run_git, write_files
-from human_clone import HumanClone
+from support.bill_support import completed_records, sidecar_text
+from support.git_support import remote_commit, run_git, write_files
+from support.human_clone import HumanClone
 
 FEATURES = "factory/features"
 TODO = f"{FEATURES}/F0002-todo"

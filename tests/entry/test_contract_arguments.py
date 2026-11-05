@@ -6,9 +6,9 @@ from pathlib import Path
 import pytest
 
 import factory.entry.contract
-from contract_support import USAGE, WRITTEN, MainRow
 from factory.entry.contract import main, write_contract
 from factory.shared.domain.contract import CONTRACT, schema_file_name
+from support.contract_support import USAGE, WRITTEN, MainRow
 
 SCHEMA_NAMES = sorted(schema_file_name(entry) for entry in CONTRACT)
 

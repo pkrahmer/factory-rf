@@ -9,9 +9,9 @@ from factory.hosting.adapters.git_cli import GitCli
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.recovery import delete_stale_branches
 from factory.shared.domain.identifiers import branch_name
-from git_support import CHECKOUT, remote_commit, run_git
-from human_clone import HumanClone
-from log_support import log_lines
+from support.git_support import CHECKOUT, remote_commit, run_git
+from support.human_clone import HumanClone
+from support.log_support import log_lines
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

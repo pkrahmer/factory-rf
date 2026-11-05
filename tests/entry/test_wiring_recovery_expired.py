@@ -4,9 +4,9 @@ from factory.entry.wiring import build_handlers
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.recovery import RecoveryHandler
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
-from git_support import PIPELINE_YAML
-from stage_run_support import INSTANCE
-from wiring_support import ENVIRONMENT
+from support.git_support import PIPELINE_YAML
+from support.stage_run_support import INSTANCE
+from support.wiring_support import ENVIRONMENT
 
 
 def test_expired_shares_the_crash_handler(

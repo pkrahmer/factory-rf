@@ -10,7 +10,7 @@ from factory.agents.domain.opencode_provider import (
     provider_configuration,
     read_provider,
 )
-from opencode_provider_support import CONFIGURATION, KEY_ENV, PROVIDER
+from support.opencode_provider_support import CONFIGURATION, KEY_ENV, PROVIDER
 
 LOWER_KEY_ENV = "lower"
 DIGIT_FIRST_KEY_ENV = "1KEY"

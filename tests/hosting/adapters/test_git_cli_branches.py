@@ -9,7 +9,7 @@ import pytest
 from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.errors import GitError
 from factory.shared.domain.kill_points import KillPoint, KillPoints
-from git_support import (
+from support.git_support import (
     CHECKOUT,
     TEST_IDENTITY,
     clone,
@@ -18,7 +18,7 @@ from git_support import (
     run_git,
     write_files,
 )
-from human_clone import HumanClone
+from support.human_clone import HumanClone
 
 BRANCH = "work-item/F0001-S0001"
 FEATURE = "factory/features/F0001-example/feature.md"

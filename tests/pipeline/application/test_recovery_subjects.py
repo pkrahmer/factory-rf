@@ -4,7 +4,10 @@ from collections.abc import Callable
 
 import pytest
 
-from crash_support import (
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.pipeline.application.boundaries import Boundaries
+from factory.shared.adapters.clock import ManualClock
+from support.crash_support import (
     BRANCH,
     Claimed,
     Rerun,
@@ -17,10 +20,7 @@ from crash_support import (
     other_handler,
     snapshot,
 )
-from factory.hosting.adapters.fake_hosting import FakeHostingService
-from factory.pipeline.application.boundaries import Boundaries
-from factory.shared.adapters.clock import ManualClock
-from human_clone import HumanClone
+from support.human_clone import HumanClone
 
 Recover = Callable[[Boundaries, HumanClone, ManualClock, FakeHostingService], Claimed]
 

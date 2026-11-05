@@ -7,9 +7,9 @@ from factory.pipeline.domain.events import Event
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.adapters.clock import ManualClock
 from factory.watching.application.watcher import Watcher
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
-from watch_support import (
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
+from support.watch_support import (
     ACCEPTANCE,
     STORY,
     aged_claim,

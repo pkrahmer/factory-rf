@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-from agent_login_support import API_LOGIN, SUBSCRIPTION, _utf_16
 from factory.agents.adapters.agent_launch import (
     API_LOGIN_OPTION,
     API_LOGIN_VARIABLE,
@@ -21,7 +20,8 @@ from factory.agents.adapters.agent_launch import (
 )
 from factory.agents.domain.agent_runs import Login
 from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_process
-from run_layout_support import write_script
+from support.agent_login_support import API_LOGIN, SUBSCRIPTION, _utf_16
+from support.run_layout_support import write_script
 
 SHELL_API_LOGIN = "shell-api-login"
 SHELL_SUBSCRIPTION = "shell-login"

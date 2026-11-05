@@ -13,8 +13,8 @@ from factory.hosting.application.git import Git
 from factory.pipeline.application.boundaries import Boundaries
 from factory.watching.domain.cost_records import ToolUse
 from factory.watching.domain.transcripts import Transcript
-from human_clone import HumanClone
-from stage_run_support import (
+from support.human_clone import HumanClone
+from support.stage_run_support import (
     BRANCH,
     ENVIRONMENT,
     NOTES,

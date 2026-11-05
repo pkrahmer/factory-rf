@@ -7,10 +7,10 @@ import pytest
 from factory.entry.watch import run_watch
 from factory.pipeline.application.boundaries import Boundaries
 from factory.watching.application.board import BoardReader
-from git_support import PIPELINE_YAML
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
-from watch_support import push_complete
+from support.git_support import PIPELINE_YAML
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
+from support.watch_support import push_complete
 
 pytestmark = pytest.mark.usefixtures("installed_agents")
 

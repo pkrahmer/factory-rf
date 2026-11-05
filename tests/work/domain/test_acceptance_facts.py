@@ -12,7 +12,7 @@ from factory.work.domain.acceptance import (
     acceptance_prompt,
 )
 from factory.work.domain.work_item import initial_state
-from source_search import imported_modules, modules
+from support.source_search import imported_modules, modules
 
 COST_LINE = "19 runs, 7.1 min, 3.33 USD"
 DONE = ["F0002-S0001-a.md", "F0002-S0002-b.md", "F0002-S0004-d.md"]

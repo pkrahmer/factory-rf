@@ -6,14 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from cost_records_support import (
-    COMPLETED_LINE,
-    REQUIRED,
-    STARTED_AT,
-    STARTED_LINE,
-    _completed,
-    _started,
-)
 from factory.shared.application.files import CostRecordReader, CostRecordWriter
 from factory.shared.domain.errors import CostRecordFormatError
 from factory.watching.adapters.cost_records_jsonl import (
@@ -21,6 +13,14 @@ from factory.watching.adapters.cost_records_jsonl import (
     JsonLinesCostRecordWriter,
 )
 from factory.watching.domain.cost_records import CostRecord
+from support.cost_records_support import (
+    COMPLETED_LINE,
+    REQUIRED,
+    STARTED_AT,
+    STARTED_LINE,
+    _completed,
+    _started,
+)
 
 COMPLETED: dict[str, object] = {
     **REQUIRED,

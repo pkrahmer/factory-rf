@@ -12,7 +12,7 @@ from factory.hosting.application.git import Git
 from factory.hosting.domain.git import ChangedPath, CommitInfo
 from factory.shared.adapters.process import ProcessRequest, run_process
 from factory.shared.domain.errors import GitError
-from git_support import TEST_IDENTITY, commit_all, run_git, write_files
+from support.git_support import TEST_IDENTITY, commit_all, run_git, write_files
 
 
 def _git(directory: Path) -> Git:

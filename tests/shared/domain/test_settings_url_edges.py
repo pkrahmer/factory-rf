@@ -7,7 +7,7 @@ import pytest
 
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import read_settings
-from settings_support import BASE, raising
+from support.settings_support import BASE, raising
 
 URL_VARIABLE = "FACTORY_REPOSITORY_URL"
 

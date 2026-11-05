@@ -4,7 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from container_support import (
+from factory.hosting.domain.git import CommitId
+from factory.machine.application.stage_environment import _SYNC_SCRIPT
+from factory.pipeline.application.boundaries import Boundaries
+from support.container_support import (
     FIVE_MINUTES,
     GONE,
     Dataset,
@@ -13,12 +16,9 @@ from container_support import (
     push_main,
     sync_makefile,
 )
-from factory.hosting.domain.git import CommitId
-from factory.machine.application.stage_environment import _SYNC_SCRIPT
-from factory.pipeline.application.boundaries import Boundaries
-from git_support import install_agents, run_git, write_files
-from human_clone import HumanClone
-from undo_support import BRANCH
+from support.git_support import install_agents, run_git, write_files
+from support.human_clone import HumanClone
+from support.undo_support import BRANCH
 
 AGENT = "tester"
 

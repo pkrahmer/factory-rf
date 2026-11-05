@@ -5,8 +5,8 @@ from pathlib import Path
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.pipeline.application.boundaries import Boundaries
 from factory.work.domain.work_item import WorkItemState
-from human_clone import HumanClone
-from stage_run_support import CREATED, completed, open_story, pushed_state, run_stage
+from support.human_clone import HumanClone
+from support.stage_run_support import CREATED, completed, open_story, pushed_state, run_stage
 
 
 def test_a_nested_repository_left_by_the_agent_does_not_stall_the_stage(

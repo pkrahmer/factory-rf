@@ -4,19 +4,19 @@ import json
 
 import pytest
 
-from cost_records_support import (
-    COMPLETED_LINE,
-    REQUIRED,
-    STARTED_LINE,
-    _completed,
-    _started,
-)
 from factory.shared.domain.errors import CostRecordFormatError
 from factory.watching.adapters.cost_records_jsonl import (
     JsonLinesCostRecordReader,
     JsonLinesCostRecordWriter,
 )
 from factory.watching.domain.cost_records import CostRecord
+from support.cost_records_support import (
+    COMPLETED_LINE,
+    REQUIRED,
+    STARTED_LINE,
+    _completed,
+    _started,
+)
 
 
 def _with_instance(record: CostRecord) -> CostRecord:

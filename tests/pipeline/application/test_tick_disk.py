@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from disk_support import FakeDiskSpace
 from factory.machine.domain.disk import GIGABYTE, disk_low_detail
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.dispatcher import Handler
@@ -15,11 +14,12 @@ from factory.pipeline.domain.events import EventKind
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.pipeline.domain.stops import RepositoryStop
 from factory.shared.domain.settings import InstanceSettings
-from git_support import CHECKOUT, remote_commit
-from human_clone import HumanClone
-from log_support import log_lines
-from settings_support import AGENT_HOME
-from stage_run_support import INSTANCE
+from support.disk_support import FakeDiskSpace
+from support.git_support import CHECKOUT, remote_commit
+from support.human_clone import HumanClone
+from support.log_support import log_lines
+from support.settings_support import AGENT_HOME
+from support.stage_run_support import INSTANCE
 
 MIN_FREE_GB = 2
 ENOUGH = MIN_FREE_GB * GIGABYTE

@@ -7,8 +7,8 @@ import pytest
 
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.adapters.clock import ManualClock
-from known_results_support import TIME_LIMIT, Rig, _answering, _result, _rig
-from torn_record_support import result_record, torn_inside
+from support.known_results_support import TIME_LIMIT, Rig, _answering, _result, _rig
+from support.torn_record_support import result_record, torn_inside
 
 TORN = torn_inside(result_record("x é"), "é", 1)
 

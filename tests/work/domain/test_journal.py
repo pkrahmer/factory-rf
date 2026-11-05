@@ -22,7 +22,7 @@ from factory.work.domain.journal import (
 )
 from factory.work.domain.story_form import check_story_form
 from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemState, initial_state
-from source_search import modules
+from support.source_search import modules
 
 CREATED_ON = date(2026, 10, 12)
 CREATED = NewEntry(speaker="human", kind="created", text="created.", on=CREATED_ON)

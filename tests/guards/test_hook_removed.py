@@ -1,0 +1,104 @@
+"""The hook's code is gone, and the kernel's guard and its settings are kept."""
+
+import importlib
+import importlib.util
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any
+
+import pytest
+from pydantic import BaseModel, ValidationError
+
+from factory.agents.domain.agent_runs import WritePathSettings
+from factory.entry import wiring
+from support.module_names import has_name, module_exists
+
+
+def _confine_command() -> object:
+    return getattr(
+        importlib.import_module("factory.agents.domain.agent_runs"), "CONFINE_COMMAND", None
+    )
+
+
+@pytest.mark.parametrize(
+    ("check", "expected"),
+    [
+        pytest.param(
+            lambda: module_exists("factory.adapters.claude_guard"), False, id="adapter-module"
+        ),
+        pytest.param(lambda: module_exists("factory.entry.guard"), False, id="entry-module"),
+        pytest.param(
+            lambda: has_name("factory.agents.domain.agent_runs", "GUARD_COMMAND"),
+            False,
+            id="guard-command",
+        ),
+        pytest.param(
+            lambda: has_name("factory.shared.domain.errors", "GuardSettingsInvalid"),
+            False,
+            id="settings-error",
+        ),
+        pytest.param(lambda: has_name("factory.entry.wiring", "judge"), False, id="wiring-judge"),
+        pytest.param(
+            lambda: has_name("factory.entry.wiring", "read_guard_settings"), False, id="wiring-read"
+        ),
+        pytest.param(lambda: "judge" in wiring.__all__, False, id="exported-judge"),
+        pytest.param(lambda: "read_guard_settings" in wiring.__all__, False, id="exported-read"),
+        pytest.param(_confine_command, None, id="confine-command"),
+        pytest.param(
+            lambda: has_name("factory.agents.domain.agent_runs", "WritePathSettings"),
+            True,
+            id="guard-settings",
+        ),
+        pytest.param(
+            lambda: has_name("factory.agents.domain.write_paths", "refusal"), True, id="refusal"
+        ),
+        pytest.param(
+            lambda: has_name("factory.agents.domain.write_paths", "PROTECTED_PATHS"),
+            True,
+            id="protected",
+        ),
+        pytest.param(
+            lambda: has_name("factory.machine.application.preflight", "confinement_item"),
+            False,
+            id="confinement-item",
+        ),
+    ],
+)
+def test_the_hook_s_code_is_gone_and_the_kernel_s_guard_is_kept(
+    check: Callable[[], object], expected: object
+) -> None:
+    assert check() == expected
+
+
+def _build(extra: dict[str, Any]) -> object:
+    model: type[BaseModel] = WritePathSettings
+    return model(root=Path("/w"), write_paths=["src/*"], protected_paths=[], **extra)
+
+
+def _fields() -> None:
+    assert list(WritePathSettings.model_fields) == [
+        "root",
+        "write_paths",
+        "protected_paths",
+    ]
+
+
+def _builds() -> None:
+    _build({})
+
+
+def _refuses_a_temporary_folder() -> None:
+    with pytest.raises(ValidationError):
+        _build({"temporary_directory": Path("/t")})
+
+
+@pytest.mark.parametrize(
+    "check",
+    [
+        pytest.param(_fields, id="three-fields"),
+        pytest.param(_builds, id="without-temporary-folder"),
+        pytest.param(_refuses_a_temporary_folder, id="with-temporary-folder"),
+    ],
+)
+def test_the_guard_settings_have_no_temporary_folder(check: Callable[[], None]) -> None:
+    check()

@@ -6,7 +6,7 @@ from factory.hosting.domain.post_texts import round_cap_question
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.work.domain.decisions import StageMove, decide
 from factory.work.domain.work_item import WorkItemState
-from shipped_agents import template_definition
+from support.shipped_agents import template_definition
 
 
 @pytest.fixture

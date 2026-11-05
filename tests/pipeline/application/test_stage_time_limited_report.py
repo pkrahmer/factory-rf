@@ -10,8 +10,15 @@ from factory.machine.application.project_commands import ProjectCommands
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.domain.checks import CheckResult
 from factory.work.domain.journal import entry_text
-from human_clone import HumanClone
-from stage_run_support import PATH, branch_head, completed, open_story, run_stage, stage_makefile
+from support.human_clone import HumanClone
+from support.stage_run_support import (
+    PATH,
+    branch_head,
+    completed,
+    open_story,
+    run_stage,
+    stage_makefile,
+)
 
 STOPPED_TEST = CheckResult(
     command="test",

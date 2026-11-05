@@ -18,10 +18,17 @@ from factory.shared.adapters.clock import ManualClock
 from factory.shared.application.files import RecordLog
 from factory.shared.domain.errors import GitError, ProjectCommandError
 from factory.shared.domain.settings import InstanceSettings
-from human_clone import HumanClone
-from known_results_support import DEFINITION_YAML, TIME_LIMIT, Rig, _answering, _result, _rig
-from project_command_support import raising
-from record_support import UnwritableRecordLog
+from support.human_clone import HumanClone
+from support.known_results_support import (
+    DEFINITION_YAML,
+    TIME_LIMIT,
+    Rig,
+    _answering,
+    _result,
+    _rig,
+)
+from support.project_command_support import raising
+from support.record_support import UnwritableRecordLog
 
 NOT_READ = ["docs/*"]
 OTHER_LINT_YAML = DEFINITION_YAML.replace("lint: {time_limit: 5}", "lint: {time_limit: 6}")

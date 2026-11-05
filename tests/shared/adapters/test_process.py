@@ -8,8 +8,8 @@ import pytest
 from pydantic import ValidationError
 
 from factory.shared.adapters.process import ProcessRequest, run_process
-from process_support import is_gone, python_argv
-from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
+from support.process_support import is_gone, python_argv
+from support.time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 
 def test_output_and_exit_status_come_back(tmp_path: Path) -> None:

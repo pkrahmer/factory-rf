@@ -15,7 +15,7 @@ from factory.pipeline.domain.known_results import (
     definition_digest,
     known_result,
 )
-from git_support import PIPELINE_YAML
+from support.git_support import PIPELINE_YAML
 
 TREE = "a" * 40
 DIGEST = "b" * 64

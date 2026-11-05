@@ -2,7 +2,6 @@
 
 import pytest
 
-from document_texts import clean_texts
 from factory.shared.domain.documents import (
     DECISION_LOG,
     DOCUMENT_PATHS,
@@ -12,6 +11,7 @@ from factory.shared.domain.documents import (
     check_documents,
     is_guide_file,
 )
+from support.document_texts import clean_texts
 
 AGENTS = "docs/project-guide/agents.md"
 

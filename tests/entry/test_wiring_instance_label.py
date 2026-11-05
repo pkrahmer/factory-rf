@@ -8,10 +8,10 @@ from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.machine.adapters.podman_runs import PodmanRuns
 from factory.shared.domain.settings import InstanceSettings
-from podman_support import IMAGE, launch_words
-from recording_stand_in_support import recording_stand_in
-from wiring_support import CREDENTIAL
-from zfs_support import DATASET
+from support.podman_support import IMAGE, launch_words
+from support.recording_stand_in_support import recording_stand_in
+from support.wiring_support import CREDENTIAL
+from support.zfs_support import DATASET
 
 
 @pytest.mark.usefixtures("sudo_stand_in")

@@ -7,9 +7,9 @@ import pytest
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.claims import StageStart
 from factory.shared.domain.paths import cost_records_path
-from git_support import run_git
-from human_clone import HumanClone
-from take_support import (
+from support.git_support import run_git
+from support.human_clone import HumanClone
+from support.take_support import (
     AGENT_TEXT,
     BROKEN_FRONT_MATTER,
     changes,
@@ -18,8 +18,8 @@ from take_support import (
     tree,
     write_dataset,
 )
-from undo_support import GUIDE, GUIDE_TEXT, IN_PROGRESS, KEPT, PATH, SECOND, start_stage
-from work_item_support import checkout_text
+from support.undo_support import GUIDE, GUIDE_TEXT, IN_PROGRESS, KEPT, PATH, SECOND, start_stage
+from support.work_item_support import checkout_text
 
 STORY_FORM_FILE = "factory/story-form.md"
 OLD = "src/old.py"

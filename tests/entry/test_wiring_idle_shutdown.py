@@ -9,7 +9,7 @@ from factory.entry.wiring import idle_shutdown_of
 from factory.machine.adapters.power_off import SystemctlPowerOff
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.adapters.clock import ManualClock
-from power_support import IDLE
+from support.power_support import IDLE
 
 
 def _calls(record: Path) -> list[str]:

@@ -20,10 +20,10 @@ from factory.shared.domain.errors import AgentDefinitionMissing, AgentRuntimeErr
 from factory.shared.domain.identifiers import branch_name
 from factory.work.domain.journal import JournalRecord
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState, initial_state
-from git_support import PIPELINE_YAML, install_agents, remote_commit
-from human_clone import HumanClone
-from observing_runtime import ObservingRuntime
-from stage_run_support import ENVIRONMENT, INSTANCE
+from support.git_support import PIPELINE_YAML, install_agents, remote_commit
+from support.human_clone import HumanClone
+from support.observing_runtime import ObservingRuntime
+from support.stage_run_support import ENVIRONMENT, INSTANCE
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

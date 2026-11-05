@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from factory.machine.adapters.podman_runs import PodmanRuns
-from podman_support import IMAGE, Podman, launch_words
+from support.podman_support import IMAGE, Podman, launch_words
 
 
 def _run_words(runs: PodmanRuns, podman: Podman) -> list[str]:
