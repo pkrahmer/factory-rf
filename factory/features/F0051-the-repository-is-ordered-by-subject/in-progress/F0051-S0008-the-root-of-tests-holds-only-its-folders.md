@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T04:38:38.488706Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-05T04:38:33.420979Z'
   stage: intake
   run: e6d1ea0525364c04bd3be31b2960c000
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T04:38:38.488706Z'
+  stage: tests
 ---
 
 # The root of `tests/` holds only its folders
@@ -120,3 +129,4 @@ Expect: `support.bill_support`
    - Smoke test: both commands are runnable and each `Expect:` is checkable. The first lists the root `.py` files and expects only `conftest.py`. The second imports `support.bill_support` with `tests` on `sys.path`. Neither runs pytest, so the `-q` rule does not apply.
    - Architecture: the change touches only the layout of `tests/`, the test-layout rules in CLAUDE.md, and the project guide's docs. `operator_scripts` avoids the clash with the standard library's `operator`. No source code changes.
    - Scope: it is within F0051's scope ("the root of `tests/` holds only `conftest.py` and folders") and touches none of its "Out of scope" items. Feature decision 5 covers the tester's changes. The human's change for S0008's start (CLAUDE.md's *Tests*) is the human's own.
+7. factory: started tests as vm.
