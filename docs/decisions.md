@@ -1574,3 +1574,11 @@ Date: 2026-11-05 (F0051-S0012).
 - Decision: `vm/` is `operator/vm/` and `template/` is `operator/template/`, moved with `git mv`; every path inside the files that names another (the build command `podman build -f operator/vm/Dockerfile`, the setup and start scripts) names the new place. `demo/` stays at the root, since it is runnable code that `make check` checks.
 - Why: everything about where an instance runs and how a project starts sits in one place, beside the operator's other tools (the human, 2026-11-04).
 - No rejected option is named by the story for this entry, so none is written.
+
+## A documents-only story takes the docs route
+
+Date: 2026-11-05 (F0052).
+
+- Decision: a story whose Interface changes only paths the documenter may write (`README.md`, `docs/*`, `operator/README.md`) takes a second route: the intake chooses `docs-only` instead of `tests`, the documenter writes the whole change and runs `make documents`, and the reviewer in `docs-review` reads the documents against the code, the criteria and the style page. It ends with `docs-approval`, or sends the text back to `docs-only` with numbered findings. Such a story has no tests stage and no doing stage, so its criteria are about documents only. When the documenter finds that the story needs a change outside the documents, it ends with `tests` and names the change in its entry, and the story takes the code route from there. The agents' other stages do not change, and neither does the opencode runtime. The route needs the human's change to `factory/pipeline.yml`, made at the merge of the story that taught the agents.
+- Why: a story that changes only documents needs no tests and no code, so the tests, doing and review stages only cost tokens.
+- No rejected option is named by the story for this entry, so none is written. The story names feature decisions 4 and 6 only; decisions 1 to 3 and 5 are not in the story, and this entry states them only as far as the story's own text does.

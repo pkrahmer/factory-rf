@@ -282,6 +282,20 @@ To change what an agent is told, edit its file under `agents/agents/`; there is 
 
 `tests/agent_files/test_claude_files.py` checks the files (keys, values, bodies); `tests/agents/adapters/test_shipped_agents_effect.py` runs `ClaudeCodeRuntime` against the stand-in executable over each shipped agent and checks that `--model`, `--effort`, `--tools`, `--max-budget-usd` and the instructions file carry the file's values. `tests/support/shipped_agents.py` holds the shared table.
 
+### The docs route
+
+A story whose Interface changes only paths the documenter may write (`README.md`, `docs/*`, `operator/README.md`) takes the docs route. It has no tests stage and no doing stage, so its criteria are about documents only. Three agent files carry the route; the pipeline definition (`factory/pipeline.yml`) holds the stages `docs-only`, `docs-review` and `docs-approval`.
+
+| Agent | In the stage | What it does |
+| --- | --- | --- |
+| `intake` | `intake` | Step 6: chooses `docs-only` when every path the Interface changes is one of the three above; otherwise `tests`. |
+| `documenter` | `docs-only` | Its `### docs-only` subsection replaces steps 1 to 6 of its Stage. It writes the whole change the docs criterion asks for, runs `make documents` and ends with `docs-review`. Back from the reviewer, it fixes exactly the numbered findings and ends with `docs-review` again. |
+| `reviewer` | `docs-review` | Its `### docs-review` subsection replaces the Role's scope, its checklist and its decisions, and steps 1 to 3 of the Stage. It reads the work item and `git diff main...HEAD -- README.md docs operator/README.md`, judges the facts against the code and the criteria and the writing against `docs/project-guide/style.md`, and ends with `docs-approval` or with `docs-only` and numbered findings. |
+
+When the documenter finds that the story needs a change outside the documents, it writes nothing for it and ends with `tests`; its entry names the change, and the story takes the code route from there. Until the style page exists, the reviewer's subsection lists the seven style rules itself. The agents' other stages do not change, and the opencode runtime reads the same files.
+
+`tests/agent_files/test_claude_agent_texts_docs_route.py` pins each sentence above in the shipped files. The reviewer's body is also pinned by a checksum (`test_claude_agent_texts_review_groups.py`), which leaves out the `### docs-review` subsection.
+
 ### The settings
 
 `agents/settings.json` is the permissions and environment every agent run shares. It allows file tools, `uv run`, `uv sync`, `make`, `factory-check-story` and the read-only git commands `status`, `diff`, `log`, `show` and `rev-parse`. It denies `git add` and `git commit` (the agent leaves its changes in the working tree and the factory makes the result commit, R10; the agents' `## Rules` say "You do not commit either", and a denied command is refused by the runtime where an unlisted one would ask for a permission nobody can give), `git push`, `checkout`, `switch`, `merge`, `pull`, `rebase`, `reset`, `branch -D`, `gh` and `rm -rf`. `factory-check-story` is the only `factory-` command allowed: an agent may not run `factory-run`, `factory-watch` or `factory-bill`. The environment sets `CLAUDE_CODE_FORK_SUBAGENT` to `0`. A test compares the file with the expected document, so any change is a deliberate edit of both.

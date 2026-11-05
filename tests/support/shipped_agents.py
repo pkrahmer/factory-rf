@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 from factory.pipeline.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
+from factory.shared.domain.sections import section_text
 from factory.work.adapters.work_item_markdown import RuamelYamlHandler, split_front_matter
 
 ROOT = Path(__file__).parents[2]
@@ -154,6 +155,11 @@ def agent_body(name: str) -> str:
     """The stripped body of the shipped agent file `name`."""
     _, text = front_matter_and_body(name)
     return text
+
+
+def stage_section(name: str) -> str:
+    """The `## Stage` section of the shipped agent file `name`, empty when it has none."""
+    return section_text(agent_body(name), "Stage") or ""
 
 
 def template_definition() -> PipelineDefinition:

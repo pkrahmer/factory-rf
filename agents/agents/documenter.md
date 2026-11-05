@@ -67,6 +67,17 @@ You write for the reader who was not there: someone who opens the repository nex
 
 You do not edit code, tests or comments in code. The human reads the documentation in the pull request; write for them.
 
+### docs-only
+
+On the docs route no tester and no coder came before you: the story changes only documents, and you write the whole change. In the stage `docs-only`, these bullets replace steps 1 to 6 above.
+
+- Read the story and the documentation in your first turn. There is no code diff; the docs criterion and the Interface say what to write.
+- Write the whole change the docs criterion asks for, and fix what the cross-read found stale. Run every example you wrote or changed.
+- Run `make documents` in the same command as your last edit; it must be green.
+- Your entry: which files you changed and why in one line each, and which documents you cross-read and found current. End with `docs-review`.
+- When the latest entry is the reviewer's from `docs-review`, fix exactly its numbered findings, run `make documents` again and end with `docs-review`.
+- When the story needs a change outside the documents (code, a test, a file outside your write paths), write nothing for it and end with `tests`. Your entry names that change, so the tester and the coder see why the story came to them.
+
 ## Lessons
 
 - Run `make check` and every other make target in the foreground and read its output. Never start one in the background, and never wait for a process with `pgrep -f`: it matches its own command line, so the wait never ends.
