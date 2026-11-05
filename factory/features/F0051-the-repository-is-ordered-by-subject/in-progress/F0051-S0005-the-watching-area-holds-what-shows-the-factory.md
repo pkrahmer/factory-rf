@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 560
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T03:00:37.573329Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-05T03:00:32.422734Z'
   stage: review
   run: 0992ce15260c4a1ea538a91824390e3f
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-05T03:00:37.573329Z'
+  stage: docs
 ---
 
 # The watching area holds what shows the factory and what it costs
@@ -318,3 +327,4 @@ Expect: `1`
    - tests/domain/test_transcript_ref.py -> tests/watching/domain/: feature decision 5 (git mv, imports)
 
    I compared each moved test module with its file on `main`: none differs in anything but import lines.
+10. factory: started docs as vm.
