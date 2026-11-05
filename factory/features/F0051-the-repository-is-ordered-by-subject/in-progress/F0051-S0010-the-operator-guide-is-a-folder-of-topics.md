@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T06:57:44.212247Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-05T06:57:38.919760Z'
   stage: intake
   run: 56d20cce934141f0adb737575a12c6a7
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T06:57:44.212247Z'
+  stage: tests
 ---
 
 # The operator guide is a folder of topics
@@ -110,3 +119,4 @@ Expect: `split`
    - Smoke test: accepted. Both commands are runnable and both `Expect:` lines can be checked.
    - Architecture: accepted. The change is in documents plus `factory.shared.domain.documents`, which fits the shared area.
    - Scope: accepted. S0010 is listed in `feature.md`, and the leave of decision 5 and the human's note in entry 4 cover the test and coder write paths.
+7. factory: started tests as vm.
