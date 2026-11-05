@@ -2,16 +2,12 @@
 stage: doing
 blocked: null
 round: 0
-attempts: 1
+attempts: 2
 crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T08:18:39.962387Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -119,6 +115,19 @@ journal:
   kind: started
   at: '2026-11-05T08:18:39.962387Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:25:18.057159Z'
+  stage: doing
+  run: ed7f006d2c514633b6eef752b7be96c2
+- number: 21
+  speaker: factory
+  kind: stall
+  at: '2026-11-05T08:25:18.309663Z'
+  stage: doing
+  run: ed7f006d2c514633b6eef752b7be96c2
+  reason: check_red
 ---
 
 # The agent files live in `agents/`
@@ -322,3 +331,32 @@ Expect: `1`
     ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[acceptance-reviewer] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no a...
     make: *** [Makefile:89: test] Error 1
 19. factory: started doing as vm.
+20. coder: I moved the agent files again, this time in a way the take keeps. In the working tree `claude/` is gone and `agents/agents/*.md` (seven files) and `agents/settings.json` are present. Each file is byte-for-byte the same as `HEAD:claude/<path>`, which I checked with `cmp`. The path edits in `src/factory/machine/application/stage_environment.py:30`, `vm/Dockerfile:58-59`, `vm/job-start.sh:68`, `vm/setup.sh:427` and the files under `docs/project-guide/` and `docs/operator-guide/` were already committed (entry 10). `make check` is green: coverage is 99.26 %, `test: green (130.8 s)`, `check: green`.
+
+    Why the stall in entry 18 happened: the earlier run's `git mv claude agents` renamed the directory in one step. `zfs diff` reports that as a single `R` line for the directory. `ZfsSnapshots.changed_paths` (`src/factory/machine/adapters/zfs_snapshots.py`, `_read_diff_line`) drops every entry whose kind is a directory. So the take recorded no added file under `agents/` and no deleted file under `claude/`, and the check ran on a tree that still had `claude/` and no `agents/`.
+
+    Main choice: I copied the files into a new `agents/` (`cp -r`, which makes new files) and deleted the old ones one by one (`git rm` on each path), so `zfs diff` lists every file as added or deleted. I rejected repeating `git mv`, which would be lost in the take again. I also rejected changing the snapshot adapter, which is beyond this story.
+
+    Refactor: the diff still only changes paths, so there was nothing to simplify.
+
+    Noticed but not touched:
+    - The take bug: any directory rename an agent makes in its stage is silently dropped from the take. `_read_diff_line` would have to list a renamed directory's files on both sides, or refuse the rename. This is a candidate for a story of its own.
+    - `operator/README.md:31` names `claude/commands/kumpel.md`, which is `operator/claude/`, so it is correct.
+    - The human's steps on factory-vm after the merge (entry 11): change the `FACTORY_CLAUDE_HOME` line of `factory.env` to `factory/agents`, rebuild the stage image and renew `image-id`.
+    - Still open for the documenter (criterion 6): the `docs/decisions.md` entry and the mention of the new folder in `README.md`.
+21. factory: Stage doing stalled (attempt 2 of 2): a check is red after the stage: `check`
+    src/factory/watching/application/transcripts.py         61      2     10      0    97%   91-92
+    src/factory/watching/domain/board.py                    55      0      4      1    98%   77->75
+    src/factory/watching/domain/machine.py                  52      3     18      5    89%   44->42, 47, 59, 77->75, 79
+    src/factory/watching/domain/transcripts.py              10      2      0      0    80%   20-21
+    src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   239
+    src/factory/work/application/work_items.py              90      2     24      2    96%   133, 169
+    src/factory/work/domain/acceptance.py                  186      1     46      1    99%   356
+    ------------------------------------------------------------------------------------------------
+    TOTAL                                                10644     49   2122     46    99%
+
+    154 files skipped due to complete coverage.
+    Required test coverage of 90.0% reached. Total coverage: 99.26%
+    ======================================================================================= short test summary info ========================================================================================
+    FAILED tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone - AssertionError: assert not True
+    make: *** [Makefile:89: test] Error 1
