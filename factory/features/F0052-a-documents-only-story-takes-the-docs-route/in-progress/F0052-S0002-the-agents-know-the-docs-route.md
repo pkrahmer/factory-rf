@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T22:22:46.229570Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-11-05T22:22:41.254770Z'
   stage: doing
   run: 6affa672a19c414bb96b390e273ebb72
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:22:46.229570Z'
+  stage: tests
 ---
 
 # The agents know the docs route
@@ -220,3 +229,4 @@ Expect: `named`
 16. coder: Test change, as the human allowed in journal 14: in `tests/agent_files/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged`, cut the `### docs-review` subsection of `agents/agents/reviewer.md` (from its heading to the next line that starts with `#`) out of the body before the CRC-32 is computed. The rest of the reviewer body stays pinned to `_EARLIER_BODY_CRC32` and the test keeps its name.
 
     I changed no code in this run. The agent texts from my last run were committed on the branch (`agents/agents/intake.md`, `agents/agents/documenter.md`, `agents/agents/reviewer.md`). `make check` has not run, because it cannot pass until this test changes. The refactor step is still open: I will do it when the work item comes back to doing.
+17. factory: started tests as vm.
