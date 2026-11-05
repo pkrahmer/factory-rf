@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T03:30:29.446271Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-05T03:30:24.334982Z'
   stage: review
   run: 591b46383bc74247866bf7b2a1b513f4
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-05T03:30:29.446271Z'
+  stage: docs
 ---
 
 # The machine area holds containers, images and disks
@@ -289,3 +298,4 @@ Expect: `1`
       - tests/shared/adapters/test_run_or_raise.py: the source path of its three moved wrappers.
       - tests/test_stop_table.py: the module prefix filter gains `factory.machine.application`. This is a guard of the old layout, changed so it checks the same set of modules. The coder asked for it in entry 7 and the tester made it in entry 9, so it came after the tester's first run, not in it.
       - tests/test_areas.py: the `machine` row of `AREAS` only, as the Interface asks.
+14. factory: started docs as vm.
