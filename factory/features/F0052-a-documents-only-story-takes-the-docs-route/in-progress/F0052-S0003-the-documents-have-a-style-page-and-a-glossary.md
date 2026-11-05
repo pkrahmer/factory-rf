@@ -3,15 +3,11 @@ stage: docs
 blocked: null
 round: 0
 attempts: 1
-crashes: 0
+crashes: 1
 pull_request: 574
 comments_read: [6671915202, 6672097334]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T23:20:44.830664Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,11 @@ journal:
   speaker: factory
   kind: started
   at: '2026-11-05T23:20:44.830664Z'
+  stage: docs
+- number: 22
+  speaker: factory
+  kind: crash
+  at: '2026-11-05T23:25:16.629044Z'
   stage: docs
 ---
 
@@ -342,3 +343,4 @@ Expect: `named`
     Earlier tests:
     - `tests/guards/test_project_guide_files.py`: changed under the human's leave in journal entry 11 (option (a)). The change does what that answer allows and nothing more: `NAMED_FILES` gains `style.md` and `glossary.md`, and one test is renamed to `test_the_guide_holds_the_index_and_its_named_files`.
 21. factory: started docs as vm.
+22. factory: crash 1: the run of stage docs ended without a result. Its work is discarded back to commit 52f293b5f96e569120f7ca78a6a9ee0a4cd42793.
