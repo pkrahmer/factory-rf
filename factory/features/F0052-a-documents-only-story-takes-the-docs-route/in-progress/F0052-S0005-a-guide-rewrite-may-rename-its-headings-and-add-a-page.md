@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 576
 comments_read: [6672543099]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T23:54:38.184456Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-05T23:54:31.864805Z'
   stage: review
   run: e7afbda56dab4c19998c760b009e644d
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:54:38.184456Z'
+  stage: docs
 ---
 
 # A guide rewrite may rename its headings and add a page
@@ -195,3 +204,4 @@ Expect: `1`
     - `tests/guards/test_project_guide_files.py`: the human's leave, feature decision 7. `HEADINGS` and its test are removed, and the two index tests are merged into the one the Interface names. The imports and `NAMED_FILES` that this left unused are removed, and the docstring now says what the merged test checks.
     - `tests/guards/test_operator_guide_files.py`: the human's leave, feature decision 7. `HEADINGS` and its test are removed, along with the imports this left unused.
     - `tests/support/guide_files_support.py`: the human's leave, through the story's Interface, which names this module for `index_problems`. `guide_headings` is removed because its only callers are the tests decision 7 removes.
+13. factory: started docs as vm.
