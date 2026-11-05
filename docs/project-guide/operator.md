@@ -56,18 +56,18 @@ The site file holds a site's own values (`SITE_*` keys) in `KEY=value` lines. It
 
 ## The skill's scripts
 
-- **Every `python3` starts with `-I`**, as its first option, for `-c` and for a program on standard input alike. The skill runs from a project checkout where agents write files, and `-I` keeps a planted `json.py` out of the import path (`docs/decisions.md`). `tests/test_operator_python_isolation.py` pins it.
+- **Every `python3` starts with `-I`**, as its first option, for `-c` and for a program on standard input alike. The skill runs from a project checkout where agents write files, and `-I` keeps a planted `json.py` out of the import path (`docs/decisions.md`). `tests/operator_scripts/test_operator_python_isolation.py` pins it.
 - **A hosting read is assigned to a variable before it is parsed** (`x=$(hosting_repo_api GET ...) || exit 1`), so a failing read ends with the client's message and not a traceback.
-- **Comments are posted only through `comment.sh <pr> <file>`**, which appends the signature line (`— Kumpel, for the human who owns this project`) and the marker `<!-- kumpel -->` once. `merge.sh` and the start commit carry Kumpel's signature as well. The text-pin tests are `tests/test_operator_skill_signature.py` and `tests/test_operator_texts.py`.
+- **Comments are posted only through `comment.sh <pr> <file>`**, which appends the signature line (`— Kumpel, for the human who owns this project`) and the marker `<!-- kumpel -->` once. `merge.sh` and the start commit carry Kumpel's signature as well. The text-pin tests are `tests/operator_scripts/test_operator_skill_signature.py` and `tests/operator_scripts/test_operator_texts.py`.
 - `reset-to-tag.sh <tag> [--yes]` closes the open work-item pull requests, deletes the `work-item/` branches and moves `main` to the tag's commit by force, each step stopping at its first failure.
 
 ## Tests of the scripts
 
 The scripts run for real, in `tmp_path`, with stand-ins on the `PATH` for `gcloud`, `gh` and `curl` (they record their arguments and answer from a plan) and the real `git` against a local bare repository. Nothing reaches the network.
 
-- `tests/operator_support.py`: the paths of the scripts, `INTERFACE_KEYS`, `operator_environment`, and runners for a script, `site`, a library and the hosting client.
-- `tests/operator_job_support.py`: the job's site values, `words` (the words of a recorded call), the wrapper's pattern and the `gcloud` stand-in.
-- `tests/operator_skill_support.py`: `SKILL`, `SCRIPTS`, the `curl` stand-in's `Request` records and `Operator`, a machine with a site, answers and a bare remote.
-- `tests/site_check_support.py`: `Machine`, a machine for `site check`, and the readers of its `ok`/`FAIL` lines.
+- `tests/support/operator_support.py`: the paths of the scripts, `INTERFACE_KEYS`, `operator_environment`, and runners for a script, `site`, a library and the hosting client.
+- `tests/support/operator_job_support.py`: the job's site values, `words` (the words of a recorded call), the wrapper's pattern and the `gcloud` stand-in.
+- `tests/support/operator_skill_support.py`: `SKILL`, `SCRIPTS`, the `curl` stand-in's `Request` records and `Operator`, a machine with a site, answers and a bare remote.
+- `tests/support/site_check_support.py`: `Machine`, a machine for `site check`, and the readers of its `ok`/`FAIL` lines.
 
 Test modules by script: `test_operator_site.py`, `test_operator_site_example.py` and `test_operator_site_check.py` (the site file, its example and `site check`); `test_operator_hosting.py`; `test_operator_job.py` and `test_operator_job_log.py`; `test_operator_sanitise.py`; `test_operator_skill_scripts.py`, `test_operator_merge_reset.py`, `test_operator_skill_signature.py`, `test_operator_skill_name.py` (neither skill text names the repository's old name) and `test_operator_texts.py`; `test_operator_python_isolation.py`.

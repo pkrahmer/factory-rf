@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295, 6650280748, 6650410311, 6650650704]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T05:38:38.370924Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -157,6 +153,12 @@ journal:
   kind: started
   at: '2026-11-05T05:38:38.370924Z'
   stage: docs
+- number: 27
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T05:39:59.146609Z'
+  stage: docs
+  run: 2faaff5398b14720b724350272643a10
 ---
 
 # The root of `tests/` holds only its folders
@@ -468,3 +470,21 @@ Expect: `support.bill_support`
 
     Open, and the human's own (entry 15): the six mutmut `--deselect` paths in `pyproject.toml`.
 26. factory: started docs as vm.
+27. documenter: Docs for the move of the `tests/` root. I did not run `make check`, because I changed only documents, and the factory's checks decide.
+
+    Files changed:
+    - `docs/project-guide/README.md`, section *Shared test helpers*. It now says that the root of `tests/` holds `conftest.py` and folders. It names each folder and what it holds: `support/` (imported as `support.<name>`), `guards/`, `operator_scripts/` (why not `operator/`), `vm/`, `agent_files/`, and `<area>/<layer>/` with `entry/`. It also says what `tests/guards/test_tests_layout.py` enforces. The list of helper modules now gives every module as `support/<name>.py`, and its header line is reworded.
+    - Test-path references in `README.md`, `docs/operator-guide.md` and the project-guide files `operator.md`, `stages.md`, `watching.md`, `stage-environment.md`, `costs.md`, `processes-and-checks.md`, `agents.md`, `git-and-hosting.md` and `work-items.md`. I rewrote every mention of a moved test or helper (such as `tests/test_claim_ownership.py` and `tests/git_support.py`) to its new path. I took the old-to-new mapping from the branch's renames.
+    - `docs/decisions.md`. The story's docs criterion says `none` for this file. The same path rewrite touched it, in 13 or so path mentions inside existing entries. I could not revert it (`git checkout` was denied). The edits are paths only, with no change to any reason. You may want to drop that part of the diff if you want the decision log untouched.
+
+    Cross-read and found current: `docs/project-guide/README.md` (all other sections), and the project guide's `write-paths.md` and `stages.md` prose.
+
+    Stale text I saw and did not fix:
+    - `docs/decisions.md` line 1036 names `tests/confine_support.py`. That module does not exist now, and the entry predates this story.
+    - `CLAUDE.md` *Tests* still says helpers live "at the root of `tests/`" and mentions "until F0051-S0008 moves them". It is the human's file, and the sentence is now out of date.
+
+    No findings for the coder. I did not check the story's "imports most" placement list or the `__file__` list; the reviewer does.
+
+    `check`: check: green (not run again: passed on tree 82a5f83cc2b9 at 2026-11-05T05:24:29Z)
+    `secrets`: secrets: green (10.0 s)
+    `documents`: documents ok
