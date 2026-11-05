@@ -3,7 +3,7 @@
 import pytest
 
 from factory.shared.domain.settings import read_settings
-from settings_support import BASE, CONTAINER
+from support.settings_support import BASE, CONTAINER
 
 
 @pytest.mark.parametrize(

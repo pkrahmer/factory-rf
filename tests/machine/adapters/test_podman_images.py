@@ -13,8 +13,8 @@ from factory.machine.domain.containers import JOB_PODMAN_OPTIONS, SYSTEM_PATH
 from factory.machine.domain.stage_layer import stage_layer
 from factory.shared.domain.errors import ContainerError
 from factory.shared.domain.settings import ContainerProfileName
-from run_layout_support import read_records, write_script
-from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
+from support.run_layout_support import read_records, write_script
+from support.time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 BASE = "factory-stage:vm"
 TAG = "factory-stage:vm-project"

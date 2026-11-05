@@ -2,7 +2,13 @@
 
 from pathlib import Path
 
-from acceptance_walk import (
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.pipeline.application.boundaries import Boundaries
+from factory.shared.domain.identifiers import branch_name
+from factory.shared.domain.sections import section_text
+from factory.work.domain.acceptance import RECOMMENDATION, acceptance_description
+from support.acceptance_walk import (
     FIRST,
     FIRST_RECORDS,
     REVIEWER,
@@ -10,13 +16,7 @@ from acceptance_walk import (
     AcceptanceWalk,
     booked_state,
 )
-from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
-from factory.hosting.adapters.fake_hosting import FakeHostingService
-from factory.pipeline.application.boundaries import Boundaries
-from factory.shared.domain.identifiers import branch_name
-from factory.shared.domain.sections import section_text
-from factory.work.domain.acceptance import RECOMMENDATION, acceptance_description
-from git_support import remote_commit
+from support.git_support import remote_commit
 
 REASON = "The list cannot be sorted."
 

@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from claude_resume_support import _reply, _request, _runtime
-from claude_stand_in import Step
 from factory.agents.domain.agent_runs import PermissionDenial
+from support.claude_resume_support import _reply, _request, _runtime
+from support.claude_stand_in import Step
 
 
 @pytest.mark.parametrize(

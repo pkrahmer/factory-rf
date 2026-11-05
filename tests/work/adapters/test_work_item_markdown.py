@@ -15,7 +15,7 @@ from factory.work.adapters.work_item_markdown import (
 )
 from factory.work.domain.journal import JournalRecord
 from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemState, initial_state
-from source_search import imports, modules
+from support.source_search import imports, modules
 
 STARTED_AT = datetime(2026, 10, 13, 8, 30, tzinfo=UTC)
 CLAIM_LINES = (

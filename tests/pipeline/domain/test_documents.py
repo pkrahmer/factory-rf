@@ -2,14 +2,6 @@
 
 import pytest
 
-from document_texts import (
-    PATH_7_TEST,
-    clean_texts,
-    decision_log,
-    operator_guide,
-    project_guide,
-    readme,
-)
 from factory.pipeline.domain.fault_paths import FAULT_PATHS, FaultPath
 from factory.pipeline.domain.stop_table import STOP_TABLE, StopRow
 from factory.shared.domain.documents import (
@@ -26,6 +18,14 @@ from factory.shared.domain.documents import (
     check_documents,
 )
 from factory.shared.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase
+from support.document_texts import (
+    PATH_7_TEST,
+    clean_texts,
+    decision_log,
+    operator_guide,
+    project_guide,
+    readme,
+)
 
 FENCE = "```"
 PATH_7_FINDING = f"fault-injection path 7 has no table row naming '{PATH_7_TEST}'"

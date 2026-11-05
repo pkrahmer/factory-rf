@@ -6,7 +6,6 @@ from datetime import timedelta
 
 import pytest
 
-import preflight_support
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.pipeline.application.dispatcher import Handler
@@ -15,8 +14,9 @@ from factory.pipeline.application.tick import IdleHandler, Tick, TickOutcome
 from factory.pipeline.domain.checks import CheckResult, status_of
 from factory.pipeline.domain.events import EventKind
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
-from preflight_support import RecordingCommands, Rig
-from stage_run_support import INSTANCE
+from support import preflight_support
+from support.preflight_support import RecordingCommands, Rig
+from support.stage_run_support import INSTANCE
 
 rig = preflight_support.rig
 

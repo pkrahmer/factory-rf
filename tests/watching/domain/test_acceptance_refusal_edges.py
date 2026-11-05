@@ -4,11 +4,11 @@ from datetime import date
 
 import pytest
 
-from acceptance_support import report_of
 from factory.watching.domain.bills import bill
 from factory.work.domain.acceptance import AcceptanceState, book_refusal, refusal_reason
 from factory.work.domain.journal import JournalKind, JournalRecord
 from factory.work.domain.work_item import WorkItemDocument
+from support.acceptance_support import report_of
 
 ROLE = "acceptance-reviewer"
 ON = date(2026, 10, 12)

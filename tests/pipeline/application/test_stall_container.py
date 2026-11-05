@@ -6,7 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from container_support import (
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.take import TakeReport
+from factory.shared.adapters.clock import ManualClock
+from support.container_support import (
     FIRST,
     FIVE_MINUTES,
     Pace,
@@ -16,14 +21,9 @@ from container_support import (
     started_with_sync,
     timing_lines,
 )
-from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.agents.domain.agent_runs import AgentRunResult
-from factory.pipeline.application.boundaries import Boundaries
-from factory.pipeline.application.take import TakeReport
-from factory.shared.adapters.clock import ManualClock
-from git_support import write_files
-from human_clone import HumanClone
-from stage_run_support import (
+from support.git_support import write_files
+from support.human_clone import HumanClone
+from support.stage_run_support import (
     INSIDE,
     NOTES,
     branch_head,
@@ -32,9 +32,9 @@ from stage_run_support import (
     run_stage,
     stage_makefile,
 )
-from stall_support import DIED
-from take_support import AGENT_TEXT
-from undo_support import BRANCH, GUIDE, PATH
+from support.stall_support import DIED
+from support.take_support import AGENT_TEXT
+from support.undo_support import BRANCH, GUIDE, PATH
 
 LATER = "src/c.py"
 SYNC_TARGET = "\nsync:\n\t@echo synced\n"

@@ -14,9 +14,9 @@ from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.work.application.acceptance import AcceptanceService
 from factory.work.domain.acceptance import acceptance_description
 from factory.work.domain.work_item import WorkItemState
-from git_support import install_agents
-from human_clone import HumanClone
-from stage_run_support import ENVIRONMENT, INSTANCE
+from support.git_support import install_agents
+from support.human_clone import HumanClone
+from support.stage_run_support import ENVIRONMENT, INSTANCE
 
 TODO = "factory/features/F0002-todo"
 ACCEPTANCE = "F0002-A0001"

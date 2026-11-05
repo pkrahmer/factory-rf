@@ -8,7 +8,7 @@ from factory.agents.application.tokens import TokenRefresher
 from factory.agents.domain.tokens import Token
 from factory.shared.adapters.atomic_file import replace_text
 from factory.shared.domain.errors import TokenError
-from token_support import ScriptedTokenSource
+from support.token_support import ScriptedTokenSource
 
 
 @pytest.fixture

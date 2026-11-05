@@ -6,7 +6,7 @@ import pkgutil
 import pytest
 
 import factory.pipeline.application.handlers as handlers_package
-from source_search import modules
+from support.source_search import modules
 
 PACKAGE = handlers_package.__name__
 REQUIRED = {"recording", "comments", "questions", "merged", "closed", "reject", "lookups"}

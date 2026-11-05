@@ -7,7 +7,7 @@ import pytest
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions
 from factory.shared.domain.errors import GitError
-from git_support import CHECKOUT, run_git, write_files
+from support.git_support import CHECKOUT, run_git, write_files
 
 
 @pytest.fixture

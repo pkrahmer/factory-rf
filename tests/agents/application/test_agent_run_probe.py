@@ -8,7 +8,6 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import Step, read_calls, write_stand_in
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.application.agent_runtime import AgentRuntime
@@ -30,9 +29,10 @@ from factory.shared.domain.errors import AgentRuntimeError
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.domain.cost_records import ToolUse
 from factory.watching.domain.transcripts import Transcript
-from git_support import install_agents
-from human_clone import HumanClone
-from probe_support import COMPLETED, ENVIRONMENT
+from support.claude_stand_in import Step, read_calls, write_stand_in
+from support.git_support import install_agents
+from support.human_clone import HumanClone
+from support.probe_support import COMPLETED, ENVIRONMENT
 
 SUDO_REFUSAL = "sudo: a password is required"
 IMAGE = "build-7"

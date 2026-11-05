@@ -15,8 +15,8 @@ from factory.shared.domain.errors import (
     AgentDefinitionMissing,
     GitError,
 )
-from git_support import AGENT_FILE, COLOURED_AGENT_FILE, install_agents
-from human_clone import HumanClone
+from support.git_support import AGENT_FILE, COLOURED_AGENT_FILE, install_agents
+from support.human_clone import HumanClone
 
 PROJECT_CODER = "---\nmodel: opus\ntools: [Read]\nbudget_usd: 2\n---\nThe project's coder.\n"
 CODER_FILE = "factory/agents/coder.md"

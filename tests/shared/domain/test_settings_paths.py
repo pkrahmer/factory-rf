@@ -8,7 +8,7 @@ from pydantic import BaseModel, ValidationError
 
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings
-from settings_support import AGENT_HOME, BASE, raising
+from support.settings_support import AGENT_HOME, BASE, raising
 
 CONTAINER = {
     "FACTORY_DATASET": "tank/factory/vm",

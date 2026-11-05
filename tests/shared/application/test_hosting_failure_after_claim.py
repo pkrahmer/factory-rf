@@ -1,7 +1,7 @@
 """A hosting failure after a stage's claim, before any agent ran, and the tick after it."""
 
 from factory.shared.domain.identifiers import WorkItemId
-from proof_support import World, head_state, run_ticks
+from support.proof_support import World, head_state, run_ticks
 
 
 def test_a_hosting_failure_after_the_claim_charges_no_crash_at_the_next_tick(

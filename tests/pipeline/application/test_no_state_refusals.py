@@ -5,8 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from crash_support import Rerun
-from definition_support import pipeline_definition
 from factory.agents.domain.agent_runs import AgentDefinition
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.pipeline.application.boundaries import Boundaries
@@ -18,9 +16,11 @@ from factory.shared.domain.errors import CannotHandle, WorkItemFormatError
 from factory.shared.domain.identifiers import branch_name
 from factory.work.domain.journal import JournalRecord
 from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import remote_commit
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
+from support.crash_support import Rerun
+from support.definition_support import pipeline_definition
+from support.git_support import remote_commit
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

@@ -9,7 +9,6 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import StandInCall, Step, read_calls, write_stand_in
 from factory.agents.adapters.claude_runtime import ENTRY_DESCRIPTION, ClaudeCodeRuntime
 from factory.agents.domain.agent_runs import (
     AgentDefinition,
@@ -20,6 +19,7 @@ from factory.agents.domain.agent_runs import (
 )
 from factory.shared.domain.errors import AgentRuntimeError
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from support.claude_stand_in import StandInCall, Step, read_calls, write_stand_in
 
 LIMIT = timedelta(seconds=30)
 SWITCHES = {

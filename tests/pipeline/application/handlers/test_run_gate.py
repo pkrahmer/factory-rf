@@ -18,8 +18,8 @@ from factory.pipeline.domain.events import Event, EventKind
 from factory.shared.domain.errors import HostingServiceError
 from factory.work.domain.journal import HUMAN, JournalRecord
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import PIPELINE_YAML, remote_commit
-from human_clone import HumanClone
+from support.git_support import PIPELINE_YAML, remote_commit
+from support.human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = f"work-item/{WORK_ITEM}"

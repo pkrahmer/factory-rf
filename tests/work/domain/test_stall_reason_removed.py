@@ -10,7 +10,7 @@ import pytest
 import factory.hosting.domain.post_texts
 from factory.hosting.domain.post_texts import stall_cause
 from factory.work.domain.journal import StallReason
-from source_search import string_literals
+from support.source_search import string_literals
 
 REMOVED = "left_branch"
 

@@ -10,8 +10,8 @@ from factory.agents.domain.agent_runs import AgentRunResult
 from factory.machine.application.preflight import agent_run_probe_item
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import InstanceSettings
-from git_support import install_agents
-from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint
+from support.git_support import install_agents
+from support.probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint
 
 
 @pytest.mark.parametrize(

@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from factory.hosting.adapters.git_cli import GitCli
-from git_support import CHECKOUT, write_files
+from support.git_support import CHECKOUT, write_files
 
 DASH_TREE = {"a.md": "a\n", "-x.md": "x\n", "--y.md": "y\n"}
 

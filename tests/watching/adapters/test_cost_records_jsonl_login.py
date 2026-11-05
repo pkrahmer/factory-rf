@@ -2,12 +2,12 @@
 
 import pytest
 
-from cost_records_support import COMPLETED_LINE, _completed
 from factory.watching.adapters.cost_records_jsonl import (
     JsonLinesCostRecordReader,
     JsonLinesCostRecordWriter,
 )
 from factory.watching.domain.cost_records import CostRecord
+from support.cost_records_support import COMPLETED_LINE, _completed
 
 
 @pytest.mark.parametrize(

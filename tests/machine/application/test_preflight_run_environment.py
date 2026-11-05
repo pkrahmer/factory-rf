@@ -6,21 +6,21 @@ from pathlib import Path
 
 import pytest
 
-from container_support import (
+from factory.machine.adapters.make_commands import ContainerMakeCommands
+from factory.machine.adapters.preflight_stamp_file import JsonPreflightStampFile
+from factory.machine.application.preflight import MachineChecks, Preflight
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.stops import StopService
+from support.container_support import (
     Dataset,
     container_dataset,
     container_instance_settings,
     push_main,
     sync_makefile,
 )
-from factory.machine.adapters.make_commands import ContainerMakeCommands
-from factory.machine.adapters.preflight_stamp_file import JsonPreflightStampFile
-from factory.machine.application.preflight import MachineChecks, Preflight
-from factory.pipeline.application.boundaries import Boundaries
-from factory.pipeline.application.stops import StopService
-from git_support import PIPELINE_YAML, install_agents
-from human_clone import HumanClone
-from wiring_support import every_tool
+from support.git_support import PIPELINE_YAML, install_agents
+from support.human_clone import HumanClone
+from support.wiring_support import every_tool
 
 IMAGE = "build-7"
 LINT = "\n.PHONY: lint\n\nlint:\n\ttrue\n"

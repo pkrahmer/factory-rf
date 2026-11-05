@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from claude_stand_in import Step, read_calls
 from factory.agents.adapters.opencode_runtime import CONFIG_VARIABLE, OpencodeRuntime
-from opencode_stand_in import MODELS, REPLY_EVENTS, opencode_request, write_opencode
+from support.claude_stand_in import Step, read_calls
+from support.opencode_stand_in import MODELS, REPLY_EVENTS, opencode_request, write_opencode
 
 
 def test_a_run_makes_its_missing_state_directory_and_writes_its_configuration_there(

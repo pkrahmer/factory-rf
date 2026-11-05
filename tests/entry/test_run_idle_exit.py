@@ -12,8 +12,8 @@ from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.pipeline.application.tick import TickOutcome
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
-from power_support import IDLE, OTHER
-from scripted_tick_support import ScriptedTick, Step, run_loop, run_main, scripted
+from support.power_support import IDLE, OTHER
+from support.scripted_tick_support import ScriptedTick, Step, run_loop, run_main, scripted
 
 LINE = "idle shutdown: idle for 1 minutes, powering the machine off"
 EXIT_LINE = "idle shutdown: idle for 1 minutes, ending the factory's process"

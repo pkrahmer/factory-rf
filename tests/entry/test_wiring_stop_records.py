@@ -7,7 +7,7 @@ from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.pipeline.domain.stops import StopRecord
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
-from wiring_support import CREDENTIAL
+from support.wiring_support import CREDENTIAL
 
 
 def test_the_built_stop_records_read_back_a_record_from_the_state_directory(

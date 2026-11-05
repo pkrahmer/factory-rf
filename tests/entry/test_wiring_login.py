@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import REPLY, claude_request
 from factory.agents.adapters.agent_launch import LoginFiles, login_argv
 from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
-from podman_support import PodmanPlan
-from wiring_support import CREDENTIAL, after_image, dataset_podman, run_words, with_dataset
+from support.claude_stand_in import REPLY, claude_request
+from support.podman_support import PodmanPlan
+from support.wiring_support import CREDENTIAL, after_image, dataset_podman, run_words, with_dataset
 
 LOGIN = "stand-in-login"
 

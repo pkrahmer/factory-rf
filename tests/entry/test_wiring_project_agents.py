@@ -9,9 +9,9 @@ from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.settings import InstanceSettings
-from git_support import PROJECT_CODER, install_agents
-from human_clone import HumanClone
-from wiring_support import CREDENTIAL
+from support.git_support import PROJECT_CODER, install_agents
+from support.human_clone import HumanClone
+from support.wiring_support import CREDENTIAL
 
 
 @pytest.mark.parametrize(

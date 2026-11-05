@@ -7,10 +7,10 @@ import pytest
 from factory.hosting.adapters.git_cli import GitCli
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.tick import IdleHandler, Tick
-from git_support import CHECKOUT, write_files
-from log_support import log_lines
-from stage_run_support import INSTANCE
-from tick_support import handlers_of
+from support.git_support import CHECKOUT, write_files
+from support.log_support import log_lines
+from support.stage_run_support import INSTANCE
+from support.tick_support import handlers_of
 
 pytestmark = pytest.mark.usefixtures("installed_agents")
 

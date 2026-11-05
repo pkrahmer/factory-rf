@@ -5,7 +5,7 @@ from factory.agents.domain.agent_runs import WritePathSettings
 from factory.agents.domain.write_paths import PROTECTED_PATHS
 from factory.hosting.adapters.git_cli import GitCli
 from factory.pipeline.application.boundaries import Boundaries
-from write_path_support import stage_start
+from support.write_path_support import stage_start
 
 PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"
 

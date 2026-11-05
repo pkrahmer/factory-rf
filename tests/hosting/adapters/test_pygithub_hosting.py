@@ -13,7 +13,7 @@ from factory.hosting.application.hosting import HostingService
 from factory.hosting.domain.hosting import FACTORY_MARKER, PostKey, render_post
 from factory.shared.domain.errors import HostingServiceError
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
-from pygithub_stand_ins import (
+from support.pygithub_stand_ins import (
     Call,
     StandInComment,
     StandInPullRequest,

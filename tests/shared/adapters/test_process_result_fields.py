@@ -14,10 +14,10 @@ from factory.shared.adapters.process import (
     run_process,
     run_streaming,
 )
-from process_support import Recorder, python_argv
-from search_support import modules_matching
-from source_search import SRC
-from time_limits import ROOMY_BOUND_SECONDS
+from support.process_support import Recorder, python_argv
+from support.search_support import modules_matching
+from support.source_search import SRC
+from support.time_limits import ROOMY_BOUND_SECONDS
 
 DRAIN = timedelta(seconds=1)
 

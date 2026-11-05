@@ -2,7 +2,11 @@
 
 import pytest
 
-from crash_support import (
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.domain.hosting import PostKey
+from factory.pipeline.application.boundaries import Boundaries
+from factory.shared.adapters.clock import ManualClock
+from support.crash_support import (
     Rerun,
     expired_claim,
     expired_event,
@@ -10,11 +14,7 @@ from crash_support import (
     other_handler,
     snapshot,
 )
-from factory.hosting.adapters.fake_hosting import FakeHostingService
-from factory.hosting.domain.hosting import PostKey
-from factory.pipeline.application.boundaries import Boundaries
-from factory.shared.adapters.clock import ManualClock
-from human_clone import HumanClone
+from support.human_clone import HumanClone
 
 EXPIRY_KEY = PostKey(work_item="F0001-S0001", kind="expiry", n="3")
 CRASH_CAP_KEY = PostKey(work_item="F0001-S0001", kind="crash_cap", n="4")

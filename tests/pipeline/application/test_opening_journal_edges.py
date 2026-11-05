@@ -3,7 +3,7 @@
 from factory.hosting.application.opening import WorkItemOpening
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
-from human_clone import HumanClone
+from support.human_clone import HumanClone
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 PATH = "factory/features/F0001-example/in-progress/F0001-S0001-first.md"

@@ -7,15 +7,15 @@ from pathlib import Path
 
 import pytest
 
-from disk_support import FakeDiskSpace
 from factory.machine.application.disk_records import DiskRecorder
 from factory.machine.domain.disk import DiskOccasion, DiskRecord, DiskUse, disk_line
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
-from log_support import log_lines
-from record_support import UnwritableRecordLog
+from support.disk_support import FakeDiskSpace
+from support.log_support import log_lines
+from support.record_support import UnwritableRecordLog
 
 STAMP = r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ "
 WORK_FREE = 800 * 10**9

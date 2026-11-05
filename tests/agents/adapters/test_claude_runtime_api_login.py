@@ -5,14 +5,14 @@ from pathlib import Path
 
 import pytest
 
-from agent_login_support import API_LOGIN, SUBSCRIPTION, _utf_16
-from claude_reply_support import BUDGET_STOP
-from claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
 from factory.agents.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.domain.agent_runs import Login
 from factory.shared.domain.errors import AgentRuntimeError
-from run_process_recorder import Recorder
+from support.agent_login_support import API_LOGIN, SUBSCRIPTION, _utf_16
+from support.claude_reply_support import BUDGET_STOP
+from support.claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
+from support.run_process_recorder import Recorder
 
 REQUEST_LOGIN = "request-login"
 

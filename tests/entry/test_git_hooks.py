@@ -9,7 +9,7 @@ import pytest
 from factory.entry.wiring import git_environment
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions
-from git_support import CHECKOUT, clone, remote_commit, run_git
+from support.git_support import CHECKOUT, clone, remote_commit, run_git
 
 BRANCH = "work"
 FACTORY = GitOptions(environment=git_environment())

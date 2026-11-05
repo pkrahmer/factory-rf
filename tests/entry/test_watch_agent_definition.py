@@ -5,8 +5,8 @@ from pathlib import Path
 
 from factory.entry.watch import run_watch
 from factory.pipeline.application.boundaries import Boundaries
-from git_support import COLOURED_AGENT_FILE, PIPELINE_YAML, install_agents, write_agent
-from stage_run_support import INSTANCE
+from support.git_support import COLOURED_AGENT_FILE, PIPELINE_YAML, install_agents, write_agent
+from support.stage_run_support import INSTANCE
 
 ROLE = "coder"
 

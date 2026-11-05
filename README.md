@@ -30,7 +30,7 @@ The factory runs as a service on a Linux VM with ZFS and rootless Podman, and ev
 - `docs/decisions.md`: lasting decisions and what was rejected
 - `docs/operator-playbook.md`: how the human runs the factory day to day
 - `CLAUDE.md`: the rules every change follows (architecture, tests, checks)
-- `demo/`: the demos v1.1 ships, one folder each; `uv run python -m factory.entry.check_demos` checks them (`make check` runs the same check through `tests/test_demos.py`)
+- `demo/`: the demos v1.1 ships, one folder each; `uv run python -m factory.entry.check_demos` checks them (`make check` runs the same check through `tests/entry/test_demos.py`)
 
 ## How it is built
 

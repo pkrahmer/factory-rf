@@ -11,9 +11,9 @@ from factory.pipeline.application.stops import StopService
 from factory.pipeline.domain.events import Event
 from factory.pipeline.domain.tick_status import TickStatus
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot
-from git_support import remote_commit
-from human_clone import HumanClone
-from tick_support import Failing
+from support.git_support import remote_commit
+from support.human_clone import HumanClone
+from support.tick_support import Failing
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = "work-item/F0001-S0001"

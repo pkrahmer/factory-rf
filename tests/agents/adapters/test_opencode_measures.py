@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import Step
 from factory.agents.adapters.opencode_runtime import parse_result_block
-from opencode_stand_in import (
+from support.claude_stand_in import Step
+from support.opencode_stand_in import (
     opencode_request,
     result_text,
     stand_in_runtime,

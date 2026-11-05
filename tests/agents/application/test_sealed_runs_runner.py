@@ -4,15 +4,15 @@ from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 
-from agent_run_support import COMPLETED
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.machine.application.preflight import agent_run_probe_item
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from factory.shared.domain.settings import InstanceSettings
-from git_support import install_agents
-from stage_run_support import ENVIRONMENT
+from support.agent_run_support import COMPLETED
+from support.git_support import install_agents
+from support.stage_run_support import ENVIRONMENT
 
 
 def test_the_probe_does_not_wait_out_a_provider_limit(

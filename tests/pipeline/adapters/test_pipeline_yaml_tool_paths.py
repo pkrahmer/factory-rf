@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from factory.pipeline.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from git_support import PIPELINE_YAML, pipeline_outcome
+from support.git_support import PIPELINE_YAML, pipeline_outcome
 
 ROOT = Path(__file__).parents[3]
 

@@ -9,7 +9,7 @@ from factory.shared.domain.settings import (
     OPENCODE_VERSION_VARIABLE,
     read_settings,
 )
-from settings_support import BASE
+from support.settings_support import BASE
 
 
 @pytest.mark.parametrize(

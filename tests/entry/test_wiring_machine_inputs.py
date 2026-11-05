@@ -6,9 +6,9 @@ from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.adapters.machine_files import CgroupMachineReadings
-from podman_support import IMAGE
-from sized_images import SizedImages, sized_by_tag
-from wiring_support import CREDENTIAL
+from support.podman_support import IMAGE
+from support.sized_images import SizedImages, sized_by_tag
+from support.wiring_support import CREDENTIAL
 
 
 def test_the_built_boundaries_read_the_image_store_and_the_cgroup_slice(

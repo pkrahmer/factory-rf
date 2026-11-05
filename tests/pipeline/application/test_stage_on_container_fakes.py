@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from container_support import RESET_PREFIX, timing_lines
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentDefinition, AgentRunResult
 from factory.machine.application.preflight import agent_run_probe_item
@@ -14,10 +13,11 @@ from factory.pipeline.application.task import TaskComposer, TaskContext
 from factory.shared.domain.settings import InstanceSettings
 from factory.work.domain.journal import entry_text
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML, install_agents
-from human_clone import HumanClone
-from probe_support import COMPLETED, ENVIRONMENT
-from stage_run_support import (
+from support.container_support import RESET_PREFIX, timing_lines
+from support.git_support import PIPELINE_YAML, install_agents
+from support.human_clone import HumanClone
+from support.probe_support import COMPLETED, ENVIRONMENT
+from support.stage_run_support import (
     BRANCH,
     CREATED,
     CREATED_LINE,

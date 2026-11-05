@@ -18,8 +18,8 @@ from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.pipeline.domain.tick_status import TickStatus
 from factory.shared.domain.errors import CannotHandle
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import remote_commit
-from human_clone import HumanClone
+from support.git_support import remote_commit
+from support.human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = f"work-item/{WORK_ITEM}"

@@ -24,11 +24,11 @@ from factory.machine.domain.stage_layer import (
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.tick import Tick, TickOutcome
 from factory.shared.domain.settings import InstanceSettings
-from git_support import remote_commit
-from human_clone import HumanClone
-from log_support import state_log_lines
-from sized_images import SizedImages, sized_by_tag
-from stage_image_support import BASE_IDENTITY, FIRST, SECOND, StageSeen, built_path
+from support.git_support import remote_commit
+from support.human_clone import HumanClone
+from support.log_support import state_log_lines
+from support.sized_images import SizedImages, sized_by_tag
+from support.stage_image_support import BASE_IDENTITY, FIRST, SECOND, StageSeen, built_path
 
 THIRD = "ARG FACTORY_BASE\nFROM ${FACTORY_BASE}\nRUN echo third\n"
 PASSED = ImageBuild(passed=True, duration=timedelta(seconds=3), output_tail="done")

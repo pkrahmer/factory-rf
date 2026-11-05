@@ -9,8 +9,8 @@ from factory.pipeline.application.claims import ClaimService
 from factory.pipeline.domain.lease import ClaimStatus
 from factory.shared.adapters.clock import ManualClock
 from factory.work.domain.work_item import Claim, WorkItemState
-from git_support import PIPELINE_YAML
-from stage_run_support import INSTANCE
+from support.git_support import PIPELINE_YAML
+from support.stage_run_support import INSTANCE
 
 OTHER_INSTANCE = "factory-2"
 

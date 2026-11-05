@@ -7,7 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from container_support import (
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.git import GitOptions
+from factory.machine.application.preflight import PROBE_PROMPT, agent_run_probe_item
+from factory.pipeline.application.boundaries import Boundaries
+from factory.shared.domain.settings import InstanceSettings
+from support.container_support import (
     SYNC_MARKER,
     Dataset,
     container_dataset,
@@ -16,15 +22,9 @@ from container_support import (
     push_main,
     sync_makefile,
 )
-from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.hosting.adapters.git_cli import GitCli
-from factory.hosting.domain.git import GitOptions
-from factory.machine.application.preflight import PROBE_PROMPT, agent_run_probe_item
-from factory.pipeline.application.boundaries import Boundaries
-from factory.shared.domain.settings import InstanceSettings
-from git_support import TEST_IDENTITY, clone, install_agents, run_git
-from human_clone import HumanClone
-from probe_support import COMPLETED, ENVIRONMENT
+from support.git_support import TEST_IDENTITY, clone, install_agents, run_git
+from support.human_clone import HumanClone
+from support.probe_support import COMPLETED, ENVIRONMENT
 
 
 @pytest.fixture

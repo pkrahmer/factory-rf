@@ -15,8 +15,8 @@ from factory.pipeline.application.stops import StopService
 from factory.pipeline.domain.stops import StopPosted, WorkItemStop
 from factory.shared.domain.errors import GitError, HostingServiceError
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
-from git_support import TEST_IDENTITY, run_git
-from human_clone import HumanClone
+from support.git_support import TEST_IDENTITY, run_git
+from support.human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = "work-item/F0001-S0001"

@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from check_documents_support import MISSING_LINES
-from document_texts import clean_texts, project_guide, write_documents
 from factory.entry.check_documents import main
 from factory.shared.domain.documents import DECISION_LOG, OPERATOR_GUIDE, README
+from support.check_documents_support import MISSING_LINES
+from support.document_texts import clean_texts, project_guide, write_documents
 
 STAGES = "docs/project-guide/stages.md"
 

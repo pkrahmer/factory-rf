@@ -9,8 +9,8 @@ from factory.pipeline.domain.events import Event
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.errors import CannotHandle
 from factory.work.application.acceptance import AcceptanceDueHandler
-from git_support import remote_commit, run_git
-from human_clone import HumanClone
+from support.git_support import remote_commit, run_git
+from support.human_clone import HumanClone
 
 TODO = "factory/features/F0002-todo"
 BRANCH = "work-item/F0002-A0001"

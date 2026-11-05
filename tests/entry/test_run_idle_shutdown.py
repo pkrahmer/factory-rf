@@ -7,8 +7,8 @@ from factory.entry.run import activity_tick
 from factory.pipeline.application.idle_shutdown import IdleShutdown
 from factory.pipeline.application.tick import Tick, TickOutcome
 from factory.shared.adapters.clock import ManualClock
-from power_support import IDLE, OTHER, CountingPower
-from recording_log import RecordingLog
+from support.power_support import IDLE, OTHER, CountingPower
+from support.recording_log import RecordingLog
 
 
 class _ScriptedTick(Tick):

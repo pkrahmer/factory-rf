@@ -11,8 +11,8 @@ from factory.machine.adapters.podman_runs import PodmanRuns
 from factory.machine.domain.containers import Mount
 from factory.shared.adapters.process import ProcessResult
 from factory.shared.domain.errors import ContainerError
-from podman_support import IMAGE, INSTANCE, Podman, PodmanPlan, launch_words
-from run_process_recorder import Recorder
+from support.podman_support import IMAGE, INSTANCE, Podman, PodmanPlan, launch_words
+from support.run_process_recorder import Recorder
 
 WORKSPACE = Path("/srv/factory/vm/work")
 JOB_WORDS = [

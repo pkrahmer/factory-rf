@@ -14,9 +14,9 @@ from factory.machine.adapters.zfs_snapshots import ZfsSnapshots
 from factory.machine.application.project_commands import RecordingProjectCommands
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings
-from podman_support import IMAGE, Podman
-from wiring_support import CREDENTIAL, HOSTED_URL, record_get_repo
-from zfs_support import DATASET, Zfs
+from support.podman_support import IMAGE, Podman
+from support.wiring_support import CREDENTIAL, HOSTED_URL, record_get_repo
+from support.zfs_support import DATASET, Zfs
 
 
 @pytest.fixture

@@ -8,8 +8,8 @@ from factory.hosting.adapters.git_cli import GitCli
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.pipeline_loading import PipelineLoader
 from factory.shared.domain.errors import PipelineDefinitionInvalid
-from git_support import PIPELINE_YAML, install_agents
-from human_clone import HumanClone
+from support.git_support import PIPELINE_YAML, install_agents
+from support.human_clone import HumanClone
 
 PIPELINE_FILE = "factory/pipeline.yml"
 CODER = '  coder: {write_paths: ["src/*"]}'

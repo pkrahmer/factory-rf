@@ -5,7 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from container_extra_support import (
+from factory.agents.adapters.claude_runtime import SWITCHES
+from factory.machine.adapters.make_commands import CHECK_ENVIRONMENT
+from factory.machine.application.stage_environment import SYNC_ENVIRONMENT
+from factory.machine.domain.containers import CA_BUNDLE_NAMES, WORK_HOME, extra_environment
+from factory.shared.domain.settings import InstanceSettings
+from support.container_extra_support import (
     PROXY,
     agent_words,
     check_words,
@@ -15,13 +20,8 @@ from container_extra_support import (
     without_pairs,
     write_bundle,
 )
-from container_support import Dataset
-from factory.agents.adapters.claude_runtime import SWITCHES
-from factory.machine.adapters.make_commands import CHECK_ENVIRONMENT
-from factory.machine.application.stage_environment import SYNC_ENVIRONMENT
-from factory.machine.domain.containers import CA_BUNDLE_NAMES, WORK_HOME, extra_environment
-from factory.shared.domain.settings import InstanceSettings
-from settings_support import AGENT_HOME
+from support.container_support import Dataset
+from support.settings_support import AGENT_HOME
 
 NEITHER = InstanceSettings(
     repository_url="/srv/project.git", instance="factory-1", agent_home=AGENT_HOME

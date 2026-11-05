@@ -17,9 +17,9 @@ from factory.shared.domain.errors import HostingServiceError, WorkItemFormatErro
 from factory.shared.domain.identifiers import WorkItemId, branch_name
 from factory.shared.domain.kill_points import KillPoints
 from factory.work.domain.work_item import WorkItemDocument
-from git_support import PIPELINE_YAML
-from log_support import state_log_lines
-from proof_support import (
+from support.git_support import PIPELINE_YAML
+from support.log_support import state_log_lines
+from support.proof_support import (
     FEATURE,
     STAGE,
     World,
@@ -30,7 +30,7 @@ from proof_support import (
     state_at,
     work_item_file,
 )
-from stage_run_support import ENVIRONMENT, INSTANCE
+from support.stage_run_support import ENVIRONMENT, INSTANCE
 
 RELEASE_TEXT = "claim released: hosting failed"
 HANDLER_ERROR = re.compile(r"handler error (\S+) (\d+) of 3: HostingServiceError: ")

@@ -7,7 +7,7 @@ from pydantic import BaseModel, ValidationError
 
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings
-from settings_support import AGENT_HOME, BASE, CONTAINER
+from support.settings_support import AGENT_HOME, BASE, CONTAINER
 
 WORKSPACE = Path("/srv/factory/vm/work")
 _UNSET = object()

@@ -15,8 +15,8 @@ from factory.work.application.work_items import RemoteWorkItems
 from factory.work.domain.journal import JournalKind, JournalRecord
 from factory.work.domain.move_rule import StageChange
 from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import clone, commit_all, run_git, write_files
-from human_clone import HumanClone
+from support.git_support import clone, commit_all, run_git, write_files
+from support.human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = branch_name(WORK_ITEM)

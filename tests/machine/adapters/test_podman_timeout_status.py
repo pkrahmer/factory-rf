@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 
 from factory.machine.adapters.podman_runs import PodmanRuns
-from podman_support import IMAGE, INSTANCE, Podman, PodmanPlan
-from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
+from support.podman_support import IMAGE, INSTANCE, Podman, PodmanPlan
+from support.time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 ROOMY_SECONDS = ROOMY_LIMIT.total_seconds()
 

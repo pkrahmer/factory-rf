@@ -12,9 +12,9 @@ from factory.entry.wiring import build_tick, machine_extras
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.tick import TickOutcome
 from factory.shared.domain.settings import InstanceSettings
-from git_support import PIPELINE_YAML, install_agents
-from human_clone import HumanClone
-from wiring_support import CONTAINER_ITEMS, every_tool, with_dataset
+from support.git_support import PIPELINE_YAML, install_agents
+from support.human_clone import HumanClone
+from support.wiring_support import CONTAINER_ITEMS, every_tool, with_dataset
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 STORY = """\

@@ -6,7 +6,7 @@ import pytest
 
 from factory.machine.domain.containers import extra_environment
 from factory.shared.domain.settings import InstanceSettings
-from settings_support import AGENT_HOME
+from support.settings_support import AGENT_HOME
 
 _PROXY = "http://proxy.example.invalid:3128"
 _BUNDLE = "/etc/ca.pem"

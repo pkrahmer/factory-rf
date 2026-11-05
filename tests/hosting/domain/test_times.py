@@ -13,7 +13,7 @@ from factory.pipeline.domain.stops import RepositoryStop
 from factory.shared.domain.times import in_utc
 from factory.watching.domain.cost_records import CostRecord
 from factory.work.domain.work_item import Claim
-from source_search import modules
+from support.source_search import modules
 
 AWARE = datetime(2026, 10, 12, 14, 0, tzinfo=timezone(timedelta(hours=2)))
 NAIVE = datetime(2026, 10, 12, 12, 0)

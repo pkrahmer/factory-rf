@@ -20,11 +20,11 @@ from factory.machine.application.preflight import agent_run_probe_item
 from factory.machine.application.project_commands import RecordingProjectCommands
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import InstanceSettings
-from git_support import install_agents
-from podman_support import IMAGE, Podman
-from probe_support import ENVIRONMENT
-from wiring_support import CONTAINER_ITEMS, CREDENTIAL
-from zfs_support import DATASET, Zfs
+from support.git_support import install_agents
+from support.podman_support import IMAGE, Podman
+from support.probe_support import ENVIRONMENT
+from support.wiring_support import CONTAINER_ITEMS, CREDENTIAL
+from support.zfs_support import DATASET, Zfs
 
 CONTAINER_PROBED_ITEMS = [*CONTAINER_ITEMS, "agent-run-probe"]
 

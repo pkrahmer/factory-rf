@@ -23,7 +23,7 @@ from factory.work.domain.journal import (
     entry_text,
 )
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import remote_commit
+from support.git_support import remote_commit
 
 StateWith = Callable[[int | None], WorkItemState]
 SnapshotOf = Callable[[WorkItemState | None], WorkItemSnapshot]

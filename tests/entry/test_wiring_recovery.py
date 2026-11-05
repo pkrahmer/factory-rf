@@ -7,9 +7,9 @@ from factory.pipeline.application.handlers.run_gate import RunGate
 from factory.pipeline.application.recovery import RecoveryHandler
 from factory.pipeline.domain.events import EventKind
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
-from git_support import PIPELINE_YAML
-from stage_run_support import INSTANCE
-from wiring_support import ENVIRONMENT
+from support.git_support import PIPELINE_YAML
+from support.stage_run_support import INSTANCE
+from support.wiring_support import ENVIRONMENT
 
 
 def _handlers(boundaries: Boundaries) -> dict[EventKind, Handler]:

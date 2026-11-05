@@ -4,7 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from acceptance_walk import (
+from factory.hosting.adapters.git_cli import GitCli
+from factory.shared.domain.identifiers import branch_name
+from factory.shared.domain.paths import cost_records_path
+from support.acceptance_walk import (
     FIRST,
     FIRST_RECORDS,
     SECOND,
@@ -12,10 +15,7 @@ from acceptance_walk import (
     AcceptanceWalk,
     report_of,
 )
-from factory.hosting.adapters.git_cli import GitCli
-from factory.shared.domain.identifiers import branch_name
-from factory.shared.domain.paths import cost_records_path
-from git_support import remote_commit
+from support.git_support import remote_commit
 
 REPEATED = [("approval", "merged"), ("acceptance", "run")]
 

@@ -11,9 +11,9 @@ from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions
 from factory.pipeline.application.scheduler import CheckoutPreparer
 from factory.shared.domain.settings import InstanceSettings
-from git_support import TEST_IDENTITY, clone
-from settings_support import AGENT_HOME
-from source_search import SRC, modules
+from support.git_support import TEST_IDENTITY, clone
+from support.settings_support import AGENT_HOME
+from support.source_search import SRC, modules
 
 KEPT = "added-by-test.txt"
 PREPARE_DOCSTRING = "Clone when the checkout holds no `.git`; keep any checkout that does."

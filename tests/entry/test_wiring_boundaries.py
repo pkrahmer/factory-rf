@@ -40,9 +40,9 @@ from factory.work.adapters.work_item_markdown import (
     FrontmatterWorkItemReader,
     FrontmatterWorkItemWriter,
 )
-from git_support import clone, install_agents, write_executable
-from podman_support import PodmanPlan
-from wiring_support import (
+from support.git_support import clone, install_agents, write_executable
+from support.podman_support import PodmanPlan
+from support.wiring_support import (
     CREDENTIAL,
     after_image,
     dataset_podman,

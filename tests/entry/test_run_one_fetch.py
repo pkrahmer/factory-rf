@@ -21,10 +21,10 @@ from factory.pipeline.domain.stops import RepositoryStop
 from factory.shared.domain.errors import FetchFailed
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.settings import InstanceSettings
-from git_support import remote_commit
-from human_clone import HumanClone
-from remote_outage_support import RemoteOutage, fetch_failed
-from tick_support import handlers_of
+from support.git_support import remote_commit
+from support.human_clone import HumanClone
+from support.remote_outage_support import RemoteOutage, fetch_failed
+from support.tick_support import handlers_of
 
 # A work-item branch of no story: the tick has nothing to run on it and stays idle.
 BRANCH = branch_name("F0001-S0009")

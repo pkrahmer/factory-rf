@@ -7,7 +7,6 @@ from pathlib import Path
 import pytest
 
 import factory.pipeline.application.stage
-from definition_support import pipeline_definition
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.pipeline.application.boundaries import Boundaries
@@ -15,10 +14,11 @@ from factory.pipeline.application.stage import AfterAgent, AgentAftermath
 from factory.pipeline.application.stalls import StallResult
 from factory.work.domain.decisions import StallReason
 from factory.work.domain.work_item import WorkItemState
-from git_support import install_agents
-from human_clone import HumanClone
-from stage_run_support import INSTANCE, completed
-from stall_support import CREATED, launched_stage, open_work_item
+from support.definition_support import pipeline_definition
+from support.git_support import install_agents
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE, completed
+from support.stall_support import CREATED, launched_stage, open_work_item
 
 
 @pytest.mark.parametrize(

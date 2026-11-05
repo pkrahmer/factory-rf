@@ -5,22 +5,22 @@ from pathlib import Path
 
 import pytest
 
-from container_support import (
-    FIVE_MINUTES,
-    Dataset,
-    assert_taken_and_pushed,
-    whole_stage,
-)
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.hosting.domain.git import CommitId
 from factory.machine.adapters.make_commands import ContainerMakeCommands
 from factory.machine.application.stage_environment import ContainerEnvironment
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.stage import StageReport
-from git_support import write_files
-from human_clone import HumanClone
-from stage_run_support import BRANCH, INSIDE, NOTES, branch_head
-from take_support import AGENT_TEXT
+from support.container_support import (
+    FIVE_MINUTES,
+    Dataset,
+    assert_taken_and_pushed,
+    whole_stage,
+)
+from support.git_support import write_files
+from support.human_clone import HumanClone
+from support.stage_run_support import BRANCH, INSIDE, NOTES, branch_head
+from support.take_support import AGENT_TEXT
 
 STRAY = "stray.txt"
 LEFTOVER = "leftover"

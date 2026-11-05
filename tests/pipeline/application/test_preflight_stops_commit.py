@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pytest
 
-import preflight_support
 from factory.machine.domain.preflight import PreflightStamp
 from factory.pipeline.domain.stops import StopRecord, stop_records_text
 from factory.shared.domain.paths import STOP_RECORDS_FILE
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
-from log_support import log_lines
-from preflight_support import CLEARED_LINE, IMAGE, OTHER_IMAGE, Rig, fail_once
+from support import preflight_support
+from support.log_support import log_lines
+from support.preflight_support import CLEARED_LINE, IMAGE, OTHER_IMAGE, Rig, fail_once
 
 rig = preflight_support.rig
 red_main = preflight_support.red_main

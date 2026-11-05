@@ -5,7 +5,15 @@ from typing import Literal
 
 import pytest
 
-from crash_support import (
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.handlers.closed import ClosedHandler
+from factory.pipeline.application.handlers.questions import AskHandler
+from factory.pipeline.domain.events import Event, EventKind
+from factory.shared.adapters.clock import ManualClock
+from factory.work.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
+from factory.work.domain.work_item import WorkItemDocument, WorkItemState
+from support.crash_support import (
     BRANCH,
     PATH,
     Rerun,
@@ -19,16 +27,8 @@ from crash_support import (
     remote_state,
     snapshot,
 )
-from definition_support import pipeline_definition
-from factory.hosting.adapters.fake_hosting import FakeHostingService
-from factory.pipeline.application.boundaries import Boundaries
-from factory.pipeline.application.handlers.closed import ClosedHandler
-from factory.pipeline.application.handlers.questions import AskHandler
-from factory.pipeline.domain.events import Event, EventKind
-from factory.shared.adapters.clock import ManualClock
-from factory.work.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
-from factory.work.domain.work_item import WorkItemDocument, WorkItemState
-from human_clone import HumanClone
+from support.definition_support import pipeline_definition
+from support.human_clone import HumanClone
 
 BODY = "# First story\n\n## Journal\n\n1. 2026-10-12 human: created.\n"
 CREATED = JournalRecord(number=1, speaker=HUMAN, kind="created")

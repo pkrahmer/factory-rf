@@ -8,13 +8,13 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import Step, read_calls, write_stand_in
 from factory.agents.adapters.claude_runtime import SWITCHES, ClaudeCodeRuntime
 from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest, scrub_environment
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.hosting import PostKey
-from git_support import CHECKOUT, commit_all, run_git, write_files
+from support.claude_stand_in import Step, read_calls, write_stand_in
+from support.git_support import CHECKOUT, commit_all, run_git, write_files
 
 BRANCH = "work-item/F0001-S0001"
 GIVEN = {"HOME": "/home/factory", "LANG": "C.UTF-8"}

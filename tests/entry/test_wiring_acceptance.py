@@ -6,7 +6,6 @@ from typing import get_args
 
 import pytest
 
-from definition_support import pipeline_definition
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.entry.wiring import build_handlers, handler_factory
@@ -21,10 +20,11 @@ from factory.work.application.acceptance import AcceptanceDueHandler, Acceptance
 from factory.work.domain.acceptance import AcceptanceState
 from factory.work.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import PIPELINE_YAML, install_agents, remote_commit
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
-from wiring_support import ENVIRONMENT
+from support.definition_support import pipeline_definition
+from support.git_support import PIPELINE_YAML, install_agents, remote_commit
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
+from support.wiring_support import ENVIRONMENT
 
 STATE = "a" * 40
 EXAMPLE = "factory/features/F0001-example"

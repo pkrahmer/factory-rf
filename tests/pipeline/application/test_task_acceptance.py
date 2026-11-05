@@ -14,8 +14,8 @@ from factory.shared.domain.paths import STORY_FORM_FILE
 from factory.work.application.acceptance import AcceptanceService
 from factory.work.domain.acceptance import AcceptanceState, acceptance_prompt
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import run_git
-from human_clone import HumanClone
+from support.git_support import run_git
+from support.human_clone import HumanClone
 
 TODO = "factory/features/F0002-todo"
 ACCEPTANCE = "F0002-A0001"

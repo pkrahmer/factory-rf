@@ -18,8 +18,8 @@ from factory.machine.application.project_commands import ProjectCommands
 from factory.machine.application.snapshots import Snapshots
 from factory.machine.application.stage_environment import StageEnvironment
 from factory.pipeline.domain.checks import CheckResult
-from git_interface_support import OPERATIONS as GIT_OPERATIONS
-from hosting_interface_support import OPERATIONS as HOSTING_OPERATIONS
+from support.git_interface_support import OPERATIONS as GIT_OPERATIONS
+from support.hosting_interface_support import OPERATIONS as HOSTING_OPERATIONS
 
 INTERFACES: list[type[object]] = [
     Git,

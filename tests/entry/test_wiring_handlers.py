@@ -8,7 +8,6 @@ from pathlib import Path
 
 import pytest
 
-from definition_support import pipeline_definition
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.entry.wiring import (
@@ -25,10 +24,11 @@ from factory.pipeline.application.tick import IdleHandler, Tick
 from factory.pipeline.domain.events import Event, EventKind
 from factory.pipeline.domain.tick_status import TickStatus, find_error
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import install_agents
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
-from wiring_support import ENVIRONMENT
+from support.definition_support import pipeline_definition
+from support.git_support import install_agents
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
+from support.wiring_support import ENVIRONMENT
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"
 STATE = "a" * 40

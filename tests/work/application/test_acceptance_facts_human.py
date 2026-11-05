@@ -10,8 +10,8 @@ from factory.work.application.acceptance import AcceptanceService
 from factory.work.domain.acceptance import AcceptanceState
 from factory.work.domain.journal import HUMAN, Blocked, JournalKind, JournalRecord
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML
-from human_clone import HumanClone
+from support.git_support import PIPELINE_YAML
+from support.human_clone import HumanClone
 
 FEATURE = "F0002"
 TODO = "factory/features/F0002-todo"

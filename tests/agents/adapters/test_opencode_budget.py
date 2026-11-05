@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import Step, read_calls
 from factory.agents.adapters.agent_launch import FINISH_MESSAGE
 from factory.agents.adapters.opencode_runtime import CONFIG_VARIABLE
 from factory.agents.domain.agent_runs import TokenCounts
 from factory.shared.domain.kill_points import KillPoint, KillPoints
-from opencode_stand_in import (
+from support.claude_stand_in import Step, read_calls
+from support.opencode_stand_in import (
     BOUND_SECONDS,
     RESUME_ENTRY,
     RESUME_REPLY,
@@ -27,7 +27,7 @@ from opencode_stand_in import (
     step_start,
     text,
 )
-from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
+from support.time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 # What one `step_finish` of the stand-in's builders counts, as the runtime sums it.
 STEP_TOKENS = TokenCounts(input=10, output=7, cache_read=100, cache_creation=20)

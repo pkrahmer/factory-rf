@@ -9,8 +9,8 @@ from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.pipeline.application.boundaries import Boundaries
 from factory.work.domain.journal import entry_text
-from human_clone import HumanClone
-from stage_run_support import (
+from support.human_clone import HumanClone
+from support.stage_run_support import (
     BRANCH,
     NOTES,
     PATH,

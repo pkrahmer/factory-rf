@@ -18,10 +18,10 @@ from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.work.domain.journal import JournalRecord
 from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML, TEST_IDENTITY, remote_commit
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
-from work_item_support import CREATED, checkout_text, created_state, put_work_item
+from support.git_support import PIPELINE_YAML, TEST_IDENTITY, remote_commit
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
+from support.work_item_support import CREATED, checkout_text, created_state, put_work_item
 
 STAGE = "intake"
 WORK_ITEM = "F0001-S0001"

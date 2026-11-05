@@ -8,8 +8,8 @@ import pytest
 from factory.watching.adapters.transcript_files import FileTranscriptStore
 from factory.watching.application.transcripts import TranscriptKeeper
 from factory.watching.domain.transcripts import Transcript
-from recording_log import RecordingLog
-from transcript_support import sha256_of
+from support.recording_log import RecordingLog
+from support.transcript_support import sha256_of
 
 WORK_ITEM = "F0001-S0001"
 RUN = "a" * 32

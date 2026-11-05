@@ -8,7 +8,7 @@ from pydantic import ValidationError
 
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings, workspace_overlap_fault
-from settings_support import AGENT_HOME, BASE, CONTAINER
+from support.settings_support import AGENT_HOME, BASE, CONTAINER
 
 STAGE_ENVIRONMENT = "FACTORY_STAGE_ENVIRONMENT"
 WORKSPACE = Path("/srv/work")

@@ -8,8 +8,8 @@ from factory.pipeline.application.idle_shutdown import IdleShutdown
 from factory.pipeline.application.tick import TickOutcome
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import PowerOffError
-from power_support import IDLE, IDLE_ERROR, OTHER, STOPPED, WAITS, CountingPower
-from recording_log import RecordingLog
+from support.power_support import IDLE, IDLE_ERROR, OTHER, STOPPED, WAITS, CountingPower
+from support.recording_log import RecordingLog
 
 LIMIT = timedelta(minutes=30)
 REFUSAL = "sudo: a password is required"

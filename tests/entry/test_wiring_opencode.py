@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from agent_login_support import API_LOGIN
 from factory.agents.adapters.agent_launch import LoginFiles, login_argv
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.adapters.opencode_runtime import CONFIG_VARIABLE, OpencodeRuntime
@@ -14,7 +13,8 @@ from factory.entry.wiring import build_boundaries, machine_extras
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import InstanceSettings
-from opencode_stand_in import (
+from support.agent_login_support import API_LOGIN
+from support.opencode_stand_in import (
     REPLY_EVENTS,
     error,
     opencode_request,
@@ -22,8 +22,8 @@ from opencode_stand_in import (
     step_start,
     write_agent_settings,
 )
-from podman_support import PodmanPlan
-from wiring_support import (
+from support.podman_support import PodmanPlan
+from support.wiring_support import (
     CONTAINER_ITEMS,
     CREDENTIAL,
     after_image,

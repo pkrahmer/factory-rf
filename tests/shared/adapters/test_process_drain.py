@@ -14,7 +14,7 @@ from factory.shared.adapters.process import (
     run_process,
     run_streaming,
 )
-from process_support import Recorder, is_gone, python_argv
+from support.process_support import Recorder, is_gone, python_argv
 
 SHORT_DRAIN = timedelta(seconds=2)
 

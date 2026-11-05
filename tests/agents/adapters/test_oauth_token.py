@@ -9,7 +9,7 @@ import pytest
 from factory.agents.adapters.oauth_token import ClientCredentialsTokenSource
 from factory.agents.domain.tokens import Token
 from factory.shared.domain.errors import TokenError
-from token_support import (
+from support.token_support import (
     ENDPOINT,
     HIDDEN,
     ISSUED,

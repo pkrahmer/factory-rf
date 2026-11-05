@@ -9,9 +9,9 @@ from factory.machine.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.tick import TickOutcome
 from factory.shared.domain.settings import InstanceSettings
-from git_support import PIPELINE_YAML, install_agents
-from human_clone import HumanClone
-from wiring_support import every_tool, with_dataset
+from support.git_support import PIPELINE_YAML, install_agents
+from support.human_clone import HumanClone
+from support.wiring_support import every_tool, with_dataset
 
 IMAGE = "build-7"
 

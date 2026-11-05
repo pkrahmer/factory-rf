@@ -7,8 +7,8 @@ from factory.pipeline.application.dispatcher import Dispatcher
 from factory.pipeline.application.stops import StopService
 from factory.pipeline.domain.events import Event
 from factory.pipeline.domain.tick_status import TickStatus
-from recording_log import RecordingLog
-from tick_support import Failing
+from support.recording_log import RecordingLog
+from support.tick_support import Failing
 
 STATE = "a" * 40
 PREFIX = "handler error "

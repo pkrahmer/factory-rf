@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from factory.shared.domain.settings import read_settings
-from settings_support import BASE
+from support.settings_support import BASE
 
 
 @pytest.mark.parametrize(

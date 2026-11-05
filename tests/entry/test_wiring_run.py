@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from agent_definition_support import COMPLETED
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.entry.wiring import (
     agent_run_environment,
@@ -18,10 +17,11 @@ from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.settings import InstanceSettings, read_settings
-from git_support import PIPELINE_YAML, install_agents, remote_commit, run_git
-from human_clone import HumanClone
-from probe_support import COMPLETED as PROBE
-from wiring_support import every_tool, with_dataset
+from support.agent_definition_support import COMPLETED
+from support.git_support import PIPELINE_YAML, install_agents, remote_commit, run_git
+from support.human_clone import HumanClone
+from support.probe_support import COMPLETED as PROBE
+from support.wiring_support import every_tool, with_dataset
 
 INSTANCE = "factory-7"
 WORK_ITEM = "F0001-S0001"

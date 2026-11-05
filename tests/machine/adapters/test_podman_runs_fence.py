@@ -8,7 +8,7 @@ import pytest
 from factory.machine.adapters import podman_runs
 from factory.machine.adapters.podman_runs import MEMORY_LIMIT, PIDS_LIMIT, PodmanRuns
 from factory.machine.domain.containers import Mount
-from podman_support import IMAGE, INSTANCE, Podman
+from support.podman_support import IMAGE, INSTANCE, Podman
 
 FENCE = [
     "--cap-drop=all",

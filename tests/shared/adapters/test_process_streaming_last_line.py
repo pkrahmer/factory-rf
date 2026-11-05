@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from factory.shared.adapters.process import ProcessRequest, Stream, run_streaming
-from process_support import Recorder, is_gone, python_argv
+from support.process_support import Recorder, is_gone, python_argv
 
 RETURNS_WITHIN_SECONDS = 10
 

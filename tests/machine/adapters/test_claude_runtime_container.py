@@ -7,16 +7,6 @@ from pathlib import Path
 
 import pytest
 
-from agent_login_support import API_LOGIN
-from claude_reply_support import BUDGET_STOP, LOGIN
-from claude_stand_in import REPLY, Step, read_calls, write_stand_in
-from command_words_support import value_after
-from container_runtime_support import (
-    container_environment,
-    files_in,
-    read_only,
-    run_folders,
-)
 from factory.agents.adapters.agent_launch import (
     LOGIN_VARIABLE,
     VERSION_TIME_LIMIT,
@@ -28,8 +18,18 @@ from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.machine.adapters.fake_containers import FakeContainerRuns
 from factory.machine.domain.containers import WORK_CHECKOUT, ContainerCall
 from factory.shared.adapters.process import ProcessResult
-from run_process_recorder import Recorder
-from time_limits import ROOMY_BOUND_SECONDS
+from support.agent_login_support import API_LOGIN
+from support.claude_reply_support import BUDGET_STOP, LOGIN
+from support.claude_stand_in import REPLY, Step, read_calls, write_stand_in
+from support.command_words_support import value_after
+from support.container_runtime_support import (
+    container_environment,
+    files_in,
+    read_only,
+    run_folders,
+)
+from support.run_process_recorder import Recorder
+from support.time_limits import ROOMY_BOUND_SECONDS
 
 LIMIT = timedelta(seconds=30)
 

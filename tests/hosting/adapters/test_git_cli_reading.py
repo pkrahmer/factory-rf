@@ -12,7 +12,7 @@ from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.application.git import Git
 from factory.hosting.domain.git import GitOptions, RemoteBranch
 from factory.shared.domain.errors import FetchFailed, GitError
-from git_support import CHECKOUT, clone, commit_all, run_git, write_executable, write_files
+from support.git_support import CHECKOUT, clone, commit_all, run_git, write_executable, write_files
 
 
 def _other_clone(tmp_path: Path, remote: Path) -> Path:

@@ -7,7 +7,7 @@ import pytest
 
 from factory.agents.domain.tool_uses import claude_tool_uses, opencode_tool_uses
 from factory.watching.domain.cost_records import ToolUse
-from tool_use_support import Call, claude_lines, opencode_lines
+from support.tool_use_support import Call, claude_lines, opencode_lines
 
 Reading = Callable[[list[Call]], list[ToolUse] | None]
 LONG = "a" * 65

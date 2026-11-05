@@ -7,17 +7,6 @@ from pathlib import Path
 
 import pytest
 
-from agent_login_support import API_LOGIN
-from claude_stand_in import Step, read_calls
-from container_runtime_support import (
-    LIMIT,
-    container_environment,
-    container_request,
-    files_in,
-    make_state,
-    read_only,
-    run_folders,
-)
 from factory.agents.adapters import opencode_runtime
 from factory.agents.adapters.agent_launch import (
     LOGIN_VARIABLE,
@@ -29,7 +18,18 @@ from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.machine.adapters.fake_containers import FakeContainerRuns
 from factory.machine.domain.containers import WORK_CHECKOUT, ContainerCall
 from factory.shared.adapters.process import ProcessRequest, ProcessResult, Stream
-from opencode_stand_in import (
+from support.agent_login_support import API_LOGIN
+from support.claude_stand_in import Step, read_calls
+from support.container_runtime_support import (
+    LIMIT,
+    container_environment,
+    container_request,
+    files_in,
+    make_state,
+    read_only,
+    run_folders,
+)
+from support.opencode_stand_in import (
     MODELS,
     REPLY,
     stdout,
@@ -37,8 +37,8 @@ from opencode_stand_in import (
     step_start,
     write_opencode,
 )
-from run_process_recorder import Recorder
-from time_limits import ROOMY_BOUND_SECONDS
+from support.run_process_recorder import Recorder
+from support.time_limits import ROOMY_BOUND_SECONDS
 
 
 def _api_login(tmp_path: Path) -> Path:

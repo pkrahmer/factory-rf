@@ -11,10 +11,10 @@ from factory.hosting.domain.git import GitOptions
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.tick import IdleHandler, Tick, TickOutcome
 from factory.shared.domain.kill_points import KillPoints
-from git_support import CHECKOUT, TEST_IDENTITY
-from remote_outage_support import move_remote_away
-from stage_run_support import INSTANCE
-from tick_support import handlers_of
+from support.git_support import CHECKOUT, TEST_IDENTITY
+from support.remote_outage_support import move_remote_away
+from support.stage_run_support import INSTANCE
+from support.tick_support import handlers_of
 
 pytestmark = pytest.mark.usefixtures("installed_agents", "checkout")
 

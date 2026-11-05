@@ -2,10 +2,10 @@
 
 import pytest
 
-from container_support import CONTAINER
 from factory.machine.application.preflight import opencode_item
 from factory.shared.domain.settings import InstanceSettings
-from settings_support import AGENT_HOME
+from support.container_support import CONTAINER
+from support.settings_support import AGENT_HOME
 
 
 def _settings(fields: dict[str, object]) -> InstanceSettings:

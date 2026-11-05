@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from factory.shared.adapters.process import ProcessRequest, ProcessResult, Stream, run_streaming
-from process_support import Recorder, python_argv
+from support.process_support import Recorder, python_argv
 
 LONG_LINE_LENGTH = 200000
 TIME_LIMIT = timedelta(seconds=20)

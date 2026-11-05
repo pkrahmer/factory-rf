@@ -8,8 +8,8 @@ import pytest
 import factory.shared.domain.settings as settings_module
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import read_settings
-from settings_support import BASE
-from source_search import modules, string_literals
+from support.settings_support import BASE
+from support.source_search import modules, string_literals
 
 AGENT_HOME = "FACTORY_CLAUDE_HOME"
 IMAGE_ID_FILE = "FACTORY_IMAGE_ID_FILE"

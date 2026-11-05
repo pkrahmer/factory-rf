@@ -18,8 +18,15 @@ from factory.shared.domain.paths import STORY_FORM_FILE
 from factory.work.domain.journal import JournalKind, JournalRecord
 from factory.work.domain.story_form import FormFinding
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import CHECKOUT, PIPELINE_YAML, STORY_FORM, install_agents, run_git, write_files
-from human_clone import HumanClone
+from support.git_support import (
+    CHECKOUT,
+    PIPELINE_YAML,
+    STORY_FORM,
+    install_agents,
+    run_git,
+    write_files,
+)
+from support.human_clone import HumanClone
 
 PATH = "factory/features/F0001-example/in-progress/F0001-S0002-second.md"
 ROLES = ["intake", "tester", "coder"]

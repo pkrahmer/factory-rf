@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from factory.hosting.adapters.git_cli import GitCli
-from git_support import CHECKOUT, run_git, write_files
+from support.git_support import CHECKOUT, run_git, write_files
 
 PAST_NS = 1_600_000_000_000_000_000
 

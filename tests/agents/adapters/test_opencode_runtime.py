@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import Step, read_calls, without_locale
 from factory.agents.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 from factory.agents.adapters.opencode_runtime import (
     CONFIG_VARIABLE,
@@ -19,7 +18,8 @@ from factory.agents.adapters.opencode_runtime import (
 from factory.agents.application.agent_runtime import AgentRuntime
 from factory.shared.domain.errors import AgentRuntimeError
 from factory.shared.domain.kill_points import KillPoint, KillPoints
-from opencode_stand_in import (
+from support.claude_stand_in import Step, read_calls, without_locale
+from support.opencode_stand_in import (
     MODELS,
     REPLY_EVENTS,
     opencode_request,

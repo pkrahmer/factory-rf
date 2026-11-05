@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import Step, read_calls
 from factory.agents.domain.provider_limits import ProviderLimit
-from opencode_stand_in import (
+from support.claude_stand_in import Step, read_calls
+from support.opencode_stand_in import (
     BOUND_SECONDS,
     REPLY,
     RESUME_REPLY,

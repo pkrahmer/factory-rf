@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import Step
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.watching.domain.cost_records import ToolUse
-from opencode_stand_in import (
+from support.claude_stand_in import Step
+from support.opencode_stand_in import (
     SESSION,
     opencode_request,
     result_text,
@@ -19,7 +19,7 @@ from opencode_stand_in import (
     text,
     tool_use,
 )
-from tool_use_support import Call, claude_lines
+from support.tool_use_support import Call, claude_lines
 
 CLAUDE_SESSION = "0b7c4a1e-5d2f-4c3a-9e8b-1a2b3c4d5e6f"
 LINE_LIKE_CHARACTERS = "first\u2028second\u0085third"

@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from acceptance_walk import FIRST, FIRST_RECORDS, AcceptanceWalk, report_of
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.dispatcher import Handler
@@ -23,7 +22,8 @@ from factory.work.application.acceptance import (
     AcceptanceMerged,
 )
 from factory.work.domain.work_item import WorkItemDocument
-from git_support import remote_commit
+from support.acceptance_walk import FIRST, FIRST_RECORDS, AcceptanceWalk, report_of
+from support.git_support import remote_commit
 
 HandlerFactory = Callable[[Boundaries, PipelineDefinition], Handler]
 

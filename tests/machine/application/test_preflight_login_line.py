@@ -11,10 +11,10 @@ from factory.machine.domain.preflight import PreflightItem
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.stops import StopService
 from factory.shared.domain.settings import InstanceSettings
-from git_support import install_agents
-from human_clone import HumanClone
-from log_support import log_lines
-from preflight_support import IMAGE, MAKEFILE, ROLES, TOOLS, RecordingWhich
+from support.git_support import install_agents
+from support.human_clone import HumanClone
+from support.log_support import log_lines
+from support.preflight_support import IMAGE, MAKEFILE, ROLES, TOOLS, RecordingWhich
 
 DETAIL = "the agent runs log in with the API key from /home/agent/.anthropic-api-key"
 LINE = f"preflight: agent-run-probe: {DETAIL}"

@@ -3,7 +3,7 @@
 import contextlib
 
 from factory.shared.domain.errors import PushFailed
-from push_retry_support import PushCase
+from support.push_retry_support import PushCase
 
 
 def test_a_retry_line_holds_the_servers_message_and_no_porcelain_done(

@@ -3,7 +3,7 @@
 import pytest
 
 from factory.pipeline.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from git_support import PIPELINE_YAML, pipeline_outcome
+from support.git_support import PIPELINE_YAML, pipeline_outcome
 
 CODER = '  coder: {write_paths: ["src/*"]}'
 TESTS_STAGE = "  tests: {role: tester, next: [doing], checks: [lint], reports: [test]}"

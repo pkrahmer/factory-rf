@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pytest
 
-import preflight_support
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions
 from factory.pipeline.domain.stops import RepositoryStop
-from git_support import CHECKOUT, TEST_IDENTITY, clone, run_git
-from log_support import log_lines
-from preflight_support import CLEARED_LINE, IMAGE, OTHER_IMAGE, TOOLS, Rig
+from support import preflight_support
+from support.git_support import CHECKOUT, TEST_IDENTITY, clone, run_git
+from support.log_support import log_lines
+from support.preflight_support import CLEARED_LINE, IMAGE, OTHER_IMAGE, TOOLS, Rig
 
 rig = preflight_support.rig
 red_main = preflight_support.red_main

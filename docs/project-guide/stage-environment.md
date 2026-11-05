@@ -59,7 +59,7 @@ Both fakes let the suite and the smoke tests run without `zfs` and `podman`.
 
 `FakeSnapshots(folder, base)` is a subclass of `CopySnapshots` (`factory.machine.adapters.fake_snapshots`) with the same constructor and no code of its own: the suite's fake and the real copy adapter are one implementation, so a rule of the copy is tested by both. Tests: `tests/machine/adapters/test_fake_snapshots.py` (through the fake) and `tests/machine/adapters/test_copy_snapshots.py` (a real tree in `tmp_path`, the chunked read, the operating system's faults).
 
-`FakeContainerRuns(workspace)` plays a container as a child process on the host, through `run_process` (`factory.shared.adapters.process`; the structural test `tests/test_wrapper_search.py` names this module as one that reaches it). It maps container paths to host folders:
+`FakeContainerRuns(workspace)` plays a container as a child process on the host, through `run_process` (`factory.shared.adapters.process`; the structural test `tests/guards/test_wrapper_search.py` names this module as one that reaches it). It maps container paths to host folders:
 
 - The mounts given plus a fixed mount of `workspace` at `/work`. A command word, an `environment` value or the `working_directory` that equals a target, or starts with the target and a `/`, has that target replaced by the mount's `source`. The longer target wins; `/workspace` is not under `/work`. Keys of `environment` are never mapped.
 - `launch` returns `/bin/sh -c 'cd "$1" && shift && exec "$@"' fake-container <working directory> <command...>`, all mapped, with the time limit as given.
@@ -78,7 +78,7 @@ Tests: `tests/machine/domain/test_containers.py`, `tests/shared/domain/test_erro
 
 ### The commands
 
-Every command runs through `run_process` (`factory.shared.adapters.process`; `tests/test_wrapper_search.py` names the module) with the working directory `/`, the factory's own environment, the time limit and standard error merged into the output.
+Every command runs through `run_process` (`factory.shared.adapters.process`; `tests/guards/test_wrapper_search.py` names the module) with the working directory `/`, the factory's own environment, the time limit and standard error merged into the output.
 
 | Member | Runs | When |
 | --- | --- | --- |
@@ -114,7 +114,7 @@ Every fault is `SnapshotError(command, detail)`. `command` is the words run join
 
 ### The stand-in
 
-No test runs a real `zfs`; it runs only on the VM. `tests/zfs_support.py` writes a stand-in `zfs` into `tmp_path`. `snapshots_on` also passes a drop stand-in that succeeds (`Drop` and `write_drop`), and `tests/machine/adapters/test_zfs_snapshots_drop_caches.py` uses stand-ins that append their words to one shared file, so a test reads the order of rollback and drop. The `zfs` stand-in records its arguments, environment and working directory, then answers by a plan keyed on its first argument (`rollback`, `list`, `destroy`, `snapshot`, `diff`, `--version`): planned output and exit status, or a sleep past a short limit. The limit itself cannot be seen from the stand-in, so tests of the default limit and its rounding replace the module's `run_process` with the `Recorder` of `tests/run_process_recorder.py`. The tests are `tests/machine/adapters/test_zfs_snapshots.py` and `tests/hosting/adapters/test_zfs_snapshots_diff.py`.
+No test runs a real `zfs`; it runs only on the VM. `tests/support/zfs_support.py` writes a stand-in `zfs` into `tmp_path`. `snapshots_on` also passes a drop stand-in that succeeds (`Drop` and `write_drop`), and `tests/machine/adapters/test_zfs_snapshots_drop_caches.py` uses stand-ins that append their words to one shared file, so a test reads the order of rollback and drop. The `zfs` stand-in records its arguments, environment and working directory, then answers by a plan keyed on its first argument (`rollback`, `list`, `destroy`, `snapshot`, `diff`, `--version`): planned output and exit status, or a sleep past a short limit. The limit itself cannot be seen from the stand-in, so tests of the default limit and its rounding replace the module's `run_process` with the `Recorder` of `tests/support/run_process_recorder.py`. The tests are `tests/machine/adapters/test_zfs_snapshots.py` and `tests/hosting/adapters/test_zfs_snapshots_diff.py`.
 
 ## The podman adapter
 
@@ -169,7 +169,7 @@ Mounts, the grace, the reading of the end (255 at or after the limit is the time
 
 ### Reading the end
 
-`run` starts the launch's words through `run_process` (`factory.shared.adapters.process`; `tests/test_wrapper_search.py` names the module) with the working directory `/` (podman reads no file from it; a missing workspace is podman's own fault, 125), the factory's environment and standard error merged into `output`.
+`run` starts the launch's words through `run_process` (`factory.shared.adapters.process`; `tests/guards/test_wrapper_search.py` names the module) with the working directory `/` (podman reads no file from it; a missing workspace is podman's own fault, 125), the factory's environment and standard error merged into `output`.
 
 - `timed_out` is true when `run_process` says so, or when the exit status is in `CONTAINER_KILL_STATUSES` (`factory.agents.adapters.agent_launch`: 137, -9 and 255) and the run lasted at least `time_limit`: podman's `--timeout` sent the kill. `exit_status` is then `None`.
 - The same statuses before the limit are the command's own, as is any other status at or after the limit.
@@ -191,7 +191,7 @@ The preflight reads a missing `podman` from this error. The line helpers (`first
 
 ### The stand-in
 
-No test runs a real `podman`; it runs only on the VM. `tests/podman_support.py` writes a stand-in `podman` into `tmp_path`. It records its arguments, environment and working directory; it prints planned output, waits and exits with a planned status, or, when its arguments hold the image, runs the words after the image on the host, so that a command's own exit status and output pass through. Tests of the default limit and of the kill rule replace the module's `run_process` with the `Recorder` of `tests/run_process_recorder.py`. The tests are `tests/machine/adapters/test_podman_runs.py` (the command line), `tests/machine/adapters/test_podman_runs_fence.py` (the four words and the constants) and `tests/machine/adapters/test_podman_runs_results.py` (results and faults).
+No test runs a real `podman`; it runs only on the VM. `tests/support/podman_support.py` writes a stand-in `podman` into `tmp_path`. It records its arguments, environment and working directory; it prints planned output, waits and exits with a planned status, or, when its arguments hold the image, runs the words after the image on the host, so that a command's own exit status and output pass through. Tests of the default limit and of the kill rule replace the module's `run_process` with the `Recorder` of `tests/support/run_process_recorder.py`. The tests are `tests/machine/adapters/test_podman_runs.py` (the command line), `tests/machine/adapters/test_podman_runs_fence.py` (the four words and the constants) and `tests/machine/adapters/test_podman_runs_results.py` (results and faults).
 
 ## The stage environment
 
@@ -277,7 +277,7 @@ Each duration is in seconds with one decimal (Python's rounding). `reset`, `sync
 
 `Boundaries.snapshots` and `Boundaries.containers` (see `watching.md`, *Boundaries*) default to `None`; `stage_environment_of` picks the container environment only when both are set. `StageRunner` builds one environment per runner, as *One environment per runner* says.
 
-The suite's stages run on it: the `boundaries` fixture holds `FakeSnapshots(workspace, base)` and `FakeContainerRuns(workspace)` under `tmp_path` (an empty base), and `container_dataset` takes them from the fixture. The host checkout of the fixture is the upstream, with real `git` and `make` as child processes on the host (the container is played, not run). `tests/container_support.py` holds the helpers: `container_dataset`, `push_main` and `sync_makefile` (a `Makefile` whose `sync` writes a marker), `dataset_git`, `local_branches` and `timing_lines`, and the whole stage on a dataset (`whole_stage`, `assert_taken_and_pushed`). Tests: `tests/machine/application/test_container_environment.py` (`prepare` and `run_agent`), `tests/pipeline/application/test_container_environment_take.py` (the take, the timing line and a whole stage through `StageRunner` with the host's project commands), `tests/pipeline/application/test_container_stage_checks.py` (the whole stage through the check container: `ContainerMakeCommands` runs the sync container and one check container per check on the taken result, and the next `prepare` starts from the pushed head with nothing left over), `tests/pipeline/application/test_stage_environment_of.py`, `tests/pipeline/domain/test_checks_last_line.py` and `tests/pipeline/adapters/test_make_last_line_shared.py`. The wiring of the real tools is *The settings and the wiring*.
+The suite's stages run on it: the `boundaries` fixture holds `FakeSnapshots(workspace, base)` and `FakeContainerRuns(workspace)` under `tmp_path` (an empty base), and `container_dataset` takes them from the fixture. The host checkout of the fixture is the upstream, with real `git` and `make` as child processes on the host (the container is played, not run). `tests/support/container_support.py` holds the helpers: `container_dataset`, `push_main` and `sync_makefile` (a `Makefile` whose `sync` writes a marker), `dataset_git`, `local_branches` and `timing_lines`, and the whole stage on a dataset (`whole_stage`, `assert_taken_and_pushed`). Tests: `tests/machine/application/test_container_environment.py` (`prepare` and `run_agent`), `tests/pipeline/application/test_container_environment_take.py` (the take, the timing line and a whole stage through `StageRunner` with the host's project commands), `tests/pipeline/application/test_container_stage_checks.py` (the whole stage through the check container: `ContainerMakeCommands` runs the sync container and one check container per check on the taken result, and the next `prepare` starts from the pushed head with nothing left over), `tests/pipeline/application/test_stage_environment_of.py`, `tests/pipeline/domain/test_checks_last_line.py` and `tests/pipeline/adapters/test_make_last_line_shared.py`. The wiring of the real tools is *The settings and the wiring*.
 
 ## The sync command
 
@@ -315,7 +315,7 @@ The service makes no commit, runs no git command on the dataset and never writes
 
 `WorkItemFormatError` (step 1), `ValueError` from `copy_changed`, and `GitError` from `ignored` (see *The git wrapper*, `git-and-hosting.md`). A `ValueError` or `GitError` can come after the baseline was read but before step 5 copies anything.
 
-Tests: `tests/pipeline/application/test_take.py` and `tests/pipeline/application/test_take_edges.py`, built on `tests/undo_support.py` and `tests/take_support.py` with a dataset folder in `tmp_path`; `tests/hosting/adapters/test_git_cli_check_ignore.py` for `ignored`.
+Tests: `tests/pipeline/application/test_take.py` and `tests/pipeline/application/test_take_edges.py`, built on `tests/support/undo_support.py` and `tests/support/take_support.py` with a dataset folder in `tmp_path`; `tests/hosting/adapters/test_git_cli_check_ignore.py` for `ignored`.
 
 ## The checks
 

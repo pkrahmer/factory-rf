@@ -8,7 +8,6 @@ import pytest
 
 import factory
 import factory.entry.contract
-from contract_support import USAGE, WRITTEN, MainRow
 from factory.entry.contract import main, write_contract
 from factory.shared.domain.contract import (
     CONTRACT,
@@ -16,6 +15,7 @@ from factory.shared.domain.contract import (
     contract_schema,
     schema_file_name,
 )
+from support.contract_support import USAGE, WRITTEN, MainRow
 
 COMMITTED = Path(factory.__file__).parent / "contract"
 SCHEMA_FILES = [

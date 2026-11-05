@@ -13,9 +13,9 @@ from factory.pipeline.domain.known_results import ResultRecord
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.work.domain.journal import entry_text
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
-from git_support import PIPELINE_YAML
-from human_clone import HumanClone
-from stage_run_support import (
+from support.git_support import PIPELINE_YAML
+from support.human_clone import HumanClone
+from support.stage_run_support import (
     CREATED,
     ENVIRONMENT,
     INSTANCE,

@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from definition_support import pipeline_definition
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult, EndReason
 from factory.hosting.adapters.fake_hosting import FakeHostingService
@@ -21,9 +20,10 @@ from factory.shared.domain.errors import HostingServiceError, PushFailed
 from factory.work.domain.decisions import StallReason, stall_reason_of
 from factory.work.domain.journal import JournalRecord, NewEntry, append_entry, entry_text
 from factory.work.domain.work_item import WorkItemState
-from git_support import remote_commit
-from human_clone import HumanClone
-from stage_run_support import (
+from support.definition_support import pipeline_definition
+from support.git_support import remote_commit
+from support.human_clone import HumanClone
+from support.stage_run_support import (
     BRANCH,
     INSIDE,
     INSTANCE,
@@ -33,7 +33,7 @@ from stage_run_support import (
     pushed,
     pushed_state,
 )
-from stall_support import (
+from support.stall_support import (
     CREATED,
     DIED,
     OUTSIDE,
@@ -43,7 +43,7 @@ from stall_support import (
     stall_context,
     started_stage,
 )
-from take_support import AGENT_TEXT
+from support.take_support import AGENT_TEXT
 
 STALL_PREFIX = "Stage tests stalled (attempt 1 of 2): "
 

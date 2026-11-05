@@ -23,10 +23,10 @@ from factory.pipeline.application.tick import Tick, TickOutcome
 from factory.pipeline.domain.stops import RepositoryStop
 from factory.shared.domain.errors import GitError
 from factory.shared.domain.settings import InstanceSettings
-from human_clone import HumanClone
-from log_support import state_log_lines
-from remote_outage_support import RemoteOutage, fetch_failed
-from stage_image_support import BASE_IDENTITY, FIRST, SECOND, StageSeen, built_path
+from support.human_clone import HumanClone
+from support.log_support import state_log_lines
+from support.remote_outage_support import RemoteOutage, fetch_failed
+from support.stage_image_support import BASE_IDENTITY, FIRST, SECOND, StageSeen, built_path
 
 STOP_LINE = "stop repository fetch_failed: "
 

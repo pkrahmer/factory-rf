@@ -12,11 +12,6 @@ from pathlib import Path
 import pytest
 
 import factory.entry.run as run_module
-from acceptance_walk import AcceptanceWalk
-from container_runtime_support import make_workspace
-from container_support import Dataset, container_dataset, fake_dataset
-from definition_support import pipeline_definition
-from disk_support import FakeDiskSpace
 from factory.agents.adapters import claude_runtime
 from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.agents.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
@@ -52,7 +47,12 @@ from factory.work.adapters.work_item_markdown import (
     FrontmatterWorkItemReader,
     FrontmatterWorkItemWriter,
 )
-from git_support import (
+from support.acceptance_walk import AcceptanceWalk
+from support.container_runtime_support import make_workspace
+from support.container_support import Dataset, container_dataset, fake_dataset
+from support.definition_support import pipeline_definition
+from support.disk_support import FakeDiskSpace
+from support.git_support import (
     CHECKOUT,
     PIPELINE_YAML,
     TEST_IDENTITY,
@@ -61,23 +61,23 @@ from git_support import (
     install_agents,
     make_remote,
 )
-from human_clone import HumanClone
-from machine_readings_support import FakeMachineReadings
-from operator_skill_support import Operator, make_operator
-from podman_support import IMAGE, Podman, PodmanPlan, write_podman
-from podman_support import INSTANCE as PODMAN_INSTANCE
-from proof_support import World, build_world, run_ticks, start_story
-from push_retry_support import PushCase, open_push_case
-from run_layout_support import Layout, build_layout
-from run_process_recorder import Recorder
-from settings_support import AGENT_HOME
-from stage_image_support import BASE_IDENTITY
-from stage_run_support import INSTANCE
-from tmp_path_support import reopen
-from token_support import ENDPOINT, HIDDEN
-from vm_support import EXAMPLE_VALUE, setup_code
-from wiring_support import HOSTED_URL, PODMAN_VERSION, with_dataset
-from zfs_support import DATASET, Answer, Zfs, write_zfs
+from support.human_clone import HumanClone
+from support.machine_readings_support import FakeMachineReadings
+from support.operator_skill_support import Operator, make_operator
+from support.podman_support import IMAGE, Podman, PodmanPlan, write_podman
+from support.podman_support import INSTANCE as PODMAN_INSTANCE
+from support.proof_support import World, build_world, run_ticks, start_story
+from support.push_retry_support import PushCase, open_push_case
+from support.run_layout_support import Layout, build_layout
+from support.run_process_recorder import Recorder
+from support.settings_support import AGENT_HOME
+from support.stage_image_support import BASE_IDENTITY
+from support.stage_run_support import INSTANCE
+from support.tmp_path_support import reopen
+from support.token_support import ENDPOINT, HIDDEN
+from support.vm_support import EXAMPLE_VALUE, setup_code
+from support.wiring_support import HOSTED_URL, PODMAN_VERSION, with_dataset
+from support.zfs_support import DATASET, Answer, Zfs, write_zfs
 
 
 @pytest.fixture(autouse=True)

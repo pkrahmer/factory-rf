@@ -16,9 +16,9 @@ from factory.pipeline.domain.stops import HealthStatus, RepositoryStop
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import GitError, PipelineDefinitionInvalid
 from factory.watching.application.machine import HealthStatusStore
-from git_support import CHECKOUT, PIPELINE_YAML, clone, install_agents, run_git
-from human_clone import HumanClone
-from log_support import log_lines
+from support.git_support import CHECKOUT, PIPELINE_YAML, clone, install_agents, run_git
+from support.human_clone import HumanClone
+from support.log_support import log_lines
 
 PIPELINE_FILE = "factory/pipeline.yml"
 ROLES = [

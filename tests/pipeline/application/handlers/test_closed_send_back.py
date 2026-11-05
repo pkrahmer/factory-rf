@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-from branch_reading import remote_document
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.hosting import PostKey
@@ -35,8 +34,9 @@ from factory.work.domain.journal import (
     entry_text,
 )
 from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
-from git_support import PIPELINE_YAML, remote_commit
-from human_clone import HumanClone
+from support.branch_reading import remote_document
+from support.git_support import PIPELINE_YAML, remote_commit
+from support.human_clone import HumanClone
 
 WORK_ITEM = "F0001-S0001"
 BRANCH = f"work-item/{WORK_ITEM}"

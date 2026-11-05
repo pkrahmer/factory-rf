@@ -7,8 +7,6 @@ from pathlib import Path
 
 import pytest
 
-from branch_reading import push_state
-from definition_support import pipeline_definition
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions
@@ -20,9 +18,11 @@ from factory.shared.domain.errors import GitError
 from factory.shared.domain.identifiers import branch_name
 from factory.watching.application.watcher import Watcher
 from factory.work.domain.work_item import Claim, WorkItemState, initial_state
-from git_support import TEST_IDENTITY, remote_commit, run_git
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
+from support.branch_reading import push_state
+from support.definition_support import pipeline_definition
+from support.git_support import TEST_IDENTITY, remote_commit, run_git
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
 
 OTHER_INSTANCE = "factory-2"
 WORK_ITEM = "F0001-S0001"

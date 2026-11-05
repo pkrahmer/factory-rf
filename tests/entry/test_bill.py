@@ -7,15 +7,15 @@ from pathlib import Path
 
 import pytest
 
-from bill_support import completed_records, sidecar_text
 from factory.entry.bill import main, run
 from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import cost_records_path
 from factory.watching.adapters.cost_records_jsonl import JsonLinesCostRecordReader
 from factory.watching.application.costs import BillService
-from git_support import CHECKOUT
-from human_clone import HumanClone
+from support.bill_support import completed_records, sidecar_text
+from support.git_support import CHECKOUT
+from support.human_clone import HumanClone
 
 FIRST = "F0001-S0001"
 FIRST_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"

@@ -8,8 +8,6 @@ from pathlib import Path
 
 import pytest
 
-from claude_resume_support import LIMIT, _after, _budget_reply, _reply, _request, _runtime
-from claude_stand_in import StandInCall, Step, read_calls
 from factory.agents.adapters.claude_runtime import (
     FINISH_MESSAGE,
     VERSION_TIME_LIMIT,
@@ -23,8 +21,10 @@ from factory.agents.domain.agent_runs import (
 )
 from factory.shared.domain.errors import AgentRuntimeError
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
-from run_process_recorder import Recorder
-from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
+from support.claude_resume_support import LIMIT, _after, _budget_reply, _reply, _request, _runtime
+from support.claude_stand_in import StandInCall, Step, read_calls
+from support.run_process_recorder import Recorder
+from support.time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 RUN_FILES = ("instructions-*.md",)
 VERSION_LINE = "2.1.289 (Claude Code)\n"

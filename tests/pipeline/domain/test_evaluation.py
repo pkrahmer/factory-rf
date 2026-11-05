@@ -4,7 +4,13 @@ from collections.abc import Callable
 
 import pytest
 
-from evaluation_support import (
+from factory.hosting.domain.hosting import PullRequestComment, PullRequestState
+from factory.pipeline.domain.evaluation import question_posted
+from factory.pipeline.domain.lease import ClaimStatus
+from factory.shared.domain.errors import HostingServiceError
+from factory.work.domain.journal import JournalKind
+from factory.work.domain.work_item import WorkItemSnapshot, WorkItemState, initial_state
+from support.evaluation_support import (
     AT,
     BRANCH_COMMIT,
     MAIN,
@@ -20,12 +26,6 @@ from evaluation_support import (
     _snapshot,
     _view,
 )
-from factory.hosting.domain.hosting import PullRequestComment, PullRequestState
-from factory.pipeline.domain.evaluation import question_posted
-from factory.pipeline.domain.lease import ClaimStatus
-from factory.shared.domain.errors import HostingServiceError
-from factory.work.domain.journal import JournalKind
-from factory.work.domain.work_item import WorkItemSnapshot, WorkItemState, initial_state
 
 
 def _runnable(*, attempts: int = 0) -> WorkItemState:

@@ -12,10 +12,10 @@ from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.tick import IdleHandler, Tick, TickOutcome
 from factory.shared.domain.errors import FetchFailed, GitError
 from factory.shared.domain.kill_points import KillPoints
-from git_support import CHECKOUT, TEST_IDENTITY
-from log_support import log_lines
-from stage_run_support import INSTANCE
-from tick_support import Failing, handlers_of
+from support.git_support import CHECKOUT, TEST_IDENTITY
+from support.log_support import log_lines
+from support.stage_run_support import INSTANCE
+from support.tick_support import Failing, handlers_of
 
 pytestmark = pytest.mark.usefixtures("installed_agents")
 

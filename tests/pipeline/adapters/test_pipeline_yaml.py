@@ -7,7 +7,7 @@ import pytest
 from factory.pipeline.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.errors import PipelineDefinitionInvalid
-from git_support import PIPELINE_YAML
+from support.git_support import PIPELINE_YAML
 
 MINIMAL = """\
 contract: '1.0'

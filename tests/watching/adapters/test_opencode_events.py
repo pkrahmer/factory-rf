@@ -8,14 +8,14 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import Step
 from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.agents.domain.agent_runs import AgentRunResult, PermissionDenial, TokenCounts
 from factory.pipeline.application.boundaries import Boundaries
 from factory.watching.application.costs import CostRecorder, CostRun
 from factory.watching.domain.cost_records import CostRecord
-from opencode_events_support import WAIT_SECONDS
-from opencode_stand_in import (
+from support.claude_stand_in import Step
+from support.opencode_events_support import WAIT_SECONDS
+from support.opencode_stand_in import (
     MODELS,
     opencode_request,
     result_text,
@@ -26,7 +26,7 @@ from opencode_stand_in import (
     tool_use,
     write_opencode,
 )
-from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
+from support.time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 SIDECAR = "F0001-S0001-first.costs.jsonl"
 ANSWER = text(result_text())

@@ -9,8 +9,8 @@ from factory.hosting.adapters import git_cli
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions
 from factory.shared.domain.kill_points import KillPoint, KillPoints
-from git_support import CHECKOUT, remote_commit, run_git, write_executable, write_files
-from human_clone import HumanClone
+from support.git_support import CHECKOUT, remote_commit, run_git, write_executable, write_files
+from support.human_clone import HumanClone
 
 BRANCH = "work-item/F0001-S0001"
 

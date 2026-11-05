@@ -10,9 +10,9 @@ from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.errors import PushFailed
 from factory.shared.domain.kill_points import KillPoints
-from human_clone import HumanClone
-from push_retry_support import PushCase, open_push_case
-from stage_run_support import BRANCH, pushed_state
+from support.human_clone import HumanClone
+from support.push_retry_support import PushCase, open_push_case
+from support.stage_run_support import BRANCH, pushed_state
 
 WAITS = [timedelta(seconds=5), timedelta(seconds=15), timedelta(seconds=45)]
 

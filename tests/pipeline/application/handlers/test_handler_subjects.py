@@ -9,7 +9,7 @@ from factory.pipeline.application.handlers.reject import RejectHandler
 from factory.pipeline.domain.events import Event
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot
-from human_clone import HumanClone
+from support.human_clone import HumanClone
 
 BRANCH = "work-item/F0001-S0001"
 

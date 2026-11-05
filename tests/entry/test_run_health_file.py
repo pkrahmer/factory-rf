@@ -11,7 +11,7 @@ from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.pipeline.domain.stops import HealthStatus, RepositoryStop
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings
-from wiring_support import with_dataset
+from support.wiring_support import with_dataset
 
 FETCH_FAILED = RepositoryStop(
     scope="repository",

@@ -6,7 +6,7 @@ import pytest
 
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import read_settings
-from settings_support import AGENT_HOME, BASE, CONTAINER
+from support.settings_support import AGENT_HOME, BASE, CONTAINER
 
 DIR = "FACTORY_TRANSCRIPT_DIR"
 FOLDER = "/srv/transcripts"

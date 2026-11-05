@@ -26,13 +26,13 @@ This file covers the pipeline definition and a stage from the claim to the resul
 
 **Release.** `release(document)` returns the document with `state.claim` set to `None`, for the stage's result commit. Journal, other state fields and body are unchanged and no entry is appended. A document without a claim comes back equal; one without a state raises `ValueError`.
 
-**`ClaimService` is the only module that builds or judges claims.** Only `factory.pipeline.application.claims` imports `claim_status`, `lease_expired`, `lease_age` or `observed_claim_status`, and only it calls `Claim(...)`; `tests/test_claim_ownership.py` searches the source with `ast` and fails otherwise. Code that needs to know a claim's standing asks the service.
+**`ClaimService` is the only module that builds or judges claims.** Only `factory.pipeline.application.claims` imports `claim_status`, `lease_expired`, `lease_age` or `observed_claim_status`, and only it calls `Claim(...)`; `tests/guards/test_claim_ownership.py` searches the source with `ast` and fails otherwise. Code that needs to know a claim's standing asks the service.
 
-In tests, set the work item up on its branch before `claim` (a state, a journal entry and a `## Journal` section, or `append_entry` raises `WorkItemFormatError`); `put_work_item` and `created_state` in `tests/work_item_support.py` do it, and `tests/pipeline/application/test_claims.py` uses them.
+In tests, set the work item up on its branch before `claim` (a state, a journal entry and a `## Journal` section, or `append_entry` raises `WorkItemFormatError`); `put_work_item` and `created_state` in `tests/support/work_item_support.py` do it, and `tests/pipeline/application/test_claims.py` uses them.
 
 ## The pipeline definition
 
-The project's `factory/pipeline.yml` is read by `RuamelPipelineDefinitionReader.parse(text)` (`factory.pipeline.adapters.pipeline_yaml`, the `PipelineDefinitionReader` interface in `factory.shared.application.files`, `Boundaries.pipeline_reader`) into a `PipelineDefinition` (`factory.pipeline.domain.pipeline_definition`). The reader is the only one of this format and nothing writes it. The text is loaded in ruamel.yaml's safe mode, so only plain data is built and a key repeated in one mapping is refused. `PIPELINE_YAML` in `tests/git_support.py` is the example definition.
+The project's `factory/pipeline.yml` is read by `RuamelPipelineDefinitionReader.parse(text)` (`factory.pipeline.adapters.pipeline_yaml`, the `PipelineDefinitionReader` interface in `factory.shared.application.files`, `Boundaries.pipeline_reader`) into a `PipelineDefinition` (`factory.pipeline.domain.pipeline_definition`). The reader is the only one of this format and nothing writes it. The text is loaded in ruamel.yaml's safe mode, so only plain data is built and a key repeated in one mapping is refused. `PIPELINE_YAML` in `tests/support/git_support.py` is the example definition.
 
 | Key | Meaning | Default |
 |---|---|---|
@@ -118,7 +118,7 @@ prints `doing 60 ['check', 'lint', 'test']` and then `unknown key: contrakt; mis
 - Only the loader raises and clears the stops `pipeline_definition_invalid` and `agent_definition_invalid`; no caller does. At `PIPELINE_REF` a refusal calls `StopService.raise_stop` before it raises, and a success calls `clear_stop` before it returns. A refused agent file raises `RepositoryStop(reason="agent_definition_invalid", detail="<agent name>: <fault>")`; since a definition that passes its own checks has already cleared `pipeline_definition_invalid`, only the agent stop remains. Any `AgentDefinitionInvalid` raises it, not only an unapplied key.
 - A load at any other ref raises the same refusal but raises and clears no stop, so a read of a branch never changes the health status. `WritePathService` ("The write paths" below) reads the definition at another commit and parses it directly with `pipeline_reader`, not through the loader.
 - A `GitError` propagates and raises no stop. An `OSError` of the stop's writes propagates in place of `PipelineDefinitionInvalid`.
-- Tests: `tests/pipeline/application/test_pipeline_loading.py`, with `human.push_file` and `checkout.fetch()` for other versions of the file and `install_agents(agent_home, roles)` in `tests/git_support.py` for the agent files.
+- Tests: `tests/pipeline/application/test_pipeline_loading.py`, with `human.push_file` and `checkout.fetch()` for other versions of the file and `install_agents(agent_home, roles)` in `tests/support/git_support.py` for the agent files.
 
 ## The prompt and the request for a stage
 
@@ -204,7 +204,7 @@ The stage-start commit does not change `pull_request`: it is `None` for a new wo
 
 `launch` returns a frozen `LaunchedStage`: `started` (a `StartedStage` with the work item, stage, branch, path, `stage_start`, `document`, `pull_request` and the form `findings` taken before the run), `request` and `result`. A run that dies, reaches its `time_limit` or its budget is a result. `PushFailed`, `AgentDefinitionMissing` and `AgentRuntimeError` propagate unchanged; after an `AgentRuntimeError` the claim stays pushed.
 
-Tests: `tests/pipeline/application/test_stage_launch.py`. `ObservingRuntime` (`tests/observing_runtime.py`) is an `AgentRuntime` that records the remote branch's head, the checkout's `HEAD` and the pull requests in the hosting fake at the moment `run` is called, then delegates to `FakeAgentRuntime`.
+Tests: `tests/pipeline/application/test_stage_launch.py`. `ObservingRuntime` (`tests/support/observing_runtime.py`) is an `AgentRuntime` that records the remote branch's head, the checkout's `HEAD` and the pull requests in the hosting fake at the moment `run` is called, then delegates to `FakeAgentRuntime`.
 
 ## Stalls
 

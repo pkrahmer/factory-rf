@@ -13,8 +13,8 @@ from factory.pipeline.application.tick import TickOutcome
 from factory.pipeline.domain.stops import HealthStatus, RepositoryStop
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import STATE_VARIABLE, InstanceSettings
-from power_support import IDLE
-from scripted_tick_support import MainRun, ScriptedTick, installed, run_main
+from support.power_support import IDLE
+from support.scripted_tick_support import MainRun, ScriptedTick, installed, run_main
 
 DETAIL = "tool:uv: uv is not on the PATH"
 MACHINE_STOP = ("machine", "preflight_failed")

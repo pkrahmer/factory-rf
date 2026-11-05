@@ -6,16 +6,16 @@ from pathlib import Path
 
 import pytest
 
-from agent_definition_support import COMPLETED
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.application.project_agents import ProjectAgentDefinitions
 from factory.entry.wiring import handler_factory
 from factory.pipeline.application.boundaries import Boundaries
 from factory.pipeline.application.tick import Tick
-from git_support import PIPELINE_YAML, install_agents
-from human_clone import HumanClone
-from stage_run_support import BACKLOG_PATH, INSTANCE, STORY
-from wiring_support import ENVIRONMENT
+from support.agent_definition_support import COMPLETED
+from support.git_support import PIPELINE_YAML, install_agents
+from support.human_clone import HumanClone
+from support.stage_run_support import BACKLOG_PATH, INSTANCE, STORY
+from support.wiring_support import ENVIRONMENT
 
 PROJECT_INTAKE = "---\nmodel: opus\ntools: [Read]\nbudget_usd: 2\n---\nThe project's intake.\n"
 

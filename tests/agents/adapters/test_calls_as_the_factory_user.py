@@ -8,8 +8,6 @@ from pathlib import Path
 
 import pytest
 
-from claude_stand_in import REPLY as CLAUDE_REPLY
-from claude_stand_in import Step, write_stand_in
 from factory.agents.adapters import claude_runtime, opencode_runtime
 from factory.agents.adapters.agent_launch import (
     API_LOGIN_VARIABLE,
@@ -25,9 +23,11 @@ from factory.agents.adapters.agent_launch import (
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.adapters.opencode_runtime import CONFIG_VARIABLE, OpencodeRuntime
 from factory.shared.adapters.process import ProcessRequest, ProcessResult, Stream, run_streaming
-from opencode_stand_in import MODELS, REPLY, REPLY_EVENTS, write_opencode
-from run_layout_support import Layout, run_request, write_login_file, write_script
-from run_process_recorder import Recorder
+from support.claude_stand_in import REPLY as CLAUDE_REPLY
+from support.claude_stand_in import Step, write_stand_in
+from support.opencode_stand_in import MODELS, REPLY, REPLY_EVENTS, write_opencode
+from support.run_layout_support import Layout, run_request, write_login_file, write_script
+from support.run_process_recorder import Recorder
 
 LIMIT = timedelta(seconds=30)
 STARTERS_WORDS = {"sudo", "/usr/bin/sudo", "env", "-i"}

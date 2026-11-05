@@ -12,9 +12,9 @@ from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.identifiers import Name
 from factory.shared.domain.settings import InstanceSettings
-from human_clone import HumanClone
-from stage_run_support import INSTANCE
-from watch_support import STORY, aged_claim, push_story_claim
+from support.human_clone import HumanClone
+from support.stage_run_support import INSTANCE
+from support.watch_support import STORY, aged_claim, push_story_claim
 
 SETTINGS_INSTANCE = "factory-2"
 HELD_LINE = f"event: idle:-  {STORY} is held by {INSTANCE}"

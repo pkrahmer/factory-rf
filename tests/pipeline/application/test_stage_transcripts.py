@@ -15,9 +15,9 @@ from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from factory.watching.adapters.transcript_files import FileTranscriptStore
 from factory.watching.domain.transcripts import Transcript
-from human_clone import HumanClone
-from stage_run_support import WORK_ITEM, open_story, pushed_cost_records, run_stage
-from transcript_support import sha256_of
+from support.human_clone import HumanClone
+from support.stage_run_support import WORK_ITEM, open_story, pushed_cost_records, run_stage
+from support.transcript_support import sha256_of
 
 SESSION = "ses_a"
 SECONDS = timedelta(seconds=5)

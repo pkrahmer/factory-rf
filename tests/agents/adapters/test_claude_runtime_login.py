@@ -5,8 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from claude_reply_support import BUDGET_STOP, LOGIN
-from claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
 from factory.agents.adapters.claude_runtime import (
     LOGIN_SCRIPT,
     LOGIN_VARIABLE,
@@ -19,7 +17,9 @@ from factory.agents.domain.agent_runs import (
     scrub_environment,
 )
 from factory.shared.domain.errors import AgentRuntimeError
-from run_process_recorder import Recorder
+from support.claude_reply_support import BUDGET_STOP, LOGIN
+from support.claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
+from support.run_process_recorder import Recorder
 
 CHANGED_LOGIN = "changed-login"
 REQUEST_LOGIN = "request-login"

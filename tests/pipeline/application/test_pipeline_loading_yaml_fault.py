@@ -10,9 +10,9 @@ from factory.pipeline.application.pipeline_loading import PIPELINE_REF, Pipeline
 from factory.pipeline.domain.stops import RepositoryStop
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import PipelineDefinitionInvalid
-from git_support import PIPELINE_YAML, install_agents
-from human_clone import HumanClone
-from log_support import log_lines
+from support.git_support import PIPELINE_YAML, install_agents
+from support.human_clone import HumanClone
+from support.log_support import log_lines
 
 PIPELINE_FILE = "factory/pipeline.yml"
 ROLES = [
