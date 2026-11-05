@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T07:30:38.603397Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-11-05T07:30:33.172637Z'
   stage: review
   run: 2a98a7f58eb0488b9b0938b5fe0cb462
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:30:38.603397Z'
+  stage: doing
 ---
 
 # The operator guide is a folder of topics
@@ -373,3 +382,4 @@ Expect: `split`
     - `tests/guards/test_project_guide_files.py`: the human's leave, entry 14 point 1 (it leaves out `docs/operator-guide/` and has the `operator-guide/` lookbehind).
 
     Checked and found sound: criterion 1 has its test. Criterion 2 has one row per heading, counted. Criterion 3 has six rows of one parametrized test, as the human's answer asks. Criterion 4 searches `src/`, `claude/`, `operator/`, `vm/`, `docs/` and `README.md`. All eleven files get the wording check (`TEXT_GUIDES`), and the stop rows are checked in `stops.md`. The `_RULES` table is a clean replacement for the `if` chain. The architecture holds (domain layer, no I/O). No markers silence a check and no secrets were added. The other five new `make duplicates` findings are outside this diff.
+23. factory: started doing as vm.
