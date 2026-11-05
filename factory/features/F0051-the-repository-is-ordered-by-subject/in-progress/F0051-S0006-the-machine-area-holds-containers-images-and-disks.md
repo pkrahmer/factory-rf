@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T03:16:46.530861Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-05T03:16:41.246228Z'
   stage: tests
   run: 022ced2962d748f69c4dcb3b81ee9298
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-05T03:16:46.530861Z'
+  stage: doing
 ---
 
 # The machine area holds containers, images and disks
@@ -152,3 +161,4 @@ Expect: `1`
    A note for the coder: `pyproject.toml` per-file-ignores, the mutmut settings, the import-linter contracts and `security/duplicates-baseline.txt` may still name old `src/factory/<layer>/` paths of these modules. I did not check them; they are outside my write paths.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
