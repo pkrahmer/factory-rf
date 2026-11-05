@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295, 6650280748, 6650410311]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T05:27:04.598619Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-11-05T05:26:58.533432Z'
   stage: doing
   run: 8ece2276489e405985ed9e171a5cbe99
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-05T05:27:04.598619Z'
+  stage: review
 ---
 
 # The root of `tests/` holds only its folders
@@ -356,3 +365,4 @@ Expect: `support.bill_support`
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
+21. factory: started review as vm.
