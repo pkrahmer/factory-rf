@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T10:27:54.286137Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-11-05T10:27:48.760712Z'
   stage: docs
   run: bed45eca4fc24a75b0100a64e9c9a4d2
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:27:54.286137Z'
+  stage: smoke-test
 ---
 
 # The removal guards look for a removed module in every area
@@ -415,3 +424,4 @@ Expect: `0`
     `check`: check: green (not run again: passed on tree da45fc51bafe at 2026-11-05T10:23:31Z)
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok
+23. factory: started smoke-test as vm.
