@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T01:54:23.933159Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-05T01:54:23.933159Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T01:55:48.282545Z'
+  stage: review
+  run: 39c9b812fcfb4980b34e901f186822c6
 ---
 
 # The work area holds the work items
@@ -287,3 +289,23 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 34 known, 8 gone
 15. factory: started review as vm.
+16. reviewer: Review, round 0. I read the diff myself, without relying on the journal's account of it. It holds 14 modules moved under `src/factory/work/<layer>/` (renames scored R085 to R100), four new `__init__.py` files under `src/factory/work/`, four empty ones under `tests/work/`, 34 test modules moved to `tests/work/`, and import rewrites in 168 files. A filter over every changed line found only import lines, dotted module strings in tests, one comment in `src/` (`# Not require_state: factory.work.domain.work_item ...`), the `test_tick.py` path row, the docstrings of the new packages and the `work` row of `AREAS`. No logic changed. No old path is left under `src/` or `tests/` except the old-path keys in `tests/test_areas.py`, which are kept on purpose.
+
+    Criteria: 1, 2, 3 and 4 are covered by the generic tests of `tests/test_areas.py` through the new `work` row. 1 is the import plus the missing old file. 2 is the package import plus its docstring. 3 is `imports()` in all three forms. 4 is the test that no test module is left behind, plus the area-folder test. The rows match the Interface's table of 14. The journal records `make check` green after the coder (entries 10 and 14). Architecture: every module moved within its own layer and no layer rule changed. Security: no markers, no secrets. `make duplicates` gives 11 new findings. They are the known findings under their new `factory.work.*` paths, because `security/duplicates-baseline.txt` still names the old paths. That file is outside the write paths and is the human's to update, as it was for S0002. It is a record, not a check, so it is no finding here.
+
+    Findings:
+    1. `src/factory/work/application/__init__.py:1`: the docstring says "the work items port", but `work/application/work_items.py` holds no interface. It holds `RemoteWorkItems`, a concrete reader of work items over `Git` and `WorkItemReader`. In this project "port" means an ABC interface, as the hosting and shared area docstrings use it. Fix: describe what the package holds, for example `"""The work area's application: reading the work items from main and their branches, the acceptance and its reading."""`.
+
+    Earlier tests (item 6): every file below was written by another story or by the human. All are changed or moved under the Interface's leave (feature decision 5, "the leave of feature decision 5 covers every other change to tests that the move needs"). The only exception is `tests/test_areas.py`, whose `work` row the Interface orders. Each change is import lines, dotted module strings or the moved path only, and every test keeps its name and what it checks.
+    - tests/acceptance_support.py, tests/acceptance_walk.py, tests/branch_reading.py, tests/conftest.py, tests/cost_image_support.py, tests/crash_support.py, tests/evaluation_support.py, tests/proof_support.py, tests/push_retry_support.py, tests/shipped_agents.py, tests/stage_run_support.py, tests/stall_support.py, tests/story_form_support.py, tests/undo_support.py, tests/watch_support.py, tests/work_item_support.py, tests/write_path_support.py: feature decision 5 (import lines)
+    - tests/test_approval_description.py, tests/test_checkout_hygiene_removed.py, tests/test_claude_files.py, tests/test_fault_paths.py, tests/test_fault_paths_7_to_13.py, tests/test_model_configuration.py, tests/test_no_journal_reading.py, tests/test_no_state_copies.py, tests/test_proof_support.py, tests/test_shared_branch_helpers.py, tests/test_stop_table.py: feature decision 5 (imports and dotted module strings)
+    - tests/test_areas.py: the Interface's rule that `AREAS` gains the `work` row (row only)
+    - tests/application/handlers/{conftest,test_closed,test_closed_send_back,test_comment_handler,test_comments,test_hand_over,test_handler_subjects,test_lookups,test_merged,test_questions,test_recording,test_reject,test_run_gate}.py: feature decision 5 (import lines)
+    - tests/application/test_{acceptance_closed,acceptance_due_handler,acceptance_facts_disk,acceptance_facts_human,acceptance_hand_over,acceptance_merged,acceptance_merged_before_approval,acceptance_no_state_refusals,acceptance_reading,acceptance_refusals,acceptance_repeated,acceptance_reviewer_role,acceptance_service,acceptance_snapshots,acceptance_ticks_closed,acceptance_ticks_merged,after_agent,after_agent_edges,board_reader,board_reader_acceptance,claims,claims_observed,claims_refusals,costs,dispatcher,dispatcher_without_state,hosting_failure_releases_claim,human_line_posts,left_out_stage,no_branch_check,no_state_refusals,opening,question_causes_recorded,recovery_cap,recovery_crash,recovery_expiry,request_working_directory,split_by_work_item_kind,stage_changes,stage_finish,stage_finish_causes,stage_known_results,stage_launch,stage_nested_repository,stage_on_container_fakes,stage_run_acceptance,stage_time_limited_report,stall_edges,stall_environment,stall_labels,stall_reasons_recorded,stalls,task,task_acceptance,tick_stale_branch,watcher,watcher_acceptance,watcher_move_rule,work_items,work_items_duplicate}.py: feature decision 5 (import lines)
+    - tests/application/test_tick.py: feature decision 5 (imports and the path row `work/application/work_items.py`)
+    - tests/domain/test_{acceptance_before_approval,acceptance_booking,acceptance_refusal_edges,agent_entry,board,board_absent_values,contract,decide_docs_slip,decision_rules,decisions,evaluation,evaluation_details,evaluation_due,evaluation_reject,events,human_waits,journal_stamps,lease,lease_observed,move_rule,prompts,recovery,recovery_cap,send_back,times}.py: feature decision 5 (import lines)
+    - tests/entry/test_{run,watch,wiring,wiring_acceptance,wiring_boundaries,wiring_handlers,wiring_human_handlers}.py: feature decision 5 (import lines)
+    - tests/domain/test_{acceptance,acceptance_description,acceptance_facts,acceptance_facts_disk,acceptance_facts_human,acceptance_facts_limit,acceptance_status,answers,answers_round_cap,archive,hand_over,journal,journal_acceptance,journal_causes,journal_records,labels,post_texts_notes,provider_limit_stall_text,question_texts,section_edges,send_back_records,stall_reason_removed,stall_texts,story_form,story_form_edges,story_place,work_item,work_item_require_state,work_item_snapshot}.py -> tests/work/domain/: feature decision 5 (move plus import lines)
+    - tests/adapters/test_{journal_as_data,journal_causes_file,journal_stamps_file,work_item_markdown,work_item_markdown_acceptance}.py -> tests/work/adapters/: feature decision 5 (move plus import lines)
+
+    Open: `security/duplicates-baseline.txt` needs the `factory.work.*` paths (the human's file).
