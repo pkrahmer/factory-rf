@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T07:36:40.098015Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   at: '2026-11-05T07:36:34.505319Z'
   stage: tests
   run: b948896794e24710a5e6bd756adc567b
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:36:40.098015Z'
+  stage: doing
 ---
 
 # The operator guide is a folder of topics
@@ -447,3 +456,4 @@ Expect: `split`
     Still open: finding 7 (criteria 2 and 4 and the Interface's path of the site-check test) is a rewrite of the Description. That is outside the tester's write paths for this mode, so I left it.
 
     `lint`: lint: green (0.2 s)
+27. factory: started doing as vm.
