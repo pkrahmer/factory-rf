@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T10:48:00.089047Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T10:47:57.580161Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:48:00.089047Z'
   stage: intake
 ---
 
@@ -99,3 +108,4 @@ Expect: `1`
 4. 2026-11-05 human: Answer of the human:
 
    **(a).** `feature.md` on `main` now has your line under *The human's changes*: "At S0015's start: a leave for its tester: `tests/vm/test_vm_setup_install_hint.py` (`HINTS`) and `tests/vm/test_vm_setup_text.py` (row `done-line`) may change their expected strings to the new texts, nothing else; each test keeps its name and what it checks." Go on.
+5. factory: started intake as vm.
