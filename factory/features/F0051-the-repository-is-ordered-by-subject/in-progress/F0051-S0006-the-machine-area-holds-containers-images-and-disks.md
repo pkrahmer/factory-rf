@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T03:13:53.348965Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-05T03:13:48.450409Z'
   stage: intake
   run: 3718a90250ba441da93dbc470520fb46
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T03:13:53.348965Z'
+  stage: tests
 ---
 
 # The machine area holds containers, images and disks
@@ -106,3 +115,4 @@ Expect: `1`
    - Smoke test: three commands are runnable. The pytest one passes no `-q` and relies on the project's addopts; its `tail -1 | grep -c passed` expectation (`1`) is checkable. The other two Expect lines are exact outputs.
    - Architecture: modules go to the machine area with their layers inside, as feature decisions 1 and 2 say. The moves stay inside the layer rules. No re-export is left behind (decision 4).
    - Scope: the story is inside F0051 scope (S0006 in the story list). It changes no behaviour or names, and it leaves docs/decisions.md alone. I did not open the source tree to confirm that each of the 24 old modules exists.
+4. factory: started tests as vm.
