@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295, 6650280748, 6650410311, 6650650704]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T05:38:38.370924Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -148,6 +152,11 @@ journal:
   at: '2026-11-05T05:38:32.629329Z'
   stage: review
   run: 7d6bffa123504b71b7f0527e7e3161db
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-05T05:38:38.370924Z'
+  stage: docs
 ---
 
 # The root of `tests/` holds only its folders
@@ -458,3 +467,4 @@ Expect: `support.bill_support`
     - **The 374 modified modules:** `tests/conftest.py` and the modules under `tests/<area>/` and `tests/entry/`. Only import lines changed. Leave: feature decision 5.
 
     Open, and the human's own (entry 15): the six mutmut `--deselect` paths in `pyproject.toml`.
+26. factory: started docs as vm.
