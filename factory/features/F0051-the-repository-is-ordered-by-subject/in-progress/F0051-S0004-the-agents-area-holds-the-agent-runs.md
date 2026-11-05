@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 559
 comments_read: [6648033321]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T02:39:33.488281Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-05T02:39:33.488281Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T02:41:52.452158Z'
+  stage: review
+  run: f34daa5ab6d6447e998205a55eb1e9a2
 ---
 
 # The agents area holds the agent runs
@@ -307,3 +309,60 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 12 new, 33 known, 10 gone
 15. factory: started review as vm.
+16. reviewer: Review, round 0: no findings.
+
+    What I checked:
+    - **Criteria 1 to 4.** `AREAS["agents"]` in `tests/test_areas.py` holds exactly the 19 modules of the Interface's table. The test functions already in that module are parametrized over `AREAS`, so they now cover this area: importing each new path, checking the old file is gone, the four package docstrings, no import from an old path in any of the three forms (`source_search.imports`), no test module left behind in its layer folder, and each moved test module importing only moved areas and at least one module of `agents`. The factory's `make check` after the coder was green (entry 14). These rules are structural, and each test checks the rule's failing side itself, so no boundary row is missing.
+    - **The source diff.** `git diff -M main...HEAD -- src` has the 19 renames into `src/factory/agents/<layer>/` and four new `__init__.py` files, each with a one-line docstring. Every other changed line is an import line. A grep of `src`, `tests`, `pyproject.toml` and `security` finds no old path outside `tests/test_areas.py`'s own table, except two `security/duplicates-baseline.txt` lines. The human deferred those to after the merge (entry 8).
+    - **Architecture.** Each module stays in its own layer inside `factory.agents`. The forbidden contracts in `pyproject.toml` use the wildcards `factory.*.domain`, `factory.*.application` and `factory.*.adapters`, so they cover the new packages. No new interface, DTO or tool call.
+    - **Security.** No new marker, secret or baseline entry. The three per-file-ignores at the new paths came from the human's change on `main` (entry 8), not from this diff.
+    - **Quality.** I ran `make duplicates`: 12 new, 33 known, 10 gone. Every new finding is one of three kinds:
+      - a known finding under its new `factory.agents.*` path (the baseline update waits for the merge, entry 8);
+      - the `hand_over`/`acceptance` pair, listed with its two modules in the other order;
+      - the three `cost_records.py` fields (`store_free_bytes`, `dataset_free_bytes`, `memory_peak_since_boot_bytes`). These are on `main` unchanged at the same lines and are not from this diff.
+    - **Moved test modules.** I checked them for `__file__`-relative paths that the move could break or make vacuous. The only uses are inside the stand-in scripts the tests write, as entry 7 says.
+    - **Work item.** The journal explains the src/tests split and the rejected `# noqa`. The Description matches what was built. Criterion 6 still says what the documenter must change.
+
+    Open, as entries 7, 8 and 14 say:
+    - `CLAUDE.md` line 19 still names `factory.adapters.agent_launch`.
+    - The old-path lines in `security/duplicates-baseline.txt`.
+    - The old `pyproject.toml` keys.
+    The human said all three wait for the merge.
+
+    Earlier tests (every test file on `main` the diff changes or renames). The leave for all of them is feature decision 5, which the Interface names, together with the human's answer in entry 8:
+    - `tests/test_areas.py`: the Interface's own rule (the `agents` row of `AREAS`, nothing else changed).
+    - `tests/test_no_agent_login.py`, `tests/test_suite_held_once.py`, `tests/test_tests_run_under_the_starting_umask.py`: file paths of moved test modules only.
+    - The 55 test modules moved with `git mv`, import lines only changed. From `tests/domain/` to `tests/agents/domain/`:
+      - test_agent_entry, test_agent_environment, test_agent_runs, test_agent_runs_session, test_decisions, test_died_runs
+      - test_nested_claude_paths, test_opencode_provider, test_project_agent_paths, test_prompts
+      - test_provider_limit_wait, test_provider_limits, test_provider_limits_one_second
+      - test_resumed_result, test_resumed_result_time_limit, test_tokens, test_tokens_masked, test_write_paths
+    - From `tests/application/` to `tests/agents/application/`: test_tokens.
+    - From `tests/adapters/` to `tests/agents/adapters/`:
+      - test_agent_file_keys, test_agent_files, test_agent_files_parse
+      - test_agent_launch, test_agent_launch_call_end, test_agent_launch_container_kill, test_agent_launch_login, test_agent_launch_state_directory
+      - test_calls_as_the_factory_user
+      - test_claude_runtime, test_claude_runtime_api_login, test_claude_runtime_denial_paths, test_claude_runtime_environment, test_claude_runtime_login, test_claude_runtime_no_hook
+      - test_claude_runtime_provider_limit, test_claude_runtime_resume, test_claude_runtime_resume_session, test_claude_runtime_transcript
+      - test_died_text, test_fake_agent_runtime, test_kill_at_the_limit_stays, test_oauth_token
+      - test_opencode_budget, test_opencode_left_out_tools, test_opencode_measures, test_opencode_provider_limit, test_opencode_result_block, test_opencode_resumed_words
+      - test_opencode_runtime, test_opencode_runtime_launch, test_opencode_runtime_provider, test_opencode_runtime_runs_folder
+      - test_runtime_died_text, test_runtime_state_directory_write, test_shipped_agents_effect
+    - Import lines and module paths only, plus the line wraps of `ruff format`:
+      - `tests/`: conftest.py, agent_definition_support.py, agent_run_support.py, bill_support.py, claude_resume_support.py, container_extra_support.py, container_support.py, cost_image_support.py, cost_records_support.py, observing_runtime.py, probe_support.py, proof_support.py, push_retry_support.py, run_layout_support.py, stage_run_support.py, stall_support.py, token_support.py
+      - `tests/`: test_agent_launch_search.py, test_agent_run_request_search.py, test_claude_files.py, test_home_reset_removed.py, test_hook_removed.py, test_hosting_search.py, test_kernel_guard_removed.py, test_leftovers_program_removed.py, test_model_configuration.py, test_opencode_runtime_search.py, test_operator_job.py, test_operator_site_example.py, test_removed_layer_names.py, test_second_user_removed.py, test_wrapper_search.py
+      - `tests/adapters/`: claude_stand_in.py, container_runtime_support.py, opencode_stand_in.py, test_agent_launch_container.py, test_agent_launch_extra.py, test_claude_runtime_container.py, test_opencode_events.py, test_opencode_runtime_container.py, test_opencode_runtime_lockdown.py, test_runtime_podman_timeout_status.py, test_runtime_tool_uses.py, test_runtimes_without_wrapper.py
+      - `tests/domain/`: test_bills.py, test_cost_records.py, test_tool_uses.py, test_tool_uses_replayed_lines.py
+      - `tests/application/`: handlers/test_run.py, test_acceptance_service.py, test_acceptance_ticks_closed.py, test_acceptance_ticks_merged.py, test_after_agent.py, test_after_agent_edges.py, test_agent_definition_reader.py
+      - `tests/application/`: test_agent_run_probe.py, test_agent_run_probe_api_login.py, test_agent_run_probe_environment.py, test_agent_run_probe_factory_user.py, test_agent_run_probe_login.py, test_agent_run_probe_opencode.py, test_agent_run_probe_project_agent.py
+      - `tests/application/`: test_container_environment.py, test_container_environment_extra.py, test_container_environment_take.py, test_container_stage_checks.py
+      - `tests/application/`: test_cost_image.py, test_cost_instance.py, test_cost_record_machine_measures.py, test_costs.py, test_costs_denials.py, test_costs_died_text.py, test_costs_login.py, test_costs_model_seconds.py, test_costs_provider_limit.py
+      - `tests/application/`: test_interfaces.py, test_left_out_stage.py, test_machine_checks_runtime.py, test_no_branch_check.py, test_no_state_refusals.py, test_patient_runs.py, test_pipeline_loading_project_agents.py, test_preflight.py, test_preflight_stop_detail.py
+      - `tests/application/`: test_probe_nested_repository.py, test_project_agents.py, test_push_retry.py, test_request_working_directory.py, test_sealed_runs_runner.py
+      - `tests/application/`: test_stage_died_line.py, test_stage_environment_calls.py, test_stage_finish.py, test_stage_finish_causes.py, test_stage_known_results.py, test_stage_launch.py, test_stage_nested_repository.py, test_stage_on_container_fakes.py
+      - `tests/application/`: test_stage_provider_limit.py, test_stage_run.py, test_stage_run_acceptance.py, test_stage_time_limited_report.py, test_stage_tool_uses.py, test_stage_transcripts.py
+      - `tests/application/`: test_stall_container.py, test_stall_edges.py, test_stall_environment.py, test_stall_labels.py, test_stall_reasons_recorded.py, test_stalls.py
+      - `tests/application/`: test_task.py, test_task_acceptance.py, test_tick_agent_definition.py, test_tick_preflight.py, test_tick_project_agent.py, test_write_paths.py, test_write_paths_guard.py
+      - `tests/entry/`: test_refresh_token.py, test_refresh_token_signals.py, test_run.py
+      - `tests/entry/`: test_wiring_acceptance.py, test_wiring_api_login.py, test_wiring_boundaries.py, test_wiring_container_extra.py, test_wiring_environment.py, test_wiring_extras.py, test_wiring_handlers.py, test_wiring_human_handlers.py
+      - `tests/entry/`: test_wiring_image_path.py, test_wiring_login.py, test_wiring_one_environment.py, test_wiring_opencode.py, test_wiring_opencode_provider.py, test_wiring_project_agents.py, test_wiring_provider_limit.py, test_wiring_run.py, test_wiring_stage_environment.py, test_wiring_without_agent_user.py
