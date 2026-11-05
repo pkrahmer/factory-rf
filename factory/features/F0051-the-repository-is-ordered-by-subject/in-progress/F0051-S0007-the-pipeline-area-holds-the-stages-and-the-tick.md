@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 562
 comments_read: [6649241093, 6649574994]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T04:24:37.675842Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-05T04:24:32.253424Z'
   stage: docs
   run: 65530bb8c0dc4449be7dad456c0f0009
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-05T04:24:37.675842Z'
+  stage: smoke-test
 ---
 
 # The pipeline area holds the stages and the tick
@@ -839,3 +848,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 4b9a4e02e3e2 at 2026-11-05T04:03:28Z)
     `secrets`: secrets: green (7.7 s)
     `documents`: documents ok
+22. factory: started smoke-test as vm.
