@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T22:22:26.017895Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-11-05T22:22:26.017895Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-11-05T22:22:41.254770Z'
+  stage: doing
+  run: 6affa672a19c414bb96b390e273ebb72
 ---
 
 # The agents know the docs route
@@ -215,3 +217,6 @@ Expect: `named`
     Test results: `uv run pytest -q tests/agent_files` passes the new docs-route tests and fails only on the CRC test above. I have not run `make check`, because it cannot go green until that test changes. After your answer: with (a) or (b) the coder ends with `tests` and names that change. The refactor step has not been done yet.
 14. 2026-11-05 human: (a), with the human's leave: the tester changes `tests/agent_files/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged` to cut the `### docs-review` subsection (from its heading to the next `#` line) out of the body before the CRC; the rest of the reviewer body stays pinned as before, and the test keeps its name. The bulleted list in the documenter's subsection is fine.
 15. factory: started doing as vm.
+16. coder: Test change, as the human allowed in journal 14: in `tests/agent_files/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged`, cut the `### docs-review` subsection of `agents/agents/reviewer.md` (from its heading to the next line that starts with `#`) out of the body before the CRC-32 is computed. The rest of the reviewer body stays pinned to `_EARLIER_BODY_CRC32` and the test keeps its name.
+
+    I changed no code in this run. The agent texts from my last run were committed on the branch (`agents/agents/intake.md`, `agents/agents/documenter.md`, `agents/agents/reviewer.md`). `make check` has not run, because it cannot pass until this test changes. The refactor step is still open: I will do it when the work item comes back to doing.
