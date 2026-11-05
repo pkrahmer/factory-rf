@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 576
 comments_read: [6672543099]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T23:53:33.631148Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-05T23:53:33.631148Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T23:54:31.864805Z'
+  stage: review
+  run: e7afbda56dab4c19998c760b009e644d
 ---
 
 # A guide rewrite may rename its headings and add a page
@@ -177,3 +179,19 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 11. factory: started review as vm.
+12. reviewer: no findings
+
+    I read the work item and `git diff main...HEAD -- . ':!factory'`. The diff touches four files under `tests/` and nothing under `src/` or `docs/`.
+    - Group 1, criteria: criterion 1 has all eleven of its rows in `tests/guards/test_guide_index_problems.py::test_index_problems_name_what_index_and_folder_disagree_on`, as one parametrized test. There is also a `required-present` row, which covers the passing side of the `required` rule. Each row's expected value matches what `index_problems` (`tests/support/guide_files_support.py:36`) computes. The `missing:` lines are built as a set, so a page named in the index and in `required` gives its line once. The result is sorted. Only lines inside `## The files` and outside fences count. Non-Markdown files and `README.md` are left out. Criterion 2 is `test_the_guide_holds_the_index_and_its_named_files`, which is `index_problems(GUIDE, AREA_FILES) == []`. The repository's index names all ten pages in the colon form. Criterion 3 holds: no `HEADINGS` table and no `guide_headings` remain under `tests/guards/`. The surviving tests keep their names, and the survivor of the merge is the one the Interface names. The only other `HEADINGS` is in `tests/work/domain/test_hand_over.py`, which is not about the guides. Criterion 4: the coder's `make check` was green (journal entry 10). Criterion 5 is the documenter's, and it still says what the reader must know.
+    - Group 2, architecture: the shared function lives in a `tests/support/*_support.py` module, and no test module imports another. The guard imports nothing of `factory`.
+    - Group 3, security: no secrets, no shell or SQL, no markers.
+    - Group 4, quality: the names and docstrings fit. `guide_headings` lost its last callers, and its removal leaves no dead code. `_the_files_section` moved into the support module and is not a copy.
+    - Group 5, hygiene: the Description matches what was built. The journal records the tester writing the support function, and the coder building nothing.
+
+    Notes:
+    1. `tests/guards/test_guide_index_problems.py`: no row has a line with a word but no full stop (``- `page.md` covers a page``), and no row has a full stop but no word (``- `page.md`: .``). Today only the combined `line-without-sentence` row covers these. `INDEX_LINE` (`tests/support/guide_files_support.py:20`) treats both as not naming the page, as the Interface says. The missing rows would each give `["not in the index: page.md"]`.
+
+    Earlier tests:
+    - `tests/guards/test_project_guide_files.py`: the human's leave, feature decision 7. `HEADINGS` and its test are removed, and the two index tests are merged into the one the Interface names. The imports and `NAMED_FILES` that this left unused are removed, and the docstring now says what the merged test checks.
+    - `tests/guards/test_operator_guide_files.py`: the human's leave, feature decision 7. `HEADINGS` and its test are removed, along with the imports this left unused.
+    - `tests/support/guide_files_support.py`: the human's leave, through the story's Interface, which names this module for `index_problems`. `guide_headings` is removed because its only callers are the tests decision 7 removes.
