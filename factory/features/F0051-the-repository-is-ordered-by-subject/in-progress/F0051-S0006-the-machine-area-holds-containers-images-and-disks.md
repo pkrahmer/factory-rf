@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T03:31:17.387383Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-05T03:31:12.024137Z'
   stage: docs
   run: 668be5127eb748089091ab3f084c5898
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-05T03:31:17.387383Z'
+  stage: smoke-test
 ---
 
 # The machine area holds containers, images and disks
@@ -320,3 +329,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree bbce8ae4ff85 at 2026-11-05T03:26:21Z)
     `secrets`: secrets: green (3.0 s)
     `documents`: documents ok
+16. factory: started smoke-test as vm.
