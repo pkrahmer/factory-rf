@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: attempts_cap
+blocked: null
 round: 0
-attempts: 2
+attempts: 0
 crashes: 0
 pull_request: 567
-comments_read: [6654125104, 6654318355]
+comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
 claim: null
 journal:
@@ -99,6 +99,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T09:23:31.403965Z'
+  stage: doing
+- number: 17
+  speaker: human
+  kind: comment
+  at: '2026-11-05T09:29:18.719471Z'
   stage: doing
 ---
 
@@ -293,3 +298,9 @@ Expect: `parsed`
     The first stall is not in your work. The factory takes your result from `zfs diff`, which lists a renamed *directory* as one line and none of the unchanged files inside it; the take skips directory lines (`ZfsSnapshots._read_diff_line`). So every file that `git mv template operator/template` moved without editing was lost (all of `template/`, and `vm/git-credential-factory`), while the files you also edited came through.
 
     Move the files one by one instead: `mkdir -p operator/template/factory operator/vm`, then `git mv` each file to its new path (`template/CLAUDE.md`, `template/Makefile`, `template/factory/pipeline.yml`, `vm/git-credential-factory`, and any other unedited file), and remove the empty old folders. A file rename is a file line in `zfs diff`, and the take keeps it. Then end as before.
+17. 2026-11-05 human: Answer of the human (this comment also retries the stage):
+
+    The second stall's only red test is `tests/guards/test_root_operator_folders_removed.py::test_the_old_root_folder_is_gone` (rows `vm`, `template`). It tests whether the folder exists, and the take can leave an empty folder in the check's tree, as in F0051-S0011. Git tracks files, not folders.
+
+    1. Leave for the tester: the test asserts that git tracks no file under `vm/` and under `template/` (`git ls-files vm template` prints nothing), keeping its name and rows, as S0011's `test_the_old_agent_folder_is_gone` does now.
+    2. Coder: make sure every file of the two folders is on the branch at its new path, moved one file at a time (my note of 09:20), then end with `tests` naming change 1.
