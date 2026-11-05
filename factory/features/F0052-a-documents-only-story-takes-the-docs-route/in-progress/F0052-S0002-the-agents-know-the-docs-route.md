@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T22:48:40.810018Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -230,6 +234,11 @@ journal:
   at: '2026-11-05T22:48:35.533157Z'
   stage: docs
   run: 6eeed2df000f4a488f51f0cb0270b2f5
+- number: 41
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:48:40.810018Z'
+  stage: smoke-test
 ---
 
 # The agents know the docs route
@@ -575,3 +584,4 @@ Expect: `named`
     `check`: check: green (not run again: passed on tree 6446ef65dba1 at 2026-11-05T22:44:34Z)
     `secrets`: secrets: green (1.8 s)
     `documents`: documents ok
+41. factory: started smoke-test as vm.
