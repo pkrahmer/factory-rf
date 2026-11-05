@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T06:03:26.859907Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-05T06:03:26.859907Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-05T06:04:54.697067Z'
+  stage: tests
+  run: 1effae5adebf45c180d337ab1cbab9f3
 ---
 
 # The project guide has one file per area
@@ -155,3 +157,36 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
    3. **(a)**: the search covers `claude/`, `docs/` without `docs/runs/` and `docs/decisions.md`, and `README.md`, for the seven removed names, bare or as `project-guide/<name>`. Yes, `docs/operator-guide.md`'s two lines change in this story; criterion 6 names them.
    4. **Yes**: the seven area files and `operator.md`; the index does not name itself.
 10. factory: started tests as vm.
+11. tester: I wrote one guard module for criteria 1 to 4, as the human answered in journal 9. I also rewrote the Description to match those answers: the Interface line and criteria 2, 3, 4 and 6.
+
+    - criterion 1: tests/guards/test_project_guide_files.py::test_the_guide_holds_the_index_operator_and_the_seven_area_files
+    - criterion 2: tests/guards/test_project_guide_files.py::test_every_earlier_heading_is_kept_as_often_as_before
+      - Parametrized with one row per distinct heading and its count.
+      - The 159 rows were taken from the guide as committed at the start of this stage. That guide was still unchanged from `origin/main`.
+      - *The files* is left out. Headings inside fenced code blocks are not counted.
+    - criterion 3: two tests.
+      - tests/guards/test_project_guide_files.py::test_the_index_names_each_file_with_a_sentence is parametrized over the seven area files and `operator.md`. It checks for a list item "- `<name>` … ." in *The files*.
+      - tests/guards/test_project_guide_files.py::test_every_source_path_the_index_names_exists covers every `src/factory/…` path in the index.
+    - criterion 4: tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file
+      - It searches `claude/`, `docs/` (without `docs/runs/` and `docs/decisions.md`) and `README.md` for the seven removed names, bare or as `project-guide/<name>`.
+      - `CLAUDE.md` is left out.
+      - The match is refused when a word character, `.` or `-` comes just before the name.
+    - criteria 5 and 6: no test (make check, and the docs stage).
+
+    Files created: tests/guards/test_project_guide_files.py. Files changed: the work item's Description.
+
+    Modules the test runner could not import: none. The module imports nothing from `factory`.
+
+    Red run, as expected:
+    - The file-set test fails.
+    - The index test fails for hosting.md, work.md, machine.md and pipeline.md, and also for shared.md, which the output did not show.
+    - The removed-name test fails. Today it finds `docs/operator-guide.md` lines 1870, 1977 and 2109. That is three lines, not the two named in journal 8 and 9; criterion 6 now covers every such line in operator-guide.md.
+
+    The heading-count rows pass now and must keep passing after the moves. `make lint` is green.
+
+    Open:
+    - I ran the test file twice instead of once. The second run was by mistake and changed nothing.
+
+    The factory left out changes outside the write paths: factory/features/F0051-the-repository-is-ordered-by-subject/in-progress/F0051-S0009-the-project-guide-has-one-file-per-area.md.
+
+    `lint`: lint: green (0.1 s)
