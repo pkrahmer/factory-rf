@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T09:38:02.490784Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -149,6 +153,11 @@ journal:
   at: '2026-11-05T09:37:56.876551Z'
   stage: review
   run: 3eeb57bf46064a0393286e56aa418d05
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-05T09:38:02.490784Z'
+  stage: docs
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -454,3 +463,4 @@ Expect: `parsed`
     - tests/vm/test_vm_local_environment.py: feature decision 5
     - tests/vm/test_vm_service_stop.py: feature decision 5
     - tests/vm/test_vm_setup_install_hint.py: feature decision 5
+26. factory: started docs as vm.
