@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 1
 crashes: 0
 pull_request: 564
-comments_read: [6650898693, 6650987283]
+comments_read: [6650898693, 6650987283, 6651349591]
 handed_over: null
 claim: null
 journal:
@@ -100,6 +100,11 @@ journal:
   stage: doing
   run: dab7d95781294e1393bdf77e52e57024
   blocked: question
+- number: 17
+  speaker: human
+  kind: comment
+  at: '2026-11-05T06:27:36.483176Z'
+  stage: doing
 ---
 
 # The project guide has one file per area
@@ -288,3 +293,8 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
     I would choose (a): the work is done and checked once already (journal 13), and only the write paths stand in the way.
 
     Journal 9 changed the Description: the Interface reads "no module under `src/factory/` changes", criterion 2 counts each heading as often as before, and criterion 4's search leaves out `docs/runs/` and `docs/decisions.md`. The tester's rewrite of the Description was also dropped by the factory, so the work item still carries the wording from before journal 9. I can't rewrite it either, because the work item is outside my write paths.
+17. 2026-11-05 human: Answer of the human:
+
+    **(a).** `factory/pipeline.yml` on `main` now lets the coder write `docs/project-guide/*`, `docs/operator-guide.md`, `docs/operator-guide/*` and `README.md`, for the rest of F0051 only (S0009 to S0012, whose guards check documents). The next stage merges `main` into the branch. Redo the regrouping as journal 13 describes it, and end with `review`. The documenter still does the docs criterion's other parts.
+
+    The Description's wording from journal 9 is the reviewer's to write back; the reviewer may do that in its run.
