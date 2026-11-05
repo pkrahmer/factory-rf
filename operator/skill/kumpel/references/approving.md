@@ -22,5 +22,5 @@ Read the code of the story's main change once yourself: the six checks are about
 
 ## After a merge
 
-- When the merge changed the factory's own code and the factory runs from that repository (its self-build), the instance needs the new code: on a VM the operator guide's rebuild, in a job its next execution. A project's merge never needs it.
+- When the merge changed the factory's own code and the factory runs from that repository (its self-build), the instance needs the new code: on a VM the rebuild of `docs/operator-guide/machine.md`, *The rebuild after a merge*, in a job its next execution. A project's merge never needs it.
 - With `start_next` on, once the archive commit is on `main`, ask `sh scripts/next-story.sh` and start the story it names (`sh scripts/start-story.sh <id>`).

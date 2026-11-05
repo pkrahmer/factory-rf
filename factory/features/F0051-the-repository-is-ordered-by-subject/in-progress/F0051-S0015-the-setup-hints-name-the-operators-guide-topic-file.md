@@ -1,3 +1,143 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 570
+comments_read: [6656020506, 6656185279]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-05T10:39:36.364853Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:39:36.372134Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-05T10:40:01.129317Z'
+  stage: intake
+  run: f07e02d197cd46e69df3d30b220325e6
+  blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-05T10:47:57.580161Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:48:00.089047Z'
+  stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-05T10:48:13.403469Z'
+  stage: intake
+  run: 032c998b2dea4513a95e5fe323661a29
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:48:18.620340Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-05T10:49:20.547304Z'
+  stage: tests
+  run: 219d88d9942b409599def49137913349
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:49:25.780323Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-05T10:50:08.832030Z'
+  stage: doing
+  run: 0f952c42fa85402484c6a8d4175b66a9
+  blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-05T10:56:03.472408Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:56:06.034047Z'
+  stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-05T10:58:35.242606Z'
+  stage: doing
+  run: 48e5280b462d4c52a03e0fbaaede925d
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:58:40.878516Z'
+  stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-05T10:59:06.329599Z'
+  stage: tests
+  run: 2737d5bc6cbe42c8b5cb8a0d3fb9d216
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:59:11.603856Z'
+  stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-05T11:04:15.739370Z'
+  stage: doing
+  run: b91a47b295fc46389193d37664f18c15
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-05T11:04:21.401104Z'
+  stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T11:05:05.130038Z'
+  stage: review
+  run: 83ac1b6ee2b446baaa670f3201ca651b
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-05T11:05:10.587802Z'
+  stage: docs
+- number: 21
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T11:05:37.971598Z'
+  stage: docs
+  run: 710e15d302da44b295e3898fa50bad39
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-05T11:05:43.475241Z'
+  stage: smoke-test
+- number: 23
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T11:06:09.657208Z'
+  stage: smoke-test
+  run: 45cadcc653574c1bb60ce6222c2990f6
+---
+
 # The setup's hints name the operator guide's topic file
 <!-- proposed by feature acceptance of 2026-11-05; refine before starting -->
 
@@ -57,3 +197,182 @@ uv run pytest tests/vm/test_vm_setup_install_hint.py tests/guards/test_operator_
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-05 human: created.
+2. factory: started intake as vm.
+3. intake: 1. The story changes two tests that other stories wrote: `tests/vm/test_vm_setup_install_hint.py` (`HINTS`) and `tests/vm/test_vm_setup_text.py` (row `done-line`). Its Description and Interface say the human's leave in `feature.md` is needed. `feature.md`'s *The human's changes* has no such leave for S0015. It has one for S0014 only, and decision 5 covers only the modules a move story moves. Without the leave, the tester cannot change those expected strings. Options: (a) you add to `feature.md` a line "At S0015's start: a leave for its tester: `tests/vm/test_vm_setup_install_hint.py` (`HINTS`) and `tests/vm/test_vm_setup_text.py` (row `done-line`) may change their expected strings to the new texts, nothing else; each test keeps its name and what it checks"; or (b) you answer here that this entry is the leave. I would choose (a). Everything else checks out; I am asking only about this. Interface: concrete files and exact lines. Criteria: testable, each rule has a failing-side row, including the made-up line that is caught. Smoke test: runnable, and `Expect:` lines are checkable. The pytest command correctly passes no `-q`, because `addopts` already sets it. Architecture and scope: fit, and the left-out items are named.
+4. 2026-11-05 human: Answer of the human:
+
+   **(a).** `feature.md` on `main` now has your line under *The human's changes*: "At S0015's start: a leave for its tester: `tests/vm/test_vm_setup_install_hint.py` (`HINTS`) and `tests/vm/test_vm_setup_text.py` (row `done-line`) may change their expected strings to the new texts, nothing else; each test keeps its name and what it checks." Go on.
+5. factory: started intake as vm.
+6. intake: accepted
+   Interface: names concrete files and exact lines (`operator/vm/setup.sh` tools and service hints, the closing line, `approving.md` *After a merge*), and the two tests that change with the exact files, `HINTS` and row `done-line`.
+   Criteria: each is testable by one test function. Every rule has a failing side. The old hint and the old done-line must be absent, and criterion 3 has a row where the made-up line is caught and rows where it is not caught. The leave for the two tests that other stories wrote is now in `feature.md`, under *The human's changes*, "At S0015's start". It comes from the human's answer in journal entry 4, so the story needed no edit.
+   Smoke test: the four commands are runnable. Every `Expect:` is a count or a "passed" match that the output can be checked against. The pytest command passes no `-q`, because `addopts` already sets it.
+   Architecture: the change touches the operator's VM script, the skill reference and one guard test, and no `src/factory` layer. The tests go in `tests/guards/`, which is where `CLAUDE.md` puts them.
+   Scope: within F0051, where S0015 is listed. The left-out items (`wiring.py` docstring, the playbook, the demo README, the Makefile example) are named in the Description.
+7. factory: started tests as vm.
+8. tester: Tests written from the Interface and the criteria. The two earlier tests changed only their expected strings, under the human's leave in `feature.md` ("At S0015's start", journal entry 4).
+
+   criterion 1: tests/vm/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy (rows `tools`, `service`; `HINTS` now ends with `(docs/operator-guide/machine.md, "The rebuild after a merge")`). It checks the hint appears once in its step and goes to stderr. The absence of `(operator guide, ` is tests/guards/test_operator_guide_pointers_search.py::test_the_setup_script_holds_no_old_pointer[(operator guide, ]
+   criterion 2: tests/guards/test_operator_guide_pointers_search.py::test_the_closing_line_names_the_machine_topic_file (the one `setup: done: ` line is exactly the new `printf ... "$instance"`), plus test_the_setup_script_holds_no_old_pointer[see the operator guide, ], plus tests/vm/test_vm_setup_text.py::test_the_refusals_modes_and_rerun_guards_are_in_their_steps[done-line] (its expected string is now `see "The machine" in docs/operator-guide/machine.md`)
+   criterion 3, files as they are after the story: tests/guards/test_operator_guide_pointers_search.py::test_every_mention_of_the_operator_guide_names_its_path
+   criterion 3, made-up lines (caught / topic file not caught / index file not caught): tests/guards/test_operator_guide_pointers_search.py::test_a_mention_without_a_path_is_caught (rows `no-path`, `topic-file`, `index-file`)
+   criterion 3, every named file exists: tests/guards/test_operator_guide_pointers_search.py::test_every_named_topic_file_exists
+   criterion 4 (`make check`) and criterion 5 (docs): no test, as usual.
+
+   How the search works: it reads every UTF-8 text file under `operator/vm/` and `operator/skill/`, and the match is case-sensitive on `operator guide`. A line counts as having a path when it contains `docs/operator-guide/`. The existence check reads `docs/operator-guide/<name>.md` from those lines and needs at least one such name.
+
+   Files created: tests/guards/test_operator_guide_pointers_search.py. Earlier test files changed under the leave: tests/vm/test_vm_setup_install_hint.py (`HINTS`) and tests/vm/test_vm_setup_text.py (row `done-line`).
+
+   One run of `uv run pytest -q` over the three files: the new texts are missing from `operator/vm/setup.sh` and `approving.md`, so the tests fail with wrong results. There were no collection errors, and every module imported (the tests read only text files). The last five lines showed the old-pointer, closing-line, `tools`/`service` hint and `done-line` failures. `make lint`: green.
+
+   `lint`: lint: green (0.2 s)
+9. factory: started doing as vm.
+10. coder: I changed the four lines exactly as the Interface gives them, but `make check` is red because of two faults in the new test `tests/guards/test_operator_guide_pointers_search.py`. I may not edit tests, so this is a question.
+
+    Built (in the working tree):
+    - `operator/vm/setup.sh`:
+      - lines 405 and 453: each hint now ends with `(docs/operator-guide/machine.md, "The rebuild after a merge")` and still goes to stderr.
+      - line 476: `see "The machine" in docs/operator-guide/machine.md`.
+    - `operator/skill/kumpel/references/approving.md:25`: "on a VM the rebuild of `docs/operator-guide/machine.md`, *The rebuild after a merge*".
+
+    Passing: `tests/vm/test_vm_setup_install_hint.py`, `tests/vm/test_vm_setup_text.py`, and every test in the new module except one.
+
+    The two faults:
+    1. `test_every_named_topic_file_exists` asserts `named != set()`. It collects topic-file names only from lines that contain `operator guide`. None of the Interface's new texts contains `operator guide`, and after the change no line under `operator/vm/` or `operator/skill/` does (`grep -rn "operator guide" operator/vm operator/skill` prints nothing). So the set is always empty, and the test fails against the texts the Interface prescribes. The failure: `tests/guards/test_operator_guide_pointers_search.py:64: E assert set() != set()`. Criterion 3's last row ("every `docs/operator-guide/<name>.md` that such a line names exists") holds trivially when no such line exists; the criterion does not ask for at least one.
+    2. `make types` fails on the same file: `tests/guards/test_operator_guide_pointers_search.py:24: error: Need type annotation for "found" [var-annotated]`. `make check` stops there.
+
+    Options:
+    - (a) The tester fixes the test (my choice):
+      - collect names from every searched line that holds `docs/operator-guide/` (the new lines all do, so the set is not empty), or drop the `named != set()` assertion;
+      - annotate `found: list[tuple[Path, str]] = []`.
+    - (b) Change the Interface so the new texts keep the words "operator guide" (for example `(operator guide docs/operator-guide/machine.md, ...)`). I would not do this: it changes the wording the human approved.
+
+    With (a), I would go on with no code change and end with `tests`.
+
+    Main choice: I copied the Interface's texts as given, with no other wording. Not touched: the docs (`docs/operator-guide/machine.md` lines 284, 295 and 296) belong to the docs stage. No refactor was needed.
+11. 2026-11-05 human: Answer of the human:
+
+    **(a).** Leave for the tester, in its own new test `tests/guards/test_operator_guide_pointers_search.py`: collect the topic-file names from every searched line that holds `docs/operator-guide/` (keep the `named != set()` assertion, so the test cannot pass vacuously), and annotate `found: list[tuple[Path, str]] = []`. The Interface's texts stay as approved. Then end with `tests`.
+12. factory: started doing as vm.
+13. coder: The human's answer (entry 11, option (a)) asks for a test change. I changed no code. The tester should make this change in `tests/guards/test_operator_guide_pointers_search.py`:
+    - `test_every_named_topic_file_exists` collects the topic-file names from every searched line under `operator/vm/` and `operator/skill/` that holds `docs/operator-guide/`, not only from lines that say `operator guide`. It keeps the `named != set()` assertion.
+    - The list on line 24 gets an annotation: `found: list[tuple[Path, str]] = []`.
+
+    State on the branch: the four texts from the Interface are already committed. They are in `operator/vm/setup.sh` (the `tools` and `service` hints and the `setup: done:` line) and in `operator/skill/kumpel/references/approving.md`.
+
+    `make test` this round: every test passed except `test_every_named_topic_file_exists`. It failed at `tests/guards/test_operator_guide_pointers_search.py:64: E assert set() != set()`. That is the fault the human's answer addresses. After the tester's change, the doing stage should only need to run `make check`. The docs criterion (`docs/operator-guide/machine.md`, lines 284, 295 and 296) is the docs stage's work, and I did not touch it.
+14. factory: started tests as vm.
+15. tester: I made the test change the human approved in entry 11 (option (a)), which the coder passed on in entry 13. Both edits are in `tests/guards/test_operator_guide_pointers_search.py`, a test this story wrote:
+    - `test_every_named_topic_file_exists` now collects topic-file names from every searched line under `operator/vm/` and `operator/skill/` that holds `docs/operator-guide/<name>.md`. Before, it looked only at lines that also say `operator guide`. None of the Interface's new texts say `operator guide`, so the set was always empty. I kept the `named != set()` assertion, so the test cannot pass when no file is named. A line counts if the `TOPIC_FILE` pattern matches it, which only happens when the line holds `docs/operator-guide/`.
+    - `_searched_lines` now declares `found: list[tuple[Path, str]] = []`, which fixes the `var-annotated` error that `make types` reported.
+
+    The test names and what each one checks stay the same. The mapping from criteria to tests is unchanged from entry 8.
+
+    Files changed: tests/guards/test_operator_guide_pointers_search.py. No files created. Every module imported.
+
+    I ran `uv run pytest -q tests/guards/test_operator_guide_pointers_search.py` once: all 8 tests passed. `make lint`: green (0.1 s). I did not run the type check in this stage; the coder's `make check` covers it.
+
+    `lint`: lint: green (0.1 s)
+16. factory: started doing as vm.
+17. coder: In entry 15 the tester changed `tests/guards/test_operator_guide_pointers_search.py` as the human allowed. With that change, `make check` is green (it ends with `check: green`). `make test` passes with 99.26 % coverage. This round I changed no code.
+
+    Built (already on the branch from the earlier doing rounds):
+    - `operator/vm/setup.sh`:
+      - lines 405 and 453: the `tools` and `service` hints for an installed file that differs from the checkout now end with `(docs/operator-guide/machine.md, "The rebuild after a merge")`. Both still go to stderr.
+      - line 476: the closing line now reads `setup: done: build the stage image and start factory@%s; see "The machine" in docs/operator-guide/machine.md`.
+    - `operator/skill/kumpel/references/approving.md:25`: the *After a merge* bullet now reads "on a VM the rebuild of `docs/operator-guide/machine.md`, *The rebuild after a merge*".
+
+    Main choice: I used the Interface's texts word for word. I rejected rewording the lines so they would keep the words "operator guide" (option (b) in entry 10), because that would change wording the human approved.
+
+    Refactor: I read the diff and found nothing to change. It is four replaced lines of text.
+
+    Description: the journal changed only the tests (entries 11 and 15). The task's meaning is the same, so the Description stays as it is.
+
+    Noticed but not touched: `docs/operator-guide/machine.md` lines 284, 295 and 296 still quote the old texts. That is the docs stage's work under criterion 5. The items the Description leaves out also stay as they are: the docstring in `wiring.py`, the playbook, the demo README and the Makefile example.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
+18. factory: started review as vm.
+19. reviewer: no findings
+
+    I read the work item and `git diff main...HEAD -- . ':!factory'`: `operator/vm/setup.sh`, `operator/skill/kumpel/references/approving.md`, the new `tests/guards/test_operator_guide_pointers_search.py` and the expected strings in two earlier tests.
+
+    1. Acceptance criteria:
+       - Criterion 1: `tests/vm/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy` (rows `tools` and `service`) checks the new hint ends the line, appears once in its step and goes to `>&2`. `test_the_setup_script_holds_no_old_pointer[(operator guide, ]` checks the old pointer is gone. The two `setup.sh` lines (405, 453) match the Interface word for word.
+       - Criterion 2: `test_the_closing_line_names_the_machine_topic_file` pins the one `setup: done: ` line to the Interface's exact `printf`. The row `[see the operator guide, ]` and the row `done-line` in `tests/vm/test_vm_setup_text.py` cover the rest. `setup.sh:476` matches.
+       - Criterion 3:
+         - The files as they are give an empty list: `test_every_mention_of_the_operator_guide_names_its_path`. It also asserts that lines were read, so it cannot pass with nothing searched.
+         - The caught and not-caught made-up lines are rows of one parametrized test: `test_a_mention_without_a_path_is_caught`, rows `no-path`, `topic-file` and `index-file`.
+         - Every named file exists: `test_every_named_topic_file_exists`, which now collects names from every line holding `docs/operator-guide/` and keeps the non-empty assertion (human's answer, entry 11).
+         - `grep -rniE "operator.?s? guide" operator/vm operator/skill` prints nothing, so the case-sensitive match misses no capitalised mention.
+       - `approving.md:25` matches the Interface.
+       - Criterion 4: the coder's `make check` was green (entry 17).
+    2. Architecture: no change under `src/`. The guard imports nothing of `factory`, so it belongs in `tests/guards/`.
+    3. Security: text changes only. No markers and no secrets.
+    4. Quality:
+       - The guard defines its own `ROOT` and `SETUP`, which `tests/support/vm_support.py` also holds. I don't count this as a copied helper: `vm_support` imports `factory`, which a module in `tests/guards/` may not do.
+       - The guard reads the raw script on purpose: the `code` fixture strips comment lines.
+    5. Work item hygiene:
+       - The Description matches what was built.
+       - The journal explains the main choice (the Interface's texts word for word) and what was rejected (option (b), entry 10).
+       - The docs criterion is accurate: `docs/operator-guide/machine.md` still quotes the old texts at lines 284, 295 and 296, and holds both sections, *The machine* (line 5) and *The rebuild after a merge* (line 570).
+
+    Earlier tests:
+    - tests/vm/test_vm_setup_install_hint.py: the human's leave in `feature.md`, "At S0015's start" (journal entry 4). Only `HINTS`' expected strings changed.
+    - tests/vm/test_vm_setup_text.py: the human's leave in `feature.md`, "At S0015's start" (journal entry 4). Only the row `done-line`'s expected string changed.
+20. factory: started docs as vm.
+21. documenter: Files changed:
+    - `docs/operator-guide/machine.md`: line 284 now quotes the new closing line, `setup: done: ...; see "The machine" in docs/operator-guide/machine.md`. Lines 295 and 296 now quote the `tools` and `service` hints ending `(docs/operator-guide/machine.md, "The rebuild after a merge")`. I compared all three with `operator/vm/setup.sh` lines 405, 453 and 476, and they match word for word. `grep` finds no `operator guide, "` left in the file.
+
+    Cross-read and found current: the diff (`operator/vm/setup.sh`, `approving.md`, the guard test and the two earlier tests' expected strings) against `README.md`, `docs/operator-guide/` and `docs/project-guide/operator.md`. The docs criterion says `operator.md`, `README.md` and `docs/decisions.md` need no change, and I found nothing stale in them. `docs/operator-guide/machine.md` holds both sections the hints name, *The machine* and *The rebuild after a merge*.
+
+    I made no code finding. The code matches the Interface.
+
+    I did not run `make check`, because I changed only a document. The factory's checks after this stage decide.
+
+    Stale text I noticed and did not touch, because it is unrelated to this story or the Description leaves it out:
+    - `docs/decisions.md:179` and `:572` still say "(operator guide)" and "(operator guide, ...)" without a file.
+    - `docs/decisions.md:1432` points to `docs/operator-guide.md`, which is now a folder.
+    - The Description also leaves out `src/factory/entry/wiring.py:746`, `docs/operator-playbook.md:82`, `demo/todo-service/README.md` and the `Makefile` example.
+
+    `check`: check: green (not run again: passed on tree 0f5911d1f100 at 2026-11-05T11:01:52Z)
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok
+22. factory: started smoke-test as vm.
+23. smoke-tester: I ran the four smoke-test commands as written from the repository root. All four met their `Expect:` lines. No findings.
+
+    1. `grep -c 'docs/operator-guide/machine.md, "The rebuild after a merge")' operator/vm/setup.sh`
+    ```
+    2
+    ```
+    Expect `2`: met.
+
+    2. `grep -c 'operator guide, "' operator/vm/setup.sh`
+    ```
+    0
+    ```
+    (grep exit status 1, which is normal for zero matches.) Expect `0`: met.
+
+    3. `grep -c 'docs/operator-guide/machine.md' operator/skill/kumpel/references/approving.md`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    4. `uv run pytest tests/vm/test_vm_setup_install_hint.py tests/guards/test_operator_guide_pointers_search.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Expect `1`: met. The line it matched, from a second run without the grep: `10 passed in 0.02s`.
+
+    I read the acceptance criteria again and checked them against the files. The smoke test contradicts none of them:
+    - Criterion 1: `operator/vm/setup.sh:405` (tools) and `:453` (service) each end with `(docs/operator-guide/machine.md, "The rebuild after a merge")' >&2`, which sends them to stderr. Each appears once, and no line holds `(operator guide, `.
+    - Criterion 2: `setup.sh:476` is `printf 'setup: done: build the stage image and start factory@%s; see "The machine" in docs/operator-guide/machine.md\n' "$instance"`. No line holds `see the operator guide, `.
+    - Criterion 3: `grep -rn 'operator guide' operator/vm operator/skill` prints nothing. The guard tests passed.
+    - `approving.md:25` matches the Interface's wording.
+    - Criterion 4: I did not run `make check` myself. The coder's run was green (entry 17), and the documenter reused that passed result (entry 21).
+    - Criterion 5: `docs/operator-guide/machine.md` lines 284, 295 and 296 quote the three new lines word for word.
+
+    Open: nothing for this story. The documenter noted stale "operator guide" pointers in `docs/decisions.md` at lines 179, 572 and 1432. They are outside this story's scope.

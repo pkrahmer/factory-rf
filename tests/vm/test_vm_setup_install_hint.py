@@ -8,12 +8,12 @@ HINTS = {
     "tools": (
         "setup: tools: /usr/local/bin/git-credential-factory differs from the checkout;"
         " not installed; install it from your own copy of operator/vm/git-credential-factory"
-        ' (operator guide, "The rebuild after a merge")'
+        ' (docs/operator-guide/machine.md, "The rebuild after a merge")'
     ),
     "service": (
         "setup: service: /etc/systemd/system/factory@.service differs from the checkout;"
         " not installed; install it from your own copy of operator/vm/factory.service"
-        ' (operator guide, "The rebuild after a merge")'
+        ' (docs/operator-guide/machine.md, "The rebuild after a merge")'
     ),
 }
 

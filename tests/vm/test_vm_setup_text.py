@@ -336,7 +336,7 @@ OWN_WORD_BASE = re.compile(r"(?:^|\s)\"?\$base\"?(?:\s|$)")
         ),
         pytest.param(
             lambda s: any(
-                'see the operator guide, "The machine"' in line
+                'see "The machine" in docs/operator-guide/machine.md' in line
                 for line in lines_with(
                     s.code[s.code.rfind("setup: service: ") :],
                     "setup: done: build the stage image and start factory@",

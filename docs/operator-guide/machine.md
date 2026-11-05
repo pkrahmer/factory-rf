@@ -281,7 +281,7 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 
 The script writes the files under `/srv/factory/<instance>` (`image-id`, the askpass script and `factory.env`) as `factory`, with `cat` from its own standard input, because a process started by `runuser` may not reopen root's `/dev/stdin`.
 
-The script ends with `setup: done: build the stage image and start factory@<instance>; see the operator guide, "The machine"`.
+The script ends with `setup: done: build the stage image and start factory@<instance>; see "The machine" in docs/operator-guide/machine.md`.
 
 #### The two passes
 
@@ -292,8 +292,8 @@ The token is written into no file. Git asks the askpass script (`/srv/factory/<i
 The unit and the credential helper come from the checkout, and root installs them only in the run that made the clone (whose content is the remote's at `--code-ref`, before the service ever ran) or when the installed file is missing. So a first run that stopped after the clone is completed by the next. A later run that finds the installed file in place but different from the checkout installs nothing and prints one of these two lines to standard error:
 
 ```text
-setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed; install it from your own copy of operator/vm/git-credential-factory (operator guide, "The rebuild after a merge")
-setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed; install it from your own copy of operator/vm/factory.service (operator guide, "The rebuild after a merge")
+setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed; install it from your own copy of operator/vm/git-credential-factory (docs/operator-guide/machine.md, "The rebuild after a merge")
+setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed; install it from your own copy of operator/vm/factory.service (docs/operator-guide/machine.md, "The rebuild after a merge")
 ```
 
 Root installs nothing from the checkout, because `factory` can write it; your own copy of the ref is the trusted text. So install the new file yourself, from your copy, before you run the script again. On your own computer, in your checkout of the ref the instance runs, copy the script and both files to the VM:
