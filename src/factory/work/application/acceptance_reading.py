@@ -3,8 +3,8 @@
 from collections.abc import Sequence
 from pathlib import PurePosixPath
 
-from factory.application.boundaries import Boundaries
-from factory.domain.pipeline_definition import PipelineDefinition
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.identifiers import (
     FeatureId,

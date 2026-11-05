@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.domain.pipeline_definition import DONE_STAGE, PipelineDefinition
+from factory.pipeline.domain.pipeline_definition import DONE_STAGE, PipelineDefinition
 from factory.shared.domain.identifiers import Name, WorkItemId
 
 

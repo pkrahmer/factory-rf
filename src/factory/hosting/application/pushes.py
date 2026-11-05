@@ -2,9 +2,9 @@
 
 from datetime import timedelta
 
-from factory.application.boundaries import Boundaries
 from factory.hosting.application.git import Git
 from factory.hosting.domain.git import PushOutcome, push_is_retried, push_reason
+from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.errors import PushFailed
 
 # A short outage of the hosting service passes within a minute; a longer one is a crash.

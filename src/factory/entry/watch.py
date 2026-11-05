@@ -6,10 +6,10 @@ import sys
 from collections.abc import Sequence
 from typing import TextIO
 
-from factory.application.boundaries import Boundaries
-from factory.application.pipeline_loading import PIPELINE_REF, PipelineLoader
-from factory.domain.events import Event
 from factory.entry.wiring import boundaries_from_environment
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.pipeline_loading import PIPELINE_REF, PipelineLoader
+from factory.pipeline.domain.events import Event
 from factory.shared.domain.errors import (
     AgentDefinitionInvalid,
     GitError,

@@ -9,7 +9,7 @@ from factory.agents.domain.agent_runs import (
     EndReason,
     resumed_result,
 )
-from factory.application.boundaries import Boundaries
+from factory.pipeline.application.boundaries import Boundaries
 from factory.watching.application.machine import Waiter
 
 CONTINUE_PROMPT = (

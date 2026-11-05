@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.adapters.oauth_token import ClientCredentialsTokenSource
@@ -20,26 +19,6 @@ from factory.agents.application.agent_runtime import AgentRuntime
 from factory.agents.application.project_agents import ProjectAgentDefinitions
 from factory.agents.application.tokens import TokenRefresher, TokenSource
 from factory.agents.domain.agent_runs import scrub_environment
-from factory.application.boundaries import Boundaries
-from factory.application.claims import ClaimService
-from factory.application.dispatcher import Handler
-from factory.application.handlers.closed import ClosedHandler
-from factory.application.handlers.comments import CommentHandler
-from factory.application.handlers.hand_over import HandOverHandler
-from factory.application.handlers.lookups import DuplicateHandler, PullRequestLookupHandler
-from factory.application.handlers.merged import MergedHandler
-from factory.application.handlers.questions import AskHandler
-from factory.application.handlers.reject import RejectHandler
-from factory.application.handlers.run import RunHandler
-from factory.application.handlers.run_gate import RunGate
-from factory.application.idle_shutdown import IdleShutdown
-from factory.application.recovery import RecoveryHandler
-from factory.application.stops import StopService
-from factory.application.tick import HandlerFactory, IdleHandler, Tick
-from factory.domain.events import EventKind
-from factory.domain.known_results import ResultRecord
-from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopRecord
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.adapters.pygithub_hosting import pygithub_service
 from factory.hosting.application.git import Git
@@ -87,6 +66,27 @@ from factory.machine.domain.stage_layer import (
     project_image_tag,
     stage_layer,
 )
+from factory.pipeline.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.claims import ClaimService
+from factory.pipeline.application.dispatcher import Handler
+from factory.pipeline.application.handlers.closed import ClosedHandler
+from factory.pipeline.application.handlers.comments import CommentHandler
+from factory.pipeline.application.handlers.hand_over import HandOverHandler
+from factory.pipeline.application.handlers.lookups import DuplicateHandler, PullRequestLookupHandler
+from factory.pipeline.application.handlers.merged import MergedHandler
+from factory.pipeline.application.handlers.questions import AskHandler
+from factory.pipeline.application.handlers.reject import RejectHandler
+from factory.pipeline.application.handlers.run import RunHandler
+from factory.pipeline.application.handlers.run_gate import RunGate
+from factory.pipeline.application.idle_shutdown import IdleShutdown
+from factory.pipeline.application.recovery import RecoveryHandler
+from factory.pipeline.application.stops import StopService
+from factory.pipeline.application.tick import HandlerFactory, IdleHandler, Tick
+from factory.pipeline.domain.events import EventKind
+from factory.pipeline.domain.known_results import ResultRecord
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
+from factory.pipeline.domain.stops import RepositoryStop, RepositoryStopReason, StopRecord
 from factory.shared.adapters.atomic_file import replace_text
 from factory.shared.adapters.clock import SleepingWaiter, SystemClock
 from factory.shared.application.files import PipelineDefinitionReader, WorkItemReader

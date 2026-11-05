@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from factory.domain.pipeline_definition import PipelineDefinition
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.watching.domain.cost_records import CostRecord
 from factory.work.domain.work_item import WorkItemDocument
 

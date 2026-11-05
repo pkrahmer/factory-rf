@@ -1,11 +1,11 @@
 """The watcher: reads the remote and evaluates it into one event for this instance."""
 
-from factory.application.boundaries import Boundaries
-from factory.application.claims import ClaimService
-from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
-from factory.domain.events import Event
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.domain.git import CommitId
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.claims import ClaimService
+from factory.pipeline.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
+from factory.pipeline.domain.events import Event
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.errors import GitError
 from factory.shared.domain.identifiers import Name
 from factory.shared.domain.paths import MAIN_BRANCH, REMOTE

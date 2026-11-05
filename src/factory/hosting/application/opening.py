@@ -2,9 +2,9 @@
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.application.boundaries import Boundaries
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.domain.hosting import PullRequestView
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.identifiers import WorkItemId, branch_name
 from factory.shared.domain.sections import JOURNAL, sections, title

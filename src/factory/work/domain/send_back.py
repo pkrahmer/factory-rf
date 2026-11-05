@@ -1,6 +1,6 @@
 """The rules of a send-back at an approval: the reason, the target stage and the round cap."""
 
-from factory.domain.pipeline_definition import PipelineDefinition
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.work.domain.journal import JournalKind, JournalRecord
 from factory.work.domain.work_item import WorkItemDocument
 

@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 562
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T03:45:36.006483Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-11-05T03:45:36.006483Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-11-05T03:49:51.869380Z'
+  stage: doing
+  run: ca6bf6fbb3b2404a83914576765db165
+  blocked: question
 ---
 
 # The pipeline area holds the stages and the tick
@@ -183,3 +186,26 @@ Expect: `1`
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: Stopped with the move done in `src/` and `make check` red. What is left is outside my write paths: one change in `pyproject.toml` and some test changes.
+
+   Done (left in the working tree):
+   - The 27 modules of the table, and the `handlers` package, moved with `git mv` to `src/factory/pipeline/{domain,application,adapters}/`.
+   - `src/factory/pipeline/__init__.py` and the three layer `__init__.py` files created, with the docstrings from the Interface.
+   - The old `__init__.py` files removed with `git rm`. `src/factory/` now holds `__init__.py`, the seven areas, `entry/` and `contract/`.
+   - Imports under `src/` rewritten with the recipe's sed, then `ruff check --fix` and `ruff format`. No `src/` file names an old path.
+   - lint, types, sast, secrets and licenses: green.
+
+   Red 1, `make layers`: `Module 'factory.domain' does not exist.` The two forbidden contracts in `pyproject.toml` (lines 103–104 and 110–111) still name `factory.domain`, `factory.domain.**`, `factory.application`, `factory.application.**`, `factory.adapters` and `factory.adapters.**`. I removed exactly those entries in a temporary copy (`sed -E 's/, "factory\.(domain|application|adapters)(\.\*\*)?"//g'`) and ran `lint-imports --config` on it: 4 contracts kept, 0 broken. The optional `(adapters)`, `(application)`, `(domain)` entries in `Layers` cause no error. `pyproject.toml` is not in the coder's write paths. Intake also counted this as the human's change at the start of S0007, and it is not on `main` yet. The `tests/domain/test_hosting.py` mutmut deselect at lines 156–157, which the tester named, needs the same treatment.
+
+   Red 2, `make test`: 16 failures, all on the test side:
+   - 12 rows call `importlib.util.find_spec("factory.<old layer>.<x>")` (or `import_module`) on modules removed long ago. With the parent package gone, this raises `ModuleNotFoundError` instead of returning None. The files: tests/test_checkout_hygiene_removed.py [sealed-runs-module], tests/test_docker_path_removed.py [sessions-module], tests/entry/test_mutation_report_removed.py [report-rules], tests/test_undo_removed.py [undo-module], tests/test_home_reset_removed.py (4 rows), tests/test_hook_removed.py [adapter-module], tests/test_kernel_guard_removed.py [factory.adapters.landlock, factory.domain.confinement], tests/test_leftovers_program_removed.py [factory.domain.leftovers].
+   - tests/pipeline/application/test_tick.py:488, test_the_tick_knows_no_run_record_and_no_lock [application/tick.py, domain/evaluation.py]: `E FileNotFoundError: ... '/work/checkout/src/factory/application/tick.py'`. The paths in its rows need the `pipeline/` prefix.
+   - tests/test_areas.py:262, test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own [shared/domain/test_settings_model_rules.py, hosting/domain/test_hosting.py]: `E AssertionError: ... imports areas not yet moved: ['factory']`. Both modules `import factory` for `factory.__file__`. The tester moved them into area folders, and there the guard refuses a bare `factory` import.
+
+   Question: may I go ahead like this?
+   (a) You make the `pyproject.toml` change above on `main`, and I end the next run with `tests` so the tester can make these test changes under feature decision 5:
+     - catch the parent package's absence in the removed-module checks, e.g. `find_spec` inside `try`/`except ModuleNotFoundError` counting as gone;
+     - prefix test_tick's paths with `pipeline/`;
+     - for the two `import factory` modules, either move them to the `tests/` root or let the guard accept a bare `import factory`.
+   (b) You add `pyproject.toml` to this story's coder write paths, and I make the import-linter change myself.
+   I would choose (a). Nothing else in `src/` is open. I have not run the refactor step yet, because `make check` is not green.
