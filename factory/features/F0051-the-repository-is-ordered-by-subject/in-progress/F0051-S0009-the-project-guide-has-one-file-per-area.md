@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283, 6651349591]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T06:41:19.949581Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -138,6 +142,11 @@ journal:
   at: '2026-11-05T06:41:14.404565Z'
   stage: docs
   run: 421194fec2694b4d94083723e5f580d1
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-05T06:41:19.949581Z'
+  stage: smoke-test
 ---
 
 # The project guide has one file per area
@@ -416,3 +425,4 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
     `check`: check: green (not run again: passed on tree c21192296613 at 2026-11-05T06:33:29Z)
     `secrets`: secrets: green (2.9 s)
     `documents`: documents ok
+24. factory: started smoke-test as vm.
