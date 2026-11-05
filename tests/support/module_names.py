@@ -3,9 +3,8 @@
 import importlib
 import importlib.util
 from collections.abc import Collection
-from pathlib import Path
 
-import factory
+from support.source_search import SRC
 
 LAYERS = ("domain", "application", "adapters")
 # Package folders under `src/factory/` that are not areas.
@@ -27,18 +26,28 @@ def module_exists(module: str) -> bool:
 
 def areas() -> list[str]:
     """The areas, read from the tree: the package folders but `entry` and `contract`."""
-    source = Path(factory.__file__).parent
     return sorted(
         path.name
-        for path in source.iterdir()
+        for path in SRC.iterdir()
         if path.is_dir() and (path / "__init__.py").is_file() and path.name not in NOT_AREAS
     )
 
 
+def is_old_layer_path(name: str) -> bool:
+    """Whether `name` is `factory.<layer>.<rest>`, a layer of `LAYERS` and `<rest>` dotted names."""
+    parts = name.split(".")
+    return (
+        len(parts) >= 3
+        and parts[0] == "factory"
+        and parts[1] in LAYERS
+        and all(part.isidentifier() for part in parts[2:])
+    )
+
+
 def _in_every_area(module: str) -> list[str]:
-    parts = module.split(".")
-    if len(parts) < 3 or parts[0] != "factory" or parts[1] not in LAYERS or not all(parts[2:]):
+    if not is_old_layer_path(module):
         return []
+    parts = module.split(".")
     return [".".join(["factory", area, *parts[1:]]) for area in areas()]
 
 

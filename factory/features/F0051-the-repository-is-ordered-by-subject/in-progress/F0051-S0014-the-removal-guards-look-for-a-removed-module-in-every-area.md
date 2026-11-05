@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T10:19:48.007426Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-05T10:19:48.007426Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-05T10:20:42.499442Z'
+  stage: tests
+  run: 1c8794ab8ec54f178d76292f3a65740d
 ---
 
 # The removal guards look for a removed module in every area
@@ -284,3 +286,28 @@ Expect: `0`
 
     Not run: `make check`. I changed nothing, and the tester's change comes back through doing.
 15. factory: started tests as vm.
+16. tester: Round 1, an approved test change: I made the four changes the coder's entry 14 names, which come from the reviewer's findings in entry 12, and added the three optional zero-side rows. Every file I touched is one I wrote in this story.
+
+    Changes:
+    1. `tests/support/module_names.py`, `areas()`: it now iterates over `SRC`, imported from `support.source_search`. `Path(factory.__file__).parent` and the `factory` and `Path` imports are gone.
+    2. `tests/guards/test_removal_guards_search.py`, `_holds_an_old_layer_path`: it is now `any(is_old_layer_path(text) for text in string_literals(tree))`, with `string_literals` from `support.source_search`.
+    3. `tests/guards/test_removal_guards_search.py`: `TESTS` is imported from `support.search_support`. The local `Path(__file__).resolve().parents[1]` is gone.
+    4. `tests/support/module_names.py` has a new public `is_old_layer_path(name: str) -> bool`, built on `LAYERS`. It is true for `factory.<layer>.<rest>` when the name has at least three parts, its layer is in `LAYERS` and every part of `<rest>` is an identifier. `_in_every_area` and the search guard both use it, and the regex `OLD_LAYER_PATH` and the `re` import are gone. The identifier check comes from the old regex. The old `all(parts[2:])` only rejected empty parts, so now the two places agree.
+
+    Zero-side rows the reviewer noted, all with id `layer-alone`:
+    - criterion 1: `"factory.domain"` → False
+    - criterion 2: `({"factory.shared.domain"}, "factory.domain")` → False
+    - criterion 3, parsed-source rows: `'NAME = "factory.adapters"\nmodule_exists(name)\n'` → not caught
+
+    Criterion → test (the test names are unchanged):
+    - criterion 1: tests/guards/test_module_names.py::test_a_module_is_found_at_its_path_or_from_an_old_layer_path_in_any_area
+    - criterion 2: tests/guards/test_module_names.py::test_a_set_of_names_holds_a_module_at_its_path_or_from_an_old_layer_path_in_any_area
+    - criterion 3: tests/guards/test_removal_guards_search.py::test_a_module_that_names_an_old_layer_path_calls_module_exists_anywhere and ::test_no_test_module_looks_for_an_old_layer_path_only_at_that_path
+
+    Files changed: tests/support/module_names.py, tests/guards/test_module_names.py, tests/guards/test_removal_guards_search.py. I created no new files and changed no earlier story's test.
+
+    Run: one `uv run pytest -q` over the two guard modules, the ten earlier tests that use the helpers and the wrapper guard. All passed and nothing failed to import. `make lint` is green, and `mypy --strict` passes on the three changed files.
+
+    Open: nothing.
+
+    `lint`: lint: green (0.2 s)

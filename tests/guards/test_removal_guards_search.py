@@ -1,13 +1,13 @@
 """A test that names a module at an old layer path looks for it in every area."""
 
 import ast
-import re
-from pathlib import Path
 
 import pytest
 
-TESTS = Path(__file__).resolve().parents[1]
-OLD_LAYER_PATH = re.compile(r"factory\.(domain|application|adapters)(\.[A-Za-z_]\w*)+")
+from support.module_names import is_old_layer_path
+from support.search_support import TESTS
+from support.source_search import string_literals
+
 SEARCHED_ONLY_AT_ITS_PATH = "module_exists"
 
 
@@ -23,12 +23,7 @@ def _calls_module_exists(tree: ast.Module) -> bool:
 
 
 def _holds_an_old_layer_path(tree: ast.Module) -> bool:
-    return any(
-        isinstance(node, ast.Constant)
-        and isinstance(node.value, str)
-        and OLD_LAYER_PATH.fullmatch(node.value) is not None
-        for node in ast.walk(tree)
-    )
+    return any(is_old_layer_path(text) for text in string_literals(tree))
 
 
 def _searching_old_paths_only_at_their_path(trees: dict[str, ast.Module]) -> list[str]:
@@ -60,6 +55,7 @@ def _test_modules() -> dict[str, ast.Module]:
             id="module-exists-anywhere",
         ),
         pytest.param('module_exists("factory.entry.confine")\n', False, id="no-old-layer-path"),
+        pytest.param('NAME = "factory.adapters"\nmodule_exists(name)\n', False, id="layer-alone"),
     ],
 )
 def test_a_module_that_names_an_old_layer_path_calls_module_exists_anywhere(

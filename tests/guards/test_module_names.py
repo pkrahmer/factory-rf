@@ -16,6 +16,7 @@ from support.module_names import module_exists_anywhere, names_the_module_anywhe
         pytest.param("factory.entry.run", True, id="entry-module"),
         pytest.param("factory.entry.confine", False, id="entry-module-missing"),
         pytest.param("factory.contract.errors", False, id="contract-is-no-layer"),
+        pytest.param("factory.domain", False, id="layer-alone"),
     ],
 )
 def test_a_module_is_found_at_its_path_or_from_an_old_layer_path_in_any_area(
@@ -48,6 +49,7 @@ def test_a_module_is_found_at_its_path_or_from_an_old_layer_path_in_any_area(
             id="entry-in-an-area",
         ),
         pytest.param(set(), "factory.application.undo", False, id="no-names"),
+        pytest.param({"factory.shared.domain"}, "factory.domain", False, id="layer-alone"),
     ],
 )
 def test_a_set_of_names_holds_a_module_at_its_path_or_from_an_old_layer_path_in_any_area(
