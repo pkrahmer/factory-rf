@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T22:05:21.275403Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-05T22:05:21.275403Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T22:06:09.499874Z'
+  stage: review
+  run: 1abcaa4340c844799b2cd4be3fb3d7a4
 ---
 
 # A story can take a second route to a second approval
@@ -234,3 +236,31 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 16. factory: started review as vm.
+17. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`. The diff adds one file, `tests/pipeline/application/test_docs_route.py`, and changes nothing under `src/`. I read the test against criteria 1 to 8 and the Interface. I also read the code the walks exercise: `is_before_approval` (`src/factory/work/domain/acceptance.py:309`), `send_back_target` and `send_back_cap` (`src/factory/work/domain/send_back.py:30`, `:38`), and the use of `send_back_cap` in `ClosedHandler._send_back` (`src/factory/pipeline/application/handlers/closed.py:78`).
+
+    Group 1, criteria. Each of criteria 1 to 8 has a test, and each test checks what its criterion says:
+    - Criterion 1 checks the `stage:<name>` labels, one `result` record each for intake, docs-only and docs-review, and the hand-over (`handed_over`, not a draft, the closing line of the description).
+    - Criterion 3 checks the target `docs-only` and the text of the send-back entry.
+    - Criterion 4 has rows on both sides of the cap of two (rounds 1, 2 and 3; the third is blocked `round_cap` and asks).
+    - Criterion 5 checks `round == 0` after the move to `tests`, and that the close at `approval` sends the story to `doing`.
+    - Criterion 7 has one row per stage.
+    - Criterion 8 has two rows of one parametrized test: round 2 is not blocked and asks nothing, round 3 is blocked `send_back` and asks. `send_back_cap` only looks at stages whose `next[0]` is the approval, so in this definition the cap can only come from `docs-review`.
+    - The test definition `TWO_ROUTES` matches the Interface: `intake.next = [tests, docs-only]`, `docs-only` with `next: [docs-review, tests]`, and the three new stages after `smoke-test` and before `acceptance`, `approval`, `done`.
+    - The coder's `make check` was green (entry 15: `check: green`, coverage 99.26 %).
+
+    Groups 2 and 3, architecture and security: nothing found. The test uses the fake world and a real git remote, and lives where the package layout says. Entry 9's `# noqa: E501` is gone, and the diff adds no other suppression marker, secret or shell string.
+
+    Group 4, quality: nothing under `src/`. The test file is new, so the points on it below are notes.
+
+    Group 5, work item hygiene:
+    - The coder's entries 7 and 15 explain the main decision (the walks found no fault, so no code changed) and what was rejected (guarding the three functions against other stage orders, which goes beyond the description).
+    - The Description, as corrected in entry 9, matches what was built.
+    - Docs criterion 10 still says what the reader must know. `docs/project-guide/pipeline.md` already describes `send_back_cap`, so criterion 8 needs no extra docs.
+
+    no findings
+
+    Notes:
+    1. `tests/pipeline/application/test_docs_route.py:249`: `state = head_state(two_routes, story)` is a dead assignment. Every row has `send_backs >= 1`, so the loop always overwrites it; it could go.
+    2. `tests/pipeline/application/test_docs_route.py:151`: the criterion 1 test repeats the three steps of `_walk_docs_route` inline so that it can record each stage and label. A `_walk_docs_route` that returns the states it reached would serve both.
+
+    Earlier tests: none. The diff only adds `tests/pipeline/application/test_docs_route.py` (status `A`) and changes no test file that `main` already holds.
