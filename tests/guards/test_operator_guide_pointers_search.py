@@ -21,7 +21,7 @@ def _unpointed(lines: list[str]) -> list[str]:
 
 
 def _searched_lines() -> list[tuple[Path, str]]:
-    found = []
+    found: list[tuple[Path, str]] = []
     for folder in SEARCHED:
         for path in sorted(folder.rglob("*")):
             if not path.is_file():
@@ -54,12 +54,7 @@ def test_a_mention_without_a_path_is_caught(line: str, caught: bool) -> None:
 
 
 def test_every_named_topic_file_exists() -> None:
-    named = {
-        name
-        for _, line in _searched_lines()
-        if "operator guide" in line
-        for name in TOPIC_FILE.findall(line)
-    }
+    named = {name for _, line in _searched_lines() for name in TOPIC_FILE.findall(line)}
 
     assert named != set()
     assert sorted(name for name in named if not (ROOT / GUIDE_PATH / name).is_file()) == []

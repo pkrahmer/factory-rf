@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506, 6656185279]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T10:58:40.878516Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-05T10:58:40.878516Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-05T10:59:06.329599Z'
+  stage: tests
+  run: 2737d5bc6cbe42c8b5cb8a0d3fb9d216
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -218,3 +220,14 @@ Expect: `1`
 
     `make test` this round: every test passed except `test_every_named_topic_file_exists`. It failed at `tests/guards/test_operator_guide_pointers_search.py:64: E assert set() != set()`. That is the fault the human's answer addresses. After the tester's change, the doing stage should only need to run `make check`. The docs criterion (`docs/operator-guide/machine.md`, lines 284, 295 and 296) is the docs stage's work, and I did not touch it.
 14. factory: started tests as vm.
+15. tester: I made the test change the human approved in entry 11 (option (a)), which the coder passed on in entry 13. Both edits are in `tests/guards/test_operator_guide_pointers_search.py`, a test this story wrote:
+    - `test_every_named_topic_file_exists` now collects topic-file names from every searched line under `operator/vm/` and `operator/skill/` that holds `docs/operator-guide/<name>.md`. Before, it looked only at lines that also say `operator guide`. None of the Interface's new texts say `operator guide`, so the set was always empty. I kept the `named != set()` assertion, so the test cannot pass when no file is named. A line counts if the `TOPIC_FILE` pattern matches it, which only happens when the line holds `docs/operator-guide/`.
+    - `_searched_lines` now declares `found: list[tuple[Path, str]] = []`, which fixes the `var-annotated` error that `make types` reported.
+
+    The test names and what each one checks stay the same. The mapping from criteria to tests is unchanged from entry 8.
+
+    Files changed: tests/guards/test_operator_guide_pointers_search.py. No files created. Every module imported.
+
+    I ran `uv run pytest -q tests/guards/test_operator_guide_pointers_search.py` once: all 8 tests passed. `make lint`: green (0.1 s). I did not run the type check in this stage; the coder's `make check` covers it.
+
+    `lint`: lint: green (0.1 s)
