@@ -87,6 +87,8 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 56. **A search for old names misses their string forms.** F0051-S0006: `tests/test_stop_table.py` held layer names as strings in a tuple; the tester's grep missed it and its one test run covered only the files it changed, so the coder handed back ($0.25, 4 min). Fix: a rename's recipe greps the string forms too and runs the root guards.
 57. **The last step of a migration meets facts no earlier step met.** F0051-S0007: both questions (the contracts that named the removed packages, the docs that named them) came from removing the old layers; $1.25 and 16 min. Fix: the intake greps for a removed package's name in `pyproject.toml`, the docs and the tests, and the feature says when the human's change lands.
 
+58. **A flagged line is found by a guess.** F0051-S0008: `make secrets` named only the hash and a line number; the coder named the wrong line, I reworded it after a scan that was not the hook's, and the story lost a second coder run (about 20 min and two runs). Fix: the factory's stall text quotes the flagged line, and the reword step always runs `detect-secrets-hook` on the old and the new text.
+
 ## The repository is easier to navigate (the human, 2026-11-04)
 
 38. **`claude/` becomes `agents/`.** It holds the factory's agent files and `settings.json` in Claude Code's format, which the opencode runtime translates per run (decision of 2026-10-19, F0020-S0004); the name says one runtime. Touches `vm/Dockerfile`, the wiring, the coder's write paths in `factory/pipeline.yml`, the docs and tests.
