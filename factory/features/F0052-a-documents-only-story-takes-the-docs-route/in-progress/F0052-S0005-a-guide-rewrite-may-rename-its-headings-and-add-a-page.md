@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 576
 comments_read: [6672543099]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T23:48:22.992946Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-05T23:48:22.992946Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-05T23:53:28.430059Z'
+  stage: doing
+  run: 584f96e3c9d446738d9638ad222381a6
 ---
 
 # A guide rewrite may rename its headings and add a page
@@ -153,3 +155,15 @@ Expect: `1`
 
    `lint`: lint: green (0.2 s)
 9. factory: started doing as vm.
+10. coder: I built nothing, because the tester had already done all of the story's work. The story changes only tests and the test support module. The tester wrote `index_problems` in `tests/support/guide_files_support.py`, the new `tests/guards/test_guide_index_problems.py`, and the edits to `tests/guards/test_project_guide_files.py` and `tests/guards/test_operator_guide_files.py` (journal entry 8).
+
+    I left `src/` and `docs/` untouched. I ran `make check` in the foreground and it ended `test: green (132.8 s)` and `check: green`, with total coverage at 99.26 %.
+
+    Main choice: I left the code as it is. The only diff against `main` is in `tests/` (4 files: +147, −342), and the coder never edits tests. The alternative I rejected was moving `index_problems` out of the support module into code under `src/factory`. The Interface puts the function in the support module, and nothing in the package needs it.
+
+    Refactor step: there is nothing for me to refactor. Every changed file is a test or test-support file, and those belong to the tester.
+
+    Open: criterion 5 (the sentence in `docs/project-guide/README.md`, *The files*, and the entry in `docs/decisions.md`) is the documenter's. The tester noted one case that has no test: a line in *The files* that names a missing page without a sentence gives neither `missing:` nor `not in the index:`. I did not touch it.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
