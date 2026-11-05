@@ -82,3 +82,39 @@ def test_the_reviewer_in_docs_review_reads_the_documents_diff_and_approves_or_se
 @pytest.mark.parametrize("rule", STYLE_RULES)
 def test_the_reviewer_in_docs_review_lists_each_style_rule_once(rule: str) -> None:
     assert _stage_subsection("reviewer", "docs-review").count(rule) == 1
+
+
+def test_the_documenter_in_docs_only_replaces_the_steps_of_the_stage() -> None:
+    assert "In the stage `docs-only`, these bullets replace steps 1 to 6" in _stage_subsection(
+        "documenter", "docs-only"
+    )
+
+
+def test_the_documenter_back_from_docs_review_fixes_exactly_the_findings_and_hands_back() -> None:
+    bullets = [
+        line
+        for line in _stage_subsection("documenter", "docs-only").splitlines()
+        if "the reviewer's from `docs-review`" in line
+    ]
+
+    assert len(bullets) == 1
+    assert "fix exactly its numbered findings" in bullets[0]
+    assert "end with `docs-review`" in bullets[0]
+
+
+@pytest.mark.parametrize(
+    "named",
+    [
+        pytest.param(
+            "In the stage `docs-review`, this subsection replaces the Role's scope",
+            id="replaces-the-scope",
+        ),
+        pytest.param("its checklist", id="replaces-the-checklist"),
+        pytest.param("its decisions, and steps 1 to 3", id="replaces-decisions-and-steps"),
+        pytest.param("Judge the facts against the code and the criteria", id="judges-the-facts"),
+    ],
+)
+def test_the_reviewer_in_docs_review_replaces_its_code_review_and_judges_the_facts(
+    named: str,
+) -> None:
+    assert named in _stage_subsection("reviewer", "docs-review")

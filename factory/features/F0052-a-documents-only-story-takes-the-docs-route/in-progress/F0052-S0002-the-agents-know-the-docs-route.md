@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T22:40:57.496867Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-11-05T22:40:57.496867Z'
   stage: tests
+- number: 34
+  speaker: tester
+  kind: result
+  at: '2026-11-05T22:41:39.446811Z'
+  stage: tests
+  run: ecf147964a2b44efbc137067f1f79897
 ---
 
 # The agents know the docs route
@@ -458,3 +460,19 @@ Expect: `named`
 
     Noticed, not touched: criterion 7 (the docs) is the documenter's work. The pipeline definition change for the route is the human's, at merge.
 33. factory: started tests as vm.
+34. tester: Round 2: I added the tests for criteria 4 and 5, which the reviewer added in entry 30 and the coder named in entry 32. Both criteria needed only their tests: the agent texts already hold what they describe, so the new tests pass now and none of them is red.
+
+    Criterion mapping for the new criteria:
+    - criterion 4 (the documenter's bullets replace steps 1 to 6): `tests/agent_files/test_claude_agent_texts_docs_route.py::test_the_documenter_in_docs_only_replaces_the_steps_of_the_stage`
+    - criterion 4 (back from `docs-review`, the documenter fixes exactly the numbered findings and ends with `docs-review`): `tests/agent_files/test_claude_agent_texts_docs_route.py::test_the_documenter_back_from_docs_review_fixes_exactly_the_findings_and_hands_back`. This test finds the one bullet that holds "the reviewer's from `docs-review`" and requires that same bullet to hold "fix exactly its numbered findings" and "end with `docs-review`". It uses the same single-bullet form as the `tests` hand-off test from entry 26.
+    - criterion 5: `tests/agent_files/test_claude_agent_texts_docs_route.py::test_the_reviewer_in_docs_review_replaces_its_code_review_and_judges_the_facts`, with four rows: `replaces-the-scope`, `replaces-the-checklist`, `replaces-decisions-and-steps` and `judges-the-facts`.
+
+    Criteria 1 to 3 keep the tests listed in entries 11 and 26. Criteria 6 (`make check`) and 7 (docs) have no test of their own.
+
+    - **Files created:** none.
+    - **Files changed:** `tests/agent_files/test_claude_agent_texts_docs_route.py` (this story's own module).
+    - **Modules the test run could not import:** none.
+
+    **Test run:** `uv run pytest -q tests/agent_files/test_claude_agent_texts_docs_route.py`: 23 passed. `make lint`: `lint: green (0.1 s)`, after one `ruff format` of the new module.
+
+    `lint`: lint: green (0.1 s)
