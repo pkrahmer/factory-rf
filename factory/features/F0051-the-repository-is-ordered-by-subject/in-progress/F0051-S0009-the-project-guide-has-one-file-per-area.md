@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 564
 comments_read: [6650898693]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T05:56:41.131645Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-05T05:56:41.131645Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-05T05:57:29.822424Z'
+  stage: tests
+  run: b0850eaf61bc4a45937f2d6ad290f07d
+  blocked: question
 ---
 
 # The project guide has one file per area
@@ -109,3 +112,25 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
    - Architecture: the seven area names match `CLAUDE.md`'s areas. `operator.md` stays because it covers the operator's scripts outside `src/`.
    - Scope: this is F0051's S0009 as the feature lists it. It changes no code or test, and `CLAUDE.md` stays the human's change.
 7. factory: started tests as vm.
+8. tester: I wrote no tests. I stopped at step 1 because three of the criteria can't be tested as they are written, and the Interface contradicts itself.
+
+   1. **Interface or tests.** The Interface says "no test is written" and the Description says the story "changes no code and no test". The human's answer (journal 4) says "keep its tests few", and my role is one test per criterion. Options: (a) one guard test module, `tests/guards/test_project_guide_files.py`, that tests criteria 1 to 4; (b) no tests, with the reviewer and `make documents` as the gate. I would choose (a), and the Interface line would be rewritten to "no module under `src/factory/` changes".
+
+   2. **Criterion 2 can't be met for repeated headings.** On `origin/main` (bfbbef9d9) five headings already appear more than once:
+      - `## Replaced in v1.2`: 3 times (agents.md, processes-and-checks.md, write-paths.md)
+      - `### Faults`: 4 times (agents.md, stage-environment.md, stages.md, work-items.md)
+      - `### For the preflight`: twice, both in stage-environment.md
+      - `### The stand-in`: twice, both in stage-environment.md
+      - `### The fake`: twice (agents.md, git-and-hosting.md)
+
+      stage-environment.md moves whole and its words don't change, so "found exactly once" fails on purpose. Options: (a) each heading is found as many times in the new files as it was before (one row per distinct heading, with its count); (b) "exactly once" for the headings that were unique and "at least once" for the repeated ones. I would choose (a).
+
+   3. **Criterion 4 fails on files nobody may change.**
+      - `docs/decisions.md:775` names `git-and-hosting.md`, `processes-and-checks.md`, `work-items.md`, `costs.md` and `stages.md`, and criterion 6 says decisions.md gets no change.
+      - `docs/runs/2026-10-12-overnight/night-log.md` (lines 982 and 1013) names `project-guide/stage-environment.md`, and `docs/runs/` is the human's.
+
+      I'd also need to know what counts as "naming a guide file". Options: (a) the test searches `claude/`, `docs/` (without `docs/runs/` and `docs/decisions.md`) and `README.md` for the seven removed names (`git-and-hosting.md`, `work-items.md`, `write-paths.md`, `costs.md`, `stages.md`, `stage-environment.md`, `processes-and-checks.md`), written bare or as `project-guide/<name>`; (b) the same, but decisions.md stays in and is changed too, which revises criterion 6. I would choose (a). One effect: `docs/operator-guide.md:1977` and `:2109` would then have to change in this story, and criterion 6 says operator-guide.md: none. Please confirm that operator-guide.md changes as well.
+
+   4. **Criterion 3: "each of the eight files".** I read the eight as the seven area files plus `operator.md`, with the index not naming itself. I would choose that reading.
+
+   Where I stopped: nothing is written, no files were created, and no test run was made.
