@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T09:11:05.575525Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -41,6 +45,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T09:11:03.026835Z'
+  stage: tests
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T09:11:05.575525Z'
   stage: tests
 ---
 
@@ -119,3 +128,4 @@ Expect: `parsed`
 6. 2026-11-05 human: Answer of the human:
 
    **(a)**, as you wrote it: `docs/runs/` is left out of the search (my run logs, history), and criterion 3 reads "other than `docs/decisions.md` and `docs/runs/`". The playbook names none of the old paths, so it needs no change.
+7. factory: started tests as vm.
