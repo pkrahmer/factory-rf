@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T21:56:05.850703Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,13 +52,19 @@ journal:
   kind: started
   at: '2026-11-05T21:56:05.850703Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T21:58:04.337013Z'
+  stage: review
+  run: 5879499a125047de851c981b6352d557
 ---
 
 # A story can take a second route to a second approval
 
 ## Description
 
-F0052 adds a route for documents-only stories: `intake` → `docs-only` → `docs-review` → `docs-approval` → `done` (feature decision 1). The code names no stage, so the factory may already carry a story along it, but nothing proves that it does, and two places are known to depend on the stage order: `is_before_approval` (`factory.work.domain.acceptance`) compares a stage's position with the definition's first approval stage, and a close at an approval stage sends the story to that stage's second `next` (`send_back_target`). This story pins the behaviour with a walk through the fake world, on a pipeline definition written in the test that holds both routes, and fixes whatever the walk finds. It changes no shipped pipeline definition: the human adds the route at S0002's merge.
+F0052 adds a route for documents-only stories: `intake` → `docs-only` → `docs-review` → `docs-approval` → `done` (feature decision 1). The code names no stage, so the factory may already carry a story along it, but nothing proves that it does, and three places are known to depend on the stage order: `is_before_approval` (`factory.work.domain.acceptance`) compares a stage's position with the definition's first approval stage, a close at an approval stage sends the story to that stage's second `next` (`send_back_target`), and that close's round cap is the cap of the first capped stage whose first `next` is that approval stage (`send_back_cap`). This story pins the behaviour with a walk through the fake world, on a pipeline definition written in the test that holds both routes, and fixes whatever the walk finds. It changes no shipped pipeline definition: the human adds the route at S0002's merge.
 
 ## Interface
 
@@ -80,8 +82,9 @@ F0052 adds a route for documents-only stories: `intake` → `docs-only` → `doc
 5. A story at `docs-only` whose documenter decides `tests` moves to `tests` without a round, then takes today's route `doing` → `review` → `docs` → `smoke-test` → `approval`, and a close there sends it to `doing` (the way back, feature decision 6).
 6. A story whose intake decides `tests` still takes today's route to `approval`, unchanged (one walk to `approval`).
 7. `is_before_approval` is true for `docs-only` and `docs-review` and false for `docs-approval`, `acceptance` and `approval` in the test definition (one row per stage).
-8. `make check` stays green.
-9. docs: `docs/project-guide/pipeline.md`, *The pipeline definition*: a definition may hold more than one route and more than one approval stage; a close at an approval stage sends the story to that stage's second `next`. `docs/operator-guide/pipeline.md`: the same, in one sentence for the operator. `docs/decisions.md`: none (the feature's decision 1 goes in at S0002).
+8. A close at `docs-approval` takes its round cap from `docs-review`, the capped stage whose first `next` is `docs-approval` (`send_back_cap`, `factory.work.domain.send_back`): a close that brings the round to two sends the story to `docs-only` and asks nothing, and one that brings it to three still sends it to `docs-only` but blocks it (`send_back`) and asks the human, as a close past the cap at `approval` does (one row per side).
+9. `make check` stays green.
+10. docs: `docs/project-guide/pipeline.md`, *The pipeline definition*: a definition may hold more than one route and more than one approval stage; a close at an approval stage sends the story to that stage's second `next`. `docs/operator-guide/pipeline.md`: the same, in one sentence for the operator. `docs/decisions.md`: none (the feature's decision 1 goes in at S0002).
 
 ## Smoke test
 
@@ -133,3 +136,20 @@ Expect: `1`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 40 known, 3 gone
 8. factory: started review as vm.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`. The only file it adds is `tests/pipeline/application/test_docs_route.py`, and nothing under `src/` changes. I read the test against criteria 1 to 7. I also read `is_before_approval` (`src/factory/work/domain/acceptance.py:309`), `send_back_target` and `send_back_cap` (`src/factory/work/domain/send_back.py:30`, `:38`), and `ClosedHandler._send_back` (`src/factory/pipeline/application/handlers/closed.py:72`).
+
+   Group 1, criteria: each of criteria 1 to 7 has a test that checks what the criterion says. Criterion 4 checks both sides of its cap: round 2 at the cap passes, round 3 is blocked with `round_cap`. Criterion 7 has one row per stage. The coder's `make check` was green (entry 7). Gap: a close at an approval stage takes its round cap from `send_back_cap`, which also depends on the stage order, and on this route it resolves to `docs-review`. No criterion names it, and no test closes past the cap at `docs-approval`. Pinning it needs no change under `src/`, so I added it as a criterion myself.
+
+   Groups 2 and 3, architecture and security: nothing found. The test uses the fake world and a real git remote. It adds no secrets, no nosec, nosemgrep or baseline markers, and no shell built from strings.
+
+   Group 4, quality: two points in the new test file, listed below.
+
+   Group 5, work item hygiene: the coder's journal explains why nothing was fixed and what it decided not to guard against. Criterion 10 (the docs criterion) still describes what the reader must know.
+
+   1. criterion 8 added: it needs its test. `## Acceptance criteria` 8, a close at `docs-approval` past the round cap of `docs-review`: one row at round two (sent to `docs-only`, nothing asked) and one at round three (sent to `docs-only`, blocked `send_back`, a question). Write them as rows of one parametrized test in `tests/pipeline/application/test_docs_route.py`. The closing criteria are now 9 and 10.
+   2. `tests/pipeline/application/test_docs_route.py:63`: the `# noqa: E501` silences ruff for the whole `TWO_ROUTES` literal, and it is the only such marker on a test's own code. The marker can go: drop `time_limit`/`lease_duration` from the roles, as `PIPELINE_YAML` in `tests/support/git_support.py:21` does, or break the long `acceptance-reviewer` flow mapping over several lines.
+   3. `tests/pipeline/application/test_docs_route.py:271`: `test_only_the_docs_routes_working_stages_lie_before_the_approval` takes the `two_routes` fixture, which pushes a pipeline definition and a Makefile to `main` for every row. The test only parses the `TWO_ROUTES` text, so taking `world` (or a `RuamelPipelineDefinitionReader()`) is enough.
+
+   description corrected: "two places are known to depend on the stage order: `is_before_approval` … and … `send_back_target`" -> "three places …: `is_before_approval` …, `send_back_target`, and that close's round cap is the cap of the first capped stage whose first `next` is that approval stage (`send_back_cap`)".
+
+   Earlier tests: none. The diff only adds `tests/pipeline/application/test_docs_route.py` (status `A`) and changes no test file that `main` already holds.
