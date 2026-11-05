@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T10:19:48.007426Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-05T10:19:42.376480Z'
   stage: doing
   run: 786b0fc3bc264cf98ec798b3824d67f6
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:19:48.007426Z'
+  stage: tests
 ---
 
 # The removal guards look for a removed module in every area
@@ -274,3 +283,4 @@ Expect: `0`
     Description: the journal did not change what the task means.
 
     Not run: `make check`. I changed nothing, and the tester's change comes back through doing.
+15. factory: started tests as vm.
