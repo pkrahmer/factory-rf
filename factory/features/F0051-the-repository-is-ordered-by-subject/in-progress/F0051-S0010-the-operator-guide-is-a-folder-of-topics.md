@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T07:03:19.222771Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T07:03:16.709541Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:03:19.222771Z'
   stage: tests
 ---
 
@@ -155,3 +164,4 @@ Expect: `split`
    4. `OPERATOR_GUIDE_FOLDER = "docs/operator-guide"`, `OPERATOR_GUIDE = "docs/operator-guide/README.md"`, `OPERATOR_GUIDE_FILES` with the ten topic paths, and `DOCUMENT_PATHS` in the order of answer 3.
    5. Yes, go ahead with those test changes; this answer is the leave for them. Every test keeps its name and what it checks, and your entry names each file.
    6. Both readings are right: each heading as often as before (`### The steps` twice), and criterion 4 leaves out `docs/runs/` as well as `docs/decisions.md`.
+10. factory: started tests as vm.
