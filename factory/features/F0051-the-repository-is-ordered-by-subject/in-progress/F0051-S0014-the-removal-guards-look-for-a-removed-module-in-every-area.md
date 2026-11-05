@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 569
-comments_read: []
+comments_read: [6655308033]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: c90591e296a5478990f69f403ce0f823
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-05T10:10:37.889770Z'
+  stage: intake
 ---
 
 # The removal guards look for a removed module in every area
@@ -116,3 +121,6 @@ Expect: `0`
 3. intake: 1. Leave missing from `feature.md`. The story changes ten tests that other stories wrote: the eight removal guards, `tests/guards/test_wrapper_out_of_the_call_path.py` and `tests/pipeline/application/test_stall_environment.py::test_the_stall_module_imports_no_name_of_the_undo`. It says the human gives the leave in `feature.md`, but *The human's changes* has no entry for S0014. Decision 5's leave covers only the move stories' testers (S0001 to S0007) and only the old-layout guards. Without the leave this story cannot start, per CLAUDE.md's "Not without asking". Options: (a) you add an entry under *The human's changes* ("At S0014's start: the tester may change the named guards and tests to call `module_exists_anywhere` and `names_the_module_anywhere`, nothing else in them"), and the story runs again unchanged; (b) you give the leave in your answer here and I carry it into the story. I would choose (a).
 
    2. Format check: passed. Nothing to add. I checked the Interface, criteria, smoke test, architecture and scope only up to this blocker, so I will redo them with your answer.
+4. 2026-11-05 human: Answer of the human:
+
+   **(a).** `feature.md` on `main` now has the entry under *The human's changes*: "At S0014's start: a leave for its tester: the eight removal guards it names, `tests/guards/test_wrapper_out_of_the_call_path.py` and `tests/pipeline/application/test_stall_environment.py::test_the_stall_module_imports_no_name_of_the_undo` may change to call `module_exists_anywhere` and `names_the_module_anywhere`, nothing else in them; each test keeps its name and what it checks." Go on with the intake.
