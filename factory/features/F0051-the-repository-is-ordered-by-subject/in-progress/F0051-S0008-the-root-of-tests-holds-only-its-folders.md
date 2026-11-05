@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295, 6650280748, 6650410311, 6650650704]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T05:40:04.482746Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -159,6 +163,11 @@ journal:
   at: '2026-11-05T05:39:59.146609Z'
   stage: docs
   run: 2faaff5398b14720b724350272643a10
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-05T05:40:04.482746Z'
+  stage: smoke-test
 ---
 
 # The root of `tests/` holds only its folders
@@ -488,3 +497,4 @@ Expect: `support.bill_support`
     `check`: check: green (not run again: passed on tree 82a5f83cc2b9 at 2026-11-05T05:24:29Z)
     `secrets`: secrets: green (10.0 s)
     `documents`: documents ok
+28. factory: started smoke-test as vm.
