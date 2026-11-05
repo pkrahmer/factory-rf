@@ -7,12 +7,12 @@ from typing import override
 
 import pytest
 
-from factory.application.project_commands import RecordingProjectCommands
 from factory.domain.checks import CheckResult, TargetTime, status_of
-from factory.domain.command_records import CommandRecord
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.application.git import Git
 from factory.hosting.domain.git import CommitId
+from factory.machine.application.project_commands import RecordingProjectCommands
+from factory.machine.domain.command_records import CommandRecord
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.application.files import RecordLog
 from factory.shared.domain.errors import GitError, ProjectCommandError

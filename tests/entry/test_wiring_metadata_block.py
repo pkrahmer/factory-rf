@@ -6,8 +6,8 @@ import pytest
 
 from command_words_support import value_after
 from factory.application.boundaries import Boundaries
-from factory.domain.containers import METADATA_PROBE_COMMAND, WORK
 from factory.entry.wiring import machine_extras
+from factory.machine.domain.containers import METADATA_PROBE_COMMAND, WORK
 from podman_support import Podman
 from wiring_support import CONTAINER_ITEMS, after_image, machine_item, profile_settings
 from zfs_support import Zfs

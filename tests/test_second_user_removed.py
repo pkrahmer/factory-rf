@@ -5,16 +5,16 @@ from collections.abc import Callable
 
 import pytest
 
-from factory.adapters import make_commands
-from factory.adapters.make_commands import MakeProjectCommands
 from factory.agents.adapters import agent_launch
 from factory.agents.adapters.agent_launch import Starters
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.agents.domain.agent_runs import AgentRunRequest
-from factory.application import preflight
 from factory.entry import wiring
 from factory.entry.wiring import build_boundaries
+from factory.machine.adapters import make_commands
+from factory.machine.adapters.make_commands import MakeProjectCommands
+from factory.machine.application import preflight
 from factory.shared.domain import settings
 from factory.shared.domain.settings import InstanceSettings
 

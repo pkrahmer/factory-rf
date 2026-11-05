@@ -14,8 +14,8 @@ from factory.agents.adapters import agent_launch, claude_runtime, opencode_runti
 from factory.agents.adapters.agent_launch import LOGIN_PREFIX, LoginFiles, Starters, call_refusal
 from factory.agents.adapters.claude_runtime import SWITCHES, ClaudeCodeRuntime
 from factory.agents.adapters.opencode_runtime import OpencodeRuntime
-from factory.application import preflight
 from factory.entry.wiring import build_boundaries
+from factory.machine.application import preflight
 from run_layout_support import Layout, run_end, run_request, write_script
 
 CONFINE_LINE = "factory-confine: the kernel offers Landlock ABI 2"

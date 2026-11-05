@@ -1,7 +1,7 @@
 """The make adapter uses the domain's last-line rule and keeps no copy of its own."""
 
-from factory.adapters import make_commands
 from factory.domain import checks
+from factory.machine.adapters import make_commands
 
 
 def test_the_make_adapter_uses_the_domains_last_line_rule() -> None:

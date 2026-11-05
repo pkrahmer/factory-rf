@@ -13,11 +13,11 @@ from container_support import (
     push_main,
     sync_makefile,
 )
-from factory.adapters.make_commands import ContainerMakeCommands
-from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.application.boundaries import Boundaries
-from factory.application.preflight import MachineChecks, Preflight
 from factory.application.stops import StopService
+from factory.machine.adapters.make_commands import ContainerMakeCommands
+from factory.machine.adapters.preflight_stamp_file import JsonPreflightStampFile
+from factory.machine.application.preflight import MachineChecks, Preflight
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 from wiring_support import every_tool

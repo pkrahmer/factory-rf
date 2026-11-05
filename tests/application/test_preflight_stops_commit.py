@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 
 import preflight_support
-from factory.domain.preflight import PreflightStamp
 from factory.domain.stops import StopRecord, stop_records_text
+from factory.machine.domain.preflight import PreflightStamp
 from factory.shared.domain.paths import STOP_RECORDS_FILE
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from log_support import log_lines

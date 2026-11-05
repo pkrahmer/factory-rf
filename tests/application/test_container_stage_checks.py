@@ -11,12 +11,12 @@ from container_support import (
     assert_taken_and_pushed,
     whole_stage,
 )
-from factory.adapters.make_commands import ContainerMakeCommands
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.stage import StageReport
-from factory.application.stage_environment import ContainerEnvironment
 from factory.hosting.domain.git import CommitId
+from factory.machine.adapters.make_commands import ContainerMakeCommands
+from factory.machine.application.stage_environment import ContainerEnvironment
 from git_support import write_files
 from human_clone import HumanClone
 from stage_run_support import BRANCH, INSIDE, NOTES, branch_head

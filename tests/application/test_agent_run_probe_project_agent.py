@@ -8,7 +8,7 @@ import pytest
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.application.project_agents import ProjectAgentDefinitions
 from factory.application.boundaries import Boundaries
-from factory.application.preflight import PROBE_BUDGET_USD, agent_run_probe_item
+from factory.machine.application.preflight import PROBE_BUDGET_USD, agent_run_probe_item
 from factory.shared.domain.settings import InstanceSettings
 from git_support import COLOURED_AGENT_FILE, PROJECT_CODER, install_agents
 from human_clone import HumanClone

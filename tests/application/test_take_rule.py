@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_snapshots import FakeSnapshots
 from factory.application.boundaries import Boundaries
 from factory.application.take import TakeService
+from factory.machine.adapters.fake_snapshots import FakeSnapshots
 from human_clone import HumanClone
 from take_support import AGENT_TEXT, MOUNTED, make_dataset, write_dataset
 from undo_support import PATH, start_stage

@@ -7,8 +7,8 @@ import github
 import pytest
 
 from factory.application.boundaries import Boundaries
-from factory.domain.preflight import PreflightItem
 from factory.entry.wiring import machine_extras
+from factory.machine.domain.preflight import PreflightItem
 from factory.shared.domain.settings import InstanceSettings
 from podman_support import IMAGE, Podman, PodmanPlan, write_podman
 from zfs_support import DATASET, Answer, Zfs, write_zfs

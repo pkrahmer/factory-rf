@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from factory.domain.checks import TargetTime
-from factory.domain.command_records import CommandRecord
+from factory.machine.domain.command_records import CommandRecord
 from factory.shared.application.files import RecordLog
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 

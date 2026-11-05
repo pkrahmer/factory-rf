@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from dockerfile_support import _uncommented
-from factory.domain.containers import JOB_PODMAN_OPTIONS
+from factory.machine.domain.containers import JOB_PODMAN_OPTIONS
 from vm_support import (
     HIDDEN_TEXT,
     JOB_CLAUDE_VERSION,

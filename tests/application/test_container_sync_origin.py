@@ -14,8 +14,8 @@ from container_support import (
     sync_makefile,
 )
 from factory.application.boundaries import Boundaries
-from factory.application.stage_environment import _SYNC_SCRIPT
 from factory.hosting.domain.git import CommitId
+from factory.machine.application.stage_environment import _SYNC_SCRIPT
 from git_support import install_agents, run_git, write_files
 from human_clone import HumanClone
 from undo_support import BRANCH

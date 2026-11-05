@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.application.boundaries import Boundaries
 from factory.application.tick import TickOutcome
 from factory.entry.wiring import build_preflight, build_tick
+from factory.machine.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.shared.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone

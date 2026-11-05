@@ -6,12 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.make_commands import ContainerMakeCommands
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
-from factory.application.preflight import agent_run_probe_item
-from factory.application.project_commands import RecordingProjectCommands
 from factory.entry.wiring import (
     CREDENTIAL_HELPER,
     build_boundaries,
@@ -19,6 +16,9 @@ from factory.entry.wiring import (
     machine_extras,
 )
 from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.machine.adapters.make_commands import ContainerMakeCommands
+from factory.machine.application.preflight import agent_run_probe_item
+from factory.machine.application.project_commands import RecordingProjectCommands
 from factory.shared.domain.settings import InstanceSettings
 from git_support import install_agents
 from podman_support import IMAGE, Podman

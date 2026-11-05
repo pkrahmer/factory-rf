@@ -11,11 +11,11 @@ from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.stage import AfterAgent, AgentAftermath, LaunchedStage, StageLauncher
-from factory.application.stage_environment import StageEnvironment
 from factory.application.take import TakeReport
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.application.opening import WorkItemOpening
 from factory.hosting.domain.git import CommitId
+from factory.machine.application.stage_environment import StageEnvironment
 from factory.shared.domain.errors import SnapshotError
 from factory.shared.domain.paths import cost_records_path
 from git_support import PIPELINE_YAML, remote_commit

@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 
 from factory.application.boundaries import Boundaries
-from factory.application.preflight import MachineChecks, opencode_item
 from factory.entry.wiring import machine_extras
+from factory.machine.application.preflight import MachineChecks, opencode_item
 from factory.shared.domain.settings import InstanceSettings
 from podman_support import IMAGE, Podman
 from wiring_support import CONTAINER_ITEMS, every_tool

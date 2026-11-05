@@ -8,8 +8,8 @@ import pytest
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentDefinition
 from factory.application.boundaries import Boundaries
-from factory.application.preflight import agent_run_probe_item
 from factory.application.task import TaskComposer, TaskContext
+from factory.machine.application.preflight import agent_run_probe_item
 from factory.shared.domain.settings import InstanceSettings
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, install_agents

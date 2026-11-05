@@ -4,7 +4,7 @@ from pathlib import Path
 
 from container_support import FIVE_MINUTES, container_dataset, push_main, sync_makefile
 from factory.application.boundaries import Boundaries
-from factory.application.stage_environment import ContainerEnvironment, stage_environment_of
+from factory.machine.application.stage_environment import ContainerEnvironment, stage_environment_of
 from git_support import install_agents
 from human_clone import HumanClone
 

@@ -5,9 +5,9 @@ from datetime import timedelta
 
 import pytest
 
-from factory.adapters.power_off import ProcessExit, SystemctlPowerOff
 from factory.application.boundaries import Boundaries
 from factory.entry.wiring import idle_shutdown_of
+from factory.machine.adapters.power_off import ProcessExit, SystemctlPowerOff
 from factory.shared.domain.settings import read_settings
 from settings_support import BASE
 

@@ -17,18 +17,12 @@ from adapters.container_runtime_support import make_workspace
 from container_support import Dataset, container_dataset, fake_dataset
 from definition_support import pipeline_definition
 from disk_support import FakeDiskSpace
-from factory.adapters import podman_runs
-from factory.adapters.fake_containers import FakeContainerRuns
-from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.adapters.podman_runs import PodmanRuns
 from factory.agents.adapters import claude_runtime
 from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.agents.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
-from factory.application.images import Images
-from factory.domain.disk import DiskRecord
 from factory.domain.known_results import ResultRecord
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.stops import StopRecord
@@ -37,6 +31,12 @@ from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.application.hosting import HostingService
 from factory.hosting.domain.git import GitOptions
+from factory.machine.adapters import podman_runs
+from factory.machine.adapters.fake_containers import FakeContainerRuns
+from factory.machine.adapters.make_commands import MakeProjectCommands
+from factory.machine.adapters.podman_runs import PodmanRuns
+from factory.machine.application.images import Images
+from factory.machine.domain.disk import DiskRecord
 from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from factory.shared.domain.identifiers import WorkItemId
 from factory.shared.domain.kill_points import KillPoints

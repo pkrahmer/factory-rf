@@ -10,7 +10,6 @@ from pydantic import BaseModel, ValidationError
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import QUESTION, AgentRunResult
 from factory.application.boundaries import Boundaries
-from factory.application.project_commands import ProjectCommands
 from factory.application.stage import (
     STALL_TAIL_LINES,
     AfterAgent,
@@ -24,6 +23,7 @@ from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.application.opening import WorkItemOpening
 from factory.hosting.domain.post_texts import findings_question, round_cap_question
+from factory.machine.application.project_commands import ProjectCommands
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import HostingServiceError, PushFailed
 from factory.shared.domain.identifiers import branch_name

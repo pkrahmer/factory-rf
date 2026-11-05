@@ -6,8 +6,8 @@ import pytest
 
 from container_support import CONTAINER
 from factory.application.boundaries import Boundaries
-from factory.application.preflight import MachineChecks
-from factory.domain.preflight import PreflightItem
+from factory.machine.application.preflight import MachineChecks
+from factory.machine.domain.preflight import PreflightItem
 from factory.shared.domain.settings import InstanceSettings
 from wiring_support import every_tool
 

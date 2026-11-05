@@ -8,16 +8,16 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_containers import FakeContainerRuns
-from factory.adapters.fake_snapshots import FakeSnapshots
-from factory.adapters.make_commands import ContainerMakeCommands
-from factory.application.containers import ContainerRuns
-from factory.application.project_commands import ProjectCommands
 from factory.domain.checks import TargetTime
-from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.application.git import Git
 from factory.hosting.domain.git import ChangedPath, GitOptions
+from factory.machine.adapters.fake_containers import FakeContainerRuns
+from factory.machine.adapters.fake_snapshots import FakeSnapshots
+from factory.machine.adapters.make_commands import ContainerMakeCommands
+from factory.machine.application.containers import ContainerRuns
+from factory.machine.application.project_commands import ProjectCommands
+from factory.machine.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.shared.domain.errors import ContainerError, GitError, ProjectCommandError
 from git_support import CHECKOUT, TEST_IDENTITY, commit_all, write_files
 

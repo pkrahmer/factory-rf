@@ -11,14 +11,14 @@ from adapters.container_runtime_support import container_environment, container_
 from adapters.opencode_stand_in import MODELS, write_opencode
 from adapters.opencode_stand_in import REPLY as OPENCODE_REPLY
 from container_support import FIVE_MINUTES, Dataset
-from factory.adapters.fake_containers import FakeContainerRuns
-from factory.adapters.make_commands import ContainerMakeCommands
-from factory.adapters.podman_runs import PodmanRuns
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.adapters.opencode_runtime import OpencodeRuntime
-from factory.application.stage_environment import ContainerEnvironment
-from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.hosting.domain.git import CommitId
+from factory.machine.adapters.fake_containers import FakeContainerRuns
+from factory.machine.adapters.make_commands import ContainerMakeCommands
+from factory.machine.adapters.podman_runs import PodmanRuns
+from factory.machine.application.stage_environment import ContainerEnvironment
+from factory.machine.domain.containers import ContainerLaunch, ContainerResult, Mount
 from podman_support import IMAGE, INSTANCE
 
 PROXY = "http://proxy.example.invalid:3128"
