@@ -100,15 +100,15 @@ layers = ["entry", "(adapters)", "(application)", "(domain)"]
 [[tool.importlinter.contracts]]
 name = "An area's domain imports no higher layer"
 type = "forbidden"
-source_modules = ["factory.*.domain", "factory.*.domain.**", "factory.domain", "factory.domain.**"]
-forbidden_modules = ["factory.*.application", "factory.*.application.**", "factory.*.adapters", "factory.*.adapters.**", "factory.application", "factory.application.**", "factory.adapters", "factory.adapters.**", "factory.entry", "factory.entry.**"]
+source_modules = ["factory.*.domain", "factory.*.domain.**"]
+forbidden_modules = ["factory.*.application", "factory.*.application.**", "factory.*.adapters", "factory.*.adapters.**", "factory.entry", "factory.entry.**"]
 allow_indirect_imports = true
 
 [[tool.importlinter.contracts]]
 name = "An area's application imports no adapter"
 type = "forbidden"
-source_modules = ["factory.*.application", "factory.*.application.**", "factory.application", "factory.application.**"]
-forbidden_modules = ["factory.*.adapters", "factory.*.adapters.**", "factory.adapters", "factory.adapters.**", "factory.entry", "factory.entry.**"]
+source_modules = ["factory.*.application", "factory.*.application.**"]
+forbidden_modules = ["factory.*.adapters", "factory.*.adapters.**", "factory.entry", "factory.entry.**"]
 allow_indirect_imports = true
 
 [[tool.importlinter.contracts]]
