@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-11-05T22:07:35.612161Z'
   stage: smoke-test
   run: 9b52232c91f24367a7a86906ebda5ae3
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-11-05T22:08:25.713888Z'
+  stage: approval
 ---
 
 # A story can take a second route to a second approval
@@ -330,3 +335,4 @@ Expect: `1`
     The branch diff, leaving out `factory/`, holds only the new test file and these two documents. Nothing under `src/` or in a shipped pipeline definition changed, which matches the Description.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 14.2 min, 88 turns, 321632 tokens in (2582123 more from cache), 37446 out, $3.53
