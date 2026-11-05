@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 1
 crashes: 0
 pull_request: 574
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T23:06:14.952388Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -63,6 +59,13 @@ journal:
   kind: started
   at: '2026-11-05T23:06:14.952388Z'
   stage: tests
+- number: 10
+  speaker: tester
+  kind: question
+  at: '2026-11-05T23:06:48.521870Z'
+  stage: tests
+  run: b49421db46c74097b301e016c52e2b1e
+  blocked: question
 ---
 
 # The documents have a style page and a glossary
@@ -159,3 +162,22 @@ Expect: `named`
 
    Stale text noticed, not mine to fix: version names in the header comments of `factory/pipeline.yml` and in older `docs/decisions.md` entries.
 9. factory: started tests as vm.
+10. tester: I stopped before writing any test. I need the human's word on two points.
+
+    1. An existing guard must change, and I may not change it without your leave. `tests/guards/test_project_guide_files.py::test_the_guide_holds_the_index_operator_and_the_seven_area_files` (written by F0051's stories) expects `docs/project-guide/` to hold exactly `README.md`, `operator.md` and the seven area files. With `style.md` and `glossary.md` there, it fails and keeps `make check` red. This is a change to another story's test, not a move of a shared helper, so the standing leave does not cover it. The prompt did not give me the approved-change mode either. Options:
+       - (a) Add `"style.md", "glossary.md"` to `NAMED_FILES`. The existing `test_the_index_names_each_file_with_a_sentence` then also checks both index lines, which is criterion 3. Rename the first test to `test_the_guide_holds_the_index_and_its_named_files` so its name stays true.
+       - (b) What the documenter proposed: keep `NAMED_FILES` and add a new constant `GUIDE_PAGES = ("style.md", "glossary.md")`. The expected list becomes `sorted(("README.md", *NAMED_FILES, *GUIDE_PAGES))`, and the test keeps its now inaccurate name.
+       - My choice: (a).
+
+    2. Should the tests stage write tests for this story at all? The Interface says "No code, no test, no agent file changes", but my role writes one test per criterion. Options:
+       - (i) No new tests. Criteria 1 to 4 are judged by the reviewer, and 5 and 6 are factory checks. The only test work is the guard change in point 1.
+       - (ii) A new `tests/guards/test_style_and_glossary.py` with these checks:
+         - the glossary has a `- **word**:` entry for each of the 27 listed words;
+         - its entries are sorted;
+         - each entry has one to three sentences (a parametrized test with rows at 1, 3 and a refused 4);
+         - `style.md` has a numbered list of eight rules under "Rules for all documents";
+         - `style.md` has the sections "The operator guide", "The project guide" and "The README".
+         This fixes formats the story leaves open, such as the entry markup, the rule numbering, the section names, and what counts as a sentence. That is why I am asking and not choosing.
+       - My choice: (i), with change (a) from point 1, because the Interface rules out tests.
+
+    Files created: none. The test run was not started, so no module failed to import. No other open points.
