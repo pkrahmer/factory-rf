@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-05T23:40:33.580695Z'
   stage: acceptance
   run: 8a14d48600634aa095eb9bdeaeddbe96
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-05T23:42:27.402442Z'
+  stage: done
 stories: [F0052-S0001, F0052-S0002, F0052-S0003]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A documents-only story takes the docs route
@@ -187,3 +192,4 @@ Human interventions: 5 questions answered, all of the cause `question`, with 0.3
 
    Proposed: F0052-S0004 (`is_before_approval` follows the forward moves) and F0052-S0005 (the guide guards drop their heading pins and read the project guide's pages from its index; start it before the rewrite). Both pass `factory-check-story`. Each changes one earlier test module, for which the human must give a leave when refining.
    Not done: removing `/tmp/pytest-of-factory` and `/tmp/semgrep-mcp`, left by my smoke-test run and `make sast`, was denied. They are lost with the stage.
+3. factory: done (pull request merged); cost: 1 runs, 9.6 min, 50 turns, 141118 tokens in (4564873 more from cache), 37439 out, $2.79
