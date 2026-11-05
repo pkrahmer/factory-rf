@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T09:38:43.226339Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -160,6 +164,11 @@ journal:
   at: '2026-11-05T09:38:37.845877Z'
   stage: docs
   run: 4f88344b99bb44628ebffac6a623396b
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-05T09:38:43.226339Z'
+  stage: smoke-test
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -477,3 +486,4 @@ Expect: `parsed`
     `check`: check: green (not run again: passed on tree 0a050c1b7b61 at 2026-11-05T09:33:40Z)
     `secrets`: secrets: green (3.6 s)
     `documents`: documents ok
+28. factory: started smoke-test as vm.
