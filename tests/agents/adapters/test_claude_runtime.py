@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import StandInCall, Step, read_calls, write_stand_in
+from claude_stand_in import StandInCall, Step, read_calls, write_stand_in
 from factory.agents.adapters.claude_runtime import ENTRY_DESCRIPTION, ClaudeCodeRuntime
 from factory.agents.domain.agent_runs import (
     AgentDefinition,

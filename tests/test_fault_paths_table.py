@@ -3,7 +3,7 @@
 import ast
 from pathlib import Path
 
-from factory.domain.fault_paths import FAULT_PATHS
+from factory.pipeline.domain.fault_paths import FAULT_PATHS
 
 PATH_MODULES = (
     Path(__file__).parent / "test_fault_paths.py",

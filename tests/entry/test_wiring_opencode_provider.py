@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from adapters.opencode_stand_in import REPLY_EVENTS, opencode_request, write_agent_settings
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
 from opencode_provider_support import CONFIGURATION, write_provider
+from opencode_stand_in import REPLY_EVENTS, opencode_request, write_agent_settings
 from podman_support import IMAGE, PodmanPlan
 from wiring_support import CREDENTIAL, dataset_podman
 

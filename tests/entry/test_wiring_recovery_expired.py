@@ -1,9 +1,9 @@
 """The production wiring registers the crash's recovery handler for expired leases as well."""
 
-from factory.application.boundaries import Boundaries
-from factory.application.recovery import RecoveryHandler
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.entry.wiring import build_handlers
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.recovery import RecoveryHandler
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from git_support import PIPELINE_YAML
 from stage_run_support import INSTANCE
 from wiring_support import ENVIRONMENT

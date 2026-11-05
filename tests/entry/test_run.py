@@ -13,12 +13,6 @@ import pytest
 import factory.entry.run as run_module
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
-from factory.application.boundaries import Boundaries
-from factory.application.dispatcher import DispatchOutcome
-from factory.application.idle_shutdown import IdleShutdown
-from factory.application.tick import Tick, TickOutcome
-from factory.domain.events import Event, EventKind
-from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.run import (
     activity,
     activity_tick,
@@ -30,6 +24,12 @@ from factory.entry.run import (
 from factory.entry.wiring import handler_factory, health_store, read_environment_settings
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.machine.domain.disk import DiskRecord
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.dispatcher import DispatchOutcome
+from factory.pipeline.application.idle_shutdown import IdleShutdown
+from factory.pipeline.application.tick import Tick, TickOutcome
+from factory.pipeline.domain.events import Event, EventKind
+from factory.pipeline.domain.stops import HealthStatus, RepositoryStop
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings

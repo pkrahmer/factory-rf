@@ -7,7 +7,6 @@ import pytest
 
 from agent_definition_support import COMPLETED
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.application.boundaries import Boundaries
 from factory.entry.wiring import (
     agent_run_environment,
     boundaries_from_environment,
@@ -15,6 +14,7 @@ from factory.entry.wiring import (
     production_environment,
 )
 from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.settings import InstanceSettings, read_settings

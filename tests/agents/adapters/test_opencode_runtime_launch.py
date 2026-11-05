@@ -7,18 +7,18 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls
-from adapters.opencode_stand_in import (
+from agent_login_support import API_LOGIN
+from claude_stand_in import Step, read_calls
+from factory.agents.adapters.agent_launch import API_LOGIN_VARIABLE
+from factory.agents.adapters.opencode_runtime import OpencodeRuntime
+from factory.agents.domain.agent_runs import AgentRunRequest
+from factory.shared.domain.errors import AgentRuntimeError
+from opencode_stand_in import (
     MODELS,
     REPLY_EVENTS,
     opencode_request,
     write_opencode,
 )
-from agent_login_support import API_LOGIN
-from factory.agents.adapters.agent_launch import API_LOGIN_VARIABLE
-from factory.agents.adapters.opencode_runtime import OpencodeRuntime
-from factory.agents.domain.agent_runs import AgentRunRequest
-from factory.shared.domain.errors import AgentRuntimeError
 from run_layout_support import (
     Layout,
 )

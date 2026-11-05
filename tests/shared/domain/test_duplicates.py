@@ -18,12 +18,14 @@ from factory.shared.domain.duplicates import (
 
 STOPS_AND_GIT = (
     "Similar lines in 2 files\n"
-    "==factory.domain.stops:[49:53]\n"
+    "==factory.pipeline.domain.stops:[49:53]\n"
     "==factory.domain.git:[73:77]\n"
     '    @field_validator("at")\n'
     "    @classmethod"
 )
-STOPS_AND_GIT_KEY = 'similar-code factory.domain.git, factory.domain.stops: @field_validator("at")'
+STOPS_AND_GIT_KEY = (
+    'similar-code factory.domain.git, factory.pipeline.domain.stops: @field_validator("at")'
+)
 HELPER_LINE = "src/factory/x.py:12: unused function 'helper' (60% confidence)"
 HELPER_KEY = "dead-code src/factory/x.py: unused function 'helper'"
 
@@ -42,7 +44,7 @@ def test_a_duplicate_code_message_gives_its_key_where_and_first_line() -> None:
     assert findings == [
         DuplicateFinding(
             key=STOPS_AND_GIT_KEY,
-            where="factory.domain.stops:[49:53], factory.domain.git:[73:77]",
+            where="factory.pipeline.domain.stops:[49:53], factory.domain.git:[73:77]",
             message="Similar lines in 2 files",
         )
     ]

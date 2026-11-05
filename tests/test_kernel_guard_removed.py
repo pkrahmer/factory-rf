@@ -7,8 +7,8 @@ from collections.abc import Callable
 import pytest
 
 from factory.agents.domain.agent_runs import AgentRunRequest, WritePathSettings
-from factory.application.task import TaskContext
-from factory.domain.pipeline_definition import PipelineDefinition
+from factory.pipeline.application.task import TaskContext
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from module_names import has_name
 
 
@@ -34,7 +34,7 @@ def test_the_wrapper_and_the_kernel_s_modules_are_gone(module: str) -> None:
         ),
         *(
             pytest.param(
-                lambda name=name: has_name("factory.domain.pipeline_definition", name),
+                lambda name=name: has_name("factory.pipeline.domain.pipeline_definition", name),
                 False,
                 id=name,
             )

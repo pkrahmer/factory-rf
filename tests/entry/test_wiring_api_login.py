@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import REPLY, claude_request
 from agent_login_support import API_LOGIN
+from claude_stand_in import REPLY, claude_request
 from factory.agents.adapters.agent_launch import LoginFiles, login_argv
 from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService

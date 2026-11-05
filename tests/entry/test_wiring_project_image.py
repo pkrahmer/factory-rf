@@ -6,9 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from factory.application.boundaries import Boundaries
-from factory.application.stops import StopService
-from factory.domain.stops import RepositoryStop
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_store, project_image_settings
 from factory.hosting.adapters.fake_hosting import FakeHostingService
@@ -22,6 +19,9 @@ from factory.machine.domain.stage_layer import (
     project_image_tag,
     stage_layer,
 )
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.stops import StopService
+from factory.pipeline.domain.stops import RepositoryStop
 from factory.shared.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents, run_git
 from human_clone import HumanClone

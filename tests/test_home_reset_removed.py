@@ -8,8 +8,8 @@ from types import ModuleType
 import pytest
 
 from factory.agents.adapters import claude_runtime, opencode_runtime
-from factory.application.boundaries import Boundaries
 from factory.entry import wiring
+from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain import settings
 from factory.shared.domain.settings import InstanceSettings
 

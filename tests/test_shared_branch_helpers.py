@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 
 from branch_reading import error_posts, push_state, remote_document
-from factory.application.boundaries import Boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.hosting import PostKey
+from factory.pipeline.application.boundaries import Boundaries
 from factory.work.domain.work_item import WorkItemState
 from human_clone import HumanClone
 from stage_run_support import BACKLOG_PATH, BRANCH, pushed_state

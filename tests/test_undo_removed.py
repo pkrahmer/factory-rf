@@ -34,15 +34,17 @@ def _modules_importing_an_undo_name() -> list[str]:
             lambda: importlib.util.find_spec("factory.application.undo"), None, id="undo-module"
         ),
         pytest.param(
-            lambda: has_name("factory.application.take", "is_refused"), True, id="is-refused"
+            lambda: has_name("factory.pipeline.application.take", "is_refused"),
+            True,
+            id="is-refused",
         ),
         pytest.param(
-            lambda: has_name("factory.application.take", "read_baseline"),
+            lambda: has_name("factory.pipeline.application.take", "read_baseline"),
             True,
             id="read-baseline",
         ),
         pytest.param(
-            lambda: has_name("factory.application.take", "restore_work_item"),
+            lambda: has_name("factory.pipeline.application.take", "restore_work_item"),
             True,
             id="restore-work-item",
         ),

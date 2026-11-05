@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from adapters.claude_stand_in import REPLY, Step, read_calls, write_stand_in
+from claude_stand_in import REPLY, Step, read_calls, write_stand_in
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from run_layout_support import Layout, run_request
 

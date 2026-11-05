@@ -5,11 +5,9 @@ from datetime import timedelta
 from pathlib import Path
 from typing import override
 
-from adapters.claude_stand_in import REPLY as CLAUDE_REPLY
-from adapters.claude_stand_in import Step, claude_request, write_stand_in
-from adapters.container_runtime_support import container_environment, container_request, make_state
-from adapters.opencode_stand_in import MODELS, write_opencode
-from adapters.opencode_stand_in import REPLY as OPENCODE_REPLY
+from claude_stand_in import REPLY as CLAUDE_REPLY
+from claude_stand_in import Step, claude_request, write_stand_in
+from container_runtime_support import container_environment, container_request, make_state
 from container_support import FIVE_MINUTES, Dataset
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.adapters.opencode_runtime import OpencodeRuntime
@@ -19,6 +17,8 @@ from factory.machine.adapters.make_commands import ContainerMakeCommands
 from factory.machine.adapters.podman_runs import PodmanRuns
 from factory.machine.application.stage_environment import ContainerEnvironment
 from factory.machine.domain.containers import ContainerLaunch, ContainerResult, Mount
+from opencode_stand_in import MODELS, write_opencode
+from opencode_stand_in import REPLY as OPENCODE_REPLY
 from podman_support import IMAGE, INSTANCE
 
 PROXY = "http://proxy.example.invalid:3128"

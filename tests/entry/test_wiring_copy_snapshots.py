@@ -5,11 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from factory.application.boundaries import Boundaries
 from factory.entry.wiring import build_boundaries, machine_extras
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.machine.adapters.copy_snapshots import CopySnapshots
 from factory.machine.adapters.zfs_snapshots import ZfsSnapshots
+from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import (
     SNAPSHOT_BASE_VARIABLE,

@@ -3,8 +3,8 @@
 from collections.abc import Sequence
 from pathlib import Path
 
-from factory.domain.fault_paths import FAULT_PATHS
-from factory.domain.stop_table import STOP_TABLE, StopRow
+from factory.pipeline.domain.fault_paths import FAULT_PATHS
+from factory.pipeline.domain.stop_table import STOP_TABLE, StopRow
 from factory.shared.domain.documents import (
     DECISION_LOG,
     OPERATOR_GUIDE,

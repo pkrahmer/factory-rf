@@ -56,7 +56,7 @@ def _imports_from(tree: ast.Module) -> set[tuple[str, str]]:
 
 
 def _runtime_end_once() -> None:
-    tree = _tree("adapters/test_runtimes_without_wrapper.py")
+    tree = _tree("entry/test_runtimes_without_wrapper.py")
     constructors = _function(tree, "test_no_constructor_takes_the_wrapper_or_its_folders")
     calls = [
         node.func.id
@@ -115,7 +115,9 @@ def _reset_prefix_once() -> None:
     ]
 
     assert "stage environment: reset" not in literals
-    assert "RESET_PREFIX" not in _defined(_tree("application/test_stage_on_container_fakes.py"))
+    assert "RESET_PREFIX" not in _defined(
+        _tree("pipeline/application/test_stage_on_container_fakes.py")
+    )
 
 
 def _hook_test_plain() -> None:
@@ -130,7 +132,7 @@ def _hook_test_plain() -> None:
 
 def _shared_from_support() -> None:
     shared = {
-        "run_end": ("run_layout_support", ["adapters/test_runtimes_without_wrapper.py"]),
+        "run_end": ("run_layout_support", ["entry/test_runtimes_without_wrapper.py"]),
         "recording_stand_in": (
             "recording_stand_in_support",
             ["entry/test_wiring_container_extra.py", "entry/test_wiring_stage_environment.py"],
@@ -141,7 +143,7 @@ def _shared_from_support() -> None:
         ),
         "RESET_PREFIX": (
             "container_support",
-            ["test_suite_fixtures.py", "application/test_stage_on_container_fakes.py"],
+            ["test_suite_fixtures.py", "pipeline/application/test_stage_on_container_fakes.py"],
         ),
     }
     for name, (support, users) in shared.items():

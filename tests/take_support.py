@@ -4,10 +4,10 @@ import shutil
 import stat
 from pathlib import Path
 
-from factory.application.boundaries import Boundaries
-from factory.application.claims import StageStart
-from factory.application.take import TakeReport, TakeService
 from factory.hosting.domain.git import ChangedPath
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.claims import StageStart
+from factory.pipeline.application.take import TakeReport, TakeService
 from stage_run_support import PATH
 
 DATASET = "dataset"

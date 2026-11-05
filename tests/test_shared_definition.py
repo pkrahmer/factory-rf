@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 
 from definition_support import pipeline_definition
-from factory.application.boundaries import Boundaries
-from factory.domain.pipeline_definition import PipelineDefinition
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from function_support import functions, without_docstring
 
 TESTS = Path(__file__).parent

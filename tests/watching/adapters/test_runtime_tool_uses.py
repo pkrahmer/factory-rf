@@ -5,8 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step
-from adapters.opencode_stand_in import (
+from claude_stand_in import Step
+from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.watching.domain.cost_records import ToolUse
+from opencode_stand_in import (
     SESSION,
     opencode_request,
     result_text,
@@ -17,8 +19,6 @@ from adapters.opencode_stand_in import (
     text,
     tool_use,
 )
-from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.watching.domain.cost_records import ToolUse
 from tool_use_support import Call, claude_lines
 
 CLAUDE_SESSION = "0b7c4a1e-5d2f-4c3a-9e8b-1a2b3c4d5e6f"

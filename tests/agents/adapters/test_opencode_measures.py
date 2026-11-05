@@ -6,8 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step
-from adapters.opencode_stand_in import (
+from claude_stand_in import Step
+from factory.agents.adapters.opencode_runtime import parse_result_block
+from opencode_stand_in import (
     opencode_request,
     result_text,
     stand_in_runtime,
@@ -17,7 +18,6 @@ from adapters.opencode_stand_in import (
     text,
     tool_use,
 )
-from factory.agents.adapters.opencode_runtime import parse_result_block
 
 GIT_PUSH = json.dumps({"command": "git push"}, sort_keys=True)
 FAILED = tool_use(1150, tool_input={"command": "false"}, error="exit 1", start=1100, end=1200)

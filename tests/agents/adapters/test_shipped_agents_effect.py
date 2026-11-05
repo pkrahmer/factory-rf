@@ -7,7 +7,7 @@ from decimal import Decimal
 
 import pytest
 
-from adapters.claude_stand_in import StandInCall, Step, read_calls, write_stand_in
+from claude_stand_in import StandInCall, Step, read_calls, write_stand_in
 from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.domain.agent_runs import AgentRunRequest

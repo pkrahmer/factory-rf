@@ -1,6 +1,6 @@
 """Helpers for tests that put a work item on its branch and read files in the checkout."""
 
-from factory.application.boundaries import Boundaries
+from factory.pipeline.application.boundaries import Boundaries
 from factory.work.domain.journal import JournalRecord
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 

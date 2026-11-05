@@ -6,17 +6,17 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import REPLY
+from claude_stand_in import REPLY
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest
-from factory.application.tick import Tick
 from factory.entry.wiring import build_boundaries, build_tick
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.machine.adapters.make_commands import ContainerMakeCommands
 from factory.machine.adapters.podman_runs import PodmanRuns
 from factory.machine.adapters.zfs_snapshots import ZfsSnapshots
 from factory.machine.application.project_commands import RecordingProjectCommands
+from factory.pipeline.application.tick import Tick
 from factory.shared.domain.settings import InstanceSettings
 from podman_support import IMAGE
 from recording_stand_in_support import recorded_calls, recording_stand_in

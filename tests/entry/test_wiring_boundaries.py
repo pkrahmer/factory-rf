@@ -9,11 +9,9 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.application.project_agents import ProjectAgentDefinitions
 from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest
-from factory.domain.stops import HealthStatus
 from factory.entry.wiring import (
     build_boundaries,
     git_environment,
@@ -27,6 +25,8 @@ from factory.hosting.adapters.pygithub_hosting import PyGithubHostingService
 from factory.hosting.domain.git import GitIdentity
 from factory.machine.adapters.disk_space import ShutilDiskSpace
 from factory.machine.application.project_commands import RecordingProjectCommands
+from factory.pipeline.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.pipeline.domain.stops import HealthStatus
 from factory.shared.adapters.clock import SystemClock
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings

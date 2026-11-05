@@ -5,7 +5,7 @@ import ast
 from source_search import SRC, modules, string_literals
 
 CHECK_MODULES = (
-    "domain/checks.py",
+    "pipeline/domain/checks.py",
     "machine/application/project_commands.py",
     "machine/adapters/make_commands.py",
 )

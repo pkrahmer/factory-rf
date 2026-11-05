@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls
-from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from claude_stand_in import Step, read_calls
+from factory.pipeline.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from shipped_agents import ROOT
 from template_make_support import (
     MAKEFILE,

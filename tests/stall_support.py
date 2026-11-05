@@ -8,12 +8,12 @@ from definition_support import pipeline_definition
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.application.agent_runtime import AgentRuntime
 from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
-from factory.application.boundaries import Boundaries
-from factory.application.stage import LaunchedStage, StageLauncher, StartedStage
-from factory.application.stalls import StallContext
 from factory.hosting.application.opening import WorkItemOpening
 from factory.hosting.domain.git import CommitId
 from factory.hosting.domain.hosting import PullRequestView
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.stage import LaunchedStage, StageLauncher, StartedStage
+from factory.pipeline.application.stalls import StallContext
 from factory.work.domain.journal import JournalRecord
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import install_agents

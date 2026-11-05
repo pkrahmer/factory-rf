@@ -11,7 +11,6 @@ import pytest
 from agent_definition_support import COMPLETED
 from container_extra_support import CHECK_LIMIT, COMMIT, env_words
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.application.boundaries import Boundaries
 from factory.entry.wiring import agent_environment, build_boundaries, build_tick
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.machine.adapters.fake_images import FakeImages
@@ -19,6 +18,7 @@ from factory.machine.adapters.podman_images import PodmanImages
 from factory.machine.application.images import Images
 from factory.machine.application.stage_environment import stage_environment_of
 from factory.machine.domain.containers import SYSTEM_PATH
+from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.settings import InstanceSettings
 from git_support import CHECKOUT, PIPELINE_YAML, install_agents
 from human_clone import HumanClone

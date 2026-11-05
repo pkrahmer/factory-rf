@@ -9,9 +9,9 @@ import pytest
 
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
-from factory.application.boundaries import Boundaries
-from factory.application.tick import Tick
 from factory.entry.wiring import handler_factory, production_environment
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.tick import Tick
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

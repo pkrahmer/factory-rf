@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 562
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T03:40:07.227126Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-05T03:40:07.227126Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-05T03:45:30.213443Z'
+  stage: tests
+  run: 41c4309683e04e2e90b5f771de853a1f
 ---
 
 # The pipeline area holds the stages and the tick
@@ -121,3 +123,53 @@ Expect: `1`
    - Architecture: matches `CLAUDE.md`. Each layer stays inside `factory.pipeline` and keeps its name and content, with no re-export left behind. `Layers` losing the optional old layers and `make areas` are the human's changes at S0007's start and merge, not this story's scope.
    - Scope: within F0051 (S0007 in the feature's list, the pipeline area last). It touches none of the feature's out-of-scope items and changes no behaviour. The names `known_results`, `recovery` and `stops` exist in both the domain and application layers, and each is listed in its own layer, so there is no ambiguity.
 4. factory: started tests as vm.
+5. tester: Wrote this story's tests and made the test-side move from the Interface: imports rewritten, test modules moved with `git mv`, guards changed under feature decision 5. The tests are now red on purpose.
+
+   Criterion → test:
+   - criterion 1: tests/test_areas.py::test_a_moved_module_imports_from_its_area_and_is_gone_from_its_layer (rows `pipeline.<layer>.<name>`; `AREAS` gains the `pipeline` key with the 27 modules of the table, and nothing else in the module changed)
+   - criterion 2: tests/test_areas.py::test_an_area_package_imports_and_has_a_docstring (rows `factory.pipeline`, `factory.pipeline.domain`, `.application`, `.adapters`)
+   - criterion 3: tests/test_areas.py::test_no_file_imports_a_moved_module_from_its_old_path (rows `pipeline.<layer>.<name>`; `imported_modules` covers all three import forms)
+   - criterion 4: tests/test_old_layer_packages_removed.py::test_no_test_folder_of_an_old_layer_is_left (one row per layer)
+   - criterion 5: tests/test_old_layer_packages_removed.py::test_the_package_holds_only_its_init_the_areas_entry_and_contract and ::test_an_old_layer_package_cannot_be_imported (one row per layer). The listing leaves out `__pycache__`, because it is not tracked.
+   - criteria 6 and 7: the closing ones, not tested here.
+
+   Files created: tests/test_old_layer_packages_removed.py; `__init__.py` (empty, like the existing test packages) in tests/pipeline/, tests/pipeline/{domain,application,adapters}/, tests/pipeline/application/handlers/, and in any area layer folder that did not have one yet.
+
+   Test-side move:
+   - Imports: the sed from the recipe ran over `tests/`, plus the two `from factory.domain import lease|checks` lines and then `ruff check --fix` and `ruff format`. No file under `tests/` imports an old path now.
+   - Where the 219 test modules from tests/{domain,application,adapters} went (moved with `git mv`). "The area of the module it imports most" needed a rule, so I used this one:
+     - Into tests/pipeline/<layer>/ (handlers into tests/pipeline/application/handlers/, with their conftest.py), if any of these holds:
+       - it is under `handlers/`;
+       - its name starts with a pipeline subject (`test_checks|evaluation|events|fault_paths|known_results|lease|pipeline|recovery|stop|tick|boundaries|claims|dispatcher|idle_shutdown|scheduler|stage|stall|take|task`) and it imports `factory.pipeline`;
+       - pipeline is tied for the most distinct imported modules.
+     - Otherwise into the area with the most distinct imported modules, with `shared` losing ties.
+     - Exceptions:
+       - five modules that import `factory.entry` went to tests/entry/: test_board_reader_acceptance, test_tick_agent_definition, test_tick_project_agent, test_watcher_main_ref, test_runtimes_without_wrapper. In an area folder they would fail test_areas.py's guard, which allows only area imports.
+       - six modules that import no factory module went to the tests/ root: test_contract_login, test_contract_provider_limit, test_opencode_limit_wait_on_stderr, test_opencode_resume_session, test_opencode_runtime_transcript, test_pipeline_stage_moves. In an area folder they would fail the same guard's "imports own area" check.
+     - I checked by hand: every moved module imports its own area and no area folder holds a `factory.entry` import.
+   - The support modules claude_stand_in.py, container_runtime_support.py, opencode_stand_in.py and pygithub_stand_ins.py moved from tests/adapters/ to the tests/ root (standing leave), and `from adapters.X` became `from X`.
+   - The old folders' `__init__.py` files were removed with `git rm`; tests/domain, tests/application and tests/adapters are gone.
+
+   Earlier test files I changed for the new layout (feature decision 5 / standing leave). Every test keeps its name and checks the same thing:
+   - tests/test_layers.py: `LAYERS` is now `pipeline.domain`, `pipeline.application`, `pipeline.adapters`, `entry`. The domain-bottom check now imports `factory.pipeline.domain` and allows only domain packages.
+   - tests/test_stop_table.py: prefix `factory.application` → `factory.pipeline.application`.
+   - tests/test_agent_run_request_search.py: `WITHOUT_PROCESS_ENVIRONMENT` → pipeline domain and application.
+   - tests/entry/test_wiring.py: `factory.adapters` → `factory.pipeline.adapters`.
+   - tests/hosting/domain/test_hosting.py (was tests/domain/test_hosting.py): `_is_domain` `factory.domain` → `factory.pipeline.domain`.
+   - Path strings:
+     - tests/test_make_search.py: `pipeline/domain/checks.py`
+     - tests/test_opencode_shared_steps.py: `STAND_IN`
+     - tests/test_suite_held_once.py: entry/test_runtimes_without_wrapper.py, pipeline/application/test_stage_on_container_fakes.py
+     - tests/test_suite_leftovers.py: hosting/application/test_checkout_preparer.py
+     - tests/test_suite_old_names.py: test_contract_provider_limit.py at the root
+   - Depth fixes after moving one level deeper:
+     - tests/machine/application/test_interfaces.py: `TESTS = parents[2]`
+     - tests/pipeline/adapters/test_pipeline_yaml_tool_paths.py: `ROOT = parents[3]`
+
+   Red run: `uv run pytest -q` over the 332 test files this stage wrote, moved or changed ends at tests/conftest.py → tests/acceptance_walk.py:8 with `ModuleNotFoundError: No module named 'factory.pipeline'`. That is the right reason. `make lint`: green.
+
+   Module the test run could not import: `factory.pipeline` (and so every `factory.pipeline.*` module).
+
+   Open for the coder: pyproject.toml:156-157 still deselects `tests/domain/test_hosting.py::…` for mutmut; that file is now tests/hosting/domain/test_hosting.py. It is outside my write paths and outside `make check`.
+
+   `lint`: lint: green (0.1 s)

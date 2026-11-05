@@ -7,7 +7,7 @@ import pytest
 
 import opencode_events_support as opencode_events
 import opencode_resume_support as opencode_resume_session
-from adapters import opencode_stand_in
+import opencode_stand_in
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 

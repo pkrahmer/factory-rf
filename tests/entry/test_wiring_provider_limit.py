@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from adapters.claude_stand_in import claude_request
+from claude_stand_in import claude_request
 from factory.agents.domain.provider_limits import ProviderLimit
 from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService

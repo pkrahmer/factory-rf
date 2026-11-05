@@ -5,10 +5,10 @@ from collections.abc import Mapping
 
 import pytest
 
-from factory.application.boundaries import Boundaries
 from factory.entry import watch
 from factory.entry.watch import main
 from factory.hosting.application.hosting import HostingService
+from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.identifiers import Name
 from factory.shared.domain.settings import InstanceSettings

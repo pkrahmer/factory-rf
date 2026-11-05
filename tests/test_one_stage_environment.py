@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from factory.application.boundaries import Boundaries
 from factory.machine.application import preflight, stage_environment
+from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain import settings
 from factory.shared.domain.settings import InstanceSettings
 

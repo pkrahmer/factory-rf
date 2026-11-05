@@ -2,8 +2,8 @@
 
 from datetime import UTC, datetime
 
-from factory.application.claims import StageStart
 from factory.hosting.adapters.git_cli import GitCli
+from factory.pipeline.application.claims import StageStart
 from factory.work.domain.work_item import Claim
 from human_clone import HumanClone
 

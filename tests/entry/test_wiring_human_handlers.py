@@ -6,20 +6,20 @@ from pathlib import Path
 from definition_support import pipeline_definition
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
-from factory.application.boundaries import Boundaries
-from factory.application.dispatcher import Handler
-from factory.application.handlers.closed import ClosedHandler
-from factory.application.handlers.comments import CommentHandler
-from factory.application.handlers.hand_over import HandOverHandler
-from factory.application.handlers.lookups import DuplicateHandler, PullRequestLookupHandler
-from factory.application.handlers.merged import MergedHandler
-from factory.application.handlers.questions import AskHandler
-from factory.application.handlers.reject import RejectHandler
-from factory.application.handlers.run import RunHandler
-from factory.application.handlers.run_gate import RunGate
-from factory.application.tick import IdleHandler, Tick
-from factory.domain.events import EventKind
 from factory.entry.wiring import build_handlers
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.dispatcher import Handler
+from factory.pipeline.application.handlers.closed import ClosedHandler
+from factory.pipeline.application.handlers.comments import CommentHandler
+from factory.pipeline.application.handlers.hand_over import HandOverHandler
+from factory.pipeline.application.handlers.lookups import DuplicateHandler, PullRequestLookupHandler
+from factory.pipeline.application.handlers.merged import MergedHandler
+from factory.pipeline.application.handlers.questions import AskHandler
+from factory.pipeline.application.handlers.reject import RejectHandler
+from factory.pipeline.application.handlers.run import RunHandler
+from factory.pipeline.application.handlers.run_gate import RunGate
+from factory.pipeline.application.tick import IdleHandler, Tick
+from factory.pipeline.domain.events import EventKind
 from factory.work.application.acceptance import (
     AcceptanceClosed,
     AcceptanceHandOver,

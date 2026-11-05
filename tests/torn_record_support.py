@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from factory.domain.known_results import ResultKey, ResultRecord
+from factory.pipeline.domain.known_results import ResultKey, ResultRecord
 
 KEY = ResultKey(command="check", tree="a" * 40, definition="b" * 64, image=None)
 

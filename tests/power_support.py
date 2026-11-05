@@ -2,8 +2,8 @@
 
 from typing import override
 
-from factory.application.tick import TickOutcome
-from factory.domain.events import Event
+from factory.pipeline.application.tick import TickOutcome
+from factory.pipeline.domain.events import Event
 from factory.shared.domain.errors import PowerOffError
 from factory.watching.application.machine import PowerOff
 

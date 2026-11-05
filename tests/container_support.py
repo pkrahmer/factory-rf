@@ -9,9 +9,6 @@ from pathlib import Path
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.application.agent_runtime import AgentRuntime
 from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
-from factory.application.boundaries import Boundaries
-from factory.application.claims import StageStart
-from factory.application.stage import StageReport
 from factory.hosting.domain.git import ChangedPath, CommitId
 from factory.machine.adapters.fake_containers import FakeContainerRuns
 from factory.machine.adapters.fake_snapshots import FakeSnapshots
@@ -20,6 +17,9 @@ from factory.machine.application.project_commands import ProjectCommands
 from factory.machine.application.snapshots import Snapshots
 from factory.machine.application.stage_environment import ContainerEnvironment
 from factory.machine.domain.containers import ContainerLaunch, ContainerResult, Mount
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.claims import StageStart
+from factory.pipeline.application.stage import StageReport
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.domain.cost_records import ToolUse

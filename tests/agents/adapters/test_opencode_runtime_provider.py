@@ -6,8 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls
-from adapters.opencode_stand_in import (
+from claude_stand_in import Step, read_calls
+from factory.agents.adapters.opencode_runtime import OpencodeRuntime
+from factory.shared.domain.errors import AgentRuntimeError
+from opencode_provider_support import CONFIGURATION, write_provider
+from opencode_stand_in import (
     MODELS,
     REPLY_EVENTS,
     configuration_text,
@@ -15,9 +18,6 @@ from adapters.opencode_stand_in import (
     request_configuration,
     write_opencode,
 )
-from factory.agents.adapters.opencode_runtime import OpencodeRuntime
-from factory.shared.domain.errors import AgentRuntimeError
-from opencode_provider_support import CONFIGURATION, write_provider
 
 
 def _runtime(

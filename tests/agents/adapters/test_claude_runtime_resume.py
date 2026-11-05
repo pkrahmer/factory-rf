@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import StandInCall, Step, read_calls
 from claude_resume_support import LIMIT, _after, _budget_reply, _reply, _request, _runtime
+from claude_stand_in import StandInCall, Step, read_calls
 from factory.agents.adapters.claude_runtime import (
     FINISH_MESSAGE,
     VERSION_TIME_LIMIT,

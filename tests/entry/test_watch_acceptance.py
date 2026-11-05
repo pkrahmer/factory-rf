@@ -4,8 +4,8 @@ import io
 
 import pytest
 
-from factory.application.boundaries import Boundaries
 from factory.entry.watch import run_watch
+from factory.pipeline.application.boundaries import Boundaries
 from factory.watching.application.board import BoardReader
 from git_support import PIPELINE_YAML
 from human_clone import HumanClone

@@ -2,10 +2,10 @@
 
 from collections.abc import Mapping
 
-from factory.application.dispatcher import Handler
-from factory.application.tick import HandlerFactory
-from factory.domain.events import Event, EventKind
-from factory.domain.pipeline_definition import PipelineDefinition
+from factory.pipeline.application.dispatcher import Handler
+from factory.pipeline.application.tick import HandlerFactory
+from factory.pipeline.domain.events import Event, EventKind
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 
 
 def handlers_of(handlers: Mapping[EventKind, Handler]) -> HandlerFactory:

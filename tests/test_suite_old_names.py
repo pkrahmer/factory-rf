@@ -17,7 +17,7 @@ OLD_NAMES = (
     "test_the_records_contract_is_at_version_3_without_nested_repository",
 )
 CONTRACT_MODULES = (
-    "domain/test_contract_provider_limit.py",
+    "test_contract_provider_limit.py",
     "shared/domain/test_contract_without_tool_paths.py",
     "shared/domain/test_contract_without_nested_repository.py",
 )

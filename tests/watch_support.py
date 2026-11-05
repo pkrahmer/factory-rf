@@ -2,8 +2,8 @@
 
 from datetime import timedelta
 
-from factory.application.boundaries import Boundaries
-from factory.domain.pipeline_definition import PipelineDefinition
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.identifiers import branch_name
 from factory.work.application.acceptance import AcceptanceService
