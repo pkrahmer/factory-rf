@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T22:41:44.901655Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -197,6 +201,11 @@ journal:
   at: '2026-11-05T22:41:39.446811Z'
   stage: tests
   run: ecf147964a2b44efbc137067f1f79897
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:41:44.901655Z'
+  stage: doing
 ---
 
 # The agents know the docs route
@@ -476,3 +485,4 @@ Expect: `named`
     **Test run:** `uv run pytest -q tests/agent_files/test_claude_agent_texts_docs_route.py`: 23 passed. `make lint`: `lint: green (0.1 s)`, after one `ruff format` of the new module.
 
     `lint`: lint: green (0.1 s)
+35. factory: started doing as vm.
