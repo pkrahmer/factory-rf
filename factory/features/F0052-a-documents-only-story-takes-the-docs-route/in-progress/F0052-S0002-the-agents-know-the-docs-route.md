@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T22:16:14.665755Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-05T22:16:14.665755Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-05T22:17:05.868413Z'
+  stage: tests
+  run: f9e28c9acf244589bc2657549c675e40
 ---
 
 # The agents know the docs route
@@ -151,3 +153,18 @@ Expect: `named`
 
    3. (a), but without a later change: the test checks the seven rules unconditionally. S0003 takes the docs route and changes no agent file and no test, so the list stays in `reviewer.md` as the fallback the section names ("until `docs/project-guide/style.md` exists"), and the test stays green.
 10. factory: started tests as vm.
+11. tester: Wrote the tests for the docs route in the agent texts. I followed the human's answer in journal 9: the documenter and the reviewer each get a `###` subsection inside `## Stage`, and the reviewer's section lists the seven style rules word for word, checked always.
+
+    - criterion 1: tests/agent_files/test_claude_agent_texts_docs_route.py::test_the_intake_routes_a_documents_only_story_to_docs_only_and_every_other_to_tests. The Interface's routing rule must appear word for word, exactly once, in the `## Stage` section of `intake.md`.
+    - criterion 2: tests/agent_files/test_claude_agent_texts_docs_route.py::test_the_documenter_in_docs_only_writes_the_documents_and_hands_to_review_or_tests. The `### docs-only` subsection of `documenter.md` must hold exactly one such heading and name five things, one row each: `make documents`, `docs-review`, `tests`, "outside the documents" and "entry".
+    - criterion 3: tests/agent_files/test_claude_agent_texts_docs_route.py::test_the_reviewer_in_docs_review_reads_the_documents_diff_and_approves_or_sends_back. The `### docs-review` subsection of `reviewer.md` must name six things, one row each: the diff command, "work item", `docs/project-guide/style.md`, `docs-approval`, `docs-only` and "numbered".
+    - criterion 3, the style rules: tests/agent_files/test_claude_agent_texts_docs_route.py::test_the_reviewer_in_docs_review_lists_each_style_rule_once. One row per rule from journal 9; each must appear exactly once in the `### docs-review` subsection.
+    - criteria 4 and 5: no test (they are `make check` and the docs).
+
+    Each subsection runs from its `### <stage>` heading to the next line that starts with `#`.
+
+    Files created: tests/agent_files/test_claude_agent_texts_docs_route.py.
+
+    Modules not importable: none. Run of the new file: every test fails on its assertion, because the agent texts don't hold the rule or the subsections yet. `make lint` is green.
+
+    `lint`: lint: green (0.2 s)
