@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T00:49:41.924080Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-11-05T00:49:41.924080Z'
   stage: doing
+- number: 22
+  speaker: coder
+  kind: result
+  at: '2026-11-05T00:54:30.223510Z'
+  stage: doing
+  run: c14b005ed4f542c2a85afa32947e1ef7
 ---
 
 # The shared area holds what every area uses
@@ -794,3 +796,17 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 21. factory: started doing as vm.
+22. coder: Round 1, back from the tester (entry 20). The tester made all three test changes from reviewer entry 16 that entry 18 named: the new criterion-5 test in `tests/test_areas.py`, `_factory_imports` now built on `imported_modules`, and the layer filter in `tests/adapters/test_work_item_markdown.py`. None of them needed a code change, and I changed nothing under `src/` and no test. I ran `make check` on the committed tree and it is green: `test: green (118.8 s)`, `check: green`, total coverage 99.26 %.
+
+    Main choice: send the work to review as it is. I rejected making any source change, because the new and changed tests pass against the move that is already done and no finding asks for code.
+
+    Refactor step: I wrote no new diff this round, so there was nothing to refactor.
+
+    Two things I noticed and did not touch, both outside my write paths and for the human (from entry 16):
+    - `security/duplicates-baseline.txt` lines 25–32 still name the old paths.
+    - `CLAUDE.md` still names `factory.domain.contract.CONTRACT`.
+
+    The journal did not change what the task means, so the Description stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 34 known, 8 gone
