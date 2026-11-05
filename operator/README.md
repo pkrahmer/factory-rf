@@ -34,7 +34,7 @@ Kumpel signs everything it does. A comment ends with the line `— Kumpel, for t
 
 ## Installing (for the trial)
 
-First the site file: `sh operator/bin/site init`, fill in the values (at least `SITE_REPOSITORY` and `SITE_CHECKOUT`), then `sh operator/bin/site check`. The file never enters a repository. The whole setup of a machine is in `docs/operator-guide.md`, *Setting up an operator's machine*.
+First the site file: `sh operator/bin/site init`, fill in the values (at least `SITE_REPOSITORY` and `SITE_CHECKOUT`), then `sh operator/bin/site check`. The file never enters a repository. The whole setup of a machine is in `docs/operator-guide/site.md`, *Setting up an operator's machine*.
 
 Both tools read Claude Code's skill folder, so one copy serves both:
 

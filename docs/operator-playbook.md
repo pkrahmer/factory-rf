@@ -1,6 +1,6 @@
 # The operator's playbook: running a v1.1 factory as its human
 
-How the human, or a session acting for the human, runs a v1.1 factory day to day. The operator guide (`docs/operator-guide.md`) says how to install and configure the factory and what each stop means. This playbook says what the human *does*: when to step in, how to decide, what to check before a merge, and what never to do. It is written from the build of `factory-rf` by v1 and by v1.1 itself (2026-10-12 to 2026-10-19; the night log in `docs/runs/2026-10-12-overnight/` has every act behind it).
+How the human, or a session acting for the human, runs a v1.1 factory day to day. The operator guide (`docs/operator-guide/`, an index and one file per topic) says how to install and configure the factory and what each stop means. This playbook says what the human *does*: when to step in, how to decide, what to check before a merge, and what never to do. It is written from the build of `factory-rf` by v1 and by v1.1 itself (2026-10-12 to 2026-10-19; the night log in `docs/runs/2026-10-12-overnight/` has every act behind it).
 
 Revised on 2026-10-19 from the draft of 2026-10-18, its review aid and the human's answers. Once the human accepts it, it lives at `docs/operator-playbook.md`, and `CLAUDE.md`'s *Docs* names it as the fifth document. Its rules are the human's: a stage may keep its facts true, but only the human changes a rule. Each rule marked **(could be code)** is a candidate for the factory itself (see section 7).
 
