@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T05:56:41.131645Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-05T05:56:35.802324Z'
   stage: intake
   run: 1ae9f33f42a54981b28afe2b507e4f5a
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T05:56:41.131645Z'
+  stage: tests
 ---
 
 # The project guide has one file per area
@@ -99,3 +108,4 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
    - Smoke test: `ls docs/project-guide | tr '\n' ' '` is runnable. Its Expect line gives the exact nine-file listing, which can be checked against the output.
    - Architecture: the seven area names match `CLAUDE.md`'s areas. `operator.md` stays because it covers the operator's scripts outside `src/`.
    - Scope: this is F0051's S0009 as the feature lists it. It changes no code or test, and `CLAUDE.md` stays the human's change.
+7. factory: started tests as vm.
