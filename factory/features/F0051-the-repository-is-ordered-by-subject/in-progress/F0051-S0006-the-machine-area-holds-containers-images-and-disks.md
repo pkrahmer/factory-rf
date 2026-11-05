@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T03:23:36.801720Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-05T03:23:36.801720Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-11-05T03:28:49.712873Z'
+  stage: doing
+  run: 07ee2d4707984192bfbc34dbd21f3b95
 ---
 
 # The machine area holds containers, images and disks
@@ -221,3 +223,24 @@ Expect: `1`
 
    `lint`: lint: green (0.2 s)
 10. factory: started doing as vm.
+11. coder: Round 0, second run in doing. The tester made the change I asked for in entry 7, so I changed no code this time. `make check` now ends with `check: green`: coverage is 99.26 % and `test: green (133.6 s)`.
+
+    What I built (from entry 7, already on the branch):
+    - `src/factory/machine/__init__.py` and `src/factory/machine/{domain,application,adapters}/__init__.py`, each with the docstring the Interface gives.
+    - The 24 modules of the table, each moved with `git mv` to `src/factory/machine/<layer>/<name>.py`.
+    - Every import of a moved module rewritten under `src/`. Nothing is left at an old path and there is no re-export.
+
+    Main choice: I rewrote each module's dotted path one by one, matching on word boundaries. I rejected rewriting by package prefix, because `factory.<layer>` still holds modules that are not moving.
+
+    Refactor: nothing to change. The diff is only paths and import order.
+
+    What the journal changed: the tester widened the prefix filter in `tests/test_stop_table.py` to take in `factory.machine.application`. The Description's meaning stays the same.
+
+    Noticed but not touched:
+    - `pyproject.toml` still has per-file-ignores for the old `src/factory/adapters/{make_commands,podman_runs}.py` paths, beside the new ones.
+    - `security/duplicates-baseline.txt` still names the old `src/factory/adapters/` paths of fake_containers, fake_images, fake_snapshots and make_commands.
+
+    Both files are the human's. The docs of criterion 6 are the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 10 new, 35 known, 8 gone
