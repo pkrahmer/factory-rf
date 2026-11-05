@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283, 6651349591]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T06:36:13.470863Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -125,28 +121,34 @@ journal:
   kind: started
   at: '2026-11-05T06:36:13.470863Z'
   stage: review
+- number: 21
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T06:40:33.899091Z'
+  stage: review
+  run: bcaf91a9d1b444e8a052b00a27acbcf9
 ---
 
 # The project guide has one file per area
 
 ## Description
 
-The project guide under `docs/project-guide/` has one file per domain today (`git-and-hosting.md`, `work-items.md`, `agents.md`, `write-paths.md`, `costs.md`, `stages.md`, `watching.md`, `stage-environment.md`, `processes-and-checks.md`, `operator.md`). After the moves its files should follow the seven areas, so that an agent whose story touches an area reads exactly one file. This story regroups the guide's sections into one file per area: `shared.md`, `hosting.md`, `work.md`, `agents.md`, `watching.md`, `machine.md` and `pipeline.md`; `operator.md` stays, since it covers the operator's scripts outside `src/`. Each section moves as it is to the file of the area whose modules it describes; a section that describes several areas goes to the area of its first module and is named from the others' files by a one-line pointer. The index `README.md` names the new files and what each covers. The words of the sections do not change, except the pointers between files. It changes no code and no test.
+The project guide under `docs/project-guide/` has one file per domain today (`git-and-hosting.md`, `work-items.md`, `agents.md`, `write-paths.md`, `costs.md`, `stages.md`, `watching.md`, `stage-environment.md`, `processes-and-checks.md`, `operator.md`). After the moves its files should follow the seven areas, so that an agent whose story touches an area reads exactly one file. This story regroups the guide's sections into one file per area: `shared.md`, `hosting.md`, `work.md`, `agents.md`, `watching.md`, `machine.md` and `pipeline.md`; `operator.md` stays, since it covers the operator's scripts outside `src/`. Each section moves as it is to the file of the area whose modules it describes; a section that describes several areas goes to the area of its first module and is named from the others' files by a one-line pointer. The index `README.md` names the new files and what each covers. The words of the sections do not change, except the pointers between files; the lines of `docs/operator-guide.md` that name a removed guide file name its new file. It changes no code; one guard module checks the new layout.
 
 ## Interface
 
-- No module under `src/factory/` changes and no test is written; the document check of the docs stage (`make documents`) and `make check` are the gate.
+- No module under `src/factory/` changes; one guard module, `tests/guards/test_project_guide_files.py`, tests criteria 1 to 4; the document check of the docs stage (`make documents`) and `make check` are the gate.
 - `docs/project-guide/`: the seven area files and `operator.md`, and the index `README.md`; the old files that are not among them are removed with `git mv` into the new ones where a file maps whole (`git-and-hosting.md` → `hosting.md`, `work-items.md` → `work.md`, `stage-environment.md` → `machine.md`, `stages.md` → `pipeline.md`), and their sections are moved by hand otherwise.
 - `claude/agents/*.md` and `CLAUDE.md` name guide files by name; the agent files are changed to the new names; `CLAUDE.md` is the human's change.
 
 ## Acceptance criteria
 
 1. `docs/project-guide/` holds exactly `README.md`, `operator.md` and the seven area files named in the Description.
-2. Every section heading (`##` and `###`) that the guide had before this story is found exactly once in the new files (one row per heading, from the guide on `origin/main` before the story), except the index's own *The files*.
-3. The index's *The files* names each of the eight files with a sentence on what it covers and the modules it describes, by their new paths; every `src/factory/<area>/` path the index names exists.
-4. No file under `claude/`, `docs/` or `README.md` names a guide file that no longer exists.
+2. Every distinct section heading (`##` and `###`) that the guide had on `origin/main` before this story is found in the new files as many times as it was there (one row per heading with its count), except the index's own *The files*.
+3. The index's *The files* names each of the eight files (the seven area files and `operator.md`; the index does not name itself) with a sentence on what it covers and the modules it describes, by their new paths; every `src/factory/<area>/` path the index names exists.
+4. No file under `claude/` or `docs/` (without `docs/runs/` and `docs/decisions.md`), nor `README.md`, names one of the seven removed guide files (`git-and-hosting.md`, `work-items.md`, `write-paths.md`, `costs.md`, `stages.md`, `stage-environment.md`, `processes-and-checks.md`), bare or as `project-guide/<name>`; `CLAUDE.md` is left out.
 5. `make check` stays green.
-6. docs: as criteria 1 to 4, in the project guide. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none.
+6. docs: as criteria 1 to 4, in the project guide; in `docs/operator-guide.md`, every line that names a removed guide file names its new file. `README.md` and `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -359,3 +361,33 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 20. factory: started review as vm.
+21. reviewer: No findings.
+
+    What I checked:
+    - **Criteria 1 to 4.** Each has its test in `tests/guards/test_project_guide_files.py`. The factory's `make check` after the coder was green (journal 19).
+      - I rebuilt the heading table from the guide on `main`, leaving out fenced blocks and *The files*. It matches the test's `HEADINGS` row for row, counts included.
+      - The heading counts of the new guide are the same as on `main`.
+      - Every `factory.*` module and `src/factory/<area>/` folder that *The files* names exists.
+      - Each entry's section list matches its file's `##` headings. The extra `###` names were listed the same way on `main`.
+    - **Words of the sections** (journal 4.3). I compared every line of the new guide with the guide on `main`. The only changed lines are:
+      - the file titles and opening sentences;
+      - the index's intro and *The files*;
+      - pointer lines that now name the new file, or drop the file name where the section now sits in the same file.
+      Every pointer I followed reaches its section: *Known results* in `machine.md`; *Boundaries*, *The idle shutdown* and *`StageFinisher.finish`* in `pipeline.md`; *The git wrapper* in `hosting.md`; *The take* in `machine.md`; *The story form check* in `pipeline.md`. Section references without a file name that cross files did so on `main` already.
+    - **Placement** (journal 4.1).
+      - The four whole-file moves are done with `git mv` (`work.md` is R100).
+      - Every section moved by hand sits in the area of the first `factory.<area>` module it names, skipping `factory.entry`. That covers *The duplicates report*, *The document check* and *The handlers of the events*.
+      - The coder kept five sections that name no area module with their topic instead of sending them to `README.md`: the three *Replaced in v1.2*, *Replaced from v1*, and *The shipped agents, settings and template*. I accept that reading. "stays in `README.md`" fits the index's own sections, and sending appendices of the agents and machine topics to the index would undo the story's aim of one file per area. The human may judge it at the approval.
+    - **File sizes.** Every guide file is under the 600-line split rule; the largest, `pipeline.md`, has 562 lines.
+    - **Other files.** `docs/operator-guide.md` has three pointer lines changed. `claude/` names no guide file. `CLAUDE.md` and `docs/decisions.md:775` are out of scope by journals 4.6 and 9.3.
+    - **Architecture and security.** No code, no suppression markers.
+
+    Description corrections (journal 9 wording, which journal 17 left to the reviewer):
+    - description corrected: "It changes no code and no test." -> "the lines of `docs/operator-guide.md` that name a removed guide file name its new file. It changes no code; one guard module checks the new layout."
+    - description corrected: Interface "No module under `src/factory/` changes and no test is written" -> "No module under `src/factory/` changes; one guard module, `tests/guards/test_project_guide_files.py`, tests criteria 1 to 4".
+    - description corrected: criterion 2 "found exactly once ... one row per heading" -> "found in the new files as many times as it was there (one row per heading with its count)".
+    - description corrected: criterion 3 "each of the eight files" -> "each of the eight files (the seven area files and `operator.md`; the index does not name itself)".
+    - description corrected: criterion 4 "No file under `claude/`, `docs/` or `README.md` names a guide file that no longer exists" -> the search over `claude/`, `docs/` (without `docs/runs/` and `docs/decisions.md`) and `README.md` for the seven removed names, bare or as `project-guide/<name>`, with `CLAUDE.md` left out.
+    - description corrected: criterion 6 "`README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none" -> "in `docs/operator-guide.md`, every line that names a removed guide file names its new file. `README.md` and `docs/decisions.md`: none".
+
+    Earlier tests: none changed. The diff only adds `tests/guards/test_project_guide_files.py`.
