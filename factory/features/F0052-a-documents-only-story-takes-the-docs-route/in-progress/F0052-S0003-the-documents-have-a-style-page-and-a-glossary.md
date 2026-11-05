@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 574
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-05T23:02:14.880601Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-05T23:02:10.005208Z'
   stage: intake
   run: 4faa5f9a78d545808b9ecdeb60ad8887
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:02:14.880601Z'
+  stage: docs-only
 ---
 
 # The documents have a style page and a glossary
@@ -73,3 +82,4 @@ Expect: `named`
    - Architecture: every changed path is a document under `docs/`, which the documenter may write. Nothing outside the doc areas is touched, and `planning/` is only read.
    - Scope: within the feature's S0003 scope. The rewrite of the guides and the README stays out, as the feature requires.
    Route: docs-only, because every path the Interface changes is one the documenter may write.
+4. factory: started docs-only as vm.
