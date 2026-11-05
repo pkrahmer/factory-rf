@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 566
 comments_read: [6652891790]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T08:02:22.380627Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-05T08:02:22.380627Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-05T08:05:45.888117Z'
+  stage: doing
+  run: 32cd3c49e86740268d39dd58bba12c03
+  blocked: question
 ---
 
 # The agent files live in `agents/`
@@ -166,3 +169,34 @@ Expect: `1`
 
    `lint`: lint: green (0.2 s)
 9. factory: started doing as vm.
+10. coder: I stopped before `make check` because three test problems are outside my write paths, and I may not edit tests (R9). Work so far, left in the working tree:
+    - `git mv claude agents`
+    - `src/factory/machine/application/stage_environment.py:30`: `AGENT_FILES = "/etc/factory/agents"`
+    - `vm/Dockerfile:58-59`: copies to and sets modes on `/etc/factory/agents`
+    - `vm/job-start.sh:68`: `"$code/agents"`
+    - `vm/setup.sh:427`: `FACTORY_CLAUDE_HOME=$base/factory/agents`. The two scripts must change because the clone's `claude/` folder no longer exists.
+    - The old paths in `docs/project-guide/{README,agents,machine}.md` and `docs/operator-guide/{agent-runtime,install,machine}.md`. I left every `.claude/` mention alone.
+
+    With these changes, the targeted tests show the problems below.
+
+    1. `tests/guards/test_agent_folder_names.py::test_no_file_names_the_old_agent_folder[claude/settings.json]` fails on `.claude/settings.json`. That is the human's `.claude/` folder, which the Interface says keeps its name. It appears as test data in `tests/agents/domain/test_nested_claude_paths.py:14,18,42,43`, `tests/agents/domain/test_write_paths.py:115,148` and `tests/pipeline/application/test_take_rule.py:19`. A substring check cannot tell the two apart.
+       Options:
+       (a) The guard matches only where no `.` or word character comes before the name, e.g. `re.search(r"(?<![\w.])" + re.escape(old_name), text)`. I would choose this.
+       (b) Those test files change their sample paths.
+
+    2. `tests/entry/test_tick_shipped_agent_file.py::test_a_stage_run_reads_its_agent_from_the_agent_folder` fails with `assert 'intake' == 'coder'`. A story started from the backlog runs the first stage, `intake`, so the coder never runs in one tick.
+       Options:
+       (a) `ROLE = "intake"`, which still reads a shipped file from `agents/agents/`. I would choose this.
+       (b) Move the work item to `doing` before the tick.
+
+    3. Two tests still pin the old folder of the factory's clone. The Interface says every place under `vm/` changes, and the instance would point at a folder that is gone:
+       - `tests/vm/test_vm_job_start.py:82` (`f"{root}/factory/claude"`), which fails `test_factory_run_gets_the_derived_settings_where_the_job_gave_none[derived]`
+       - `tests/support/vm_support.py:51` (`"$base/factory/claude"`), which fails `tests/vm/test_vm_setup_text.py::test_the_environment_file_holds_each_name_once_with_its_value[10-FACTORY_CLAUDE_HOME-...]`
+
+       I would choose to change both to `factory/agents`. The alternative is to keep the scripts on `factory/claude`, but that breaks every instance.
+
+    I would choose 1(a), 2(a) and 3 as changed. If you agree, the next doing run ends with `tests` naming exactly these changes, then finishes once the tester has made them.
+
+    Main choice so far: keep the variable name `FACTORY_CLAUDE_HOME` and change only its path, because renaming the variable is outside this story. I rejected renaming it.
+
+    Noticed but not touched: `operator/README.md:31` names `claude/commands/kumpel.md` (that is `operator/claude/`, so it is correct).

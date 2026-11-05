@@ -65,7 +65,7 @@ default FACTORY_SNAPSHOT_BASE "$root/base"
 default FACTORY_WORKSPACE "$root/work"
 default FACTORY_CHECKOUT "$root/repo"
 default FACTORY_STATE "$root/state"
-default FACTORY_CLAUDE_HOME "$code/claude"
+default FACTORY_CLAUDE_HOME "$code/agents"
 default FACTORY_IMAGE_ID_FILE "$root/image-id"
 default FACTORY_CONTAINER_PROFILE job
 default FACTORY_AGENT_RUNTIME opencode
