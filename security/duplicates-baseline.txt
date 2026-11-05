@@ -32,11 +32,11 @@ dead-code src/factory/agents/domain/write_paths.py: unused function 'is_writable
 dead-code src/factory/shared/adapters/clock.py: unused class 'ManualWaiter'
 dead-code src/factory/application/take.py: unused variable 'restored_work_item'
 similar-code factory.agents.adapters.claude_runtime, factory.agents.adapters.opencode_runtime: return finished_run(result, started, self._kill_points)
-similar-code factory.adapters.fake_containers, factory.adapters.podman_runs: env=launch.env,
+similar-code factory.machine.adapters.fake_containers, factory.machine.adapters.podman_runs: env=launch.env,
 similar-code factory.agents.adapters.claude_runtime, factory.agents.adapters.opencode_runtime: exit_status=process.exit_status,
-dead-code src/factory/adapters/fake_containers.py: unused class 'FakeContainerRuns'
-dead-code src/factory/adapters/fake_containers.py: unused property 'calls'
-dead-code src/factory/adapters/fake_images.py: unused class 'FakeImages'
-dead-code src/factory/adapters/fake_snapshots.py: unused class 'FakeSnapshots'
-dead-code src/factory/adapters/make_commands.py: unused class 'MakeProjectCommands'
+dead-code src/factory/machine/adapters/fake_containers.py: unused class 'FakeContainerRuns'
+dead-code src/factory/machine/adapters/fake_containers.py: unused property 'calls'
+dead-code src/factory/machine/adapters/fake_images.py: unused class 'FakeImages'
+dead-code src/factory/machine/adapters/fake_snapshots.py: unused class 'FakeSnapshots'
+dead-code src/factory/machine/adapters/make_commands.py: unused class 'MakeProjectCommands'
 dead-code src/factory/agents/adapters/oauth_token.py: unused function '__call__'
