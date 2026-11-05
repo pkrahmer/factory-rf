@@ -3,9 +3,9 @@
 from datetime import timedelta
 from pathlib import Path
 
+from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.stage import StageReport, StageRunner
-from factory.domain.agent_runs import AgentRunResult
 from factory.domain.cost_records import CostRecord
 from factory.hosting.domain.git import CommitId
 from factory.shared.domain.identifiers import branch_name

@@ -2,9 +2,9 @@
 
 from datetime import UTC, datetime, timedelta
 
+from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.costs import CostRecorder, CostRun
-from factory.domain.agent_runs import AgentRunResult
 from factory.domain.cost_records import CostRecord
 
 SIDECAR = "F0001-S0001-first.costs.jsonl"

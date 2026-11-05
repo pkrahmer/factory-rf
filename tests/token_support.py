@@ -7,8 +7,8 @@ import urllib.request
 from collections.abc import Callable
 from email.message import Message
 
-from factory.application.tokens import TokenSource
-from factory.domain.tokens import Token
+from factory.agents.application.tokens import TokenSource
+from factory.agents.domain.tokens import Token
 
 ENDPOINT = "https://login.example.invalid/token"
 HIDDEN = "s3cret-value"

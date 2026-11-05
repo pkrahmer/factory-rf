@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.work.domain.work_item import WorkItemState
 from human_clone import HumanClone

@@ -7,11 +7,11 @@ from typing import get_args
 import pytest
 
 from definition_support import pipeline_definition
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import unhandled_kinds
 from factory.application.tick import Tick
-from factory.domain.agent_runs import AgentRunResult
 from factory.domain.events import Event, EventKind
 from factory.entry.wiring import build_handlers, handler_factory
 from factory.hosting.adapters.fake_hosting import FakeHostingService

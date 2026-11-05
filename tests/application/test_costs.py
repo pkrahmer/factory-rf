@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult, EndReason, TokenCounts
 from factory.application.boundaries import Boundaries
 from factory.application.stage import LaunchedStage, StageLauncher, StageReport, StageRunner
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, EndReason, TokenCounts
 from factory.domain.cost_records import CostRecord
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.application.git import Git

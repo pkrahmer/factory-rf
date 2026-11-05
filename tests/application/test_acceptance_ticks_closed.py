@@ -10,7 +10,7 @@ from acceptance_walk import (
     AcceptanceWalk,
     booked_state,
 )
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.identifiers import branch_name

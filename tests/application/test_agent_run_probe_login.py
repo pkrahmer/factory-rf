@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult, EndReason
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
-from factory.domain.agent_runs import AgentRunResult, EndReason
 from factory.shared.domain.settings import InstanceSettings
 from git_support import install_agents
 from probe_login_support import HINT, LOGIN_FILE

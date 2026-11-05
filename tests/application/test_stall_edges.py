@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.work.domain.journal import entry_text

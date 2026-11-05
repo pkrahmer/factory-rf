@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from adapters.claude_stand_in import claude_request
-from factory.domain.provider_limits import ProviderLimit
+from factory.agents.domain.provider_limits import ProviderLimit
 from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings

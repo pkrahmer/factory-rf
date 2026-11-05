@@ -16,8 +16,8 @@ from container_extra_support import (
     write_bundle,
 )
 from container_support import Dataset
-from factory.adapters.claude_runtime import SWITCHES
 from factory.adapters.make_commands import CHECK_ENVIRONMENT
+from factory.agents.adapters.claude_runtime import SWITCHES
 from factory.application.stage_environment import SYNC_ENVIRONMENT
 from factory.domain.containers import CA_BUNDLE_NAMES, WORK_HOME, extra_environment
 from factory.shared.domain.settings import InstanceSettings

@@ -8,10 +8,10 @@ import pytest
 
 from cost_image_support import _launch
 from disk_support import FakeDiskSpace
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.costs import CostRecorder, CostRun
-from factory.domain.agent_runs import AgentRunResult
 from factory.domain.cost_records import CostRecord, MachineMeasures
 from factory.domain.machine import MachineTotals
 from human_clone import HumanClone

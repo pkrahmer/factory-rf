@@ -61,6 +61,27 @@ AREAS: dict[str, tuple[str, ...]] = {
         "application.work_items",
         "adapters.work_item_markdown",
     ),
+    "agents": (
+        "domain.agent_runs",
+        "domain.died_runs",
+        "domain.opencode_provider",
+        "domain.prompts",
+        "domain.provider_limits",
+        "domain.tokens",
+        "domain.tool_uses",
+        "domain.write_paths",
+        "application.agent_runtime",
+        "application.project_agents",
+        "application.provider_limits",
+        "application.tokens",
+        "application.write_paths",
+        "adapters.agent_files",
+        "adapters.agent_launch",
+        "adapters.claude_runtime",
+        "adapters.opencode_runtime",
+        "adapters.fake_agent_runtime",
+        "adapters.oauth_token",
+    ),
 }
 
 MOVES = [

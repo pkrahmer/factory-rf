@@ -9,13 +9,15 @@ from typing import Any
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from factory.domain.agent_runs import WritePathSettings
+from factory.agents.domain.agent_runs import WritePathSettings
 from factory.entry import wiring
 from module_names import has_name
 
 
 def _confine_command() -> object:
-    return getattr(importlib.import_module("factory.domain.agent_runs"), "CONFINE_COMMAND", None)
+    return getattr(
+        importlib.import_module("factory.agents.domain.agent_runs"), "CONFINE_COMMAND", None
+    )
 
 
 @pytest.mark.parametrize(
@@ -30,7 +32,7 @@ def _confine_command() -> object:
             lambda: importlib.util.find_spec("factory.entry.guard"), None, id="entry-module"
         ),
         pytest.param(
-            lambda: has_name("factory.domain.agent_runs", "GUARD_COMMAND"),
+            lambda: has_name("factory.agents.domain.agent_runs", "GUARD_COMMAND"),
             False,
             id="guard-command",
         ),
@@ -47,13 +49,17 @@ def _confine_command() -> object:
         pytest.param(lambda: "read_guard_settings" in wiring.__all__, False, id="exported-read"),
         pytest.param(_confine_command, None, id="confine-command"),
         pytest.param(
-            lambda: has_name("factory.domain.agent_runs", "WritePathSettings"),
+            lambda: has_name("factory.agents.domain.agent_runs", "WritePathSettings"),
             True,
             id="guard-settings",
         ),
-        pytest.param(lambda: has_name("factory.domain.write_paths", "refusal"), True, id="refusal"),
         pytest.param(
-            lambda: has_name("factory.domain.write_paths", "PROTECTED_PATHS"), True, id="protected"
+            lambda: has_name("factory.agents.domain.write_paths", "refusal"), True, id="refusal"
+        ),
+        pytest.param(
+            lambda: has_name("factory.agents.domain.write_paths", "PROTECTED_PATHS"),
+            True,
+            id="protected",
         ),
         pytest.param(
             lambda: has_name("factory.application.preflight", "confinement_item"),

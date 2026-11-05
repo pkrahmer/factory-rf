@@ -4,7 +4,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from factory.application.agent_runtime import AgentDefinitionReader, AgentRuntime
+from factory.agents.application.agent_runtime import AgentDefinitionReader, AgentRuntime
 from factory.application.containers import ContainerRuns
 from factory.application.machine import (
     Clock,

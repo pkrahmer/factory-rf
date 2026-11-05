@@ -14,11 +14,11 @@ from adapters.opencode_stand_in import (
     write_agent_settings,
 )
 from agent_login_support import API_LOGIN
-from factory.adapters.agent_launch import LoginFiles, login_argv
-from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.adapters.opencode_runtime import CONFIG_VARIABLE, OpencodeRuntime
+from factory.agents.adapters.agent_launch import LoginFiles, login_argv
+from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.agents.adapters.opencode_runtime import CONFIG_VARIABLE, OpencodeRuntime
+from factory.agents.domain.provider_limits import ProviderLimit
 from factory.application.boundaries import Boundaries
-from factory.domain.provider_limits import ProviderLimit
 from factory.entry.wiring import build_boundaries, machine_extras
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings

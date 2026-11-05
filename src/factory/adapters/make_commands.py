@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.agent_launch import SHELL_EXECUTABLE, Launch
+from factory.agents.adapters.agent_launch import SHELL_EXECUTABLE, Launch
 from factory.application.containers import ContainerRuns
 from factory.application.project_commands import ProjectCommands
 from factory.application.snapshots import Snapshots

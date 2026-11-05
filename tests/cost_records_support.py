@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from factory.domain.agent_runs import TokenCounts
+from factory.agents.domain.agent_runs import TokenCounts
 from factory.domain.cost_records import CostRecord
 
 STARTED_AT = datetime(2026, 10, 12, 8, 30, tzinfo=UTC)

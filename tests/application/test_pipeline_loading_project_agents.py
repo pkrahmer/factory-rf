@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
+from factory.agents.application.project_agents import ProjectAgentDefinitions
 from factory.application.boundaries import Boundaries
 from factory.application.pipeline_loading import PipelineLoader
-from factory.application.project_agents import ProjectAgentDefinitions
 from factory.domain.stops import RepositoryStop
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import AgentDefinitionInvalid, PipelineDefinitionInvalid

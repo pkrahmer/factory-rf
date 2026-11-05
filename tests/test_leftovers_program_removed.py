@@ -6,10 +6,10 @@ from collections.abc import Callable
 
 import pytest
 
-from factory.adapters import agent_launch
-from factory.adapters.agent_launch import Starters
-from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.adapters.opencode_runtime import OpencodeRuntime
+from factory.agents.adapters import agent_launch
+from factory.agents.adapters.agent_launch import Starters
+from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.entry import wiring
 from factory.entry.wiring import build_boundaries
 from factory.shared.adapters import process

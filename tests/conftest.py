@@ -17,18 +17,19 @@ from adapters.container_runtime_support import make_workspace
 from container_support import Dataset, container_dataset, fake_dataset
 from definition_support import pipeline_definition
 from disk_support import FakeDiskSpace
-from factory.adapters import claude_runtime, podman_runs
-from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
-from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
+from factory.adapters import podman_runs
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.factory_log import TimestampedFactoryLog
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
+from factory.agents.adapters import claude_runtime
+from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
+from factory.agents.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.images import Images
 from factory.domain.disk import DiskRecord

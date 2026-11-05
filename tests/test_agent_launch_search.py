@@ -4,8 +4,8 @@ import ast
 
 from source_search import imports, modules, reads_os_environ
 
-LAUNCH = "factory.adapters.agent_launch"
-SEARCHED = (LAUNCH, "factory.adapters.claude_runtime")
+LAUNCH = "factory.agents.adapters.agent_launch"
+SEARCHED = (LAUNCH, "factory.agents.adapters.claude_runtime")
 
 
 def test_neither_runtime_module_reads_os_environ() -> None:

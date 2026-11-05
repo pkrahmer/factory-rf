@@ -4,7 +4,7 @@ import ast
 
 from source_search import modules, reads_os_environ
 
-SEARCHED = ("factory.adapters.opencode_runtime", "factory.adapters.agent_launch")
+SEARCHED = ("factory.agents.adapters.opencode_runtime", "factory.agents.adapters.agent_launch")
 
 
 def test_neither_the_opencode_runtime_nor_the_launch_module_reads_os_environ() -> None:

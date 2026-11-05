@@ -6,8 +6,8 @@ from collections.abc import Callable
 
 import pytest
 
+from factory.agents.domain.agent_runs import AgentRunRequest, WritePathSettings
 from factory.application.task import TaskContext
-from factory.domain.agent_runs import AgentRunRequest, WritePathSettings
 from factory.domain.pipeline_definition import PipelineDefinition
 from module_names import has_name
 
@@ -28,7 +28,7 @@ def test_the_wrapper_and_the_kernel_s_modules_are_gone(module: str) -> None:
             id="replace-process",
         ),
         pytest.param(
-            lambda: has_name("factory.domain.agent_runs", "CONFINE_COMMAND"),
+            lambda: has_name("factory.agents.domain.agent_runs", "CONFINE_COMMAND"),
             False,
             id="confine-command",
         ),

@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.make_commands import ContainerMakeCommands
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
 from factory.application.project_commands import RecordingProjectCommands
-from factory.domain.agent_runs import AgentRunResult
 from factory.entry.wiring import (
     CREDENTIAL_HELPER,
     build_boundaries,

@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult, Login
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
-from factory.domain.agent_runs import AgentRunResult, Login
 from factory.shared.domain.settings import InstanceSettings
 from git_support import install_agents
 from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint, probe_result

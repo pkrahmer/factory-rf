@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.application.project_agents import ProjectAgentDefinitions
+from factory.agents.application.project_agents import ProjectAgentDefinitions
 from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli

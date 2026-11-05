@@ -17,7 +17,7 @@ from container_support import (
     timing_lines,
     whole_stage,
 )
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.stage_environment import ContainerEnvironment
 from factory.application.take import TakeReport

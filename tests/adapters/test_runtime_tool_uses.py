@@ -17,7 +17,7 @@ from adapters.opencode_stand_in import (
     text,
     tool_use,
 )
-from factory.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.domain.cost_records import ToolUse
 from tool_use_support import Call, claude_lines
 

@@ -11,13 +11,13 @@ from pathlib import Path
 import pytest
 
 import factory.entry.run as run_module
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import DispatchOutcome
 from factory.application.idle_shutdown import IdleShutdown
 from factory.application.tick import Tick, TickOutcome
-from factory.domain.agent_runs import AgentRunResult
 from factory.domain.disk import DiskRecord
 from factory.domain.events import Event, EventKind
 from factory.domain.stops import HealthStatus, RepositoryStop

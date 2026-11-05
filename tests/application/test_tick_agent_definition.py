@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from agent_definition_support import COMPLETED
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.tick import Tick, TickOutcome
 from factory.domain.stops import RepositoryStop

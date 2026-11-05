@@ -171,7 +171,7 @@ Mounts, the grace, the reading of the end (255 at or after the limit is the time
 
 `run` starts the launch's words through `run_process` (`factory.shared.adapters.process`; `tests/test_wrapper_search.py` names the module) with the working directory `/` (podman reads no file from it; a missing workspace is podman's own fault, 125), the factory's environment and standard error merged into `output`.
 
-- `timed_out` is true when `run_process` says so, or when the exit status is in `CONTAINER_KILL_STATUSES` (`factory.adapters.agent_launch`: 137, -9 and 255) and the run lasted at least `time_limit`: podman's `--timeout` sent the kill. `exit_status` is then `None`.
+- `timed_out` is true when `run_process` says so, or when the exit status is in `CONTAINER_KILL_STATUSES` (`factory.agents.adapters.agent_launch`: 137, -9 and 255) and the run lasted at least `time_limit`: podman's `--timeout` sent the kill. `exit_status` is then `None`.
 - The same statuses before the limit are the command's own, as is any other status at or after the limit.
 - Otherwise `exit_status` is podman's, which is the command's. Podman exits 125 for its own faults, such as a missing image; the result says 125 and podman's message is in `output`.
 - Podman's `--timeout` ends a container with exit status 255, not 137 (`PODMAN_TIMEOUT_STATUS`; podman 4.9.3, measured 2026-10-24 on the local VM: `podman run --rm --timeout 3 ... sleep 30` ended after 3.04 s with 255). The factory therefore reads 137, -9 or 255 at or after the limit as the time limit for a container call, and only 137 or -9 (`KILL_STATUSES`) for any other call, where 255 is no kill. 255 before the limit stays an ordinary exit status: a command can exit 255 by itself, and only the elapsed time tells that podman's timeout was the cause.
@@ -285,7 +285,7 @@ The suite's stages run on it: the `boundaries` fixture holds `FakeSnapshots(work
 
 ## The agent's container
 
-Step 5 of the cycle belongs to the agent runtimes, not to `ContainerEnvironment`: a runtime built with a `ContainerRuns` starts each call through `ContainerRuns.launch` (`container_launch` in `factory.adapters.agent_launch`) in a container of the stage image, with `/work` mounted, the login and instructions files mounted read-only at their own paths, the request's allow-list environment as `--env` entries and `/work/checkout` as the working directory, and it reads the kill at `--timeout` as `time_limit`. What it gets and what it lacks (`sudo`) is in `agents.md`, *Calls in a container*. `build_boundaries` gives the runtime of `FACTORY_AGENT_RUNTIME` its `PodmanRuns` for a `container` instance (*The settings and the wiring*).
+Step 5 of the cycle belongs to the agent runtimes, not to `ContainerEnvironment`: a runtime built with a `ContainerRuns` starts each call through `ContainerRuns.launch` (`container_launch` in `factory.agents.adapters.agent_launch`) in a container of the stage image, with `/work` mounted, the login and instructions files mounted read-only at their own paths, the request's allow-list environment as `--env` entries and `/work/checkout` as the working directory, and it reads the kill at `--timeout` as `time_limit`. What it gets and what it lacks (`sudo`) is in `agents.md`, *Calls in a container*. `build_boundaries` gives the runtime of `FACTORY_AGENT_RUNTIME` its `PodmanRuns` for a `container` instance (*The settings and the wiring*).
 
 ## The take
 

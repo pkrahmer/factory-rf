@@ -6,10 +6,11 @@ from dataclasses import dataclass, replace
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.fake_snapshots import FakeSnapshots
-from factory.application.agent_runtime import AgentRuntime
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.application.agent_runtime import AgentRuntime
+from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.containers import ContainerRuns
@@ -17,7 +18,6 @@ from factory.application.project_commands import ProjectCommands
 from factory.application.snapshots import Snapshots
 from factory.application.stage import StageReport
 from factory.application.stage_environment import ContainerEnvironment
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.domain.cost_records import ToolUse
 from factory.domain.transcripts import Transcript

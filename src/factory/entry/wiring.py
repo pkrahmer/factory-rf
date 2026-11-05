@@ -11,8 +11,6 @@ from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
-from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.copy_snapshots import CopySnapshots
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.disk_space import ShutilDiskSpace
@@ -20,8 +18,6 @@ from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.machine_files import CgroupMachineReadings
 from factory.adapters.make_commands import ContainerMakeCommands
-from factory.adapters.oauth_token import ClientCredentialsTokenSource
-from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.podman_images import PodmanImages
 from factory.adapters.podman_runs import PodmanRuns
@@ -30,7 +26,14 @@ from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.transcript_files import FileTranscriptStore
 from factory.adapters.zfs_snapshots import DROP_CACHES_COMMAND, ZfsSnapshots
-from factory.application.agent_runtime import AgentRuntime
+from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
+from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.agents.adapters.oauth_token import ClientCredentialsTokenSource
+from factory.agents.adapters.opencode_runtime import OpencodeRuntime
+from factory.agents.application.agent_runtime import AgentRuntime
+from factory.agents.application.project_agents import ProjectAgentDefinitions
+from factory.agents.application.tokens import TokenRefresher, TokenSource
+from factory.agents.domain.agent_runs import scrub_environment
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.application.costs import BillService
@@ -61,14 +64,11 @@ from factory.application.preflight import (
     token_file_item,
     tool_version_item,
 )
-from factory.application.project_agents import ProjectAgentDefinitions
 from factory.application.project_commands import RecordingProjectCommands
 from factory.application.recovery import RecoveryHandler
 from factory.application.snapshots import Snapshots
 from factory.application.stops import StopService
 from factory.application.tick import HandlerFactory, IdleHandler, Tick
-from factory.application.tokens import TokenRefresher, TokenSource
-from factory.domain.agent_runs import scrub_environment
 from factory.domain.command_records import CommandRecord
 from factory.domain.containers import (
     METADATA_PROBE_COMMAND,

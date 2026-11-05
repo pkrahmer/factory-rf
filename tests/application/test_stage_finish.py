@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import QUESTION, AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.project_commands import ProjectCommands
 from factory.application.stage import (
@@ -18,7 +19,6 @@ from factory.application.stage import (
     StageLauncher,
     StageReport,
 )
-from factory.domain.agent_runs import QUESTION, AgentRunResult
 from factory.domain.checks import CheckResult
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.adapters.fake_hosting import FakeHostingService

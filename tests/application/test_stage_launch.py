@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult, EndReason
 from factory.application.boundaries import Boundaries
 from factory.application.stage import LaunchedStage, StageLauncher
 from factory.application.task import StoryFormChecker
-from factory.domain.agent_runs import AgentRunResult, EndReason
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.application.opening import PreparedWorkItem, WorkItemOpening

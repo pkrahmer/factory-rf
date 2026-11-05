@@ -6,11 +6,11 @@ from pathlib import Path
 import pytest
 
 from definition_support import pipeline_definition
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.run import RunHandler
 from factory.application.watcher import Watcher
-from factory.domain.agent_runs import AgentRunResult
 from factory.domain.events import Event
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli

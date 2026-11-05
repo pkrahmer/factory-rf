@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
+from factory.agents.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 
 CONFTEST = Path(__file__).parent / "conftest.py"
-VERSION_TEST = Path(__file__).parent / "adapters" / "test_opencode_runtime_launch.py"
+VERSION_TEST = Path(__file__).parent / "agents" / "adapters" / "test_opencode_runtime_launch.py"
 NAMES = [
     pytest.param(LOGIN_VARIABLE, id="subscription"),
     pytest.param(API_LOGIN_VARIABLE, id="api-key"),

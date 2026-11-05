@@ -8,15 +8,15 @@ from decimal import Decimal
 from pathlib import Path
 
 from adapters.claude_stand_in import STEPS, StandInCall, Step
-from factory.adapters.opencode_runtime import (
+from factory.agents.adapters.opencode_runtime import (
     CONFIG_VARIABLE,
     OPENCODE_TOOLS,
     OpencodeRuntime,
     result_instructions,
 )
+from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest
+from factory.agents.domain.provider_limits import ProviderLimit
 from factory.application.containers import ContainerRuns
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
-from factory.domain.provider_limits import ProviderLimit
 from factory.shared.domain.kill_points import KillPoints
 
 CONFIG_MODES = "config-modes.jsonl"

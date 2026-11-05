@@ -5,17 +5,17 @@ from datetime import timedelta
 
 from pydantic import BaseModel, ConfigDict, PositiveInt
 
-from factory.application.boundaries import Boundaries
-from factory.application.take import agent_working_directory
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
-from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition
-from factory.domain.prompts import (
+from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest
+from factory.agents.domain.prompts import (
     CODER_ROLE,
     TESTER_ROLE,
     PromptFacts,
     allowed_decisions,
     compose_prompt,
 )
+from factory.application.boundaries import Boundaries
+from factory.application.take import agent_working_directory
+from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition
 from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.identifiers import Name, WorkItemId, feature_of, is_acceptance
 from factory.shared.domain.paths import MAIN_BRANCH, REMOTE, STORY_FORM_FILE

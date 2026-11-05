@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 
 from adapters.container_runtime_support import read_only
-from factory.adapters.agent_launch import (
+from factory.adapters.fake_containers import FakeContainerRuns
+from factory.agents.adapters.agent_launch import (
     CallEnd,
     Launch,
     LoginFiles,
@@ -17,7 +18,6 @@ from factory.adapters.agent_launch import (
     read_call_end,
     version_launch,
 )
-from factory.adapters.fake_containers import FakeContainerRuns
 from factory.domain.containers import WORK_CHECKOUT, ContainerCall, ContainerLaunch, Mount
 
 INSTRUCTIONS = Path("/state/runs/instructions-1.md")

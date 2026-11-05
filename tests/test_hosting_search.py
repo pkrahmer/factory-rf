@@ -21,8 +21,8 @@ FORBIDDEN = (
 )
 # The token endpoint is not the hosting service: the refresher's HTTP is the standard library's.
 ALLOWED = {
-    "urllib.request": {"factory.adapters.oauth_token"},
-    "http.client": {"factory.adapters.oauth_token"},
+    "urllib.request": {"factory.agents.adapters.oauth_token"},
+    "http.client": {"factory.agents.adapters.oauth_token"},
 }
 ANOTHER_URLLIB_IMPORTER = {"factory.adapters.elsewhere": ast.parse("import urllib.request\n")}
 ANOTHER_HTTP_CLIENT_IMPORTER = {"factory.adapters.elsewhere": ast.parse("import http.client\n")}

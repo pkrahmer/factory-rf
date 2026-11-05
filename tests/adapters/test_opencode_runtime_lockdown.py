@@ -18,7 +18,7 @@ from adapters.opencode_stand_in import (
     stand_in_runtime,
 )
 from factory.adapters.fake_containers import FakeContainerRuns
-from factory.adapters.opencode_runtime import CONFIG_VARIABLE, LOCKDOWN_SWITCHES
+from factory.agents.adapters.opencode_runtime import CONFIG_VARIABLE, LOCKDOWN_SWITCHES
 from factory.shared.domain.errors import AgentRuntimeError
 from opencode_provider_support import PROVIDER, write_provider
 

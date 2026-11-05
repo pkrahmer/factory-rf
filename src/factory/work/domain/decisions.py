@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, NonNegativeInt
 
-from factory.domain.agent_runs import QUESTION, AgentRunResult
+from factory.agents.domain.agent_runs import QUESTION, AgentRunResult
 from factory.domain.pipeline_definition import PipelineDefinition, StageDefinition
 from factory.hosting.domain.post_texts import findings_question, round_cap_question
 from factory.shared.domain.identifiers import Name

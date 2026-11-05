@@ -10,10 +10,10 @@ import pytest
 from adapters.claude_stand_in import REPLY, Step, write_stand_in
 from adapters.container_runtime_support import run_folders
 from adapters.opencode_stand_in import MODELS, REPLY_EVENTS, write_opencode
-from factory.adapters import agent_launch, claude_runtime, opencode_runtime
-from factory.adapters.agent_launch import LOGIN_PREFIX, LoginFiles, Starters, call_refusal
-from factory.adapters.claude_runtime import SWITCHES, ClaudeCodeRuntime
-from factory.adapters.opencode_runtime import OpencodeRuntime
+from factory.agents.adapters import agent_launch, claude_runtime, opencode_runtime
+from factory.agents.adapters.agent_launch import LOGIN_PREFIX, LoginFiles, Starters, call_refusal
+from factory.agents.adapters.claude_runtime import SWITCHES, ClaudeCodeRuntime
+from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.application import preflight
 from factory.entry.wiring import build_boundaries
 from run_layout_support import Layout, run_end, run_request, write_script

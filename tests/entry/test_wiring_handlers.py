@@ -9,13 +9,13 @@ from pathlib import Path
 import pytest
 
 from definition_support import pipeline_definition
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Dispatcher
 from factory.application.handlers.run_gate import RunGate
 from factory.application.stops import StopService
 from factory.application.tick import IdleHandler, Tick
-from factory.domain.agent_runs import AgentRunResult
 from factory.domain.events import Event, EventKind
 from factory.domain.tick_status import TickStatus, find_error
 from factory.entry.wiring import (

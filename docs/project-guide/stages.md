@@ -122,7 +122,7 @@ prints `doing 60 ['check', 'lint', 'test']` and then `unknown key: contrakt; mis
 
 ## The prompt and the request for a stage
 
-Before a stage's agent runs, `TaskComposer` (`factory.application.task`) builds its `AgentRunRequest`; the caller gives it `Boundaries`, the `PipelineDefinition` and the `environment`, and each call a `TaskContext` (work item, path, stage, document, branch, pull request, the form findings). The pure rules are in `factory.domain.prompts`.
+Before a stage's agent runs, `TaskComposer` (`factory.application.task`) builds its `AgentRunRequest`; the caller gives it `Boundaries`, the `PipelineDefinition` and the `environment`, and each call a `TaskContext` (work item, path, stage, document, branch, pull request, the form findings). The pure rules are in `factory.agents.domain.prompts`.
 
 ### The decisions
 
@@ -157,7 +157,7 @@ The prompt is `compose_prompt(facts)`, except for an acceptance at the definitio
 
 An acceptance runs through this same stage protocol (`StageLauncher`, `AfterAgent`, `StageRunner`) unchanged. Its report (`# Acceptance of <title>` and `## Journal`) has none of the story form's sections, so `findings` returns `[]` for a document whose state is an `AcceptanceState` (the opening always writes one), before it reads the form: a missing form file is then no `WorkItemFormatError` either. The checker receives only the document, which is why it looks at the type of the state and not at the work item id. Without this, decision rule 1 would turn the reviewer's forward decision into a question every time.
 
-Tests: `tests/domain/test_prompts.py`, `tests/application/test_task.py`, `tests/application/test_task_acceptance.py`, `tests/application/test_stage_run_acceptance.py`.
+Tests: `tests/agents/domain/test_prompts.py`, `tests/application/test_task.py`, `tests/application/test_task_acceptance.py`, `tests/application/test_stage_run_acceptance.py`.
 
 ## Opening a work item
 
@@ -194,7 +194,7 @@ Tests: `tests/application/test_opening.py`.
 8. `TaskComposer.compose` builds the request (prompt, environment, allowed decisions).
 9. `stage_environment.prepare(stage_start.commit, branch, sync_time_limit=...)` after step 8, then `stage_environment.run_agent(request, run=PatientRuns(boundaries).run)`: the agent runs through `PatientRuns`, in the stage environment (see `stage-environment.md`, *The stage environment*). The cost record is begun between the two and completed after the run. The sync limit is the `time_limit` of the definition's `sync` project command, or the default of a project command (10 minutes) without one. A `SnapshotError` or `ContainerError` from `prepare` ends the launch, after the claim and before any run.
 
-**`PatientRuns`** (`factory.application.provider_limits`; `PatientRuns(boundaries).run(request)`) wraps `boundaries.agent_runtime.run` for the stage launch. A result that does not end `provider_limit` comes back as it is. After a `provider_limit` it loops: (1) the budget left is the agent's `budget_usd` less the run's cost so far, and at or below zero the run ends `budget`; (2) the time left is the request's `time_limit` less the calls' durations (the waits do not count), and at or below zero it ends `time_limit`; (3) when the waits reach the ceiling it logs `provider limit: <agent> waited <s> s, the ceiling of <c> s; the run ends provider_limit` and returns the result; (4) otherwise it logs `provider limit: <agent> waits <w> s before it resumes <session>` (`a new run` without a session), waits the result's `limit_wait` or the cool-down, at most what is left of the ceiling, and (5) calls the runtime again with `request.model_copy(...)`: `CONTINUE_PROMPT` and `resume_session` with a session, the request's own prompt without one, and in both the budget and the time left; (6) `resumed_result` joins the calls. The cool-down and the ceiling are `boundaries.settings.provider_limit` (`ProviderLimit`, `factory.domain.provider_limits`, defaults 10 and 120 minutes, from `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` and `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES`). It builds no `AgentRunRequest` of its own. The preflight's probe uses `run_sealed` without `run` and never waits.
+**`PatientRuns`** (`factory.agents.application.provider_limits`; `PatientRuns(boundaries).run(request)`) wraps `boundaries.agent_runtime.run` for the stage launch. A result that does not end `provider_limit` comes back as it is. After a `provider_limit` it loops: (1) the budget left is the agent's `budget_usd` less the run's cost so far, and at or below zero the run ends `budget`; (2) the time left is the request's `time_limit` less the calls' durations (the waits do not count), and at or below zero it ends `time_limit`; (3) when the waits reach the ceiling it logs `provider limit: <agent> waited <s> s, the ceiling of <c> s; the run ends provider_limit` and returns the result; (4) otherwise it logs `provider limit: <agent> waits <w> s before it resumes <session>` (`a new run` without a session), waits the result's `limit_wait` or the cool-down, at most what is left of the ceiling, and (5) calls the runtime again with `request.model_copy(...)`: `CONTINUE_PROMPT` and `resume_session` with a session, the request's own prompt without one, and in both the budget and the time left; (6) `resumed_result` joins the calls. The cool-down and the ceiling are `boundaries.settings.provider_limit` (`ProviderLimit`, `factory.agents.domain.provider_limits`, defaults 10 and 120 minutes, from `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` and `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES`). It builds no `AgentRunRequest` of its own. The preflight's probe uses `run_sealed` without `run` and never waits.
 
 **`Waiter`** (`factory.application.machine`) is the interface of waiting: `wait(duration)` returns after it and raises `ValueError` for a negative one. `SleepingWaiter` (`factory.shared.adapters.clock`) calls `time.sleep`; `ManualWaiter(clock)` advances a `ManualClock` by the duration, records it in `waits` and returns at once. `build_boundaries` gives `SleepingWaiter()`. Tests: `tests/application/test_patient_runs.py`, `tests/application/test_stage_provider_limit.py`, `tests/adapters/test_waiters.py`.
 
@@ -234,7 +234,7 @@ So a stall keeps the writes inside the write paths (the environment's take bring
 
 A `HostingServiceError` is not a stall and propagates unchanged: from step 3 before anything is written, committed or pushed, so the remote is unchanged; from step 6 after the push, so the stall commit stays on the remote, no note is posted and no label is written; from step 7, so the stall commit stays and the note stays posted. `StallResult` (frozen, no unknown keys) holds `reason`, `attempts`, `attempts_cap`, `commit` (the pushed head), `pull_request` (the last three at least 1), `note` (the `PostOutcome`) and `take` (a `TakeReport`, or `None`).
 
-Tests: `tests/domain/test_decisions.py`, `tests/work/domain/test_stall_texts.py`, `tests/hosting/domain/test_stall_note_block.py`, `tests/application/test_stalls.py`, `tests/application/test_stall_labels.py`. The last starts stages with `StageLauncher` and the fake agent runtime; its `SwitchingRuntime` (a subclass of `ObservingRuntime`) switches the checkout to another branch while it runs.
+Tests: `tests/agents/domain/test_decisions.py`, `tests/work/domain/test_stall_texts.py`, `tests/hosting/domain/test_stall_note_block.py`, `tests/application/test_stalls.py`, `tests/application/test_stall_labels.py`. The last starts stages with `StageLauncher` and the fake agent runtime; its `SwitchingRuntime` (a subclass of `ObservingRuntime`) switches the checkout to another branch while it runs.
 
 ## After the agent run
 
@@ -247,7 +247,7 @@ The factory believes what it observes, not what the agent reports. `AfterAgent(b
 
 What comes back is an `AgentAftermath` (frozen, no unknown keys): `started`, `request`, `result`, `decision`, `document` (the work item after step 2, without the entry), `entry`, `take` (the `TakeReport`) and `form_findings` (all findings after the run). The stage's result commit ("The stage protocol", below) appends the entry.
 
-Tests: `tests/domain/test_agent_entry.py`, `tests/application/test_after_agent.py`. The latter starts stages with `StageLauncher` and the fake agent runtime, whose `ScriptedRun.writes` tampers with the work item, writes outside the write paths and breaks the form.
+Tests: `tests/agents/domain/test_agent_entry.py`, `tests/application/test_after_agent.py`. The latter starts stages with `StageLauncher` and the fake agent runtime, whose `ScriptedRun.writes` tampers with the work item, writes outside the write paths and breaks the form.
 
 ## The decision rules
 

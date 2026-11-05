@@ -11,11 +11,11 @@ from adapters.container_runtime_support import container_environment, container_
 from adapters.opencode_stand_in import MODELS, write_opencode
 from adapters.opencode_stand_in import REPLY as OPENCODE_REPLY
 from container_support import FIVE_MINUTES, Dataset
-from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.make_commands import ContainerMakeCommands
-from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.podman_runs import PodmanRuns
+from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.application.stage_environment import ContainerEnvironment
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.hosting.domain.git import CommitId

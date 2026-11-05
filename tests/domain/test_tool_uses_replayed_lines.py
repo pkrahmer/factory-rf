@@ -4,8 +4,8 @@ import json
 
 import pytest
 
+from factory.agents.domain.tool_uses import claude_tool_uses
 from factory.domain.cost_records import ToolUse
-from factory.domain.tool_uses import claude_tool_uses
 
 CALLED = "2026-11-04T10:00:00.000Z"
 ANSWERED = "2026-11-04T10:00:02.500Z"

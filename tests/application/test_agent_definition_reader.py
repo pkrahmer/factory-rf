@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
-from factory.application.agent_runtime import AgentDefinitionReader
+from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
+from factory.agents.application.agent_runtime import AgentDefinitionReader
 from factory.application.boundaries import Boundaries
 from factory.shared.domain.errors import (
     AgentDefinitionError,

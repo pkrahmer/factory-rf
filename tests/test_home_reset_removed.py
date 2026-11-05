@@ -7,7 +7,7 @@ from types import ModuleType
 
 import pytest
 
-from factory.adapters import claude_runtime, opencode_runtime
+from factory.agents.adapters import claude_runtime, opencode_runtime
 from factory.application.boundaries import Boundaries
 from factory.entry import wiring
 from factory.shared.domain import settings

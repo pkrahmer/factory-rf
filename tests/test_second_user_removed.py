@@ -5,13 +5,14 @@ from collections.abc import Callable
 
 import pytest
 
-from factory.adapters import agent_launch, make_commands
-from factory.adapters.agent_launch import Starters
-from factory.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.adapters import make_commands
 from factory.adapters.make_commands import MakeProjectCommands
-from factory.adapters.opencode_runtime import OpencodeRuntime
+from factory.agents.adapters import agent_launch
+from factory.agents.adapters.agent_launch import Starters
+from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.agents.adapters.opencode_runtime import OpencodeRuntime
+from factory.agents.domain.agent_runs import AgentRunRequest
 from factory.application import preflight
-from factory.domain.agent_runs import AgentRunRequest
 from factory.entry import wiring
 from factory.entry.wiring import build_boundaries
 from factory.shared.domain import settings

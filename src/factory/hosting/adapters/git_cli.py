@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 
-from factory.domain.write_paths import matches_any
+from factory.agents.domain.write_paths import matches_any
 from factory.hosting.application.git import Git
 from factory.hosting.domain.git import (
     ChangedPath,

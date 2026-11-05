@@ -4,9 +4,9 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from factory.agents.domain.agent_runs import AgentRunResult, EndReason, PermissionDenial
 from factory.application.boundaries import Boundaries
 from factory.application.costs import CostRecorder, CostRun
-from factory.domain.agent_runs import AgentRunResult, EndReason, PermissionDenial
 from factory.domain.cost_records import CostRecord
 
 SIDECAR = "F0001-S0001-first.costs.jsonl"

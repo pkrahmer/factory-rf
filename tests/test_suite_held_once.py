@@ -120,7 +120,7 @@ def _reset_prefix_once() -> None:
 
 def _hook_test_plain() -> None:
     test = _function(
-        _tree("adapters/test_claude_runtime_no_hook.py"), "test_no_run_registers_a_hook"
+        _tree("agents/adapters/test_claude_runtime_no_hook.py"), "test_no_run_registers_a_hook"
     )
 
     assert not [

@@ -12,7 +12,7 @@ from acceptance_walk import (
     booked_state,
     last_entry,
 )
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.domain.bills import bill, cost_line
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.identifiers import branch_name
