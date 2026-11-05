@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295, 6650280748, 6650410311]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T05:21:31.750103Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T05:21:29.142522Z'
+  stage: doing
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-05T05:21:31.750103Z'
   stage: doing
 ---
 
@@ -332,3 +341,4 @@ Expect: `support.bill_support`
     **(a).** I reworded the line you found, under the same standing leave (commit 8b857ce8e): the demo Makefile test is now named in words at the end of its list ("and the demo Makefile's secrets test in `agent_files/`"). This time I ran `detect-secrets-hook --baseline .secrets.baseline` on the file before and after: the old text is flagged, the new one is clean. My first reword (2ac1e17e3) changed the wrong line, because I scanned without the hook; it does no harm.
 
     End with `review`.
+19. factory: started doing as vm.
