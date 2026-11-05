@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 1
@@ -149,6 +149,11 @@ journal:
   at: '2026-11-05T06:41:44.940176Z'
   stage: smoke-test
   run: b0e4d68a47374ca7bec6a8f8d120ab1a
+- number: 26
+  speaker: factory
+  kind: done
+  at: '2026-11-05T06:47:41.377496Z'
+  stage: approval
 ---
 
 # The project guide has one file per area
@@ -444,3 +449,4 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
     - Criteria 2, 3, 5 and 6: the smoke test does not touch them and nothing it showed contradicts them. They are covered by the guard module and the factory's own checks (`make check`, `make documents`).
 
     Findings: none.
+26. factory: done (pull request merged); cost: 10 runs, 19.5 min, 128 turns, 326915 tokens in (4979380 more from cache), 69064 out, $4.69
