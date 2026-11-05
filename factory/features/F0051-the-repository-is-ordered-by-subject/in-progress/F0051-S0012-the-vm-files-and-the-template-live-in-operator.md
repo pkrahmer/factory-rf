@@ -2,16 +2,12 @@
 stage: doing
 blocked: null
 round: 0
-attempts: 1
+attempts: 2
 crashes: 0
 pull_request: 567
 comments_read: [6654125104]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T09:17:35.780424Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -80,6 +76,19 @@ journal:
   kind: started
   at: '2026-11-05T09:17:35.780424Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-05T09:23:12.498231Z'
+  stage: doing
+  run: 2f0cfa3461ad4bee88ef4d7b8e835f3e
+- number: 14
+  speaker: factory
+  kind: stall
+  at: '2026-11-05T09:23:12.850374Z'
+  stage: doing
+  run: 2f0cfa3461ad4bee88ef4d7b8e835f3e
+  reason: check_red
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -214,3 +223,39 @@ Expect: `parsed`
     ERROR tests/work/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework[review-outside-next] - FileNotFoundError: [Errno 2] No such file or directory: '...
     make: *** [Makefile:89: test] Error 1
 12. factory: started doing as vm.
+13. coder: The last run stalled because only part of its move reached the commit. Commit f81bcff1c holds `operator/vm/{Dockerfile,factory.service,job-start.sh,setup.sh}` and every rewritten path in the docs and scripts. It does not hold the files that moved without a change: `vm/git-credential-factory` and the whole of `template/` (`CLAUDE.md`, `Makefile`, `factory/pipeline.yml`). So `tests/agent_files/test_template_makefile.py` and `tests/work/domain/test_decide_docs_slip.py` could not find `operator/template/...`.
+
+    The cause is outside this story. `git mv vm operator/vm` renames a folder. `zfs diff` reports that as one rename line for a directory, and `ZfsSnapshots._read_diff_line` (`src/factory/machine/adapters/zfs_snapshots.py`) skips directory lines. So a file inside a renamed folder reaches the take only if its contents also changed. Every file under `vm/` and `template/` is in the coder's write paths, so the write paths are not why they were dropped.
+
+    What I did this run: I moved each remaining file with its own `git mv`: `vm/git-credential-factory` → `operator/vm/git-credential-factory`, and `template/{CLAUDE.md,Makefile,factory/pipeline.yml}` → `operator/template/...`. Then I removed the empty `vm/` and `template/` folders. A file-by-file move gives the take one rename line per file.
+
+    None of the moved files names an old root path, so they are unchanged, as the Description asks. The rest of the work (the rewrites in `operator/vm/*.sh`, `operator/job/job.sh`, `README.md`, `docs/operator-guide/*` and `docs/project-guide/*`) is in commit f81bcff1c from the last run.
+
+    `make check` is green: coverage 99.26 %, last line `check: green`.
+
+    Main choice: moving file by file, rejected alternatives:
+    - A second `git mv template operator/template` would have been lost the same way.
+    - Fixing the zfs adapter so it lists the files under a renamed directory is a change to the factory beyond this story (R13).
+
+    Refactor: nothing to change. This run's diff is four file renames.
+
+    Noticed but not touched:
+    - The directory-rename gap in `ZfsSnapshots.changed_paths` / `_read_diff_line`. Any story that renames a folder with unchanged files in it loses them in the take. This is worth a story of its own.
+    - Criterion 3 in the Description still lacks the human's wording "other than `docs/decisions.md` and `docs/runs/`" (journal entry 6). The work item is not in the coder's write paths, so I could not rewrite it. The tests already leave out both paths.
+    - The rest of criterion 5 is the documenter's: *The layout* in `docs/project-guide/operator.md` does not yet list the two new folders, and `docs/decisions.md` needs an entry for the move.
+14. factory: Stage doing stalled (attempt 2 of 2): a check is red after the stage: `check`
+    src/factory/watching/domain/board.py                    55      0      4      1    98%   77->75
+    src/factory/watching/domain/machine.py                  52      3     18      5    89%   44->42, 47, 59, 77->75, 79
+    src/factory/watching/domain/transcripts.py              10      2      0      0    80%   20-21
+    src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   239
+    src/factory/work/application/work_items.py              90      2     24      2    96%   133, 169
+    src/factory/work/domain/acceptance.py                  186      1     46      1    99%   356
+    ------------------------------------------------------------------------------------------------
+    TOTAL                                                10644     49   2122     46    99%
+
+    154 files skipped due to complete coverage.
+    Required test coverage of 90.0% reached. Total coverage: 99.26%
+    ======================================================================================= short test summary info ========================================================================================
+    FAILED tests/guards/test_root_operator_folders_removed.py::test_the_old_root_folder_is_gone[vm] - AssertionError: assert not True
+    FAILED tests/guards/test_root_operator_folders_removed.py::test_the_old_root_folder_is_gone[template] - AssertionError: assert not True
+    make: *** [Makefile:89: test] Error 1
