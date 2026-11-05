@@ -53,6 +53,8 @@ The build order: S0013 first, a docs repair carried over from F0050 (F0050-A0003
 - **At S0011's start:** the coder's write path `claude/*` in `factory/pipeline.yml` becomes `agents/*`; `CLAUDE.md` names `agents/agents/`. After its merge, on factory-vm: rebuild `factory-stage:vm`, renew `image-id`.
 - **At S0012's start:** the write paths `vm/*` and `template/*` become `operator/vm/*` and `operator/template/*` (already covered by `operator/*` entries where they exist); `CLAUDE.md` and `Makefile` follow. After its merge, on factory-vm: the installed unit and the credential helper are checked against their new sources.
 
+- **At S0014's start:** a leave for its tester: the eight removal guards it names, `tests/guards/test_wrapper_out_of_the_call_path.py` and `tests/pipeline/application/test_stall_environment.py::test_the_stall_module_imports_no_name_of_the_undo` may change to call `module_exists_anywhere` and `names_the_module_anywhere`, nothing else in them; each test keeps its name and what it checks.
+
 ## Decisions taken for the human
 
 1. **Areas with layers inside, not layers with areas inside.** A subject's domain, application and adapters sit side by side in `factory.<area>`, so a story that touches one subject touches one folder. Reason: the human, 2026-11-04, after the sketch of the split; the layers keep their rules.
