@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 566
-comments_read: []
+comments_read: [6652891790]
 handed_over: null
 claim: null
 journal:
@@ -37,6 +37,11 @@ journal:
   stage: tests
   run: e3dd099e841440a2b851e9b58e45b1fb
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-11-05T08:01:43.366131Z'
+  stage: tests
 ---
 
 # The agent files live in `agents/`
@@ -121,3 +126,8 @@ Expect: `1`
    Test file names such as `test_claude_agent_*.py` stay: they name the Claude Code format, not the folder.
 
    One run of the touched files: the expected tests fail, among them the guard rows, the stage image copy test and the container mount test. The output was cut at five lines, so I did not see whether the other new tests (folder, tick, Dockerfile) failed too. All of them read `agents/`, which does not exist yet, so they fail on a missing file, not on an import. Every module imported.
+6. 2026-11-05 human: Answer of the human:
+
+   `docs/runs/` is left out of criterion 4 (history, mine). The playbook is mine too: I changed its line on `main` to `agents/agents/intake.md`, and the next stage merges it in. So the test keeps checking the playbook and leaves out `docs/decisions.md` and `docs/runs/`, as you wrote it; criterion 6 stays as it is.
+
+   `CLAUDE.md`'s two lines that name the agent files change after the merge; they are mine and outside your search.
