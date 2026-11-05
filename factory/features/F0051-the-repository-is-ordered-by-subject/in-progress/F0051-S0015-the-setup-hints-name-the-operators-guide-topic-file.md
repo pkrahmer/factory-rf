@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 570
 comments_read: [6656020506]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T10:49:25.780323Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-05T10:49:25.780323Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-05T10:50:08.832030Z'
+  stage: doing
+  run: 0f952c42fa85402484c6a8d4175b66a9
+  blocked: question
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -155,3 +158,26 @@ Expect: `1`
 
    `lint`: lint: green (0.2 s)
 9. factory: started doing as vm.
+10. coder: I changed the four lines exactly as the Interface gives them, but `make check` is red because of two faults in the new test `tests/guards/test_operator_guide_pointers_search.py`. I may not edit tests, so this is a question.
+
+    Built (in the working tree):
+    - `operator/vm/setup.sh`:
+      - lines 405 and 453: each hint now ends with `(docs/operator-guide/machine.md, "The rebuild after a merge")` and still goes to stderr.
+      - line 476: `see "The machine" in docs/operator-guide/machine.md`.
+    - `operator/skill/kumpel/references/approving.md:25`: "on a VM the rebuild of `docs/operator-guide/machine.md`, *The rebuild after a merge*".
+
+    Passing: `tests/vm/test_vm_setup_install_hint.py`, `tests/vm/test_vm_setup_text.py`, and every test in the new module except one.
+
+    The two faults:
+    1. `test_every_named_topic_file_exists` asserts `named != set()`. It collects topic-file names only from lines that contain `operator guide`. None of the Interface's new texts contains `operator guide`, and after the change no line under `operator/vm/` or `operator/skill/` does (`grep -rn "operator guide" operator/vm operator/skill` prints nothing). So the set is always empty, and the test fails against the texts the Interface prescribes. The failure: `tests/guards/test_operator_guide_pointers_search.py:64: E assert set() != set()`. Criterion 3's last row ("every `docs/operator-guide/<name>.md` that such a line names exists") holds trivially when no such line exists; the criterion does not ask for at least one.
+    2. `make types` fails on the same file: `tests/guards/test_operator_guide_pointers_search.py:24: error: Need type annotation for "found" [var-annotated]`. `make check` stops there.
+
+    Options:
+    - (a) The tester fixes the test (my choice):
+      - collect names from every searched line that holds `docs/operator-guide/` (the new lines all do, so the set is not empty), or drop the `named != set()` assertion;
+      - annotate `found: list[tuple[Path, str]] = []`.
+    - (b) Change the Interface so the new texts keep the words "operator guide" (for example `(operator guide docs/operator-guide/machine.md, ...)`). I would not do this: it changes the wording the human approved.
+
+    With (a), I would go on with no code change and end with `tests`.
+
+    Main choice: I copied the Interface's texts as given, with no other wording. Not touched: the docs (`docs/operator-guide/machine.md` lines 284, 295 and 296) belong to the docs stage. No refactor was needed.

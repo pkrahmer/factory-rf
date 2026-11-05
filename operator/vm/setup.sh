@@ -402,7 +402,7 @@ if ! cmp -s "$checkout/operator/vm/git-credential-factory" /usr/local/bin/git-cr
     install -m 0755 "$checkout/operator/vm/git-credential-factory" /usr/local/bin/git-credential-factory
     changed "installed /usr/local/bin/git-credential-factory"
   else
-    echo 'setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed; install it from your own copy of operator/vm/git-credential-factory (operator guide, "The rebuild after a merge")' >&2
+    echo 'setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed; install it from your own copy of operator/vm/git-credential-factory (docs/operator-guide/machine.md, "The rebuild after a merge")' >&2
   fi
 fi
 echo "setup: tools: $(said "found $tools with uv $uv_version, the virtual environment of $checkout in sync and /usr/local/bin/git-credential-factory in place")"
@@ -450,7 +450,7 @@ if ! cmp -s "$checkout/operator/vm/factory.service" /etc/systemd/system/factory@
     install -m 0644 "$checkout/operator/vm/factory.service" /etc/systemd/system/factory@.service
     changed "installed /etc/systemd/system/factory@.service"
   else
-    echo 'setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed; install it from your own copy of operator/vm/factory.service (operator guide, "The rebuild after a merge")' >&2
+    echo 'setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed; install it from your own copy of operator/vm/factory.service (docs/operator-guide/machine.md, "The rebuild after a merge")' >&2
   fi
 fi
 systemctl daemon-reload
@@ -473,5 +473,5 @@ if ! owned_with_mode factory:factory 700 "$transcripts"; then
 fi
 echo "setup: transcripts: $(said "found $transcripts factory's alone")"
 
-printf 'setup: done: build the stage image and start factory@%s; see the operator guide, "The machine"\n' "$instance"
+printf 'setup: done: build the stage image and start factory@%s; see "The machine" in docs/operator-guide/machine.md\n' "$instance"
 printf 'setup: local: %s/factory.local.env is yours: the script never writes it; the unit reads it after factory.env\n' "$base"
