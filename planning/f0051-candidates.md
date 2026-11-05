@@ -100,6 +100,8 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 
 64. **A story the acceptance proposes names a leave that is not there.** F0051-S0014 and S0015: both say "the human's leave in `feature.md`" for the earlier tests they change, and neither had one, so each intake stopped (about 6 min of wait each). Fix: when the human merges an acceptance with stories, the playbook has them add each proposed story's leave to `feature.md` in the same step; or the acceptance reviewer writes the leave it needs into its report for the human to copy.
 
+65. **A rewrite of the documents needs three guards** (from the human's review of the style samples, 2026-11-05). The samples read well but took their facts from the old text, invented example values, did not run their commands, and cut detail an operator or agent needs. For the rewrite feature: each story checks that every name, command, setting and rule of the old file is kept or moved to a *Reference* section; the documenter runs every example where the text says it runs; the reviewer judges the facts against the code as well as the style (`planning/doc-style-drafts.md`, rules 8 to 10).
+
 ## The repository is easier to navigate (the human, 2026-11-04)
 
 38. **`claude/` becomes `agents/`.** It holds the factory's agent files and `settings.json` in Claude Code's format, which the opencode runtime translates per run (decision of 2026-10-19, F0020-S0004); the name says one runtime. Touches `vm/Dockerfile`, the wiring, the coder's write paths in `factory/pipeline.yml`, the docs and tests.

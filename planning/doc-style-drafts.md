@@ -4,6 +4,8 @@ The human chose one style per document on 2026-11-05, from three samples each: n
 
 ## Rules for all three documents
 
+Rules 8 to 10 came from the human's review of the first samples on 2026-11-05: they read well, but their examples were not run, some examples were invented, and some facts an operator or an agent needs were cut.
+
 1. **Write for the reader who never saw the factory's history.** No feature or story IDs (F0049, S0003), no "v1", "v1.1" or "replaced in v1.2", no "decision 6". The history lives in `docs/decisions.md`; a guide may point there in one line.
 2. **One idea per sentence.** A sentence of more than about 25 words is split. At most one parenthesis per sentence, and none inside another.
 3. **Explain a factory word once.** The words the factory gave its own meaning (work item, stage, take, base, dataset, stall, stop, lease, claim, round cap, write paths) are explained in one glossary and linked at their first use in a file. No other private words (no "relay", "lean route", "gate").
@@ -11,6 +13,9 @@ The human chose one style per document on 2026-11-05, from three samples each: n
 5. **Round numbers where exactness does not matter** ("about two minutes", not "117.5 s").
 6. **Examples are real and were run.** Commands in code blocks, each followed by what it prints.
 7. **The current truth only.** No changelog, no "since", no "no longer". A removed behaviour goes, with one line in the decision log.
+8. **Facts come from the code, not from the old text.** A rewrite reads the code it describes. Every name, command, setting and rule of the old text is still in the new one, or moved on purpose to a reference section; the reviewer compares both texts and the code, not only the style.
+9. **Keep the detail, move it.** Exact messages, limits, orders and edge cases are not cut for brevity. The main text says what matters to most readers; a section called *Reference* at the end of the file holds the rest.
+10. **Every example was run, and shows where.** A command is run as shown, on the machine the text names (the VM, a laptop, a temporary directory), and its output is copied, not written by hand. Example values are real ones from this repository or the VM, or clearly marked as placeholders (`<your repository>`). Times say where they were measured.
 
 ## The operator guide (`docs/operator-guide/`)
 
