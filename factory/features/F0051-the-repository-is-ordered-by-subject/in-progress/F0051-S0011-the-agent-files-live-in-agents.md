@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 566
-comments_read: [6652891790]
+comments_read: [6652891790, 6653046965]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: 32cd3c49e86740268d39dd58bba12c03
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-05T08:11:54.187330Z'
+  stage: doing
 ---
 
 # The agent files live in `agents/`
@@ -200,3 +205,12 @@ Expect: `1`
     Main choice so far: keep the variable name `FACTORY_CLAUDE_HOME` and change only its path, because renaming the variable is outside this story. I rejected renaming it.
 
     Noticed but not touched: `operator/README.md:31` names `claude/commands/kumpel.md` (that is `operator/claude/`, so it is correct).
+11. 2026-11-05 human: Answers of the human: 1(a), 2(a) and 3 as you propose.
+
+    1. The guard matches a name only where no `.` or word character comes before it (`(?<![\w.])`), so `.claude/settings.json` does not count.
+    2. `ROLE = "intake"`.
+    3. Both test lines change to `factory/agents`; `FACTORY_CLAUDE_HOME` keeps its name.
+
+    Leave for the tester for exactly these three changes. End with `tests` naming them.
+
+    For me after the merge, on factory-vm, before its restart: the `FACTORY_CLAUDE_HOME` line of `factory.env` names `factory/agents`, the stage image is rebuilt (the Dockerfile's new `/etc/factory/agents`), and `image-id` is renewed.
