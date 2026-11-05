@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 574
 comments_read: [6671915202]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T23:11:18.336304Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -82,6 +86,11 @@ journal:
   at: '2026-11-05T23:11:12.784336Z'
   stage: tests
   run: 14e25114c0ed422e8f780409ee9415b1
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:11:18.336304Z'
+  stage: doing
 ---
 
 # The documents have a style page and a glossary
@@ -222,3 +231,4 @@ Expect: `named`
     Nothing is left for the coder to implement: the documents are in place, so `make check` should be green with this change. I did not run `make check` myself.
 
     `lint`: lint: green (0.1 s)
+14. factory: started doing as vm.
