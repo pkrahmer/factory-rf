@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 559
 comments_read: [6648033321]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T02:43:00.447654Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-11-05T02:42:54.987982Z'
   stage: docs
   run: 6329f937c0f341eab7d737f33b7c2080
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:43:00.447654Z'
+  stage: smoke-test
 ---
 
 # The agents area holds the agent runs
@@ -402,3 +411,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 4058bd46fe4f at 2026-11-05T02:37:07Z)
     `secrets`: secrets: green (4.1 s)
     `documents`: documents ok
+19. factory: started smoke-test as vm.
