@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T01:55:53.634308Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-05T01:55:48.282545Z'
   stage: review
   run: 39c9b812fcfb4980b34e901f186822c6
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:55:53.634308Z'
+  stage: doing
 ---
 
 # The work area holds the work items
@@ -309,3 +318,4 @@ Expect: `1`
     - tests/adapters/test_{journal_as_data,journal_causes_file,journal_stamps_file,work_item_markdown,work_item_markdown_acceptance}.py -> tests/work/adapters/: feature decision 5 (move plus import lines)
 
     Open: `security/duplicates-baseline.txt` needs the `factory.work.*` paths (the human's file).
+17. factory: started doing as vm.
