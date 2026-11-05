@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T07:35:22.942527Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   at: '2026-11-05T07:35:17.607744Z'
   stage: doing
   run: 06a0f60d328945bd8d756e3e2c2f2c5b
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:35:22.942527Z'
+  stage: tests
 ---
 
 # The operator guide is a folder of topics
@@ -407,3 +416,4 @@ Expect: `split`
     Refactor: I re-read my diff and found nothing to change.
 
     Noticed, not touched: references in `docs/project-guide/` that say "the operator guide, *Section*" without the topic file. The human gave these to the documenter (entry 14).
+25. factory: started tests as vm.
