@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 577
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T23:58:34.411667Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-05T23:58:29.338834Z'
   stage: intake
   run: 70ad4fdba1fa413f9684862e51934748
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:58:34.411667Z'
+  stage: tests
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -77,3 +86,4 @@ Expect: `True True False`
    - Smoke test: the command is runnable. `RuamelPipelineDefinitionReader().parse(text)` exists (`src/factory/pipeline/adapters/pipeline_yaml.py:25`), the command runs no pytest, and the Expect line `True True False` can be checked against the output.
    - Architecture: the change is a pure rule in the work area's domain layer and adds no import. The booking, the merge handling and the pipeline definition stay as they are.
    - Scope: the story is within F0052. It follows from the docs route that S0001 and S0002 added, and it touches nothing in "Out of scope". The change to the earlier test follows decision 7 and is limited to that one row.
+4. factory: started tests as vm.
