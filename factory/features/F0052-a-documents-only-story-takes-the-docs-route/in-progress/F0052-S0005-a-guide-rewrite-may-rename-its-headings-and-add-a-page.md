@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T23:44:05.960465Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-05T23:44:05.953582Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:44:05.960465Z'
+  stage: intake
+---
+
 # A guide rewrite may rename its headings and add a page
 
 ## Description
@@ -43,3 +70,6 @@ uv run pytest tests/guards/test_project_guide_files.py tests/guards/test_operato
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-05 human: created.
+2. factory: started intake as vm.
