@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T22:40:24.521040Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-11-05T22:40:19.233683Z'
   stage: review
   run: f86c818797d541989f8d1184cd54adf2
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:40:24.521040Z'
+  stage: doing
 ---
 
 # The agents know the docs route
@@ -425,3 +434,4 @@ Expect: `named`
     Notes:
     - `tests/agent_files/test_claude_agent_texts_docs_route.py`: two sides of one rule are split. The `docs-review` side is a row of `test_the_documenter_in_docs_only_writes_the_documents_and_hands_to_review_or_tests`, and the `tests` side is the separate function `test_the_documenter_in_docs_only_hands_a_change_outside_the_documents_to_tests`. The tester gave the reason in entry 26: a row cannot tie three phrases to one bullet.
     - `tests/agent_files/test_claude_agent_texts_docs_route.py:27`: `_stage_subsection` ends a subsection at the next `#` line, and `_DOCS_REVIEW_SUBSECTION` in `test_claude_agent_texts_review_groups.py` cuts at the same boundary. These are two expressions of one boundary, and the human's leave asked for that cut.
+31. factory: started doing as vm.
