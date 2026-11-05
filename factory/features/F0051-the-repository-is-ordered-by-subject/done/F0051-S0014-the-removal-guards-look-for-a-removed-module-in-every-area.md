@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-11-05T10:28:36.433649Z'
   stage: smoke-test
   run: 142bf4eb4d3a44efa8b78e52a3be459e
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-11-05T10:38:38.791826Z'
+  stage: approval
 ---
 
 # The removal guards look for a removed module in every area
@@ -454,3 +459,4 @@ Expect: `0`
     - `git status` showed no changes in the working tree after the run.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 11.9 min, 65 turns, 234555 tokens in (1205885 more from cache), 29050 out, $2.41
