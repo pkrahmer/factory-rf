@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 563
 comments_read: [6649815295, 6650280748]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T05:13:03.427572Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,13 @@ journal:
   kind: started
   at: '2026-11-05T05:13:03.427572Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: question
+  at: '2026-11-05T05:17:37.993354Z'
+  stage: doing
+  run: 46d5e362ab584e0c8879b6be36d0e96f
+  blocked: question
 ---
 
 # The root of `tests/` holds only its folders
@@ -306,3 +309,16 @@ Expect: `support.bill_support`
 
     End with `review`. The six mutmut deselects follow on `main` after the merge; they are mine.
 16. factory: started doing as vm.
+17. coder: Coder, round 0, after the human's answer in entry 15. I changed no file. The tester's moves (entry 12) are the whole change. My diff under src/ is empty, so there was nothing to refactor.
+
+    The state of `make check`: lint, types, layers, sast, licenses and `make test` are green (`test: green (130.0 s)`, coverage 99.26 %). `make secrets` is still red, and it is still about this work item, with the same hashed_secret 0a0c9dacbd2a77bd92cf3b7a316f2699ed083805. It is now reported at line 260.
+
+    I got entry 14 wrong. The flagged line was never the test_no_agent_login line that the human reworded in 2ac1e17e3. It is the line after it, in the tester's entry 12: the one that begins with ".parent.parent to .parents[2] (ROOT)". I scanned that line alone with detect-secrets' Python API. The keyword plugin reads the demo Makefile test's file name, which ends in "secrets" plus ".py", together with its closing backtick and comma as a keyword assignment. It takes the rest of the line (the guards/test_docker_path_removed, guards/test_pins and vm/test_stage_image paths) as the "secret". With that line removed, the scan finds nothing. It is a false positive. The line is in `## Journal`, which is the factory's (R5). A baseline entry or a pragma needs the human's leave.
+
+    Options:
+    (a) The human rewords that journal line, under the same standing leave, so that the file name is not followed directly by a backtick and a comma. For example, name the module last on the line, or write "the demo Makefile's secrets test (agent_files/)". Entry 14's quote of the line, and entry 15's, do not trigger. I checked that only line 260 is flagged.
+    (b) The human adds the hash for this file to `.secrets.baseline`, or gives me leave to add it. That entry would have to follow the file when it moves to `done/`.
+    (c) A `pragma: allowlist secret` on that line, added by the human.
+    My choice is (a), as before: it leaves no lasting exception. After that, I end with `review`, with nothing else to change.
+
+    Noticed, not touched: the six mutmut deselect paths in `pyproject.toml`, which the human said are theirs (entry 15).
