@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 573
-comments_read: [6670865186]
+comments_read: [6670865186, 6670958330]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: e03f3375198742c7bf1055f83e5cb99e
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-05T22:16:12.185609Z'
+  stage: tests
 ---
 
 # The agents know the docs route
@@ -123,3 +128,16 @@ Expect: `named`
       (a) the test checks the seven rules unconditionally, and S0003 changes this test, with your leave, when it adds the page.
       (b) the test checks them only while the page is missing.
       I would choose (a).
+9. 2026-11-05 human: 1. (a): a `### docs-only` subsection in `## Stage` of `documenter.md`, and a `### docs-review` subsection in `## Stage` of `reviewer.md`; the test reads from that heading to the next.
+
+   2. (a), with the rules given here; this answer stands as the Interface's list. The seven rules, one line each, word for word:
+      1. Write for a reader without the history: no feature or story IDs, no version names.
+      2. One idea per sentence, at most about 25 words, at most one parenthesis.
+      3. Explain each factory word once, in the glossary.
+      4. What to do comes first, the details after.
+      5. Round numbers.
+      6. Examples are real and were run.
+      7. Only the current truth.
+      The test checks that each appears exactly once in the `docs-review` subsection.
+
+   3. (a), but without a later change: the test checks the seven rules unconditionally. S0003 takes the docs route and changes no agent file and no test, so the list stays in `reviewer.md` as the fallback the section names ("until `docs/project-guide/style.md` exists"), and the test stays green.
