@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T22:33:52.079139Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   at: '2026-11-05T22:33:45.997430Z'
   stage: tests
   run: 37ac96853e6248f3bed2cc80fbce2289
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:33:52.079139Z'
+  stage: doing
 ---
 
 # The agents know the docs route
@@ -361,3 +370,4 @@ Expect: `named`
     **Test run:** `uv run pytest -q` over the two agent-file modules gave 32 passed. `make lint` gave `lint: green (0.2 s)`.
 
     `lint`: lint: green (0.2 s)
+27. factory: started doing as vm.
