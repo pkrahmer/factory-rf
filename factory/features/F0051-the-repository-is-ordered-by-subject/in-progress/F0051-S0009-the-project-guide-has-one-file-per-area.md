@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283, 6651349591]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T06:41:19.949581Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -147,6 +143,12 @@ journal:
   kind: started
   at: '2026-11-05T06:41:19.949581Z'
   stage: smoke-test
+- number: 25
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T06:41:44.940176Z'
+  stage: smoke-test
+  run: b0e4d68a47374ca7bec6a8f8d120ab1a
 ---
 
 # The project guide has one file per area
@@ -426,3 +428,19 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
     `secrets`: secrets: green (2.9 s)
     `documents`: documents ok
 24. factory: started smoke-test as vm.
+25. smoke-tester: Smoke test run from the repository root on the committed state of work-item/F0051-S0009.
+
+    Command 1: `ls docs/project-guide | tr '\n' ' '`
+
+    ```
+    README.md agents.md hosting.md machine.md operator.md pipeline.md shared.md watching.md work.md 
+    ```
+
+    Met its `Expect:` line: the same nine names in the same order. `od -c` shows the output ends in the expected trailing space.
+
+    Judged against the acceptance criteria:
+    - Criterion 1 (exactly `README.md`, `operator.md` and the seven area files): the listing agrees.
+    - Criterion 4: I also searched `claude/`, `docs/` (without `docs/runs/` and `docs/decisions.md`) and `README.md` for the seven removed guide file names. Nothing was found, so nothing contradicts this criterion either.
+    - Criteria 2, 3, 5 and 6: the smoke test does not touch them and nothing it showed contradicts them. They are covered by the guard module and the factory's own checks (`make check`, `make documents`).
+
+    Findings: none.
