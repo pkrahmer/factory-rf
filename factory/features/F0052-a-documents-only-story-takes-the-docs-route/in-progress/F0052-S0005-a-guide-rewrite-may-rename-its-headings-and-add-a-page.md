@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 576
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T23:44:05.960465Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-05T23:44:05.960465Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-05T23:44:35.723387Z'
+  stage: intake
+  run: 49897cb0793345fa860a8356242c8072
+  blocked: question
 ---
 
 # A guide rewrite may rename its headings and add a page
@@ -73,3 +76,9 @@ Expect: `1`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: 1. The line format in the Interface does not match the index. The Interface says an index line is ``- `<name>` <a sentence>.``. Every line of `docs/project-guide/README.md`, *The files*, is ``- `<name>`: <sentence>.`` with a colon, and the current guard's pattern `^- `name`[^.]*\w[^.]*\.` tolerates it. A coder who follows the Interface literally fails criterion 2. Options: (a) the line is `` - `<name>` `` followed by anything with a word character and ending in a full stop, so the colon is allowed. This is the existing pattern, and I would choose it. (b) The colon is required. Please state the format exactly, because criterion 1's "no sentence" row depends on it. Give the colon case in the criterion, as a row that gives `[]`.
+   2. Two clauses of the Interface have no criterion. (i) "The lines are sorted": there is no row with two problems, for example `["missing: a.md", "not in the index: z.md"]`. (ii) "A name in `required` that is not a file of `guide` gives `missing: <name>`, once": there is no row where the same name is also named by the index and missing. Without a row for the case where `required` and the index both name a missing page, a coder can pass every listed row with a duplicate line. Please add a row for each.
+   3. Two further sides have no criterion. (i) Which files count as pages: "A Markdown file of `guide` other than `README.md`". No row shows that `README.md` itself needs no index line, or that a non-Markdown file is ignored. I would add both rows, with `README.md` and `notes.txt` unnamed and the result `[]`. (ii) Whether a name in the index that sits outside the section `## The files` (for example in another section's bullet) counts as naming. Please add a row, or say that the rule is not meant to be tested.
+   4. Criterion 3 says "every test that remains in them keeps its name". Criterion 5 and the Interface merge `test_the_guide_holds_the_index_and_its_named_files` and `test_the_index_names_each_file_with_a_sentence` into one test, so the other name goes. The Interface does not say which name survives. Please name the surviving test. I would keep `test_the_guide_holds_the_index_and_its_named_files`. Please also say whether the check that the folder holds no file other than the index and the named ones (`names == sorted(...)`) is dropped. `index_problems` ignores non-Markdown files, so it would be.
+
+   The rest checks out: the route (`tests`) is right because the Interface changes only tests, the story is within feature decision 7, and the two smoke test commands are runnable. Pytest's `addopts` sets `-q`, and the command passes no second `-q`. The Expect lines are checkable.
