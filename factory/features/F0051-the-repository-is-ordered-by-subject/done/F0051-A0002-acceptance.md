@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-05T11:17:55.816701Z'
   stage: acceptance
   run: 7067c97c013a43629ca0c6671294e5a9
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-05T11:19:50.494367Z'
+  stage: done
 stories: [F0051-S0001, F0051-S0002, F0051-S0003, F0051-S0004, F0051-S0005, F0051-S0006, F0051-S0007, F0051-S0008, F0051-S0009, F0051-S0010, F0051-S0011, F0051-S0012, F0051-S0013, F0051-S0014, F0051-S0015]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The repository is ordered by subject
@@ -248,3 +253,4 @@ None. Every open item is a remark, the human's own file (`demo/`, the playbook, 
    6 Decisions: feature decisions 1 to 8 and A0001's list, whose temporary write paths are now settled. Also S0014's and S0015's leaves for earlier tests and S0015's answer 11. Every changed earlier test has its leave named.
    7 Slow checks: nothing beyond `make check`. 10,670 tests ran, 131.2 s wall. The slowest are the roughly 10 s time-limit tests. Used disk is unchanged at 1.4 GB, and free space is 0.1 GB lower, in the shared pool.
    8 Cost: 160 runs, 294.6 min, $53.69. S0014 ($2.41) and S0015 ($1.73) were cheap. S0010 ($6.94) is still the most expensive. The human answered 22 questions (20 questions, 2 attempts caps) and waited 2.4 h. Two of the three new questions were missing leaves in `feature.md` for changing earlier tests. S0008 needed the human most (four answers).
+3. factory: done (pull request merged); cost: 1 runs, 5.6 min, 23 turns, 80998 tokens in (1085283 more from cache), 13726 out, $1.14
