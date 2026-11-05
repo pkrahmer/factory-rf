@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283, 6651349591]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T06:36:13.470863Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -116,6 +120,11 @@ journal:
   at: '2026-11-05T06:36:07.926136Z'
   stage: doing
   run: 0e352388ce7d49ed845fe09e5fc62fcd
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-05T06:36:13.470863Z'
+  stage: review
 ---
 
 # The project guide has one file per area
@@ -349,3 +358,4 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
+20. factory: started review as vm.
