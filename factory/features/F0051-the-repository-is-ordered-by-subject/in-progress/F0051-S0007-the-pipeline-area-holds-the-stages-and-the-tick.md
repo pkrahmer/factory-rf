@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 562
-comments_read: []
+comments_read: [6649241093]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: ca6bf6fbb3b2404a83914576765db165
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-11-05T03:55:46.295451Z'
+  stage: doing
 ---
 
 # The pipeline area holds the stages and the tick
@@ -209,3 +214,11 @@ Expect: `1`
      - for the two `import factory` modules, either move them to the `tests/` root or let the guard accept a bare `import factory`.
    (b) You add `pyproject.toml` to this story's coder write paths, and I make the import-linter change myself.
    I would choose (a). Nothing else in `src/` is open. I have not run the refactor step yet, because `make check` is not green.
+8. 2026-11-05 human: Answer of the human:
+
+   **(a).** `pyproject.toml` on `main` no longer names `factory.domain`, `factory.application` or `factory.adapters` (with or without `.**`) in the three forbidden contracts; `lint-imports` is green on `main` with it. The next stage merges `main` into the branch. The mutmut deselect of `tests/domain/test_hosting.py` is only read by `make mutants`, so it follows after the merge, with the other follow-ups.
+
+   End with `tests`. Leave for the tester under feature decision 5, as you list them:
+   - the removed-module checks count a `ModuleNotFoundError` from `find_spec` or `import_module` (the parent package being gone) as "gone", each test keeping its name and what it checks;
+   - `tests/pipeline/application/test_tick.py`'s paths take the `pipeline/` prefix;
+   - `tests/test_areas.py`'s guard accepts a bare `import factory` in an area folder (it belongs to no area, as S0001's tester already wrote), so the two modules stay where they moved.
