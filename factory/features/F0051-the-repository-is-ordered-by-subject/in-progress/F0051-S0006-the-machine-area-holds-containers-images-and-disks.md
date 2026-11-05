@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T03:22:56.462476Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-05T03:22:48.813581Z'
   stage: doing
   run: a6b056cc25ab43b483a379b970daf571
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-05T03:22:56.462476Z'
+  stage: tests
 ---
 
 # The machine area holds containers, images and disks
@@ -190,3 +199,4 @@ Expect: `1`
    - `security/duplicates-baseline.txt` lines 37 to 41 still name `src/factory/adapters/{fake_containers,fake_images,fake_snapshots,make_commands}.py`. `make duplicates` is a record, not a check. After S0005 the human updated these paths themselves, so I left them.
 
    Docs (criterion 6) are the documenter's.
+8. factory: started tests as vm.
