@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -119,6 +119,11 @@ journal:
   at: '2026-11-05T02:44:12.232327Z'
   stage: smoke-test
   run: e2fc89ffc7a34dd291f057b2e10d490f
+- number: 21
+  speaker: factory
+  kind: done
+  at: '2026-11-05T02:48:08.673518Z'
+  stage: approval
 ---
 
 # The agents area holds the agent runs
@@ -443,3 +448,4 @@ Expect: `1`
     I did not run `make check` (criterion 5) at this stage; the factory runs it as the stage's check.
 
     Findings: none.
+21. factory: done (pull request merged); cost: 9 runs, 19.2 min, 97 turns, 250786 tokens in (2973407 more from cache), 37127 out, $3.04
