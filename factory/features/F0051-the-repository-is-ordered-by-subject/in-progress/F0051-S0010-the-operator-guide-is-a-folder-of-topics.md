@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T07:27:38.539714Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-11-05T07:27:38.539714Z'
   stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T07:30:33.172637Z'
+  stage: review
+  run: 2a98a7f58eb0488b9b0938b5fe0cb462
 ---
 
 # The operator guide is a folder of topics
@@ -349,3 +351,25 @@ Expect: `split`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 40 known, 3 gone
 21. factory: started review as vm.
+22. reviewer: Review of round 0. I read the work item, the diff against `main` and the topic files, and ran `make duplicates` to read its new findings. `make check` was green after the coder (entry 20).
+
+    Findings:
+    1. `docs/operator-guide/*.md`, italic references between files: the coder updated only the quoted references to sections that moved to another file (`"X" in [file.md](file.md)`). About 40 italic `*X*` references still point to a section in another topic file without naming that file. Examples: `cloud-run.md:7` (*The job profile*, *The metadata server in a job*, *Without ZFS*, *The idle shutdown* are now in `machine.md`), `machine.md:109` (*The preflight's items*, now in `health.md`), `site.md:201` (*A merge archives the story*, now in `work-items.md`), `install.md:32`/`43`/`49`/`54`, `agent-runtime.md:57`, `health.md:255`, `stops.md:51`. The Description says the words change where a section points to another one. Fix: give each such reference its file, in the form the quoted references already use.
+    2. `docs/operator-guide/*.md`, quoted references to `####` sections that moved: these still point to a section in another file without naming it. `agent-runtime.md:65`, `:130` and `:148` ("The environment file", now in `machine.md`); `agent-runtime.md:150` ("The probe of the agent run", now in `health.md`); `pipeline.md:48` and `stops.md:86` ("The known results", now in `health.md`); `stops.md:58` ("The stop records", now in `health.md`). Fix: add `in [file.md](file.md)` as elsewhere.
+    3. `docs/operator-guide/*.md`, "above" and "below": some of these now point into another file. `records.md:166` says "(see the table above)", but the environment table is in `install.md`. `pipeline.md:72` says "the stop `pipeline_definition_invalid`, described above", but that section is in `stops.md`. Fix: name the section and its file instead. Check the other "above" and "below" pointers in the topic files the same way.
+    4. `src/factory/shared/domain/documents.py:43`, `OPERATOR_GUIDE_SECTIONS`: since the split, nothing in `src` uses it. `make duplicates` reports it as new dead code (`unused variable 'OPERATOR_GUIDE_SECTIONS'`). It is kept only because `tests/pipeline/domain/test_documents.py::test_the_operator_guide_sections_are_the_three_in_their_order` pins it. Fix: ask the human for leave to drop the constant and the earlier test that pins it, or make the per-file rules read their sections from it.
+    5. `tests/guards/test_operator_guide_files.py`, `_lines_outside_fences` and `_searched_files`: both copy the helpers of the same names in `tests/guards/test_project_guide_files.py:201` and `:232`, and `_guide_headings` follows the same pattern. Fix: the tester moves the shared helpers into a `tests/support/*_support.py` module under the standing leave, and both guard files use them.
+    6. `tests/support/document_texts.py:24-25`, `OPERATOR_INSTALL` and `OPERATOR_STOPS`: these are a second copy of the constants that `factory.shared.domain.documents` now exports under the same names. Fix: import them from there.
+    7. Work item, criteria 2 and 4: they no longer say what the human settled in entry 9, answer 6. Criterion 2 still says "exactly once", but `### The steps` is expected twice, as often as before. Criterion 4 still names only `docs/decisions.md` as excluded, but `docs/runs/` is excluded too. The Interface also names `tests/test_operator_site_check.py`, which is `tests/operator_scripts/test_operator_site_check.py`. Fix: rewrite criteria 2 and 4 and that Interface path to match entry 9. The docs criterion 6 cites them ("as criteria 1, 2 and 4").
+
+    Earlier tests (changed, status M):
+    - `tests/entry/test_check_documents.py`: the human's leave, entry 9 answer 5.
+    - `tests/entry/test_check_documents_guide_files.py`: the human's leave, entry 9 answer 5.
+    - `tests/pipeline/domain/test_documents.py`: the human's leave, entry 9 answer 5.
+    - `tests/shared/domain/test_documents_guide_files.py`: the human's leave, entry 9 answers 4 and 5.
+    - `tests/support/check_documents_support.py`: the human's leave, entry 9 answers 3 and 5.
+    - `tests/support/document_texts.py`: the human's leave, entry 9 answer 5.
+    - `tests/operator_scripts/test_operator_site_check.py`: the human's leave, entry 9 answer 5 (it reads `site.md`).
+    - `tests/guards/test_project_guide_files.py`: the human's leave, entry 14 point 1 (it leaves out `docs/operator-guide/` and has the `operator-guide/` lookbehind).
+
+    Checked and found sound: criterion 1 has its test. Criterion 2 has one row per heading, counted. Criterion 3 has six rows of one parametrized test, as the human's answer asks. Criterion 4 searches `src/`, `claude/`, `operator/`, `vm/`, `docs/` and `README.md`. All eleven files get the wording check (`TEXT_GUIDES`), and the stop rows are checked in `stops.md`. The `_RULES` table is a clean replacement for the `if` chain. The architecture holds (domain layer, no I/O). No markers silence a check and no secrets were added. The other five new `make duplicates` findings are outside this diff.
