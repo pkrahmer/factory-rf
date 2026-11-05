@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295, 6650280748, 6650410311]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T05:21:31.750103Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-11-05T05:21:31.750103Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-05T05:26:58.533432Z'
+  stage: doing
+  run: 8ece2276489e405985ed9e171a5cbe99
 ---
 
 # The root of `tests/` holds only its folders
@@ -342,3 +344,15 @@ Expect: `support.bill_support`
 
     End with `review`.
 19. factory: started doing as vm.
+20. coder: Coder, round 0, after the human's answer in entry 18. I changed no file. The tester's moves in entry 12 are the whole change: the root of `tests/` now holds only `conftest.py` and packages (`support/`, `guards/`, `operator_scripts/`, `vm/`, `agent_files/` and the area folders). Nothing under `src/` was needed, `git diff main -- src` is empty, and the working tree is clean. With no diff of mine, there was nothing to refactor.
+
+    `make check` is now green, `make secrets` included, because the human reworded the journal line (commit 8b857ce8e). It ended with `test: green (130.4 s)` at 99.26 % coverage and `check: green`.
+
+    Main choice: I handed forward as it stands and made no code change. The alternative I rejected was asking for a `.secrets.baseline` entry or a pragma; the human's rewording made that unnecessary.
+
+    The journal did not change the meaning of the task, so the Description stays as it is. Entries 15 and 18 only reworded the journal lines that detect-secrets flagged as false positives.
+
+    Noticed, not touched: the six mutmut `--deselect` paths in `pyproject.toml` still name the guards' old root paths. They now sit in `tests/guards/`. The human said in entry 15 that this change is theirs, to follow on `main` after the merge. It affects only `make mutants`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
