@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T10:04:26.893023Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-05T10:04:26.886302Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:04:26.893023Z'
+  stage: intake
+---
+
 # The removal guards look for a removed module in every area
 <!-- proposed by feature acceptance of 2026-11-05; refine before starting -->
 
@@ -80,3 +107,6 @@ grep -lw module_exists tests/guards/test_kernel_guard_removed.py tests/guards/te
 Expect: `0`
 
 ## Journal
+
+1. 2026-11-05 human: created.
+2. factory: started intake as vm.
