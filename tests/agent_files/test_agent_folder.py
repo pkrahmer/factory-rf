@@ -16,7 +16,7 @@ AGENT_FILE_NAMES = [
 
 
 def test_the_old_agent_folder_is_gone() -> None:
-    assert not (ROOT / "claude").exists()
+    assert [path for path in (ROOT / "claude").rglob("*") if path.is_file()] == []
 
 
 @pytest.mark.parametrize("name", AGENT_FILE_NAMES)

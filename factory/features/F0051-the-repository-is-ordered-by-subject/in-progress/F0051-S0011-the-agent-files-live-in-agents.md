@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T08:29:55.558531Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -159,6 +155,12 @@ journal:
   kind: started
   at: '2026-11-05T08:29:55.558531Z'
   stage: tests
+- number: 27
+  speaker: tester
+  kind: result
+  at: '2026-11-05T08:30:44.621772Z'
+  stage: tests
+  run: d945f6ec8cc24cf7af4e642e3601cf76
 ---
 
 # The agent files live in `agents/`
@@ -431,3 +433,10 @@ Expect: `1`
     - The human's steps on factory-vm after the merge (entry 11).
     - Criterion 6 is still open for the documenter.
 26. factory: started tests as vm.
+27. tester: I made the one test change that the human approved in entry 23 and the coder named in entry 25. `tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone` keeps its name. It no longer asserts that the folder `claude/` is missing. It now walks `claude/` with `rglob("*")` and asserts that it finds no file. If the folder is missing, the walk finds nothing and the test passes. If an empty folder is left, the test also passes.
+
+    Main choice: I walked the folder instead of running `git ls-files claude`, which was the human's other option. No test in this suite runs git on the repository root, and I don't know whether the check container's tree has a `.git` with an index that matches the taken files. A walk depends only on the files that are actually there. The cost: if a file that git does not track were left under `claude/`, the test would still fail. The human's answer allows this form ("no file under `claude/` exists when the folder is walked").
+
+    Files changed: `tests/agent_files/test_agent_folder.py` (one line). I created no files. The test runner imported every module. `uv run pytest -q tests/agent_files/test_agent_folder.py` passed all 9 tests, and `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
