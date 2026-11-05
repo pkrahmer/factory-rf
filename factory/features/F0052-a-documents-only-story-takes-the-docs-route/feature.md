@@ -1,5 +1,9 @@
 # A documents-only story takes the docs route
 
+## Before it starts
+
+Not started (the human, 2026-11-05): first a discussion of how versatile routes should be, so that this route is one case of a general rule and not a special one. Possible outcomes: routes chosen by the intake from a list in the pipeline definition, a route per kind of story, or this route as it stands. The stories below may change with it.
+
 ## Goal
 
 Every story takes the same route today: intake, tests, doing, review, docs, smoke test, approval. A story that changes only documents pays for a tester and a coder who have nothing to do, and a test over documents cannot even pass, because the check after `doing` runs before the documenter has written anything. In F0051 that cost about half of every documents-only story and one stall (`planning/f0051-candidates.md`, items 46 and 59). This feature gives such a story a route of its own: intake, then the documenter, then a reviewer who judges the writing, then the human's approval. A close at that approval sends the story back to the documenter, not to a coder. It also writes down how the documents are written, in a style page with a glossary, so that the documenter and the reviewer judge by the same rules (the human's choice of 2026-11-05, `planning/doc-style-drafts.md`). The rewrite of the guides to that style is the next feature, and it will take this route. Done when every story below is merged and `make check` is green.
