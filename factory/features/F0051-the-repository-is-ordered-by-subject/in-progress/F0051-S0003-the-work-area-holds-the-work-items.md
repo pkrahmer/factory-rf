@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T01:49:14.849032Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-05T01:49:14.849032Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-05T01:54:18.713204Z'
+  stage: doing
+  run: 308cabdb8428490bb36c3a77cfd54091
 ---
 
 # The work area holds the work items
@@ -255,3 +257,23 @@ Expect: `1`
 
     `lint`: lint: green (0.2 s)
 13. factory: started doing as vm.
+14. coder: Round 0, second doing run. The work was already done when this run started: my source move (entry 10) and the tester's test move (entry 12) are both committed. All I did was check it, and I changed nothing.
+
+    What was built (entry 10): `src/factory/work/__init__.py`, `src/factory/work/{domain,application,adapters}/__init__.py`, and the 14 modules moved to `src/factory/work/<layer>/<name>.py`. Every import of them under `src/` now uses the new path. The tester's entry 12 did the same for `tests/` and moved 34 test modules to `tests/work/`.
+
+    Checks this run:
+    - `git status` is clean.
+    - No old path of the 14 modules is left anywhere under `src/` or `tests/` (I searched outside `tests/test_areas.py`, which keeps the old paths on purpose).
+    - `make check` is green: `test: green (123.7 s)`, coverage 99.26 %, `check: green`.
+
+    Main choice (unchanged from entry 10): the coder moves `src/` and the tester moves and rewrites `tests/`, the same split S0002 used. I rejected leaving test edits in my working tree, because the factory drops them.
+
+    Refactor: nothing to change. The diff is only file moves and import lines.
+
+    Noticed, not touched:
+    - `security/duplicates-baseline.txt` still lists the old paths, so `make duplicates` reports the known findings of `work_item_markdown.py`, `move_rule.py` and the similar-code pairs as new under `factory.work.*`. That file is outside my write paths and needs the human, as it did for S0002.
+    - The docs that name old module paths are left for the docs stage (criterion 6).
+    - Three modules left in `tests/domain/` have names that sound like the work area: `test_archive_texts`, `test_journal_stamps` and `test_work_item_stop`. Criterion 4's test passes, so each of them imports from an area not yet moved.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 34 known, 8 gone
