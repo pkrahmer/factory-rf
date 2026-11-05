@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 576
 comments_read: [6672543099]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T23:54:38.184456Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-05T23:54:38.184456Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T23:55:11.639387Z'
+  stage: docs
+  run: 8d565ce8ac564685a645b51d6edf7fab
 ---
 
 # A guide rewrite may rename its headings and add a page
@@ -205,3 +207,24 @@ Expect: `1`
     - `tests/guards/test_operator_guide_files.py`: the human's leave, feature decision 7. `HEADINGS` and its test are removed, along with the imports this left unused.
     - `tests/support/guide_files_support.py`: the human's leave, through the story's Interface, which names this module for `index_problems`. `guide_headings` is removed because its only callers are the tests decision 7 removes.
 13. factory: started docs as vm.
+14. documenter: I changed two files, both documents, and `make documents` ended with `documents ok`. I did not run `make check`, because only documents changed.
+
+    Files changed:
+    - `docs/project-guide/README.md`, *The files*: added one sentence saying that the guard `tests/guards/test_project_guide_files.py` requires every page of the folder to be named in this section and every area to have its page, and that headings are free. This is criterion 5.
+    - `docs/decisions.md`: added the entry "The headings of the guides are not pinned". It gives the decision and the reason from the story's docs criterion. Its Rejected line (keeping the tables and changing their rows in each rewrite story) also comes from that criterion. I wrote no reason or rejected option of my own.
+
+    `docs/operator-guide/` is unchanged, as the criterion says: the operator does not run the guards.
+
+    Cross-read and found current against the diff, which only touches tests:
+    - `docs/project-guide/README.md`, including *Shared test helpers*. Its list of what `guards/` holds does not name the removed tables.
+    - `docs/decisions.md`.
+    - The mentions of headings in `docs/project-guide/agents.md`, `watching.md` and `work.md` (the section-finding rules of `factory.shared.domain.sections`, the agent-body headings). None of them concerns the guards' heading tables.
+    - `README.md`. It does not mention the guards.
+
+    Stale text I noticed and did not touch: the project guide's *The files* lines for `agents.md` and `machine.md` name sections called *Replaced in v1.2* and *Replaced from v1*. `docs/project-guide/style.md` rules 1 and 7 forbid those headings, and the earlier guard pinned them. This is for the rewrite stories to fix, now that the guard allows it.
+
+    No findings for the coder. The code agrees with the Interface and the criteria.
+
+    `check`: check: green (not run again: passed on tree 5cdeb20b9d50 at 2026-11-05T23:51:03Z)
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok
