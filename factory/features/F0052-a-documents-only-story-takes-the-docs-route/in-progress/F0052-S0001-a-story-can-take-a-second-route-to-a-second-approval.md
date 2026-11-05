@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T22:06:14.776990Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-11-05T22:06:09.499874Z'
   stage: review
   run: 1abcaa4340c844799b2cd4be3fb3d7a4
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:06:14.776990Z'
+  stage: docs
 ---
 
 # A story can take a second route to a second approval
@@ -264,3 +273,4 @@ Expect: `1`
     2. `tests/pipeline/application/test_docs_route.py:151`: the criterion 1 test repeats the three steps of `_walk_docs_route` inline so that it can record each stage and label. A `_walk_docs_route` that returns the states it reached would serve both.
 
     Earlier tests: none. The diff only adds `tests/pipeline/application/test_docs_route.py` (status `A`) and changes no test file that `main` already holds.
+18. factory: started docs as vm.
