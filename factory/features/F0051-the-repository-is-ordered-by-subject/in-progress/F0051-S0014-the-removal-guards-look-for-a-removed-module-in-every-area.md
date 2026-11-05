@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T10:27:54.286137Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-11-05T10:27:54.286137Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T10:28:36.433649Z'
+  stage: smoke-test
+  run: 142bf4eb4d3a44efa8b78e52a3be459e
 ---
 
 # The removal guards look for a removed module in every area
@@ -425,3 +427,30 @@ Expect: `0`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok
 23. factory: started smoke-test as vm.
+24. smoke-tester: Smoke test, round 1. I ran the three commands under `## Smoke test` from the repository root, as written and in order. Each one met its `Expect:` line. I fixed nothing.
+
+    Command 1: `module_exists_anywhere` on `factory.domain.errors` and `factory.adapters.landlock`
+    ```
+    True False
+    ```
+    Met `Expect: True False`. The exit status was 0.
+
+    Command 2: pytest over `test_module_names.py`, `test_removal_guards_search.py` and `test_kernel_guard_removed.py`, last line piped into `grep -c passed`
+    ```
+    1
+    ```
+    Met `Expect: 1`. I ran the same pytest once more without the pipe to see the line it counts: `35 passed in 0.85s`.
+
+    Command 3: `grep -lw module_exists` over the kernel guard, docker path and undo guards, piped into `wc -l`
+    ```
+    0
+    ```
+    Met `Expect: 0`.
+
+    Acceptance criteria, checked against the smoke test:
+    - Criteria 1 and 2: command 1 matches the rows for old layer paths (`factory.domain.errors` is found in an area and is True; `factory.adapters.landlock` is False). The helper tests in `tests/guards/test_module_names.py` pass in command 2.
+    - Criterion 3: the test in `tests/guards/test_removal_guards_search.py` passes. As an extra check I ran `grep -rlw module_exists tests/`. It lists only `tests/support/module_names.py`, which defines the helper, and `tests/guards/test_removal_guards_search.py`, the new guard that looks for calls to it. None of the changed removal guards calls `module_exists` any more.
+    - Criterion 4 (`make check`) and criterion 5 (docs): the smoke test does not cover them, and nothing it showed contradicts them.
+    - `git status` showed no changes in the working tree after the run.
+
+    Findings: none.
