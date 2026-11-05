@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 557
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T01:15:41.042824Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-05T01:15:41.042824Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-11-05T01:20:48.234906Z'
+  stage: doing
+  run: 8101208270174e28af54fe04f814b89f
 ---
 
 # The hosting area holds git and the hosting service
@@ -211,3 +213,19 @@ Expect: `1`
 
    `lint`: lint: green (0.1 s)
 10. factory: started doing as vm.
+11. coder: Round 0, second pass in doing. The tester has made the four test changes I named in entry 7. I changed no code this time. The source move from entry 7 is already committed: 4 new packages under `src/factory/hosting/`, the 11 modules moved with `git mv` to `src/factory/hosting/<layer>/<name>.py`, and every import under `src/` rewritten to the new paths. I ran `make check` on the committed state with a clean working tree and it passed (`test: green (122.0 s)`, total coverage 99.26 %, `check: green`).
+
+    What I built: nothing new in this pass. The paths are the ones in entry 7: `src/factory/hosting/{__init__,domain/__init__,application/__init__,adapters/__init__}.py`, `src/factory/hosting/domain/{git,hosting,hand_over,post_texts}.py`, `src/factory/hosting/application/{git,hosting,pushes,opening}.py` and `src/factory/hosting/adapters/{git_cli,pygithub_hosting,fake_hosting}.py`.
+
+    Main choice: I moved the modules straight across, with nothing left at the old paths. I rejected re-export shims, because feature decision 4 forbids them and criterion 1 checks that the old files are gone.
+
+    Refactor: the diff is moves and import lines only, so nothing needed changing.
+
+    Noticed, not touched:
+    - `security/duplicates-baseline.txt` still names the old paths `src/factory/adapters/fake_hosting.py` and `src/factory/domain/git.py`. So `make duplicates` reports some known findings as both new and gone. That file is in no role's write paths, so only the human can update it.
+    - In `tests/adapters/test_work_item_markdown.py`, the module filter `name.split(".")[1:2]` does not look inside area packages, and that gap now includes `factory.hosting.*`.
+
+    Description unchanged: no journal entry changed what the task means.
+
+    `check`: check: green
+    `duplicates`: duplicates: 13 new, 32 known, 11 gone
