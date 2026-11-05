@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T09:29:53.888879Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -116,6 +120,11 @@ journal:
   at: '2026-11-05T09:29:48.495394Z'
   stage: doing
   run: 1b1622da5a2f46f6970d6dc2c9fbfd4b
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-05T09:29:53.888879Z'
+  stage: tests
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -332,3 +341,4 @@ Expect: `parsed`
     - The directory-rename gap in `ZfsSnapshots._read_diff_line` (`src/factory/machine/adapters/zfs_snapshots.py`) is worth a story of its own.
     - Criterion 3 in the Description still lacks the human's wording "other than `docs/decisions.md` and `docs/runs/`" (entry 6). The work item is outside the coder's write paths.
     - The rest of criterion 5 (*The layout* in `docs/project-guide/operator.md` and the `docs/decisions.md` entry) is the documenter's.
+20. factory: started tests as vm.
