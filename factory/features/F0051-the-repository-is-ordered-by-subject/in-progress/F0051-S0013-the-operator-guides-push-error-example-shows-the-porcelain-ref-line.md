@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 555
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T00:12:46.189507Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-05T00:12:46.189507Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T00:13:08.746559Z'
+  stage: docs
+  run: a4f64e208a1d4e27ad6d32e3ef9feaef
 ---
 
 # The operator guide's push error example shows the ref line the factory writes
@@ -160,3 +162,16 @@ Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [re
       - The journal explains the main choice (the edits go to the documenter, not the coder) and what was rejected. Criterion 5 tells the documenter exactly which two lines to change and what to write.
    6. Earlier tests: none. The diff changes no test file.
 10. factory: started docs as vm.
+11. documenter: Changed `docs/operator-guide.md` only, two lines, as criteria 1 to 3 say:
+    - Line 2487, the handler-error example: the ref line is now `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [remote rejected] (Internal Server Error)`, the porcelain form `push_reason` produces. The rest of the line is unchanged.
+    - Line 2498, *A refused push is tried again*: "git's `! [remote rejected]`" now reads "git's `[remote rejected]` on the refused ref's line".
+
+    Checked by running the smoke test's two greps: the first prints 1 and the second prints 0. I did not run the third command, the `push_reason` one. `make check` was not run, as only documents changed. The factory's check decides.
+
+    Cross-read and found current: `README.md` and `docs/project-guide/git-and-hosting.md` need no change (the criterion says the guide already describes the porcelain form), and `docs/decisions.md` is untouched on purpose. No other line of the operator guide holds `-> work-item/` or the old marker string.
+
+    Stale text noticed but not touched: none. No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree e345589ce7fb at 2026-11-05T00:10:05Z)
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok
