@@ -5,9 +5,6 @@ from pathlib import Path
 from bill_support import completed_records, sidecar_text
 from factory.application.boundaries import Boundaries
 from factory.application.tick import Tick, TickOutcome
-from factory.application.watcher import Watcher
-from factory.domain.board import AcceptanceStatus
-from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event, EventKind
 from factory.entry.wiring import handler_factory
 from factory.hosting.adapters.fake_hosting import FakeHostingService
@@ -18,6 +15,9 @@ from factory.shared.domain.paths import (
     feature_file_path,
     work_item_path,
 )
+from factory.watching.application.watcher import Watcher
+from factory.watching.domain.board import AcceptanceStatus
+from factory.watching.domain.cost_records import CostRecord
 from factory.work.application.acceptance_reading import AcceptanceReader
 from factory.work.domain.acceptance import AcceptanceState
 from factory.work.domain.journal import FACTORY, NewEntry, append_entry, entry_text

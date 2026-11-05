@@ -9,8 +9,6 @@ import pytest
 from bill_support import completed_records, sidecar_text
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.merged import MergedHandler
-from factory.domain.bills import bill
-from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
@@ -18,6 +16,8 @@ from factory.hosting.domain.post_texts import done_entry_text
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import PushFailed
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.watching.domain.bills import bill
+from factory.watching.domain.cost_records import CostRecord
 from factory.work.domain.journal import (
     FACTORY,
     HUMAN,

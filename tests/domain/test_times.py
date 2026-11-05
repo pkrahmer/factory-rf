@@ -7,11 +7,11 @@ from datetime import UTC, datetime, timedelta, timezone
 import pytest
 from pydantic import ValidationError
 
-from factory.domain.cost_records import CostRecord
 from factory.domain.stops import RepositoryStop
 from factory.hosting.domain.git import CommitInfo
 from factory.hosting.domain.hosting import PullRequestComment
 from factory.shared.domain.times import in_utc
+from factory.watching.domain.cost_records import CostRecord
 from factory.work.domain.work_item import Claim
 from source_search import modules
 
@@ -20,7 +20,7 @@ NAIVE = datetime(2026, 10, 12, 12, 0)
 IN_UTC = datetime(2026, 10, 12, 12, 0, tzinfo=UTC)
 
 MODELS_WITH_TIMES = (
-    "factory.domain.cost_records",
+    "factory.watching.domain.cost_records",
     "factory.hosting.domain.git",
     "factory.hosting.domain.hosting",
     "factory.domain.stops",

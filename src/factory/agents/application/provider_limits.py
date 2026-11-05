@@ -10,7 +10,7 @@ from factory.agents.domain.agent_runs import (
     resumed_result,
 )
 from factory.application.boundaries import Boundaries
-from factory.application.machine import Waiter
+from factory.watching.application.machine import Waiter
 
 CONTINUE_PROMPT = (
     "The provider's spend limit stopped your run. Continue the work where you stopped, "

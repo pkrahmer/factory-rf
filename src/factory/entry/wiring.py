@@ -12,19 +12,13 @@ from datetime import timedelta
 from pathlib import Path
 
 from factory.adapters.copy_snapshots import CopySnapshots
-from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.disk_space import ShutilDiskSpace
-from factory.adapters.factory_log import TimestampedFactoryLog
-from factory.adapters.health_file import JsonHealthStatusFile
-from factory.adapters.machine_files import CgroupMachineReadings
 from factory.adapters.make_commands import ContainerMakeCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.podman_images import PodmanImages
 from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.power_off import ProcessExit, SystemctlPowerOff
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
-from factory.adapters.transcript_files import FileTranscriptStore
 from factory.adapters.zfs_snapshots import DROP_CACHES_COMMAND, ZfsSnapshots
 from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
@@ -36,7 +30,6 @@ from factory.agents.application.tokens import TokenRefresher, TokenSource
 from factory.agents.domain.agent_runs import scrub_environment
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
-from factory.application.costs import BillService
 from factory.application.dispatcher import Handler
 from factory.application.handlers.closed import ClosedHandler
 from factory.application.handlers.comments import CommentHandler
@@ -49,7 +42,6 @@ from factory.application.handlers.run import RunHandler
 from factory.application.handlers.run_gate import RunGate
 from factory.application.idle_shutdown import IdleShutdown
 from factory.application.images import IMAGE_BUILD_TIME_LIMIT, ImageBuild, Images
-from factory.application.machine import Clock, FactoryLog, HealthStatusStore, PowerOff
 from factory.application.machine_stop_exit import MachineStopExit
 from factory.application.preflight import (
     MachineChecks,
@@ -81,7 +73,6 @@ from factory.domain.containers import (
 from factory.domain.disk import DiskRecord
 from factory.domain.events import EventKind
 from factory.domain.known_results import ResultRecord
-from factory.domain.machine import gigabytes
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.preflight import PreflightItem
 from factory.domain.stage_layer import (
@@ -114,6 +105,18 @@ from factory.shared.domain.settings import (
     read_setting_file,
     read_settings,
 )
+from factory.watching.adapters.cost_records_jsonl import (
+    JsonLinesCostRecordReader,
+    JsonLinesCostRecordWriter,
+)
+from factory.watching.adapters.factory_log import TimestampedFactoryLog
+from factory.watching.adapters.health_file import JsonHealthStatusFile
+from factory.watching.adapters.machine_files import CgroupMachineReadings
+from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
+from factory.watching.adapters.transcript_files import FileTranscriptStore
+from factory.watching.application.costs import BillService
+from factory.watching.application.machine import Clock, FactoryLog, HealthStatusStore, PowerOff
+from factory.watching.domain.machine import gigabytes
 from factory.work.adapters.work_item_markdown import (
     FrontmatterWorkItemReader,
     FrontmatterWorkItemWriter,

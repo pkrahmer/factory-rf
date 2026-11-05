@@ -10,7 +10,6 @@ from bill_support import completed_records, sidecar_text
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.application.handlers.hand_over import HandOverHandler
-from factory.domain.bills import bills_by_stage, cost_table
 from factory.domain.events import Event
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.adapters.fake_hosting import FakeHostingService
@@ -19,6 +18,7 @@ from factory.hosting.domain.hosting import render_post
 from factory.hosting.domain.post_texts import cost_table_post
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import cost_records_path
+from factory.watching.domain.bills import bills_by_stage, cost_table
 from factory.work.application.acceptance import AcceptanceHandOver, AcceptanceService
 from factory.work.domain.acceptance import AcceptanceState
 from factory.work.domain.journal import FACTORY, HUMAN, JournalRecord

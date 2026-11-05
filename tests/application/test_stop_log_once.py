@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.stops import StopService
 from factory.domain.stops import RepositoryStop, StopRecord
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
+from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from log_support import log_lines
 
 FIRST = "origin unreachable"

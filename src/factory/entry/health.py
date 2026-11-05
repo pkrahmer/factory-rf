@@ -4,10 +4,10 @@ import argparse
 from collections.abc import Sequence
 from pathlib import Path
 
-from factory.application.machine import HealthStatusStore
 from factory.domain.stops import RepositoryStop
 from factory.entry.wiring import health_file, health_store
 from factory.shared.domain.settings import STATE_DIRECTORY
+from factory.watching.application.machine import HealthStatusStore
 
 _PROGRAM = "factory-health"
 _HEALTHY = 0

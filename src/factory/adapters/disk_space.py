@@ -6,7 +6,7 @@ import stat
 from pathlib import Path
 from typing import override
 
-from factory.application.machine import DiskSpace
+from factory.watching.application.machine import DiskSpace
 
 
 class ShutilDiskSpace(DiskSpace):

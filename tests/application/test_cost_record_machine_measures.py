@@ -11,9 +11,9 @@ from disk_support import FakeDiskSpace
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
-from factory.application.costs import CostRecorder, CostRun
-from factory.domain.cost_records import CostRecord, MachineMeasures
-from factory.domain.machine import MachineTotals
+from factory.watching.application.costs import CostRecorder, CostRun
+from factory.watching.domain.cost_records import CostRecord, MachineMeasures
+from factory.watching.domain.machine import MachineTotals
 from human_clone import HumanClone
 from machine_readings_support import FakeMachineReadings
 

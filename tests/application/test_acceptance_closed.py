@@ -8,9 +8,6 @@ import pytest
 
 from bill_support import completed_records, sidecar_text
 from factory.application.boundaries import Boundaries
-from factory.domain.bills import bill
-from factory.domain.board import AcceptanceStatus
-from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event, EventKind
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.adapters.fake_hosting import FakeHostingService
@@ -22,6 +19,9 @@ from factory.shared.domain.errors import CannotHandle, PushFailed
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.shared.domain.paths import cost_records_path
 from factory.shared.domain.sections import section_text
+from factory.watching.domain.bills import bill
+from factory.watching.domain.board import AcceptanceStatus
+from factory.watching.domain.cost_records import CostRecord
 from factory.work.application.acceptance import AcceptanceClosed, AcceptanceService
 from factory.work.application.acceptance_reading import AcceptanceReader
 from factory.work.domain.acceptance import RECOMMENDATION, AcceptanceState, book_refusal

@@ -6,17 +6,8 @@ from pathlib import Path
 
 from factory.agents.application.agent_runtime import AgentDefinitionReader, AgentRuntime
 from factory.application.containers import ContainerRuns
-from factory.application.machine import (
-    Clock,
-    DiskSpace,
-    FactoryLog,
-    HealthStatusStore,
-    MachineReadings,
-    Waiter,
-)
 from factory.application.project_commands import ProjectCommands
 from factory.application.snapshots import Snapshots
-from factory.application.transcripts import TranscriptStore
 from factory.domain.containers import SYSTEM_PATH
 from factory.domain.disk import DiskRecord
 from factory.domain.known_results import ResultRecord
@@ -32,6 +23,15 @@ from factory.shared.application.files import (
     WorkItemWriter,
 )
 from factory.shared.domain.settings import InstanceSettings
+from factory.watching.application.machine import (
+    Clock,
+    DiskSpace,
+    FactoryLog,
+    HealthStatusStore,
+    MachineReadings,
+    Waiter,
+)
+from factory.watching.application.transcripts import TranscriptStore
 
 
 # Keyword-only so that a field added later never shifts the meaning of an argument.

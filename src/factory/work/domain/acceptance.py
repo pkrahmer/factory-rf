@@ -6,8 +6,6 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
-from factory.domain.bills import Bill, cost_line
-from factory.domain.board import AcceptanceStatus
 from factory.domain.pipeline_definition import DONE_STAGE, PipelineDefinition
 from factory.hosting.domain.post_texts import done_entry_text
 from factory.shared.domain.identifiers import (
@@ -25,6 +23,8 @@ from factory.shared.domain.sections import (
     section_text,
     split_lines,
 )
+from factory.watching.domain.bills import Bill, cost_line
+from factory.watching.domain.board import AcceptanceStatus
 from factory.work.domain.journal import (
     FACTORY,
     HUMAN,

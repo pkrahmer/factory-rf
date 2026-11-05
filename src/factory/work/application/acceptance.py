@@ -5,7 +5,6 @@ from datetime import UTC, date
 from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
-from factory.application.costs import read_cost_records
 from factory.application.disk_records import DiskRecorder
 from factory.application.dispatcher import Handler
 from factory.application.handlers.comments import CommentCopier
@@ -17,11 +16,8 @@ from factory.application.handlers.recording import (
     require_pull_request,
     target_of,
 )
-from factory.domain.bills import bill, bills_by_stage, cost_line, cost_table
-from factory.domain.cost_records import CostRecord
 from factory.domain.disk import disk_line
 from factory.domain.events import Event
-from factory.domain.human_waits import HumanWait, human_line, human_waits
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.application.pushes import push_failure
 from factory.hosting.domain.git import CommitId
@@ -43,6 +39,10 @@ from factory.shared.domain.paths import (
     work_item_path,
 )
 from factory.shared.domain.sections import title
+from factory.watching.application.costs import read_cost_records
+from factory.watching.domain.bills import bill, bills_by_stage, cost_line, cost_table
+from factory.watching.domain.cost_records import CostRecord
+from factory.watching.domain.human_waits import HumanWait, human_line, human_waits
 from factory.work.application.acceptance_reading import AcceptanceReader
 from factory.work.application.work_items import read_feature_file
 from factory.work.domain.acceptance import (

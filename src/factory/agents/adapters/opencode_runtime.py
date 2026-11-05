@@ -61,8 +61,6 @@ from factory.agents.domain.opencode_provider import provider_configuration, read
 from factory.agents.domain.provider_limits import ProviderLimit, limit_in_text, named_wait
 from factory.agents.domain.tool_uses import opencode_tool_uses
 from factory.application.containers import ContainerRuns
-from factory.domain.cost_records import ToolUse
-from factory.domain.transcripts import Transcript, transcript_lines
 from factory.shared.adapters.process import (
     ProcessRequest,
     ProcessResult,
@@ -72,6 +70,8 @@ from factory.shared.adapters.process import (
 )
 from factory.shared.domain.errors import AgentRuntimeError
 from factory.shared.domain.kill_points import KillPoints
+from factory.watching.domain.cost_records import ToolUse
+from factory.watching.domain.transcripts import Transcript, transcript_lines
 
 CONFIG_VARIABLE = "OPENCODE_CONFIG"
 AGENT_PREFIX = "factory-"

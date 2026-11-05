@@ -13,8 +13,6 @@ from factory.application.dispatcher import Dispatcher, DispatchOutcome, Handler
 from factory.application.handlers.hand_over import HandOverHandler
 from factory.application.handlers.recording import commit_subject
 from factory.application.stops import StopService
-from factory.domain.bills import bills_by_stage, cost_table
-from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event
 from factory.domain.tick_status import TickStatus
 from factory.hosting.adapters.fake_hosting import FakeHostingService
@@ -26,6 +24,8 @@ from factory.hosting.domain.post_texts import cost_table_post
 from factory.shared.domain.errors import CannotHandle, HostingServiceError
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.shared.domain.paths import cost_records_path
+from factory.watching.domain.bills import bills_by_stage, cost_table
+from factory.watching.domain.cost_records import CostRecord
 from factory.work.domain.journal import HUMAN, JournalRecord
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from git_support import remote_commit

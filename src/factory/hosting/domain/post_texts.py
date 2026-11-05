@@ -7,9 +7,9 @@ import re
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from factory.domain.bills import Bill, cost_line
 from factory.hosting.domain.git import CommitId
 from factory.shared.domain.identifiers import WorkItemId
+from factory.watching.domain.bills import Bill, cost_line
 
 if TYPE_CHECKING:
     from factory.work.domain.decisions import StallReason

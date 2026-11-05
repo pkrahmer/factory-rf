@@ -10,7 +10,6 @@ import pytest
 from branch_reading import push_state
 from definition_support import pipeline_definition
 from factory.application.boundaries import Boundaries
-from factory.application.watcher import Watcher
 from factory.domain.events import Event
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
@@ -19,6 +18,7 @@ from factory.hosting.domain.hosting import PullRequestComment, PullRequestView
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import GitError
 from factory.shared.domain.identifiers import branch_name
+from factory.watching.application.watcher import Watcher
 from factory.work.domain.work_item import Claim, WorkItemState, initial_state
 from git_support import TEST_IDENTITY, remote_commit, run_git
 from human_clone import HumanClone

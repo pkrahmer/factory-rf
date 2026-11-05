@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.health_file import JsonHealthStatusFile
 from factory.application.boundaries import Boundaries
 from factory.application.stops import StopService
 from factory.domain.stops import HealthStatus, RepositoryStop, RepositoryStopReason, StopScope
 from factory.entry.health import main
 from factory.shared.adapters.process import ProcessRequest, run_process
+from factory.watching.adapters.health_file import JsonHealthStatusFile
 
 AT = datetime(2026, 10, 12, 12, 0, tzinfo=UTC)
 MAKE_MISSING = RepositoryStop(

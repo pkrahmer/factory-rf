@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from typing import Literal, get_args
 
-from factory.application.machine import FactoryLog
 from factory.application.stops import StopService
 from factory.domain.events import Event, EventKind
 from factory.domain.stops import WorkItemStop
@@ -23,6 +22,7 @@ from factory.hosting.domain.hosting import PostKey
 from factory.hosting.domain.post_texts import error_report_text
 from factory.shared.domain.errors import HostingServiceError, UnhandledEvent
 from factory.shared.domain.sections import title
+from factory.watching.application.machine import FactoryLog
 from factory.work.domain.work_item import WorkItemSnapshot
 
 DispatchOutcome = Literal["handled", "error", "reported", "capped"]

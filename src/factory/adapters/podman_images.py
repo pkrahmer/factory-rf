@@ -9,11 +9,11 @@ from pathlib import Path
 from factory.adapters.podman_runs import PODMAN_TIME_LIMIT, run_podman
 from factory.application.images import ImageBuild, Images
 from factory.domain.containers import JOB_PODMAN_OPTIONS, SYSTEM_PATH
-from factory.domain.machine import count_warnings
 from factory.domain.stage_layer import StageLayer
 from factory.shared.adapters.printed_output import failure_detail
 from factory.shared.domain.errors import ContainerError
 from factory.shared.domain.settings import ContainerProfileName
+from factory.watching.domain.machine import count_warnings
 
 BUILD_OUTPUT_TAIL_LINES = 20
 

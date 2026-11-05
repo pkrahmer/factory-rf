@@ -6,10 +6,10 @@ import pytest
 
 from acceptance_walk import FEATURE, FIRST, TODO, AcceptanceWalk, report_of
 from factory.application.boundaries import Boundaries
-from factory.domain.board import AcceptanceStatus
 from factory.shared.domain.errors import CannotHandle
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import feature_file_path, work_item_path
+from factory.watching.domain.board import AcceptanceStatus
 from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.work.application.acceptance import AcceptanceService
 from factory.work.application.acceptance_reading import AcceptanceReader

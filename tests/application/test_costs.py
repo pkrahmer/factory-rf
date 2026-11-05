@@ -12,7 +12,6 @@ from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, Scripte
 from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult, EndReason, TokenCounts
 from factory.application.boundaries import Boundaries
 from factory.application.stage import LaunchedStage, StageLauncher, StageReport, StageRunner
-from factory.domain.cost_records import CostRecord
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.application.git import Git
 from factory.hosting.application.opening import WorkItemOpening
@@ -21,6 +20,7 @@ from factory.shared.adapters.clock import ManualClock
 from factory.shared.application.files import CostRecordReader
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import cost_records_path
+from factory.watching.domain.cost_records import CostRecord
 from factory.work.domain.journal import JournalRecord
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, install_agents, remote_commit

@@ -6,13 +6,13 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.transcript_files import FileTranscriptStore
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
-from factory.domain.cost_records import ToolUse
-from factory.domain.transcripts import Transcript
+from factory.watching.adapters.transcript_files import FileTranscriptStore
+from factory.watching.domain.cost_records import ToolUse
+from factory.watching.domain.transcripts import Transcript
 from human_clone import HumanClone
 from stage_run_support import open_story, pushed_cost_records, pushed_cost_text, run_stage
 from tool_use_support import Call, claude_lines, transcript_of

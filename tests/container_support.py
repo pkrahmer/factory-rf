@@ -19,11 +19,11 @@ from factory.application.snapshots import Snapshots
 from factory.application.stage import StageReport
 from factory.application.stage_environment import ContainerEnvironment
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
-from factory.domain.cost_records import ToolUse
-from factory.domain.transcripts import Transcript
 from factory.hosting.domain.git import ChangedPath, CommitId
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
+from factory.watching.domain.cost_records import ToolUse
+from factory.watching.domain.transcripts import Transcript
 from git_support import install_agents, run_git, write_files
 from human_clone import HumanClone
 from podman_support import IMAGE

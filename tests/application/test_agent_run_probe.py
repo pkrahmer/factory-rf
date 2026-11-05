@@ -26,10 +26,10 @@ from factory.application.preflight import (
     agent_run_probe_item,
 )
 from factory.application.stops import StopService
-from factory.domain.cost_records import ToolUse
-from factory.domain.transcripts import Transcript
 from factory.shared.domain.errors import AgentRuntimeError
 from factory.shared.domain.settings import InstanceSettings
+from factory.watching.domain.cost_records import ToolUse
+from factory.watching.domain.transcripts import Transcript
 from git_support import install_agents
 from human_clone import HumanClone
 from probe_support import COMPLETED, ENVIRONMENT

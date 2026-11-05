@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Literal, Self, TypedDict, Unpack
 
 from pydantic import BaseModel, ConfigDict, PositiveInt, field_validator, model_validator
 
-from factory.domain.cost_records import RunId
 from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.identifiers import Name
 from factory.shared.domain.sections import (
@@ -21,6 +20,7 @@ from factory.shared.domain.sections import (
     split_lines,
 )
 from factory.shared.domain.times import UtcDatetime
+from factory.watching.domain.cost_records import RunId
 
 if TYPE_CHECKING:
     from factory.work.domain.work_item import WorkItemDocument, WorkItemState

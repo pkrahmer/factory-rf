@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult
-from factory.domain.cost_records import ToolUse
-from factory.domain.transcripts import Transcript
+from factory.watching.domain.cost_records import ToolUse
+from factory.watching.domain.transcripts import Transcript
 
 
 class AgentRuntime(ABC):

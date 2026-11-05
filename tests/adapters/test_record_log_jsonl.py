@@ -3,10 +3,10 @@
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.domain.checks import TargetTime
 from factory.domain.command_records import CommandRecord
 from factory.shared.application.files import RecordLog
+from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 
 STARTED_AT = datetime(2026, 10, 17, 9, 0, tzinfo=UTC)
 

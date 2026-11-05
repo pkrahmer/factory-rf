@@ -6,8 +6,8 @@ import pytest
 
 from factory.agents.domain.agent_runs import AgentRunResult, Login
 from factory.application.boundaries import Boundaries
-from factory.application.costs import CostRecorder, CostRun
-from factory.domain.cost_records import CostRecord
+from factory.watching.application.costs import CostRecorder, CostRun
+from factory.watching.domain.cost_records import CostRecord
 
 SIDECAR = "F0001-S0001-first.costs.jsonl"
 

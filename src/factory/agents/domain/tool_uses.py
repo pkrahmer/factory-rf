@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 
-from factory.domain.cost_records import TOOL_NAME_PATTERN, ToolUse
+from factory.watching.domain.cost_records import TOOL_NAME_PATTERN, ToolUse
 
 OTHER_TOOL = "other"
 

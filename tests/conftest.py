@@ -18,14 +18,10 @@ from container_support import Dataset, container_dataset, fake_dataset
 from definition_support import pipeline_definition
 from disk_support import FakeDiskSpace
 from factory.adapters import podman_runs
-from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
-from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.fake_containers import FakeContainerRuns
-from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.podman_runs import PodmanRuns
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.agents.adapters import claude_runtime
 from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.agents.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
@@ -45,6 +41,13 @@ from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from factory.shared.domain.identifiers import WorkItemId
 from factory.shared.domain.kill_points import KillPoints
 from factory.shared.domain.settings import InstanceSettings
+from factory.watching.adapters.cost_records_jsonl import (
+    JsonLinesCostRecordReader,
+    JsonLinesCostRecordWriter,
+)
+from factory.watching.adapters.factory_log import TimestampedFactoryLog
+from factory.watching.adapters.health_file import JsonHealthStatusFile
+from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.work.adapters.work_item_markdown import (
     FrontmatterWorkItemReader,
     FrontmatterWorkItemWriter,

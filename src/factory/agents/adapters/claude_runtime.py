@@ -59,11 +59,11 @@ from factory.agents.domain.agent_runs import (
 from factory.agents.domain.provider_limits import ProviderLimit, limit_in_text, named_wait
 from factory.agents.domain.tool_uses import claude_tool_uses
 from factory.application.containers import ContainerRuns
-from factory.domain.cost_records import ToolUse
-from factory.domain.transcripts import Transcript, transcript_lines
 from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.shared.domain.errors import AgentRuntimeError
 from factory.shared.domain.kill_points import KillPoints
+from factory.watching.domain.cost_records import ToolUse
+from factory.watching.domain.transcripts import Transcript, transcript_lines
 
 # These names moved to the shared launch module; earlier callers still import them here.
 __all__ = [

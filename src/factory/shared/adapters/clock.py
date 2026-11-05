@@ -4,7 +4,7 @@ import time
 from datetime import UTC, datetime, timedelta
 from typing import override
 
-from factory.application.machine import Clock, Waiter
+from factory.watching.application.machine import Clock, Waiter
 
 
 class SystemClock(Clock):
