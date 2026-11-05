@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T21:59:54.807147Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-05T21:59:54.807147Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-11-05T22:05:13.335393Z'
+  stage: doing
+  run: db3000ac829a46cb9a795673c2d8522f
 ---
 
 # A story can take a second route to a second approval
@@ -211,3 +213,14 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 14. factory: started doing as vm.
+15. coder: Round 1: I checked the tester's changes from entry 13 and changed no code. `make check` passed on the committed state (`check: green`, `test: green (132.7 s)`, coverage 99.26 %). Before I started, `git status --short` showed no changes in the working tree.
+
+    - **What I built:** nothing. All 15 tests in `tests/pipeline/application/test_docs_route.py` pass against today's code, including the new criterion 8 rows `second-at-the-cap` and `third-past-the-cap`. On the `TWO_ROUTES` definition, `send_back_cap` (`factory.work.domain.send_back`) already takes the cap from `docs-review`, and `ClosedHandler._send_back` (`src/factory/pipeline/application/handlers/closed.py`) already blocks a close past that cap with `send_back`. The walk found no fault, so there is no fix to name.
+    - **Main decision:** I left `is_before_approval`, `send_back_target` and `send_back_cap` unchanged. I decided against guarding them against other stage orders: no test asks for it, and it goes beyond the description (R13).
+    - **Reviewer's findings from entry 9:** all three were test changes, and the tester made them in entry 13. None of them needed code.
+    - **Refactor:** my diff is empty, so there was nothing to refactor.
+    - **Description:** the reviewer had already rewritten it, naming `send_back_cap` and adding criterion 8. Nothing else in the journal changes what the task means.
+    - **Noticed but did not touch:** the docs criterion (10) is still open for the docs stage.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
