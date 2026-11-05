@@ -2484,7 +2484,7 @@ What to do about it:
 Every counted error also writes one line to the factory log, so that the first two errors, which post nothing, can be read:
 
 ```text
-2026-11-04T09:40:41Z handler error <event key> 2 of 3: PushFailed: push of work-item/F0001-S0001 failed: rejected: remote: Internal Server Error | ! [remote rejected] work-item/F0001-S0001 -> work-item/F0001-S0001 (Internal Server Error)
+2026-11-04T09:40:41Z handler error <event key> 2 of 3: PushFailed: push of work-item/F0001-S0001 failed: rejected: remote: Internal Server Error | ! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [remote rejected] (Internal Server Error)
 ```
 
 The line reads `handler error <event key> <n> of <cap>: <exception type>: <text>`. The text is on one line (line breaks become spaces) and at most 300 characters. Only the line is new: the counting and the cap of three are as above.
@@ -2495,7 +2495,7 @@ If the work item's branch is not on the remote, no pull request can be opened fo
 
 ### A refused push is tried again
 
-The push of a stage's result and the push of a change the factory records (a crash, an expiry, the hand-over's record, the archive of a merge) are tried again when the remote may take them after a wait. Only two failures count: a refusal by the server (git's `! [remote rejected]`, for example `Internal Server Error`) and a remote that cannot be reached. The factory waits 5 s and pushes again, then 15 s, then 45 s; each wait writes `push: retry <n> of 3 in <s> s: <reason>` to the factory log. The push is the same command each time, on the same commit: no force, no rebase, no new commit. If the fourth push fails too, `PushFailed` is raised as before, and the stage's crash or the event's error is counted as before.
+The push of a stage's result and the push of a change the factory records (a crash, an expiry, the hand-over's record, the archive of a merge) are tried again when the remote may take them after a wait. Only two failures count: a refusal by the server (git's `[remote rejected]` on the refused ref's line, for example `Internal Server Error`) and a remote that cannot be reached. The factory waits 5 s and pushes again, then 15 s, then 45 s; each wait writes `push: retry <n> of 3 in <s> s: <reason>` to the factory log. The push is the same command each time, on the same commit: no force, no rebase, no new commit. If the fourth push fails too, `PushFailed` is raised as before, and the stage's crash or the event's error is counted as before.
 
 A rejection with `! [rejected]` (`non-fast-forward`, `fetch first`) is not tried again: the remote moved, and a wait does not change that. It fails at once, as does the push of a stall, which is never tried again.
 
