@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 557
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T01:25:52.888950Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-05T01:25:47.443639Z'
   stage: review
   run: 1010ee9a1c9b484caeb8c7a9068ac237
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:25:52.888950Z'
+  stage: docs
 ---
 
 # The hosting area holds git and the hosting service
@@ -483,3 +492,4 @@ Expect: `1`
     - tests/domain/test_settings.py -> tests/hosting/domain/test_settings.py: FD5, git mv and import lines
     - tests/domain/test_stall_note_block.py -> tests/hosting/domain/test_stall_note_block.py: FD5, git mv and import lines
     - tests/domain/test_tree_id.py -> tests/hosting/domain/test_tree_id.py: FD5, git mv and import lines
+14. factory: started docs as vm.
