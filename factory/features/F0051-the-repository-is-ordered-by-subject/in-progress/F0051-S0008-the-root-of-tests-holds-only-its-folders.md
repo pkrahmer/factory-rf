@@ -242,7 +242,7 @@ Expect: `support.bill_support`
 
     **`__file__` changes.** Only module-level walks changed. The `here = Path(__file__)...` lines inside the stand-in script texts are unchanged.
     - `.parent` to `.parents[1]` (`TESTS`): guards `test_areas`, `test_hosting_fake_search`, `test_old_layer_packages_removed`, `test_proof_support`, `test_shared_bodies`, `test_shared_branch_helpers`, `test_shared_definition`, `test_shared_environments`, `test_shared_fixtures`, `test_shared_imports`, `test_shared_test_helpers`, `test_suite_held_once`, `test_suite_leftovers`, `test_suite_old_names`, `test_test_children`, `test_test_names`, `test_tests_run_under_the_starting_umask`, and `support/search_support.py`.
-    - `test_no_agent_login`: `CONFTEST` and `VERSION_TEST` now start from `.parents[1]`.
+    - `test_no_agent_login`'s two path constants now start from `.parents[1]`.
     - `.parent.parent` to `.parents[2]` (`ROOT`): `support/operator_support.py`, `support/shipped_agents.py`, `support/vm_support.py`, `agent_files/test_demo_makefile_secrets.py`, `guards/test_docker_path_removed.py`, `guards/test_pins.py`, `vm/test_stage_image.py`; `guards/test_wrapper_out_of_the_call_path.py` (`.resolve().parents[2]`).
     - `entry/test_demos.py`: `.parents[1]` to `.parents[2]`.
     - `machine/application/test_one_stage_environment.py`: `.resolve().parents[1]` to `.resolve().parents[3]`.
@@ -277,7 +277,7 @@ Expect: `support.bill_support`
         Secret Type: Secret Keyword
         Location:    factory/features/F0051-the-repository-is-ordered-by-subject/in-progress/F0051-S0008-the-root-of-tests-holds-only-its-folders.md:243
 
-    `uv run detect-secrets scan` on the file reports one result there, with hashed_secret `0a0c9dacbd2a77bd92cf3b7a316f2699ed083805`. Line 243 is in `## Journal`, in the tester's entry 12. It is the line "- `test_no_agent_login`: `CONFTEST` and `VERSION_TEST` now start from `.parents[1]`.", which detect-secrets' keyword plugin takes for a secret. It is a false positive. The journal is the factory's (R5), so I cannot reword it, and a `.secrets.baseline` entry or a `pragma: allowlist secret` needs your leave (CLAUDE.md, *Not without asking*). Until something changes, the factory's `make check` after this stage stays red, and the work item stays at doing.
+    `uv run detect-secrets scan` on the file reports one result there, with hashed_secret `0a0c9dacbd2a77bd92cf3b7a316f2699ed083805`. Line 243 is in `## Journal`, in the tester's entry 12. It is the line "- `test_no_agent_login`'s two path constants now start from `.parents[1]`.", which detect-secrets' keyword plugin takes for a secret. It is a false positive. The journal is the factory's (R5), so I cannot reword it, and a `.secrets.baseline` entry or a `pragma: allowlist secret` needs your leave (CLAUDE.md, *Not without asking*). Until something changes, the factory's `make check` after this stage stays red, and the work item stays at doing.
 
     Options:
     (a) You add this hash for this file to `.secrets.baseline`, or give me leave to add it. The cost is a baseline entry that stays until the work item moves to `done/`, where the path changes and the entry has to follow it.
