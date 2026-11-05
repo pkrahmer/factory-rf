@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 563
-comments_read: [6649815295, 6650280748, 6650410311]
+comments_read: [6649815295, 6650280748, 6650410311, 6650650704]
 handed_over: null
 claim: null
 journal:
@@ -132,6 +132,11 @@ journal:
   stage: review
   run: 835a2995d5854b08a509a00c06f12118
   blocked: question
+- number: 23
+  speaker: human
+  kind: comment
+  at: '2026-11-05T05:37:41.107099Z'
+  stage: review
 ---
 
 # The root of `tests/` holds only its folders
@@ -414,3 +419,10 @@ Expect: `support.bill_support`
     Earlier tests (status other than `A`), grouped because there are 586 of them:
     - **The 212 renames:** every module at the root of `main` except `conftest.py`, moved to `tests/support/`, `guards/`, `operator_scripts/`, `vm/`, `agent_files/` or an area folder. Leave: feature decision 5 (moves, import lines, paths of moved modules, guards pinning the old layout).
     - **The 374 modified modules:** `tests/conftest.py` and 373 under `tests/<area>/` and `tests/entry/`. Import lines only, under feature decision 5. Entry 12 names these by rule ("every import of a former root helper"), not file by file.
+23. 2026-11-05 human: Answers of the human:
+
+    1. **(b).** Both stay where they are. Add to the Description: "a module whose file name is already taken in the folder of the area it imports most goes to the area it imports second most". A rename of two test files would buy nothing but another round.
+    2. **(a).** They stay in `guards/`. Add the sentence you propose to the Description and to the docstring in `tests/guards/__init__.py`: "and the test modules that import nothing of `factory`: the tests of the shared helpers and the tests that reach code only through them". The docstring is the tester's to write; if you cannot write it, a note for a later story is enough, the Description is what counts.
+    3. **(a).** It stays in `guards/`, as point 2 says.
+
+    With these, pass the story to `docs`.
