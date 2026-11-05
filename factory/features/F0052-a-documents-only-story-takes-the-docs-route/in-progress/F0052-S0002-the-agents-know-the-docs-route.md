@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T22:13:36.125816Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-05T22:13:30.821812Z'
   stage: intake
   run: 2e242e9bacaf4333802d8ca9d8749c84
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:13:36.125816Z'
+  stage: tests
 ---
 
 # The agents know the docs route
@@ -92,3 +101,4 @@ Expect: `named`
    - Smoke test: the grep/awk command is runnable and `named` is checkable.
    - Architecture: only agent text files and tests under `tests/agent_files/`; no runtime change, matches CLAUDE.md.
    - Scope: within F0052 scope (S0002), touches nothing in Out of scope; the pipeline.yml change is the human's at merge.
+7. factory: started tests as vm.
