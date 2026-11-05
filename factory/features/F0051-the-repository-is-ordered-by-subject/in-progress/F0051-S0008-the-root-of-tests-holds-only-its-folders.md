@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T04:38:10.077308Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,17 +36,23 @@ journal:
   kind: started
   at: '2026-11-05T04:38:10.077308Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-05T04:38:33.420979Z'
+  stage: intake
+  run: e6d1ea0525364c04bd3be31b2960c000
 ---
 
 # The root of `tests/` holds only its folders
 
 ## Description
 
-After the seven moves, `tests/` mirrors the areas, but its root still holds about 200 modules: 73 `*_support.py` helpers, 13 other shared helpers (`human_clone.py`, `recording_log.py`, `source_search.py` and the rest) and 117 test modules, most of them structural guards and tests of the shell scripts and the agent files. This story sorts the root into folders by kind, so that a reader finds a helper or a guard without scrolling (F0051 candidates, item 41). The shared helpers go into a package `tests/support/`; the structural guards (the searches over the source, the `*_removed` tests, the `test_shared_*` and `test_no_*` guards, `test_layers.py` and `test_areas.py`) go into `tests/guards/`; the tests of the operator's scripts go into `tests/operator/`, those of `vm/` into `tests/vm/`, those of the agent files under `claude/` into `tests/agent_files/`; every other root test module goes to `tests/<area>/<layer>/` of the module it imports most. `tests/conftest.py` stays at the root. No test changes beyond its place and its import lines.
+After the seven moves, `tests/` mirrors the areas, but its root still holds about 200 modules: 73 `*_support.py` helpers, 13 other shared helpers (`human_clone.py`, `recording_log.py`, `source_search.py` and the rest) and 117 test modules, most of them structural guards and tests of the shell scripts and the agent files. This story sorts the root into folders by kind, so that a reader finds a helper or a guard without scrolling (F0051 candidates, item 41). The shared helpers go into a package `tests/support/`; the structural guards (the searches over the source, the `*_removed` tests, the `test_shared_*` and `test_no_*` guards, `test_layers.py` and `test_areas.py`) go into `tests/guards/`; the tests of the operator's scripts go into `tests/operator_scripts/`, those of `vm/` into `tests/vm/`, those of the agent files under `claude/` into `tests/agent_files/`; every other root test module goes to `tests/<area>/<layer>/` of the module it imports most. `tests/conftest.py` stays at the root. No test changes beyond its place and its import lines.
 
 ## Interface
 
-- New packages, each with an `__init__.py` holding a one-line docstring: `tests/support/`, `tests/guards/`, `tests/operator/`, `tests/vm/`, `tests/agent_files/`.
+- New packages, each with an `__init__.py` holding a one-line docstring: `tests/support/`, `tests/guards/`, `tests/operator_scripts/`, `tests/vm/`, `tests/agent_files/`.
 - Every module at the root of `tests/` other than `conftest.py` moves with `git mv` to one of these folders or to an area's folder, by the rules of the Description; a helper is imported as `support.<name>` (for example `from support.bill_support import completed_records`).
 - A guard that reads files by a path relative to its own file (for example `Path(__file__).parent`) keeps reading the same files after its move.
 - The leave of feature decision 5 covers the changes; a change that `pyproject.toml` needs (a test path of `[tool.mutmut]`, a path of mypy or pytest) is the human's, asked for with a question.
@@ -58,11 +60,12 @@ After the seven moves, `tests/` mirrors the areas, but its root still holds abou
 ## Acceptance criteria
 
 1. The root of `tests/` holds exactly `conftest.py` and folders; every folder is a package with an `__init__.py`.
-2. Every module that was a shared helper at the root (one row each, from `git show origin/main:tests` before the story) is importable as `support.<name>` and exists nowhere else.
+2. Every module that was a shared helper at the root (every module whose name does not start with `test_`, except `conftest.py`; one row each, from `git show origin/main:tests` before the story) is importable as `support.<name>` and exists nowhere else.
 3. No module under `tests/` imports a shared helper by its old bare name (`from bill_support import ...`, `import human_clone`).
 4. Every test of the suite before this story still runs: the count of collected tests (`pytest --collect-only -q`, its last line) is the same as on `origin/main` before the story, which the tester writes into its entry.
-5. `make check` stays green.
-6. docs: `docs/project-guide/README.md`'s section *Shared test helpers* says that the helpers live in `tests/support/` and names the other folders of `tests/` and what each holds. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none.
+5. Every root test module of `origin/main` whose name fits a pattern sits in that pattern's folder (one row per pattern): `tests/guards/` for `test_*_search.py`, `test_*_removed.py`, `test_shared_*.py`, `test_no_*.py`, `test_suite_*.py`, `test_layers.py`, `test_areas.py`, `test_test_names.py`, `test_tests_run_under_the_starting_umask.py` and `test_model_configuration.py`; `tests/operator_scripts/` for `test_operator_*.py`; `tests/vm/` for `test_vm_*.py` and `test_stage_image*.py`; `tests/agent_files/` for `test_claude_*.py`, `test_shipped_agents*.py` and `test_template_*.py`.
+6. `make check` stays green.
+7. docs: `docs/project-guide/README.md`'s section *Shared test helpers* says that the helpers live in `tests/support/` and names the other folders of `tests/` and what each holds. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -111,3 +114,9 @@ Expect: `support.bill_support`
 
    The Description's and Interface's `tests/operator/` reads `tests/operator_scripts/` from here on.
 5. factory: started intake as vm.
+6. intake: accepted. I carried the human's answers (journal entry 4) into the story: the Description and Interface now read `tests/operator_scripts/` (answer 2); criterion 2 states the rule "name does not start with `test_`, except `conftest.py`" (answer 1); a new criterion 5 has one row per placement pattern (answer 2), placed before the two closing criteria, which are now 6 (`make check`) and 7 (`docs:`). Nothing else in the story changed.
+   - Interface: concrete. It names five new packages, with `git mv` for every move, the `support.<name>` import form and the `operator_scripts` name. The `pyproject.toml` question is answered (no change needed).
+   - Criteria: each is testable by one test function. Criterion 1 is the root listing. Criterion 2 is one row per helper. Criterion 3 is a search for the old bare imports. Criterion 5 is one row per pattern, each checking that a module fitting the pattern sits in the pattern's folder (the failing side). Criterion 4 (collected-test count) is, by the human's answer 4, the tester's recorded figure before and after in its entry, and the reviewer compares; it is not a test. Criteria 6 and 7 are the usual closing ones. By the human's answers 2 and 3, no criterion covers the "imports most" placements or the `__file__` paths. The tester lists both in its entry and the reviewer checks the lists.
+   - Smoke test: both commands are runnable and each `Expect:` is checkable. The first lists the root `.py` files and expects only `conftest.py`. The second imports `support.bill_support` with `tests` on `sys.path`. Neither runs pytest, so the `-q` rule does not apply.
+   - Architecture: the change touches only the layout of `tests/`, the test-layout rules in CLAUDE.md, and the project guide's docs. `operator_scripts` avoids the clash with the standard library's `operator`. No source code changes.
+   - Scope: it is within F0051's scope ("the root of `tests/` holds only `conftest.py` and folders") and touches none of its "Out of scope" items. Feature decision 5 covers the tester's changes. The human's change for S0008's start (CLAUDE.md's *Tests*) is the human's own.
