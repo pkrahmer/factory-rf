@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T04:41:40.597198Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-05T04:41:35.625669Z'
   stage: doing
   run: d06b83916de1422f9d3f49387f802fc1
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-05T04:41:40.597198Z'
+  stage: tests
 ---
 
 # The root of `tests/` holds only its folders
@@ -190,3 +199,4 @@ Expect: `support.bill_support`
     - **Rejected:** making the moves myself. They would be lost in the take, and they are test edits.
     - **Noticed, not touched:** if `[tool.mutmut]` or another setting in `pyproject.toml` names root test paths, that change is the human's (Interface). Whoever finds one should ask with a question.
     - **Not run:** I did not run `make test` or `make check`. Neither can turn green before the moves.
+11. factory: started tests as vm.
