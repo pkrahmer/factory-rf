@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 576
 comments_read: [6672543099]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T23:46:54.852929Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-05T23:46:54.852929Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-05T23:48:17.847463Z'
+  stage: tests
+  run: d2125cc592f946428cc59220eb3856e2
 ---
 
 # A guide rewrite may rename its headings and add a page
@@ -120,3 +122,24 @@ Expect: `1`
    - Scope: within feature decision 7, which gives the leave to change the two earlier guard modules. The tester must name that leave in its entry. The project guide's file-list rule is replaced by the index rule, which is the story's own description.
    Route: tests, because the Interface changes test files and a support module, none of which the documenter may write.
 7. factory: started tests as vm.
+8. tester: I wrote the tests from the Interface and the criteria. The story changes only tests and a test support module, so I also wrote `index_problems` in `tests/support/guide_files_support.py`, as the tester of F0051-S0010 wrote that module. This means the tests are green and not red. There is nothing left for the coder to implement except running `make check`. The documenter still has the docs criterion.
+
+   Criteria → tests:
+   - criterion 1: tests/guards/test_guide_index_problems.py::test_index_problems_name_what_index_and_folder_disagree_on. It has 12 rows: every-page-named, page-not-named, named-page-missing, required-present, required-missing, line-without-sentence, heading-renamed, colon-after-name, two-problems-sorted, named-and-required-missing-once, index-and-non-markdown-ignored, named-outside-the-files. The required-present row is the passing side of the `required` rule.
+   - criterion 2: tests/guards/test_project_guide_files.py::test_the_guide_holds_the_index_and_its_named_files (now `index_problems(GUIDE, AREA_FILES) == []`)
+   - criterion 3: structural. `HEADINGS`, `test_every_earlier_heading_is_kept_as_often_as_before`, `test_every_earlier_heading_is_kept_in_the_folder` and `test_the_index_names_each_file_with_a_sentence` are removed, and so are the `names == sorted(...)` check and `NAMED_FILES`. A grep finds no `HEADINGS` or `guide_headings` under `tests/guards/`. Every remaining test keeps its name. The smoke test's first command checks this.
+   - criterion 4: `make check`, the coder's run.
+   - criterion 5: docs, the documenter's.
+
+   Files:
+   - created: tests/guards/test_guide_index_problems.py.
+   - changed in the support module: tests/support/guide_files_support.py. Added `index_problems` with a private `_the_files_section` and `INDEX_LINE`, which is the earlier guard's pattern with the name captured. Removed `guide_headings`, which nothing uses any more, and updated the module docstring.
+   - changed, earlier stories' tests, under the leave of feature decision 7: tests/guards/test_project_guide_files.py and tests/guards/test_operator_guide_files.py. Removed the unused `pytest` imports and changed the first module's docstring.
+
+   Behaviour on cases the criteria leave open:
+   - A line in *The files* that names a page without a sentence counts neither as naming the page nor as a `missing:` line. That only matters for a missing page, and it is untested.
+   - An index with no `## The files` section names nothing.
+
+   Run: `uv run pytest -q` on the three guard files gave 17 passed. No module failed to import. `make lint` is green, and `mypy --strict` on the four files found no issues.
+
+   `lint`: lint: green (0.2 s)
