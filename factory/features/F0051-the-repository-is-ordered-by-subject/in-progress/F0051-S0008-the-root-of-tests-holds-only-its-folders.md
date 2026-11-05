@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295, 6650280748, 6650410311, 6650650704]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T05:40:04.482746Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -168,6 +164,12 @@ journal:
   kind: started
   at: '2026-11-05T05:40:04.482746Z'
   stage: smoke-test
+- number: 29
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T05:40:31.375574Z'
+  stage: smoke-test
+  run: d78e56b8939f4c838a3d750504472b4d
 ---
 
 # The root of `tests/` holds only its folders
@@ -498,3 +500,24 @@ Expect: `support.bill_support`
     `secrets`: secrets: green (10.0 s)
     `documents`: documents ok
 28. factory: started smoke-test as vm.
+29. smoke-tester: Smoke test, round 0. I ran both commands under `## Smoke test` from the repository root, as written and in order. Neither starts a server.
+
+    Command 1: `find tests -maxdepth 1 -type f -name '*.py' | sed 's#^tests/##'`
+    ```
+    conftest.py
+    ```
+    Exit code 0. Met `Expect: conftest.py`.
+
+    Command 2: `uv run python -c "import sys; sys.path.insert(0, 'tests'); import support.bill_support as m; print(m.__name__)"`
+    ```
+    Bytecode compiled 4164 files in 51ms
+    support.bill_support
+    ```
+    Exit code 0. Met `Expect: support.bill_support`. The first line is uv's own message about compiling bytecode, not output from the script.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: the root of `tests/` holds only `conftest.py` and folders: `agent_files`, `agents`, `entry`, `guards`, `hosting`, `machine`, `operator_scripts`, `pipeline`, `shared`, `support`, `vm`, `watching` and `work`. Each folder has an `__init__.py`. Nothing in the output contradicts this criterion.
+    - Criteria 2 and 3: a helper imports as `support.<name>`, as command 2 shows. Nothing in the output contradicts either criterion.
+    - Criteria 4 to 7 (test count, folders by pattern, `make check`, docs): the smoke test does not reach these, and nothing in its output contradicts them. The factory runs `make check` as the stage's check.
+
+    Findings: none. I changed nothing.
