@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 574
 comments_read: [6671915202, 6672097334]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T23:20:15.050088Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -119,6 +115,12 @@ journal:
   kind: started
   at: '2026-11-05T23:20:15.050088Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T23:20:39.355700Z'
+  stage: review
+  run: 71491052339f492fbdbc3e564c402e86
 ---
 
 # The documents have a style page and a glossary
@@ -300,3 +302,33 @@ Expect: `named`
     I would choose (b): it puts the findings in front of the only role that may write them.
 18. 2026-11-05 human: (b): end with `docs`. The documenter fixes findings 1 to 5 there, before the smoke test. `docs` is the review's forward move, so it counts no round of rework.
 19. factory: started review as vm.
+20. reviewer: Review, round 0, run again after the human's answer in entry 18: option (b). I end with `docs`, and the documenter fixes the five findings below before the smoke test. Since entry 17 the branch has gained only a merge of `origin/main` and the factory's own commits. The reviewed diff of `docs/` and `tests/` is the same as before, so the findings of entry 17 all still hold. I repeat them here so that the documenter has them in the latest entry.
+
+    The factory's `make check` after the coder was green (entry 15).
+
+    Findings for the documenter:
+    1. `docs/project-guide/glossary.md`, entries `stall` and `attempts cap`.
+       - What is wrong: both say a stall is an agent run that ends without a result. A stall also follows a finished run whose decision is not allowed, whose form fails, whose check is red or whose merge conflicts (`StallReason`; `pipeline.md` *Stalls*). This story's entry 6 is a `check_red` stall.
+       - Fix: define a stall as a stage that ends without a result the factory can keep, whether the run ended early or its decision, form, checks or merge failed. Define the attempts cap as how many stalls a stage may have before the factory asks.
+    2. `docs/project-guide/glossary.md`, entry `journal`.
+       - What is wrong: "Each stage and each human answer adds one" leaves out the factory's own entries (started, stall, crash).
+       - Fix: say that the factory, each stage's agent and the human all add entries.
+    3. `docs/project-guide/style.md`, the example in *The project guide*.
+       - What is wrong: the code block shows `TakeService`'s signature, but it names no module and no relative link sits above it. That breaks the section's own rule ("the module, the class and its main function") and rule 8 (criteria 1 and 4).
+       - Fix: above the block, add one line that links `[take.py](../../src/factory/pipeline/application/take.py)` and names `factory.pipeline.application.take`.
+    4. `docs/project-guide/style.md`, *The operator guide*, first paragraph and second bullet.
+       - What is wrong: the glossary words "instance" and "stop" are used with no link where they first appear. That breaks the page's own rule 3 (criterion 4).
+       - Fix: link each word to `glossary.md` where it first appears.
+    5. `docs/decisions.md`, the Decision line of the new last entry.
+       - What is wrong: it is one sentence of about 45 words with three parentheses. That breaks rule 2 of the style the entry adopts.
+       - Fix: split it into short sentences, one per document, without parentheses.
+
+    What holds:
+    - The glossary has all 27 words, sorted, each in one or two sentences.
+    - `style.md` has the seven rules, the link rule and the three sections, each with its reader, its rules and an example.
+    - Neither page has a feature or story ID or a version name.
+    - The index has the two new lines (criterion 3).
+    - Leaving out the drafts' rules 8 to 10 is right: the Interface asks for seven rules plus the link rule.
+
+    Earlier tests:
+    - `tests/guards/test_project_guide_files.py`: changed under the human's leave in journal entry 11 (option (a)). The change does what that answer allows and nothing more: `NAMED_FILES` gains `style.md` and `glossary.md`, and one test is renamed to `test_the_guide_holds_the_index_and_its_named_files`.
