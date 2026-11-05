@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T09:11:47.842115Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-05T09:11:42.280398Z'
   stage: tests
   run: e1857675163d4947b9cd22a5f0a4e4d1
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-05T09:11:47.842115Z'
+  stage: doing
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -148,3 +157,4 @@ Expect: `parsed`
    Open: the human asked for criterion 3 to read "other than `docs/decisions.md` and `docs/runs/`". The work item's Description is outside the tester's write paths (`tests/*`), so I did not rewrite it. The next stage that may write the work item should make that change.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
