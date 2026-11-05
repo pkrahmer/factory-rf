@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506, 6656185279]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T10:56:06.034047Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-05T10:56:06.034047Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-05T10:58:35.242606Z'
+  stage: doing
+  run: 48e5280b462d4c52a03e0fbaaede925d
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -199,3 +201,10 @@ Expect: `1`
 
     **(a).** Leave for the tester, in its own new test `tests/guards/test_operator_guide_pointers_search.py`: collect the topic-file names from every searched line that holds `docs/operator-guide/` (keep the `named != set()` assertion, so the test cannot pass vacuously), and annotate `found: list[tuple[Path, str]] = []`. The Interface's texts stay as approved. Then end with `tests`.
 12. factory: started doing as vm.
+13. coder: The human's answer (entry 11, option (a)) asks for a test change. I changed no code. The tester should make this change in `tests/guards/test_operator_guide_pointers_search.py`:
+    - `test_every_named_topic_file_exists` collects the topic-file names from every searched line under `operator/vm/` and `operator/skill/` that holds `docs/operator-guide/`, not only from lines that say `operator guide`. It keeps the `named != set()` assertion.
+    - The list on line 24 gets an annotation: `found: list[tuple[Path, str]] = []`.
+
+    State on the branch: the four texts from the Interface are already committed. They are in `operator/vm/setup.sh` (the `tools` and `service` hints and the `setup: done:` line) and in `operator/skill/kumpel/references/approving.md`.
+
+    `make test` this round: every test passed except `test_every_named_topic_file_exists`. It failed at `tests/guards/test_operator_guide_pointers_search.py:64: E assert set() != set()`. That is the fault the human's answer addresses. After the tester's change, the doing stage should only need to run `make check`. The docs criterion (`docs/operator-guide/machine.md`, lines 284, 295 and 296) is the docs stage's work, and I did not touch it.
