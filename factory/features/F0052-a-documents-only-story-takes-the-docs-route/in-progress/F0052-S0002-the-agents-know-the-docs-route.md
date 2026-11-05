@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T22:41:44.901655Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,12 @@ journal:
   kind: started
   at: '2026-11-05T22:41:44.901655Z'
   stage: doing
+- number: 36
+  speaker: coder
+  kind: result
+  at: '2026-11-05T22:46:59.878197Z'
+  stage: doing
+  run: 2aafdddbe3b5454d8f13f1c885243008
 ---
 
 # The agents know the docs route
@@ -486,3 +488,17 @@ Expect: `named`
 
     `lint`: lint: green (0.1 s)
 35. factory: started doing as vm.
+36. coder: Round 2: I changed no files in this run, and `make check` is green on the committed state (`test: green (132.6 s)`, `check: green`). In entry 34 the tester added the tests for criteria 4 and 5 to `tests/agent_files/test_claude_agent_texts_docs_route.py`. They pass against the agent texts that were already there, so review entry 30 is fully dealt with.
+
+    What I built is unchanged since entries 24 and 28: `agents/agents/intake.md`, `agents/agents/documenter.md` (its `### docs-only` subsection) and `agents/agents/reviewer.md` (its `### docs-review` subsection). The main choice also stands. The "replaces" sentences sit inside the two subsections, because the CRC pin covers the rest of the reviewer body. I rejected adding notes to the reviewer's Role and checklist.
+
+    Refactor: there is no diff from this run, so nothing needed changing.
+
+    Description: the reviewer added criteria 4 and 5 in entry 30 and renumbered the old ones to 6 and 7. The meaning of the task did not change, so I left the Description as it is.
+
+    Noticed, not touched:
+    - Criterion 7 (the docs) is the documenter's work.
+    - The pipeline definition change for the route is the human's, at merge.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
