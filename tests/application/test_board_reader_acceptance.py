@@ -6,14 +6,14 @@ from pathlib import Path
 import pytest
 
 from acceptance_walk import PROPOSED, PROPOSED_TEXT, AcceptanceWalk, report_of
-from factory.application.board import BoardReader
 from factory.application.boundaries import Boundaries
-from factory.domain.board import BoardRow
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.entry.watch import run_watch
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.identifiers import branch_name
+from factory.watching.application.board import BoardReader
+from factory.watching.domain.board import BoardRow
 from factory.work.application.acceptance import AcceptanceService
 from factory.work.domain.acceptance import AcceptanceState
 from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemState

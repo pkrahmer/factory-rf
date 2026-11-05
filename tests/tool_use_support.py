@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
-from factory.domain.transcripts import Transcript
+from factory.watching.domain.transcripts import Transcript
 
 STARTED = datetime(2026, 11, 4, 10, 0, tzinfo=UTC)
 CALL_SPACING = timedelta(seconds=10)

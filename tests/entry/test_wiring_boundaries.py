@@ -9,10 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.disk_space import ShutilDiskSpace
-from factory.adapters.factory_log import TimestampedFactoryLog
-from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.application.project_agents import ProjectAgentDefinitions
@@ -33,6 +30,12 @@ from factory.hosting.domain.git import GitIdentity
 from factory.shared.adapters.clock import SystemClock
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings
+from factory.watching.adapters.cost_records_jsonl import (
+    JsonLinesCostRecordReader,
+    JsonLinesCostRecordWriter,
+)
+from factory.watching.adapters.factory_log import TimestampedFactoryLog
+from factory.watching.adapters.health_file import JsonHealthStatusFile
 from factory.work.adapters.work_item_markdown import (
     FrontmatterWorkItemReader,
     FrontmatterWorkItemWriter,

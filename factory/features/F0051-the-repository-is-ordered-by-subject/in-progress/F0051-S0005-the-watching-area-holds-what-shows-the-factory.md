@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 560
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T02:49:49.337615Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-05T02:49:49.337615Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-05T02:52:37.903702Z'
+  stage: tests
+  run: bb81af9547714623a9f183322ebe01db
 ---
 
 # The watching area holds what shows the factory and what it costs
@@ -109,3 +111,29 @@ Expect: `1`
    - Architecture: Each module goes to the same layer inside `factory.watching`, so the layer rule is kept. The moves are made with `git mv`, nothing is re-exported, and the coder changes only `src/`.
    - Scope: The story is the watching area of feature decision 2, with decisions 4 and 5 applied. It changes no behaviour, and nothing in the feature's "Out of scope" is touched.
 4. factory: started tests as vm.
+5. tester: Round 0. As the Interface asks, I made every test change the move needs in this run, before the code moves, under the leave of feature decision 5. Every earlier test keeps its name and checks the same thing.
+
+   I added the `watching` row to `AREAS` in `tests/test_areas.py`, holding the 17 modules of the table. Nothing else in that module changed. Its test functions are already parametrized over `AREAS`, so I wrote no new functions:
+   - criterion 1: tests/test_areas.py::test_a_moved_module_imports_from_its_area_and_is_gone_from_its_layer (rows `watching.<layer>.<name>`). The key and its modules are the new `AREAS["watching"]` entry.
+   - criterion 2: tests/test_areas.py::test_an_area_package_imports_and_has_a_docstring (rows `factory.watching`, `factory.watching.adapters`, `factory.watching.application`, `factory.watching.domain`)
+   - criterion 3: tests/test_areas.py::test_no_file_imports_a_moved_module_from_its_old_path (one row per module; `source_search.imports` covers the three import forms)
+   - criterion 4: tests/test_areas.py::test_no_test_module_stays_in_its_layer_folder_when_all_it_imports_has_moved. tests/test_areas.py::test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own checks the moved modules under `tests/watching/`.
+   - criteria 5 and 6: these are the closing ones and are not tested.
+
+   Test changes (feature decision 5):
+   1. I rewrote every `factory.<layer>.<name>` path of the 17 modules under `tests/` (leaving out `tests/test_areas.py`) to `factory.watching.<layer>.<name>`, with sed. That touched 117 files, and then I ran `ruff check --fix tests` and `ruff format tests`. No `from factory.<layer> import <name>` form of a moved module existed, so no import line needed splitting.
+   2. I changed one guard that pins the old layout: in `tests/application/test_tick.py::test_the_tick_knows_no_run_record_and_no_lock`, the row `"application/watcher.py"` is now `"watching/application/watcher.py"`. No other test names a path of a moved source or test module.
+   3. I created empty `tests/watching/__init__.py` and `tests/watching/{domain,application,adapters}/__init__.py`.
+   4. I moved 34 test modules with `git mv` to the same layer under `tests/watching/`. These are the ones criterion 4's rule selects once the imports are rewritten.
+      - From `tests/domain/` (20): test_acceptance_booking, test_acceptance_refusal_edges, test_archive_texts, test_bills, test_bills_model_time, test_board, test_board_absent_values, test_cost_record_denials, test_cost_record_instance, test_cost_record_machine, test_cost_record_model_seconds, test_cost_records, test_human_waits, test_journal_stamps, test_login_records, test_machine, test_tool_use_model, test_tool_uses, test_tool_uses_replayed_lines, test_transcript_ref.
+      - From `tests/application/` (4): test_acceptance_ticks_merged, test_bill_service, test_machine, test_transcript_keeper.
+      - From `tests/adapters/` (10): test_cost_records_jsonl, test_cost_records_jsonl_denials, test_cost_records_jsonl_instance, test_cost_records_jsonl_login, test_cost_records_jsonl_model_seconds, test_factory_log, test_machine_files, test_runtime_tool_uses, test_transcript_files, test_waiters.
+      - None of them uses `__file__` for a path, and no other file names them.
+
+   Files I created: the four `tests/watching/**/__init__.py` files. Earlier test files I changed: `tests/test_areas.py`, `tests/application/test_tick.py`, and the import lines of the 117 files the sed touched, which include the support modules and `tests/conftest.py`. The 34 modules above were moved.
+
+   Run: `uv run pytest -q` over the 105 changed or moved test files. It stops at collection with `ModuleNotFoundError: No module named 'factory.watching'` (first in `tests/bill_support.py:7`, reached through `tests/acceptance_walk.py`). That is the right reason. The runner could not import `factory.watching`, its three layer packages, or any of the 17 modules under them. `make lint`: `lint: green (0.1 s)`.
+
+   A note for the coder: with the source moved, `pyproject.toml` may still have per-file-ignores under old `src/factory/<layer>/` paths for these modules. The coder may also need to check the `security/duplicates-baseline.txt` entries. I did not check either; both are outside my write paths.
+
+   `lint`: lint: green (0.2 s)

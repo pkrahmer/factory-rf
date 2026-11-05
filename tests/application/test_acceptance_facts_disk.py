@@ -6,11 +6,11 @@ import pytest
 
 from acceptance_walk import FEATURE, AcceptanceWalk
 from disk_support import FakeDiskSpace
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.disk_records import DiskRecorder
 from factory.domain.disk import DiskRecord, disk_line
 from factory.shared.domain.settings import InstanceSettings
+from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.work.application.acceptance import AcceptanceService
 
 

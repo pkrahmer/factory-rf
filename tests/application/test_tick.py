@@ -479,7 +479,7 @@ def test_v1_leftover_files_change_nothing(
     "module",
     [
         "application/tick.py",
-        "application/watcher.py",
+        "watching/application/watcher.py",
         "work/application/work_items.py",
         "domain/evaluation.py",
     ],

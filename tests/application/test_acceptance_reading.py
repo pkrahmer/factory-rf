@@ -3,9 +3,9 @@
 import pytest
 
 from factory.application.boundaries import Boundaries
-from factory.domain.board import FeatureRow
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.errors import WorkItemFormatError
+from factory.watching.domain.board import FeatureRow
 from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.work.application.acceptance_reading import AcceptanceReader
 from factory.work.domain.acceptance import AcceptanceState, FeatureAcceptance, FeatureFiles

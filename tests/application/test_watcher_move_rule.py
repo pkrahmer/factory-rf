@@ -8,10 +8,10 @@ import pytest
 from branch_reading import BODY, push_state
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.application.boundaries import Boundaries
-from factory.application.watcher import Watcher
 from factory.domain.events import Event
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.identifiers import branch_name
+from factory.watching.application.watcher import Watcher
 from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.work.domain.journal import JournalKind, JournalRecord
 from factory.work.domain.move_rule import FactoryMove, factory_moves

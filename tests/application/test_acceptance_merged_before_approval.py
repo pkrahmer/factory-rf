@@ -8,13 +8,13 @@ import pytest
 
 from bill_support import completed_records, sidecar_text
 from factory.application.boundaries import Boundaries
-from factory.domain.bills import bill, cost_line
 from factory.domain.events import Event
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.post_texts import done_entry_text
 from factory.shared.domain.paths import cost_records_path
+from factory.watching.domain.bills import bill, cost_line
 from factory.work.application.acceptance import AcceptanceMerged, AcceptanceService
 from factory.work.application.acceptance_reading import AcceptanceReader
 from factory.work.domain.acceptance import AcceptanceState

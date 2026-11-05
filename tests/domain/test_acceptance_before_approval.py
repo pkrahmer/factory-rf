@@ -3,8 +3,8 @@
 import pytest
 
 from bill_support import completed_records
-from factory.domain.bills import bill, cost_line
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.watching.domain.bills import bill, cost_line
 from factory.work.domain.acceptance import AcceptanceState, book_merge, is_before_approval
 from factory.work.domain.journal import FACTORY, JournalRecord, entry_text
 from factory.work.domain.work_item import WorkItemDocument

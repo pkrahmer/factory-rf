@@ -1,7 +1,7 @@
 """A fake of the machine-readings interface, told what each reading answers."""
 
-from factory.application.machine import MachineReadings
-from factory.domain.machine import MachineTotals
+from factory.watching.application.machine import MachineReadings
+from factory.watching.domain.machine import MachineTotals
 
 UNREAD = MachineTotals(cpu_seconds=None, cpu_wait_seconds=None, memory_wait_seconds=None)
 

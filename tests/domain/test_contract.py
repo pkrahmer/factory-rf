@@ -4,7 +4,6 @@ import json
 
 import pytest
 
-from factory.domain.cost_records import CostRecord
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.stops import StopRecord
 from factory.shared.domain.contract import (
@@ -13,6 +12,7 @@ from factory.shared.domain.contract import (
     contract_schema,
     schema_file_name,
 )
+from factory.watching.domain.cost_records import CostRecord
 from factory.work.domain.acceptance import AcceptanceState
 from factory.work.domain.work_item import WorkItemState
 

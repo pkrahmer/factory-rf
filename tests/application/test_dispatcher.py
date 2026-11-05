@@ -7,7 +7,6 @@ import pytest
 
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Dispatcher, Handler, unhandled_kinds
-from factory.application.machine import FactoryLog
 from factory.application.stops import StopService
 from factory.domain.events import Event, EventKind
 from factory.domain.tick_status import ErrorCount, TickStatus, find_error, record_error
@@ -17,6 +16,7 @@ from factory.hosting.domain.hosting import PostKey, render_post
 from factory.hosting.domain.post_texts import error_report_text
 from factory.shared.domain.errors import UnhandledEvent
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.watching.application.machine import FactoryLog
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, initial_state
 from git_support import remote_commit
 from human_clone import HumanClone

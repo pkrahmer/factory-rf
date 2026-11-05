@@ -7,8 +7,6 @@ from typing import override
 
 import pytest
 
-from factory.adapters.factory_log import TimestampedFactoryLog
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.project_commands import RecordingProjectCommands
 from factory.domain.checks import CheckResult, TargetTime, status_of
 from factory.domain.command_records import CommandRecord
@@ -18,6 +16,8 @@ from factory.hosting.domain.git import CommitId
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.application.files import RecordLog
 from factory.shared.domain.errors import GitError, ProjectCommandError
+from factory.watching.adapters.factory_log import TimestampedFactoryLog
+from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from preflight_support import RecordingCommands
 from project_command_support import raising
 from record_support import UnwritableRecordLog

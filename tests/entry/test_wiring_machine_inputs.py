@@ -2,10 +2,10 @@
 
 from pathlib import Path
 
-from factory.adapters.machine_files import CgroupMachineReadings
 from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
+from factory.watching.adapters.machine_files import CgroupMachineReadings
 from podman_support import IMAGE
 from sized_images import SizedImages, sized_by_tag
 from wiring_support import CREDENTIAL

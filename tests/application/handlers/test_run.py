@@ -10,11 +10,11 @@ from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, Scripte
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.run import RunHandler
-from factory.application.watcher import Watcher
 from factory.domain.events import Event
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.errors import HostingServiceError
+from factory.watching.application.watcher import Watcher
 from git_support import install_agents
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

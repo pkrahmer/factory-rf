@@ -10,9 +10,9 @@ from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, Scripte
 from factory.agents.application.agent_runtime import AgentRuntime
 from factory.agents.domain.agent_runs import QUESTION, AgentRunRequest, AgentRunResult
 from factory.application.boundaries import Boundaries
-from factory.domain.cost_records import ToolUse
-from factory.domain.transcripts import Transcript
 from factory.hosting.application.git import Git
+from factory.watching.domain.cost_records import ToolUse
+from factory.watching.domain.transcripts import Transcript
 from human_clone import HumanClone
 from stage_run_support import (
     BRANCH,

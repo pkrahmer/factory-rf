@@ -10,7 +10,6 @@ from typing import override
 import pytest
 
 from disk_support import FakeDiskSpace
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.application.tick import IdleHandler, Tick
@@ -23,6 +22,7 @@ from factory.hosting.domain.git import GitOptions
 from factory.shared.adapters.process import ProcessRequest, run_process
 from factory.shared.domain.paths import STOP_RECORDS_FILE
 from factory.shared.domain.settings import InstanceSettings
+from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from git_support import (
     CHECKOUT,
     COLOURED_AGENT_FILE,

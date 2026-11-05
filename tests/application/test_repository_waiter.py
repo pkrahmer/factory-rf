@@ -8,7 +8,6 @@ from pathlib import Path
 import pytest
 
 from factory.application.boundaries import Boundaries
-from factory.application.machine import FactoryLog
 from factory.application.scheduler import CheckoutPreparer, RepositoryWaiter
 from factory.application.stops import StopService
 from factory.domain.stops import RepositoryStop
@@ -16,6 +15,7 @@ from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
+from factory.watching.application.machine import FactoryLog
 from git_support import (
     PIPELINE_YAML,
     TEST_IDENTITY,

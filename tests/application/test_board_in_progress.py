@@ -1,8 +1,8 @@
 """The board counts a feature's story in progress beside its backlog and done stories."""
 
-from factory.application.board import BoardReader
 from factory.application.boundaries import Boundaries
-from factory.domain.board import FeatureRow
+from factory.watching.application.board import BoardReader
+from factory.watching.domain.board import FeatureRow
 from git_support import PIPELINE_YAML
 from human_clone import HumanClone
 

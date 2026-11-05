@@ -1,6 +1,6 @@
 """A factory log that keeps the lines written to it, for the tests that read what was logged."""
 
-from factory.application.machine import FactoryLog
+from factory.watching.application.machine import FactoryLog
 
 
 class RecordingLog(FactoryLog):

@@ -5,13 +5,13 @@ from dataclasses import dataclass, replace
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.known_results import KnownResults
 from factory.domain.checks import CheckResult, status_of
 from factory.domain.known_results import ResultRecord
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.shared.adapters.clock import ManualClock
+from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from git_support import PIPELINE_YAML
 from log_support import log_lines
 from preflight_support import RecordingCommands

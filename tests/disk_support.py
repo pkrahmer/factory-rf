@@ -3,7 +3,7 @@
 from collections.abc import Mapping
 from pathlib import Path
 
-from factory.application.machine import DiskSpace
+from factory.watching.application.machine import DiskSpace
 
 
 class FakeDiskSpace(DiskSpace):

@@ -11,7 +11,6 @@ from pathlib import Path
 import pytest
 
 import factory.entry.run as run_module
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
@@ -34,6 +33,7 @@ from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings
+from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from git_support import PIPELINE_YAML, install_agents, run_git
 from human_clone import HumanClone

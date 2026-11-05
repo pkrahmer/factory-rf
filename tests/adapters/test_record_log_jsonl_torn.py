@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.domain.known_results import ResultRecord
+from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from torn_record_support import line_of, result_record, torn_inside
 
 

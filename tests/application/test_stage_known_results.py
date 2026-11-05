@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.stage import StageReport, StageRunner
 from factory.domain.known_results import ResultRecord
 from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.work.domain.journal import entry_text
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML

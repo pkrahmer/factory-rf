@@ -6,10 +6,10 @@ from pathlib import Path
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.stage import StageReport, StageRunner
-from factory.domain.cost_records import CostRecord
 from factory.hosting.domain.git import CommitId
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import cost_records_path
+from factory.watching.domain.cost_records import CostRecord
 from factory.work.domain.journal import JournalRecord
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, SYNC_TARGET, install_agents, remote_commit

@@ -82,6 +82,25 @@ AREAS: dict[str, tuple[str, ...]] = {
         "adapters.fake_agent_runtime",
         "adapters.oauth_token",
     ),
+    "watching": (
+        "domain.bills",
+        "domain.board",
+        "domain.cost_records",
+        "domain.human_waits",
+        "domain.machine",
+        "domain.transcripts",
+        "application.board",
+        "application.costs",
+        "application.machine",
+        "application.transcripts",
+        "application.watcher",
+        "adapters.cost_records_jsonl",
+        "adapters.machine_files",
+        "adapters.transcript_files",
+        "adapters.record_log_jsonl",
+        "adapters.factory_log",
+        "adapters.health_file",
+    ),
 }
 
 MOVES = [

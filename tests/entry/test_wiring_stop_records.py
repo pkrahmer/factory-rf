@@ -2,11 +2,11 @@
 
 from datetime import UTC, datetime
 
-from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.domain.stops import StopRecord
 from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
+from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from wiring_support import CREDENTIAL
 
 

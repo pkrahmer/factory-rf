@@ -8,13 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.dispatcher import Handler
-from factory.application.machine import Clock
 from factory.application.recovery import RecoveryHandler
-from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event, EventKind
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.recovery import crash_entry_text
@@ -26,6 +23,9 @@ from factory.shared.domain.errors import CannotHandle, GitError, PushFailed
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.shared.domain.paths import cost_records_path
+from factory.watching.adapters.cost_records_jsonl import JsonLinesCostRecordReader
+from factory.watching.application.machine import Clock
+from factory.watching.domain.cost_records import CostRecord
 from factory.work.domain.journal import (
     FACTORY,
     HUMAN,
