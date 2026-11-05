@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 559
 comments_read: [6648033321]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T02:41:57.971383Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-05T02:41:57.971383Z'
   stage: docs
+- number: 18
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T02:42:54.987982Z'
+  stage: docs
+  run: 6329f937c0f341eab7d737f33b7c2080
 ---
 
 # The agents area holds the agent runs
@@ -376,3 +378,27 @@ Expect: `1`
       - `tests/entry/`: test_wiring_acceptance.py, test_wiring_api_login.py, test_wiring_boundaries.py, test_wiring_container_extra.py, test_wiring_environment.py, test_wiring_extras.py, test_wiring_handlers.py, test_wiring_human_handlers.py
       - `tests/entry/`: test_wiring_image_path.py, test_wiring_login.py, test_wiring_one_environment.py, test_wiring_opencode.py, test_wiring_opencode_provider.py, test_wiring_project_agents.py, test_wiring_provider_limit.py, test_wiring_run.py, test_wiring_stage_environment.py, test_wiring_without_agent_user.py
 17. factory: started docs as vm.
+18. documenter: Docs for criterion 6. Only documents changed, so I did not run `make check`. `make documents` printed `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/README.md`: the index lines for `agents.md`, `write-paths.md` and `stages.md` name the new module paths. The layout section gains one sentence on the area `agents`: the two runtimes and the fake one, the agent files, prompts, write paths, tool uses, provider limits and tokens.
+    - `docs/project-guide/agents.md`, `stages.md`, `write-paths.md`, `stage-environment.md`, `processes-and-checks.md`, `watching.md`: every `factory.<layer>.<name>` of the 19 moved modules now reads `factory.agents.<layer>.<name>`. I used a regex limited to those 19 names.
+    - The same project-guide files: test paths of the 55 moved test modules now read `tests/agents/<layer>/…` (for example `test_prompts`, `test_agent_entry`, `test_decisions`, `test_write_paths` under `domain`; `test_claude_runtime`, `test_shipped_agents_effect`, `test_calls_as_the_factory_user` under `adapters`). A path changed only if the old file no longer exists and the new one does. `tests/application/test_write_paths.py` did not move, so its reference stays.
+
+    Cross-read and found current:
+    - `README.md` and `docs/operator-guide.md` name none of the 19 module paths and no moved test file.
+    - The rest of the project guide has no other old path.
+    - `docs/decisions.md` is untouched, as criterion 6 says.
+    - I did not check the other pages of the project guide for prose about the moved modules.
+    - I wrote no `docs/decisions.md` entry, so there is no "Why" or "Rejected" line to flag.
+
+    Stale text I saw and did not touch:
+    - `CLAUDE.md` line 19 names `factory.adapters.agent_launch`. The human said it waits for the merge (entries 8 and 14).
+    - `security/duplicates-baseline.txt` still holds old paths, and `pyproject.toml` still has the old per-file-ignores keys. Both also wait for the merge.
+    - `docs/project-guide/agents.md` lines 90 and 148 name `tests/adapters/claude_stand_in.py` and `tests/adapters/opencode_stand_in.py`. These support files did not move, so they are correct.
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 4058bd46fe4f at 2026-11-05T02:37:07Z)
+    `secrets`: secrets: green (4.1 s)
+    `documents`: documents ok
