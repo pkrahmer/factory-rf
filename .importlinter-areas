@@ -1,0 +1,18 @@
+# The report of which area imports which (F0051): `make areas`, never part of `make check`.
+# The areas import each other both ways today, mostly through `Boundaries`, so this contract is
+# expected to break; its report is the list to cut before the area rule can block.
+[importlinter]
+root_package = factory
+include_external_packages = False
+
+[importlinter:contract:areas]
+name = Areas, from the top: pipeline, watching, agents, machine, work, hosting, shared
+type = layers
+layers =
+    factory.pipeline
+    factory.watching
+    factory.agents
+    factory.machine
+    factory.work
+    factory.hosting
+    factory.shared

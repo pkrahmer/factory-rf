@@ -89,13 +89,13 @@ plugins = ["pydantic.mypy"]
 root_package = "factory"
 include_external_packages = true
 
-# F0051: the old layers are optional while the areas move in; the forbidden contracts hold the
-# layer rule inside and across every area from the story that moves it.
+# F0051: entry sits on top of the seven areas; the forbidden contracts hold the layer rule
+# inside and across every area.
 [[tool.importlinter.contracts]]
 name = "Layers"
 type = "layers"
 containers = ["factory"]
-layers = ["entry", "(adapters)", "(application)", "(domain)"]
+layers = ["entry"]
 
 [[tool.importlinter.contracts]]
 name = "An area's domain imports no higher layer"
@@ -153,8 +153,8 @@ pytest_add_cli_args_test_selection = ["tests/"]
 # kill no mutant, so its runs leave them out.
 pytest_add_cli_args = [
     "-p", "no:cov",
-    "--deselect", "tests/domain/test_hosting.py::test_domain_modules_import_only_stdlib_pydantic_and_domain",
-    "--deselect", "tests/domain/test_hosting.py::test_application_hosting_imports_only_stdlib_and_domain",
+    "--deselect", "tests/hosting/domain/test_hosting.py::test_domain_modules_import_only_stdlib_pydantic_and_domain",
+    "--deselect", "tests/hosting/domain/test_hosting.py::test_application_hosting_imports_only_stdlib_and_domain",
     "--deselect", "tests/test_agent_home_wiring.py::test_the_agent_definition_reader_is_built_once_from_the_settings_agent_home",
     "--deselect", "tests/test_atomic_replace_search.py::test_exactly_one_call_of_os_replace_exists_in_the_package",
     "--deselect", "tests/test_no_state_copies.py::test_no_function_but_the_allowed_two_checks_a_state_itself",

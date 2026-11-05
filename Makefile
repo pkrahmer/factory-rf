@@ -3,7 +3,7 @@
 # its own (the type check is skipped there, because the modules under test do not exist yet).
 # What each target runs is the repository's business; this file is a Python example. `types` and
 # `layers` are in `check`, not in `lint`: the tests stage runs `lint` only.
-.PHONY: check lint types layers sast secrets licenses test sync duplicates documents mutants
+.PHONY: check lint types layers sast secrets licenses test sync duplicates documents mutants areas
 .SILENT:
 
 # One shell per recipe, stopped by its first failing line, so that a recipe can time itself.
@@ -44,6 +44,11 @@ layers:
 	$(start)
 	uv run lint-imports
 	$(green)
+
+# A report, never part of check: which area imports which (F0051). It ends green even when the
+# contract is broken, because the area rule cannot block yet.
+areas:
+	uv run lint-imports --config .importlinter-areas --no-cache || true
 
 # Static analysis: semgrep with rule sets vendored under security/semgrep (copy the sets you
 # want from github.com/semgrep/semgrep-rules; offline and pinned), plus bandit.

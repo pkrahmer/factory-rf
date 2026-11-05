@@ -1,6 +1,6 @@
 # Accepted findings of make duplicates, one key per line.
-similar-code factory.work.application.acceptance, factory.application.handlers.hand_over: handed_over = state.model_copy(update={"handed_over": state.stage})
-similar-code factory.application.stage, factory.application.stalls: model_config = ConfigDict(frozen=True, extra="forbid")
+similar-code factory.work.application.acceptance, factory.pipeline.application.handlers.hand_over: handed_over = state.model_copy(update={"handed_over": state.stage})
+similar-code factory.pipeline.application.stage, factory.pipeline.application.stalls: model_config = ConfigDict(frozen=True, extra="forbid")
 dead-code src/factory/agents/adapters/fake_agent_runtime.py: unused class 'FakeAgentRuntime'
 dead-code src/factory/agents/adapters/fake_agent_runtime.py: unused method 'queue'
 dead-code src/factory/agents/adapters/fake_agent_runtime.py: unused method 'requests'
@@ -16,8 +16,8 @@ dead-code src/factory/work/adapters/work_item_markdown.py: unused attribute 'Rep
 dead-code src/factory/work/adapters/work_item_markdown.py: unused attribute 'width'
 dead-code src/factory/work/adapters/work_item_markdown.py: unused variable 'kwargs'
 dead-code src/factory/work/adapters/work_item_markdown.py: unused method 'export'
-dead-code src/factory/application/dispatcher.py: unused function 'unhandled_kinds'
-dead-code src/factory/application/stage.py: unused variable 'next_stage'
+dead-code src/factory/pipeline/application/dispatcher.py: unused function 'unhandled_kinds'
+dead-code src/factory/pipeline/application/stage.py: unused variable 'next_stage'
 dead-code src/factory/agents/domain/agent_runs.py: unused property 'ok'
 dead-code src/factory/watching/domain/cost_records.py: unused variable 'attempt'
 dead-code src/factory/watching/domain/cost_records.py: unused property 'ok'
@@ -30,7 +30,7 @@ dead-code src/factory/work/domain/move_rule.py: unused function 'factory_moves'
 dead-code src/factory/shared/domain/paths.py: unused variable 'FACTORY_DIRECTORY'
 dead-code src/factory/agents/domain/write_paths.py: unused function 'is_writable'
 dead-code src/factory/shared/adapters/clock.py: unused class 'ManualWaiter'
-dead-code src/factory/application/take.py: unused variable 'restored_work_item'
+dead-code src/factory/pipeline/application/take.py: unused variable 'restored_work_item'
 similar-code factory.agents.adapters.claude_runtime, factory.agents.adapters.opencode_runtime: return finished_run(result, started, self._kill_points)
 similar-code factory.machine.adapters.fake_containers, factory.machine.adapters.podman_runs: env=launch.env,
 similar-code factory.agents.adapters.claude_runtime, factory.agents.adapters.opencode_runtime: exit_status=process.exit_status,
