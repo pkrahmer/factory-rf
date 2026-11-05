@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 576
 comments_read: [6672543099]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T23:46:54.852929Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-05T23:46:49.426688Z'
   stage: intake
   run: afbf83952cd34acd99fe95f73b65b0b1
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:46:54.852929Z'
+  stage: tests
 ---
 
 # A guide rewrite may rename its headings and add a page
@@ -110,3 +119,4 @@ Expect: `1`
    - Architecture: the changes are tests and a support module, in the places CLAUDE.md prescribes: `tests/support/*_support.py` and `tests/guards/`. A new support module function is shared and no test module is imported by another.
    - Scope: within feature decision 7, which gives the leave to change the two earlier guard modules. The tester must name that leave in its entry. The project guide's file-list rule is replaced by the index rule, which is the story's own description.
    Route: tests, because the Interface changes test files and a support module, none of which the documenter may write.
+7. factory: started tests as vm.
