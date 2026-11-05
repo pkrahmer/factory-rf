@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 555
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T00:07:38.428122Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-05T00:07:38.428122Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-05T00:12:13.541453Z'
+  stage: doing
+  run: de5fb6ac684a44b295738439e6ab0d9d
 ---
 
 # The operator guide's push error example shows the ref line the factory writes
@@ -110,3 +112,14 @@ Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [re
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: No change. This story changes only the docs. The Interface says no module under `src/factory/` changes and no test is written, and the tester wrote none. `make test` therefore had no failures to work from, and there is no code to implement.
+   - Main choice: I left `docs/operator-guide.md` untouched and left both edits to the documenter, which turns criteria 1 to 3 into the guide's text through criterion 5. CLAUDE.md (*Docs*) says the documenter keeps the operator guide true and the coder does not write it. Rejected: making the two edits here. That would take over the docs stage's work and put this stage's commit outside the coder's part.
+   - For the documenter: the two places are still exactly as the Description says. `docs/operator-guide.md:2487` holds the `! [remote rejected] work-item/F0001-S0001 -> work-item/F0001-S0001 (Internal Server Error)` example. `docs/operator-guide.md:2498` holds "git's `` `! [remote rejected]` ``". No other line of the guide holds `-> work-item/` or `` `! [remote rejected]` ``.
+   - Refactor: nothing to refactor, because there is no diff.
+   - The journal does not change what the task means. The Description stays as written.
+   - Noticed, not touched: nothing.
+
+   `make check`: check: green (test: green (116.8 s), total coverage 99.26 %).
+
+   `check`: check: green
+   `duplicates`: duplicates: 4 new, 41 known, 2 gone
