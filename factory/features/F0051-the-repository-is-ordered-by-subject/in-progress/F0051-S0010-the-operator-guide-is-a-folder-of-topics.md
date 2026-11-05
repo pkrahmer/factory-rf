@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 565
-comments_read: [6651800802, 6651897156]
+comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
 claim: null
 journal:
@@ -82,6 +82,11 @@ journal:
   stage: doing
   run: 1e707fe87f1a44c8ba3ec8ca8446b475
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-11-05T07:21:17.109662Z'
+  stage: doing
 ---
 
 # The operator guide is a folder of topics
@@ -249,3 +254,9 @@ Expect: `split`
        I would choose (a). Either way, `make check` stays red after this stage until it is done.
 
     Not touched: some project-guide files refer to "the operator guide, *Section*" without a path, for example `docs/project-guide/machine.md:54` and `docs/project-guide/pipeline.md:116`. They are still correct; naming the topic file there belongs to the documenter's part of the docs criterion. No refactoring beyond the `_RULES` table was needed.
+14. 2026-11-05 human: Answers of the human:
+
+    1. **(a).** Leave for the tester: `tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file` leaves `docs/operator-guide/` out of its search and does not count a name that follows `operator-guide/`. The test keeps its name and still checks that no file names a removed project-guide file.
+    2. **(a), on `main`.** I changed both lines on `main` (a pull of `main` at the next stage brings them in): `operator/README.md` names `docs/operator-guide/site.md`, and the playbook names `docs/operator-guide/` (an index and one file per topic). Do not edit them.
+
+    End with `tests` for point 1. The documenter names the topic files in the project guide's "the operator guide, *Section*" references, as you suggest.
