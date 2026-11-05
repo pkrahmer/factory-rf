@@ -94,9 +94,9 @@ This repository's pipeline runs the report after the coder and writes its last l
 
 ## The document check
 
-`uv run python -m factory.entry.check_documents` reads the four documents and the other files of this guide, and prints `documents ok`, or one finding per line and exits 1. The rule is the pure function `factory.shared.domain.documents.check_documents`; the command only reads the files (`--root` names another checkout). It requires:
+`uv run python -m factory.entry.check_documents` reads the four documents (the operator guide is its index `docs/operator-guide/README.md` and ten topic files, listed in `OPERATOR_GUIDE_FILES`; a missing one is reported as `docs/operator-guide/<file>: missing`) and the other files of this guide, and prints `documents ok`, or one finding per line and exits 1. The rule is the pure function `factory.shared.domain.documents.check_documents`; the command only reads the files (`--root` names another checkout). It requires:
 
-- the operator guide's sections *Install*, *Configuration* and *The stops*, with a table row for each row of `STOP_TABLE` that holds the stop's id in backticks and its destination in words;
+- the operator guide's sections *Install* and *Configuration* in `docs/operator-guide/install.md` and *The stops* in `docs/operator-guide/stops.md`, with a table row for each row of `STOP_TABLE` that holds the stop's id in backticks and its destination in words;
 - the guide's index, `docs/project-guide/README.md`, with its sections *Kill points* and *Fault-injection paths*, with a table row for each case of `KILL_POINT_CASES` and each path of `FAULT_PATHS`, each with its id or test name in backticks;
 - none of the phrases of `REPLACED_PHRASES` and none of the v1 words of `GLOSSARY_FORBIDDEN` outside a `## Replaced from v1` section; the decision log is exempt from both lists.
 

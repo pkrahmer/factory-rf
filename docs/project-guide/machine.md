@@ -51,7 +51,7 @@ A `Mount` has a `source` (an absolute host path), a `target` (a container path) 
 - An `OSError` of `reset` or `advance` is `SnapshotError("reset" or "advance", <the operating system's message>)`. `changed_paths` turns none (the Interface names only the other two).
 - Without a `base` directory, `reset` and `changed_paths` raise `SnapshotError("reset" or "changed_paths", "no base at <base>")` and `reset` changes nothing. A `base` that is a file counts as no base.
 
-The cost is a full copy per `reset` and `advance` (the operator guide, *Without ZFS*, has the figures).
+The cost is a full copy per `reset` and `advance` (`docs/operator-guide/machine.md`, *Without ZFS*, has the figures).
 
 ## The fakes
 
@@ -156,7 +156,7 @@ Measured on 2026-10-24 on the local VM (Ubuntu 24.04, podman 4.9.3, rootless as 
 
 ### The job profile
 
-`profile` is `FACTORY_CONTAINER_PROFILE` (`InstanceSettings.container_profile`, passed by `_container_adapters` in `factory.entry.wiring`): `rootless`, the default, builds every word as described above; `job` is for a managed sandbox such as a Cloud Run job (the operator guide, *The job profile*, has the measured reasons). It changes two things and nothing else:
+`profile` is `FACTORY_CONTAINER_PROFILE` (`InstanceSettings.container_profile`, passed by `_container_adapters` in `factory.entry.wiring`): `rootless`, the default, builds every word as described above; `job` is for a managed sandbox such as a Cloud Run job (`docs/operator-guide/machine.md`, *The job profile*, has the measured reasons). It changes two things and nothing else:
 
 - `JOB_PODMAN_OPTIONS` (`factory.machine.domain.containers`: `--runtime=runc`, `--cgroup-manager=cgroupfs`, `--storage-driver=overlay`; three words, no mount program, the storage's place being the machine's) go right after the executable, before `run`, in `launch`, `version` and `image_exists`, and in the command text of a `ContainerError`.
 - In `launch`, `--userns=keep-id` gives way to `--http-proxy=false --network=host` (`_isolation_words`). All other words keep their order, so a `job` launch reads `<executable> <options> run --rm --http-proxy=false --network=host --timeout <seconds> --cap-drop=all ...`. It has no `--user` either: the container runs as the job's root.
@@ -325,7 +325,7 @@ What is copied is what differs from `HEAD` on the host (`git.changed_paths("HEAD
 
 ## The settings and the wiring
 
-An instance names its dataset, workspace and stage image in its environment variables (`factory.shared.domain.settings`; the operator guide, *Configuration*, has the table).
+An instance names its dataset, workspace and stage image in its environment variables (`factory.shared.domain.settings`; `docs/operator-guide/install.md`, *Configuration*, has the table).
 
 | Variable | `InstanceSettings` field | Default |
 |---|---|---|
@@ -429,7 +429,7 @@ Tests write a Makefile into `tmp_path` and run the class against it; nothing is 
 
 `make mutants` runs mutmut over the modules you name. It is not part of `make check`: it is slow. No stage and no agent runs it: mutation testing runs only as sweeps outside the factory, which the human starts (*Mutation testing runs only as sweeps outside the factory* and *The mutants target keeps only its sweep form* in the decision log).
 
-Nothing is kept between runs. Every run removes `mutants/` first, so mutmut makes it anew, copies the other files under `src/` (the contract's schemas) afresh and runs its stats again. A run therefore pays the stats every time (the operator guide, *Mutation testing by sweep*, gives the cost).
+Nothing is kept between runs. Every run removes `mutants/` first, so mutmut makes it anew, copies the other files under `src/` (the contract's schemas) afresh and runs its stats again. A run therefore pays the stats every time (`docs/operator-guide/install.md`, *Mutation testing by sweep*, gives the cost).
 
 **The modules** come from one of two variables:
 

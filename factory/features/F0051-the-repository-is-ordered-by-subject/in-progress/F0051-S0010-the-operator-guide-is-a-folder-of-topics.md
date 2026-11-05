@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T07:45:37.695863Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -206,6 +202,12 @@ journal:
   kind: started
   at: '2026-11-05T07:45:37.695863Z'
   stage: docs
+- number: 36
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T07:47:03.216091Z'
+  stage: docs
+  run: 88afbb4da270482ca68375477392d7b2
 ---
 
 # The operator guide is a folder of topics
@@ -606,3 +608,28 @@ Expect: `split`
       - The human's leave, entry 14 point 1: the `docs/operator-guide` exclusion and the `operator-guide/` lookbehind.
       - The standing leave to move a shared test helper (entry 26): `_lines_outside_fences`, `_guide_headings` and `_searched_files` moved to `tests/support/guide_files_support.py`. Every test keeps its name. The `__pycache__` skip changes nothing, because the searched places hold none.
 35. factory: started docs as vm.
+36. documenter: Docs, round 1. I changed only documents, so I did not run `make check`. I ran `uv run python -m factory.entry.check_documents`, which printed `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/{agents,machine,pipeline,shared,watching,work}.md`: the references "the operator guide, *Section*" now name the topic file that holds the section. That is the work entry 14 gave the documenter. In `shared.md` the document check's description now says the guide is the index plus ten topic files (`OPERATOR_GUIDE_FILES`), names the new `docs/operator-guide/<file>: missing` finding, and puts *Install* and *Configuration* in `install.md` and *The stops* in `stops.md`.
+    - `docs/decisions.md`: a new entry, "The operator guide is a folder of topics" (F0051-S0010). The Why is the one the Description gives: 2,603 lines and 50 sections, and every documenter run read far more than it needed. The story names no rejected option, so the entry has no "Rejected" line.
+
+    Cross-read and found current:
+    - `docs/operator-guide/README.md`: one sentence per file, and *Replaced in v1.2* and *Replaced from v1* are there.
+    - The eleven files of `docs/operator-guide/`: I did not edit them, and the reviewer had compared them with the old guide.
+    - `README.md`.
+    - `operator/README.md`.
+    - `docs/operator-playbook.md`: it already names the folder.
+    - `docs/project-guide/README.md` and `operator.md`.
+    - The `docs/operator-guide/...` references in the project guide (`agents.md`, `pipeline.md`, `machine.md` and `operator.md`).
+
+    Stale text I saw and did not touch:
+    - `src/factory/entry/wiring.py:746` says "the operator guide's order", and `vm/setup.sh:405`, `:453` and `:476` say "operator guide, "The machine"" or "The rebuild after a merge" without a file. `operator/skill/kumpel/references/approving.md:25` says "the operator guide's ..." with no file either. These are code, comments or scripts, which are not mine. They are not wrong, since the guide still exists and the sections have the same names.
+    - `docs/operator-playbook.md:82` says "the operator guide's `fstrim` and `compact vdisk` steps" with no file. The human's playbook changes only when a docs criterion names it.
+    - `docs/decisions.md` entries before this one still say `docs/operator-guide.md`, as history. Criterion 4 excludes that file.
+
+    No findings for the coder. The code agrees with the Interface: the document check requires the index and the ten files, and checks the three sections in their new files.
+
+    `check`: check: green (not run again: passed on tree 3c78f1d1e1b4 at 2026-11-05T07:41:09Z)
+    `secrets`: secrets: green (3.7 s)
+    `documents`: documents ok
