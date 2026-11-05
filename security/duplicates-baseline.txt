@@ -1,9 +1,9 @@
 # Accepted findings of make duplicates, one key per line.
 similar-code factory.work.application.acceptance, factory.application.handlers.hand_over: handed_over = state.model_copy(update={"handed_over": state.stage})
 similar-code factory.application.stage, factory.application.stalls: model_config = ConfigDict(frozen=True, extra="forbid")
-dead-code src/factory/adapters/fake_agent_runtime.py: unused class 'FakeAgentRuntime'
-dead-code src/factory/adapters/fake_agent_runtime.py: unused method 'queue'
-dead-code src/factory/adapters/fake_agent_runtime.py: unused method 'requests'
+dead-code src/factory/agents/adapters/fake_agent_runtime.py: unused class 'FakeAgentRuntime'
+dead-code src/factory/agents/adapters/fake_agent_runtime.py: unused method 'queue'
+dead-code src/factory/agents/adapters/fake_agent_runtime.py: unused method 'requests'
 dead-code src/factory/hosting/adapters/fake_hosting.py: unused class 'FakeHostingService'
 dead-code src/factory/hosting/adapters/fake_hosting.py: unused method 'add_human_comment'
 dead-code src/factory/hosting/adapters/fake_hosting.py: unused method 'delete_comment'
@@ -18,7 +18,7 @@ dead-code src/factory/work/adapters/work_item_markdown.py: unused variable 'kwar
 dead-code src/factory/work/adapters/work_item_markdown.py: unused method 'export'
 dead-code src/factory/application/dispatcher.py: unused function 'unhandled_kinds'
 dead-code src/factory/application/stage.py: unused variable 'next_stage'
-dead-code src/factory/domain/agent_runs.py: unused property 'ok'
+dead-code src/factory/agents/domain/agent_runs.py: unused property 'ok'
 dead-code src/factory/domain/cost_records.py: unused variable 'attempt'
 dead-code src/factory/domain/cost_records.py: unused property 'ok'
 dead-code src/factory/hosting/domain/git.py: unused variable 'committed_at'
@@ -28,15 +28,15 @@ dead-code src/factory/shared/domain/kill_points.py: unused method 'arm'
 dead-code src/factory/shared/domain/kill_points.py: unused method 'reached'
 dead-code src/factory/work/domain/move_rule.py: unused function 'factory_moves'
 dead-code src/factory/shared/domain/paths.py: unused variable 'FACTORY_DIRECTORY'
-dead-code src/factory/domain/write_paths.py: unused function 'is_writable'
+dead-code src/factory/agents/domain/write_paths.py: unused function 'is_writable'
 dead-code src/factory/shared/adapters/clock.py: unused class 'ManualWaiter'
 dead-code src/factory/application/take.py: unused variable 'restored_work_item'
-similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: return finished_run(result, started, self._kill_points)
+similar-code factory.agents.adapters.claude_runtime, factory.agents.adapters.opencode_runtime: return finished_run(result, started, self._kill_points)
 similar-code factory.adapters.fake_containers, factory.adapters.podman_runs: env=launch.env,
-similar-code factory.adapters.claude_runtime, factory.adapters.opencode_runtime: exit_status=process.exit_status,
+similar-code factory.agents.adapters.claude_runtime, factory.agents.adapters.opencode_runtime: exit_status=process.exit_status,
 dead-code src/factory/adapters/fake_containers.py: unused class 'FakeContainerRuns'
 dead-code src/factory/adapters/fake_containers.py: unused property 'calls'
 dead-code src/factory/adapters/fake_images.py: unused class 'FakeImages'
 dead-code src/factory/adapters/fake_snapshots.py: unused class 'FakeSnapshots'
 dead-code src/factory/adapters/make_commands.py: unused class 'MakeProjectCommands'
-dead-code src/factory/adapters/oauth_token.py: unused function '__call__'
+dead-code src/factory/agents/adapters/oauth_token.py: unused function '__call__'
