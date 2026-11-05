@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T22:40:57.496867Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -186,6 +190,11 @@ journal:
   at: '2026-11-05T22:40:51.907969Z'
   stage: doing
   run: 79a1ac03ecb94b27bb555eae47024047
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:40:57.496867Z'
+  stage: tests
 ---
 
 # The agents know the docs route
@@ -448,3 +457,4 @@ Expect: `named`
     Description: the reviewer added criteria 4 and 5 in entry 30 and renumbered the old ones to 6 and 7. The Description itself still matches the task, so I left it as it is.
 
     Noticed, not touched: criterion 7 (the docs) is the documenter's work. The pipeline definition change for the route is the human's, at merge.
+33. factory: started tests as vm.
