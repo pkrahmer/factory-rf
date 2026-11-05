@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 559
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T02:13:44.797849Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-05T02:13:44.797849Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-05T02:14:39.046659Z'
+  stage: tests
+  run: 4132ed73d1ae4447964fec777cb9f15d
 ---
 
 # The agents area holds the agent runs
@@ -110,3 +112,16 @@ Expect: `1`
    - Architecture: the move keeps each module in its own layer inside `factory.agents`, so the layer rule holds. It matches feature decisions 1 to 4 and 7.
    - Scope: this is the agents area of S0004 in the feature's stories list, and it changes no behaviour. `docs/decisions.md` is untouched, as the feature's out-of-scope list requires. No test that another story wrote is changed beyond the leave in feature decision 5.
 4. factory: started tests as vm.
+5. tester: Added the `agents` row to `AREAS` in `tests/test_areas.py`, holding the 19 modules of the Interface's table. That was the only change. The test functions already in that module are parametrized over `AREAS`, so they now cover the new area and I wrote no new functions. This matches the Interface's rule that nothing else in that module changes.
+
+   - criterion 1: tests/test_areas.py::test_a_moved_module_imports_from_its_area_and_is_gone_from_its_layer (one row per module, ids `agents.<layer>.<name>`). The key and its module list are the new `AREAS["agents"]` entry.
+   - criterion 2: tests/test_areas.py::test_an_area_package_imports_and_has_a_docstring (rows `factory.agents`, `factory.agents.adapters`, `factory.agents.application`, `factory.agents.domain`)
+   - criterion 3: tests/test_areas.py::test_no_file_imports_a_moved_module_from_its_old_path (one row per module; `source_search.imports` covers the three import forms)
+   - criterion 4: tests/test_areas.py::test_no_test_module_stays_in_its_layer_folder_when_all_it_imports_has_moved. tests/test_areas.py::test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own checks the moved test modules under `tests/agents/` once they exist.
+   - criteria 5 and 6: the closing ones (`make check` stays green, docs), not tested here.
+
+   Files: I created none. I changed tests/test_areas.py, which an earlier story of this feature wrote; feature decision 5 covers that change, and the Interface names it.
+
+   Run of `uv run pytest -q tests/test_areas.py`: the new rows fail for the right reason. The `factory.agents.*` modules cannot be imported yet (ModuleNotFoundError), and the old paths are still imported from `src/` and `tests/`. The runner could not import `factory.agents`, `factory.agents.domain`, `factory.agents.application`, `factory.agents.adapters`, or any of the 19 modules under them. `make lint` is green.
+
+   `lint`: lint: green (0.2 s)
