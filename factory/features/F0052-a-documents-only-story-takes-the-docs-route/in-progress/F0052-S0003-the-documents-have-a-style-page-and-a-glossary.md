@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 0
 attempts: 1
 crashes: 0
 pull_request: 574
 comments_read: [6671915202]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T23:16:40.079968Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -102,6 +98,13 @@ journal:
   kind: started
   at: '2026-11-05T23:16:40.079968Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: question
+  at: '2026-11-05T23:18:22.453798Z'
+  stage: review
+  run: a3940524d522498b90687b953693d325
+  blocked: question
 ---
 
 # The documents have a style page and a glossary
@@ -256,3 +259,28 @@ Expect: `named`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 16. factory: started review as vm.
+17. reviewer: Review, round 0. I reviewed `git diff main...HEAD -- . ':!factory'` and the work item. The diff has the two new pages, the two index lines, the decision-log entry and the guard change. I checked the facts against the code: `TakeService.take`'s signature, `Snapshots.changed_paths`, `operator/vm/setup.sh`'s flags, `FACTORY_INSTANCE`, the stall reasons, and the `StageEnvironment` operations. I also compared the pages with `planning/doc-style-drafts.md`.
+
+    What holds:
+    - The glossary has all 27 words, sorted, each in one or two sentences.
+    - `style.md` has the seven rules, the link rule and the three sections, each with its reader, its rules and an example.
+    - I found no feature or story ID and no version name in either page.
+    - The documenter left out the drafts' rules 8 to 10 because the Interface asks for seven rules plus the link rule. I agree.
+    - The factory's `make check` after the coder was green (entry 15).
+
+    Findings:
+    1. `docs/project-guide/glossary.md`, entries `stall` and `attempts cap`: both say a stall is an agent run that ends without a result. A stall also follows a finished run when the decision is not allowed, the form fails, a check is red or a merge conflicts (`StallReason`; `pipeline.md` *Stalls*; this story's entry 6 is a `check_red` stall). Fix: define a stall as a stage that ends without a result the factory can keep, whether the run ended early or its decision, form, checks or merge failed. Define the attempts cap as how many stalls a stage may have before the factory asks.
+    2. `docs/project-guide/glossary.md`, entry `journal`: "Each stage and each human answer adds one" leaves out the factory's own entries (started, stall, crash). Fix: say the factory, each stage's agent and the human add entries.
+    3. `docs/project-guide/style.md`, the example in *The project guide*: the code block shows `TakeService`'s signature, but no module is named and no relative link sits above the block. That breaks the section's own rule ("the module, the class and its main function") and rule 8 (criteria 1 and 4). Fix: above the block, add one line that links `[take.py](../../src/factory/pipeline/application/take.py)` and names `factory.pipeline.application.take`.
+    4. `docs/project-guide/style.md`, *The operator guide*, first paragraph and second bullet: the glossary words "instance" and "stop" are used without a link at first use. That breaks the page's own rule 3 (criterion 4). Fix: link each word to `glossary.md` where it first appears.
+    5. `docs/decisions.md`, the new entry's Decision line: one sentence of about 45 words with three parentheses. That breaks rule 2 of the style the entry adopts. Fix: split it into short sentences, one per document, without parentheses.
+
+    Earlier tests:
+    - `tests/guards/test_project_guide_files.py`: changed under the human's leave in journal entry 11 (option (a)). The change matches that answer and nothing more: `NAMED_FILES` gains `style.md` and `glossary.md`, and one test is renamed.
+
+    Question: every finding is in `docs/`, and only the documenter may write there (`factory/pipeline.yml`, roles). The coder may not, so `doing` sends the findings to a stage that cannot fix them. Options:
+    - (a) I end with `doing`. The coder can only pass or ask again, so the story loses a stage.
+    - (b) I end with `docs`, and the documenter fixes findings 1 to 5 there before the smoke test.
+    - (c) You fix the five points by hand on the branch, and I pass.
+
+    I would choose (b): it puts the findings in front of the only role that may write them.
