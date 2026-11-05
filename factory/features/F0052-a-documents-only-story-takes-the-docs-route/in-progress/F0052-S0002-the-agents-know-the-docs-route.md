@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T22:16:14.665755Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T22:16:12.185609Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:16:14.665755Z'
   stage: tests
 ---
 
@@ -141,3 +150,4 @@ Expect: `named`
       The test checks that each appears exactly once in the `docs-review` subsection.
 
    3. (a), but without a later change: the test checks the seven rules unconditionally. S0003 takes the docs route and changes no agent file and no test, so the list stays in `reviewer.md` as the fallback the section names ("until `docs/project-guide/style.md` exists"), and the test stays green.
+10. factory: started tests as vm.
