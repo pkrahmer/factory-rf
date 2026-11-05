@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 557
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T01:26:53.268895Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-05T01:26:53.268895Z'
   stage: smoke-test
+- number: 17
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T01:27:47.015673Z'
+  stage: smoke-test
+  run: 72abfd9869a248e88cbb0b0fe7b7c71d
 ---
 
 # The hosting area holds git and the hosting service
@@ -525,3 +527,27 @@ Expect: `1`
     `secrets`: secrets: green (5.3 s)
     `documents`: documents ok
 16. factory: started smoke-test as vm.
+17. smoke-tester: Smoke test, round 0. I ran the three commands under `## Smoke test` from the repository root, as written and in order. All three met their `Expect:` lines.
+
+    1. `uv run python -c "import factory.hosting.domain.git as m; print(m.__name__)"`
+    ```
+    Bytecode compiled 4164 files in 57ms
+    factory.hosting.domain.git
+    ```
+    Expect `factory.hosting.domain.git`: met. The first line is uv's own bytecode notice, not output of the command.
+
+    2. `test -e src/factory/domain/git.py && echo still there || echo moved`
+    ```
+    moved
+    ```
+    Expect `moved`: met.
+
+    3. `uv run pytest tests/test_areas.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Expect `1`: met.
+
+    Against the acceptance criteria: I also checked that none of the 11 modules in the table is left at its old path, and grepped `src/` and `tests/` for each old dotted path. The only hits are string test data in `tests/shared/domain/test_duplicates.py` (lines 22, 26 and 45, sample pylint duplicate-code output that names `factory.domain.git`). None is an import line, so criterion 3 holds. Nothing contradicts criteria 1 to 4. I did not run `make check` (criterion 5): the factory runs it as the stage's check.
+
+    Findings: none.
