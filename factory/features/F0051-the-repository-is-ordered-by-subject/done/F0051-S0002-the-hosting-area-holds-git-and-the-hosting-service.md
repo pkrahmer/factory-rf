@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -102,6 +102,11 @@ journal:
   at: '2026-11-05T01:27:47.015673Z'
   stage: smoke-test
   run: 72abfd9869a248e88cbb0b0fe7b7c71d
+- number: 18
+  speaker: factory
+  kind: done
+  at: '2026-11-05T01:29:41.208651Z'
+  stage: approval
 ---
 
 # The hosting area holds git and the hosting service
@@ -551,3 +556,4 @@ Expect: `1`
     Against the acceptance criteria: I also checked that none of the 11 modules in the table is left at its old path, and grepped `src/` and `tests/` for each old dotted path. The only hits are string test data in `tests/shared/domain/test_duplicates.py` (lines 22, 26 and 45, sample pylint duplicate-code output that names `factory.domain.git`). None is an import line, so criterion 3 holds. Nothing contradicts criteria 1 to 4. I did not run `make check` (criterion 5): the factory runs it as the stage's check.
 
     Findings: none.
+18. factory: done (pull request merged); cost: 8 runs, 18.3 min, 107 turns, 210892 tokens in (3185184 more from cache), 43057 out, $2.93
