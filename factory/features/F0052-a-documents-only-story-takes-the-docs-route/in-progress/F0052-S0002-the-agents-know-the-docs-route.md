@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T22:33:04.450021Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-05T22:33:04.450021Z'
   stage: tests
+- number: 26
+  speaker: tester
+  kind: result
+  at: '2026-11-05T22:33:45.997430Z'
+  stage: tests
+  run: 37ac96853e6248f3bed2cc80fbce2289
 ---
 
 # The agents know the docs route
@@ -342,3 +344,20 @@ Expect: `named`
 
     Noticed, not touched: criterion 5 (the docs) is the documenter's. The pipeline definition change for the route is the human's at merge.
 25. factory: started tests as vm.
+26. tester: I made the two test changes that the coder's entry 24 names, for review findings 3 and 4.
+
+    - **Finding 3**, in `tests/agent_files/test_claude_agent_texts_docs_route.py` (this story's own test module): I removed the rows `ends-with-tests` and `entry-names-the-change` from `test_the_documenter_in_docs_only_writes_the_documents_and_hands_to_review_or_tests`. Its other rows stay: `make-documents`, `ends-with-docs-review` and `change-outside-the-documents`. The check that replaces the two rows is a separate test function, `test_the_documenter_in_docs_only_hands_a_change_outside_the_documents_to_tests`, not a row. It finds the one line of the `### docs-only` subsection that holds "outside the documents" and requires that line to hold both "end with `tests`" and "entry names that change". I made it a function because a row of the plain `named in subsection` test cannot tie the three phrases to one bullet.
+    - **Finding 4**, under the standing leave to move a shared test helper: `_stage_section` moved to `tests/support/shipped_agents.py` as `stage_section`, with a docstring. Both modules now use it from there and no longer import `section_text` themselves. The changed earlier file is `tests/agent_files/test_claude_agent_texts_docs_slip.py`, from an earlier story. Every test in it keeps its name and checks the same thing.
+
+    Criterion mapping, changed only for criterion 2 (the documenter's `docs-only` subsection):
+    - criterion 2: `tests/agent_files/test_claude_agent_texts_docs_route.py::test_the_documenter_in_docs_only_writes_the_documents_and_hands_to_review_or_tests` and `::test_the_documenter_in_docs_only_hands_a_change_outside_the_documents_to_tests`.
+
+    The other criteria keep the tests listed in journal 11.
+
+    - **Files created:** none.
+    - **Files changed:** `tests/agent_files/test_claude_agent_texts_docs_route.py`, `tests/agent_files/test_claude_agent_texts_docs_slip.py`, `tests/support/shipped_agents.py`.
+    - **Modules the test run could not import:** none.
+
+    **Test run:** `uv run pytest -q` over the two agent-file modules gave 32 passed. `make lint` gave `lint: green (0.2 s)`.
+
+    `lint`: lint: green (0.2 s)

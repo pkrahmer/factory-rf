@@ -2,8 +2,7 @@
 
 import pytest
 
-from factory.shared.domain.sections import section_text
-from support.shipped_agents import agent_body
+from support.shipped_agents import stage_section
 
 ROUTING_RULE = (
     "Choose `docs-only` when every path the Interface changes is one the documenter may write "
@@ -24,12 +23,8 @@ STYLE_RULES = [
 ]
 
 
-def _stage_section(name: str) -> str:
-    return section_text(agent_body(name), "Stage") or ""
-
-
 def _stage_subsection(name: str, stage: str) -> str:
-    lines = _stage_section(name).splitlines()
+    lines = stage_section(name).splitlines()
     heading = f"### {stage}"
     starts = [index for index, line in enumerate(lines) if line.strip() == heading]
     assert len(starts) == 1, f"{name}.md has {len(starts)} `{heading}` headings in its Stage"
@@ -39,7 +34,7 @@ def _stage_subsection(name: str, stage: str) -> str:
 
 
 def test_the_intake_routes_a_documents_only_story_to_docs_only_and_every_other_to_tests() -> None:
-    assert _stage_section("intake").count(ROUTING_RULE) == 1
+    assert stage_section("intake").count(ROUTING_RULE) == 1
 
 
 @pytest.mark.parametrize(
@@ -47,15 +42,24 @@ def test_the_intake_routes_a_documents_only_story_to_docs_only_and_every_other_t
     [
         pytest.param("`make documents`", id="make-documents"),
         pytest.param("`docs-review`", id="ends-with-docs-review"),
-        pytest.param("`tests`", id="ends-with-tests"),
-        pytest.param("outside the documents", id="change-outside-the-documents"),
-        pytest.param("entry", id="entry-names-the-change"),
     ],
 )
 def test_the_documenter_in_docs_only_writes_the_documents_and_hands_to_review_or_tests(
     named: str,
 ) -> None:
     assert named in _stage_subsection("documenter", "docs-only")
+
+
+def test_the_documenter_in_docs_only_hands_a_change_outside_the_documents_to_tests() -> None:
+    bullets = [
+        line
+        for line in _stage_subsection("documenter", "docs-only").splitlines()
+        if "outside the documents" in line
+    ]
+
+    assert len(bullets) == 1
+    assert "end with `tests`" in bullets[0]
+    assert "entry names that change" in bullets[0]
 
 
 @pytest.mark.parametrize(

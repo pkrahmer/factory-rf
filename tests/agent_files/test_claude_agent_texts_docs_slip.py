@@ -4,8 +4,7 @@ from collections.abc import Callable
 
 import pytest
 
-from factory.shared.domain.sections import section_text
-from support.shipped_agents import SHIPPED_NAMES, agent_body, template_definition
+from support.shipped_agents import SHIPPED_NAMES, agent_body, stage_section, template_definition
 
 REWORK_RULE = (
     "R12. Rework rounds (review → doing, docs → doing, smoke-test → doing, smoke-test → docs, "
@@ -41,10 +40,6 @@ DOCUMENTER_SENTENCE = (
     "are slips in the documents: fix exactly those, run the commands they name again, and end "
     "with `smoke-test`."
 )
-
-
-def _stage_section(name: str) -> str:
-    return section_text(agent_body(name), "Stage") or ""
 
 
 def test_the_template_lets_the_smoke_test_hand_a_slip_to_docs_and_keeps_every_other_next() -> None:
@@ -91,11 +86,11 @@ def test_every_shipped_agent_names_the_smoke_test_to_docs_rework(name: str) -> N
 def test_the_smoke_tester_ends_with_docs_only_for_slips_in_a_document(
     holds: Callable[[str], bool],
 ) -> None:
-    assert holds(_stage_section("smoke-tester"))
+    assert holds(stage_section("smoke-tester"))
 
 
 def test_the_documenter_fixes_the_slips_of_the_smoke_test_and_hands_back_to_it() -> None:
-    steps = [line for line in _stage_section("documenter").splitlines() if line.startswith("1. ")]
+    steps = [line for line in stage_section("documenter").splitlines() if line.startswith("1. ")]
 
     assert len(steps) == 1
     assert steps[0].endswith(f" {DOCUMENTER_SENTENCE}")
