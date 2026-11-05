@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 563
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T04:33:54.255697Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-05T04:33:54.255697Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-05T04:34:15.903571Z'
+  stage: intake
+  run: 8ff0f9d70dbd4873b3c98284e47b9c77
+  blocked: question
 ---
 
 # The root of `tests/` holds only its folders
@@ -63,3 +66,14 @@ Expect: `support.bill_support`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed, so there are no findings from it):
+
+   1. Criterion 2 and the Description do not say which root modules are "shared helpers". The Description counts 73 `*_support.py` and "13 other shared helpers (`human_clone.py`, `recording_log.py`, `source_search.py` and the rest)", but it names only three. The criterion says "one row each", and a test needs the exact list. Please list the 13 by name, or define the rule that selects them, for example "every root module without a `test_` prefix". My choice: that rule, which also covers `module_names.py`, `time_limits.py` and the other non-test modules.
+
+   2. The Description and the Interface state placement rules that no criterion tests. These are: structural guards go to `tests/guards/`, tests of the operator's scripts go to `tests/operator/`, tests of `vm/` go to `tests/vm/`, tests of the agent files go to `tests/agent_files/`, and every other test module goes to the area and layer of the module it imports most. Criterion 1 only checks that the root is clean. Two coders could scatter modules differently and both pass. Please add criteria, or a table of module to folder as the move stories have. My choice: a table in the story with one row per root test module, and a criterion that each module sits in its row's folder. The "imports most" rule is otherwise a judgement call for many modules.
+
+   3. The Interface says "A guard that reads files by a path relative to its own file keeps reading the same files after its move", and the Description says "No test changes beyond its place and its import lines". Neither has a criterion. A moved guard with `Path(__file__).parent` would pass while it reads the wrong folder (and so checks nothing). Please add a criterion. My choice: for each guard in the table that uses `__file__`, a test that the path it resolves is the same directory as before.
+
+   4. Criterion 4 is not testable by a test function. The count of collected tests is compared with `origin/main`, and "the tester writes into its entry" is a report, not a test. Please say how it is checked. My choice: keep it as the tester's recorded figure, and add a criterion that the set of test function names is unchanged. That needs a stored list, which seems heavy. Please confirm which you want.
+
+   5. `import support.<name>` and the smoke test's `sys.path.insert(0, 'tests')` assume `tests/` is on the import path. A new package named `tests/operator` or `tests/vm` could clash with other names once `tests/` is on `sys.path`. The story says a `pyproject.toml` change is the human's. Is `tests/` already on pytest's `pythonpath`, so that `from support.bill_support import ...` works under `make test` and `mypy --strict`? If not, please say that the human adds it at the story's start, as the feature's *The human's changes* says it will for "a path that `pyproject.toml` needs".
