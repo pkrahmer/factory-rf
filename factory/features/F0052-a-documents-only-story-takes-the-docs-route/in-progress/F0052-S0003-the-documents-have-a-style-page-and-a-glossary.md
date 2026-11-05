@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: tests
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 574
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-05T23:05:49.149810Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -52,6 +48,12 @@ journal:
   kind: started
   at: '2026-11-05T23:05:49.149810Z'
   stage: docs-only
+- number: 8
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T23:06:09.347516Z'
+  stage: docs-only
+  run: 1fdc345f7d3847e19fe8c05af69ec58c
 ---
 
 # The documents have a style page and a glossary
@@ -133,3 +135,17 @@ Expect: `named`
    FAILED tests/guards/test_project_guide_files.py::test_the_guide_holds_the_index_operator_and_the_seven_area_files - AssertionError: assert ['README.md',...ator.md', ...] == ['README.md',...line.md'...
    make: *** [Makefile:89: test] Error 1
 7. factory: started docs-only as vm.
+8. documenter: The story needs one test change, so I end with `tests`. The documents from the first round stay as they are; I changed nothing this round.
+
+   Why: the first docs round made `make check` red. The guard `tests/guards/test_project_guide_files.py::test_the_guide_holds_the_index_operator_and_the_seven_area_files` (line 214) compares the exact file list of `docs/project-guide/` with `README.md`, `operator.md` and the seven area files. The story asks for two new files there, `style.md` and `glossary.md`, so that guard must fail until it is changed.
+
+   Change for the tester:
+   - In that test, the expected list becomes `sorted(("README.md", *NAMED_FILES, "style.md", "glossary.md"))`. Define `("style.md", "glossary.md")` as a new constant next to `NAMED_FILES`; the tuple name is the tester's choice.
+   - Keep `NAMED_FILES` as it is, with `style.md` and `glossary.md` out of it. `test_the_index_names_each_file_with_a_sentence` expects each name in `NAMED_FILES` to open an index line of the form ``- `name` ... .``. My two new index lines already have that form, so adding them to `NAMED_FILES` would also do. In that case the test's name and the first test's expected list follow from it.
+   - Check that no other test in `tests/guards/test_project_guide_files.py` fails because of the two new files. I did not run the guard again, because I changed no file this round.
+
+   Files changed in the first docs round (journal entry 5), still in the working tree: `docs/project-guide/style.md` (new), `docs/project-guide/glossary.md` (new), `docs/project-guide/README.md` (two index lines) and `docs/decisions.md` (a last entry, with no "Rejected" line because the story names none).
+
+   Open from entry 5: the drafts' rules 8 to 10 are left out, since the story asks for seven rules plus the link rule. Sentence length was not measured by tool.
+
+   Stale text noticed, not mine to fix: version names in the header comments of `factory/pipeline.yml` and in older `docs/decisions.md` entries.
