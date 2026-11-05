@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 560
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T03:01:22.304424Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-05T03:01:22.304424Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T03:02:27.308497Z'
+  stage: smoke-test
+  run: 61dc22bdbd3a49f0b952002e6ca17507
 ---
 
 # The watching area holds what shows the factory and what it costs
@@ -359,3 +361,32 @@ Expect: `1`
     `secrets`: secrets: green (3.5 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Round 0 smoke test. I ran the three commands of `## Smoke test` from the repository root, in order. I fixed nothing.
+
+    1. `uv run python -c "import factory.watching.domain.bills as m; print(m.__name__)"`
+    ```
+    Bytecode compiled 4164 files in 52ms
+    factory.watching.domain.bills
+    ```
+    Met `Expect: factory.watching.domain.bills`. The first line is uv's own note on stderr, which shows because I captured stderr too. The command's stdout is just the expected name.
+
+    2. `test -e src/factory/domain/bills.py && echo still there || echo moved`
+    ```
+    moved
+    ```
+    Met `Expect: moved`.
+
+    3. `uv run pytest tests/test_areas.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Met `Expect: 1`. The summary line it counted was `396 passed in 20.23s`, from a second run without the `grep -c`.
+
+    The acceptance criteria, read again:
+    - Criteria 1 to 4: the `tests/test_areas.py` run covers them, with rows per module for the `watching` area, and all 396 tests passed. That agrees with commands 1 and 2.
+    - Criterion 5 (`make check`): no command here touches it, and nothing in this run contradicts it.
+    - Criterion 6 (docs): no command reads a document, so nothing contradicts it.
+
+    Findings: none.
+
+    Open, not a finding: `security/duplicates-baseline.txt:22-23` still names `src/factory/domain/cost_records.py`. The coder, the reviewer and the documenter all reported it. The file is outside every role's write path, and `make duplicates` is a record, not a check.
