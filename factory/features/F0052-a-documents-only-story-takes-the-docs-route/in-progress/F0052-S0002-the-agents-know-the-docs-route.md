@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T22:30:04.041821Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-11-05T22:29:58.298302Z'
   stage: review
   run: 03cde6d9101940e68f8d371b586e2283
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:30:04.041821Z'
+  stage: doing
 ---
 
 # The agents know the docs route
@@ -305,3 +314,4 @@ Expect: `named`
 
     Earlier tests:
     - `tests/agent_files/test_claude_agent_texts_review_groups.py`: changed under the human's leave in journal entry 14. The `### docs-review` subsection is cut before the CRC, and the test keeps its name and its `_EARLIER_BODY_CRC32`. The change stays within that leave.
+23. factory: started doing as vm.
