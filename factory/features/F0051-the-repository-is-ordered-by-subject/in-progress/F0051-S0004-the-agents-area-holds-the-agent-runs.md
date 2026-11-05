@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 559
 comments_read: [6648033321]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T02:30:20.655034Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-05T02:30:20.655034Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-05T02:30:48.313312Z'
+  stage: doing
+  run: 144fd8d0fe30450f91c1c8983f314181
 ---
 
 # The agents area holds the agent runs
@@ -201,3 +203,13 @@ Expect: `1`
 
    End with `tests`, and the tester makes the test changes you listed.
 9. factory: started doing as vm.
+10. coder: Round 0, after the human's answer (a). The source moves are already on the branch: the four `factory.agents` packages and the 19 modules at `src/factory/agents/<layer>/<name>.py`, with every import under `src/` switched to the new paths. `pyproject.toml` now has the three per-file-ignores keys at the new paths (merged from `main`), and `make lint` is green on the branch. I changed no code in this run.
+
+    As the human asked, I end with `tests`. The tester should make the test changes listed in entry 7, under the leave of feature decision 5:
+    1. Rewrite the old `factory.<layer>.<name>` paths of the 19 modules under `tests/`, leaving out `tests/test_areas.py`, to `factory.agents.<layer>.<name>`. Split the mixed `from factory.<layer> import ...` lines that entry 7 names. Then run `ruff check --fix tests` and `ruff format tests`.
+    2. Change the three path references to moved test files: `tests/test_no_agent_login.py:11`, `tests/test_suite_held_once.py:123` and `EXEMPT_FILE` in `tests/test_tests_run_under_the_starting_umask.py`.
+    3. Create `tests/agents/__init__.py` and `tests/agents/{domain,application,adapters}/__init__.py`. Then move the 55 test modules that entry 7 lists into the same layer folder under `tests/agents/`.
+
+    I have not run `make check` in this run because the test changes are still missing. Entry 7 records it green with those changes in the tree.
+
+    What remains open, as entry 7 and the human's answer say: the old-path lines in `security/duplicates-baseline.txt`, `CLAUDE.md` line 19, and the old `pyproject.toml` keys all wait for the merge. The docs belong to the docs stage.
