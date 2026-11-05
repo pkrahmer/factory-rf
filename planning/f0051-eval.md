@@ -188,3 +188,48 @@ What worked, to keep: the coder in both stories knew its write paths and ended w
 ### 4. What to change before S0004
 
 In order of saving per story: the tester sentence of finding 1 in each Interface ($0.5 and 5 to 8 minutes), item 6 of `reviewer.md` as in finding 3 ($0.5 to $0.7), the area docstring texts given once (finding 4, $0.6 in about half the stories), then candidates 1 and 2. The move script of finding 6 is next if S0004 still shows the coder writing `sed`.
+
+## 2026-11-05: F0051-S0004 (the agents area holds the agent runs) and F0051-S0005 (the watching area holds what shows the factory and what it costs)
+
+Figures are from the cost records and the transcripts in `session-logs/vm-f0051/`. Token-kind splits use the fitted prices of the introduction. Candidate 54 is the Interface sentence ("the tester makes every test change the move needs in its first run ... the coder changes only src/").
+
+### 1. Totals against the baselines
+
+| Measure | S0001 | S0002 | S0003 | S0004 (agents) | S0005 (watching) |
+|---|---|---|---|---|---|
+| Moved source modules | 18 | 11 | 14 | 19 (and 55 test modules) | 17 |
+| Runs | 13 | 8 | 11 | 9 | 6 |
+| Cost | $5.63 | $2.93 | $2.95 | $3.04 | $2.15 |
+| Cost per moved source module | $0.31 | $0.27 | $0.21 | $0.16 | $0.126 |
+| First run to last run | 37.8 min | 21.9 min | 33.6 min | 30.9 min (8.1 min waiting for the human) | 12.9 min |
+| Cost by token kind, estimate (output / cache creation / cache read) | 38 / 41 / 21 % | 36 / 41 / 23 % | 31 / 50 / 20 % | 30 / 49 / 21 % | 33 / 49 / 19 % |
+
+S0005 in detail: 66 turns, tokens in 112, out 27.5 K, cache read 1.90 M, cache creation 180 K, run time 594 s (model time 400 s). Share of cost: reviewer $0.80 (37 %), tester $0.67 (31 %), coder $0.25 (11 %), smoke test $0.21 (10 %), documenter $0.14 (7 %), intake $0.08 (4 %).
+
+### 2. Did the Interface sentence remove the relay? Yes (confirms 54 and 1)
+
+S0005's tester `bb81af95` ($0.67, 164 s, 26 turns) did the whole rewrite in its first run: the `AREAS` row, one `sed -E` over the test files that name a moved module, the `git mv` of the test modules in a loop, the `__file__`-relative paths, `ruff`, and it ended with `doing` and a red `pytest` (the moved imports fail until the code moves, by design). The gap to the coder was 10 s. The coder `ba9d48b9` then changed only `src/` (`git mv` of the 17 modules, one `sed`, `ruff`, one `make check`, 8 turns, $0.25) and ended with `review`. There was no relay coder, no second tester and no second coder: 6 runs, the lean route.
+
+Against S0004, which lacked the sentence: tester ($0.19, wrote the row only), coder 1 ($0.88, 28 turns, did the rewrite and the test moves, two `make check` calls of about 145 s), a question, coder 2 ($0.14), tester 2 ($0.38, 188 s, repeated three listed test changes), coder 3 ($0.19, changed nothing, `make check` 125 s). Tester plus coders cost $1.64 in S0004 and $0.92 in S0005. So the sentence saved about $0.72 (24 % of S0004) and two relay runs (tester 2 and coder 3) with one coder `make check` that proved nothing (140 s) and the gate's repeat of it; roughly 4 to 5 minutes. The 8.1 minutes of human wait were a separate cause (next section). S0004 without both causes would have been about $2.2, close to S0005's $2.15 for two modules fewer.
+
+### 3. The S0004 question and what it cost (a different cause from the relay)
+
+Coder `c4d3e934` stopped with a question at 02:22:17: three ruff `per-file-ignores` in `pyproject.toml` named the old paths of `claude_runtime.py`, `opencode_runtime.py` and `oauth_token.py`, and that file is the human's. Cost: coder 2 `144fd8d0` ($0.14, 24 s, it only confirmed that the answer was merged), 8.1 minutes of wait, and one of coder 1's two `make check` calls (about 145 s, $0.05): about $0.2 and 8 to 10 minutes. The factory's merge of main into the branch worked without trouble. `pyproject.toml` already holds the keys for S0006's `machine/adapters` modules (`make_commands.py`, `podman_runs.py`), and no key names a `pipeline` module, so S0006 and S0007 should not ask this. (new, small) The coder looked at `pyproject.toml` only at call 12 of 28, after the rewrite; the stage prompt does not give it the write paths (candidate 51), which would have shown it at once.
+
+### 4. Where S0005's $2.15 still goes
+
+- **The fixed start of each run: about $0.57, 26 %.** Each of the six runs created 16 to 26 K cache-creation tokens on its first turn (180 K in all, $1.06; at 16 K per run the start is 96 K, $0.57). Only fewer runs lower this, and six is the lean route. The intake ($0.08) and the smoke tester ($0.21, 4 turns) are nearly all start.
+- **The reviewer, $0.80, 37 % (candidates 49 and 13).** 16 turns, 96 KB of tool output, 11.6 K output tokens (about $0.30), cache creation 56 K ($0.33). It read the work item with `sed` (13 KB), `git diff --stat` and `--name-status` (14.8 KB), the diff of eight test files (21 KB), and a 14 KB `grep` for every moved test module's name (criterion 4, which the tester's `test_areas.py` rows already check), and ran `make duplicates`. Its entry is 12.9 KB, about 9 KB of it the one-line-each list "feature decision 5 (imports)" that `reviewer.md` item 6 asks for. S0004's reviewer `f34daa5a` ($0.78) used a brace-grouped list in the entry but first printed a 27 KB file of it. So the list costs about $0.1 now; the larger part is reading a 220-file diff. Saving possible: $0.2 to $0.3 with a count per kind in item 6 and a diff of `src` plus the stat only.
+- **`make check`: 273 s of the 12.9 minutes (35 %), the coder's own 133 s and the gate's 140 s on the same tree (candidates 2, 47 and 53).** The coder was not a relay here, so candidate 2's "skip it when nothing changed" does not apply; its check is the one that says green before review. The gate then repeated it on the identical tree (02:55:37 to 02:57:57). (new evidence for 47) The lean route still pays the suite twice; if the factory reuses a passed result for the tree the coder ended on, as it does after the documenter, 140 s per story disappear with no token effect. The tester ran its 60 changed test files only to see the expected "No module named" errors (5 s of `pytest`), the cheap check of 53.
+- **The tester, $0.67, 31 %: calls 3 to 6 of its 26 learned the recipe from the previous story (candidate 52).** It ran `git log | grep`, `git show --stat 5af9c766e`, `git show ... tests/test_areas.py` and read 22.8 KB of S0004's journal (45 s), then typed the module names into six `grep` and `sed` commands. S0004's coder did the same with S0003's journal (about 40 KB, calls 3 to 6). Saving with a script or a recipe paragraph in `feature.md`: $0.15 to $0.25 and 45 s.
+- **One denied command (confirms 28).** The tester's call at 02:51:30, `mkdir -p tests/watching/{domain,...}` followed by a `for` loop, was refused and retried in plain form at 02:51:41 (about 10 s). S0004 had no denial.
+- **The smoke tester, $0.21 (new, small).** It read the whole 29.9 KB work item for a three-line smoke test and ran `pytest tests/test_areas.py` twice (once to count, once for the detail line): 62 s of run time, 44 s of it in Bash. Saving about $0.05 and 20 s: read `## Smoke test` and the last entry only (candidate 12), and print the count and the last line in one run.
+- **The documenter, $0.14 (works, keep).** It rewrote the paths with one `perl` expression, a second that changes a test path only when the new file exists, and ended without `make check` in 30 s; the reviewer's note about two guide paths reached it.
+
+### 5. What is left to cut for S0006 (the machine area, in progress) and S0007 (the pipeline area)
+
+Both Interfaces already carry the tester sentence and the exact docstrings (I read their text), so no relay and no docstring round (55) should come, and no pyproject question. Expect about $2.2 to $2.6. In order of saving per story: (1) the gate reuses the coder's passed check (2, 47: 140 s, no dollars); (2) the tester does not read the earlier journals: a script or recipe paragraph (52: $0.15 to $0.25 and 45 s); (3) the reviewer's count per kind and one diff stat (49 and 13: $0.2 to $0.3); (4) the smoke tester and documenter read slices of the work item (12: $0.05 to $0.10). (5) (new, small) `security/duplicates-baseline.txt` still names moved modules (`cost_records.py` and others); both reviewers ran `make duplicates`, `git show main:...` and a baseline look-up (3 calls, about $0.05 and 20 s) and reported it as "open". One line in the feature, "the human changes the baseline after the last move", lets the reviewers skip it.
+
+### 6. Carried over (S0004 and S0005)
+
+Confirmed: 54 (S0005 lean, S0004 three extra runs), 1 and 2 (S0004's coder 3 changed nothing and ran `make check` for 125 s, repeated by the gate), 47 (the gate could have reused the coder's result in S0005), 49 (smaller in cost, still the largest piece of the entry), 52 (the recipe was read from earlier journals in both stories), 12 (the smoke tester and the documenter read the work item whole), 28 (one denial), 51 (the pyproject question). Not seen: 55 (both reviews had no findings), 50, 37 (no intake question), 14 and 11 (no hung or flaky test). 36: `test` took 125.5 s in S0004's coder 3, as before. What worked, to keep: the merge of main into the branch after the human's answer; S0005's single coder run of 8 turns; two reviews of 17 and 19 modules with no findings.
