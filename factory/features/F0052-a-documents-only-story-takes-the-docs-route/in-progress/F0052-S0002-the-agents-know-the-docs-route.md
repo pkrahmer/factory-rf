@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T22:23:23.159107Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-11-05T22:23:23.159107Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-05T22:28:41.841479Z'
+  stage: doing
+  run: 41e72df86c6f485aa270ab59e4e197b9
 ---
 
 # The agents know the docs route
@@ -257,3 +259,22 @@ Expect: `named`
 
     `lint`: lint: green (0.1 s)
 19. factory: started doing as vm.
+20. coder: The agent texts for the docs route are finished, and `make check` is green (`test: green (141.1 s)`, `check: green`). The tester made the CRC test change in journal 18. With it, every test in `tests/agent_files` passes, the new `test_claude_agent_texts_docs_route.py` included. The story's smoke test prints `named`.
+
+    What I built (written in the earlier doing run, already committed on the branch; nothing changed in this run):
+    - `agents/agents/intake.md`: step 6 of `## Stage` now opens "If the story is complete, choose its route." It then gives the Interface's routing rule word for word: `docs-only` versus `tests`, the three documenter paths, and the "documents only" sentence. The `accepted` entry format that follows is unchanged.
+    - `agents/agents/documenter.md`: a `### docs-only` subsection at the end of `## Stage`. It says the documenter writes the whole change from the docs criterion, runs `make documents`, and ends with `docs-review`. When the story needs a change outside the documents, it ends with `tests` and its entry names that change.
+    - `agents/agents/reviewer.md`: a `### docs-review` subsection at the end of `## Stage`. The reviewer reads the work item and `git diff main...HEAD -- README.md docs operator/README.md`, and judges the facts against the code and the criteria. It judges the writing against `docs/project-guide/style.md`, or against the seven rules from journal 9 until that page exists. It ends with `docs-approval`, or with numbered findings and `docs-only`.
+
+    Main choice: the documenter's subsection is a bulleted list. A numbered list was the alternative, and I rejected it: `test_claude_agent_texts_docs_slip.py` allows only one line starting with `1. ` in the documenter's Stage section. The human approved bullets in journal 14. The reviewer's subsection is a numbered list, which no test of the reviewer forbids.
+
+    Refactor step: I read the diff against `main` again and found nothing to rename, simplify or remove. The reviewer's step 3 names `docs/project-guide/style.md` twice; I kept that on purpose, because journal 9 gives the fallback in those words.
+
+    Description: the journal changed nothing in what the task means. It only fixed the form: the `###` subsections and the seven rules in journal 9, and the CRC test change in journal 14. So `## Description` stays as it is.
+
+    Noticed, not touched:
+    - Criterion 5 (the docs) belongs to the documenter stage.
+    - The route itself needs the pipeline definition change, which the human makes at merge.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
