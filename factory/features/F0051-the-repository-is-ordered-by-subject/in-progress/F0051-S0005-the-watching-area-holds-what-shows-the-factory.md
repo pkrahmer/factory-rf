@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 560
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T02:52:43.319986Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-05T02:52:37.903702Z'
   stage: tests
   run: bb81af9547714623a9f183322ebe01db
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:52:43.319986Z'
+  stage: doing
 ---
 
 # The watching area holds what shows the factory and what it costs
@@ -137,3 +146,4 @@ Expect: `1`
    A note for the coder: with the source moved, `pyproject.toml` may still have per-file-ignores under old `src/factory/<layer>/` paths for these modules. The coder may also need to check the `security/duplicates-baseline.txt` entries. I did not check either; both are outside my write paths.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
