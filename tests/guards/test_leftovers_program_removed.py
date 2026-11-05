@@ -12,7 +12,7 @@ from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.entry import wiring
 from factory.entry.wiring import build_boundaries
 from factory.shared.adapters import process
-from support.module_names import module_exists
+from support.module_names import module_exists_anywhere
 from support.source_search import SRC
 
 
@@ -22,7 +22,7 @@ def _no_parameter(function: Callable[..., object], name: str) -> bool:
 
 @pytest.mark.parametrize("module", ["factory.entry.leftovers", "factory.domain.leftovers"])
 def test_the_leftovers_modules_are_gone(module: str) -> None:
-    assert not module_exists(module)
+    assert not module_exists_anywhere(module)
 
 
 @pytest.mark.parametrize(

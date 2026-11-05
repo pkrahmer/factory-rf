@@ -2,7 +2,7 @@
 
 import pytest
 
-from support.module_names import module_exists
+from support.module_names import module_exists_anywhere
 
 
 @pytest.mark.parametrize(
@@ -15,4 +15,4 @@ from support.module_names import module_exists
     ],
 )
 def test_the_mutation_report_is_removed_and_the_input_reader_stays(name: str, found: bool) -> None:
-    assert module_exists(name) is found
+    assert module_exists_anywhere(name) is found

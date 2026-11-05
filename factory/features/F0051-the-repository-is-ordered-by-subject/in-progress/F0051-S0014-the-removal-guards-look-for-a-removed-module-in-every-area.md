@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T10:11:05.796252Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-05T10:11:05.796252Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-05T10:12:49.778482Z'
+  stage: tests
+  run: be08bf6d9d64469789ac49bcc5e72ef9
 ---
 
 # The removal guards look for a removed module in every area
@@ -152,3 +154,26 @@ Expect: `0`
    - Architecture: only helpers under `tests/support/` and guards under `tests/guards/` change. Nothing under `src/` changes. The new test modules sit in the right folders, and nothing imports a `test_*.py` module.
    - Scope: S0014 is listed in `feature.md` (from A0001), and it changes no behaviour or module name. The story's goal sits inside the feature's goal (an ordered repository, guards kept true), and no *Out of scope* item is touched.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for every criterion. I also wrote the two helpers the Interface adds to `tests/support/module_names.py` and changed the ten earlier tests the story names. All of these are under `tests/`, and only the tester's write paths cover `tests/*`, so the coder could not write any of them. Because of that, the new tests are green, not red. Nothing under `src/` changes, so the coder only needs to run `make check`.
+
+   Criterion → test:
+   - criterion 1: tests/guards/test_module_names.py::test_a_module_is_found_at_its_path_or_from_an_old_layer_path_in_any_area (8 rows)
+   - criterion 2: tests/guards/test_module_names.py::test_a_set_of_names_holds_a_module_at_its_path_or_from_an_old_layer_path_in_any_area (7 rows)
+   - criterion 3, rows on parsed source: tests/guards/test_removal_guards_search.py::test_a_module_that_names_an_old_layer_path_calls_module_exists_anywhere (3 rows)
+   - criterion 3, the whole of `tests/`: tests/guards/test_removal_guards_search.py::test_no_test_module_looks_for_an_old_layer_path_only_at_that_path
+   - criteria 4 and 5: no test (`make check`, docs).
+
+   Files created: tests/guards/test_module_names.py, tests/guards/test_removal_guards_search.py.
+
+   Shared helper: tests/support/module_names.py gains `module_exists_anywhere`, `names_the_module_anywhere` and `areas()`. `areas()` reads the package folders directly under `src/factory/` and leaves out `entry` and `contract`; there is no table of areas. A private `_in_every_area` turns an old layer path (`factory.<domain|application|adapters>.<rest>`) into the same module in each area, and returns nothing for any other name. That is why `factory.contract.errors` and `factory.entry.*` are looked for only at their own path. The search guard counts a string literal as an old layer path when it fully matches `factory.(domain|application|adapters)(.name)+`, and counts a call to `module_exists` whether it is a bare name or an attribute.
+
+   Earlier test files I changed, under the leave in `feature.md` (*The human's changes*, "At S0014's start"). Every test keeps its name, its rows and its listed names:
+   - `module_exists` became `module_exists_anywhere`, every call and the import, in: tests/guards/test_docker_path_removed.py, test_checkout_hygiene_removed.py, test_home_reset_removed.py, test_hook_removed.py (including `factory.entry.guard`), test_kernel_guard_removed.py, test_leftovers_program_removed.py, test_undo_removed.py, and tests/entry/test_mutation_report_removed.py. ruff format re-wrapped the lines that became too long.
+   - tests/guards/test_wrapper_out_of_the_call_path.py: the import check now goes through `names_the_module_anywhere` instead of `_imports(...) & GUARD_IMPORTS`. The skip of `GUARD_MODULES` by its own names is unchanged, because the leave covers only the helper calls.
+   - tests/pipeline/application/test_stall_environment.py::test_the_stall_module_imports_no_name_of_the_undo: `"factory.application.undo" not in imported` became `not names_the_module_anywhere(imported, "factory.application.undo")`.
+
+   Run: one `uv run pytest -q` over the two new modules, the ten changed tests and the wrapper guard. All passed and nothing failed to import. `make lint` is green. `mypy --strict` also passes on the helper, the two new modules and the wrapper guard; the other changed files were not type-checked, which the coder's `make check` covers.
+
+   Open: nothing.
+
+   `lint`: lint: green (0.1 s)

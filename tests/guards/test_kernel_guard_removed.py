@@ -7,14 +7,14 @@ import pytest
 from factory.agents.domain.agent_runs import AgentRunRequest, WritePathSettings
 from factory.pipeline.application.task import TaskContext
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition
-from support.module_names import has_name, module_exists
+from support.module_names import has_name, module_exists_anywhere
 
 
 @pytest.mark.parametrize(
     "module", ["factory.entry.confine", "factory.adapters.landlock", "factory.domain.confinement"]
 )
 def test_the_wrapper_and_the_kernel_s_modules_are_gone(module: str) -> None:
-    assert not module_exists(module)
+    assert not module_exists_anywhere(module)
 
 
 @pytest.mark.parametrize(

@@ -11,7 +11,7 @@ from factory.entry import wiring
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain import settings
 from factory.shared.domain.settings import InstanceSettings
-from support.module_names import module_exists
+from support.module_names import module_exists_anywhere
 
 
 @pytest.mark.parametrize(
@@ -25,7 +25,7 @@ from support.module_names import module_exists
     ],
 )
 def test_the_modules_of_the_home_reset_are_gone(module: str) -> None:
-    assert not module_exists(module)
+    assert not module_exists_anywhere(module)
 
 
 def _lacks(module: ModuleType, name: str) -> Callable[[], bool]:
