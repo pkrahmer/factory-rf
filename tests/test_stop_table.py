@@ -111,7 +111,7 @@ def test_production_code_names_every_reason_of_a_repository_stop(reason: str) ->
     constants = {
         literal
         for name, tree in modules().items()
-        if name.startswith(("factory.application", "factory.entry"))
+        if name.startswith(("factory.application", "factory.machine.application", "factory.entry"))
         for literal in string_literals(tree)
     }
 

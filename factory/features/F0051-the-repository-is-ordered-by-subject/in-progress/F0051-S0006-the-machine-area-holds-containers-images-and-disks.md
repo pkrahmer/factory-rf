@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T03:22:56.462476Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-05T03:22:56.462476Z'
   stage: tests
+- number: 9
+  speaker: tester
+  kind: result
+  at: '2026-11-05T03:23:31.803104Z'
+  stage: tests
+  run: 5fb0aa8149ca41c5b6b5552ba70801b0
 ---
 
 # The machine area holds containers, images and disks
@@ -200,3 +202,12 @@ Expect: `1`
 
    Docs (criterion 6) are the documenter's.
 8. factory: started tests as vm.
+9. tester: Mode: a test change the human approved. I made the change the coder's entry 7 names, and nothing else.
+
+   What I changed: `tests/test_stop_table.py::test_production_code_names_every_reason_of_a_repository_stop` filters modules by prefix. That filter was `("factory.application", "factory.entry")` and is now `("factory.application", "factory.machine.application", "factory.entry")`. The reason: the constant `"main_branch_failing"` moved with `preflight` to `src/factory/machine/application/preflight.py`. Adding that one package brings back the set of modules the test read before the move, so the test checks the same thing it did then. I rejected a wider pattern such as `factory.*.application`, because it would also bring in application packages that the test never read before. The test keeps its name.
+
+   Earlier test file changed: `tests/test_stop_table.py`, one line, under feature decision 5's leave for test changes the move needs. I created no files.
+
+   Run: `uv run pytest -q tests/test_stop_table.py` passed all 26 tests, and every module imported. `make lint`: lint: green (0.1 s).
+
+   `lint`: lint: green (0.2 s)
