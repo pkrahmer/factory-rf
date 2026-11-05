@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 559
 comments_read: [6648033321]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T02:39:33.488281Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-05T02:39:26.374559Z'
   stage: doing
   run: 176ec0a247384616881c3723d756971f
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:39:33.488281Z'
+  stage: review
 ---
 
 # The agents area holds the agent runs
@@ -297,3 +306,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 12 new, 33 known, 10 gone
+15. factory: started review as vm.
