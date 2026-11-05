@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 574
 comments_read: [6671915202, 6672097334]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T23:26:23.174079Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-05T23:26:23.174079Z'
   stage: smoke-test
+- number: 26
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T23:26:45.395238Z'
+  stage: smoke-test
+  run: bb0beb1dc237414db32c508f5c78a079
 ---
 
 # The documents have a style page and a glossary
@@ -382,3 +384,24 @@ Expect: `named`
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok
 25. factory: started smoke-test as vm.
+26. smoke-tester: Smoke test, round 0. I ran both commands from the repository root, exactly as written. Both met their `Expect:` line.
+
+    Command 1: `test -f docs/project-guide/style.md && test -f docs/project-guide/glossary.md && echo both`
+    ```
+    both
+    ```
+    Expect `both`: met.
+
+    Command 2: `grep -c "style.md\|glossary.md" docs/project-guide/README.md | awk '{print ($1 >= 2) ? "named" : "missing"}'`
+    ```
+    named
+    ```
+    Expect `named`: met.
+
+    I also read the acceptance criteria against the documents. Nothing contradicts them:
+    - Criterion 3: lines 16 and 17 of `docs/project-guide/README.md` hold the index lines for `style.md` and `glossary.md`.
+    - Criterion 2: `glossary.md` has 27 `- **word**` entries in alphabetical order. They match the 27 words the Interface lists.
+    - Criterion 1: `style.md` has a "Rules for all documents" section, then "The operator guide", "The project guide" and "The README". Each has an example inside it (Install, The take, Try it).
+    - Criteria 4 to 6 are for the reviewer and the factory's checks. Entry 24 records `documents ok` and `check: green`.
+
+    Findings: none. I changed no file.
