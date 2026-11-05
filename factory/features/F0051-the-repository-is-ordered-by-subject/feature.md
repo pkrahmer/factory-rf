@@ -55,6 +55,8 @@ The build order: S0013 first, a docs repair carried over from F0050 (F0050-A0003
 
 - **At S0014's start:** a leave for its tester: the eight removal guards it names, `tests/guards/test_wrapper_out_of_the_call_path.py` and `tests/pipeline/application/test_stall_environment.py::test_the_stall_module_imports_no_name_of_the_undo` may change to call `module_exists_anywhere` and `names_the_module_anywhere`, nothing else in them; each test keeps its name and what it checks.
 
+- **At S0015's start:** a leave for its tester: `tests/vm/test_vm_setup_install_hint.py` (`HINTS`) and `tests/vm/test_vm_setup_text.py` (row `done-line`) may change their expected strings to the new texts, nothing else; each test keeps its name and what it checks.
+
 ## Decisions taken for the human
 
 1. **Areas with layers inside, not layers with areas inside.** A subject's domain, application and adapters sit side by side in `factory.<area>`, so a story that touches one subject touches one folder. Reason: the human, 2026-11-04, after the sketch of the split; the layers keep their rules.
