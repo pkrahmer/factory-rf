@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T07:37:33.133613Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-11-05T07:37:26.742213Z'
   stage: doing
   run: 5f12694203d446fbbb2de734c25ff27d
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:37:33.133613Z'
+  stage: tests
 ---
 
 # The operator guide is a folder of topics
@@ -479,3 +488,4 @@ Expect: `split`
     Still open:
     - Finding 7: rewrite criteria 2 and 4 and the Interface's path `tests/operator_scripts/test_operator_site_check.py` to match entry 9, answer 6. I can't write the work item.
     - For the documenter: the "the operator guide, *Section*" references in the project guide (entry 14).
+29. factory: started tests as vm.
