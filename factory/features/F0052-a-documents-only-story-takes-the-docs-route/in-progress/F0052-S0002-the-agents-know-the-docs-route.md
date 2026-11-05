@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T22:33:04.450021Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   at: '2026-11-05T22:32:59.128580Z'
   stage: doing
   run: f51166b4fc534cf9afcc4156f70edddf
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:33:04.450021Z'
+  stage: tests
 ---
 
 # The agents know the docs route
@@ -332,3 +341,4 @@ Expect: `named`
     Refactor: I read my diff and found nothing else to change. The Description is unchanged, because the review findings change the form of the texts, not what the task means.
 
     Noticed, not touched: criterion 5 (the docs) is the documenter's. The pipeline definition change for the route is the human's at merge.
+25. factory: started tests as vm.
