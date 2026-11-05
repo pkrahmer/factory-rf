@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T21:59:54.807147Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-05T21:59:48.625000Z'
   stage: tests
   run: b158bac7bfd0435ba78ce325118a9563
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-05T21:59:54.807147Z'
+  stage: doing
 ---
 
 # A story can take a second route to a second approval
@@ -201,3 +210,4 @@ Expect: `1`
     The one run (`uv run pytest -q tests/pipeline/application/test_docs_route.py`) passed all 15 tests and every module imported. The cap at `docs-approval` already behaves as criterion 8 says, so the branch still has no red test. A line-length fix came after that run, and I checked it with a second run, which also passed. `make lint`: lint: green (0.1 s). I skipped the type check, as this stage says.
 
     `lint`: lint: green (0.1 s)
+14. factory: started doing as vm.
