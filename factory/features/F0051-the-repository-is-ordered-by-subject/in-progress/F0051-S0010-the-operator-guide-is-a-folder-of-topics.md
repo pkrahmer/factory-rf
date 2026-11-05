@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T07:45:37.695863Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -197,6 +201,11 @@ journal:
   at: '2026-11-05T07:45:32.532712Z'
   stage: review
   run: e3594f18508343caaaf848f052d28077
+- number: 35
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:45:37.695863Z'
+  stage: docs
 ---
 
 # The operator guide is a folder of topics
@@ -596,3 +605,4 @@ Expect: `split`
     - `tests/guards/test_project_guide_files.py`: two leaves.
       - The human's leave, entry 14 point 1: the `docs/operator-guide` exclusion and the `operator-guide/` lookbehind.
       - The standing leave to move a shared test helper (entry 26): `_lines_outside_fences`, `_guide_headings` and `_searched_files` moved to `tests/support/guide_files_support.py`. Every test keeps its name. The `__pycache__` skip changes nothing, because the searched places hold none.
+35. factory: started docs as vm.
