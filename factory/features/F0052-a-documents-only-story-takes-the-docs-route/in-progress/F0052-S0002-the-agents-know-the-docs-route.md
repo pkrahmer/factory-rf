@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T22:47:52.524302Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -228,6 +224,12 @@ journal:
   kind: started
   at: '2026-11-05T22:47:52.524302Z'
   stage: docs
+- number: 40
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T22:48:35.533157Z'
+  stage: docs
+  run: 6eeed2df000f4a488f51f0cb0270b2f5
 ---
 
 # The agents know the docs route
@@ -551,3 +553,25 @@ Expect: `named`
     - `tests/agent_files/test_claude_agent_texts_docs_route.py`, `test_the_reviewer_in_docs_review_replaces_its_code_review_and_judges_the_facts`: the rows `its checklist` and `its decisions, and steps 1 to 3` are loose substrings. Each could match outside the "replaces" sentence. One row holding the whole sentence would pin it more tightly.
     - `tests/agent_files/test_claude_agent_texts_docs_route.py`: the `docs-review` and `tests` hand-offs of the documenter are still separate tests. The single-bullet checks (the `tests` hand-off, the return from `docs-review`) are separate functions, not rows. The tester gave the reason in entry 26.
 39. factory: started docs as vm.
+40. documenter: Round 2, docs. This is the first documents pass for this story. Only documents changed, so I did not run `make check`. I ran `make documents` and it printed `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/agents.md`: new subsection `### The docs route`, before `### The settings`. It holds the routing rule, a table of what the intake, documenter and reviewer do on the route, the hand-off to `tests`, the test module that pins the texts, and the checksum cut-out for the `### docs-review` subsection.
+    - `docs/operator-guide/pipeline.md`: new subsection `### The docs route` in the operator's words. It also says the route needs the stages `docs-only`, `docs-review` and `docs-approval` and the intake's `next` to list `docs-only`.
+    - `docs/decisions.md`: new entry "A documents-only story takes the docs route". It names F0052.
+
+    Cross-read and found current against the diff:
+    - `docs/project-guide/agents.md`, the rest. Its claims about the shipped agents are unchanged by this story.
+    - `docs/operator-guide/pipeline.md`, the rest.
+    - `README.md`.
+
+    The code does not contradict the Interface or the criteria. The three agent texts match the Interface, so there are no findings for the coder.
+
+    Notes:
+    - The decisions entry has no "Rejected" line, because the story names no rejected option. I wrote the "Why" only from the story's own text. The story cites only feature decisions 4 and 6, and I may not read `feature.md`, so the entry does not state decisions 1 to 3 and 5 beyond what the Description says. The human may want to add them.
+    - The entry says the route needs the human's change to `factory/pipeline.yml` at merge, as the Description says. The route does not work until then.
+    - Stale text I saw and did not touch: the "seven agents" list in `docs/project-guide/agents.md` says nothing about the docs route stages. It is still true, since no agent was added.
+
+    `check`: check: green (not run again: passed on tree 6446ef65dba1 at 2026-11-05T22:44:34Z)
+    `secrets`: secrets: green (1.8 s)
+    `documents`: documents ok

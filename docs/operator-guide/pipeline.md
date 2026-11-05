@@ -36,6 +36,12 @@ A stage has `role` (none: no agent runs), `next` (the first name is the forward 
 
 A definition may hold more than one route and more than one approval stage; a close of a pull request at an approval stage sends the story to that stage's second `next`, and the stage whose first `next` is that approval counts the rounds.
 
+### The docs route
+
+A story that changes only documents (`README.md`, files under `docs/`, `operator/README.md`) skips the tests, doing and review stages. The intake chooses the route: `docs-only` when every path the story's Interface changes is one the documenter may write, otherwise `tests`. The documenter writes the whole change and runs `make documents`; the reviewer reads the documents against the story's criteria and the code, and against the style page, `docs/project-guide/style.md`, once it exists. It then sends the story to `docs-approval`, where you decide, or back to the documenter with numbered findings.
+
+If the documenter finds that the story needs more than documents, it hands the story to the tests stage and says what is needed; the story then takes the normal route. The route works only when your pipeline definition holds the stages `docs-only`, `docs-review` and `docs-approval` and the intake's `next` lists `docs-only`; the agents do nothing on it without them.
+
 The template's smoke test reads `smoke-test: {role: smoke-tester, next: [approval, doing, docs], round_cap: 3}`. A finding that is only a slip in a document (`README.md` or a file under `docs/`) goes from the smoke test straight to `docs`, where the documenter fixes it and hands back to the smoke test; it counts as a rework round against the `round_cap`, as a return to `doing` does.
 
 An unknown key is refused with `pipeline_definition_invalid`. That includes `tool_paths`, which earlier versions read: a definition that still holds it stops the factory until you remove the key. The write paths are all that an agent run may write; there are no further folders for tool state.
