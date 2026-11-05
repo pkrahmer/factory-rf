@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T07:05:56.373853Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-11-05T07:05:50.903677Z'
   stage: tests
   run: 4a251c9016d545e2ad3821568d71c2b3
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:05:56.373853Z'
+  stage: doing
 ---
 
 # The operator guide is a folder of topics
@@ -203,3 +212,4 @@ Expect: `split`
     `make lint` is green. I skipped the type check, as this stage's instructions say.
 
     `lint`: lint: green (0.2 s)
+12. factory: started doing as vm.
