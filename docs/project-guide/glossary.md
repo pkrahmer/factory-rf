@@ -4,7 +4,7 @@ The words the factory gives its own meaning, one entry each, sorted alphabetical
 
 - **acceptance**: the review of a whole feature after its last story is done. The acceptance reviewer writes a report and may propose further stories.
 - **approval**: the last stage of a story, where the human reads the pull request. They merge it, or close it with a reason that sends the story back.
-- **attempts cap**: how many agent runs of one stage may end without a result before the factory asks the human. It is set in the pipeline definition.
+- **attempts cap**: how many stalls one stage may have before the factory asks the human. It is set in the pipeline definition.
 - **backlog**: the folder of stories that wait for the human. A story leaves it only when the human starts it.
 - **base**: the one snapshot of the dataset, moved forward at the start of every stage. The dataset is rolled back to it before each run.
 - **claim**: the factory's mark that it works on a work item, written to the work item's front matter and pushed. Only the push that succeeds holds the claim.
@@ -13,7 +13,7 @@ The words the factory gives its own meaning, one entry each, sorted alphabetical
 - **dataset**: the ZFS dataset a stage runs on. It is mounted at `/work` in every container.
 - **feature**: a goal that is split into a few stories. It has a folder with a `feature.md` that the human writes.
 - **instance**: one running copy of the factory with its own name, state and settings. It is set by `FACTORY_INSTANCE`.
-- **journal**: the numbered list of entries at the end of a work item. Each stage and each human answer adds one, and nothing is edited afterwards.
+- **journal**: the numbered list of entries at the end of a work item. The factory, each stage's agent and the human all add entries, and nothing is edited afterwards.
 - **lease**: the time for which a claim holds. When it runs out without a result, the claim counts as expired and another tick may take the work item over.
 - **pipeline definition**: the file `factory/pipeline.yml`. It lists the stages, their roles, their checks, their caps and their write paths.
 - **project command**: a command the factory runs on the project, such as `make check`. The pipeline definition names each one.
@@ -22,7 +22,7 @@ The words the factory gives its own meaning, one entry each, sorted alphabetical
 - **round cap**: how many rounds a stage allows. When it is passed, the factory asks the human and does not loop again.
 - **stage**: one step of the pipeline, such as tests, doing or review. One role works in it, and its decision names the next stage.
 - **stage environment**: the interface behind which the container environment stands. A stage asks it for a dataset, a container and a take.
-- **stall**: an agent run that ends without a result, for example at its time limit. The factory records it, and the stage runs again until the attempts cap.
+- **stall**: a stage that ends without a result the factory can keep. The run may have ended early, or its decision, form, checks or merge failed. The factory records it, and the stage runs again until the attempts cap.
 - **stop**: the factory refusing to go on and saying why. A stop of one work item is posted on its pull request; a stop of the repository or the machine goes to the health status.
 - **story**: one work item of a feature. It has a description, an interface, acceptance criteria and a journal.
 - **take**: what the factory copies from the dataset into its own work tree after the agent's run. Only the changed paths that the role may write go back.

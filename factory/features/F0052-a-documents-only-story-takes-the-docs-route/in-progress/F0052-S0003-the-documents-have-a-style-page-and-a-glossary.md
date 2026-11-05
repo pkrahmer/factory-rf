@@ -1,17 +1,13 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 1
-crashes: 1
+crashes: 0
 pull_request: 574
 comments_read: [6671915202, 6672097334]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T23:25:51.197774Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-11-05T23:25:51.197774Z'
   stage: docs
+- number: 24
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T23:26:17.607667Z'
+  stage: docs
+  run: 9a557d89a0f04ae58ede2e376a594337
 ---
 
 # The documents have a style page and a glossary
@@ -354,3 +356,19 @@ Expect: `named`
 21. factory: started docs as vm.
 22. factory: crash 1: the run of stage docs ended without a result. Its work is discarded back to commit 52f293b5f96e569120f7ca78a6a9ee0a4cd42793.
 23. factory: started docs as vm.
+24. documenter: Round 0, after the reviewer's five findings (entry 20). I fixed each one. `make documents` prints `documents ok`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `docs/project-guide/glossary.md`: finding 1, `stall` is now a stage that ends without a result the factory can keep (the run ended early, or its decision, form, checks or merge failed), and `attempts cap` is how many stalls a stage may have before the factory asks. Finding 2, `journal` says the factory, each stage's agent and the human all add entries.
+    - `docs/project-guide/style.md`: finding 3, the take example now links `take.py` (relative link) and names the module `factory.pipeline.application.take` above the signature. Finding 4, "instance" and "stop(s)" in *The operator guide* link to `glossary.md` at their first use in the paragraph and the bullet.
+    - `docs/decisions.md`: finding 5, the new entry's Decision line is split into two short Decision lines (one for `style.md`, one for `glossary.md`) with no parentheses beyond the section list. It still has no "Rejected" line, because the story names no rejected option.
+
+    Cross-read and found current: `docs/project-guide/README.md` index lines for both pages; the story's Interface against both pages.
+
+    Open, unchanged from earlier entries: the drafts' rules 8 to 10 stay out (the story asks for seven rules plus the link rule). Sentence length was not measured by tool.
+
+    Stale text seen, not touched: version names in the header comments of `factory/pipeline.yml` and in older `docs/decisions.md` entries.
+
+    `check`: check: green (not run again: passed on tree 79daa322df95 at 2026-11-05T23:14:08Z)
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok

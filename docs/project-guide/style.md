@@ -15,10 +15,10 @@ How the factory's documents read. The documenter writes to this page, and the re
 
 ## The operator guide
 
-The guide is in `docs/operator-guide/`. Its reader runs an instance: installs it, configures it, watches it and fixes its stops. They know Linux, git and a terminal. They do not read the code.
+The guide is in `docs/operator-guide/`. Its reader runs an [instance](glossary.md): installs it, configures it, watches it and fixes its [stops](glossary.md). They know Linux, git and a terminal. They do not read the code.
 
 - A task is a list of numbered steps. Each step is one action with its command. If the step needs a reason, give it in one sentence after the step.
-- Every stop has the same three parts: what you see, what it means, what you do.
+- Every [stop](glossary.md) has the same three parts: what you see, what it means, what you do.
 - Settings are tables with four columns: name, what it does, default, example.
 - Name no module or class. Name a source path only if the operator edits or runs that file.
 
@@ -55,7 +55,7 @@ Example:
 ```markdown
 ## The take
 
-After an agent's run, the factory copies back only what the agent's role may write. The agent works on its own copy of the repository (the dataset), and everything else it changed is dropped. This copy step is the take.
+After an agent's run, the factory copies back only what the agent's role may write. The agent works on its own copy of the repository (the dataset), and everything else it changed is dropped. This copy step is the take. It lives in [take.py](../../src/factory/pipeline/application/take.py), the module `factory.pipeline.application.take`.
 
     TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths) -> TakeReport
 

@@ -1593,5 +1593,6 @@ Date: 2026-11-05 (F0052).
 
 Date: 2026-11-05.
 
-- Decision: `docs/project-guide/style.md` is the written standard for all documents: eight rules for all of them, and one section each for the operator guide (numbered steps), the project guide (the idea first, then the API) and the README (what it is for, then try it). `docs/project-guide/glossary.md` explains each factory word once, and the documents link to it.
+- Decision: `docs/project-guide/style.md` is the written standard for all documents. It holds eight rules for all of them. It has one section each for the operator guide (numbered steps), the project guide (the idea first, then the API) and the README (what it is for, then try it).
+- Decision: `docs/project-guide/glossary.md` explains each factory word once. The documents link to it.
 - Why: the human chose these styles on 2026-11-05 from three samples for each document. The documenter and the reviewer need one standard to write and judge by.
