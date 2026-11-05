@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T07:21:19.630413Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-11-05T07:21:19.630413Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-11-05T07:21:40.633718Z'
+  stage: doing
+  run: 0e7e549c226042e69cfd5fdcffbe3655
 ---
 
 # The operator guide is a folder of topics
@@ -270,3 +272,8 @@ Expect: `split`
 
     End with `tests` for point 1. The documenter names the topic files in the project guide's "the operator guide, *Section*" references, as you suggest.
 15. factory: started doing as vm.
+16. coder: Following the human's answer (entry 14), I changed no code; one test needs a change. The split (`docs/operator-guide/`, 11 files) and the code change in `src/factory/shared/domain/documents.py` are already committed from the last doing run (b97f2bb71). The human's fix to `operator/README.md` and `docs/operator-playbook.md` on `main` is merged into this branch (4fc0116f5, b8e4f99a9). Neither file names `docs/operator-guide.md` any more, so `tests/guards/test_operator_guide_files.py::test_no_file_names_the_single_guide` should pass now.
+
+    Test change for the tester, with the human's leave from entry 14 point 1: `tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file` should leave `docs/operator-guide/` out of its search, and should not count a removed name that follows `operator-guide/`. The test keeps its name and still checks that no file names a removed project-guide file.
+
+    Still open: for the documenter, the project guide's "the operator guide, *Section*" references (for example `docs/project-guide/machine.md:54` and `docs/project-guide/pipeline.md:116`) should name the topic file. The human assigned this to the documenter in entry 14.
