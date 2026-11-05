@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T08:38:04.376548Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -192,6 +188,12 @@ journal:
   kind: started
   at: '2026-11-05T08:38:04.376548Z'
   stage: doing
+- number: 33
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:38:37.364765Z'
+  stage: doing
+  run: cd2ef9be23d74694b93cd33a2a8ab9e8
 ---
 
 # The agent files live in `agents/`
@@ -510,3 +512,16 @@ Expect: `1`
     - `tests/support/vm_support.py`: the human's answer, entry 11.
     - `tests/vm/test_vm_job_start.py`: the human's answer, entry 11.
 32. factory: started doing as vm.
+33. coder: Round 1. I changed no code. Both findings in the reviewer's entry 31 are about tests, and the coder does not edit tests. The tester should make exactly these two changes:
+
+    1. `tests/agent_files/test_agent_folder.py`: build `AGENT_FILE_NAMES` from `SHIPPED_NAMES` in `tests/support/shipped_agents.py:130`, for example `sorted(f"{name}.md" for name in SHIPPED_NAMES)`, and delete the hand-written list on lines 7-15.
+    2. Move `STAGE_DOCKERFILE` (and the `ROOT` it needs) out of `tests/vm/test_stage_image.py:33-34` into the existing `tests/support/dockerfile_support.py`, under the standing leave to move a shared test helper. Then use it from there in both `tests/vm/test_stage_image.py` and `tests/vm/test_stage_image_agent_folder.py`, and drop the local copies in `tests/vm/test_stage_image_agent_folder.py:5-6`. In `test_the_image_names_no_agent_file_at_the_old_place`, keep only the old-place assertion. The `COPY agents /etc/factory/agents` assertion repeats the `AGENT_FILES_COPY` check at `tests/vm/test_stage_image.py:413`. If that leaves `NEW_PLACE` unused, delete it too. Every earlier test keeps its name and checks the same thing.
+
+    Main choice: end with `tests` and leave the code alone, because the findings change only test files. I rejected making the edits myself: test files are outside my write paths, so the factory would drop them (R9).
+
+    Nothing else changes. The rename, `src/factory/machine/application/stage_environment.py:30`, `vm/Dockerfile`, `vm/job-start.sh`, `vm/setup.sh` and the guide edits are already on the branch. `make check` was green after entry 29. I did not run it in this round because the working tree is unchanged.
+
+    Noticed but not touched, as in entry 29:
+    - A directory that an agent renames is dropped from the take. `_read_diff_line` in `src/factory/machine/adapters/zfs_snapshots.py` skips directory entries in `zfs diff`. This is a candidate for a story of its own.
+    - The human's steps on factory-vm after the merge (entry 11): change `FACTORY_CLAUDE_HOME` in `factory.env`, rebuild the stage image and renew `image-id`.
+    - Criterion 6 is still open for the documenter.
