@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T21:58:09.608026Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-05T21:58:04.337013Z'
   stage: review
   run: 5879499a125047de851c981b6352d557
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-05T21:58:09.608026Z'
+  stage: doing
 ---
 
 # A story can take a second route to a second approval
@@ -153,3 +162,4 @@ Expect: `1`
    description corrected: "two places are known to depend on the stage order: `is_before_approval` … and … `send_back_target`" -> "three places …: `is_before_approval` …, `send_back_target`, and that close's round cap is the cap of the first capped stage whose first `next` is that approval stage (`send_back_cap`)".
 
    Earlier tests: none. The diff only adds `tests/pipeline/application/test_docs_route.py` (status `A`) and changes no test file that `main` already holds.
+10. factory: started doing as vm.
