@@ -1,7 +1,7 @@
-"""The check of the four documents and the guide's other files: sections, rows, phrases, words."""
+"""The check of the documents and the project guide's files: sections, rows, phrases, words."""
 
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Final
 
 from pydantic import BaseModel, ConfigDict
@@ -12,12 +12,35 @@ from factory.shared.domain.kill_point_cases import KILL_POINT_CASES
 from factory.shared.domain.sections import lines_outside_blocks, sections, split_lines
 
 README: Final = "README.md"
-OPERATOR_GUIDE: Final = "docs/operator-guide.md"
+OPERATOR_GUIDE_FOLDER: Final = "docs/operator-guide"
+OPERATOR_GUIDE: Final = f"{OPERATOR_GUIDE_FOLDER}/README.md"
+OPERATOR_INSTALL: Final = f"{OPERATOR_GUIDE_FOLDER}/install.md"
+OPERATOR_STOPS: Final = f"{OPERATOR_GUIDE_FOLDER}/stops.md"
+OPERATOR_GUIDE_FILES: Final = (
+    OPERATOR_INSTALL,
+    f"{OPERATOR_GUIDE_FOLDER}/agent-runtime.md",
+    f"{OPERATOR_GUIDE_FOLDER}/machine.md",
+    f"{OPERATOR_GUIDE_FOLDER}/site.md",
+    f"{OPERATOR_GUIDE_FOLDER}/cloud-run.md",
+    f"{OPERATOR_GUIDE_FOLDER}/health.md",
+    OPERATOR_STOPS,
+    f"{OPERATOR_GUIDE_FOLDER}/pipeline.md",
+    f"{OPERATOR_GUIDE_FOLDER}/records.md",
+    f"{OPERATOR_GUIDE_FOLDER}/work-items.md",
+)
 PROJECT_GUIDE_FOLDER: Final = "docs/project-guide"
 PROJECT_GUIDE: Final = f"{PROJECT_GUIDE_FOLDER}/README.md"
 DECISION_LOG: Final = "docs/decisions.md"
-DOCUMENT_PATHS: Final = (README, OPERATOR_GUIDE, PROJECT_GUIDE, DECISION_LOG)
-OPERATOR_GUIDE_SECTIONS: Final = ("Install", "Configuration", "The stops")
+DOCUMENT_PATHS: Final = (
+    README,
+    OPERATOR_GUIDE,
+    *OPERATOR_GUIDE_FILES,
+    PROJECT_GUIDE,
+    DECISION_LOG,
+)
+_INSTALL_SECTIONS: Final = ("Install", "Configuration")
+_STOPS_SECTIONS: Final = ("The stops",)
+OPERATOR_GUIDE_SECTIONS: Final = (*_INSTALL_SECTIONS, *_STOPS_SECTIONS)
 PROJECT_GUIDE_SECTIONS: Final = ("Kill points", "Fault-injection paths")
 REPLACED_SECTION: Final = "Replaced from v1"
 REPLACED_PHRASES: Final = (
@@ -90,7 +113,7 @@ def _missing_sections(text: str, required: Sequence[str]) -> list[str]:
     return [f"section '{name}' is missing" for name in required if name not in present]
 
 
-def _operator_guide_rows(text: str) -> list[str]:
+def _stop_rows(text: str) -> list[str]:
     rows = _table_rows(text)
     return [
         f"stop '{row.id}' has no table row with its destination"
@@ -143,26 +166,40 @@ def _wording(text: str) -> list[str]:
     return messages
 
 
+def _decision_log_messages(text: str) -> list[str]:
+    return [] if sections(text) else ["no decision recorded"]
+
+
+def _install_messages(text: str) -> list[str]:
+    return [*_missing_sections(text, _INSTALL_SECTIONS), *_wording(text)]
+
+
+def _stops_messages(text: str) -> list[str]:
+    return [*_missing_sections(text, _STOPS_SECTIONS), *_stop_rows(text), *_wording(text)]
+
+
+def _project_guide_messages(text: str) -> list[str]:
+    return [
+        *_missing_sections(text, PROJECT_GUIDE_SECTIONS),
+        *_project_guide_rows(text),
+        *_wording(text),
+    ]
+
+
+_RULES: Final[Mapping[str, Callable[[str], list[str]]]] = {
+    DECISION_LOG: _decision_log_messages,
+    OPERATOR_INSTALL: _install_messages,
+    OPERATOR_STOPS: _stops_messages,
+    PROJECT_GUIDE: _project_guide_messages,
+}
+
+
 def _messages(document: str, text: str | None) -> list[str]:
     if text is None:
         return ["missing"]
     if not text.strip():
         return ["empty"]
-    if document == DECISION_LOG:
-        return [] if sections(text) else ["no decision recorded"]
-    if document == OPERATOR_GUIDE:
-        return [
-            *_missing_sections(text, OPERATOR_GUIDE_SECTIONS),
-            *_operator_guide_rows(text),
-            *_wording(text),
-        ]
-    if document == PROJECT_GUIDE:
-        return [
-            *_missing_sections(text, PROJECT_GUIDE_SECTIONS),
-            *_project_guide_rows(text),
-            *_wording(text),
-        ]
-    return _wording(text)
+    return _RULES.get(document, _wording)(text)
 
 
 def is_guide_file(path: str) -> bool:
@@ -176,9 +213,9 @@ def is_guide_file(path: str) -> bool:
 
 
 def check_documents(texts: Mapping[str, str | None]) -> list[DocumentFinding]:
-    """The findings of the four documents, in their order, then of the guide's other files.
+    """The findings of the documents, in their order, then of the project guide's other files.
 
-    An absent key among the four documents is a missing document; a guide file is checked for its
+    An absent key among the documents is a missing document; a guide file is checked for its
     words only, in path order, and every other key is ignored.
     """
     guide_files = sorted(path for path in texts if is_guide_file(path))

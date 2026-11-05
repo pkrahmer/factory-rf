@@ -359,7 +359,7 @@ One function, `workspace_overlap_fault(workspace, checkout, state_directory)` (`
 
 ## The project's stage image
 
-A project adds a layer to the stage image with the file `factory/stage.Containerfile` on its `main` (the operator's side is in `docs/operator-guide.md`, *The project's stage file*). The parts:
+A project adds a layer to the stage image with the file `factory/stage.Containerfile` on its `main` (the operator's side is in `docs/operator-guide/machine.md`, *The project's stage file*). The parts:
 
 - **The rule** is `stage_layer(text, base_identity)` in `factory.machine.domain.stage_layer`. It returns a `StageLayer` (`text`, `digest`, `identity` = `<base identity>+<digest>`) or raises `StageLayerRefused`, whose `str()` is the reason. `STAGE_FILE` and `project_image_tag(stage_image)` (`<stage image>-project`) are defined there once.
 - **The interface** is `Images` in `factory.machine.application.images`: `build(layer, base, tag, time_limit) -> ImageBuild` (`passed`, `duration`, `output_tail`: the last 20 lines) and `path(image) -> str`. `IMAGE_BUILD_TIME_LIMIT` is the one 30-minute limit. `PodmanImages` (`factory.machine.adapters.podman_images`) is the implementation: it builds with `--build-arg FACTORY_BASE=<base>`, `--network=host`, `-t <tag>` and an empty context folder, then runs `image prune -f`; `path` reads `image inspect --format '{{json .Config.Env}}'` and raises `ContainerError` when podman fails or prints no JSON. It reaches podman through `run_podman` and puts the job profile's global options before each subcommand. `FakeImages` (`factory.machine.adapters.fake_images`) is the fake the tests use.

@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T07:05:56.373853Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,13 @@ journal:
   kind: started
   at: '2026-11-05T07:05:56.373853Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: question
+  at: '2026-11-05T07:11:18.722219Z'
+  stage: doing
+  run: 1e707fe87f1a44c8ba3ec8ca8446b475
+  blocked: question
 ---
 
 # The operator guide is a folder of topics
@@ -213,3 +216,36 @@ Expect: `split`
 
     `lint`: lint: green (0.2 s)
 12. factory: started doing as vm.
+13. coder: I've done the split and the code change, but I had to stop before `make check` went green. Two tests still fail, and fixing either one needs your call: one is a test I may not change, the other needs files outside my write paths.
+
+    What is in the working tree:
+    - `src/factory/shared/domain/documents.py`:
+      - New constants: `OPERATOR_GUIDE_FOLDER`, `OPERATOR_GUIDE` (the index), `OPERATOR_INSTALL`, `OPERATOR_STOPS` and `OPERATOR_GUIDE_FILES`. `DOCUMENT_PATHS` lists all fourteen documents in the agreed order.
+      - The required sections are checked per file: *Install* and *Configuration* in `install.md`; *The stops* and the stop-table rows in `stops.md`. Every file gets the wording check. `OPERATOR_GUIDE_SECTIONS` stays as it was.
+      - `_messages` now looks the rules up in a table (`_RULES`). The other choice was a growing `if` chain, and ruff refuses that at seven returns (PLR0911).
+    - `src/factory/entry/check_documents.py`: docstring only. The topic files are in `DOCUMENT_PATHS`, so the command reads them with no further change.
+    - `docs/operator-guide.md` is removed. `docs/operator-guide/` holds `README.md` and the ten topic files. A script (not kept) moved each section as it was, in the Description's split.
+      - Each topic file has a new `#` title. I made the titles different from the section headings, so the required-section check cannot find them.
+      - A quoted reference to a heading in another file now reads `"X" in [file.md](file.md)`. No other words changed.
+      - The index has the old intro, one line per file, and *Replaced in v1.2* and *Replaced from v1*.
+    - `README.md` and `docs/project-guide/{agents,machine,operator,pipeline}.md` name the topic files instead of the old path.
+    - `factory-check-documents` reports `documents ok`. Lint, types, layers, sast, secrets and licenses are green. Coverage is 99.26 %.
+
+    The two failing tests:
+
+    1. `tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file` (an earlier story's test) fails 20 times. Its `REMOVED_FILES` holds the old project-guide name `work-items.md`. Its pattern matches that name anywhere under `docs/` after any character but a word character, `.` or `-`, so `/` and `(` count. The Description requires a topic file `docs/operator-guide/work-items.md`, so the index's own link fails it (first hit: `docs/operator-guide/README.md:16: work-items.md`), and so do the links between topics. Options:
+       - (a) The tester changes that test: leave `docs/operator-guide/` out of its search, and do not count a name that follows `operator-guide/`.
+       - (b) Rename the topic to `approvals.md`. That changes the Description, criterion 1, and `TOPIC_FILES` in `tests/support/check_documents_support.py`.
+       - (c) Never write the name in full anywhere. The index then cannot say what that file covers.
+       I would choose (a).
+
+    2. `tests/guards/test_operator_guide_files.py::test_no_file_names_the_single_guide` fails on two lines that still name the old path:
+       - `operator/README.md:37`
+       - `docs/operator-playbook.md:3`
+       Both are outside the coder's write paths: entry 4 adds only `docs/operator-guide*`, `docs/project-guide/*` and `README.md`. The playbook is also yours and no stage keeps it. Options:
+       - (a) You edit the two lines on this branch. In `operator/README.md`, `docs/operator-guide.md` becomes `docs/operator-guide/site.md`. In the playbook, it becomes `docs/operator-guide/`.
+       - (b) You add `operator/README.md` and `docs/operator-playbook.md` to the coder's write paths, and I make those edits.
+       - (c) The test also leaves those two files out, and the documenter fixes `operator/README.md` later.
+       I would choose (a). Either way, `make check` stays red after this stage until it is done.
+
+    Not touched: some project-guide files refer to "the operator guide, *Section*" without a path, for example `docs/project-guide/machine.md:54` and `docs/project-guide/pipeline.md:116`. They are still correct; naming the topic file there belongs to the documenter's part of the docs criterion. No refactoring beyond the `_RULES` table was needed.
