@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T01:49:14.849032Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-05T01:49:09.274320Z'
   stage: tests
   run: 16e4c8a0b90a451f852384fe61930919
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:49:14.849032Z'
+  stage: doing
 ---
 
 # The work area holds the work items
@@ -245,3 +254,4 @@ Expect: `1`
     - `security/duplicates-baseline.txt` needs the new `factory.work.*` paths. It is outside my write paths and the coder's; the coder noted it in entry 10.
 
     `lint`: lint: green (0.2 s)
+13. factory: started doing as vm.
