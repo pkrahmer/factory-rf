@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T02:03:20.289494Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-11-05T02:03:20.289494Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T02:04:22.553730Z'
+  stage: smoke-test
+  run: 19e0e1c867d34f9d9a215dccf6bbec69
 ---
 
 # The work area holds the work items
@@ -404,3 +406,27 @@ Expect: `1`
     `secrets`: secrets: green (4.0 s)
     `documents`: documents ok
 23. factory: started smoke-test as vm.
+24. smoke-tester: I ran the three smoke-test commands from the repository root exactly as written and in order. All three met their `Expect:` line, so there are no findings.
+
+    1. `uv run python -c "import factory.work.domain.acceptance as m; print(m.__name__)"`
+    ```
+    Bytecode compiled 4164 files in 55ms
+    factory.work.domain.acceptance
+    ```
+    Met. The `Bytecode compiled` line is uv's own stderr: I captured it with `2>&1`, which the command as written does not do. Standard output is exactly `factory.work.domain.acceptance`.
+
+    2. `test -e src/factory/domain/acceptance.py && echo still there || echo moved`
+    ```
+    moved
+    ```
+    Met.
+
+    3. `uv run pytest tests/test_areas.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Met. The tail line it counted was `227 passed in 11.56s`.
+
+    I then re-read the acceptance criteria, and nothing in the smoke test contradicts any of them. I also checked all 14 rows of the move table: none of the old paths `src/factory/<layer>/<name>.py` exists, and every new `src/factory/work/<layer>/<name>.py` exists. That backs up criterion 1 beyond the one module the commands looked at. Criteria 3 to 5 (import lines, where the test modules sit, `make check`) and the docs criterion are not things these commands show. I did not run `make check` or `make documents`; the factory's checks cover those.
+
+    Findings: none.
