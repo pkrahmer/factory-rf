@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 1
@@ -153,6 +153,11 @@ journal:
   at: '2026-11-05T23:26:45.395238Z'
   stage: smoke-test
   run: bb0beb1dc237414db32c508f5c78a079
+- number: 27
+  speaker: factory
+  kind: done
+  at: '2026-11-05T23:30:40.909445Z'
+  stage: approval
 ---
 
 # The documents have a style page and a glossary
@@ -405,3 +410,4 @@ Expect: `named`
     - Criteria 4 to 6 are for the reviewer and the factory's checks. Entry 24 records `documents ok` and `check: green`.
 
     Findings: none. I changed no file.
+27. factory: done (pull request merged); cost: 10 runs, 7.9 min, 61 turns, 209690 tokens in (1178413 more from cache), 26797 out, $1.96
