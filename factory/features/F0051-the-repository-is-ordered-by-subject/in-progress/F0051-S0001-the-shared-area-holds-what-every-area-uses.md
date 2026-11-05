@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T00:59:52.475038Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   at: '2026-11-05T00:59:46.879433Z'
   stage: docs
   run: 34fef4c0ad5b4854adb9a26b3831276c
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:59:52.475038Z'
+  stage: smoke-test
 ---
 
 # The shared area holds what every area uses
@@ -1275,3 +1284,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree a1ebfe042c3b at 2026-11-05T00:52:12Z)
     `secrets`: secrets: green (9.2 s)
     `documents`: documents ok
+27. factory: started smoke-test as vm.
