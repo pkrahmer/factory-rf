@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 565
 comments_read: [6651800802]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T06:57:44.212247Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-05T06:57:44.212247Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-05T06:59:24.698367Z'
+  stage: tests
+  run: e86bea74133c461490e703ed05df3760
+  blocked: question
 ---
 
 # The operator guide is a folder of topics
@@ -120,3 +123,22 @@ Expect: `split`
    - Architecture: accepted. The change is in documents plus `factory.shared.domain.documents`, which fits the shared area.
    - Scope: accepted. S0010 is listed in `feature.md`, and the leave of decision 5 and the human's note in entry 4 cover the test and coder write paths.
 7. factory: started tests as vm.
+8. tester: I've written tests for criteria 1–4. I stopped before changing the earlier document tests, because the Interface doesn't say what they should expect. Those tests have to change: once `OPERATOR_GUIDE` stops being `docs/operator-guide.md` they fail, and the coder may not edit them.
+
+   Criterion → test so far:
+   - criterion 1: tests/guards/test_operator_guide_files.py::test_the_single_guide_is_gone_and_the_folder_holds_the_index_and_ten_topics
+   - criterion 2: tests/guards/test_operator_guide_files.py::test_every_earlier_heading_is_kept_in_the_folder (one row per heading, 128 rows, taken from `docs/operator-guide.md` as it is on this branch, which `origin/main` does not change)
+   - criterion 3: tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file. It copies the repository's README.md, docs/decisions.md, docs/project-guide/ and docs/operator-guide/ into tmp_path. It has six rows: as-it-is, no-stops-section, no-install-section, no-configuration-section, no-install-file and no-index. Each row expects exactly the one line the criterion names.
+   - criterion 4: tests/guards/test_operator_guide_files.py::test_no_file_names_the_single_guide
+
+   Files created: tests/guards/test_operator_guide_files.py, tests/entry/test_check_documents_operator_guide.py. The test runner imported every module (`factory.entry.check_documents` exists). The tests fail because `docs/operator-guide/` does not exist yet: the criterion 3 rows error in the fixture's copytree, and the guard tests fail on the missing folder. `make lint` is green.
+
+   Questions:
+   1. Where does the stop-table row check (`stop '<id>' has no table row with its destination`) run now? I would put it in `stops.md`.
+   2. Do the topic files and the index get the wording check (v1 words, replaced phrases), as the project guide's files do? I would check all eleven.
+   3. When every document is missing, which lines appear and in what order? This sets `MISSING_LINES` in tests/support/check_documents_support.py. I would list README.md, docs/operator-guide/README.md, the ten topic files in the Description's order, then docs/project-guide/README.md and docs/decisions.md. Each line ends in `: missing`.
+   4. What should the new constants be? Today tests/shared/domain/test_documents_guide_files.py::test_the_guide_is_an_index_in_its_folder pins `DOCUMENT_PATHS`. I would use `OPERATOR_GUIDE_FOLDER = "docs/operator-guide"`, `OPERATOR_GUIDE = "docs/operator-guide/README.md"` and `OPERATOR_GUIDE_FILES` (the ten topic paths). `DOCUMENT_PATHS` would hold all four documents with the topic files after the index, in the order of question 3.
+   5. With those answers, I would adapt the earlier tests under the leave the Interface cites: tests/support/document_texts.py (`operator_guide` gives way to builders of the index and topic files, with the sections and stop rows in install.md and stops.md, and `write_documents`/`clean_texts` write them all), tests/support/check_documents_support.py, tests/entry/test_check_documents.py, tests/entry/test_check_documents_guide_files.py, tests/pipeline/domain/test_documents.py and tests/shared/domain/test_documents_guide_files.py. Every test would keep its name and what it checks. tests/operator_scripts/test_operator_site_check.py::test_the_guide_names_every_key_of_the_example_site_file would read `site.md`. Should I go ahead?
+   6. Two places where I read the criteria, which you may want to correct:
+      - Criterion 2 says "exactly once", but `### The steps` appears twice in the old guide. My test expects it as often as before, twice.
+      - Criterion 4 searches `docs/`, but docs/runs/2026-11-04-f0050/log.md and docs/runs/2026-10-12-overnight/night-log.md name `docs/operator-guide.md`, and they are your files that no stage edits. My test leaves out `docs/runs/` as well as `docs/decisions.md`.
