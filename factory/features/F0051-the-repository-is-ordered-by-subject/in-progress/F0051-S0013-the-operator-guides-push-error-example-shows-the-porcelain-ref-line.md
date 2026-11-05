@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 555
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T00:13:14.355410Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-05T00:13:08.746559Z'
   stage: docs
   run: a4f64e208a1d4e27ad6d32e3ef9feaef
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:13:14.355410Z'
+  stage: smoke-test
 ---
 
 # The operator guide's push error example shows the ref line the factory writes
@@ -175,3 +184,4 @@ Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [re
     `check`: check: green (not run again: passed on tree e345589ce7fb at 2026-11-05T00:10:05Z)
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
