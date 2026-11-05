@@ -10,12 +10,6 @@ from pathlib import Path
 from types import FrameType
 from typing import TypedDict, Unpack
 
-from factory.application.boundaries import Boundaries
-from factory.application.idle_shutdown import IdleShutdown
-from factory.application.scheduler import CheckoutPreparer, RepositoryWaiter, Scheduler
-from factory.application.stops import StopService
-from factory.application.tick import Tick, TickOutcome
-from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.wiring import (
     ImageSizes,
     build_boundaries,
@@ -36,6 +30,12 @@ from factory.entry.wiring import (
 from factory.hosting.application.hosting import HostingService
 from factory.machine.application.disk_records import DiskRecorder
 from factory.machine.application.images import Images
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.idle_shutdown import IdleShutdown
+from factory.pipeline.application.scheduler import CheckoutPreparer, RepositoryWaiter, Scheduler
+from factory.pipeline.application.stops import StopService
+from factory.pipeline.application.tick import Tick, TickOutcome
+from factory.pipeline.domain.stops import HealthStatus, RepositoryStop
 from factory.shared.domain.errors import FetchFailed, MachineStopStood, SettingsInvalid
 from factory.shared.domain.settings import STATE_DIRECTORY, InstanceSettings, named_state_directory
 from factory.watching.application.machine import Clock

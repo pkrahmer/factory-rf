@@ -2,8 +2,8 @@
 
 import json
 
-from factory.application.boundaries import Boundaries
-from factory.application.claims import ClaimService, StageStart
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.claims import ClaimService, StageStart
 from factory.shared.domain.identifiers import branch_name
 from factory.work.domain.work_item import WorkItemDocument
 from git_support import PIPELINE_YAML, write_files

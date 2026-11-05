@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from fnmatch import fnmatchcase
 
 from factory.agents.domain.agent_runs import WritePathSettings
-from factory.domain.pipeline_definition import (
+from factory.pipeline.domain.pipeline_definition import (
     FEATURE_PLACEHOLDER,
     WORK_ITEM_PLACEHOLDER,
     is_inside_checkout,

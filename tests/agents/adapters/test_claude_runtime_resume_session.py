@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
 from claude_resume_support import _after, _budget_reply
+from claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
 from factory.agents.adapters.claude_runtime import FINISH_MESSAGE, ClaudeCodeRuntime
 from factory.agents.domain.agent_runs import AgentRunRequest
 

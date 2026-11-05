@@ -1,7 +1,7 @@
 """Reading the test remote's pipeline definition outside a fixture."""
 
-from factory.application.boundaries import Boundaries
-from factory.domain.pipeline_definition import PipelineDefinition
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from git_support import PIPELINE_YAML
 
 

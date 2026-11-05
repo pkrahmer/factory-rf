@@ -6,10 +6,15 @@ from pathlib import Path
 
 import pytest
 
-from factory.application.boundaries import Boundaries
-from factory.application.stops import StopService
-from factory.domain.stops import HealthStatus, RepositoryStop, RepositoryStopReason, StopScope
 from factory.entry.health import main
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.stops import StopService
+from factory.pipeline.domain.stops import (
+    HealthStatus,
+    RepositoryStop,
+    RepositoryStopReason,
+    StopScope,
+)
 from factory.shared.adapters.process import ProcessRequest, run_process
 from factory.watching.adapters.health_file import JsonHealthStatusFile
 

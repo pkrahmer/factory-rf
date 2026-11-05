@@ -6,12 +6,12 @@ from typing import get_args
 
 import pytest
 
-from factory.application.boundaries import Boundaries
-from factory.application.stops import StopService
-from factory.domain.stop_table import STOP_TABLE, StopRow
-from factory.domain.stops import RepositoryStop, RepositoryStopReason
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.domain.hosting import PostKey, PullRequestComment
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.stops import StopService
+from factory.pipeline.domain.stop_table import STOP_TABLE, StopRow
+from factory.pipeline.domain.stops import RepositoryStop, RepositoryStopReason
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.identifiers import WorkItemId, branch_name
 from factory.work.domain.journal import NewEntry, append_entry
@@ -111,7 +111,9 @@ def test_production_code_names_every_reason_of_a_repository_stop(reason: str) ->
     constants = {
         literal
         for name, tree in modules().items()
-        if name.startswith(("factory.application", "factory.machine.application", "factory.entry"))
+        if name.startswith(
+            ("factory.pipeline.application", "factory.machine.application", "factory.entry")
+        )
         for literal in string_literals(tree)
     }
 

@@ -4,10 +4,16 @@ from datetime import UTC, date
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.application.boundaries import Boundaries
-from factory.application.dispatcher import Handler
-from factory.application.handlers.comments import CommentCopier
-from factory.application.handlers.recording import (
+from factory.hosting.application.pushes import push_failure
+from factory.hosting.domain.git import CommitId
+from factory.hosting.domain.hand_over import cost_table_key
+from factory.hosting.domain.post_texts import CLOSE_ENTRY_TEXT, cost_table_post
+from factory.machine.application.disk_records import DiskRecorder
+from factory.machine.domain.disk import disk_line
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.dispatcher import Handler
+from factory.pipeline.application.handlers.comments import CommentCopier
+from factory.pipeline.application.handlers.recording import (
     Target,
     WorkItemRecorder,
     commit_subject,
@@ -15,14 +21,8 @@ from factory.application.handlers.recording import (
     require_pull_request,
     target_of,
 )
-from factory.domain.events import Event
-from factory.domain.pipeline_definition import PipelineDefinition
-from factory.hosting.application.pushes import push_failure
-from factory.hosting.domain.git import CommitId
-from factory.hosting.domain.hand_over import cost_table_key
-from factory.hosting.domain.post_texts import CLOSE_ENTRY_TEXT, cost_table_post
-from factory.machine.application.disk_records import DiskRecorder
-from factory.machine.domain.disk import disk_line
+from factory.pipeline.domain.events import Event
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.errors import CannotHandle, WorkItemFormatError
 from factory.shared.domain.identifiers import (
     FeatureId,

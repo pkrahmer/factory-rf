@@ -1,17 +1,17 @@
 """The checkout's hygiene is gone: the seal, its error, the nested-repository stall."""
 
-import importlib.util
 import typing
 from collections.abc import Callable
 
 import pytest
 
-from factory.application.stage import LaunchedStage
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.application.git import Git
 from factory.hosting.domain.post_texts import stall_cause, stall_note
+from factory.pipeline.application.stage import LaunchedStage
 from factory.shared.domain import errors
 from factory.work.domain.journal import StallReason
+from module_names import module_exists
 
 REMOVED_OPERATIONS = {
     "seal",
@@ -40,7 +40,7 @@ def _no_stall_text_mentions_a_nested_repository() -> bool:
     "holds",
     [
         pytest.param(
-            lambda: importlib.util.find_spec("factory.application.sealed_runs") is None,
+            lambda: not module_exists("factory.application.sealed_runs"),
             id="sealed-runs-module",
         ),
         pytest.param(lambda: not REMOVED_OPERATIONS & Git.__abstractmethods__, id="git-operations"),

@@ -11,7 +11,7 @@ from pydantic import BaseModel, ValidationError
 
 from factory.agents.domain.agent_runs import WritePathSettings
 from factory.entry import wiring
-from module_names import has_name
+from module_names import has_name, module_exists
 
 
 def _confine_command() -> object:
@@ -24,13 +24,9 @@ def _confine_command() -> object:
     ("check", "expected"),
     [
         pytest.param(
-            lambda: importlib.util.find_spec("factory.adapters.claude_guard"),
-            None,
-            id="adapter-module",
+            lambda: module_exists("factory.adapters.claude_guard"), False, id="adapter-module"
         ),
-        pytest.param(
-            lambda: importlib.util.find_spec("factory.entry.guard"), None, id="entry-module"
-        ),
+        pytest.param(lambda: module_exists("factory.entry.guard"), False, id="entry-module"),
         pytest.param(
             lambda: has_name("factory.agents.domain.agent_runs", "GUARD_COMMAND"),
             False,

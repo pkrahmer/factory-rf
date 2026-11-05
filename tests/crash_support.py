@@ -3,13 +3,13 @@
 from dataclasses import dataclass
 from datetime import date, timedelta
 
-from factory.application.boundaries import Boundaries
-from factory.application.claims import ClaimService, StageStart
-from factory.application.dispatcher import Handler
-from factory.application.recovery import RecoveryHandler
-from factory.domain.events import Event
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.claims import ClaimService, StageStart
+from factory.pipeline.application.dispatcher import Handler
+from factory.pipeline.application.recovery import RecoveryHandler
+from factory.pipeline.domain.events import Event
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.identifiers import branch_name
 from factory.work.domain.journal import HUMAN, NewEntry, append_entry

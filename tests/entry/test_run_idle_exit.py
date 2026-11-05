@@ -7,9 +7,9 @@ from typing import override
 
 import pytest
 
-from factory.application.tick import TickOutcome
 from factory.entry.run import run_until_stopped
 from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.pipeline.application.tick import TickOutcome
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
 from power_support import IDLE, OTHER

@@ -9,7 +9,7 @@ from search_support import modules_matching
 
 # The texts below are split so that a search of `tests` for them finds only their one module.
 THIS = Path(__file__).name
-STAND_IN = "adapters/opencode_stand_in.py"
+STAND_IN = "opencode_stand_in.py"
 
 
 @pytest.mark.parametrize(

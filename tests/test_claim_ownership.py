@@ -4,8 +4,8 @@ import ast
 
 from source_search import imported_modules, modules
 
-CLAIMS = "factory.application.claims"
-LEASE = "factory.domain.lease"
+CLAIMS = "factory.pipeline.application.claims"
+LEASE = "factory.pipeline.domain.lease"
 LEASE_FUNCTIONS = ("claim_status", "lease_expired", "lease_age", "observed_claim_status")
 
 

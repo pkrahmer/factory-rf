@@ -5,9 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import StandInCall, read_calls, without_locale
-from adapters.container_runtime_support import container_environment, container_request
-from adapters.opencode_stand_in import (
+from claude_stand_in import StandInCall, read_calls, without_locale
+from container_runtime_support import container_environment, container_request
+from factory.agents.adapters.opencode_runtime import CONFIG_VARIABLE, LOCKDOWN_SWITCHES
+from factory.machine.adapters.fake_containers import FakeContainerRuns
+from factory.shared.domain.errors import AgentRuntimeError
+from opencode_provider_support import PROVIDER, write_provider
+from opencode_stand_in import (
     REPLY,
     REQUEST_ENVIRONMENT,
     RESUME_REPLY,
@@ -17,10 +21,6 @@ from adapters.opencode_stand_in import (
     request_configuration,
     stand_in_runtime,
 )
-from factory.agents.adapters.opencode_runtime import CONFIG_VARIABLE, LOCKDOWN_SWITCHES
-from factory.machine.adapters.fake_containers import FakeContainerRuns
-from factory.shared.domain.errors import AgentRuntimeError
-from opencode_provider_support import PROVIDER, write_provider
 
 SWITCH_VALUES = {
     "OPENCODE_DISABLE_MODELS_FETCH": "1",

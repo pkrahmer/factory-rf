@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from factory.domain.stops import HealthStatus
+from factory.pipeline.domain.stops import HealthStatus
 from factory.watching.domain.machine import MachineTotals
 
 

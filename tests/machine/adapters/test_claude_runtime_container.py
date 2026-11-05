@@ -7,16 +7,16 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import REPLY, Step, read_calls, write_stand_in
-from adapters.container_runtime_support import (
+from agent_login_support import API_LOGIN
+from claude_reply_support import BUDGET_STOP, LOGIN
+from claude_stand_in import REPLY, Step, read_calls, write_stand_in
+from command_words_support import value_after
+from container_runtime_support import (
     container_environment,
     files_in,
     read_only,
     run_folders,
 )
-from agent_login_support import API_LOGIN
-from claude_reply_support import BUDGET_STOP, LOGIN
-from command_words_support import value_after
 from factory.agents.adapters.agent_launch import (
     LOGIN_VARIABLE,
     VERSION_TIME_LIMIT,

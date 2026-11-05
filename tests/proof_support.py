@@ -11,14 +11,9 @@ from typing import Final
 
 from container_support import fake_dataset
 from disk_support import FakeDiskSpace
-from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
-from factory.application.boundaries import Boundaries
-from factory.application.tick import Tick
-from factory.domain.known_results import ResultRecord
-from factory.domain.stops import StopRecord
 from factory.entry.wiring import agent_environment, handler_factory
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
@@ -26,6 +21,11 @@ from factory.hosting.domain.git import CommitId, GitOptions
 from factory.hosting.domain.hosting import PostKind, PullRequestComment, PullRequestView
 from factory.machine.adapters.make_commands import MakeProjectCommands
 from factory.machine.domain.disk import DiskRecord
+from factory.pipeline.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.tick import Tick
+from factory.pipeline.domain.known_results import ResultRecord
+from factory.pipeline.domain.stops import StopRecord
 from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from factory.shared.domain.identifiers import Name, WorkItemId, branch_name
 from factory.shared.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase

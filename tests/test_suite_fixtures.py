@@ -4,10 +4,10 @@ import subprocess
 from pathlib import Path
 
 from container_support import RESET_PREFIX, timing_lines
-from factory.application.boundaries import Boundaries
 from factory.machine.adapters.fake_containers import FakeContainerRuns
 from factory.machine.adapters.fake_snapshots import FakeSnapshots
 from factory.machine.application.stage_environment import ContainerEnvironment, stage_environment_of
+from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain.identifiers import branch_name
 from git_support import PIPELINE_YAML, clone
 from proof_support import (

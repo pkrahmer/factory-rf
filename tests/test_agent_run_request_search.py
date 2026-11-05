@@ -4,8 +4,8 @@ import ast
 
 from source_search import modules, reads_os_environ
 
-BUILDERS = {"factory.application.task", "factory.machine.application.preflight"}
-WITHOUT_PROCESS_ENVIRONMENT = ("factory.domain", "factory.application")
+BUILDERS = {"factory.pipeline.application.task", "factory.machine.application.preflight"}
+WITHOUT_PROCESS_ENVIRONMENT = ("factory.pipeline.domain", "factory.pipeline.application")
 
 
 def _builds_a_request(tree: ast.Module) -> bool:
@@ -28,7 +28,7 @@ def _must_not_read_the_process_environment(name: str) -> bool:
 def test_agent_run_requests_are_built_only_by_the_task_and_the_preflight() -> None:
     builders = {name for name, tree in modules().items() if _builds_a_request(tree)}
 
-    assert "factory.application.task" in builders
+    assert "factory.pipeline.application.task" in builders
     assert builders <= BUILDERS
 
 

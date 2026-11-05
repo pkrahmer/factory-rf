@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from factory.domain.stops import HealthStatus
 from factory.entry.health import main
 from factory.entry.wiring import health_file
+from factory.pipeline.domain.stops import HealthStatus
 from factory.shared.adapters.process import ProcessRequest, run_process
 from factory.watching.adapters.health_file import JsonHealthStatusFile
 

@@ -6,8 +6,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.stops import StopRecord
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
+from factory.pipeline.domain.stops import StopRecord
 from factory.watching.domain.cost_records import CostRecord
 from factory.work.domain.acceptance import AcceptanceState
 from factory.work.domain.work_item import WorkItemState

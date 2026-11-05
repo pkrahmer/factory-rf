@@ -7,8 +7,8 @@ import sys
 from collections.abc import Iterable
 from pathlib import Path
 
-from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.hosting.domain.git import GitIdentity
+from factory.pipeline.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.shared.adapters.process import ProcessRequest, run_process
 from factory.shared.domain.errors import PipelineDefinitionInvalid
 

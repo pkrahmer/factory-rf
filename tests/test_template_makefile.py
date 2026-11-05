@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls
+from claude_stand_in import Step, read_calls
 from git_support import commit_all, run_git, write_files
 from template_make_support import (
     green_line,

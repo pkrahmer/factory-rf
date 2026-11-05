@@ -6,8 +6,8 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
-from factory.domain.pipeline_definition import DONE_STAGE, PipelineDefinition
 from factory.hosting.domain.post_texts import done_entry_text
+from factory.pipeline.domain.pipeline_definition import DONE_STAGE, PipelineDefinition
 from factory.shared.domain.identifiers import (
     FeatureId,
     WorkItemId,

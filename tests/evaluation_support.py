@@ -3,16 +3,20 @@
 from collections.abc import Sequence
 from datetime import UTC, datetime
 
-from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
-from factory.domain.events import Event
-from factory.domain.lease import ClaimStatus
-from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition, StageDefinition
 from factory.hosting.domain.hosting import (
     PostKey,
     PostKind,
     PullRequestComment,
     PullRequestState,
     PullRequestView,
+)
+from factory.pipeline.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
+from factory.pipeline.domain.events import Event
+from factory.pipeline.domain.lease import ClaimStatus
+from factory.pipeline.domain.pipeline_definition import (
+    PipelineDefinition,
+    RoleDefinition,
+    StageDefinition,
 )
 from factory.shared.domain.errors import HostingServiceError
 from factory.work.domain.journal import JournalKind, JournalRecord

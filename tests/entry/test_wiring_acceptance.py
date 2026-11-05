@@ -9,13 +9,13 @@ import pytest
 from definition_support import pipeline_definition
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
-from factory.application.boundaries import Boundaries
-from factory.application.dispatcher import unhandled_kinds
-from factory.application.tick import Tick
-from factory.domain.events import Event, EventKind
 from factory.entry.wiring import build_handlers, handler_factory
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.dispatcher import unhandled_kinds
+from factory.pipeline.application.tick import Tick
+from factory.pipeline.domain.events import Event, EventKind
 from factory.shared.domain.errors import CannotHandle
 from factory.work.application.acceptance import AcceptanceDueHandler, AcceptanceService
 from factory.work.domain.acceptance import AcceptanceState

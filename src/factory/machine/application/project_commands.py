@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 from datetime import timedelta
 from typing import override
 
-from factory.domain.checks import CheckResult
 from factory.hosting.application.git import Git
 from factory.hosting.domain.git import CommitId
 from factory.machine.domain.command_records import CommandRecord
+from factory.pipeline.domain.checks import CheckResult
 from factory.shared.application.files import RecordLog
 from factory.shared.domain.errors import GitError
 from factory.watching.application.machine import Clock, FactoryLog

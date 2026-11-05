@@ -2,8 +2,8 @@
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.application.boundaries import Boundaries
-from factory.domain.pipeline_definition import PipelineDefinition
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.identifiers import FeatureId, parse_feature_directory_name
 from factory.shared.domain.sections import title
 from factory.watching.domain.board import BoardRow, FeatureRow, feature_rows, work_item_row

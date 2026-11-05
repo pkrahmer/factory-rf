@@ -8,7 +8,12 @@ import pytest
 from github import GithubException
 from github.Repository import Repository
 
-from adapters.pygithub_stand_ins import (
+from factory.hosting.adapters.pygithub_hosting import PyGithubHostingService
+from factory.hosting.application.hosting import HostingService
+from factory.hosting.domain.hosting import FACTORY_MARKER, PostKey, render_post
+from factory.shared.domain.errors import HostingServiceError
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from pygithub_stand_ins import (
     Call,
     StandInComment,
     StandInPullRequest,
@@ -16,11 +21,6 @@ from adapters.pygithub_stand_ins import (
     StandInUser,
     Untouchable,
 )
-from factory.hosting.adapters.pygithub_hosting import PyGithubHostingService
-from factory.hosting.application.hosting import HostingService
-from factory.hosting.domain.hosting import FACTORY_MARKER, PostKey, render_post
-from factory.shared.domain.errors import HostingServiceError
-from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 
 COMMIT = "a" * 40
 BRANCH = "work-item/F0001-S0001"

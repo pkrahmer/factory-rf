@@ -7,11 +7,11 @@ from typing import override
 import pytest
 
 import factory.entry.run as run_module
-from factory.application.boundaries import Boundaries
-from factory.application.tick import Tick, TickOutcome
 from factory.entry.run import run_instance
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.machine.domain.stage_layer import STAGE_FILE
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.tick import Tick, TickOutcome
 from factory.shared.domain.settings import InstanceSettings
 from human_clone import HumanClone
 from log_support import state_log_lines

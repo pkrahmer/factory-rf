@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from factory.domain.stops import RepositoryStop
+from factory.pipeline.domain.stops import RepositoryStop
 
 
 class RemoteOutage:

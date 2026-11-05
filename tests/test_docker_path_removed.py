@@ -1,6 +1,5 @@
 """The Docker path is gone: its files, its names and the tests that read it."""
 
-import importlib.util
 import os
 import re
 from collections.abc import Callable
@@ -10,6 +9,7 @@ import pytest
 
 import factory.shared.adapters.process
 from factory.shared.adapters.process import ProcessRequest, run_process
+from module_names import module_exists
 from search_support import modules_matching
 from vm_support import SETUP, SYSTEM_PATH, setup_code, step_texts
 
@@ -58,7 +58,7 @@ def test_the_setup_script_installs_the_moved_helper(tmp_path: Path) -> None:
 
 
 def _sessions_module_is_gone() -> bool:
-    return importlib.util.find_spec("factory.domain.sessions") is None
+    return not module_exists("factory.domain.sessions")
 
 
 def _process_table_reader_is_gone() -> bool:

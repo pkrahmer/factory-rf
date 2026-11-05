@@ -11,8 +11,8 @@ ALLOWED = {
         "factory.work.domain.journal",
         "factory.hosting.domain.hand_over",
         "factory.work.domain.acceptance",
-        "factory.application.handlers.questions",
-        "factory.application.recovery",
+        "factory.pipeline.application.handlers.questions",
+        "factory.pipeline.application.recovery",
     },
     "JOURNAL": {
         "factory.shared.domain.sections",

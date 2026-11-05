@@ -3,10 +3,10 @@
 from datetime import UTC, datetime
 from pathlib import Path
 
-from factory.domain.known_results import ResultKey, ResultRecord
 from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.machine.application.project_commands import RecordingProjectCommands
+from factory.pipeline.domain.known_results import ResultKey, ResultRecord
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from git_support import clone

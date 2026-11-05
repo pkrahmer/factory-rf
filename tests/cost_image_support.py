@@ -6,9 +6,9 @@ from pathlib import Path
 
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
-from factory.application.boundaries import Boundaries
-from factory.application.stage import LaunchedStage, StageLauncher
 from factory.hosting.application.opening import WorkItemOpening
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.stage import LaunchedStage, StageLauncher
 from factory.shared.domain.settings import InstanceSettings
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, install_agents

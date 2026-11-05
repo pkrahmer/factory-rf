@@ -4,8 +4,8 @@ from collections.abc import Sequence
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict
 
-from factory.domain.stops import RepositoryStop
 from factory.hosting.domain.git import ChangedPath, CommitId
+from factory.pipeline.domain.stops import RepositoryStop
 from factory.shared.domain.paths import STOP_RECORDS_FILE
 
 

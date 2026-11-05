@@ -2,9 +2,9 @@
 
 from factory.agents.domain.agent_runs import WritePathSettings
 from factory.agents.domain.write_paths import PROTECTED_PATHS, expand_write_paths
-from factory.application.boundaries import Boundaries
-from factory.application.claims import StageStart
-from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.claims import StageStart
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition, RoleDefinition
 from factory.shared.domain.errors import PipelineDefinitionInvalid
 from factory.shared.domain.paths import PIPELINE_DEFINITION_FILE, folder_of
 

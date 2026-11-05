@@ -11,19 +11,19 @@ import pytest
 from definition_support import pipeline_definition
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
-from factory.application.boundaries import Boundaries
-from factory.application.dispatcher import Dispatcher
-from factory.application.handlers.run_gate import RunGate
-from factory.application.stops import StopService
-from factory.application.tick import IdleHandler, Tick
-from factory.domain.events import Event, EventKind
-from factory.domain.tick_status import TickStatus, find_error
 from factory.entry.wiring import (
     agent_environment,
     build_handlers,
     handler_factory,
     production_environment,
 )
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.dispatcher import Dispatcher
+from factory.pipeline.application.handlers.run_gate import RunGate
+from factory.pipeline.application.stops import StopService
+from factory.pipeline.application.tick import IdleHandler, Tick
+from factory.pipeline.domain.events import Event, EventKind
+from factory.pipeline.domain.tick_status import TickStatus, find_error
 from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from git_support import install_agents
 from human_clone import HumanClone

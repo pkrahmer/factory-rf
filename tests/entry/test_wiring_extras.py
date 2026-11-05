@@ -8,9 +8,9 @@ import pytest
 
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
-from factory.application.boundaries import Boundaries
-from factory.application.tick import TickOutcome
 from factory.entry.wiring import build_tick, machine_extras
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.tick import TickOutcome
 from factory.shared.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone

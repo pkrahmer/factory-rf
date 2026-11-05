@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from factory.application.boundaries import Boundaries
 from factory.entry.wiring import machine_extras
+from factory.pipeline.application.boundaries import Boundaries
 from podman_support import IMAGE, Podman, PodmanPlan
 from wiring_support import CONTAINER_ITEMS, PODMAN_VERSION, machine_item, profile_settings
 from zfs_support import Zfs

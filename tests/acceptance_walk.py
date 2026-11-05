@@ -3,11 +3,11 @@
 from pathlib import Path
 
 from bill_support import completed_records, sidecar_text
-from factory.application.boundaries import Boundaries
-from factory.application.tick import Tick, TickOutcome
-from factory.domain.events import Event, EventKind
 from factory.entry.wiring import handler_factory
 from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.tick import Tick, TickOutcome
+from factory.pipeline.domain.events import Event, EventKind
 from factory.shared.domain.identifiers import FeatureId, branch_name
 from factory.shared.domain.paths import (
     LifecycleFolder,

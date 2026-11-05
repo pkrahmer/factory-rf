@@ -1,11 +1,10 @@
 """The undo's module is gone; the take holds the functions they shared."""
 
-import importlib.util
 from collections.abc import Callable
 
 import pytest
 
-from module_names import has_name
+from module_names import has_name, module_exists
 from source_search import SRC, imported_modules, modules
 
 UNDO_NAMES = ("UndoService", "UndoReport")
@@ -30,19 +29,19 @@ def _modules_importing_an_undo_name() -> list[str]:
 @pytest.mark.parametrize(
     ("check", "expected"),
     [
+        pytest.param(lambda: module_exists("factory.application.undo"), False, id="undo-module"),
         pytest.param(
-            lambda: importlib.util.find_spec("factory.application.undo"), None, id="undo-module"
+            lambda: has_name("factory.pipeline.application.take", "is_refused"),
+            True,
+            id="is-refused",
         ),
         pytest.param(
-            lambda: has_name("factory.application.take", "is_refused"), True, id="is-refused"
-        ),
-        pytest.param(
-            lambda: has_name("factory.application.take", "read_baseline"),
+            lambda: has_name("factory.pipeline.application.take", "read_baseline"),
             True,
             id="read-baseline",
         ),
         pytest.param(
-            lambda: has_name("factory.application.take", "restore_work_item"),
+            lambda: has_name("factory.pipeline.application.take", "restore_work_item"),
             True,
             id="restore-work-item",
         ),

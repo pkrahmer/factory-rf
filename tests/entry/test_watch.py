@@ -10,17 +10,17 @@ import pytest
 
 from branch_reading import push_state
 from definition_support import pipeline_definition
-from factory.application.boundaries import Boundaries
-from factory.application.dispatcher import Handler
-from factory.application.pipeline_loading import PipelineLoader
-from factory.application.tick import IdleHandler, Tick
-from factory.domain.events import Event, EventKind
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.entry.watch import main, render_event, run_watch
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions
 from factory.hosting.domain.hosting import PullRequestComment, PullRequestView
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.dispatcher import Handler
+from factory.pipeline.application.pipeline_loading import PipelineLoader
+from factory.pipeline.application.tick import IdleHandler, Tick
+from factory.pipeline.domain.events import Event, EventKind
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.errors import GitError, PipelineDefinitionInvalid
 from factory.shared.domain.identifiers import branch_name
 from factory.watching.application.board import BoardReader

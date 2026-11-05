@@ -1,22 +1,20 @@
 """The kernel's write guard, its start wrapper and the tool paths are gone."""
 
-import importlib
-import importlib.util
 from collections.abc import Callable
 
 import pytest
 
 from factory.agents.domain.agent_runs import AgentRunRequest, WritePathSettings
-from factory.application.task import TaskContext
-from factory.domain.pipeline_definition import PipelineDefinition
-from module_names import has_name
+from factory.pipeline.application.task import TaskContext
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
+from module_names import has_name, module_exists
 
 
 @pytest.mark.parametrize(
     "module", ["factory.entry.confine", "factory.adapters.landlock", "factory.domain.confinement"]
 )
 def test_the_wrapper_and_the_kernel_s_modules_are_gone(module: str) -> None:
-    assert importlib.util.find_spec(module) is None
+    assert not module_exists(module)
 
 
 @pytest.mark.parametrize(
@@ -34,7 +32,7 @@ def test_the_wrapper_and_the_kernel_s_modules_are_gone(module: str) -> None:
         ),
         *(
             pytest.param(
-                lambda name=name: has_name("factory.domain.pipeline_definition", name),
+                lambda name=name: has_name("factory.pipeline.domain.pipeline_definition", name),
                 False,
                 id=name,
             )

@@ -3,12 +3,12 @@
 import ast
 from pathlib import Path
 
-from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.pipeline.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from function_support import functions
 from git_support import PIPELINE_YAML
 
 TESTS = Path(__file__).parent
-PREPARER_TESTS = TESTS / "application" / "test_checkout_preparer.py"
+PREPARER_TESTS = TESTS / "hosting" / "application" / "test_checkout_preparer.py"
 
 
 def _row_ids(test: ast.FunctionDef) -> set[str]:

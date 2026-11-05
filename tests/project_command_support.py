@@ -3,7 +3,7 @@
 from collections.abc import Callable
 from datetime import timedelta
 
-from factory.domain.checks import CheckResult
+from factory.pipeline.domain.checks import CheckResult
 
 
 def raising(error: Exception) -> Callable[[str, timedelta], CheckResult]:

@@ -66,7 +66,7 @@ def test_no_module_under_tests_imports_a_test_module() -> None:
         ),
         pytest.param("from take_support import x\n", [], id="support"),
         pytest.param("from testing_support import x\n", [], id="testing-prefix"),
-        pytest.param("import factory.application.tick\n", [], id="package"),
+        pytest.param("import factory.pipeline.application.tick\n", [], id="package"),
         pytest.param("from adapters import support_test\n", [], id="test-suffix"),
     ],
 )

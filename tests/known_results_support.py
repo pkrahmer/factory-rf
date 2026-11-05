@@ -5,11 +5,11 @@ from dataclasses import dataclass, replace
 from datetime import timedelta
 from pathlib import Path
 
-from factory.application.boundaries import Boundaries
-from factory.application.known_results import KnownResults
-from factory.domain.checks import CheckResult, status_of
-from factory.domain.known_results import ResultRecord
-from factory.domain.pipeline_definition import PipelineDefinition
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.known_results import KnownResults
+from factory.pipeline.domain.checks import CheckResult, status_of
+from factory.pipeline.domain.known_results import ResultRecord
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.adapters.clock import ManualClock
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from git_support import PIPELINE_YAML

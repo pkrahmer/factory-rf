@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls, write_stand_in
+from claude_stand_in import Step, read_calls, write_stand_in
 from factory.agents.adapters.claude_runtime import SWITCHES, ClaudeCodeRuntime
 from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest, scrub_environment
 from factory.hosting.adapters.fake_hosting import FakeHostingService

@@ -82,7 +82,7 @@ A bill is a sum of cost records and nothing else. The cost line a `done` journal
 
 The journal's text is for people; its data is the front matter and the sidecar. `tests/test_no_journal_reading.py` parses every module under `src/factory` (`modules()` of `tests/source_search.py`) and fails when:
 
-- `entry_text` is referenced (imported, used as a name or as an attribute) outside `factory.work.domain.journal`, `factory.hosting.domain.hand_over`, `factory.application.handlers.questions`, `factory.application.recovery` (the display text of the crash-cap question) and `factory.work.domain.acceptance` (the findings in the acceptance's description);
+- `entry_text` is referenced (imported, used as a name or as an attribute) outside `factory.work.domain.journal`, `factory.hosting.domain.hand_over`, `factory.pipeline.application.handlers.questions`, `factory.pipeline.application.recovery` (the display text of the crash-cap question) and `factory.work.domain.acceptance` (the findings in the acceptance's description);
 - `JOURNAL` of `factory.shared.domain.sections` is referenced outside `factory.shared.domain.sections`, `factory.work.domain.journal`, `factory.work.domain.story_form`, `factory.work.adapters.work_item_markdown`, `factory.hosting.application.opening` and `factory.work.domain.acceptance` (`acceptance_head` builds its `## Journal` heading from the constant);
 - a string literal equal to `Journal` or `## Journal` stands outside `factory.shared.domain.sections`.
 

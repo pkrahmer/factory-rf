@@ -1,8 +1,8 @@
 """The mutation report command and its rules are gone; the shared input reader stays."""
 
-import importlib.util
-
 import pytest
+
+from module_names import module_exists
 
 
 @pytest.mark.parametrize(
@@ -15,4 +15,4 @@ import pytest
     ],
 )
 def test_the_mutation_report_is_removed_and_the_input_reader_stays(name: str, found: bool) -> None:
-    assert (importlib.util.find_spec(name) is not None) is found
+    assert module_exists(name) is found

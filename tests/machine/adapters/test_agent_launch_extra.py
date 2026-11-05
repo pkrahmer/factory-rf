@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 
-from adapters.container_runtime_support import container_environment
 from container_extra_support import (
     OTHER,
     PROXY,
@@ -13,6 +12,7 @@ from container_extra_support import (
     volume,
     write_bundle,
 )
+from container_runtime_support import container_environment
 from factory.agents.adapters.agent_launch import API_LOGIN_VARIABLE
 from factory.machine.domain.containers import CA_BUNDLE_NAMES, extra_environment
 from factory.shared.domain.settings import InstanceSettings

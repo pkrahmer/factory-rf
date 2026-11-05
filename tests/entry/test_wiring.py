@@ -15,7 +15,7 @@ def test_only_the_wiring_imports_from_the_adapters_in_the_entry_layer() -> None:
         for name, tree in modules().items()
         if name == "factory.entry" or name.startswith("factory.entry.")
     }
-    importers = {name for name, tree in entry.items() if imports(tree, "factory.adapters")}
+    importers = {name for name, tree in entry.items() if imports(tree, "factory.pipeline.adapters")}
 
     assert "factory.entry.check_story" in entry
     assert importers == {

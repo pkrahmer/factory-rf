@@ -4,8 +4,8 @@ from typing import override
 
 from factory.agents.application.agent_runtime import AgentDefinitionReader
 from factory.agents.domain.agent_runs import AgentDefinition, check_agent_name
-from factory.application.pipeline_loading import PIPELINE_REF
 from factory.hosting.application.git import Git
+from factory.pipeline.application.pipeline_loading import PIPELINE_REF
 from factory.shared.domain.errors import AgentDefinitionInvalid
 from factory.shared.domain.identifiers import is_name
 from factory.shared.domain.paths import AGENT_SUFFIX, PROJECT_AGENTS_DIRECTORY, project_agent_file

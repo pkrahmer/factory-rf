@@ -4,9 +4,9 @@ import io
 
 import pytest
 
-from factory.application.boundaries import Boundaries
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.entry.watch import run_watch
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.adapters.clock import ManualClock
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

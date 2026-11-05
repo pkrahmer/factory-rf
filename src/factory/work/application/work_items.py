@@ -3,9 +3,9 @@
 from collections.abc import Callable
 from pathlib import PurePosixPath
 
-from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.application.git import Git
 from factory.hosting.domain.git import CommitId
+from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.shared.application.files import WorkItemReader
 from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.identifiers import (

@@ -6,8 +6,8 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.domain.fault_paths import FAULT_PATHS
-from factory.domain.stop_table import STOP_TABLE, Destination
+from factory.pipeline.domain.fault_paths import FAULT_PATHS
+from factory.pipeline.domain.stop_table import STOP_TABLE, Destination
 from factory.shared.domain.kill_point_cases import KILL_POINT_CASES
 from factory.shared.domain.sections import lines_outside_blocks, sections, split_lines
 

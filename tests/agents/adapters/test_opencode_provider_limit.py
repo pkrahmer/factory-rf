@@ -8,8 +8,9 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls
-from adapters.opencode_stand_in import (
+from claude_stand_in import Step, read_calls
+from factory.agents.domain.provider_limits import ProviderLimit
+from opencode_stand_in import (
     BOUND_SECONDS,
     REPLY,
     RESUME_REPLY,
@@ -27,7 +28,6 @@ from adapters.opencode_stand_in import (
     text,
     tool_use,
 )
-from factory.agents.domain.provider_limits import ProviderLimit
 
 LIMIT_MESSAGE = "spend limit reached, try again in 7 minutes"
 LIMIT_ERROR = error(LIMIT_MESSAGE, status_code=428, timestamp=3000)

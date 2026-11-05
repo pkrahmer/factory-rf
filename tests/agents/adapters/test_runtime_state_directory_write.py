@@ -6,14 +6,14 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
-from adapters.opencode_stand_in import MODELS, opencode_request, write_opencode
-from adapters.opencode_stand_in import REPLY as OPENCODE_REPLY
+from claude_stand_in import REPLY, Step, claude_request, read_calls, write_stand_in
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.agents.application.agent_runtime import AgentRuntime
 from factory.agents.domain.agent_runs import AgentRunRequest
 from factory.shared.domain.errors import AgentRuntimeError
+from opencode_stand_in import MODELS, opencode_request, write_opencode
+from opencode_stand_in import REPLY as OPENCODE_REPLY
 
 ROOT = os.geteuid() == 0
 

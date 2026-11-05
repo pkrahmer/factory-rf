@@ -8,10 +8,6 @@ from typing import override
 
 import pytest
 
-from factory.application.boundaries import Boundaries
-from factory.application.stops import StopService
-from factory.domain.checks import CheckResult
-from factory.domain.stops import RepositoryStop
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import CommitId
 from factory.machine.adapters.make_commands import MakeProjectCommands
@@ -21,6 +17,10 @@ from factory.machine.application.preflight import (
     Preflight,
 )
 from factory.machine.application.project_commands import ProjectCommands
+from factory.pipeline.application.boundaries import Boundaries
+from factory.pipeline.application.stops import StopService
+from factory.pipeline.domain.checks import CheckResult
+from factory.pipeline.domain.stops import RepositoryStop
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
 from git_support import CHECKOUT, install_agents, run_git

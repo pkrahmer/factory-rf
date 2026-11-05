@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 
 from document_texts import clean_texts, write_documents
-from factory.domain.stops import HealthStatus
 from factory.entry import check_documents, health, watch
 from factory.entry.wiring import health_store
+from factory.pipeline.domain.stops import HealthStatus
 
 
 # Each builds the process's command line: the program name, then its arguments.

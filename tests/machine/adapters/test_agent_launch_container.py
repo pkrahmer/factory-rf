@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from adapters.container_runtime_support import read_only
+from container_runtime_support import read_only
 from factory.agents.adapters.agent_launch import (
     CallEnd,
     Launch,

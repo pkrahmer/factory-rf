@@ -7,17 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from adapters.claude_stand_in import Step, read_calls, without_locale
-from adapters.opencode_stand_in import (
-    MODELS,
-    REPLY_EVENTS,
-    opencode_request,
-    stand_in_runtime,
-    stdout,
-    step_start,
-    write_agent_settings,
-    write_opencode,
-)
+from claude_stand_in import Step, read_calls, without_locale
 from factory.agents.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 from factory.agents.adapters.opencode_runtime import (
     CONFIG_VARIABLE,
@@ -29,6 +19,16 @@ from factory.agents.adapters.opencode_runtime import (
 from factory.agents.application.agent_runtime import AgentRuntime
 from factory.shared.domain.errors import AgentRuntimeError
 from factory.shared.domain.kill_points import KillPoint, KillPoints
+from opencode_stand_in import (
+    MODELS,
+    REPLY_EVENTS,
+    opencode_request,
+    stand_in_runtime,
+    stdout,
+    step_start,
+    write_agent_settings,
+    write_opencode,
+)
 
 LIMIT = timedelta(seconds=30)
 # A few seconds, so the child has room to start; the stand-in waits far longer.

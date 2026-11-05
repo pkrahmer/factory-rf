@@ -145,7 +145,7 @@ A project whose `check` scans for secrets, with the template's `make secrets` or
 No stage and no agent runs `make mutants`. Mutation testing runs only as sweeps outside the factory, which the human starts on a fresh copy in a throwaway container, with `mutants/` made anew for every run (the human's decision of 2026-10-19). The `mutants` target stays for those sweeps. A sweep's command is
 
 ```
-make mutants MODULES=factory.application MUTANTS_SECONDS=7200 MUTANTS_CHILDREN=2
+make mutants MODULES=factory.pipeline.application MUTANTS_SECONDS=7200 MUTANTS_CHILDREN=2
 ```
 
 `MODULES` names the modules or packages, `MUTANTS_SECONDS` stops mutmut (no stop when unset) and `MUTANTS_CHILDREN` caps its workers, which matters in a container limited to fewer cores than the host reports. A coder's entry has no `mutants` line, and the acceptance's check 3, *Mutation testing*, says `By sweep, not run here.` The template's `CLAUDE.md` and `Makefile` say the same: `make mutants` is for a sweep by hand.
@@ -1698,7 +1698,7 @@ Every stop the factory raises has one destination. A stop of the repository or t
 | `push-rejected` | pull request | A push is rejected, for example by a hook of the remote. No agent is run while it lasts. See "An event that keeps failing"; fix the remote's rule or push to the branch to start the count again. |
 | `later-stage-in-backlog-file` | no stop | A backlog story whose own file names a later stage in its front matter. The start rule removes it: the work item starts at the first stage with `round`, `attempts` and `crashes` at 0, and nothing is reported. |
 
-The ids are those of `STOP_TABLE` in `factory.domain.stop_table`, and the reasons in the health status are the same words with underscores.
+The ids are those of `STOP_TABLE` in `factory.pipeline.domain.stop_table`, and the reasons in the health status are the same words with underscores.
 
 ### The stops of the repository or the machine
 
