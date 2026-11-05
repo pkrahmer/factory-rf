@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T08:39:40.260833Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -214,6 +210,12 @@ journal:
   kind: started
   at: '2026-11-05T08:39:40.260833Z'
   stage: doing
+- number: 37
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:45:12.046085Z'
+  stage: doing
+  run: 64cd0be6b18c4144ba7bdbf1b126622e
 ---
 
 # The agent files live in `agents/`
@@ -562,3 +564,22 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 36. factory: started doing as vm.
+37. coder: Round 1. I changed no code in this run. The reviewer's two findings in entry 31 were both about tests, and the tester made those changes in entry 35: `AGENT_FILE_NAMES` is now built from `SHIPPED_NAMES`, and `STAGE_DOCKERFILE` moved into `tests/support/dockerfile_support.py` with the repeated assertion removed. With those changes, `make check` is green on the branch as it stands: `test: green (130.8 s)`, coverage 99.26 %, `check: green`. The working tree is clean.
+
+    What was built in earlier runs and is already on the branch (entries 17, 20 and 25):
+    - the move of `claude/` to `agents/` (`agents/agents/*.md` and `agents/settings.json`)
+    - `src/factory/machine/application/stage_environment.py:30`
+    - `vm/Dockerfile`, `vm/job-start.sh` and `vm/setup.sh`
+    - the path changes in `docs/project-guide/` and `docs/operator-guide/`
+
+    Main choice: hand forward without touching code, because round 1's findings changed only tests. I rejected changing anything else, because the round covers only those findings.
+
+    Refactor: nothing to change. The diff only renames paths.
+
+    Noticed but not touched, as in entry 29:
+    - When an agent renames a folder, the take drops the rename. `_read_diff_line` in `src/factory/machine/adapters/zfs_snapshots.py` skips folder entries from `zfs diff`. This could be a story of its own.
+    - The human's steps on factory-vm after the merge (entry 11): change the `FACTORY_CLAUDE_HOME` line in `factory.env` to `factory/agents`, rebuild the stage image and renew `image-id`.
+    - Criterion 6 is still open for the documenter: the `docs/decisions.md` entry and the mention of the new folder in `README.md`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
