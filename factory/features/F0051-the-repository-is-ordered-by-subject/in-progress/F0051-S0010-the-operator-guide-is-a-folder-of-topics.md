@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T07:38:20.515120Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-11-05T07:38:20.515120Z'
   stage: doing
+- number: 32
+  speaker: coder
+  kind: result
+  at: '2026-11-05T07:43:34.619110Z'
+  stage: doing
+  run: c053a580c07247efae2582b69dc67fa4
 ---
 
 # The operator guide is a folder of topics
@@ -524,3 +526,23 @@ Expect: `split`
 
     `lint`: lint: green (0.2 s)
 31. factory: started doing as vm.
+32. coder: Round 1, after the tester's entry 30: I changed no code in this run. The working tree is clean and `make check` is green (`check: green`, coverage 99.26 %). The tester's direct imports in `tests/pipeline/domain/test_documents.py` and `tests/entry/test_check_documents.py` fixed the three `attr-defined` errors from `mypy --strict` that I reported in entry 28.
+
+    Round 1 now covers the reviewer's findings from entry 22:
+    - Findings 1 to 3, `docs/operator-guide/*.md` (entry 24): every italic or quoted reference to a section that is now in another topic file names that file. The two "above" pointers that led into another file, `pipeline.md:72` and `records.md:166`, now name the section and its file.
+    - Finding 4, `src/factory/shared/domain/documents.py` (entry 24): `OPERATOR_GUIDE_SECTIONS` is the one source of the required sections. A private map, `_OPERATOR_SECTION_FILES`, says which topic file holds each one. `make duplicates` no longer reports the dead constant. I rejected asking for leave to drop the constant and the test that pins it, because the code change needs no leave.
+    - Findings 5 and 6, tests (entries 26 and 30): the tester moved the shared guard helpers to `tests/support/guide_files_support.py`. The tests now import the operator-guide constants from `factory.shared.domain.documents`.
+
+    Refactor: I made no edits in this run, so there was nothing new to refactor. My earlier diff is unchanged.
+
+    Description: no rewrite, because the work item is outside my write paths. Finding 7 is still open, and the meaning the journal settled (entry 9, answer 6) is this:
+    - Criterion 2 means each heading appears as often as before (`### The steps` twice).
+    - Criterion 4 also leaves out `docs/runs/`.
+    - The site-check test is `tests/operator_scripts/test_operator_site_check.py`.
+    A role that may write the work item can carry this into the Description.
+
+    Noticed, not touched:
+    - Some project-guide files still say "the operator guide, *Section*" without naming the topic file (for example `docs/project-guide/machine.md:54` and `docs/project-guide/pipeline.md:116`). The human gave these to the documenter in entry 14.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
