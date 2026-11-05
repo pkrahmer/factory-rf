@@ -98,6 +98,8 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 
 63. **The take loses the unedited files of a renamed directory (a bug).** `zfs diff` names a renamed directory in one line and lists none of the unchanged files inside it; `ZfsSnapshots._read_diff_line` skips directory lines, so the take keeps only the files that were also edited. F0051-S0012 lost all of `template/` and `vm/git-credential-factory` (one stall), and S0011's first stall had the same cause. Workaround: move files one by one. Fix: on a directory rename, list the files under the new name from the dataset and record each as deleted under the old name and added under the new one; a test with a renamed folder of unedited files.
 
+64. **A story the acceptance proposes names a leave that is not there.** F0051-S0014 and S0015: both say "the human's leave in `feature.md`" for the earlier tests they change, and neither had one, so each intake stopped (about 6 min of wait each). Fix: when the human merges an acceptance with stories, the playbook has them add each proposed story's leave to `feature.md` in the same step; or the acceptance reviewer writes the leave it needs into its report for the human to copy.
+
 ## The repository is easier to navigate (the human, 2026-11-04)
 
 38. **`claude/` becomes `agents/`.** It holds the factory's agent files and `settings.json` in Claude Code's format, which the opencode runtime translates per run (decision of 2026-10-19, F0020-S0004); the name says one runtime. Touches `vm/Dockerfile`, the wiring, the coder's write paths in `factory/pipeline.yml`, the docs and tests.
