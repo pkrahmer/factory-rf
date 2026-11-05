@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T07:47:09.754440Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -208,6 +212,11 @@ journal:
   at: '2026-11-05T07:47:03.216091Z'
   stage: docs
   run: 88afbb4da270482ca68375477392d7b2
+- number: 37
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:47:09.754440Z'
+  stage: smoke-test
 ---
 
 # The operator guide is a folder of topics
@@ -633,3 +642,4 @@ Expect: `split`
     `check`: check: green (not run again: passed on tree 3c78f1d1e1b4 at 2026-11-05T07:41:09Z)
     `secrets`: secrets: green (3.7 s)
     `documents`: documents ok
+37. factory: started smoke-test as vm.
