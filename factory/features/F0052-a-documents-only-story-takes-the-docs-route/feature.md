@@ -34,7 +34,7 @@ The build order: the route must work before the agents choose it, and S0003 is t
 - **At S0002's merge:** `factory/pipeline.yml` gets the docs route, placed after `smoke-test` and before `acceptance`:
 
   ```yaml
-  docs-only: {role: documenter, next: [docs-review], checks: [check, secrets, documents]}
+  docs-only: {role: documenter, next: [docs-review, tests], checks: [check, secrets, documents]}
   docs-review: {role: reviewer, next: [docs-approval, docs-only], round_cap: 2}
   docs-approval: {approval: true, next: [done, docs-only]}   # the human: a merge accepts, a close sends back to the documenter
   ```
@@ -49,3 +49,4 @@ The build order: the route must work before the agents choose it, and S0003 is t
 3. **No smoke test on the docs route.** The document check (`make documents`) and `make secrets` run after the documenter, and `make check` reuses its result when only documents changed. A smoke test of prose adds nothing.
 4. **The intake decides, by the Interface.** A story goes down the docs route when every path its Interface changes is one the documenter may write (`README.md`, `docs/*`, `operator/README.md`). Anything else takes the old route.
 5. **Routes are branches of the stage graph** (the human, 2026-11-05). Rejected: a route as a list of stages that the intake writes into the work item, because the factory would have to keep a route per story and count rounds against it, for a need seen once; it stays possible later. Also rejected: sending a documents-only story from the intake to the existing `docs` stage, with a third way out of `docs` to `docs-approval`. That skips the review of the finished text, and since only `next[0]` is a forward move, the way to `docs-approval` would count as a round of rework: with the round cap of 2, the human could send such a story back only once.
+6. **A way back to the code route** (the human, 2026-11-05). A documenter at `docs-only` that finds the story needs a change outside the documents ends with `tests` and names that change. The story then takes the code route to `approval`, and a close there sends it to `doing`. `docs-only` has no round cap, so the move counts no round. What the documenter already wrote stays on the branch, and the `docs` stage of the code route finishes it.
