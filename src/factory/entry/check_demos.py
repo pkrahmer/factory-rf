@@ -4,17 +4,17 @@ import argparse
 from collections.abc import Sequence
 from pathlib import Path
 
-from factory.application.files import PipelineDefinitionReader, WorkItemReader
-from factory.domain.errors import PipelineDefinitionInvalid
-from factory.domain.paths import (
+from factory.entry.check_story import backlog_story_findings, finding_line
+from factory.entry.wiring import build_pipeline_definition_reader, build_work_item_reader
+from factory.shared.application.files import PipelineDefinitionReader, WorkItemReader
+from factory.shared.domain.errors import PipelineDefinitionInvalid
+from factory.shared.domain.paths import (
     FEATURE_FILE_NAME,
     PIPELINE_DEFINITION_FILE,
     STORY_FORM_FILE,
     LifecycleFolder,
     work_item_path,
 )
-from factory.entry.check_story import backlog_story_findings, finding_line
-from factory.entry.wiring import build_pipeline_definition_reader, build_work_item_reader
 
 _PROGRAM = "check-demos"
 _DEMOS = "demo"

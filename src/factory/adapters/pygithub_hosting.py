@@ -11,7 +11,6 @@ from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 from factory.application.hosting import HostingService
-from factory.domain.errors import HostingServiceError
 from factory.domain.hosting import (
     PostKey,
     PostOutcome,
@@ -20,8 +19,9 @@ from factory.domain.hosting import (
     PullRequestView,
     render_post,
 )
-from factory.domain.kill_points import KillPoint, KillPoints
-from factory.domain.paths import LABEL_PREFIX, MAIN_BRANCH
+from factory.shared.domain.errors import HostingServiceError
+from factory.shared.domain.kill_points import KillPoint, KillPoints
+from factory.shared.domain.paths import LABEL_PREFIX, MAIN_BRANCH
 
 
 @contextmanager

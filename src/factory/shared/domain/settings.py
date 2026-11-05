@@ -17,9 +17,7 @@ from pydantic import (
     model_validator,
 )
 
-from factory.domain.errors import SettingsInvalid
 from factory.domain.git import DEFAULT_GIT_IDENTITY, GitIdentity
-from factory.domain.identifiers import Name
 from factory.domain.provider_limits import (
     DEFAULT_CEILING,
     DEFAULT_COOLDOWN,
@@ -28,6 +26,8 @@ from factory.domain.provider_limits import (
     LOWEST_STATUS,
     ProviderLimit,
 )
+from factory.shared.domain.errors import SettingsInvalid
+from factory.shared.domain.identifiers import Name
 
 # The default identity is still read from here; its one definition is in the git module.
 __all__ = [

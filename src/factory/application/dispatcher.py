@@ -6,11 +6,9 @@ from typing import Literal, get_args
 
 from factory.application.machine import FactoryLog
 from factory.application.stops import StopService
-from factory.domain.errors import HostingServiceError, UnhandledEvent
 from factory.domain.events import Event, EventKind
 from factory.domain.hosting import PostKey
 from factory.domain.post_texts import error_report_text
-from factory.domain.sections import title
 from factory.domain.stops import WorkItemStop
 from factory.domain.tick_status import (
     ERROR_CAP,
@@ -24,6 +22,8 @@ from factory.domain.tick_status import (
     record_error,
 )
 from factory.domain.work_item import WorkItemSnapshot
+from factory.shared.domain.errors import HostingServiceError, UnhandledEvent
+from factory.shared.domain.sections import title
 
 DispatchOutcome = Literal["handled", "error", "reported", "capped"]
 

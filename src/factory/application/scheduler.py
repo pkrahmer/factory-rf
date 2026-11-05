@@ -8,10 +8,10 @@ from factory.application.boundaries import Boundaries
 from factory.application.git import Git
 from factory.application.machine import FactoryLog
 from factory.application.stops import StopService
-from factory.domain.errors import GitError
-from factory.domain.paths import MAIN_BRANCH, PIPELINE_DEFINITION_FILE, REMOTE
-from factory.domain.settings import InstanceSettings
 from factory.domain.stops import RepositoryStop, RepositoryStopReason
+from factory.shared.domain.errors import GitError
+from factory.shared.domain.paths import MAIN_BRANCH, PIPELINE_DEFINITION_FILE, REMOTE
+from factory.shared.domain.settings import InstanceSettings
 
 _UNAVAILABLE: RepositoryStopReason = "repository_unavailable"
 _ORIGIN_MAIN = f"{REMOTE}/{MAIN_BRANCH}"

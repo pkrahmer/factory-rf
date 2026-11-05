@@ -4,10 +4,10 @@ from collections.abc import Sequence
 
 from factory.domain.git import CommitInfo
 from factory.domain.hosting import PostKey
-from factory.domain.identifiers import WorkItemId
 from factory.domain.journal import entry_text, last_record
-from factory.domain.sections import ACCEPTANCE_CRITERIA, DESCRIPTION, section_text
 from factory.domain.work_item import WorkItemDocument
+from factory.shared.domain.identifiers import WorkItemId
+from factory.shared.domain.sections import ACCEPTANCE_CRITERIA, DESCRIPTION, section_text
 
 HAND_OVER_CLOSING = (
     "Merge to accept the story. To send it back, close the pull request with a comment that says "

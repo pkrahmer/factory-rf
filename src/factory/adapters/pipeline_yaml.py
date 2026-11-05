@@ -6,10 +6,10 @@ from pydantic import ValidationError
 from ruamel.yaml import YAML
 from ruamel.yaml.error import MarkedYAMLError, YAMLError
 
-from factory.adapters.validation_faults import all_faults
-from factory.application.files import PipelineDefinitionReader
-from factory.domain.errors import PipelineDefinitionInvalid
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.shared.adapters.validation_faults import all_faults
+from factory.shared.application.files import PipelineDefinitionReader
+from factory.shared.domain.errors import PipelineDefinitionInvalid
 
 _FAULT_SEPARATOR = "; "
 

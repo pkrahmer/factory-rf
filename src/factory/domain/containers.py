@@ -8,7 +8,7 @@ from typing import Annotated, Self
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
 
 from factory.domain.agent_runs import AbsolutePath
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 
 WORK = "/work"
 WORK_CHECKOUT = "/work/checkout"

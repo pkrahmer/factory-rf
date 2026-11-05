@@ -1,6 +1,6 @@
 """The paths of a work item moved from one lifecycle folder of its feature to another."""
 
-from factory.domain.paths import LifecycleFolder, folder_of
+from factory.shared.domain.paths import LifecycleFolder, folder_of
 
 
 def destination_path(path: str, folder: LifecycleFolder) -> str:

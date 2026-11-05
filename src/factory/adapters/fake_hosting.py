@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
 from factory.application.hosting import HostingService
-from factory.domain.errors import HostingServiceError
 from factory.domain.git import CommitId
 from factory.domain.hosting import (
     PostKey,
@@ -15,8 +14,9 @@ from factory.domain.hosting import (
     PullRequestView,
     render_post,
 )
-from factory.domain.kill_points import KillPoint, KillPoints
-from factory.domain.paths import LABEL_PREFIX
+from factory.shared.domain.errors import HostingServiceError
+from factory.shared.domain.kill_points import KillPoint, KillPoints
+from factory.shared.domain.paths import LABEL_PREFIX
 
 _OPERATIONS = frozenset(
     {

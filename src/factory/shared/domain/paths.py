@@ -2,8 +2,11 @@
 
 from typing import Literal
 
-from factory.domain import identifiers
-from factory.domain.identifiers import parse_feature_directory_name, parse_work_item_file_name
+from factory.shared.domain import identifiers
+from factory.shared.domain.identifiers import (
+    parse_feature_directory_name,
+    parse_work_item_file_name,
+)
 
 REMOTE = "origin"
 MAIN_BRANCH = "main"

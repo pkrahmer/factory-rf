@@ -12,7 +12,7 @@ from pydantic import (
     model_validator,
 )
 
-from factory.domain.identifiers import Name
+from factory.shared.domain.identifiers import Name
 
 WORK_ITEM_PLACEHOLDER = "{work_item}"
 FEATURE_PLACEHOLDER = "{feature}"

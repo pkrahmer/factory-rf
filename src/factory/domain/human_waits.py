@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, PositiveInt
 
 from factory.domain.bills import one_decimal
 from factory.domain.journal import HUMAN, Blocked, JournalRecord
-from factory.domain.times import UtcDatetime
+from factory.shared.domain.times import UtcDatetime
 
 _SECONDS_PER_HOUR = Decimal(3600)
 

@@ -27,17 +27,17 @@ from factory.domain.checks import CheckResult, command_line
 from factory.domain.cost_records import ToolUse, TranscriptRef
 from factory.domain.decisions import StageMove, StallReason, agent_entry, decide, stall_reason_of
 from factory.domain.died_runs import died_line
-from factory.domain.errors import HostingServiceError, PushFailed
 from factory.domain.git import CommitId
 from factory.domain.hand_over import hand_over_description
 from factory.domain.hosting import PullRequestView
-from factory.domain.identifiers import Name, WorkItemId, is_acceptance
 from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.labels import labels_for
-from factory.domain.paths import MAIN_BRANCH, cost_records_path
 from factory.domain.pipeline_definition import PipelineDefinition, ProjectCommandDefinition
 from factory.domain.story_form import FormFinding
 from factory.domain.work_item import WorkItemDocument, require_state
+from factory.shared.domain.errors import HostingServiceError, PushFailed
+from factory.shared.domain.identifiers import Name, WorkItemId, is_acceptance
+from factory.shared.domain.paths import MAIN_BRANCH, cost_records_path
 
 STALL_TAIL_LINES = 15
 RELEASE_AFTER_HOSTING_FAILURE = "claim released: hosting failed"

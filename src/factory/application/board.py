@@ -6,10 +6,10 @@ from factory.application.acceptance_reading import AcceptanceReader, running_wor
 from factory.application.boundaries import Boundaries
 from factory.application.work_items import RemoteWorkItems, read_feature_file
 from factory.domain.board import BoardRow, FeatureRow, feature_rows, work_item_row
-from factory.domain.identifiers import FeatureId, parse_feature_directory_name
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.sections import title
 from factory.domain.work_item import StoryFile
+from factory.shared.domain.identifiers import FeatureId, parse_feature_directory_name
+from factory.shared.domain.sections import title
 
 
 class BoardView(BaseModel):

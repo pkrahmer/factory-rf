@@ -2,8 +2,8 @@
 
 from factory.application.dispatcher import Handler
 from factory.application.handlers.recording import target_of
-from factory.domain.errors import CannotHandle
 from factory.domain.events import Event
+from factory.shared.domain.errors import CannotHandle
 
 
 def _with_detail(reason: str, event: Event) -> str:

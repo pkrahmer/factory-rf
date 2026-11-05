@@ -3,7 +3,7 @@
 import math
 from datetime import timedelta
 
-from factory.domain.printed_lines import printed_lines
+from factory.shared.domain.printed_lines import printed_lines
 
 
 def first_printed_line(output: str) -> str | None:

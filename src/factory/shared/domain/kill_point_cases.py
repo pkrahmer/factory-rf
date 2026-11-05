@@ -4,7 +4,7 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from factory.domain.kill_points import KillPoint
+from factory.shared.domain.kill_points import KillPoint
 
 Dies = Literal["tick", "agent-run", "container"]
 ResultClass = Literal["crash", "stall"]

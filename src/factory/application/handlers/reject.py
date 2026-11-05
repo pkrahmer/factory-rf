@@ -4,7 +4,6 @@ from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.application.handlers.recording import WorkItemRecorder, commit_subject, target_of
 from factory.application.work_items import RemoteWorkItems
-from factory.domain.errors import CannotHandle
 from factory.domain.events import Event
 from factory.domain.hosting import PostKey
 from factory.domain.journal import FACTORY, NewEntry, append_entry
@@ -17,6 +16,7 @@ from factory.domain.work_item import (
     WorkItemState,
     require_state,
 )
+from factory.shared.domain.errors import CannotHandle
 
 _KIND = "reject"
 

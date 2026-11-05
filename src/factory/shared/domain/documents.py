@@ -7,9 +7,9 @@ from typing import Final
 from pydantic import BaseModel, ConfigDict
 
 from factory.domain.fault_paths import FAULT_PATHS
-from factory.domain.kill_point_cases import KILL_POINT_CASES
-from factory.domain.sections import lines_outside_blocks, sections, split_lines
 from factory.domain.stop_table import STOP_TABLE, Destination
+from factory.shared.domain.kill_point_cases import KILL_POINT_CASES
+from factory.shared.domain.sections import lines_outside_blocks, sections, split_lines
 
 README: Final = "README.md"
 OPERATOR_GUIDE: Final = "docs/operator-guide.md"

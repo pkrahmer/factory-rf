@@ -6,8 +6,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 from factory.application.snapshots import Snapshots
-from factory.domain.errors import SnapshotError
 from factory.domain.git import ChangedPath
+from factory.shared.domain.errors import SnapshotError
 
 # The bytes of a file are compared this many at a time, so a large file is never held whole.
 _CHUNK_BYTES = 1024 * 1024

@@ -6,8 +6,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
-from factory.domain.kill_points import KillPoints
-from factory.domain.times import UtcDatetime
+from factory.shared.domain.kill_points import KillPoints
+from factory.shared.domain.times import UtcDatetime
 
 CommitId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
 

@@ -6,9 +6,9 @@ from factory.application.agent_runtime import AgentDefinitionReader
 from factory.application.git import Git
 from factory.application.pipeline_loading import PIPELINE_REF
 from factory.domain.agent_runs import AgentDefinition, check_agent_name
-from factory.domain.errors import AgentDefinitionInvalid
-from factory.domain.identifiers import is_name
-from factory.domain.paths import AGENT_SUFFIX, PROJECT_AGENTS_DIRECTORY, project_agent_file
+from factory.shared.domain.errors import AgentDefinitionInvalid
+from factory.shared.domain.identifiers import is_name
+from factory.shared.domain.paths import AGENT_SUFFIX, PROJECT_AGENTS_DIRECTORY, project_agent_file
 
 
 class ProjectAgentDefinitions(AgentDefinitionReader):

@@ -6,10 +6,15 @@ from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, NonNegativeInt, PositiveInt
 
-from factory.domain.identifiers import FeatureId, Name, WorkItemId, parse_feature_directory_name
-from factory.domain.paths import LifecycleFolder
-from factory.domain.sections import title
 from factory.domain.work_item import Blocked, Claim, StoryFile, WorkItemSnapshot
+from factory.shared.domain.identifiers import (
+    FeatureId,
+    Name,
+    WorkItemId,
+    parse_feature_directory_name,
+)
+from factory.shared.domain.paths import LifecycleFolder
+from factory.shared.domain.sections import title
 
 AcceptanceStatus = Literal[
     "incomplete", "due", "in_flight", "merged_unrecorded", "accepted", "refused"

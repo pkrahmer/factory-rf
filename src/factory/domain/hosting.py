@@ -14,8 +14,8 @@ from pydantic import (
 )
 
 from factory.domain.git import CommitId
-from factory.domain.identifiers import WorkItemId
-from factory.domain.times import UtcDatetime
+from factory.shared.domain.identifiers import WorkItemId
+from factory.shared.domain.times import UtcDatetime
 
 FACTORY_MARKER = "<!-- factory -->"
 PullRequestState = Literal["open", "closed", "merged"]

@@ -5,7 +5,7 @@ from typing import override
 
 from pydantic import BaseModel, ValidationError
 
-from factory.application.files import RecordLog
+from factory.shared.application.files import RecordLog
 
 
 class JsonLinesRecordLog[R: BaseModel](RecordLog[R]):

@@ -5,7 +5,7 @@ from collections.abc import Sequence
 
 from pydantic import BaseModel, ConfigDict, NonNegativeInt
 
-from factory.domain.errors import WorkItemFormatError
+from factory.shared.domain.errors import WorkItemFormatError
 
 DESCRIPTION = "Description"
 ACCEPTANCE_CRITERIA = "Acceptance criteria"

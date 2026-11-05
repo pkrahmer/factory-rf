@@ -13,7 +13,7 @@ from typing import IO, Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from factory.adapters.printed_output import failure_detail, no_end_detail
+from factory.shared.adapters.printed_output import failure_detail, no_end_detail
 
 Stream = Literal["stdout", "stderr"]
 

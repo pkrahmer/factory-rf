@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import factory
-from factory.domain.contract import CONTRACT, contract_schema, schema_file_name
+from factory.shared.domain.contract import CONTRACT, contract_schema, schema_file_name
 
 CONTRACT_FOLDER = Path(factory.__file__).parent / "contract"
 

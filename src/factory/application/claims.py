@@ -9,11 +9,11 @@ from factory.application.boundaries import Boundaries
 from factory.application.handlers.recording import commit_subject
 from factory.application.pushes import push_failure
 from factory.domain.git import CommitId
-from factory.domain.identifiers import WorkItemId, branch_name, parse_work_item_file_name
 from factory.domain.journal import NewEntry, append_entry
 from factory.domain.lease import ClaimStatus, claim_status, observed_claim_status
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState, require_state
+from factory.shared.domain.identifiers import WorkItemId, branch_name, parse_work_item_file_name
 
 _INSTANCE_NAME = re.compile(r"[a-z][a-z0-9-]*")
 

@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from factory.application.machine import Clock, FactoryLog, PowerOff
 from factory.application.tick import TickOutcome
-from factory.domain.errors import PowerOffError
+from factory.shared.domain.errors import PowerOffError
 
 _PREFIX = "idle shutdown: "
 

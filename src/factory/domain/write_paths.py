@@ -5,17 +5,17 @@ from collections.abc import Sequence
 from fnmatch import fnmatchcase
 
 from factory.domain.agent_runs import WritePathSettings
-from factory.domain.paths import (
+from factory.domain.pipeline_definition import (
+    FEATURE_PLACEHOLDER,
+    WORK_ITEM_PLACEHOLDER,
+    is_inside_checkout,
+)
+from factory.shared.domain.paths import (
     FEATURE_FILE_NAME,
     FEATURE_FORM_FILE,
     PIPELINE_DEFINITION_FILE,
     PROJECT_AGENTS_DIRECTORY,
     STORY_FORM_FILE,
-)
-from factory.domain.pipeline_definition import (
-    FEATURE_PLACEHOLDER,
-    WORK_ITEM_PLACEHOLDER,
-    is_inside_checkout,
 )
 
 PROTECTED_PATHS: tuple[str, ...] = (
