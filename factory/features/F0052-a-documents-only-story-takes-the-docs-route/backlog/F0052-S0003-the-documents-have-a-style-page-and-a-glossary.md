@@ -18,7 +18,8 @@ The documenter and the reviewer need one written standard for how the documents 
 3. `docs/project-guide/README.md` names both files in *The files*.
 4. The two new pages follow their own rules: no feature or story ID, no version history, no sentence of more than about 25 words (the reviewer judges).
 5. `make documents` prints `documents ok`.
-6. docs: as criteria 1 to 3. `README.md` and the operator guide: none; their rewrite is the next feature. `docs/decisions.md`: an entry for the choice of style, naming the human's choice of 2026-11-05.
+6. `make check` stays green.
+7. docs: as criteria 1 to 3. `README.md` and the operator guide: none; their rewrite is the next feature. `docs/decisions.md`: an entry for the choice of style, naming the human's choice of 2026-11-05.
 
 ## Smoke test
 
