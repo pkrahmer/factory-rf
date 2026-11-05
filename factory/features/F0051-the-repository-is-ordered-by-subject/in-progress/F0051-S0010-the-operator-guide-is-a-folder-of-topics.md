@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T07:22:19.023780Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-11-05T07:22:13.395308Z'
   stage: tests
   run: 7c8ce4a5aa6d4f9992e84fd9eb6ad88a
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:22:19.023780Z'
+  stage: doing
 ---
 
 # The operator guide is a folder of topics
@@ -304,3 +313,4 @@ Expect: `split`
     Files changed: tests/guards/test_project_guide_files.py. Created: none. Modules the test runner could not import: none.
 
     `lint`: lint: green (0.1 s)
+19. factory: started doing as vm.
