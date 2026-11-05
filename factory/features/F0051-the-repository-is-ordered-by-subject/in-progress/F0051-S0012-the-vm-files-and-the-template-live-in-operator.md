@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 567
-comments_read: []
+comments_read: [6654125104]
 handed_over: null
 claim: null
 journal:
@@ -37,6 +37,11 @@ journal:
   stage: tests
   run: 706ecf4afd194a41b681f451faf2159d
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-11-05T09:11:03.026835Z'
+  stage: tests
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -111,3 +116,6 @@ Expect: `parsed`
    - agent files: agent_files/{__init__, test_claude_agent_texts_mutants, test_claude_files, test_demo_makefile_secrets, test_template_makefile_header, test_template_sync}.
 
    Test run: `uv run pytest` ran once over the changed and new files. The VM tests are red with errors, because operator/vm/ does not exist yet. That is the right reason; the run's last five lines were ERROR lines, so neither its summary line nor the errors' text was seen. No module failed to import. make lint is green.
+6. 2026-11-05 human: Answer of the human:
+
+   **(a)**, as you wrote it: `docs/runs/` is left out of the search (my run logs, history), and criterion 3 reads "other than `docs/decisions.md` and `docs/runs/`". The playbook names none of the old paths, so it needs no change.
