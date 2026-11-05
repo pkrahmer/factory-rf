@@ -38,9 +38,12 @@ DOCUMENT_PATHS: Final = (
     PROJECT_GUIDE,
     DECISION_LOG,
 )
-_INSTALL_SECTIONS: Final = ("Install", "Configuration")
-_STOPS_SECTIONS: Final = ("The stops",)
-OPERATOR_GUIDE_SECTIONS: Final = (*_INSTALL_SECTIONS, *_STOPS_SECTIONS)
+OPERATOR_GUIDE_SECTIONS: Final = ("Install", "Configuration", "The stops")
+_OPERATOR_SECTION_FILES: Final[Mapping[str, str]] = {
+    "Install": OPERATOR_INSTALL,
+    "Configuration": OPERATOR_INSTALL,
+    "The stops": OPERATOR_STOPS,
+}
 PROJECT_GUIDE_SECTIONS: Final = ("Kill points", "Fault-injection paths")
 REPLACED_SECTION: Final = "Replaced from v1"
 REPLACED_PHRASES: Final = (
@@ -170,12 +173,20 @@ def _decision_log_messages(text: str) -> list[str]:
     return [] if sections(text) else ["no decision recorded"]
 
 
+def _operator_sections(document: str) -> list[str]:
+    return [name for name in OPERATOR_GUIDE_SECTIONS if _OPERATOR_SECTION_FILES[name] == document]
+
+
 def _install_messages(text: str) -> list[str]:
-    return [*_missing_sections(text, _INSTALL_SECTIONS), *_wording(text)]
+    return [*_missing_sections(text, _operator_sections(OPERATOR_INSTALL)), *_wording(text)]
 
 
 def _stops_messages(text: str) -> list[str]:
-    return [*_missing_sections(text, _STOPS_SECTIONS), *_stop_rows(text), *_wording(text)]
+    return [
+        *_missing_sections(text, _operator_sections(OPERATOR_STOPS)),
+        *_stop_rows(text),
+        *_wording(text),
+    ]
 
 
 def _project_guide_messages(text: str) -> list[str]:

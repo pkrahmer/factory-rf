@@ -252,7 +252,7 @@ A transcript that cannot be found or copied (no session, no transcript file, a f
 
 ### On a VM
 
-`vm/setup.sh` sets this up (steps 14 and 16 of *The steps*). It makes `/srv/factory/<instance>/transcripts`, owned by `factory`, mode `0700`, and writes `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` into `factory.env`. A second run of the script finds both in place and changes nothing.
+`vm/setup.sh` sets this up (steps 14 and 16 of *The steps* in [machine.md](machine.md)). It makes `/srv/factory/<instance>/transcripts`, owned by `factory`, mode `0700`, and writes `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` into `factory.env`. A second run of the script finds both in place and changes nothing.
 
 The VM keeps no retention: at about 5 MB per feature the folder grows too slowly to need one. There is no `tmpfiles.d` rule and no option for an age. Removing old transcripts is yours, by hand, if ever needed. Read a transcript as `factory` or root: `zcat /srv/factory/<instance>/transcripts/<work item>/<run id>.jsonl.gz`.
 

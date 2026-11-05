@@ -4,7 +4,7 @@ A topic of the [operator guide](README.md).
 
 ## On Cloud Run
 
-A Cloud Run job runs the factory without a VM. The job starts bare: the root file system is memory, nothing is installed and nothing persists, so every start installs the tools, clones the code and builds the stage image again. `vm/job-start.sh` is the job's command. It is a POSIX `sh` script that turns a bare `debian:trixie-slim` into a running instance and ends in `exec factory-run`. Creating the job, its secrets and its schedule is yours; this chapter says what to give it. The pieces it uses are described under *The job profile*, *The metadata server in a job*, *Without ZFS* and *The idle shutdown*.
+A Cloud Run job runs the factory without a VM. The job starts bare: the root file system is memory, nothing is installed and nothing persists, so every start installs the tools, clones the code and builds the stage image again. `vm/job-start.sh` is the job's command. It is a POSIX `sh` script that turns a bare `debian:trixie-slim` into a running instance and ends in `exec factory-run`. Creating the job, its secrets and its schedule is yours; this chapter says what to give it. The pieces it uses are described under *The job profile*, *The metadata server in a job*, *Without ZFS* and *The idle shutdown* in [machine.md](machine.md).
 
 ### What the job needs
 
@@ -26,16 +26,16 @@ The job's environment is the instance's configuration. The script reads these va
 | --- | --- |
 | `FACTORY_INSTANCE` | required: the instance's name |
 | `FACTORY_REPOSITORY_URL` | required: the project |
-| `FACTORY_CODE_URL` | required: the repository the factory's code and `vm/Dockerfile` come from; cloned without a credential (see *The code and the project apart*) |
+| `FACTORY_CODE_URL` | required: the repository the factory's code and `vm/Dockerfile` come from; cloned without a credential (see *The code and the project apart* in [machine.md](machine.md)) |
 | `FACTORY_CODE_REF` | required: a tag or a commit of the code repository. There is no default, so nothing pushed to its `main` reaches a job unseen: you move the ref deliberately. |
 | `FACTORY_TOKEN_FILE` | required: the path of the file that holds the hosting token; a file the script can read, else `job-start: FACTORY_TOKEN_FILE is not a file`, status 2. If its folder is not private, the script copies it into `<root>/secrets` and uses the copy (see *Secrets are files*). The script never prints it. |
 | `HTTPS_PROXY` or `https_proxy` | optional: when set (`HTTPS_PROXY` wins when both are given and not empty), `apt` and every download use it. The script exports all four spellings, `HTTPS_PROXY`, `https_proxy`, `HTTP_PROXY` and `http_proxy`, to every later step, because the stage image's package manager fetches over plain HTTP. An `HTTP_PROXY` or `http_proxy` the job sets to a value that is not empty keeps its own value. |
 | `FACTORY_JOB_ROOT` | optional, default `/srv/factory/<instance>`: the folder of everything below |
 | `FACTORY_STAGE_IMAGE` | optional, default `factory-stage:<instance>` |
 | `RUNC_VERSION`, `RUNC_SHA256` | optional, default `1.5.2` and its checksum, both constants of the script. Give both or neither: `RUNC_VERSION` without `RUNC_SHA256` stops with `job-start: RUNC_SHA256 is not set`, status 2, because a version without its checksum would not be checked. |
-| `FACTORY_TOKEN_URL` and its companions | optional: when set, the token refresher runs (see *A bearer token for the model API*) |
+| `FACTORY_TOKEN_URL` and its companions | optional: when set, the token refresher runs (see *A bearer token for the model API* in [agent-runtime.md](agent-runtime.md)) |
 | `FACTORY_IDLE_SHUTDOWN_MINUTES` | optional, yours: unset means no idle shutdown (see below) |
-| `FACTORY_TRANSCRIPT_DIR` | optional, yours: the transcript folder (see *Transcripts*, *In a Cloud Run job*). When set, the script checks that the folder exists and that a file can be made and removed in it; if not, it stops with `job-start: transcript folder <path> cannot be written`, status 1. Unset changes nothing. |
+| `FACTORY_TRANSCRIPT_DIR` | optional, yours: the transcript folder (see *Transcripts*, *In a Cloud Run job* in [health.md](health.md)). When set, the script checks that the folder exists and that a file can be made and removed in it; if not, it stops with `job-start: transcript folder <path> cannot be written`, status 1. Unset changes nothing. |
 | `FACTORY_JOB_PREFIX` | for the script's tests: put in front of `/etc`, `/usr/local/bin` and `/var/lib/containers`. Leave it unset. |
 
 Beside these the job carries the settings of any instance (the hosting token's companions, the agent runtime's login, `FACTORY_CONTAINER_ENV`, `FACTORY_CA_BUNDLE`, `FACTORY_OPENCODE_MODELS`); the script never changes those.
@@ -50,12 +50,12 @@ The script prints `job-start: <step>` on standard output at each step, in this o
 2. `proxy`: with a proxy set, exports the four spellings and writes `/etc/apt/apt.conf.d/99proxy`.
 3. `packages`: `apt-get update`, then one `apt-get install` of `podman`, `uidmap`, `nftables`, `git`, `make`, `curl`, `ca-certificates`, `rsync`, `python3` and `python3-venv`, at the versions of the Debian release.
 4. `runc`: downloads `runc.amd64` of the release, checks it with `sha256sum -c` against the script's own checksum, and installs it as `/usr/local/bin/runc`. A mismatch stops with `job-start: runc: checksum does not match`, status 1. A checksum downloaded beside the binary would check nothing, so there is none. The download folder is removed whenever the step ends, by success or by a stop.
-5. `metadata`: loads the `nft` rule of *The metadata server in a job* from `<root>/metadata-block.nft`.
+5. `metadata`: loads the `nft` rule of *The metadata server in a job* in [machine.md](machine.md) from `<root>/metadata-block.nft`.
 6. `directories`: the workspace, the empty base, the checkout and the state.
 7. `storage`: mounts a tmpfs at `/var/lib/containers`, Podman's storage root, so that images use the kernel's overlay. A failed mount stops with `job-start: storage: cannot mount a tmpfs at <path>`, status 1.
 8. `code`: clones `FACTORY_CODE_URL` and checks out `FACTORY_CODE_REF`, with no credential and no prompt. A ref that does not exist stops with `job-start: code: no ref <ref> in <url>`, status 1. Then it installs the checkout's own `vm/git-credential-factory` as `/usr/local/bin/git-credential-factory` (mode `0755`); a failing install stops with `job-start: code: failed`, status 1. The factory's git takes its credential only from that helper, which answers for the project's host only, so without it no fetch of a private project and no push could authenticate (see "The hosting-service token" in [health.md](health.md)). `vm/setup.sh` installs the same helper on a VM.
 9. `tools`: a virtual environment `<root>/tools` with `uv` at the version of `vm/Dockerfile`, then `uv sync --frozen --no-dev` in the code checkout.
-10. `image`: builds the stage image from the checkout's `vm/Dockerfile` with the job's Podman options (the three words of *The job profile*) and writes a new uuid to the image-id file.
+10. `image`: builds the stage image from the checkout's `vm/Dockerfile` with the job's Podman options (the three words of *The job profile* in [machine.md](machine.md)) and writes a new uuid to the image-id file.
 11. `token`: when `FACTORY_TOKEN_URL` is set, runs the refresher once and waits for it, which must succeed, then starts it in the background.
 12. `start`: `exec factory-run` of the code checkout's environment.
 
@@ -65,7 +65,7 @@ Any other failing step stops the script with `job-start: <step>: failed` on stan
 
 A start or a restart costs a few minutes, because the checkout, the base and the image are rebuilt. The state directory goes with the memory, so the factory log, `health.json` and the preflight stamp start empty, and the preflight runs at every start.
 
-A restart during a stage is a crash for the factory (see *A restart during a stage*): recovery charges one crash for the stage in flight, and after `crash_cap` crashes (two by default) the work item waits for your answer. A story in flight on two nights therefore waits once. A stop between stages before the nightly restart is a candidate for later and does not exist yet.
+A restart during a stage is a crash for the factory (see *A restart during a stage* in [work-items.md](work-items.md)): recovery charges one crash for the stage in flight, and after `crash_cap` crashes (two by default) the work item waits for your answer. A story in flight on two nights therefore waits once. A stop between stages before the nightly restart is a candidate for later and does not exist yet.
 
 How an execution ends:
 
@@ -78,7 +78,7 @@ When the model costs nothing, a price of 0 makes `budget_usd` inert. The time li
 
 ### Creating the job
 
-`operator/job/job.sh` creates, updates, starts and deletes the job from the site file's values (*The site file*). It never guesses a project, a region or a job's name: every `gcloud` call carries `--project` from the file, every `gcloud run` call `--region` too (Cloud Logging has no region, so `logging read` does not take it), and `--impersonate-service-account` when `SITE_IMPERSONATE` is set.
+`operator/job/job.sh` creates, updates, starts and deletes the job from the site file's values (*The site file* in [site.md](site.md)). It never guesses a project, a region or a job's name: every `gcloud` call carries `--project` from the file, every `gcloud run` call `--region` too (Cloud Logging has no region, so `logging read` does not take it), and `--impersonate-service-account` when `SITE_IMPERSONATE` is set.
 
 ```bash
 sh operator/job/job.sh create [--dry-run]
@@ -89,7 +89,7 @@ sh operator/job/job.sh log [N] [--execution NAME] [--quiet]
 sh operator/job/job.sh status
 ```
 
-`create` and `update` build one `gcloud run jobs` call with the settings of *What the job needs*: the image `docker.io/library/debian:trixie-slim`, `--execution-environment=gen2`, `--max-retries=0`, `--vpc-egress=all-traffic`, the two secrets as mounts (`/secrets/hosting-token` and `/secrets-llm/client-secret`, never their values) and the job's environment, which carries the proxy in its four spellings and sets no `PATH`. They read these keys; the meaning and the format of each are in the table of *The keys*:
+`create` and `update` build one `gcloud run jobs` call with the settings of *What the job needs*: the image `docker.io/library/debian:trixie-slim`, `--execution-environment=gen2`, `--max-retries=0`, `--vpc-egress=all-traffic`, the two secrets as mounts (`/secrets/hosting-token` and `/secrets-llm/client-secret`, never their values) and the job's environment, which carries the proxy in its four spellings and sets no `PATH`. They read these keys; the meaning and the format of each are in the table of *The keys* in [site.md](site.md):
 
 | Command | Keys it reads |
 |---|---|
@@ -105,7 +105,7 @@ Before it builds the call, `create` and `update` refuse three kinds of value, wi
 - An `@` in `SITE_REPOSITORY_URL`, `SITE_CODE_URL`, `SITE_CODE_REF`, `SITE_PROXY`, `SITE_NO_PROXY`, `SITE_MODEL`, `SITE_LOGIN_URL`, `SITE_LOGIN_SCOPE`, `SITE_LOGIN_CLIENT_ID` or `SITE_IDLE_MINUTES`. `@` is the delimiter of the job's env list (`--set-env-vars=^@^...`).
 - A `SITE_MODEL_INPUT_COST` or `SITE_MODEL_OUTPUT_COST` that is not digits with at most one `.` (`15.5` and `.5` pass; `-1`, `1e3`, `nan` do not).
 
-The second rule has a consequence: an SSH repository URL such as `git@host:owner/name.git` holds an `@`, so a job needs the `https://` form of `SITE_REPOSITORY_URL` (the factory itself accepts both, see *Configuration*).
+The second rule has a consequence: an SSH repository URL such as `git@host:owner/name.git` holds an `@`, so a job needs the `https://` form of `SITE_REPOSITORY_URL` (the factory itself accepts both, see *Configuration* in [install.md](install.md)).
 
 The job's command is one line of shell that decodes a script (base64, gzip). The script only makes `/srv/factory/<instance>`, writes the provider file `provider.json` from the site's model values, writes `vm/job-start.sh` to `/tmp/job-start.sh` and hands over to it (`exec sh /tmp/job-start.sh`). The text of `vm/job-start.sh` is taken from `SITE_CODE_REF` of the repository that holds `job.sh`, not from its working tree, so the job runs the code the ref names. A ref the repository does not know stops `create` and `update` with `job: <ref> is not known here; fetch it first`, status 1. A `vm/job-start.sh` that holds a line `JOB_START_SH_END` is refused, because that line ends the text in the wrapper.
 
@@ -113,7 +113,7 @@ The job's command is one line of shell that decodes a script (base64, gzip). The
 
 A first start goes in this order:
 
-1. `site check`, to prove the site file and the machine (*Setting up an operator's machine*).
+1. `site check`, to prove the site file and the machine (*Setting up an operator's machine* in [site.md](site.md)).
 2. `sh operator/job/job.sh create`.
 3. `sh operator/job/job.sh execute`.
 
@@ -140,7 +140,7 @@ The times are UTC. The state is `running` when the platform counts one or more r
 
 Then it reads the log of the execution `log` would read (its last 200 non-empty lines) and prints one line about the factory:
 
-- `factory: stopped: <line>`: the log holds a line of the factory's stop form, `stop <kind> <reason>: <detail>` (see *The stops*), and no `preflight:` line after it, which would show the factory running again. The line is the newest such stop. Read it as the stops are read, for instance `stop machine preflight_failed: tool:uv: uv is not on the PATH`.
+- `factory: stopped: <line>`: the log holds a line of the factory's stop form, `stop <kind> <reason>: <detail>` (see *The stops* in [stops.md](stops.md)), and no `preflight:` line after it, which would show the factory running again. The line is the newest such stop. Read it as the stops are read, for instance `stop machine preflight_failed: tool:uv: uv is not on the PATH`.
 - `factory: no stop in the last 200 lines`: nothing of that form, or the factory started again after it. A line that only contains the word `stop` (`job: stop requested by user`) does not count. A stop older than 200 lines is not seen; ask `log` for more.
 
-`log` passes every line, and `status` the stop line it prints, through `operator/bin/sanitise` (*Sanitising what leaves the machine*), so the site's names and tokens are replaced. Without a rules file the built-in rules apply and the sanitiser's warning appears once on standard error. A wrong call (`N` not a number or negative, an unknown option) prints the usage line, which names every command, on standard error and exits 2.
+`log` passes every line, and `status` the stop line it prints, through `operator/bin/sanitise` (*Sanitising what leaves the machine* in [site.md](site.md)), so the site's names and tokens are replaced. Without a rules file the built-in rules apply and the sanitiser's warning appears once on standard error. A wrong call (`N` not a number or negative, an unknown option) prints the usage line, which names every command, on standard error and exits 2.

@@ -45,7 +45,7 @@ project_commands:
   check: {time_limit: 10, not_read: ["README.md", "docs/*.md"]}
 ```
 
-A pattern that cannot name a path inside the checkout (empty, starting with `/` or `~`, holding a `..` segment, or holding `{` or `}`) stops the definition from loading: `project command lint: not_read /etc/* must be a path pattern inside the checkout`. `not_read` is what lets a known result survive a change: the paths it names are left out of the tree that the key holds (see "The known results"), so a change only there is no reason to run the command again. List only what the command does not read at all. A linter, formatter or type checker that walks the whole tree reads every source file in every folder, so leave out file types it does not read, never a whole folder. A forgotten path costs one run; a path listed by mistake can let a reused `check` pass a fault.
+A pattern that cannot name a path inside the checkout (empty, starting with `/` or `~`, holding a `..` segment, or holding `{` or `}`) stops the definition from loading: `project command lint: not_read /etc/* must be a path pattern inside the checkout`. `not_read` is what lets a known result survive a change: the paths it names are left out of the tree that the key holds (see "The known results" in [health.md](health.md)), so a change only there is no reason to run the command again. List only what the command does not read at all. A linter, formatter or type checker that walks the whole tree reads every source file in every folder, so leave out file types it does not read, never a whole folder. A forgotten path costs one run; a path listed by mistake can let a reused `check` pass a fault.
 
 kumpel-factory's own definition, `factory/pipeline.yml`, takes this, and only Markdown and JSON Lines files, because `make lint` reads every Python file of the tree, wherever it lies:
 
@@ -69,7 +69,7 @@ The rules you meet most often:
 - A key that is not listed is refused, so a misspelt key is never ignored. A given `project_commands` replaces the default set as a whole: list `check`, `lint` and `test` again if you still want them. `sync` is a project command with a `time_limit` like the others (`sync: {time_limit: 5}` in the template), and the stage environment reads that limit for its sync container; no stage lists it in `checks` or `reports`, so it never enters a lease. A definition without `sync` gives the sync the default limit of 10 minutes.
 - Every role needs an agent file, a project's own or the installed one (see "The agent files" in [agent-runtime.md](agent-runtime.md)).
 
-A refused definition raises the stop `pipeline_definition_invalid`, described above. `docs/project-guide/pipeline.md`, "The rules of the definition", lists every fault.
+A refused definition raises the stop `pipeline_definition_invalid`, described in "The stop `pipeline_definition_invalid`" in [stops.md](stops.md). `docs/project-guide/pipeline.md`, "The rules of the definition", lists every fault.
 
 ## Checking a story before it starts
 

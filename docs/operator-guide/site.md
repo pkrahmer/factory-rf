@@ -4,7 +4,7 @@ A topic of the [operator guide](README.md).
 
 ## The site file
 
-The values that belong to one site (a project, a region, a proxy, the names of secrets, two repositories, a token command) live in one plain file, `site.env`, and one loader, `operator/lib/site.sh`, reads it for every operator script. The file is where company values go, so it lies outside every repository. `operator/job/job.sh` reads it for the job (*Creating the job*), and the skill's scripts use the hosting library (*The token source*).
+The values that belong to one site (a project, a region, a proxy, the names of secrets, two repositories, a token command) live in one plain file, `site.env`, and one loader, `operator/lib/site.sh`, reads it for every operator script. The file is where company values go, so it lies outside every repository. `operator/job/job.sh` reads it for the job (*Creating the job* in [cloud-run.md](cloud-run.md)), and the skill's scripts use the hosting library (*The token source*).
 
 ### Its place
 
@@ -198,7 +198,7 @@ It refuses to run unless all three hold:
 
 The force-push cannot be undone: the commits `main` held are no longer on any branch, and the closed pull requests and deleted branches are not restored. A failing call stops the script at that call with the hosting client's message and exit 1, so a half reset is visible: the lines printed so far are what was done. Run it again with `--yes` after fixing the cause. Only the first 100 open pull requests are listed (no paging).
 
-The same skill folder merges a story: `merge.sh <pr> <id>` (see *A merge archives the story*). It refuses a pull request that is not open, is a draft, is not labelled `stage:approval` or is not `work-item/<id>`; merges with a merge commit; then polls the latest 20 commits of `main` for `work item <id>: merged, archived` every `KUMPEL_POLL_SECONDS` seconds (15) for at most `KUMPEL_ARCHIVE_WAIT` seconds (300). It prints `merged #<pr>` and `archived <id>` and exits 0; if the archive commit does not come in time it exits 1 with `merge.sh: merged, but no archive commit for <id> after <N> s`. Start the next story only after `archived`.
+The same skill folder merges a story: `merge.sh <pr> <id>` (see *A merge archives the story* in [work-items.md](work-items.md)). It refuses a pull request that is not open, is a draft, is not labelled `stage:approval` or is not `work-item/<id>`; merges with a merge commit; then polls the latest 20 commits of `main` for `work item <id>: merged, archived` every `KUMPEL_POLL_SECONDS` seconds (15) for at most `KUMPEL_ARCHIVE_WAIT` seconds (300). It prints `merged #<pr>` and `archived <id>` and exits 0; if the archive commit does not come in time it exits 1 with `merge.sh: merged, but no archive commit for <id> after <N> s`. Start the next story only after `archived`.
 
 ### Telling Kumpel's acts from the human's
 
@@ -218,7 +218,7 @@ This chapter takes a machine with nothing on it to a factory job that runs and a
 
 The operator's scripts create the job and nothing around it. Before step 1 you need, from whoever runs the platform:
 
-- the cloud project and region, and a network connector whose proxy reaches the code host and the model API (*What the job needs*);
+- the cloud project and region, and a network connector whose proxy reaches the code host and the model API (*What the job needs* in [cloud-run.md](cloud-run.md));
 - the service account the job runs as, and, when you work through another account, one you may impersonate (`SITE_IMPERSONATE`);
 - two secrets, one holding the hosting-service token and one the model provider's key; only their names go into the site file;
 - the code host's bot user (the owner of the hosting token) with push access to the project's repository, and read access to the factory's code repository.

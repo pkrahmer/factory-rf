@@ -106,7 +106,7 @@ Every stage start then does what ZFS does, with copies: `reset` empties the work
 
 The cost: a reset takes about 1.6 s per GiB, measured on a tree of 20000 files, and the comparison is slower than the 0.2 s that `rsync` measured. In a memory-backed sandbox the workspace and the base are both in memory, so the tree is held twice. A later version may use `rsync`.
 
-The preflight has the item `snapshots` in place of `zfs` and `dataset` (see *The preflight's items*). The default, `zfs`, is unchanged.
+The preflight has the item `snapshots` in place of `zfs` and `dataset` (see *The preflight's items* in [health.md](health.md)). The default, `zfs`, is unchanged.
 
 ### The stage image
 
@@ -277,7 +277,7 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 13. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's `vm/git-credential-factory` (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
 14. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`). With `--idle-shutdown` its last line is `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>`; without the option the file holds no such line, so a run without it takes the setting back. It always holds `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` before that line.
 15. `service`: the unit `vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
-16. `transcripts`: the folder `/srv/factory/<instance>/transcripts` (owner `factory`, mode `0700`), made only when it is not already so. If the folder is a link, the script prints `setup: transcripts: <path> is a link; remove it and run this script again` to standard error and exits 1, before it makes anything there. The script writes no `tmpfiles.d` rule and has no option for an age. See *Transcripts*.
+16. `transcripts`: the folder `/srv/factory/<instance>/transcripts` (owner `factory`, mode `0700`), made only when it is not already so. If the folder is a link, the script prints `setup: transcripts: <path> is a link; remove it and run this script again` to standard error and exits 1, before it makes anything there. The script writes no `tmpfiles.d` rule and has no option for an age. See *Transcripts* in [health.md](health.md).
 
 The script writes the files under `/srv/factory/<instance>` (`image-id`, the askpass script and `factory.env`) as `factory`, with `cat` from its own standard input, because a process started by `runuser` may not reopen root's `/dev/stdin`.
 
@@ -343,7 +343,7 @@ sudo -u factory /srv/factory/vm/factory/.venv/bin/factory-health --state-directo
 
 Nothing runs a health check by itself: ask `factory-health` as `factory`. Build the stage image before the first start (see *The stage image*).
 
-The environment file holds these variables, which *Configuration* explains:
+The environment file holds these variables, which *Configuration* in [install.md](install.md) explains:
 
 | Variable | Value |
 |---|---|

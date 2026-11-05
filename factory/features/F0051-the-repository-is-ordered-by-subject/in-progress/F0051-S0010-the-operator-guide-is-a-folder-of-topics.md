@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T07:30:38.603397Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-11-05T07:30:38.603397Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-11-05T07:35:17.607744Z'
+  stage: doing
+  run: 06a0f60d328945bd8d756e3e2c2f2c5b
 ---
 
 # The operator guide is a folder of topics
@@ -383,3 +385,25 @@ Expect: `split`
 
     Checked and found sound: criterion 1 has its test. Criterion 2 has one row per heading, counted. Criterion 3 has six rows of one parametrized test, as the human's answer asks. Criterion 4 searches `src/`, `claude/`, `operator/`, `vm/`, `docs/` and `README.md`. All eleven files get the wording check (`TEXT_GUIDES`), and the stop rows are checked in `stops.md`. The `_RULES` table is a clean replacement for the `if` chain. The architecture holds (domain layer, no I/O). No markers silence a check and no secrets were added. The other five new `make duplicates` findings are outside this diff.
 23. factory: started doing as vm.
+24. coder: Round 1: I fixed the reviewer's findings 1 to 4 (entry 22). Findings 5 and 6 are changes to tests, so I end with `tests`. Finding 7 is outside my write paths. `make check` is green (`check: green`, coverage 99.26 %), and `factory-check-documents` reports `documents ok`.
+
+    Built:
+    - Findings 1 and 2, `docs/operator-guide/{agent-runtime,cloud-run,health,install,machine,pipeline,site,stops}.md`: every italic `*X*` or quoted `"X"` reference to a heading that now lives in another topic file names that file, in the form the quoted references already use (`*X* in [file.md](file.md)`). That is 33 lines. Where a run of references in one sentence all point to the same file, the file is named once, after the last one (`cloud-run.md:7`, `:38`). The two `*The idle shutdown*` references in `install.md` already carried `under "The machine" in [machine.md](machine.md)` and are unchanged. `*The steps*` in `health.md:255` points to `machine.md`, because it means the `vm/setup.sh` steps. A script (not kept) found and fixed the references, and run again it finds no cross-file reference without its file. No other words changed.
+    - Finding 3: I read every "above" and "below" in the topic files. Two pointed into another file and now name the section and its file:
+      - `pipeline.md:72` now reads "described in "The stop `pipeline_definition_invalid`" in [stops.md](stops.md)".
+      - `records.md:166` now reads "see the table of *Configuration* in [install.md](install.md)".
+      The others point inside their own file.
+    - Finding 4, `src/factory/shared/domain/documents.py`: `OPERATOR_GUIDE_SECTIONS` is now the one source of the required sections. A private map `_OPERATOR_SECTION_FILES` says which topic file holds each one, and `_operator_sections(document)` picks a file's sections from the tuple, in its order. `_INSTALL_SECTIONS` and `_STOPS_SECTIONS` are gone. I took the reviewer's second option rather than asking to drop the constant and its earlier test: the code change needs no leave, keeps `test_the_operator_guide_sections_are_the_three_in_their_order` meaningful, and should remove the vulture finding.
+
+    For the tester:
+    - Finding 5, under the standing leave in `CLAUDE.md`: move `_lines_outside_fences` and `_searched_files` (in both `tests/guards/test_operator_guide_files.py` and `tests/guards/test_project_guide_files.py:201`, `:232`) into one `tests/support/*_support.py` module, and change both guard files to use it. `_guide_headings` too, if it shares their pattern.
+    - Finding 6: `tests/support/document_texts.py:24-25` should import `OPERATOR_INSTALL` and `OPERATOR_STOPS` from `factory.shared.domain.documents` and drop its own copies. `INSTALL_SECTIONS` and `STOPS_SECTIONS` there stay as they are: test data, now with no copy in `src`.
+
+    Not done:
+    - Finding 7 (criteria 2 and 4, and the Interface's `tests/test_operator_site_check.py` path): the work item is not in the coder's write paths, so I did not rewrite the Description. What the journal changed (entry 9, answer 6): criterion 2 means each heading appears as often as before (`### The steps` twice), criterion 4 also leaves out `docs/runs/`, and the site-check test is `tests/operator_scripts/test_operator_site_check.py`. A role that may write the work item, such as the reviewer, can carry this into the Description.
+
+    Main decision: I added the file names with a script that reads the folder's headings, rather than by hand from the reviewer's examples. The examples were not a complete list ("about 40"), and the script covers every reference.
+
+    Refactor: I re-read my diff and found nothing to change.
+
+    Noticed, not touched: references in `docs/project-guide/` that say "the operator guide, *Section*" without the topic file. The human gave these to the documenter (entry 14).
