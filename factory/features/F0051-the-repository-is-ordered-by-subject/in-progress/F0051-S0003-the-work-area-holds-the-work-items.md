@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T01:38:59.126382Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T01:38:56.739185Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:38:59.126382Z'
   stage: intake
 ---
 
@@ -112,3 +121,4 @@ Expect: `1`
    6. Yes, both forms: `import factory.x.y`, `from factory.x.y import z` and `from factory.x import y`, as S0001's test already reads them with `imports()` from `tests/source_search.py`.
 
    These answers hold for S0004 to S0007 as well; feature decision 8 records them.
+5. factory: started intake as vm.
