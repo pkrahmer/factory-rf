@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 565
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T06:49:04.576792Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-05T06:49:04.576792Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-05T06:49:22.382886Z'
+  stage: intake
+  run: 4a5c3799a44145ca90bfa82be1e0e4b5
+  blocked: question
 ---
 
 # The operator guide is a folder of topics
@@ -63,3 +66,10 @@ Expect: `split`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. Two questions, both about rules the Interface states whose failing side has no criterion:
+   1. The Interface requires *Install* and *Configuration* in `install.md` and *The stops* in `stops.md`. Criterion 3 tests only the removal of *The stops* from `stops.md`. Should it also have rows for removing *Install* and *Configuration* from `install.md`, reported as `docs/operator-guide/install.md: section 'Install' is missing` and `docs/operator-guide/install.md: section 'Configuration' is missing`? I would add both rows to criterion 3.
+   2. The Description says the document check "requires the folder's index and its topic files". Criterion 3 covers a missing topic file (`install.md`) but not a missing `docs/operator-guide/README.md`. Should it have a row reporting `docs/operator-guide/README.md: missing`? I would add that row.
+   Other checks:
+   - The Interface names concrete modules (`factory.shared.domain.documents`, `OPERATOR_GUIDE`).
+   - The smoke tests are runnable.
+   - The architecture and scope fit F0051 (S0010 is listed in `feature.md`).
