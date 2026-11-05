@@ -32,6 +32,19 @@ AREAS: dict[str, tuple[str, ...]] = {
         "adapters.printed_output",
         "adapters.validation_faults",
     ),
+    "hosting": (
+        "domain.git",
+        "domain.hosting",
+        "domain.hand_over",
+        "domain.post_texts",
+        "application.git",
+        "application.hosting",
+        "application.pushes",
+        "application.opening",
+        "adapters.git_cli",
+        "adapters.pygithub_hosting",
+        "adapters.fake_hosting",
+    ),
 }
 
 MOVES = [
