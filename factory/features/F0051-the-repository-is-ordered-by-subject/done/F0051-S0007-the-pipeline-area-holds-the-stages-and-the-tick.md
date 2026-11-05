@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -136,6 +136,11 @@ journal:
   at: '2026-11-05T04:26:35.570471Z'
   stage: smoke-test
   run: 42242ed8814441a491a163ea0fa4e837
+- number: 24
+  speaker: factory
+  kind: done
+  at: '2026-11-05T04:30:30.125816Z'
+  stage: approval
 ---
 
 # The pipeline area holds the stages and the tick
@@ -883,3 +888,4 @@ Expect: `1`
     Note (not a finding): `docs/project-guide/write-paths.md:71` and `:73`, in the "Replaced in v1.2" section, still name `factory.adapters.landlock` and `factory.domain.leftovers`. Both are modules that were removed earlier (F0044) and are not in this story's table. No area holds them now, so I read these as history rather than as a package to rename under criterion 7.
 
     I did not run `make check`, because the factory runs it as this stage's check. I fixed nothing, as the stage requires.
+24. factory: done (pull request merged); cost: 10 runs, 27.0 min, 143 turns, 352943 tokens in (5824178 more from cache), 81115 out, $5.26
