@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283, 6651349591]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T06:27:38.992162Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -104,6 +108,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T06:27:36.483176Z'
+  stage: doing
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-05T06:27:38.992162Z'
   stage: doing
 ---
 
@@ -298,3 +307,4 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
     **(a).** `factory/pipeline.yml` on `main` now lets the coder write `docs/project-guide/*`, `docs/operator-guide.md`, `docs/operator-guide/*` and `README.md`, for the rest of F0051 only (S0009 to S0012, whose guards check documents). The next stage merges `main` into the branch. Redo the regrouping as journal 13 describes it, and end with `review`. The documenter still does the docs criterion's other parts.
 
     The Description's wording from journal 9 is the reviewer's to write back; the reviewer may do that in its run.
+18. factory: started doing as vm.
