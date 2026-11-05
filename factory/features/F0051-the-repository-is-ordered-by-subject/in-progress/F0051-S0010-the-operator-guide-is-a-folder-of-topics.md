@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T07:21:45.685085Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-11-05T07:21:45.685085Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: result
+  at: '2026-11-05T07:22:13.395308Z'
+  stage: tests
+  run: 7c8ce4a5aa6d4f9992e84fd9eb6ad88a
 ---
 
 # The operator guide is a folder of topics
@@ -287,3 +289,18 @@ Expect: `split`
 
     Still open: for the documenter, the project guide's "the operator guide, *Section*" references (for example `docs/project-guide/machine.md:54` and `docs/project-guide/pipeline.md:116`) should name the topic file. The human assigned this to the documenter in entry 14.
 17. factory: started tests as vm.
+18. tester: I made the test change the human approved in entry 14 point 1 and the coder named in entry 16. I edited `tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file` and nothing else.
+
+    What changed:
+    - `NOT_SEARCHED` now also holds `docs/operator-guide`, so the search leaves out the operator guide's folder.
+    - The pattern has a second lookbehind, `(?<!operator-guide/)`. A removed project-guide name that comes right after `operator-guide/` no longer counts, so the link `docs/operator-guide/work-items.md` in other files passes.
+
+    The test keeps its name and still checks that no searched file names a removed project-guide file. `REMOVED_FILES` and the other tests in the module are unchanged.
+
+    Why: the Description requires a topic file `docs/operator-guide/work-items.md`. Its name matched the removed project-guide file `work-items.md`, so the guard failed 20 times on correct links.
+
+    Run: `uv run pytest -q tests/guards/test_project_guide_files.py` passed, all 170 tests in the module. `make lint` is green.
+
+    Files changed: tests/guards/test_project_guide_files.py. Created: none. Modules the test runner could not import: none.
+
+    `lint`: lint: green (0.1 s)

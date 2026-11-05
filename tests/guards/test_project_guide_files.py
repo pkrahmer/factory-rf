@@ -27,7 +27,11 @@ REMOVED_FILES = (
     "processes-and-checks.md",
 )
 SEARCHED = (ROOT / "claude", ROOT / "docs", ROOT / "README.md")
-NOT_SEARCHED = (ROOT / "docs" / "runs", ROOT / "docs" / "decisions.md")
+NOT_SEARCHED = (
+    ROOT / "docs" / "runs",
+    ROOT / "docs" / "decisions.md",
+    ROOT / "docs" / "operator-guide",
+)
 
 # Every section heading of the guide before the regrouping, with how often it
 # appeared; the index's own "The files" is left out.
@@ -262,7 +266,7 @@ def test_every_source_path_the_index_names_exists() -> None:
 
 def test_no_file_names_a_removed_guide_file() -> None:
     pattern = re.compile(
-        r"(?<![\w.-])(?:project-guide/)?(?:"
+        r"(?<![\w.-])(?<!operator-guide/)(?:project-guide/)?(?:"
         + "|".join(re.escape(name) for name in REMOVED_FILES)
         + r")"
     )
