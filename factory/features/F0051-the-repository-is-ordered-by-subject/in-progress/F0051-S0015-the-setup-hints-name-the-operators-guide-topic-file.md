@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506, 6656185279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T10:56:06.034047Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T10:56:03.472408Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:56:06.034047Z'
   stage: doing
 ---
 
@@ -189,3 +198,4 @@ Expect: `1`
 11. 2026-11-05 human: Answer of the human:
 
     **(a).** Leave for the tester, in its own new test `tests/guards/test_operator_guide_pointers_search.py`: collect the topic-file names from every searched line that holds `docs/operator-guide/` (keep the `named != set()` assertion, so the test cannot pass vacuously), and annotate `found: list[tuple[Path, str]] = []`. The Interface's texts stay as approved. Then end with `tests`.
+12. factory: started doing as vm.
