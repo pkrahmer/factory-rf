@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T08:12:30.289221Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-05T08:12:24.166753Z'
   stage: doing
   run: 7cc6803e6c794ff1b2f52aba09ee611c
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:12:30.289221Z'
+  stage: tests
 ---
 
 # The agent files live in `agents/`
@@ -236,3 +245,4 @@ Expect: `1`
     Main choice: end with `tests` now and leave the move for after the test changes. I rejected making the move in this run, because this step should change no code.
 
     Noticed but not touched: nothing new beyond entry 10.
+14. factory: started tests as vm.
