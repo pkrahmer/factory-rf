@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T07:22:19.023780Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-11-05T07:22:19.023780Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-05T07:27:33.413291Z'
+  stage: doing
+  run: 59e475635b0f4856813c3ce3aadf2e85
 ---
 
 # The operator guide is a folder of topics
@@ -314,3 +316,26 @@ Expect: `split`
 
     `lint`: lint: green (0.1 s)
 19. factory: started doing as vm.
+20. coder: In this run I changed nothing: the implementation was already committed, and the tester's change in entry 18 makes `make check` green (`check: green`, coverage 99.26 %). The working tree is clean.
+
+    What was built in the earlier doing runs (b97f2bb71):
+    - `src/factory/shared/domain/documents.py`:
+      - New constants: `OPERATOR_GUIDE_FOLDER`, `OPERATOR_GUIDE` (the index), `OPERATOR_INSTALL`, `OPERATOR_STOPS` and `OPERATOR_GUIDE_FILES` (the ten topic paths).
+      - `DOCUMENT_PATHS` holds the fourteen documents in the order of entry 9.
+      - The required sections are checked per file: *Install* and *Configuration* in `install.md`; *The stops* and the stop-table rows in `stops.md` (`_stop_rows`, formerly `_operator_guide_rows`). Every file gets the wording check.
+      - `OPERATOR_GUIDE_SECTIONS` stays `("Install", "Configuration", "The stops")`.
+    - `src/factory/entry/check_documents.py`: docstring only.
+    - `docs/operator-guide.md` is gone. `docs/operator-guide/` holds `README.md` and the ten topic files. Each section moved as it was; only references between sections changed.
+    - `README.md` and `docs/project-guide/{agents,machine,operator,pipeline}.md` name the topic files.
+    - The human's edits on `main` to `operator/README.md` and `docs/operator-playbook.md` are merged into this branch (4fc0116f5, b8e4f99a9).
+
+    Main design decision: `_messages` picks each document's rules from a table (`_RULES`, path → message function; any other file gets the wording check alone). I rejected the longer `if` chain because ruff refuses it at seven returns (PLR0911), and the table keeps each file's rules in a function of its own.
+
+    Refactor: I re-read the diff against `main` and found nothing to change.
+
+    Description: the journal changed no meaning beyond what intake already carried into criterion 3. Entries 9 and 14 only settled the details (the order of the missing lines, the guard test's exclusion, the two lines the human changed on `main`). I did not rewrite the Description.
+
+    Noticed, not touched: some project-guide files still say "the operator guide, *Section*" without naming the topic file (e.g. `docs/project-guide/machine.md:54`, `docs/project-guide/pipeline.md:116`). The human gave these to the documenter in entry 14.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 40 known, 3 gone
