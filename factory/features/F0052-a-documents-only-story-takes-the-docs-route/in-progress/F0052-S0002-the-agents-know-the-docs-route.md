@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T22:48:40.810018Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -239,6 +235,12 @@ journal:
   kind: started
   at: '2026-11-05T22:48:40.810018Z'
   stage: smoke-test
+- number: 42
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T22:49:05.981666Z'
+  stage: smoke-test
+  run: 9300279560d04d8ca4789ca91cb2451e
 ---
 
 # The agents know the docs route
@@ -585,3 +587,22 @@ Expect: `named`
     `secrets`: secrets: green (1.8 s)
     `documents`: documents ok
 41. factory: started smoke-test as vm.
+42. smoke-tester: Round 2, smoke test. I ran the one command under `## Smoke test` from the repository root, exactly as written.
+
+    Command 1:
+    ```bash
+    grep -c "docs-only" agents/agents/intake.md agents/agents/documenter.md agents/agents/reviewer.md | awk -F: '$2 < 1 {bad=1} END {print bad ? "missing" : "named"}'
+    ```
+    Output:
+    ```
+    named
+    ```
+    Expect: `named`. Met.
+
+    For context, outside the smoke test, I ran the bare count: intake.md 1, documenter.md 2, reviewer.md 1.
+
+    Judgement: I read the acceptance criteria again. The output contradicts none of them. All three agent files name `docs-only`, which fits criteria 1 to 3. The smoke test does not touch criteria 4 to 7. Entry 36 has the coder's `make check` green, and entry 40 has the factory's check after the docs stage green, with `documents ok`.
+
+    Findings: none.
+
+    Note for the human, not a smoke-test finding: in entry 40 the documenter says the `docs/decisions.md` entry does not spell out feature decisions 1 to 3 and 5 beyond what the Description says. It could not read `feature.md`. Criterion 7 asks for an entry "for feature decisions 1 to 6", so you may want to check that entry before you merge. You also still need to make the `factory/pipeline.yml` change for the route at merge.
