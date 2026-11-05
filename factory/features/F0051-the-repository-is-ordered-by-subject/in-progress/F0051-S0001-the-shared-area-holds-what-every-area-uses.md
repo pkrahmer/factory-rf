@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T00:37:53.844446Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -76,6 +80,11 @@ journal:
   at: '2026-11-05T00:37:45.931707Z'
   stage: tests
   run: 0c1842dc4b9a45e485f0a9f50534b604
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:37:53.844446Z'
+  stage: doing
 ---
 
 # The shared area holds what every area uses
@@ -259,3 +268,4 @@ Expect: `1`
     Not touched (the coder noted these in entry 10): `security/duplicates-baseline.txt` still names the old paths, and only the human can update it. `tests/adapters/test_work_item_markdown.py`'s module filter does not look at `factory.shared.*`.
 
     `lint`: lint: green (0.1 s)
+13. factory: started doing as vm.
