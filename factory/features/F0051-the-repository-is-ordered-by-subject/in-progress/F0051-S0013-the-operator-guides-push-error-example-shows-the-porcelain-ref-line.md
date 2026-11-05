@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T00:06:51.136317Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-05T00:06:51.128909Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:06:51.136317Z'
+  stage: intake
+---
+
 # The operator guide's push error example shows the ref line the factory writes
 
 <!-- proposed by F0050's feature acceptance A0003 of 2026-11-05 as F0050-S0015; moved to F0051 by the human, so that it needs no further acceptance of F0050 -->
@@ -41,3 +68,6 @@ uv run python -c 'from factory.domain.git import push_reason; print(push_reason(
 Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [remote rejected] (Internal Server Error)`, the ref line of criterion 1's example.
 
 ## Journal
+
+1. 2026-11-05 human: created.
+2. factory: started intake as vm.
