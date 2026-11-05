@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T22:39:14.088993Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-11-05T22:39:14.088993Z'
   stage: review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T22:40:19.233683Z'
+  stage: review
+  run: f86c818797d541989f8d1184cd54adf2
 ---
 
 # The agents know the docs route
@@ -194,8 +196,10 @@ Once the pipeline holds the docs route (the human adds it at this story's merge)
 1. `agents/agents/intake.md` holds the routing rule of the Interface, naming `docs-only`, `tests` and the three documenter paths, with the "otherwise `tests`" clause and the statement that a docs-route story has no tests stage and no doing stage, so its criteria are about documents only.
 2. `agents/agents/documenter.md` has a section for the stage `docs-only` that names `make documents`, ends with `docs-review`, or ends with `tests` when the story needs a change outside the documents, its entry then naming that change.
 3. `agents/agents/reviewer.md` has a section for the stage `docs-review` that names the command `git diff main...HEAD -- README.md docs operator/README.md` and the work item, names `docs/project-guide/style.md`, ends with `docs-approval`, or with `docs-only` and numbered findings, and lists the seven style rules for as long as the style page is missing.
-4. `make check` stays green.
-5. docs: `docs/project-guide/agents.md`: the docs route and which agent does what on it. `docs/operator-guide/pipeline.md`: the route in the operator's words. `docs/decisions.md`: an entry for feature decisions 1 to 6, naming F0052.
+4. The `### docs-only` subsection of `agents/agents/documenter.md` says that in the stage `docs-only` its bullets replace steps 1 to 6 of the Stage, and that when the latest entry is the reviewer's from `docs-review`, the documenter fixes exactly its numbered findings and ends with `docs-review`.
+5. The `### docs-review` subsection of `agents/agents/reviewer.md` says that in the stage `docs-review` it replaces the Role's scope, its checklist and its decisions, and steps 1 to 3 of the Stage, and that the reviewer judges the facts against the code and the criteria.
+6. `make check` stays green.
+7. docs: `docs/project-guide/agents.md`: the docs route and which agent does what on it. `docs/operator-guide/pipeline.md`: the route in the operator's words. `docs/decisions.md`: an entry for feature decisions 1 to 6, naming F0052.
 
 ## Smoke test
 
@@ -396,3 +400,28 @@ Expect: `named`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 29. factory: started review as vm.
+30. reviewer: Findings:
+
+    1. Criterion 4 added; it needs its test. Location: `agents/agents/documenter.md`, `### docs-only`. The round-0 fixes are built but nothing pins them: the sentence that says these bullets replace steps 1 to 6, and the bullet for coming back from `docs-review` (fix exactly the reviewer's numbered findings, end with `docs-review`). No criterion names either one, so a later edit could drop them and stay green. Fix: the tester adds rows to `tests/agent_files/test_claude_agent_texts_docs_route.py` for criterion 4. No change under `src/` or to the agent text is needed.
+    2. Criterion 5 added; it needs its test. Location: `agents/agents/reviewer.md`, `### docs-review`. Two things are built but not pinned: the sentence that says the subsection replaces the Role's scope, checklist and decisions, and steps 1 to 3; and step 2, which judges the facts against the code and the criteria (a behaviour the Interface states). Fix: the tester adds rows to `tests/agent_files/test_claude_agent_texts_docs_route.py` for criterion 5. The text already holds both.
+
+    The old criteria 4 (`make check`) and 5 (docs) are now 6 and 7. I changed nothing else in the work item.
+
+    Checked, nothing to report:
+    - Group 1: each of criteria 1 to 3 has a test that pins it.
+      - Criterion 1: the routing rule word for word, exactly once, in the intake's Stage.
+      - Criterion 2: `make documents` and `docs-review`, plus the one bullet that holds "outside the documents", "end with `tests`" and "entry names that change".
+      - Criterion 3: the diff command, the work item, the style page, `docs-approval`, `docs-only`, "numbered", and each of the seven rules exactly once.
+      - The factory's `make check` after the coder was green (entry 28).
+    - Group 2: only agent texts and tests changed, so no architecture rule is touched.
+    - Group 3: no secrets, no silencing markers, no commands built from strings.
+    - Group 4: nothing under `src/` changed. `stage_section` now has one copy, in `tests/support/shipped_agents.py`. I found no existing helper for a subsection.
+    - Group 5: the Description and the docs criterion still match what was built. The journal explains the bulleted list, the CRC cut and the replace sentences.
+
+    Earlier tests:
+    - `tests/agent_files/test_claude_agent_texts_docs_slip.py`: changed under the standing leave to move a shared test helper. `_stage_section` moved to `tests/support/shipped_agents.py` as `stage_section`. Every test keeps its name and checks the same thing.
+    - `tests/agent_files/test_claude_agent_texts_review_groups.py`: changed under the human's leave in journal entry 14. `_DOCS_REVIEW_SUBSECTION` cuts the subsection, from its heading to the next `#` line, out of the body before the CRC. `_EARLIER_BODY_CRC32` and the test's name are unchanged.
+
+    Notes:
+    - `tests/agent_files/test_claude_agent_texts_docs_route.py`: two sides of one rule are split. The `docs-review` side is a row of `test_the_documenter_in_docs_only_writes_the_documents_and_hands_to_review_or_tests`, and the `tests` side is the separate function `test_the_documenter_in_docs_only_hands_a_change_outside_the_documents_to_tests`. The tester gave the reason in entry 26: a row cannot tie three phrases to one bullet.
+    - `tests/agent_files/test_claude_agent_texts_docs_route.py:27`: `_stage_subsection` ends a subsection at the next `#` line, and `_DOCS_REVIEW_SUBSECTION` in `test_claude_agent_texts_review_groups.py` cuts at the same boundary. These are two expressions of one boundary, and the human's leave asked for that cut.
