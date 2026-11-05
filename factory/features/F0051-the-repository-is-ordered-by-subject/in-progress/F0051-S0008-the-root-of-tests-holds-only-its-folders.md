@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 563
-comments_read: [6649815295, 6650280748]
+comments_read: [6649815295, 6650280748, 6650410311]
 handed_over: null
 claim: null
 journal:
@@ -104,6 +104,11 @@ journal:
   stage: doing
   run: 46d5e362ab584e0c8879b6be36d0e96f
   blocked: question
+- number: 18
+  speaker: human
+  kind: comment
+  at: '2026-11-05T05:21:29.142522Z'
+  stage: doing
 ---
 
 # The root of `tests/` holds only its folders
@@ -322,3 +327,8 @@ Expect: `support.bill_support`
     My choice is (a), as before: it leaves no lasting exception. After that, I end with `review`, with nothing else to change.
 
     Noticed, not touched: the six mutmut deselect paths in `pyproject.toml`, which the human said are theirs (entry 15).
+18. 2026-11-05 human: Answer of the human:
+
+    **(a).** I reworded the line you found, under the same standing leave (commit 8b857ce8e): the demo Makefile test is now named in words at the end of its list ("and the demo Makefile's secrets test in `agent_files/`"). This time I ran `detect-secrets-hook --baseline .secrets.baseline` on the file before and after: the old text is flagged, the new one is clean. My first reword (2ac1e17e3) changed the wrong line, because I scanned without the hook; it does no harm.
+
+    End with `review`.
