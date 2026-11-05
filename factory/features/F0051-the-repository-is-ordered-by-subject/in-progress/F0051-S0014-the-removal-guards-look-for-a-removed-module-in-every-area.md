@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T10:20:48.068027Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-05T10:20:42.499442Z'
   stage: tests
   run: 1c8794ab8ec54f178d76292f3a65740d
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:20:48.068027Z'
+  stage: doing
 ---
 
 # The removal guards look for a removed module in every area
@@ -311,3 +320,4 @@ Expect: `0`
     Open: nothing.
 
     `lint`: lint: green (0.2 s)
+17. factory: started doing as vm.
