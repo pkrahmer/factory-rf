@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T05:56:17.233565Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-05T05:56:17.233565Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-05T05:56:35.802324Z'
+  stage: intake
+  run: 1ae9f33f42a54981b28afe2b507e4f5a
 ---
 
 # The project guide has one file per area
@@ -58,7 +60,7 @@ The project guide under `docs/project-guide/` has one file per domain today (`gi
 
 1. `docs/project-guide/` holds exactly `README.md`, `operator.md` and the seven area files named in the Description.
 2. Every section heading (`##` and `###`) that the guide had before this story is found exactly once in the new files (one row per heading, from the guide on `origin/main` before the story), except the index's own *The files*.
-3. The index's *The files* names each of the eight files with a sentence on what it covers and the modules it describes, by their new paths.
+3. The index's *The files* names each of the eight files with a sentence on what it covers and the modules it describes, by their new paths; every `src/factory/<area>/` path the index names exists.
 4. No file under `claude/`, `docs/` or `README.md` names a guide file that no longer exists.
 5. `make check` stays green.
 6. docs: as criteria 1 to 4, in the project guide. `README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none.
@@ -91,3 +93,9 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
    5. **Criterion 4 as it stands.**
    6. **`CLAUDE.md` is left out of the test.** I change its guide-file names after the merge, as the Interface says.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: a documents-only story. It names the files under `docs/project-guide/` and the `git mv` pairs, changes no module, and the agent files get the new names. Nothing here needs a signature.
+   - Criteria: criteria 1 to 4 are each testable by one function: the exact file set, each pre-story heading found exactly once (a row per heading), the index's *The files* entries, and no dangling guide-file name under `claude/`, `docs/` or `README.md`. The human's answer (journal 4, item 4) adds that every `src/factory/<area>/` path the index names exists. I wrote that into criterion 3. Placement, the pointers and unchanged section words are the reviewer's judgement per journal 4, items 1 to 3. Journal 4, item 6 leaves `CLAUDE.md` out of the test. The story has no failing-side rule beyond these.
+   - Smoke test: `ls docs/project-guide | tr '\n' ' '` is runnable. Its Expect line gives the exact nine-file listing, which can be checked against the output.
+   - Architecture: the seven area names match `CLAUDE.md`'s areas. `operator.md` stays because it covers the operator's scripts outside `src/`.
+   - Scope: this is F0051's S0009 as the feature lists it. It changes no code or test, and `CLAUDE.md` stays the human's change.
