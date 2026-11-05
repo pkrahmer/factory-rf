@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 562
 comments_read: [6649241093, 6649574994]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T04:21:20.471227Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-05T04:21:20.471227Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T04:23:06.955531Z'
+  stage: review
+  run: 0fb92c858c8442e7aee6ac8f26823a7e
 ---
 
 # The pipeline area holds the stages and the tick
@@ -169,7 +171,7 @@ The moves (old → new), each file moved with `git mv`:
 4. `tests/domain/`, `tests/application/` and `tests/adapters/` do not exist.
 5. `src/factory/` holds exactly `__init__.py`, the seven area packages, `entry/` and `contract/`; `factory.domain`, `factory.application` and `factory.adapters` cannot be imported.
 6. `make check` stays green.
-7. docs: every module path of the table that `README.md`, `docs/operator-guide.md` or the project guide under `docs/project-guide/` names is changed to the new path, and `docs/project-guide/README.md`'s section on the code's layout names the area `pipeline` and what it holds, in one sentence. `docs/decisions.md`: none, because the log is history and keeps the old paths.
+7. docs: every module path of the table that `README.md`, `docs/operator-guide.md` or the project guide under `docs/project-guide/` names is changed to the new path, and `docs/project-guide/README.md`'s section on the code's layout names the area `pipeline` and what it holds, in one sentence. Every place in `README.md`, `docs/operator-guide.md` or `docs/project-guide/` that names `factory.domain`, `factory.application` or `factory.adapters` as a package names the area package or layer that holds it now; the `make mutants` examples use an existing area package, for example `MODULES='factory.machine.domain.disk factory.pipeline.application'`. `docs/decisions.md`: none, because the log is history and keeps the old paths.
 
 ## Smoke test
 
@@ -762,3 +764,45 @@ Expect: `1`
 
     The baseline lines and the mutmut deselect are mine; they follow after the merge.
 18. factory: started review as vm.
+19. reviewer: Review rerun, round 0, after the human's answer in entry 17.
+
+    Work item change (the human's answer (a), entry 17): I extended criterion 7 with: "Every place in `README.md`, `docs/operator-guide.md` or `docs/project-guide/` that names `factory.domain`, `factory.application` or `factory.adapters` as a package names the area package or layer that holds it now; the `make mutants` examples use an existing area package, for example `MODULES='factory.machine.domain.disk factory.pipeline.application'`." Nothing else in the work item changed. For the documenter: a grep finds these old paths in docs/operator-guide.md:148 and :1701 and many lines of docs/project-guide/stages.md and watching.md (plus the lines named in entry 16: processes-and-checks.md:120 and :174, watching.md:274, work-items.md:190).
+
+    No findings.
+
+    I checked again myself rather than relying on entry 16, on the head after the merge of `main`:
+    - Group 1: criteria 1 to 3 are tests/test_areas.py, with `AREAS["pipeline"]` holding exactly the 27 modules of the table. Criteria 4 and 5 are tests/test_old_layer_packages_removed.py: one parametrized row per layer, plus the exact listing of `src/factory`. Each test checks its criterion. The coder's `make check` was green (entry 14).
+    - Group 2: the src/ diff is the 27 modules (handlers with its `__init__.py`) moved, the four new `__init__.py` files with exactly the Interface's docstrings, the three old layer `__init__.py` files deleted, and import lines rewritten in 37 other modules. Filtering out import lines leaves no other changed src/ line. `src/factory/` holds exactly `__init__.py`, the seven areas, `entry`, `contract`. No src/ file names an old layer path.
+    - Group 3: no new marker. `shared/domain/contract.py` changes only its import lines, so no contract model changes and no schema needs to be regenerated.
+    - Group 4: `module_exists` in tests/module_names.py is one shared helper, not a copy. The `make duplicates` new entries are the old baseline entries under their new paths (entry 16). The stale baseline lines and the mutmut deselect belong to the human (entry 17).
+    - Group 5: the Description matches what was built (it was corrected in entry 16). Criterion 7 is now extended as above.
+
+    Earlier tests (paths under tests/; FD5 = feature decision 5's leave: import lines and module paths of moved modules rewritten, a test module moved with `git mv`, a test package created, or a guard of the old layout changed). This is 377 entries, the same set as entry 16. I re-read every non-import changed line. The only changes beyond import and path rewrites are the three that entry 8 allows, plus the parents depth fixes and the path constants.
+    module_names.py: human's leave, entry 8 (`module_exists` added)
+    test_checkout_hygiene_removed.py: human's leave, entry 8
+    test_docker_path_removed.py: human's leave, entry 8
+    test_home_reset_removed.py: human's leave, entry 8
+    test_hook_removed.py: human's leave, entry 8
+    test_kernel_guard_removed.py: human's leave, entry 8, plus FD5
+    test_leftovers_program_removed.py: human's leave, entry 8
+    test_undo_removed.py: human's leave, entry 8, plus FD5 (module path of take)
+    entry/test_mutation_report_removed.py: human's leave, entry 8
+    application/test_tick.py -> pipeline/application/test_tick.py: FD5 (move), human's leave, entry 8 (`pipeline/` prefix)
+    test_areas.py: the story's Interface (`AREAS` row), human's leave, entry 8 (bare `import factory`)
+    adapters/claude_stand_in.py -> claude_stand_in.py: standing leave to move a shared test helper
+    adapters/container_runtime_support.py -> container_runtime_support.py: standing leave to move a shared test helper
+    adapters/opencode_stand_in.py -> opencode_stand_in.py: standing leave to move a shared test helper
+    adapters/pygithub_stand_ins.py -> pygithub_stand_ins.py: standing leave to move a shared test helper
+    adapters/__init__.py, application/__init__.py, application/handlers/__init__.py, domain/__init__.py -> the pipeline test package `__init__.py` files: FD5
+    test_layers.py: FD5 (guard)
+    domain/test_hosting.py -> hosting/domain/test_hosting.py: FD5 (guard)
+    test_agent_run_request_search.py: FD5 (guard)
+    entry/test_wiring.py: FD5 (guard)
+    shared/domain/test_duplicates.py: FD5 (module path inside its sample text)
+    test_stop_table.py, test_opencode_shared_steps.py, test_suite_held_once.py, test_suite_leftovers.py, test_suite_old_names.py, test_make_search.py: FD5 (paths)
+    application/test_interfaces.py -> machine/application/test_interfaces.py: FD5 (depth)
+    adapters/test_pipeline_yaml_tool_paths.py -> pipeline/adapters/test_pipeline_yaml_tool_paths.py: FD5 (depth)
+    The support modules, one line each: FD5 (imports only): acceptance_walk.py, branch_reading.py, claude_resume_support.py, conftest.py, container_extra_support.py, container_support.py, cost_image_support.py, crash_support.py, definition_support.py, document_texts.py, evaluation_support.py, git_support.py, known_results_support.py, power_support.py, preflight_support.py, project_command_support.py, proof_support.py, push_retry_support.py, remote_outage_support.py, scripted_tick_support.py, shipped_agents.py, stage_run_support.py, stall_support.py, take_support.py, template_make_support.py, tick_support.py, torn_record_support.py, undo_support.py, watch_support.py, wiring_support.py, work_item_support.py, write_path_support.py
+    Root test modules: FD5 (imports only): test_claim_ownership.py, test_claude_files.py, test_fault_paths_table.py, test_model_configuration.py, test_no_journal_reading.py, test_one_stage_environment.py, test_shared_branch_helpers.py, test_shared_definition.py, test_shared_imports.py, test_suite_fixtures.py, test_template_makefile.py, test_template_sync.py, test_time_limits.py
+    Modified in place under an area folder or entry/: FD5 (imports only): every agents/adapters/test_*.py, entry/test_*.py, hosting/adapters/test_pygithub_hosting.py, machine/adapters/test_*.py and watching/adapters/test_runtime_tool_uses.py that the diff modifies (the M list of `git diff -M --name-status main...HEAD -- tests`)
+    Moved from tests/{domain,application,adapters}/ with `git mv` to tests/pipeline/, agents/, hosting/, machine/, watching/, work/, shared/, entry/ or the tests/ root, as entry 16 lists them by name: FD5 (move plus import rewrite)
