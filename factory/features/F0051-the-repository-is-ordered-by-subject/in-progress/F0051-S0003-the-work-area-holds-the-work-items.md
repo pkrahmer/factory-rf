@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T02:03:20.289494Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-11-05T02:03:15.055975Z'
   stage: docs
   run: 037fe7538d9945a4931e2dfd6782c687
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:03:20.289494Z'
+  stage: smoke-test
 ---
 
 # The work area holds the work items
@@ -394,3 +403,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 7823504183dc at 2026-11-05T01:58:54Z)
     `secrets`: secrets: green (4.0 s)
     `documents`: documents ok
+23. factory: started smoke-test as vm.
