@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T09:17:35.780424Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -71,6 +75,11 @@ journal:
   stage: doing
   run: 62a57642e4f04879b338ddff91a90939
   reason: check_red
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T09:17:35.780424Z'
+  stage: doing
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -204,3 +213,4 @@ Expect: `parsed`
     ERROR tests/work/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework[approval-forward] - FileNotFoundError: [Errno 2] No such file or directory: '/wo...
     ERROR tests/work/domain/test_decide_docs_slip.py::test_the_smoke_test_sends_a_slip_in_a_document_to_docs_as_a_rework[review-outside-next] - FileNotFoundError: [Errno 2] No such file or directory: '...
     make: *** [Makefile:89: test] Error 1
+12. factory: started doing as vm.
