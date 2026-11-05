@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.git_cli import GitCli
 from factory.application.scheduler import CheckoutPreparer
-from factory.domain.git import GitOptions
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.git import GitOptions
 from factory.shared.domain.settings import InstanceSettings
 from git_support import TEST_IDENTITY, clone
 from settings_support import AGENT_HOME

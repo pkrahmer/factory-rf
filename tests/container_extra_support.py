@@ -18,7 +18,7 @@ from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.podman_runs import PodmanRuns
 from factory.application.stage_environment import ContainerEnvironment
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
-from factory.domain.git import CommitId
+from factory.hosting.domain.git import CommitId
 from podman_support import IMAGE, INSTANCE
 
 PROXY = "http://proxy.example.invalid:3128"

@@ -12,12 +12,12 @@ import pytest
 
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.containers import ContainerRuns
-from factory.application.git import Git
-from factory.application.hosting import HostingService
 from factory.application.project_commands import ProjectCommands
 from factory.application.snapshots import Snapshots
 from factory.application.stage_environment import StageEnvironment
 from factory.domain.checks import CheckResult
+from factory.hosting.application.git import Git
+from factory.hosting.application.hosting import HostingService
 from git_interface_support import OPERATIONS as GIT_OPERATIONS
 from hosting_interface_support import OPERATIONS as HOSTING_OPERATIONS
 

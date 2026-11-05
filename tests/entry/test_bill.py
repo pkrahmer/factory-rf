@@ -9,9 +9,9 @@ import pytest
 
 from bill_support import completed_records, sidecar_text
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader
-from factory.adapters.git_cli import GitCli
 from factory.application.costs import BillService
 from factory.entry.bill import main, run
+from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import cost_records_path
 from git_support import CHECKOUT

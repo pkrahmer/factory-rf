@@ -20,8 +20,8 @@ from factory.application.stage_environment import ContainerEnvironment
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.domain.cost_records import ToolUse
-from factory.domain.git import ChangedPath, CommitId
 from factory.domain.transcripts import Transcript
+from factory.hosting.domain.git import ChangedPath, CommitId
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
 from git_support import install_agents, run_git, write_files

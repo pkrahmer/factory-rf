@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.pipeline_loading import PIPELINE_REF, PipelineLoader
 from factory.domain.stops import RepositoryStop
+from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import AgentDefinitionInvalid, PipelineDefinitionInvalid
 from git_support import COLOURED_AGENT_FILE, PIPELINE_YAML, install_agents, write_agent

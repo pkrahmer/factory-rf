@@ -8,7 +8,6 @@ from pydantic import BaseModel, ValidationError
 
 from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
 from factory.domain.events import Event
-from factory.domain.hosting import PullRequestView
 from factory.domain.lease import ClaimStatus
 from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition, StageDefinition
 from factory.domain.work_item import (
@@ -18,6 +17,7 @@ from factory.domain.work_item import (
     WorkItemState,
     initial_state,
 )
+from factory.hosting.domain.hosting import PullRequestView
 
 MAIN = "a" * 40
 BRANCH_COMMIT = "b" * 40

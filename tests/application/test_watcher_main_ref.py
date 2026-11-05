@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.watcher import Watcher
-from factory.domain.git import GitOptions
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.entry.watch import run_watch
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.git import GitOptions
 from factory.shared.domain.errors import GitError
 from git_support import TEST_IDENTITY, run_git
 

@@ -3,7 +3,7 @@
 import pytest
 
 from factory.domain.decisions import StallReason
-from factory.domain.post_texts import stall_cause, stall_note
+from factory.hosting.domain.post_texts import stall_cause, stall_note
 
 CAP_REACHED = "The attempts cap is reached; the factory asks you next."
 SENTENCES: list[tuple[StallReason, str]] = [

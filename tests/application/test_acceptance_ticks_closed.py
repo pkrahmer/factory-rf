@@ -11,9 +11,9 @@ from acceptance_walk import (
     booked_state,
 )
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.domain.acceptance import RECOMMENDATION, acceptance_description
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.sections import section_text
 from git_support import remote_commit

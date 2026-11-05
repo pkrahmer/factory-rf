@@ -8,13 +8,13 @@ from typing import override
 import pytest
 
 from factory.adapters.factory_log import TimestampedFactoryLog
-from factory.adapters.git_cli import GitCli
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
-from factory.application.git import Git
 from factory.application.project_commands import RecordingProjectCommands
 from factory.domain.checks import CheckResult, TargetTime, status_of
 from factory.domain.command_records import CommandRecord
-from factory.domain.git import CommitId
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.application.git import Git
+from factory.hosting.domain.git import CommitId
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.application.files import RecordLog
 from factory.shared.domain.errors import GitError, ProjectCommandError

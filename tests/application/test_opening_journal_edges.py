@@ -1,8 +1,8 @@
 """Opening a story whose backlog body has sections but no journal appends the journal."""
 
 from factory.application.boundaries import Boundaries
-from factory.application.opening import WorkItemOpening
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.hosting.application.opening import WorkItemOpening
 from human_clone import HumanClone
 
 BACKLOG_PATH = "factory/features/F0001-example/backlog/F0001-S0001-first.md"

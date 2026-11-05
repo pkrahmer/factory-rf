@@ -7,10 +7,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.git_cli import GitCli
 from factory.application.machine import FactoryLog
 from factory.application.scheduler import CheckoutPreparer, Scheduler, pause_after
-from factory.domain.git import GitOptions
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.git import GitOptions
 from factory.shared.domain.errors import AgentRuntimeError, GitError
 from factory.shared.domain.kill_points import InjectedKill, KillPoint
 from factory.shared.domain.settings import InstanceSettings

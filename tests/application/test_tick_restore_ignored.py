@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.tick import IdleHandler, Tick
+from factory.hosting.adapters.git_cli import GitCli
 from git_support import CHECKOUT, write_files
 from log_support import log_lines
 from stage_run_support import INSTANCE

@@ -1,11 +1,11 @@
 """The work item on its branch and the factory's posts on its pull request, read and written."""
 
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
-from factory.domain.hosting import PullRequestComment
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.hosting import PullRequestComment
 from human_clone import HumanClone
 from stage_run_support import BRANCH, PATH
 

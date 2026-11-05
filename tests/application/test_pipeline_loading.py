@@ -7,13 +7,13 @@ from typing import override
 
 import pytest
 
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.machine import HealthStatusStore
 from factory.application.pipeline_loading import PIPELINE_REF, PipelineLoader
 from factory.application.stops import StopService
 from factory.domain.stops import HealthStatus, RepositoryStop
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import GitError, PipelineDefinitionInvalid
 from git_support import CHECKOUT, PIPELINE_YAML, clone, install_agents, run_git

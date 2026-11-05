@@ -6,14 +6,14 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart, started_text
 from factory.application.handlers.recording import commit_subject
-from factory.domain.git import GitOptions, WorkTreeStatus
 from factory.domain.journal import JournalRecord
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.git import GitOptions, WorkTreeStatus
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import PushFailed
 from factory.shared.domain.identifiers import branch_name

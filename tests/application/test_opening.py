@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
-from factory.application.opening import WorkItemOpening
 from factory.domain.journal import JournalRecord
 from factory.domain.story_form import check_story_form
 from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.application.opening import WorkItemOpening
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import HostingServiceError, WorkItemFormatError
 from factory.shared.domain.identifiers import branch_name

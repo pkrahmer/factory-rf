@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 
 from acceptance_walk import FIRST, FIRST_RECORDS, REVIEWER, AcceptanceWalk, report_of
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.domain.journal import NewEntry, append_entry
 from factory.domain.work_item import WorkItemDocument
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.shared.domain.sections import section_text

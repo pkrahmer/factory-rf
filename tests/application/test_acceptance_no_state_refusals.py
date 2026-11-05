@@ -7,7 +7,6 @@ from pathlib import Path
 import pytest
 
 from acceptance_walk import FIRST, FIRST_RECORDS, AcceptanceWalk, report_of
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
 from factory.application.acceptance import (
     AcceptanceClosed,
@@ -19,6 +18,7 @@ from factory.application.dispatcher import Handler
 from factory.domain.events import Event
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.application.files import WorkItemReader
 from factory.shared.domain.errors import CannotHandle
 from factory.shared.domain.identifiers import branch_name

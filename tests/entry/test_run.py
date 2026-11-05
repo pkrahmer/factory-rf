@@ -12,7 +12,6 @@ import pytest
 
 import factory.entry.run as run_module
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import DispatchOutcome
@@ -32,6 +31,7 @@ from factory.entry.run import (
     run_until_stopped,
 )
 from factory.entry.wiring import handler_factory, health_store, read_environment_settings
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings

@@ -11,7 +11,7 @@ import pytest
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.take import copy_changed
-from factory.domain.git import ChangedPath
+from factory.hosting.domain.git import ChangedPath
 from factory.shared.domain.errors import WorkItemFormatError
 from human_clone import HumanClone
 from take_support import AGENT_TEXT, changes, make_dataset, run_take, tree, write_dataset

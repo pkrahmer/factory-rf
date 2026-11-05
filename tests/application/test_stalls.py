@@ -8,17 +8,17 @@ from pydantic import BaseModel, ValidationError
 
 from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
-from factory.application.opening import WorkItemOpening
 from factory.application.stage import StartedStage
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.domain.agent_runs import AgentRunResult, EndReason
 from factory.domain.decisions import StallReason, stall_reason_of
-from factory.domain.hosting import PostKey, PullRequestView
 from factory.domain.journal import JournalRecord, NewEntry, append_entry, entry_text
-from factory.domain.post_texts import stall_cause, stall_note
 from factory.domain.work_item import WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.application.opening import WorkItemOpening
+from factory.hosting.domain.hosting import PostKey, PullRequestView
+from factory.hosting.domain.post_texts import stall_cause, stall_note
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import HostingServiceError, PushFailed
 from git_support import remote_commit

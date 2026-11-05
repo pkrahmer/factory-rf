@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.project_agents import ProjectAgentDefinitions
 from factory.entry.wiring import build_boundaries
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.settings import InstanceSettings
 from git_support import PROJECT_CODER, install_agents
 from human_clone import HumanClone

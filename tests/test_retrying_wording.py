@@ -4,7 +4,7 @@ import ast
 
 from source_search import modules
 
-TEXTS_MODULE = "factory.domain.post_texts"
+TEXTS_MODULE = "factory.hosting.domain.post_texts"
 
 
 def _docstrings(tree: ast.Module) -> set[int]:

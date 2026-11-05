@@ -8,13 +8,13 @@ import pytest
 
 import preflight_support
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.dispatcher import Handler
 from factory.application.handlers.run import RunHandler
 from factory.application.tick import IdleHandler, Tick, TickOutcome
 from factory.domain.checks import CheckResult, status_of
 from factory.domain.events import EventKind
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from preflight_support import RecordingCommands, Rig
 from stage_run_support import INSTANCE
 

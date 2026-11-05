@@ -7,7 +7,6 @@ from datetime import UTC, datetime
 import pytest
 
 from bill_support import completed_records, sidecar_text
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.acceptance import AcceptanceHandOver, AcceptanceService
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
@@ -15,12 +14,13 @@ from factory.application.handlers.hand_over import HandOverHandler
 from factory.domain.acceptance import AcceptanceState
 from factory.domain.bills import bills_by_stage, cost_table
 from factory.domain.events import Event
-from factory.domain.hand_over import cost_table_key
-from factory.domain.hosting import render_post
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.post_texts import cost_table_post
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.domain.hand_over import cost_table_key
+from factory.hosting.domain.hosting import render_post
+from factory.hosting.domain.post_texts import cost_table_post
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import cost_records_path
 from git_support import PIPELINE_YAML

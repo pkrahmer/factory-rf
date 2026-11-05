@@ -2,9 +2,9 @@
 
 from datetime import UTC, datetime
 
-from factory.adapters.git_cli import GitCli
 from factory.application.claims import StageStart
 from factory.domain.work_item import Claim
+from factory.hosting.adapters.git_cli import GitCli
 from human_clone import HumanClone
 
 PIPELINE_FILE = "factory/pipeline.yml"

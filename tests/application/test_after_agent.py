@@ -7,9 +7,7 @@ import pytest
 
 from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
-from factory.application.opening import WorkItemOpening
 from factory.application.stage import AfterAgent, AgentAftermath, LaunchedStage, StageLauncher
 from factory.application.stalls import StallResult
 from factory.application.task import StoryFormChecker
@@ -21,6 +19,8 @@ from factory.domain.agent_runs import (
 )
 from factory.domain.journal import JournalRecord, entry_text
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.application.opening import WorkItemOpening
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import cost_records_path

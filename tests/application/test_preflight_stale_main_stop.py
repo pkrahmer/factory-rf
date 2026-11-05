@@ -8,9 +8,9 @@ from pathlib import Path
 import pytest
 
 import preflight_support
-from factory.adapters.git_cli import GitCli
-from factory.domain.git import GitOptions
 from factory.domain.stops import RepositoryStop
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.git import GitOptions
 from git_support import CHECKOUT, TEST_IDENTITY, clone, run_git
 from log_support import log_lines
 from preflight_support import CLEARED_LINE, IMAGE, OTHER_IMAGE, TOOLS, Rig

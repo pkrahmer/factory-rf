@@ -7,9 +7,9 @@ from factory.application.boundaries import Boundaries
 from factory.application.stage import StageReport, StageRunner
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.cost_records import CostRecord
-from factory.domain.git import CommitId
 from factory.domain.journal import JournalRecord
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.hosting.domain.git import CommitId
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import cost_records_path
 from git_support import PIPELINE_YAML, SYNC_TARGET, install_agents, remote_commit

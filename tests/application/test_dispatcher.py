@@ -5,17 +5,17 @@ from typing import get_args
 
 import pytest
 
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Dispatcher, Handler, unhandled_kinds
 from factory.application.machine import FactoryLog
 from factory.application.stops import StopService
 from factory.domain.events import Event, EventKind
-from factory.domain.hosting import PostKey, render_post
-from factory.domain.post_texts import error_report_text
 from factory.domain.tick_status import ErrorCount, TickStatus, find_error, record_error
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, initial_state
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.hosting import PostKey, render_post
+from factory.hosting.domain.post_texts import error_report_text
 from factory.shared.domain.errors import UnhandledEvent
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from git_support import remote_commit

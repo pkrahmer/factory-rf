@@ -2,8 +2,8 @@
 
 import pytest
 
-from factory.domain.git import ChangedPath, ChangeKind
 from factory.domain.preflight import changes_only_stop_records
+from factory.hosting.domain.git import ChangedPath, ChangeKind
 
 STOPS = "factory/stops.jsonl"
 

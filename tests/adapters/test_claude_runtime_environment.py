@@ -10,10 +10,10 @@ import pytest
 
 from adapters.claude_stand_in import Step, read_calls, write_stand_in
 from factory.adapters.claude_runtime import SWITCHES, ClaudeCodeRuntime
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, scrub_environment
-from factory.domain.hosting import PostKey
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.hosting import PostKey
 from git_support import CHECKOUT, commit_all, run_git, write_files
 
 BRANCH = "work-item/F0001-S0001"

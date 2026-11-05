@@ -3,8 +3,8 @@
 import pytest
 from pydantic import ValidationError
 
-from factory.domain.hosting import PostKey
 from factory.domain.stops import StopPosted, WorkItemStop
+from factory.hosting.domain.hosting import PostKey
 
 KEY = PostKey(work_item="F0001-S0001", kind="stall", n="3")
 

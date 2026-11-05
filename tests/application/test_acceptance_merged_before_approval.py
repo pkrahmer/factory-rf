@@ -7,8 +7,6 @@ from typing import Literal
 import pytest
 
 from bill_support import completed_records, sidecar_text
-from factory.adapters.fake_hosting import FakeHostingService
-from factory.adapters.git_cli import GitCli
 from factory.application.acceptance import AcceptanceMerged, AcceptanceService
 from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
@@ -17,8 +15,10 @@ from factory.domain.bills import bill, cost_line
 from factory.domain.events import Event
 from factory.domain.journal import FACTORY, JournalRecord, entry_text
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.post_texts import done_entry_text
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.domain.post_texts import done_entry_text
 from factory.shared.domain.paths import cost_records_path
 from git_support import remote_commit
 from human_clone import HumanClone

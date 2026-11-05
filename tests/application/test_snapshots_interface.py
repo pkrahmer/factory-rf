@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from factory.application.snapshots import Snapshots
-from factory.domain.git import ChangedPath
+from factory.hosting.domain.git import ChangedPath
 
 
 class _Incomplete(Snapshots):

@@ -7,7 +7,6 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.make_commands import ContainerMakeCommands
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
@@ -19,6 +18,7 @@ from factory.entry.wiring import (
     git_environment,
     machine_extras,
 )
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
 from git_support import install_agents
 from podman_support import IMAGE, Podman

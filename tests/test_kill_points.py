@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import pytest
 
-from factory.domain.hosting import FACTORY_MARKER, PostKey, render_post
+from factory.hosting.domain.hosting import FACTORY_MARKER, PostKey, render_post
 from factory.shared.domain.kill_point_cases import KILL_POINT_CASES
 from factory.shared.domain.kill_points import InjectedKill, KillPoint
 from proof_support import (

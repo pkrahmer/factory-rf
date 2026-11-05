@@ -8,10 +8,10 @@ import pytest
 from pydantic import ValidationError
 
 from factory.domain.cost_records import CostRecord
-from factory.domain.git import CommitInfo
-from factory.domain.hosting import PullRequestComment
 from factory.domain.stops import RepositoryStop
 from factory.domain.work_item import Claim
+from factory.hosting.domain.git import CommitInfo
+from factory.hosting.domain.hosting import PullRequestComment
 from factory.shared.domain.times import in_utc
 from source_search import modules
 
@@ -21,8 +21,8 @@ IN_UTC = datetime(2026, 10, 12, 12, 0, tzinfo=UTC)
 
 MODELS_WITH_TIMES = (
     "factory.domain.cost_records",
-    "factory.domain.git",
-    "factory.domain.hosting",
+    "factory.hosting.domain.git",
+    "factory.hosting.domain.hosting",
     "factory.domain.stops",
     "factory.domain.work_item",
 )

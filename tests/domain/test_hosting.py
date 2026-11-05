@@ -10,7 +10,7 @@ import pytest
 from pydantic import ValidationError
 
 import factory
-from factory.domain.hosting import (
+from factory.hosting.domain.hosting import (
     FACTORY_MARKER,
     PostKey,
     PostKind,
@@ -276,17 +276,19 @@ def _is_stdlib(name: str) -> bool:
 
 
 def _is_domain(name: str) -> bool:
-    return name in {"factory.domain", "factory.shared.domain"} or name.startswith(
-        ("factory.domain.", "factory.shared.domain.")
-    )
+    return name in {
+        "factory.domain",
+        "factory.shared.domain",
+        "factory.hosting.domain",
+    } or name.startswith(("factory.domain.", "factory.shared.domain.", "factory.hosting.domain."))
 
 
 @pytest.mark.parametrize(
     "module",
     [
-        "factory.domain.hosting",
+        "factory.hosting.domain.hosting",
         "factory.shared.domain.identifiers",
-        "factory.domain.git",
+        "factory.hosting.domain.git",
         "factory.shared.domain.paths",
     ],
 )
@@ -297,5 +299,5 @@ def test_domain_modules_import_only_stdlib_pydantic_and_domain(module: str) -> N
 
 
 def test_application_hosting_imports_only_stdlib_and_domain() -> None:
-    for name in _imports("factory.application.hosting"):
+    for name in _imports("factory.hosting.application.hosting"):
         assert _is_stdlib(name) or _is_domain(name), name

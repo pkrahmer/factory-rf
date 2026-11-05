@@ -9,7 +9,7 @@ from source_search import modules, string_literals
 ALLOWED = {
     "entry_text": {
         "factory.domain.journal",
-        "factory.domain.hand_over",
+        "factory.hosting.domain.hand_over",
         "factory.domain.acceptance",
         "factory.application.handlers.questions",
         "factory.application.recovery",
@@ -19,7 +19,7 @@ ALLOWED = {
         "factory.domain.journal",
         "factory.domain.story_form",
         "factory.adapters.work_item_markdown",
-        "factory.application.opening",
+        "factory.hosting.application.opening",
         "factory.domain.acceptance",
     },
 }
@@ -91,7 +91,7 @@ def test_a_journal_reference_outside_the_allowed_modules_is_found(source: str) -
     ("module", "source"),
     [
         ("factory.domain.journal", "entry_text(document, 1)\n"),
-        ("factory.application.opening", "heading = JOURNAL\n"),
+        ("factory.hosting.application.opening", "heading = JOURNAL\n"),
         ("factory.shared.domain.sections", 'JOURNAL = "Journal"\n'),
     ],
     ids=["entry-text", "journal", "literal"],

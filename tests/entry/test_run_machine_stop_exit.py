@@ -7,10 +7,10 @@ from typing import Literal
 
 import pytest
 
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.tick import TickOutcome
 from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.wiring import health_store
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import STATE_VARIABLE, InstanceSettings
 from power_support import IDLE

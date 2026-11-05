@@ -8,19 +8,19 @@ from typing import override
 import pytest
 
 import factory.entry.run as run_module
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.fake_images import FakeImages
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
-from factory.application.hosting import HostingService
 from factory.application.images import Images
 from factory.application.tick import Tick, TickOutcome
 from factory.domain.containers import SYSTEM_PATH
-from factory.domain.git import GitOptions
 from factory.domain.stage_layer import STAGE_FILE, project_image_tag, stage_layer
 from factory.domain.stops import RepositoryStop
 from factory.entry.run import run_instance
 from factory.entry.wiring import git_options, health_store
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.application.hosting import HostingService
+from factory.hosting.domain.git import GitOptions
 from factory.shared.domain.errors import GitError
 from factory.shared.domain.settings import InstanceSettings
 from human_clone import HumanClone

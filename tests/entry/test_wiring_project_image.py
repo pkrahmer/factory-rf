@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.fake_images import BuildCall, FakeImages
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.application.boundaries import Boundaries
@@ -22,6 +21,7 @@ from factory.domain.stage_layer import (
 from factory.domain.stops import RepositoryStop
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_store, project_image_settings
+from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings
 from git_support import PIPELINE_YAML, install_agents, run_git
 from human_clone import HumanClone

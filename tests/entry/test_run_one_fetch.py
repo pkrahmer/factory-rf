@@ -8,9 +8,7 @@ from typing import get_args
 import pytest
 
 import factory.entry.run as run_module
-from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.fake_images import FakeImages
-from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.application.tick import Tick
@@ -18,6 +16,8 @@ from factory.domain.events import Event, EventKind
 from factory.domain.stops import RepositoryStop
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_store
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.errors import FetchFailed
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.settings import InstanceSettings

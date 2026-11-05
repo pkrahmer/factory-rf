@@ -7,7 +7,7 @@ from pathlib import Path
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.take import TakeReport, TakeService
-from factory.domain.git import ChangedPath
+from factory.hosting.domain.git import ChangedPath
 from stage_run_support import PATH
 
 DATASET = "dataset"

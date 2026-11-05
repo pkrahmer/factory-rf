@@ -9,9 +9,9 @@ from factory.domain.pipeline_definition import (
     RoleDefinition,
     StageDefinition,
 )
-from factory.domain.post_texts import findings_question, round_cap_question
 from factory.domain.story_form import FormFinding
 from factory.domain.work_item import WorkItemState
+from factory.hosting.domain.post_texts import findings_question, round_cap_question
 
 FINDINGS = (FormFinding(line=3, message="The story has no Interface section."),)
 

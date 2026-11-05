@@ -7,7 +7,6 @@ import pytest
 
 from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
 from factory.domain.events import Event
-from factory.domain.hosting import PullRequestComment, PullRequestState, PullRequestView
 from factory.domain.journal import JournalRecord
 from factory.domain.lease import ClaimStatus
 from factory.domain.move_rule import IllegalChange, StageChange
@@ -19,6 +18,7 @@ from factory.domain.work_item import (
     WorkItemState,
     initial_state,
 )
+from factory.hosting.domain.hosting import PullRequestComment, PullRequestState, PullRequestView
 from factory.shared.domain.errors import HostingServiceError
 
 MAIN = "a" * 40
