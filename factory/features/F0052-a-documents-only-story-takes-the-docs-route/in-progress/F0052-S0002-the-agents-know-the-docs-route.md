@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T22:40:24.521040Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -184,6 +180,12 @@ journal:
   kind: started
   at: '2026-11-05T22:40:24.521040Z'
   stage: doing
+- number: 32
+  speaker: coder
+  kind: result
+  at: '2026-11-05T22:40:51.907969Z'
+  stage: doing
+  run: 79a1ac03ecb94b27bb555eae47024047
 ---
 
 # The agents know the docs route
@@ -435,3 +437,14 @@ Expect: `named`
     - `tests/agent_files/test_claude_agent_texts_docs_route.py`: two sides of one rule are split. The `docs-review` side is a row of `test_the_documenter_in_docs_only_writes_the_documents_and_hands_to_review_or_tests`, and the `tests` side is the separate function `test_the_documenter_in_docs_only_hands_a_change_outside_the_documents_to_tests`. The tester gave the reason in entry 26: a row cannot tie three phrases to one bullet.
     - `tests/agent_files/test_claude_agent_texts_docs_route.py:27`: `_stage_subsection` ends a subsection at the next `#` line, and `_DOCS_REVIEW_SUBSECTION` in `test_claude_agent_texts_review_groups.py` cuts at the same boundary. These are two expressions of one boundary, and the human's leave asked for that cut.
 31. factory: started doing as vm.
+32. coder: Round 2: no files changed. Review entry 30 adds criteria 4 and 5, and both need only their tests. The agent texts already hold what they describe.
+
+    Tests to add to `tests/agent_files/test_claude_agent_texts_docs_route.py`:
+    - **Criterion 4:** the `### docs-only` subsection of `agents/agents/documenter.md` says that in the stage `docs-only` its bullets replace steps 1 to 6 of the Stage. It also says that when the latest entry is the reviewer's from `docs-review`, the documenter fixes exactly its numbered findings and ends with `docs-review`. The current text reads "In the stage `docs-only`, these bullets replace steps 1 to 6 above.", followed by the bullet for the return from `docs-review`.
+    - **Criterion 5:** the `### docs-review` subsection of `agents/agents/reviewer.md` says that in the stage `docs-review` it replaces the Role's scope, its checklist and its decisions, and steps 1 to 3 of the Stage. It also says that the reviewer judges the facts against the code and the criteria. Both are in the opening sentence and step 2 of the subsection, written in round 1 (entry 24).
+
+    What I built is unchanged since entries 24 and 28: `agents/agents/intake.md`, `agents/agents/documenter.md` and `agents/agents/reviewer.md`. The main choice also stands: the "replaces" sentences sit inside the subsections, because the CRC pin covers the rest of the reviewer body. I rejected adding notes to the reviewer's Role and checklist.
+
+    Description: the reviewer added criteria 4 and 5 in entry 30 and renumbered the old ones to 6 and 7. The Description itself still matches the task, so I left it as it is.
+
+    Noticed, not touched: criterion 7 (the docs) is the documenter's work. The pipeline definition change for the route is the human's, at merge.
