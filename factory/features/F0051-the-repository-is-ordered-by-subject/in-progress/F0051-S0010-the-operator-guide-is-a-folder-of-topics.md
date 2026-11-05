@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T07:38:20.515120Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -175,6 +179,11 @@ journal:
   at: '2026-11-05T07:38:14.902333Z'
   stage: tests
   run: 4a9313bb09684dda865a7873e6313857
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:38:20.515120Z'
+  stage: doing
 ---
 
 # The operator guide is a folder of topics
@@ -514,3 +523,4 @@ Expect: `split`
     Still open: finding 7, a rewrite of the Description, is outside my write paths.
 
     `lint`: lint: green (0.2 s)
+31. factory: started doing as vm.
