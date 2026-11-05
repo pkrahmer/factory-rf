@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 556
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T00:22:36.312432Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-05T00:22:36.312432Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T00:22:57.151643Z'
+  stage: intake
+  run: b60043aa03ae4cb8903c8e448754262f
 ---
 
 # The shared area holds what every area uses
@@ -91,3 +93,9 @@ Expect: `1`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: all 18 moves name concrete old and new dotted paths; the four new packages and their test folders are named. A pure move adds no signatures. The source files exist at the old paths (spot-checked errors, files, validation_faults).
+   - Criteria: each one is testable by one parametrized test: 1 (import succeeds, old file absent, one row per module), 2 (four packages import and have a docstring), 3 (no import line names an old path, which is the failing side of the move), 4 (no test module left that should have moved), 5 and 6 (closing criteria). Note, not a question: criterion 1 says "for `handlers`, the folder", but no module in the table is named handlers or is a folder, so that clause has no effect.
+   - Smoke test: the three commands are runnable and each Expect line can be checked. pyproject.toml's addopts already sets `-q`, and the pytest command passes none, so the summary line is printed and `grep -c passed` gives 1.
+   - Architecture: the moves keep the layer inside `factory.shared`, which matches CLAUDE.md and feature decision 1. The wildcard import-linter contracts are set by the human at S0001's start (feature "The human's changes"). The `process.py` exception already names the new path.
+   - Scope: within F0051 S0001 and decisions 1 to 5. `shared` is the area decision 2 gives it, and kill_points and kill_point_cases are in it. Nothing in Out of scope is touched.
