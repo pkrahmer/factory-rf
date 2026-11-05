@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-05T00:13:39.201989Z'
   stage: smoke-test
   run: d182995e609d45dda1b20b5b02638f90
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-05T00:21:36.843968Z'
+  stage: approval
 ---
 
 # The operator guide's push error example shows the ref line the factory writes
@@ -218,3 +223,4 @@ Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [re
     No command contradicts any criterion.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 3.8 min, 27 turns, 87646 tokens in (369997 more from cache), 6286 out, $0.75
