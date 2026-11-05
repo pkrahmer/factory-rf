@@ -4,7 +4,7 @@ This file covers the identity, data, files, sections and form of a work item; re
 
 ## Identity, order and places of work items
 
-Two pure domain modules give a work item its identity, its order and its place. Neither reads a file, the clock or a process (a test parses their imports). `factory.domain.identifiers` holds the ids; `factory.domain.paths` holds the names of the project's `factory/` tree.
+Two pure domain modules give a work item its identity, its order and its place. Neither reads a file, the clock or a process (a test parses their imports). `factory.shared.domain.identifiers` holds the ids; `factory.shared.domain.paths` holds the names of the project's `factory/` tree.
 
 ### Ids and names
 
@@ -21,7 +21,7 @@ Two pure domain modules give a work item its identity, its order and its place. 
 
 ### The tree
 
-All spellings are constants in `factory.domain.paths`:
+All spellings are constants in `factory.shared.domain.paths`:
 
 | Constant | Value |
 | --- | --- |
@@ -42,7 +42,7 @@ All spellings are constants in `factory.domain.paths`:
 
 ```bash
 uv run python -c "
-from factory.domain.identifiers import parse_work_item_file_name, work_item_order
+from factory.shared.domain.identifiers import parse_work_item_file_name, work_item_order
 ids = [parse_work_item_file_name(n).id for n in ['F0002-A0001.md', 'F0002-S0002-2fa.md', 'F0002-S0001.md', 'F0001-S0010-x.md']]
 print(sorted(ids, key=work_item_order))
 "
@@ -83,7 +83,7 @@ The first two are validations of their own field, so their error is located at t
 
 ### The claim
 
-`Claim` is an instance's hold on a work item: `instance` and `stage` (both `Name`), `started_at` and `lease_duration` in minutes (at least 1). `started_at` must carry a time zone and is stored in UTC. `UtcDatetime` in `factory.domain.times` (an aware time, converted to the same instant in UTC) is the one way a model converts a time; give every new time field that type and write no validator of your own.
+`Claim` is an instance's hold on a work item: `instance` and `stage` (both `Name`), `started_at` and `lease_duration` in minutes (at least 1). `started_at` must carry a time zone and is stored in UTC. `UtcDatetime` in `factory.shared.domain.times` (an aware time, converted to the same instant in UTC) is the one way a model converts a time; give every new time field that type and write no validator of your own.
 
 ### The journal's data
 
@@ -93,7 +93,7 @@ Five more fields follow `kind`, each optional with the default `None`, so a reco
 
 | Field | Type | Meaning |
 |---|---|---|
-| `at` | `UtcDatetime \| None` (`factory.domain.times`) | when the entry was written; an aware time, stored in UTC; a naive time is refused |
+| `at` | `UtcDatetime \| None` (`factory.shared.domain.times`) | when the entry was written; an aware time, stored in UTC; a naive time is refused |
 | `stage` | `Name \| None` | the stage of the work item's state when the entry was written |
 | `run` | `RunId \| None` (`factory.domain.cost_records`) | the id of the agent run the entry came from: 32 lowercase hexadecimal characters, the `run` of that run's cost record |
 | `blocked` | `Blocked \| None` | on a `question` record only: the block the question opened, one of `question`, `attempts_cap`, `round_cap`, `crash_cap`, `send_back` |
@@ -156,7 +156,7 @@ A feature acceptance is a work item beside the stories, with its own report file
 
 `require_state(document, error)` (`factory.domain.work_item`) is the one way to get a document's state when it must be there: it returns `document.state`, or raises `error`, the very instance passed, when the state is `None`. The caller builds the exception it wants (a `ValueError`, a `CannotHandle`, a `WorkItemFormatError`), so a module keeps its own message. Do not write a private `_state_of` or an `if state is None: raise` of your own; `tests/test_no_state_copies.py` searches `src/factory` for both. The one exception is `factory.domain.journal`, which keeps a private `_state_of` (see "Imports" under the journal).
 
-`factory.domain.errors.WorkItemFormatError(fault, path=None)` is the `FactoryError` for a work item file that cannot be read. Both are attributes; the message is `fault`, or `<path>: <fault>` with a path.
+`factory.shared.domain.errors.WorkItemFormatError(fault, path=None)` is the `FactoryError` for a work item file that cannot be read. Both are attributes; the message is `fault`, or `<path>: <fault>` with a path.
 
 ```bash
 uv run python -c "
@@ -181,13 +181,13 @@ prints `{'stage': 'intake', 'blocked': None, 'round': 0, 'attempts': 0, 'crashes
 
 ### The records contract
 
-`factory.domain.contract` names the records that readers outside the factory may rely on. `CONTRACT` is a tuple of five `ContractEntry(name, model, mode)`: `work-item-state` (`WorkItemState`), `acceptance-state` (`AcceptanceState`), `cost-record` (`CostRecord`) and `stop-record` (`StopRecord`) in `serialization` mode, the shape they have on disk, and `pipeline-definition` (`PipelineDefinition`) in `validation` mode, since the human writes it. `ContractEntry` is a frozen dataclass, not a model, because it holds a class; `tests/test_model_configuration.py` does not see it. `schema_file_name(entry)` is `<name>.schema.json`. `contract_schema(entry)` is the schema's text: `$schema` (the 2020-12 dialect), `x-records-contract` (`RECORDS_CONTRACT`, `2.0`), then the model's `model_json_schema(mode=...)` unchanged, indented by 2 and ending in one newline.
+`factory.shared.domain.contract` names the records that readers outside the factory may rely on. `CONTRACT` is a tuple of five `ContractEntry(name, model, mode)`: `work-item-state` (`WorkItemState`), `acceptance-state` (`AcceptanceState`), `cost-record` (`CostRecord`) and `stop-record` (`StopRecord`) in `serialization` mode, the shape they have on disk, and `pipeline-definition` (`PipelineDefinition`) in `validation` mode, since the human writes it. `ContractEntry` is a frozen dataclass, not a model, because it holds a class; `tests/test_model_configuration.py` does not see it. `schema_file_name(entry)` is `<name>.schema.json`. `contract_schema(entry)` is the schema's text: `$schema` (the 2020-12 dialect), `x-records-contract` (`RECORDS_CONTRACT`, `2.0`), then the model's `model_json_schema(mode=...)` unchanged, indented by 2 and ending in one newline.
 
 The files are committed in `src/factory/contract/`. Write them with `uv run python -m factory.entry.contract [<folder>]` (`write_contract(folder)` in `factory.entry.contract` replaces the five files and leaves others alone; `main` prints `contract: 5 schemas written`, and returns 2 with a usage line for more than one argument). `tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones` writes the schemas into a temporary folder and compares them with the committed files byte for byte, and checks that the folder holds nothing else. A change to one of the five models, its docstrings and field descriptions included, therefore regenerates the schemas in the same story, through the command and never by hand. The reviewer checks the version rule: a change that can break a reader raises the major version, an added optional field or value the minor (`docs/decisions.md`). The version is `RECORDS_CONTRACT`, separate from the pipeline definition's `contract` (`CONTRACT_MAJOR`).
 
 ## Reading and writing a work item file
 
-Every file format the factory owns has one reader class and one writer class in `factory.adapters`, behind an interface in `factory.application`, and validates into Pydantic DTOs; no other module parses or renders that format. For the work item file the interfaces are `WorkItemReader` and `WorkItemWriter` (`factory.application.files`) and the classes are `FrontmatterWorkItemReader` and `FrontmatterWorkItemWriter` (`factory.adapters.work_item_markdown`). That module is the only one that imports `frontmatter` (python-frontmatter) or `ruamel.yaml`. Wiring builds both: `factory.entry.wiring.build_work_item_reader` returns `FrontmatterWorkItemReader` for the check command, and `build_boundaries` builds `FrontmatterWorkItemWriter` as `work_item_writer`.
+Every file format the factory owns has one reader class and one writer class in `factory.adapters`, behind an interface in `factory.application`, and validates into Pydantic DTOs; no other module parses or renders that format. For the work item file the interfaces are `WorkItemReader` and `WorkItemWriter` (`factory.shared.application.files`) and the classes are `FrontmatterWorkItemReader` and `FrontmatterWorkItemWriter` (`factory.adapters.work_item_markdown`). That module is the only one that imports `frontmatter` (python-frontmatter) or `ruamel.yaml`. Wiring builds both: `factory.entry.wiring.build_work_item_reader` returns `FrontmatterWorkItemReader` for the check command, and `build_boundaries` builds `FrontmatterWorkItemWriter` as `work_item_writer`.
 
 | Operation | Does |
 |---|---|
@@ -271,7 +271,7 @@ The agent files have their own reader and faults: see *The agent definition read
 ```bash
 uv run python -c "
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
-from factory.domain.errors import WorkItemFormatError
+from factory.shared.domain.errors import WorkItemFormatError
 reader = FrontmatterWorkItemReader()
 try:
     reader.parse('---\nstage: tests\ncolour: 2\n---\n# T\n')
@@ -286,7 +286,7 @@ prints `unknown key: colour` and then `None ['stage', 'attempts'] '# T\n'`.
 
 ## Sections of a Markdown body
 
-`factory.domain.sections` is the one place that finds the title, the `## ` sections and the fenced code blocks of a Markdown body. It is pure: it works on text, and nothing reads a file. Every module that needs a heading or a fenced block uses it and does not look for `## ` itself.
+`factory.shared.domain.sections` is the one place that finds the title, the `## ` sections and the fenced code blocks of a Markdown body. It is pure: it works on text, and nothing reads a file. Every module that needs a heading or a fenced block uses it and does not look for `## ` itself.
 
 Every index is an index into `split_lines(body)`, which splits at `"\n"` and drops an empty last element (`""` gives `[]`).
 
@@ -310,7 +310,7 @@ Every index is an index into `split_lines(body)`, which splits at `"\n"` and dro
 
 ```bash
 uv run python -c "
-from factory.domain.sections import insert_paragraph, section_text, sections, title
+from factory.shared.domain.sections import insert_paragraph, section_text, sections, title
 fence = chr(96) * 3
 body = '# Story\n\n## Demo\n\n' + fence + 'bash\n## start the server\necho ok\n' + fence + '\nExpect: ok\n\n## Journal\n\n1. 2026-10-12 human: created.\n'
 print(title(body))

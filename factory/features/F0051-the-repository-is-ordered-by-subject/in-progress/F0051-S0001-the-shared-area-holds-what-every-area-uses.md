@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T00:58:45.710227Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-05T00:58:45.710227Z'
   stage: docs
+- number: 26
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T00:59:46.879433Z'
+  stage: docs
+  run: 34fef4c0ad5b4854adb9a26b3831276c
 ---
 
 # The shared area holds what every area uses
@@ -1257,3 +1259,19 @@ Expect: `1`
     tests/domain/test_unhandled_event.py -> tests/shared/domain/ [mv]
     tests/domain/test_work_item_errors.py -> tests/shared/domain/ [mv]
 25. factory: started docs as vm.
+26. documenter: Docs for the move of the 18 shared modules to `factory.shared.<layer>`. I changed only documents, so I did not run `make check`. The factory's checks decide. `make documents` prints `documents ok`.
+
+    Files changed:
+    - `README.md`, `docs/operator-guide.md` and the files under `docs/project-guide/` (11 files in all): every dotted path and `src/factory/...py` path of a moved module now names the new `factory.shared.<layer>.<name>` path. The paths come from the story's table, and I changed nothing else in those lines.
+    - Several guide files named moved test modules under `tests/domain/` and `tests/adapters/` (for example `test_process_drain.py` and `test_errors_environment.py`). Those paths now read `tests/shared/<layer>/...`. I checked that every `tests/(domain|application|adapters)/test_*.py` path the docs name exists.
+    - `docs/project-guide/README.md`: a new section, *The code's layout*, names the four layers and the area `shared`, with what it holds and the `tests/test_areas.py` table. It is also listed in the index's section line for the README.
+
+    Cross-read and found current: the rest of `README.md`, `docs/operator-guide.md` and the project guide files, searched against all 18 old module names, in dotted form and as file paths. No old path is left. I left `docs/decisions.md` alone, as the criterion says.
+
+    Stale text I saw but did not touch: none. `docs/project-guide/README.md` and `CLAUDE.md` still describe a four-layer-only layout. `CLAUDE.md` is not mine to edit, and the new guide section covers the areas for the guide.
+
+    No findings for the coder. The journal I read has no docs findings for this round.
+
+    `check`: check: green (not run again: passed on tree a1ebfe042c3b at 2026-11-05T00:52:12Z)
+    `secrets`: secrets: green (9.2 s)
+    `documents`: documents ok

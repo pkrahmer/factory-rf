@@ -20,7 +20,7 @@ The ten operations:
 | `set_description(number, body)` | `None` | replace the description (the one projection of the work item) |
 | `set_labels(number, labels)` | `None` | write the labels |
 
-Labels are a projection of the stage: they are written and never read back, so no operation returns them and `PullRequestView` has no label field. `LABEL_PREFIX` (`"stage:"`) in `factory.domain.paths` is the prefix of those labels, and `MAIN_BRANCH` is `"main"`.
+Labels are a projection of the stage: they are written and never read back, so no operation returns them and `PullRequestView` has no label field. `LABEL_PREFIX` (`"stage:"`) in `factory.shared.domain.paths` is the prefix of those labels, and `MAIN_BRANCH` is `"main"`.
 
 ### The PyGithub client
 
@@ -90,7 +90,7 @@ Git is reached only through the `Git` interface (`factory.application.git`, an a
 
 | Field | Default | Meaning |
 |---|---|---|
-| `identity` | `GitIdentity(name="factory", email="factory@noreply.invalid")` | author and committer of the factory's commits; non-empty name and email. The default is `DEFAULT_GIT_IDENTITY` (`factory.domain.git`), the one place that spells it; `factory.domain.settings` re-exports the same object, and an unset instance setting falls back to it. `checkout` and `state_directory` are read from `FACTORY_CHECKOUT` and `FACTORY_STATE` (`CHECKOUT_VARIABLE`, `STATE_VARIABLE`), default `CHECKOUT_PATH` and `STATE_DIRECTORY`; a relative one is `SettingsInvalid(<variable>, "is not an absolute path")`, and the model's validator refuses it with a `ValidationError`. The settings of the stage environment (`FACTORY_DATASET`, `FACTORY_WORKSPACE`, `FACTORY_STAGE_IMAGE` and the others) are in `stage-environment.md`, *The settings and the wiring* |
+| `identity` | `GitIdentity(name="factory", email="factory@noreply.invalid")` | author and committer of the factory's commits; non-empty name and email. The default is `DEFAULT_GIT_IDENTITY` (`factory.domain.git`), the one place that spells it; `factory.shared.domain.settings` re-exports the same object, and an unset instance setting falls back to it. `checkout` and `state_directory` are read from `FACTORY_CHECKOUT` and `FACTORY_STATE` (`CHECKOUT_VARIABLE`, `STATE_VARIABLE`), default `CHECKOUT_PATH` and `STATE_DIRECTORY`; a relative one is `SettingsInvalid(<variable>, "is not an absolute path")`, and the model's validator refuses it with a `ValidationError`. The settings of the stage environment (`FACTORY_DATASET`, `FACTORY_WORKSPACE`, `FACTORY_STAGE_IMAGE` and the others) are in `stage-environment.md`, *The settings and the wiring* |
 | `environment` | `{}` | extra environment for git; each `GitOptions` has its own dict; `GitCli` adds `GIT_CEILING_DIRECTORIES` = the working copy's parent and `GIT_CONFIG_NOSYSTEM` after it, which no `environment` can lift, so git never looks for a repository above the working copy |
 | `kill_points` | `None` | reached by `push` (see below) |
 | `executable` | `"git"` | the program to run (tests give a stand-in) |
