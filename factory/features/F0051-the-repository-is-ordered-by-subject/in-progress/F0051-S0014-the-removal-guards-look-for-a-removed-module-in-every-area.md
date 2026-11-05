@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T10:27:11.889940Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-05T10:27:11.889940Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T10:27:48.760712Z'
+  stage: docs
+  run: bed45eca4fc24a75b0100a64e9c9a4d2
 ---
 
 # The removal guards look for a removed module in every area
@@ -393,3 +395,23 @@ Expect: `0`
     - `tests/pipeline/application/test_stall_environment.py`: human's leave (journal 4); only `test_the_stall_module_imports_no_name_of_the_undo` changes
     - `tests/support/module_names.py`: none needed. It is a support module, not a test. It only gains the Interface's helpers plus `areas` and `is_old_layer_path`, and `has_name` and `module_exists` are unchanged.
 21. factory: started docs as vm.
+22. documenter: Docs, round 1. The docs criterion asked for one sentence, and I added it.
+
+    Changed:
+    - `docs/project-guide/README.md`, *Shared test helpers*: one new paragraph after the layout-guard paragraph. A guard that a module stays removed names the module at the path it had and checks it with `module_exists_anywhere` of `tests/support/module_names.py`, so the module is not found in any area either. I added a clause that `tests/guards/test_removal_guards_search.py` fails when a test module with an old layer path calls `module_exists`. The diff shows that guard does this.
+
+    Cross-read and found current:
+    - The rest of `docs/project-guide/README.md`.
+    - `README.md`.
+    - A search of `docs/` and `README.md` for `module_exists` found nothing else to update.
+    - The diff changes only tests and one support module, with no change to `src/`, so the operator guide and `docs/decisions.md` need nothing, as the criterion says.
+
+    Findings for the coder: none. I wrote no "Why" or "Rejected" in `docs/decisions.md`.
+
+    Not touched: nothing stale noticed.
+
+    I ran no `make check`, because I changed only a document. I did not run the example commands from the smoke test.
+
+    `check`: check: green (not run again: passed on tree da45fc51bafe at 2026-11-05T10:23:31Z)
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok
