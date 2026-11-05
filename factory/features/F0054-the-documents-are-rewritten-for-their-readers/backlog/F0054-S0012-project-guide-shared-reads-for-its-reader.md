@@ -7,6 +7,7 @@
 ## Interface
 
 - `docs/project-guide/shared.md`: rewritten as above; its headings may change, but a section another file links to keeps its heading or the link is changed with it.
+- Each module, file or page `docs/project-guide/shared.md` names is linked once, at its first mention or in *See also*, by a relative link to its file (style page); a name inside a code block stays plain, and its file is linked above the block.
 - `docs/checked-documents.txt`: one line, `docs/project-guide/shared.md`.
 - Every link to a changed heading from another document is changed with it.
 - No code, no test, no agent file changes.
@@ -16,9 +17,10 @@
 1. `docs/project-guide/shared.md` follows `docs/project-guide/style.md` (the reviewer judges): no feature or story ID, no version history, the factory's own words linked to the glossary at their first use.
 2. Every name, command, setting and rule of the old file is in the new one or in its *Reference* section; the reviewer compares the two against the code and names anything dropped on purpose.
 3. `docs/project-guide/shared.md` is on `docs/checked-documents.txt`, and `make documents` prints `documents ok`, so its names resolve, its settings agree with the code (operator guide) and its runnable examples pass.
-4. No link in `README.md`, `docs/` or `agents/` points to a heading or a file that no longer exists.
-5. `make check` stays green.
-6. docs: as criteria 1 to 4. `docs/decisions.md`: none.
+4. The files the page names are linked as the Interface says, and `make documents` finds no broken link.
+5. No link in `README.md`, `docs/` or `agents/` points to a heading or a file that no longer exists.
+6. `make check` stays green.
+7. docs: as criteria 1 to 5. `docs/decisions.md`: none.
 
 ## Smoke test
 

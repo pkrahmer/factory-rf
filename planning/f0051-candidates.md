@@ -112,3 +112,5 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 41. **The root of `tests/` is sorted**: 200 modules, 72 of them `*_support.py`; the helpers move to a `tests/support/` package and the structural guards to `tests/guards/`. Mechanical, but many imports; `CLAUDE.md`'s test rules change with it.
 42. **`docs/operator-guide.md` (2,603 lines) becomes a folder**, one file per topic, like `docs/project-guide/`; the document check and the docs criteria name the new files.
 43. **The run log starts again per run or per week**; `docs/runs/2026-10-12-overnight/night-log.md` has 1,574 lines since 2026-10-12.
+
+67. **The module docstrings read for a person** (the human, 2026-11-05). Each module has one docstring sentence, often dense and hard to read. A later feature could rewrite them to the style page, area by area; it touches every file of `src/factory`, so it is its own feature, not part of the documents rewrite. The way from the code to the documents is one line per area (F0053-S0007).

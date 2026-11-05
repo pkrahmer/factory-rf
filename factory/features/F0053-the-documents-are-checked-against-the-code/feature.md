@@ -28,7 +28,7 @@ Prose about behaviour stays the reviewer's to judge against the code. Today's do
 
 ## Stories
 
-The build order: S0006 comes right after S0003, since the operator guide's examples need its fixtures.
+The build order: S0006 comes right after S0003, since the operator guide's examples need its fixtures. S0007 comes last; it is independent of the others.
 
 - S0001: Every name a document writes in backticks exists
 - S0002: The operator guide's settings agree with the settings code
@@ -36,6 +36,7 @@ The build order: S0006 comes right after S0003, since the operator guide's examp
 - S0006: The examples start from a known instance or world
 - S0004: The checks block the listed files and report on the others
 - S0005: The agents write and review documents against the code
+- S0007: Each area names its guide page
 
 ## The human's changes
 
@@ -47,3 +48,4 @@ The build order: S0006 comes right after S0003, since the operator guide's examp
 2. **Report everywhere, block where rewritten.** A list of checked files (`docs/checked-documents.txt`, a document so that a docs-route story can extend it) decides which findings fail the check; the others are printed as a report. Rejected: blocking at once, which would stop every docs stage until all files are rewritten.
 3. **An example says where it runs.** A marked block runs in a check container, in a temporary folder its fixture prepared (`checkout`, `instance` or `world`); the blocks of one document run in order and share it, like notebook cells, and each document starts fresh (the human, 2026-11-05). A block marked for the VM, GitHub or a model is skipped by the check and named in the report; the acceptance reviewer runs the `vm` ones on the instance at each acceptance (the human, 2026-11-05).
 4. **History is exempt.** `docs/decisions.md` and `docs/runs/` keep old names and paths on purpose.
+5. **Links between the documents and the code** (the human, 2026-11-05). The documents link to files by relative links, which the name check of S0001 resolves; never a GitHub URL or a line anchor, which would go stale. The way back is one line per area, in the area package's docstring (S0007), not one per module. Rewriting the module docstrings for readability is left for later (`planning/f0051-candidates.md`, item 67).

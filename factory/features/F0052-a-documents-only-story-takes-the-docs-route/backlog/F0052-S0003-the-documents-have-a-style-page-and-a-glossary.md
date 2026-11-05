@@ -6,14 +6,14 @@ The documenter and the reviewer need one written standard for how the documents 
 
 ## Interface
 
-- `docs/project-guide/style.md` (new): the seven rules for all documents; a section per document (operator guide, project guide, README) with its reader, its rules and one example in the chosen style; as in `planning/doc-style-drafts.md`, in the page's own words.
+- `docs/project-guide/style.md` (new): the seven rules for all documents; a section per document (operator guide, project guide, README) with its reader, its rules and one example in the chosen style; as in `planning/doc-style-drafts.md`, in the page's own words. One more rule for all documents (the human, 2026-11-05): a file of the repository is linked by a relative link, such as `[process.py](../../src/factory/shared/adapters/process.py)`, never by a GitHub URL and never to a line (`#L42`); a code block holds no links, so the file it shows is linked once above it.
 - `docs/project-guide/glossary.md` (new): one entry per factory word, at least: work item, feature, story, acceptance, stage, role, journal, backlog, approval, pipeline definition, write paths, project command, dataset, base, take, stage environment, stall, stop, crash, lease, claim, round, round cap, attempts cap, cost record, instance, tick. Each entry is one to three plain sentences, sorted alphabetically.
 - `docs/project-guide/README.md`, *The files*: one line each for `style.md` and `glossary.md`.
 - No code, no test, no agent file changes.
 
 ## Acceptance criteria
 
-1. `docs/project-guide/style.md` holds the seven common rules and the three document sections, each with its reader, its rules and an example.
+1. `docs/project-guide/style.md` holds the seven common rules, the rule on relative links to files and the three document sections, each with its reader, its rules and an example.
 2. `docs/project-guide/glossary.md` holds an entry for every word the Interface lists, alphabetically, each of at most three sentences.
 3. `docs/project-guide/README.md` names both files in *The files*.
 4. The two new pages follow their own rules: no feature or story ID, no version history, no sentence of more than about 25 words (the reviewer judges).
