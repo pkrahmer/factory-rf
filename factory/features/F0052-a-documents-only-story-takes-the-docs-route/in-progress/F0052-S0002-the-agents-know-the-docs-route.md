@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T22:17:11.869685Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-11-05T22:17:05.868413Z'
   stage: tests
   run: f9e28c9acf244589bc2657549c675e40
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:17:11.869685Z'
+  stage: doing
 ---
 
 # The agents know the docs route
@@ -168,3 +177,4 @@ Expect: `named`
     Modules not importable: none. Run of the new file: every test fails on its assertion, because the agent texts don't hold the rule or the subsections yet. `make lint` is green.
 
     `lint`: lint: green (0.2 s)
+12. factory: started doing as vm.
