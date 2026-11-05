@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -170,6 +170,11 @@ journal:
   at: '2026-11-05T05:40:31.375574Z'
   stage: smoke-test
   run: d78e56b8939f4c838a3d750504472b4d
+- number: 30
+  speaker: factory
+  kind: done
+  at: '2026-11-05T05:48:29.975670Z'
+  stage: approval
 ---
 
 # The root of `tests/` holds only its folders
@@ -521,3 +526,4 @@ Expect: `support.bill_support`
     - Criteria 4 to 7 (test count, folders by pattern, `make check`, docs): the smoke test does not reach these, and nothing in its output contradicts them. The factory runs `make check` as the stage's check.
 
     Findings: none. I changed nothing.
+30. factory: done (pull request merged); cost: 12 runs, 36.7 min, 141 turns, 357649 tokens in (5173883 more from cache), 73942 out, $4.94
