@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T02:02:14.291518Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-05T02:02:14.291518Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T02:03:15.055975Z'
+  stage: docs
+  run: 037fe7538d9945a4931e2dfd6782c687
 ---
 
 # The work area holds the work items
@@ -376,3 +378,19 @@ Expect: `1`
 
     Open: `security/duplicates-baseline.txt` still names the old paths, so `make duplicates` reports 11 new findings, which are the known findings under their `factory.work.*` paths. The file is the human's, and `make duplicates` is a record, not a check.
 21. factory: started docs as vm.
+22. documenter: Docs, round 1. I changed only documents, so I did not run `make check`; the factory's checks decide. I ran `make documents` and it printed `documents ok`.
+
+    Files changed:
+    - `docs/project-guide/README.md`: the file index now names the `factory.work.*` paths. The section *The code's layout* gets one sentence naming the area `work` (`factory.work.domain`, `.application`, `.adapters`) and what it holds. This is the docs criterion.
+    - `docs/project-guide/work-items.md`, `watching.md`, `stages.md` and `costs.md`: every module path of the story's table is now the `factory.work.<layer>.<name>` path. These are 34 replacements in 5 files, `README.md` included.
+    - `docs/project-guide/stages.md`, `watching.md`: test paths that the story moved from `tests/domain/` to `tests/work/domain/` are corrected, so the named files exist. The files are `test_acceptance_description`, `test_answers`, `test_archive`, `test_hand_over`, `test_labels`, `test_question_texts` and `test_stall_texts`. I found them by checking that every `tests/...` path the guide names exists.
+
+    Cross-read and found current: `README.md` (root) and `docs/operator-guide.md` name no moved module path. `docs/decisions.md` stays unchanged, as the criterion says.
+
+    Stale text I noticed but did not touch: `security/duplicates-baseline.txt` still names the old paths, so `make duplicates` reports 11 new findings. This is the same note the reviewer made. The file is the human's and outside my write paths.
+
+    No findings for the coder. The code matches the Interface, as the reviewer found.
+
+    `check`: check: green (not run again: passed on tree 7823504183dc at 2026-11-05T01:58:54Z)
+    `secrets`: secrets: green (4.0 s)
+    `documents`: documents ok
