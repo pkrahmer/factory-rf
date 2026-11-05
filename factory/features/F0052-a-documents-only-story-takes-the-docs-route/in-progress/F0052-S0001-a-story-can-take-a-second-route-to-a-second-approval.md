@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T22:06:14.776990Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-05T22:06:14.776990Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T22:06:43.768243Z'
+  stage: docs
+  run: 019f040ca4ec4de69eb3e11404686b71
 ---
 
 # A story can take a second route to a second approval
@@ -274,3 +276,20 @@ Expect: `1`
 
     Earlier tests: none. The diff only adds `tests/pipeline/application/test_docs_route.py` (status `A`) and changes no test file that `main` already holds.
 18. factory: started docs as vm.
+19. documenter: Docs round for the criterion 10 text. I changed two files, both documents, so I did not run `make check` (the factory's checks decide).
+
+    Files changed:
+    - `docs/project-guide/pipeline.md`: added the paragraph "More than one route, more than one approval stage" after the stage/role description in *The pipeline definition*. It says a definition may hold several routes and several approval stages. A close at an approval stage goes to that stage's second `next` (`send_back_target`). The round cap comes from the first capped stage whose `next[0]` is that approval (`send_back_cap`). `is_before_approval` compares against the first approval stage in `stages`. It points to `tests/pipeline/application/test_docs_route.py`.
+    - `docs/operator-guide/pipeline.md`: one sentence on the same rule for the operator, before the paragraph on the template's smoke test.
+
+    I read the diff (only the new test file; nothing under `src/` changed). I read `is_before_approval`, `send_back_target` and `send_back_cap` and checked each sentence against them. The walks found no fault, so I have no findings for the coder.
+
+    Cross-read and found current: `docs/project-guide/pipeline.md` (the close/send-back sections, "A close at the approval sends the story back", which already describes `send_back_cap` as the first capped stage with `next[0]` equal to the approval) and `docs/operator-guide/pipeline.md`.
+
+    `docs/decisions.md`: no change, as the criterion says (feature decision 1 goes in at S0002). I wrote no "Why" or "Rejected" line.
+
+    Stale text I noticed and did not touch: none that is unrelated to this story.
+
+    `check`: check: green (not run again: passed on tree 5cb5ca321340 at 2026-11-05T22:02:38Z)
+    `secrets`: secrets: green (0.7 s)
+    `documents`: documents ok
