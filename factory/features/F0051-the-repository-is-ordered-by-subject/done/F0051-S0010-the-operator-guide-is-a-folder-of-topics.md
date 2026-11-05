@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -219,6 +219,11 @@ journal:
   at: '2026-11-05T07:47:31.295463Z'
   stage: smoke-test
   run: 6fe6e34bbb684fceaa5354e6d0e2d8fa
+- number: 39
+  speaker: factory
+  kind: done
+  at: '2026-11-05T07:55:30.796127Z'
+  stage: approval
 ---
 
 # The operator guide is a folder of topics
@@ -668,3 +673,4 @@ Expect: `split`
     Then I checked the output against the acceptance criteria. `ls docs/operator-guide` lists exactly `README.md` and the ten topic files the Description names: agent-runtime, cloud-run, health, install, machine, pipeline, records, site, stops, work-items. That agrees with criterion 1. I also grepped `src/`, `claude/`, `operator/`, `vm/`, `docs/` and `README.md` for `docs/operator-guide.md`. Leaving out `docs/decisions.md` and `docs/runs/`, nothing names it, which agrees with criterion 4. Nothing in the smoke test goes against any criterion. I did not run criteria 2, 3 and 5 here: the tests and the factory's checks cover them.
 
     Findings: none.
+39. factory: done (pull request merged); cost: 17 runs, 29.4 min, 190 turns, 544647 tokens in (6352574 more from cache), 86016 out, $6.94
