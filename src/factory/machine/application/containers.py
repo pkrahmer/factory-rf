@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from datetime import timedelta
 
-from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
+from factory.machine.domain.containers import ContainerLaunch, ContainerResult, Mount
 
 
 class ContainerRuns(ABC):

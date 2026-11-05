@@ -16,12 +16,14 @@ from factory.agents.domain.agent_runs import (
     Login,
 )
 from factory.application.boundaries import Boundaries
-from factory.application.stage_environment import stage_environment_of
 from factory.application.stops import StopService
 from factory.application.take import agent_working_directory
 from factory.domain.checks import CheckResult, command_ending
-from factory.domain.containers import ContainerResult
-from factory.domain.preflight import (
+from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
+from factory.hosting.domain.git import CommitId
+from factory.machine.application.stage_environment import stage_environment_of
+from factory.machine.domain.containers import ContainerResult
+from factory.machine.domain.preflight import (
     PreflightItem,
     PreflightReport,
     PreflightStamp,
@@ -29,8 +31,6 @@ from factory.domain.preflight import (
     machine_stop,
     version_matches,
 )
-from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
-from factory.hosting.domain.git import CommitId
 from factory.shared.domain.errors import (
     AgentDefinitionError,
     AgentRuntimeError,

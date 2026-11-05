@@ -5,8 +5,8 @@ from typing import override
 
 from pydantic import ValidationError
 
-from factory.application.preflight import PreflightStampStore
-from factory.domain.preflight import PreflightStamp
+from factory.machine.application.preflight import PreflightStampStore
+from factory.machine.domain.preflight import PreflightStamp
 from factory.shared.adapters.atomic_file import replace_text
 
 

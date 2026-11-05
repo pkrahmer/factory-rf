@@ -11,9 +11,7 @@ from types import FrameType
 from typing import TypedDict, Unpack
 
 from factory.application.boundaries import Boundaries
-from factory.application.disk_records import DiskRecorder
 from factory.application.idle_shutdown import IdleShutdown
-from factory.application.images import Images
 from factory.application.scheduler import CheckoutPreparer, RepositoryWaiter, Scheduler
 from factory.application.stops import StopService
 from factory.application.tick import Tick, TickOutcome
@@ -36,6 +34,8 @@ from factory.entry.wiring import (
     system_clock,
 )
 from factory.hosting.application.hosting import HostingService
+from factory.machine.application.disk_records import DiskRecorder
+from factory.machine.application.images import Images
 from factory.shared.domain.errors import FetchFailed, MachineStopStood, SettingsInvalid
 from factory.shared.domain.settings import STATE_DIRECTORY, InstanceSettings, named_state_directory
 from factory.watching.application.machine import Clock

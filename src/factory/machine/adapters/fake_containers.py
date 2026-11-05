@@ -4,8 +4,8 @@ from collections.abc import Mapping, Sequence
 from datetime import timedelta
 from pathlib import Path
 
-from factory.application.containers import ContainerRuns
-from factory.domain.containers import (
+from factory.machine.application.containers import ContainerRuns
+from factory.machine.domain.containers import (
     WORK,
     ContainerCall,
     ContainerLaunch,

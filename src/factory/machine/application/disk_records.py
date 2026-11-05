@@ -4,7 +4,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from factory.application.boundaries import Boundaries
-from factory.domain.disk import DiskOccasion, DiskRecord, DiskUse, disk_line
+from factory.machine.domain.disk import DiskOccasion, DiskRecord, DiskUse, disk_line
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.application.machine import DiskSpace
 

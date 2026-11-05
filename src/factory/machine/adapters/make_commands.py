@@ -7,10 +7,6 @@ from datetime import timedelta
 from pathlib import Path
 
 from factory.agents.adapters.agent_launch import SHELL_EXECUTABLE, Launch
-from factory.application.containers import ContainerRuns
-from factory.application.project_commands import ProjectCommands
-from factory.application.snapshots import Snapshots
-from factory.application.stage_environment import SYNC_ENVIRONMENT
 from factory.application.take import MOUNTED_CHECKOUT, copy_changed
 from factory.domain.checks import (
     COMMAND_NAME_PATTERN,
@@ -20,8 +16,12 @@ from factory.domain.checks import (
     status_of,
     target_times,
 )
-from factory.domain.containers import SYSTEM_PATH, WORK_CHECKOUT, bundle_mounts
 from factory.hosting.application.git import Git
+from factory.machine.application.containers import ContainerRuns
+from factory.machine.application.project_commands import ProjectCommands
+from factory.machine.application.snapshots import Snapshots
+from factory.machine.application.stage_environment import SYNC_ENVIRONMENT
+from factory.machine.domain.containers import SYSTEM_PATH, WORK_CHECKOUT, bundle_mounts
 from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.shared.domain.errors import ContainerError, ProjectCommandError, SnapshotError
 from factory.shared.domain.kill_points import KillPoints

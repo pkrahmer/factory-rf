@@ -5,8 +5,8 @@ import re
 from datetime import timedelta
 from pathlib import Path, PurePosixPath
 
-from factory.application.snapshots import Snapshots
 from factory.hosting.domain.git import ChangedPath, ChangeKind
+from factory.machine.application.snapshots import Snapshots
 from factory.shared.adapters.printed_output import first_printed_line
 from factory.shared.adapters.process import ProcessResult, run_or_raise
 from factory.shared.domain.errors import SnapshotError

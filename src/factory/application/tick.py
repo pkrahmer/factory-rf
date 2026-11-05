@@ -9,14 +9,14 @@ from pydantic import BaseModel, ConfigDict
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Dispatcher, DispatchOutcome, Handler
 from factory.application.pipeline_loading import PipelineLoader
-from factory.application.preflight import Preflight
 from factory.application.recovery import delete_stale_branches
 from factory.application.stops import StopPublisher, StopService
-from factory.domain.disk import disk_low_detail
 from factory.domain.events import Event, EventKind
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopScope
 from factory.domain.tick_status import TickStatus
+from factory.machine.application.preflight import Preflight
+from factory.machine.domain.disk import disk_low_detail
 from factory.shared.domain.errors import (
     AgentDefinitionInvalid,
     FetchFailed,

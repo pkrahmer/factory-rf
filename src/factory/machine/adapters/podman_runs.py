@@ -7,8 +7,8 @@ from datetime import timedelta
 from pathlib import Path
 
 from factory.agents.adapters.agent_launch import CONTAINER_KILL_STATUSES
-from factory.application.containers import ContainerRuns
-from factory.domain.containers import (
+from factory.machine.application.containers import ContainerRuns
+from factory.machine.domain.containers import (
     JOB_PODMAN_OPTIONS,
     WORK,
     ContainerLaunch,

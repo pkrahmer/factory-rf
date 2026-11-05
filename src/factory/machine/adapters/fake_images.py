@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
-from factory.application.images import ImageBuild, Images
-from factory.domain.containers import SYSTEM_PATH
-from factory.domain.stage_layer import StageLayer
+from factory.machine.application.images import ImageBuild, Images
+from factory.machine.domain.containers import SYSTEM_PATH
+from factory.machine.domain.stage_layer import StageLayer
 
 PASSED_BUILD = ImageBuild(passed=True, duration=timedelta(0), output_tail="")
 

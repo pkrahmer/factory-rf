@@ -6,10 +6,10 @@ import time
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.podman_runs import PODMAN_TIME_LIMIT, run_podman
-from factory.application.images import ImageBuild, Images
-from factory.domain.containers import JOB_PODMAN_OPTIONS, SYSTEM_PATH
-from factory.domain.stage_layer import StageLayer
+from factory.machine.adapters.podman_runs import PODMAN_TIME_LIMIT, run_podman
+from factory.machine.application.images import ImageBuild, Images
+from factory.machine.domain.containers import JOB_PODMAN_OPTIONS, SYSTEM_PATH
+from factory.machine.domain.stage_layer import StageLayer
 from factory.shared.adapters.printed_output import failure_detail
 from factory.shared.domain.errors import ContainerError
 from factory.shared.domain.settings import ContainerProfileName

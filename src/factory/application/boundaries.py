@@ -5,15 +5,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from factory.agents.application.agent_runtime import AgentDefinitionReader, AgentRuntime
-from factory.application.containers import ContainerRuns
-from factory.application.project_commands import ProjectCommands
-from factory.application.snapshots import Snapshots
-from factory.domain.containers import SYSTEM_PATH
-from factory.domain.disk import DiskRecord
 from factory.domain.known_results import ResultRecord
 from factory.domain.stops import StopRecord
 from factory.hosting.application.git import Git
 from factory.hosting.application.hosting import HostingService
+from factory.machine.application.containers import ContainerRuns
+from factory.machine.application.project_commands import ProjectCommands
+from factory.machine.application.snapshots import Snapshots
+from factory.machine.domain.containers import SYSTEM_PATH
+from factory.machine.domain.disk import DiskRecord
 from factory.shared.application.files import (
     CostRecordReader,
     CostRecordWriter,

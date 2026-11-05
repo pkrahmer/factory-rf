@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, NonNegativeInt
 
-from factory.domain.stage_layer import StageLayer
+from factory.machine.domain.stage_layer import StageLayer
 
 IMAGE_BUILD_TIME_LIMIT = timedelta(minutes=30)
 

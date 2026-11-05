@@ -11,15 +11,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.copy_snapshots import CopySnapshots
-from factory.adapters.disk_space import ShutilDiskSpace
-from factory.adapters.make_commands import ContainerMakeCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.adapters.podman_images import PodmanImages
-from factory.adapters.podman_runs import PodmanRuns
-from factory.adapters.power_off import ProcessExit, SystemctlPowerOff
-from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
-from factory.adapters.zfs_snapshots import DROP_CACHES_COMMAND, ZfsSnapshots
 from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.agents.adapters.oauth_token import ClientCredentialsTokenSource
@@ -41,9 +33,29 @@ from factory.application.handlers.reject import RejectHandler
 from factory.application.handlers.run import RunHandler
 from factory.application.handlers.run_gate import RunGate
 from factory.application.idle_shutdown import IdleShutdown
-from factory.application.images import IMAGE_BUILD_TIME_LIMIT, ImageBuild, Images
-from factory.application.machine_stop_exit import MachineStopExit
-from factory.application.preflight import (
+from factory.application.recovery import RecoveryHandler
+from factory.application.stops import StopService
+from factory.application.tick import HandlerFactory, IdleHandler, Tick
+from factory.domain.events import EventKind
+from factory.domain.known_results import ResultRecord
+from factory.domain.pipeline_definition import PipelineDefinition
+from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopRecord
+from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.adapters.pygithub_hosting import pygithub_service
+from factory.hosting.application.git import Git
+from factory.hosting.application.hosting import HostingService
+from factory.hosting.domain.git import GitOptions
+from factory.machine.adapters.copy_snapshots import CopySnapshots
+from factory.machine.adapters.disk_space import ShutilDiskSpace
+from factory.machine.adapters.make_commands import ContainerMakeCommands
+from factory.machine.adapters.podman_images import PodmanImages
+from factory.machine.adapters.podman_runs import PodmanRuns
+from factory.machine.adapters.power_off import ProcessExit, SystemctlPowerOff
+from factory.machine.adapters.preflight_stamp_file import JsonPreflightStampFile
+from factory.machine.adapters.zfs_snapshots import DROP_CACHES_COMMAND, ZfsSnapshots
+from factory.machine.application.images import IMAGE_BUILD_TIME_LIMIT, ImageBuild, Images
+from factory.machine.application.machine_stop_exit import MachineStopExit
+from factory.machine.application.preflight import (
     MachineChecks,
     Preflight,
     agent_run_probe_item,
@@ -56,13 +68,10 @@ from factory.application.preflight import (
     token_file_item,
     tool_version_item,
 )
-from factory.application.project_commands import RecordingProjectCommands
-from factory.application.recovery import RecoveryHandler
-from factory.application.snapshots import Snapshots
-from factory.application.stops import StopService
-from factory.application.tick import HandlerFactory, IdleHandler, Tick
-from factory.domain.command_records import CommandRecord
-from factory.domain.containers import (
+from factory.machine.application.project_commands import RecordingProjectCommands
+from factory.machine.application.snapshots import Snapshots
+from factory.machine.domain.command_records import CommandRecord
+from factory.machine.domain.containers import (
     METADATA_PROBE_COMMAND,
     SYSTEM_PATH,
     WORK,
@@ -70,23 +79,14 @@ from factory.domain.containers import (
     ContainerResult,
     extra_environment,
 )
-from factory.domain.disk import DiskRecord
-from factory.domain.events import EventKind
-from factory.domain.known_results import ResultRecord
-from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.preflight import PreflightItem
-from factory.domain.stage_layer import (
+from factory.machine.domain.disk import DiskRecord
+from factory.machine.domain.preflight import PreflightItem
+from factory.machine.domain.stage_layer import (
     STAGE_FILE,
     StageLayerRefused,
     project_image_tag,
     stage_layer,
 )
-from factory.domain.stops import RepositoryStop, RepositoryStopReason, StopRecord
-from factory.hosting.adapters.git_cli import GitCli
-from factory.hosting.adapters.pygithub_hosting import pygithub_service
-from factory.hosting.application.git import Git
-from factory.hosting.application.hosting import HostingService
-from factory.hosting.domain.git import GitOptions
 from factory.shared.adapters.atomic_file import replace_text
 from factory.shared.adapters.clock import SleepingWaiter, SystemClock
 from factory.shared.application.files import PipelineDefinitionReader, WorkItemReader

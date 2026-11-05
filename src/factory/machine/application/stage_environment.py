@@ -10,11 +10,12 @@ from typing import override
 from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
-from factory.application.containers import ContainerRuns
-from factory.application.snapshots import Snapshots
 from factory.application.take import TakeReport, TakeService
 from factory.domain.checks import last_line
-from factory.domain.containers import (
+from factory.hosting.domain.git import CommitId
+from factory.machine.application.containers import ContainerRuns
+from factory.machine.application.snapshots import Snapshots
+from factory.machine.domain.containers import (
     SYSTEM_PATH,
     WORK,
     WORK_CHECKOUT,
@@ -23,7 +24,6 @@ from factory.domain.containers import (
     Mount,
     bundle_mounts,
 )
-from factory.hosting.domain.git import CommitId
 from factory.shared.domain.errors import ContainerError
 
 UPSTREAM = "/upstream"

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T03:16:46.530861Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-05T03:16:46.530861Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-05T03:22:48.813581Z'
+  stage: doing
+  run: a6b056cc25ab43b483a379b970daf571
 ---
 
 # The machine area holds containers, images and disks
@@ -162,3 +164,29 @@ Expect: `1`
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: Round 0. I moved the 24 modules and all the code passes, except for one guard test that still pins the old layout. That test needs a change from the tester, so I am ending with `tests`.
+
+   The change: in `tests/test_stop_table.py::test_production_code_names_every_reason_of_a_repository_stop`, the prefix filter `name.startswith(("factory.application", "factory.entry"))` should also accept `factory.machine.application`. The constant `_MAIN_FAILING = "main_branch_failing"` now lives in `src/factory/machine/application/preflight.py`, so the `[main_branch_failing]` row fails:
+   ```
+   FAILED tests/test_stop_table.py::test_production_code_names_every_reason_of_a_repository_stop[main_branch_failing] - AssertionError: assert 'main_branch_failing' in {'', '\n', '\n\n', '\n\nCost: ',...
+   ```
+   That is the only failure in `make check`. lint, types, layers, sast, secrets and licenses are green, and every other test passes (coverage 99.26 %). Adding `"factory.machine.application"` to the tuple restores what the test checked before the move. A pattern like `factory.*.application` would be broader, and the choice is the tester's.
+
+   What I built, all in `src/` and with no behaviour change:
+   - New packages, with the Interface's exact docstrings:
+     - `src/factory/machine/__init__.py`
+     - `src/factory/machine/domain/__init__.py`
+     - `src/factory/machine/application/__init__.py`
+     - `src/factory/machine/adapters/__init__.py`
+   - The 24 modules of the table, each moved with `git mv` to `src/factory/machine/<layer>/<name>.py`.
+   - Every `factory.<layer>.<name>` import of a moved module rewritten under `src/`, then `ruff check --fix` and `ruff format` for the import order. That touched 35 files in total (82 lines in, 82 out). No `from factory.<layer> import <name>` forms and no relative imports were in `src/`. No re-export or file is left at an old path.
+
+   Main choice: a mechanical rewrite of the dotted path, module by module, with a word boundary (`\b`). I rejected rewriting by package prefix because `factory.application` still holds modules that are not moving.
+
+   Refactor step: there was nothing to change; the diff is only paths and import order.
+
+   Noticed but not touched:
+   - `pyproject.toml` already has the human's per-file-ignores for `src/factory/machine/adapters/{make_commands,podman_runs}.py`. The stale entries for the old `src/factory/adapters/` paths are still there (lines 63 and 66). They are the human's lines and do no harm.
+   - `security/duplicates-baseline.txt` lines 37 to 41 still name `src/factory/adapters/{fake_containers,fake_images,fake_snapshots,make_commands}.py`. `make duplicates` is a record, not a check. After S0005 the human updated these paths themselves, so I left them.
+
+   Docs (criterion 6) are the documenter's.
