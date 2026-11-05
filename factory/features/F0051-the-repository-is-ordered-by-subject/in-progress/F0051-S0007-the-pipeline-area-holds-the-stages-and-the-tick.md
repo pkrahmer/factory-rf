@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 562
 comments_read: [6649241093, 6649574994]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T04:24:37.675842Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-05T04:24:37.675842Z'
   stage: smoke-test
+- number: 23
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T04:26:35.570471Z'
+  stage: smoke-test
+  run: 42242ed8814441a491a163ea0fa4e837
 ---
 
 # The pipeline area holds the stages and the tick
@@ -849,3 +851,35 @@ Expect: `1`
     `secrets`: secrets: green (7.7 s)
     `documents`: documents ok
 22. factory: started smoke-test as vm.
+23. smoke-tester: Smoke test, round 0. I ran the three commands under `## Smoke test` from the repository root, as written and in order. All three met their `Expect:` lines.
+
+    Command 1: `uv run python -c "import factory.pipeline.domain.checks as m; print(m.__name__)"`
+    ```
+    Bytecode compiled 4164 files in 51ms
+    factory.pipeline.domain.checks
+    ```
+    Met `Expect: factory.pipeline.domain.checks`. The first line is uv's own message on stderr, not the program's output.
+
+    Command 2: `test -e src/factory/domain/checks.py && echo still there || echo moved`
+    ```
+    moved
+    ```
+    Met `Expect: moved`.
+
+    Command 3: `uv run pytest tests/test_areas.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Met `Expect: 1`. The line it counted was `759 passed in 32.60s`.
+
+    Checking the acceptance criteria against the tree, beyond the commands:
+    - Criterion 4: `tests/domain/`, `tests/application/` and `tests/adapters/` do not exist (`ls`: "No such file or directory" for each).
+    - Criterion 5: `src/factory/` holds exactly `__init__.py`, `agents`, `contract`, `entry`, `hosting`, `machine`, `pipeline`, `shared` and `watching`. Importing `factory.domain`, `factory.application` or `factory.adapters` raises ImportError.
+    - Criterion 7 (docs): `docs/project-guide/README.md` line 9 has the sentence on the area `pipeline`. The `make mutants` example in `docs/project-guide/processes-and-checks.md:174` is `MODULES='factory.machine.domain.disk factory.pipeline.application'`, and the one in `docs/operator-guide.md:148` uses `factory.pipeline.application`.
+    - No criterion is contradicted.
+
+    Findings: none.
+
+    Note (not a finding): `docs/project-guide/write-paths.md:71` and `:73`, in the "Replaced in v1.2" section, still name `factory.adapters.landlock` and `factory.domain.leftovers`. Both are modules that were removed earlier (F0044) and are not in this story's table. No area holds them now, so I read these as history rather than as a package to rename under criterion 7.
+
+    I did not run `make check`, because the factory runs it as this stage's check. I fixed nothing, as the stage requires.
