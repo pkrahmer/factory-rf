@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T04:38:10.077308Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T04:38:07.659435Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-05T04:38:10.077308Z'
   stage: intake
 ---
 
@@ -101,3 +110,4 @@ Expect: `support.bill_support`
    5. **No `pyproject.toml` change is needed.** `tests/` has no `__init__.py`, so pytest's rootdir import puts `tests/` on `sys.path`, and mypy names `tests/support/x.py` as `support.x`, as it names today's root helpers. The one clash is `operator`, hence answer 2's `tests/operator_scripts/`. If a check still needs a path, ask again.
 
    The Description's and Interface's `tests/operator/` reads `tests/operator_scripts/` from here on.
+5. factory: started intake as vm.
