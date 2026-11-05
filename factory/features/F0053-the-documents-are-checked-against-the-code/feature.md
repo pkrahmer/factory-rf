@@ -15,7 +15,7 @@ Prose about behaviour stays the reviewer's to judge against the code. Today's do
 
 - The name check: every backticked dotted name under `factory.` and every backticked repository path in the documents resolves (S0001).
 - The settings check: the operator guide's settings tables agree with the settings code (S0002).
-- Runnable examples: a marked block's commands run in a temporary checkout, and their output is compared (S0003).
+- Runnable examples: a marked block's commands run like notebook cells, in order, from a fresh fixture per document, and their output is compared (S0003); the fixtures `instance` and `world` (S0006).
 - The checked-files list, and a report of every file's findings (S0004).
 - The agents' rules: the documenter reads the code it describes and writes runnable examples; the reviewer judges facts against the code and counts an unchecked claim as a finding (S0005).
 
@@ -28,9 +28,12 @@ Prose about behaviour stays the reviewer's to judge against the code. Today's do
 
 ## Stories
 
+The build order: S0006 comes right after S0003, since the operator guide's examples need its fixtures.
+
 - S0001: Every name a document writes in backticks exists
 - S0002: The operator guide's settings agree with the settings code
 - S0003: A document's marked examples are run by the check
+- S0006: The examples start from a known instance or world
 - S0004: The checks block the listed files and report on the others
 - S0005: The agents write and review documents against the code
 
@@ -42,5 +45,5 @@ Prose about behaviour stays the reviewer's to judge against the code. Today's do
 
 1. **Checks live in `make documents`.** The docs stages already run it, and `make check` stays fast.
 2. **Report everywhere, block where rewritten.** A list of checked files (`docs/checked-documents.txt`, a document so that a docs-route story can extend it) decides which findings fail the check; the others are printed as a report. Rejected: blocking at once, which would stop every docs stage until all files are rewritten.
-3. **An example says where it runs.** A marked block runs in a temporary copy of the checkout, in a stage container; a block marked for the VM, GitHub or a model is skipped by the check and named in the report.
+3. **An example says where it runs.** A marked block runs in a check container, in a temporary folder its fixture prepared (`checkout`, `instance` or `world`); the blocks of one document run in order and share it, like notebook cells, and each document starts fresh (the human, 2026-11-05). A block marked for the VM, GitHub or a model is skipped by the check and named in the report; the acceptance reviewer runs the `vm` ones on the instance at each acceptance (the human, 2026-11-05).
 4. **History is exempt.** `docs/decisions.md` and `docs/runs/` keep old names and paths on purpose.

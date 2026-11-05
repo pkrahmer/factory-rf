@@ -8,6 +8,7 @@ The checks catch names, settings and examples; the rest of a document's truth de
 
 - `agents/agents/documenter.md`: one rule each for: read the code first; examples are runnable or marked; keep detail in *Reference*; run `make documents` and end only on `documents ok`.
 - `agents/agents/reviewer.md`: in its checklist, an item *Documents*: the changed documents' claims against the code, and examples runnable or marked; a failure is a finding.
+- `agents/agents/acceptance-reviewer.md`: in its smoke test (check 2), it runs every `console vm` example of the documents the feature changed, on the instance, and reports each as met or not.
 - `agents/agents/intake.md`: a docs criterion that dictates sentences is a question; it should name what the reader must know.
 - Tests of the agent texts: `tests/agent_files/test_claude_agent_texts_documents.py`, one row per rule.
 
@@ -15,7 +16,7 @@ The checks catch names, settings and examples; the rest of a document's truth de
 
 1. `agents/agents/documenter.md` holds the four rules of the Interface.
 2. `agents/agents/reviewer.md` holds the *Documents* item, naming the claims against the code and the examples.
-3. `agents/agents/intake.md` holds the rule on a docs criterion that dictates sentences.
+3. `agents/agents/intake.md` holds the rule on a docs criterion that dictates sentences, and `agents/agents/acceptance-reviewer.md` the rule to run the `console vm` examples of the changed documents.
 4. `make check` stays green.
 5. docs: `docs/project-guide/agents.md`: how the documenter and the reviewer treat documents. `docs/decisions.md`: an entry, naming F0053 and the human's concern of 2026-11-05 that the stages' documents were not reliably true.
 
