@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 555
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T00:13:14.355410Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-05T00:13:14.355410Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T00:13:39.201989Z'
+  stage: smoke-test
+  run: d182995e609d45dda1b20b5b02638f90
 ---
 
 # The operator guide's push error example shows the ref line the factory writes
@@ -185,3 +187,34 @@ Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [re
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test run from the repository root. I ran the three commands exactly as written, in order. No server was involved and I fixed nothing.
+
+    1. First grep (the porcelain ref line):
+    ```
+    1
+    ```
+    Met `Expect: 1`.
+
+    2. Second grep (`-> work-item/` or `` `! [remote rejected]` ``):
+    ```
+    0
+    ```
+    Met `Expect: 0`. grep exited with 1, which is what grep does when it finds no match.
+
+    3. `push_reason` on the porcelain output:
+    ```
+    Bytecode compiled 4164 files in 47ms
+    ! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [remote rejected] (Internal Server Error)
+    ```
+    Met the Expect line. The line `uv` prints first is its own bytecode-compile notice. The output from `push_reason` is exactly the ref line that criterion 1's example now shows.
+
+    Check against the acceptance criteria:
+    - Criterion 1: met. `grep -nF` finds the full example line exactly as criterion 1 gives it, at `docs/operator-guide.md:2487`, and command 2 shows no `-> work-item/` is left.
+    - Criterion 2: met. `docs/operator-guide.md:2498` reads "git's `[remote rejected]` on the refused ref's line", and command 2 shows `` `! [remote rejected]` `` is gone.
+    - Criterion 3: met. Against `main`, the branch changes only those two lines (`docs/operator-guide.md`, 2 insertions and 2 deletions). Nothing under `docs/decisions.md`, `README.md`, `src` or `tests` changed.
+    - Criterion 4: not re-run here. The factory's `make check` was green after the coder (entry 7), and the documenter's gate reused that result (entry 11).
+    - Criterion 5: met, as for criteria 1 to 3.
+
+    No command contradicts any criterion.
+
+    Findings: none.
