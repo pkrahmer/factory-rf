@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T02:01:18.066000Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-11-05T02:01:12.543239Z'
   stage: doing
   run: 8385d96a194e40f99dd1a98779e0d45f
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:01:18.066000Z'
+  stage: review
 ---
 
 # The work area holds the work items
@@ -335,3 +344,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 11 new, 34 known, 8 gone
+19. factory: started review as vm.
