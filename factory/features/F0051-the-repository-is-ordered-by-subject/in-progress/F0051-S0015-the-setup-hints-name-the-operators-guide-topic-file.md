@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506, 6656185279]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T11:04:21.401104Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-05T11:04:21.401104Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T11:05:05.130038Z'
+  stage: review
+  run: 83ac1b6ee2b446baaa670f3201ca651b
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -271,3 +273,30 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 18. factory: started review as vm.
+19. reviewer: no findings
+
+    I read the work item and `git diff main...HEAD -- . ':!factory'`: `operator/vm/setup.sh`, `operator/skill/kumpel/references/approving.md`, the new `tests/guards/test_operator_guide_pointers_search.py` and the expected strings in two earlier tests.
+
+    1. Acceptance criteria:
+       - Criterion 1: `tests/vm/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy` (rows `tools` and `service`) checks the new hint ends the line, appears once in its step and goes to `>&2`. `test_the_setup_script_holds_no_old_pointer[(operator guide, ]` checks the old pointer is gone. The two `setup.sh` lines (405, 453) match the Interface word for word.
+       - Criterion 2: `test_the_closing_line_names_the_machine_topic_file` pins the one `setup: done: ` line to the Interface's exact `printf`. The row `[see the operator guide, ]` and the row `done-line` in `tests/vm/test_vm_setup_text.py` cover the rest. `setup.sh:476` matches.
+       - Criterion 3:
+         - The files as they are give an empty list: `test_every_mention_of_the_operator_guide_names_its_path`. It also asserts that lines were read, so it cannot pass with nothing searched.
+         - The caught and not-caught made-up lines are rows of one parametrized test: `test_a_mention_without_a_path_is_caught`, rows `no-path`, `topic-file` and `index-file`.
+         - Every named file exists: `test_every_named_topic_file_exists`, which now collects names from every line holding `docs/operator-guide/` and keeps the non-empty assertion (human's answer, entry 11).
+         - `grep -rniE "operator.?s? guide" operator/vm operator/skill` prints nothing, so the case-sensitive match misses no capitalised mention.
+       - `approving.md:25` matches the Interface.
+       - Criterion 4: the coder's `make check` was green (entry 17).
+    2. Architecture: no change under `src/`. The guard imports nothing of `factory`, so it belongs in `tests/guards/`.
+    3. Security: text changes only. No markers and no secrets.
+    4. Quality:
+       - The guard defines its own `ROOT` and `SETUP`, which `tests/support/vm_support.py` also holds. I don't count this as a copied helper: `vm_support` imports `factory`, which a module in `tests/guards/` may not do.
+       - The guard reads the raw script on purpose: the `code` fixture strips comment lines.
+    5. Work item hygiene:
+       - The Description matches what was built.
+       - The journal explains the main choice (the Interface's texts word for word) and what was rejected (option (b), entry 10).
+       - The docs criterion is accurate: `docs/operator-guide/machine.md` still quotes the old texts at lines 284, 295 and 296, and holds both sections, *The machine* (line 5) and *The rebuild after a merge* (line 570).
+
+    Earlier tests:
+    - tests/vm/test_vm_setup_install_hint.py: the human's leave in `feature.md`, "At S0015's start" (journal entry 4). Only `HINTS`' expected strings changed.
+    - tests/vm/test_vm_setup_text.py: the human's leave in `feature.md`, "At S0015's start" (journal entry 4). Only the row `done-line`'s expected string changed.
