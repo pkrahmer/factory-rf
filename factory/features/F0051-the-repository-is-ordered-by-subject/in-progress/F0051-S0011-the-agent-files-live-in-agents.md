@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T08:30:50.159931Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -161,6 +165,11 @@ journal:
   at: '2026-11-05T08:30:44.621772Z'
   stage: tests
   run: d945f6ec8cc24cf7af4e642e3601cf76
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:30:50.159931Z'
+  stage: doing
 ---
 
 # The agent files live in `agents/`
@@ -440,3 +449,4 @@ Expect: `1`
     Files changed: `tests/agent_files/test_agent_folder.py` (one line). I created no files. The test runner imported every module. `uv run pytest -q tests/agent_files/test_agent_folder.py` passed all 9 tests, and `make lint` is green.
 
     `lint`: lint: green (0.1 s)
+28. factory: started doing as vm.
