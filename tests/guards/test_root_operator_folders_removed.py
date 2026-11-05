@@ -28,7 +28,7 @@ AT_ROOT = r"(?<!operator/)(?<![\w.-])"
 
 @pytest.mark.parametrize("folder", ["vm", "template"])
 def test_the_old_root_folder_is_gone(folder: str) -> None:
-    assert not (ROOT / folder).exists()
+    assert [path for path in (ROOT / folder).rglob("*") if path.is_file()] == []
 
 
 @pytest.mark.parametrize(

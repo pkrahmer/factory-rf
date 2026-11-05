@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T09:29:53.888879Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -125,6 +121,12 @@ journal:
   kind: started
   at: '2026-11-05T09:29:53.888879Z'
   stage: tests
+- number: 21
+  speaker: tester
+  kind: result
+  at: '2026-11-05T09:30:47.473536Z'
+  stage: tests
+  run: b5e7a726bce34f95ab65b19a61566641
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -342,3 +344,17 @@ Expect: `parsed`
     - Criterion 3 in the Description still lacks the human's wording "other than `docs/decisions.md` and `docs/runs/`" (entry 6). The work item is outside the coder's write paths.
     - The rest of criterion 5 (*The layout* in `docs/project-guide/operator.md` and the `docs/decisions.md` entry) is the documenter's.
 20. factory: started tests as vm.
+21. tester: Test change the human approved (entry 17, point 1, named by the coder in entry 19). I changed only `tests/guards/test_root_operator_folders_removed.py::test_the_old_root_folder_is_gone`. It keeps its name and its rows `vm` and `template`.
+
+    - Before: the test asserted that the folder does not exist.
+    - Now: it asserts that no file lies under the folder (`[path for path in (ROOT / folder).rglob("*") if path.is_file()] == []`). An empty folder that the take leaves in the check's tree no longer fails it.
+
+    Why I wrote it this way: the human's answer says to do what S0011's `test_the_old_agent_folder_is_gone` does now, and I copied that form. I did not call `git ls-files` from the test. The check runs on the taken files before the factory commits, so git's index or `HEAD` there may still list the old paths. A file check on the tree being checked tests what the human asked for: no file left in either folder. If the human wants the literal `git ls-files vm template` call, that is a one-line follow-up.
+
+    Mapping: the human's point 1 → tests/guards/test_root_operator_folders_removed.py::test_the_old_root_folder_is_gone (rows `vm`, `template`).
+
+    Files changed: tests/guards/test_root_operator_folders_removed.py. No files created. No earlier test of another story touched.
+
+    Test run: `uv run pytest -q tests/guards/test_root_operator_folders_removed.py`: all 22 tests pass, and every module imported. `make lint`: green.
+
+    `lint`: lint: green (0.2 s)
