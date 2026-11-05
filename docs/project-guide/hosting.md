@@ -90,7 +90,7 @@ Git is reached only through the `Git` interface (`factory.hosting.application.gi
 
 | Field | Default | Meaning |
 |---|---|---|
-| `identity` | `GitIdentity(name="factory", email="factory@noreply.invalid")` | author and committer of the factory's commits; non-empty name and email. The default is `DEFAULT_GIT_IDENTITY` (`factory.hosting.domain.git`), the one place that spells it; `factory.shared.domain.settings` re-exports the same object, and an unset instance setting falls back to it. `checkout` and `state_directory` are read from `FACTORY_CHECKOUT` and `FACTORY_STATE` (`CHECKOUT_VARIABLE`, `STATE_VARIABLE`), default `CHECKOUT_PATH` and `STATE_DIRECTORY`; a relative one is `SettingsInvalid(<variable>, "is not an absolute path")`, and the model's validator refuses it with a `ValidationError`. The settings of the stage environment (`FACTORY_DATASET`, `FACTORY_WORKSPACE`, `FACTORY_STAGE_IMAGE` and the others) are in `stage-environment.md`, *The settings and the wiring* |
+| `identity` | `GitIdentity(name="factory", email="factory@noreply.invalid")` | author and committer of the factory's commits; non-empty name and email. The default is `DEFAULT_GIT_IDENTITY` (`factory.hosting.domain.git`), the one place that spells it; `factory.shared.domain.settings` re-exports the same object, and an unset instance setting falls back to it. `checkout` and `state_directory` are read from `FACTORY_CHECKOUT` and `FACTORY_STATE` (`CHECKOUT_VARIABLE`, `STATE_VARIABLE`), default `CHECKOUT_PATH` and `STATE_DIRECTORY`; a relative one is `SettingsInvalid(<variable>, "is not an absolute path")`, and the model's validator refuses it with a `ValidationError`. The settings of the stage environment (`FACTORY_DATASET`, `FACTORY_WORKSPACE`, `FACTORY_STAGE_IMAGE` and the others) are in `machine.md`, *The settings and the wiring* |
 | `environment` | `{}` | extra environment for git; each `GitOptions` has its own dict; `GitCli` adds `GIT_CEILING_DIRECTORIES` = the working copy's parent and `GIT_CONFIG_NOSYSTEM` after it, which no `environment` can lift, so git never looks for a repository above the working copy |
 | `kill_points` | `None` | reached by `push` (see below) |
 | `executable` | `"git"` | the program to run (tests give a stand-in) |
@@ -175,7 +175,7 @@ The branch rule for pushing: `push` and `delete_remote_branch` call `factory.hos
 
 The branch is also named `refs/heads/<branch>` on git's command line, as the source only, with no `:<dst>`. Without it git matches any ref of that name, so `delete_remote_branch("v1")` would delete a tag `v1` and `push("v1")` would push a local tag; with it a tag is never pushed or deleted as a branch. The local operations (`checkout`, `delete_branch`, `merge`, …) keep `check_git_argument`, because git reads no refspec there. Why not an explicit `refs/heads/<b>:refs/heads/<b>` refspec: see `docs/decisions.md`.
 
-Who uses them: a stall or a crash reverts or resets; the tick resets the checkout to the remote; the take's restore of a broken work item is this wrapper's `revert_paths` (`write-paths.md`); a merge or a discard moves the story file.
+Who uses them: a stall or a crash reverts or resets; the tick resets the checkout to the remote; the take's restore of a broken work item is this wrapper's `revert_paths` (`pipeline.md`); a merge or a discard moves the story file.
 
 ### Which part uses which operation
 
@@ -184,7 +184,7 @@ Who uses them: a stall or a crash reverts or resets; the tick resets the checkou
 | `changed_paths` | the preflight and the make-based project commands: the paths changed since a commit |
 | `revert_paths` | the take: puts a deleted or unreadable work item back from the stage-start commit |
 | `merge` | the stage's preparation: merges the main branch into the work item's branch |
-| `ignored` | the take: which changed paths of the dataset the host's own ignore rules ignore (see *The take*, `stage-environment.md`) |
+| `ignored` | the take: which changed paths of the dataset the host's own ignore rules ignore (see *The take*, `machine.md`) |
 | `status`, `reset_to` | the tick: looks at the checkout and resets it to the remote |
 | `reset_to` | also the stage's preparation and the crash recovery: a stall or a crash |
 | `delete_remote_branch`, `delete_branch`, `move` | the merge and the discard |

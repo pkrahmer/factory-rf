@@ -1,19 +1,19 @@
-# The stage environment
+# The stage environment and the project commands
 
-This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes; read the index, `README.md`, first. The modules are `factory.machine.application.stage_environment`, `factory.machine.application.snapshots`, `factory.machine.application.containers`, `factory.pipeline.application.take`, `factory.machine.domain.containers`, `factory.machine.adapters.zfs_snapshots`, `factory.machine.adapters.copy_snapshots`, `factory.machine.adapters.podman_runs`, `factory.shared.adapters.printed_output`, `factory.machine.adapters.fake_snapshots` and `factory.machine.adapters.fake_containers`. The stage protocol calls the stage environment (*The cycle* lists its steps, *The stage environment* the interface). There is one environment, the dataset and the containers: v1.1's `inline` environment and its setting went with F0044-S0008 (*The settings and the wiring*). The wiring also lives in `factory.shared.domain.settings` and `factory.entry.wiring`.
+This file covers the two interfaces through which the factory reaches the dataset a stage runs on and the containers its commands run in, and their fakes, and the project commands and mutation testing; read the index, `README.md`, first. The modules are `factory.machine.application.stage_environment`, `factory.machine.application.snapshots`, `factory.machine.application.containers`, `factory.pipeline.application.take`, `factory.machine.domain.containers`, `factory.machine.adapters.zfs_snapshots`, `factory.machine.adapters.copy_snapshots`, `factory.machine.adapters.podman_runs`, `factory.shared.adapters.printed_output`, `factory.machine.adapters.fake_snapshots` and `factory.machine.adapters.fake_containers`. The stage protocol calls the stage environment (*The cycle* lists its steps, *The stage environment* the interface). There is one environment, the dataset and the containers: v1.1's `inline` environment and its setting went with F0044-S0008 (*The settings and the wiring*). The wiring also lives in `factory.shared.domain.settings` and `factory.entry.wiring`.
 
 ## The cycle
 
 A stage runs in the order below (`planning/v1.2-plan.md`, "The cycle of a stage"). Each step names the section that describes it. The sections for the details are *The stage environment* and *The container environment*.
 
-1. The factory claims the stage and commits the claim, outside the environment (`stages.md`).
+1. The factory claims the stage and commits the claim, outside the environment (`pipeline.md`).
 2. `prepare` rolls the dataset back to `@base` (*The snapshots*, *The container environment*).
 3. `prepare` syncs the checkout in a sync container (*The sync command*, *The container runs*).
 4. `prepare` moves `@base` forward to the synced dataset (*The snapshots*).
 5. `run_agent` runs the agent in its own container (*The agent's container*).
 6. `take` copies what the role may write into the factory's work tree (*The take*).
 7. The stage's checks run on a clean base with the taken files (*The checks*).
-8. The factory commits and pushes what it took, and decides the stage (`stages.md`).
+8. The factory commits and pushes what it took, and decides the stage (`pipeline.md`).
 
 ## The snapshots
 
@@ -208,7 +208,7 @@ No test runs a real `podman`; it runs only on the VM. `tests/support/podman_supp
 ### Who calls what
 
 - `StageLauncher.launch`, after the claim is pushed and the pull request ensured and before the cost record begins: `prepare(stage_start.commit, branch, sync_time_limit=...)`, then `run_agent(request, run=PatientRuns(boundaries).run)`. An error from `prepare` ends the launch like one from the agent runtime, after the claim and before any run or cost record.
-- `AfterAgent.process`: `take(started.stage_start, started.path)` once the result and the decision are accepted. `AgentAftermath.take` carries the report, and the entry's closing paragraph names `take.left` (see `stages.md`, *After the agent run*).
+- `AfterAgent.process`: `take(started.stage_start, started.path)` once the result and the decision are accepted. `AgentAftermath.take` carries the report, and the entry's closing paragraph names `take.left` (see `pipeline.md`, *After the agent run*).
 - `agent_run_probe_item` (the preflight): `stage_environment_of(boundaries).run_agent(request)`. The probe calls no `take`: nothing of its run reaches the checkout.
 - `StallService.stall`, with a stage start, after the checkout is put back on the work item's branch: `take(context.stage_start, context.path)`, whatever the reason (`check_red` included), and its report is `StallResult.take`. A stall after `AfterAgent`'s take is a second take within one stage. `StageFinisher` takes only through its stall service: the checks go through `boundaries.project_commands`.
 
@@ -275,13 +275,13 @@ Each duration is in seconds with one decimal (Python's rounding). `reset`, `sync
 
 ### Wiring and tests
 
-`Boundaries.snapshots` and `Boundaries.containers` (see `watching.md`, *Boundaries*) default to `None`; `stage_environment_of` picks the container environment only when both are set. `StageRunner` builds one environment per runner, as *One environment per runner* says.
+`Boundaries.snapshots` and `Boundaries.containers` (see `pipeline.md`, *Boundaries*) default to `None`; `stage_environment_of` picks the container environment only when both are set. `StageRunner` builds one environment per runner, as *One environment per runner* says.
 
 The suite's stages run on it: the `boundaries` fixture holds `FakeSnapshots(workspace, base)` and `FakeContainerRuns(workspace)` under `tmp_path` (an empty base), and `container_dataset` takes them from the fixture. The host checkout of the fixture is the upstream, with real `git` and `make` as child processes on the host (the container is played, not run). `tests/support/container_support.py` holds the helpers: `container_dataset`, `push_main` and `sync_makefile` (a `Makefile` whose `sync` writes a marker), `dataset_git`, `local_branches` and `timing_lines`, and the whole stage on a dataset (`whole_stage`, `assert_taken_and_pushed`). Tests: `tests/machine/application/test_container_environment.py` (`prepare` and `run_agent`), `tests/pipeline/application/test_container_environment_take.py` (the take, the timing line and a whole stage through `StageRunner` with the host's project commands), `tests/pipeline/application/test_container_stage_checks.py` (the whole stage through the check container: `ContainerMakeCommands` runs the sync container and one check container per check on the taken result, and the next `prepare` starts from the pushed head with nothing left over), `tests/pipeline/application/test_stage_environment_of.py`, `tests/pipeline/domain/test_checks_last_line.py` and `tests/pipeline/adapters/test_make_last_line_shared.py`. The wiring of the real tools is *The settings and the wiring*.
 
 ## The sync command
 
-`make sync` is the fourth target of the project contract (`processes-and-checks.md`, *Project commands*). For a project it must bring the checkout's tools up to date and nothing else: `uv sync --frozen` in the template, the project's own command in another stack. It must work on a checkout without ignored state and end with its usual green line. The sync container's time limit is the `time_limit` of the `sync` project command, as *The sync time limit* (under *The stage environment*) says. It runs in the sync container of `prepare` and before every check.
+`make sync` is the fourth target of the project contract (*Project commands*). For a project it must bring the checkout's tools up to date and nothing else: `uv sync --frozen` in the template, the project's own command in another stack. It must work on a checkout without ignored state and end with its usual green line. The sync container's time limit is the `time_limit` of the `sync` project command, as *The sync time limit* (under *The stage environment*) says. It runs in the sync container of `prepare` and before every check.
 
 ## The agent's container
 
@@ -289,7 +289,7 @@ Step 5 of the cycle belongs to the agent runtimes, not to `ContainerEnvironment`
 
 ## The take
 
-In the container environment the agent works on the dataset and may write anywhere it reaches; nothing of that survives but what the take copies. `TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths)` (`factory.pipeline.application.take`) applies the write paths' refusal rule (see *The take's rule*, `write-paths.md`): what the role may write goes from the dataset at `mount_point` into the work tree `boundaries.checkout`, the rest stays in the dataset. `changed_paths` are those of `Snapshots.changed_paths()`, relative to `mount_point`. `ContainerEnvironment.take` calls it (see *The container environment*).
+In the container environment the agent works on the dataset and may write anywhere it reaches; nothing of that survives but what the take copies. `TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths)` (`factory.pipeline.application.take`) applies the write paths' refusal rule (see *The take's rule*, `pipeline.md`): what the role may write goes from the dataset at `mount_point` into the work tree `boundaries.checkout`, the rest stays in the dataset. `changed_paths` are those of `Snapshots.changed_paths()`, relative to `mount_point`. `ContainerEnvironment.take` calls it (see *The container environment*).
 
 ### The seven steps
 
@@ -313,13 +313,13 @@ The service makes no commit, runs no git command on the dataset and never writes
 
 ### Errors
 
-`WorkItemFormatError` (step 1), `ValueError` from `copy_changed`, and `GitError` from `ignored` (see *The git wrapper*, `git-and-hosting.md`). A `ValueError` or `GitError` can come after the baseline was read but before step 5 copies anything.
+`WorkItemFormatError` (step 1), `ValueError` from `copy_changed`, and `GitError` from `ignored` (see *The git wrapper*, `hosting.md`). A `ValueError` or `GitError` can come after the baseline was read but before step 5 copies anything.
 
 Tests: `tests/pipeline/application/test_take.py` and `tests/pipeline/application/test_take_edges.py`, built on `tests/support/undo_support.py` and `tests/support/take_support.py` with a dataset folder in `tmp_path`; `tests/hosting/adapters/test_git_cli_check_ignore.py` for `ignored`.
 
 ## The checks
 
-Step 7 of the cycle in `planning/v1.2-plan.md` ("The cycle of a stage"): the stage's checks see the taken result on a clean base. `ContainerMakeCommands` (`factory.machine.adapters.make_commands`) does it for every project command: it rolls the dataset back to the base, copies in the files the take brought into the host's work tree, and runs `make sync && make <command>` in a container with the command's time limit. The steps, the environment and the faults are in `processes-and-checks.md`, *Container project commands*. `ContainerMakeCommands(..., extra_environment={}, ca_bundle=None)` gives the container `{**extra_environment, **CHECK_ENVIRONMENT, "PATH": path}` (the constants and the image's `path` win) and mounts `ca_bundle` read-only at its own path; `build_boundaries` hands it the same extras as the sync and the agent. A file a check makes stays in its container's dataset and is reset away by the next run; it never reaches the host.
+Step 7 of the cycle in `planning/v1.2-plan.md` ("The cycle of a stage"): the stage's checks see the taken result on a clean base. `ContainerMakeCommands` (`factory.machine.adapters.make_commands`) does it for every project command: it rolls the dataset back to the base, copies in the files the take brought into the host's work tree, and runs `make sync && make <command>` in a container with the command's time limit. The steps, the environment and the faults are in *Container project commands*. `ContainerMakeCommands(..., extra_environment={}, ca_bundle=None)` gives the container `{**extra_environment, **CHECK_ENVIRONMENT, "PATH": path}` (the constants and the image's `path` win) and mounts `ca_bundle` read-only at its own path; `build_boundaries` hands it the same extras as the sync and the agent. A file a check makes stays in its container's dataset and is reset away by the next run; it never reaches the host.
 
 What is copied is what differs from `HEAD` on the host (`git.changed_paths("HEAD")`), not a list the take kept. After the take that is the taken files, the restored work item and the factory's cost record; at the preflight's `lint` on `main` it is nothing. Nothing is remembered between the take and the checks (decision 7 of the feature): `HEAD` and the host's work tree already say what the take brought, so no list is kept that could disagree with them. The copy is `copy_changed`, the take's own mirror, so the two directions share one rule for links, modes, deletions and refused paths.
 
@@ -368,7 +368,7 @@ A project adds a layer to the stage image with the file `factory/stage.Container
 
 ## The preflight
 
-The preflight (`factory.machine.application.preflight`; the tick, the stamp and the stops are in `watching.md`) has one list of items. `machine_extras` (`factory.entry.wiring`) gives, in this order: `token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `metadata-block` under `FACTORY_CONTAINER_PROFILE=job` only, `opencode` under opencode only, `agent-run-probe`; with `FACTORY_SNAPSHOTS=copy` the items are `token-file`, `podman`, `snapshots`, `stage-image`, `metadata-block` under `job` only, `opencode` under opencode only and `agent-run-probe`. It builds the snapshots (a `ZfsSnapshots` or a `CopySnapshots`) and a `PodmanRuns` of its own through `_container_adapters`, the function `build_boundaries` also calls, because `boundaries.snapshots` and `boundaries.containers` are typed as the interfaces and nothing narrows them. Building them runs no command.
+The preflight (`factory.machine.application.preflight`; the tick, the stamp and the stops are in `pipeline.md`) has one list of items. `machine_extras` (`factory.entry.wiring`) gives, in this order: `token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `metadata-block` under `FACTORY_CONTAINER_PROFILE=job` only, `opencode` under opencode only, `agent-run-probe`; with `FACTORY_SNAPSHOTS=copy` the items are `token-file`, `podman`, `snapshots`, `stage-image`, `metadata-block` under `job` only, `opencode` under opencode only and `agent-run-probe`. It builds the snapshots (a `ZfsSnapshots` or a `CopySnapshots`) and a `PodmanRuns` of its own through `_container_adapters`, the function `build_boundaries` also calls, because `boundaries.snapshots` and `boundaries.containers` are typed as the interfaces and nothing narrows them. Building them runs no command.
 
 The items that reach the machine take callables, so `application` knows no adapter:
 
@@ -385,3 +385,74 @@ The items that reach the machine take callables, so `application` knows no adapt
 Both probes go through the environment like a stage. `agent_run_probe_item` resolves `origin/main` (none fails the item with `no origin/main to prepare the stage environment from`, and no run starts), calls `stage_environment_of(boundaries).prepare(main, MAIN_BRANCH, sync_time_limit=PROBE_TIME_LIMIT)` and then `run_agent` on the same object; `SnapshotError` and `ContainerError` from `prepare` fail the item with their message. `Preflight._run_probe` calls the same `prepare` after it puts the checkout on `main` and before `lint`; `Preflight.run` catches both errors beside `GitError` and `ProjectCommandError` and stops with `the probe on main could not run: <error>`.
 
 Tests: `tests/machine/application/test_preflight_metadata_block.py`, `tests/entry/test_wiring_metadata_block.py`, `tests/machine/application/test_container_items.py`, `test_opencode_item_container.py`, `test_machine_checks_container.py`, `test_agent_run_probe_environment.py`, `test_preflight_run_environment.py` and `tests/entry/test_wiring_container_extras.py`.
+
+## Project commands
+
+The factory reaches a project's build only through the `ProjectCommands` interface (an abstract base class, `factory.machine.application.project_commands`). It has one operation, `run(command, *, time_limit) -> CheckResult`. (The preflight, `factory.machine.application.preflight`, prepares the dataset before its probes: see *The preflight*.) `MakeProjectCommands(directory, kill_points=None, *, executable="make", user=None)` (`factory.machine.adapters.make_commands`) is the first implementation. It inherits `ProjectCommands`. `ContainerMakeCommands` is the second (*The checks*). The string `"make"` appears in this module alone, `factory.machine.adapters.make_commands`; `tests/guards/test_make_search.py` allows exactly that one (the preflight no longer asks for `make` on the host). The pipeline uses the results, and so does the preflight's probe.
+
+`run` starts `<executable> --no-print-directory <command>` in `directory` through `run_process`, with stderr merged into stdout. The environment is the current one less `MAKELEVEL`, `MAKEFLAGS` and `MFLAGS`. Without that, a run inside `make check` (where `MAKELEVEL` is set) would print `make[N]: Entering directory` lines that a run on its own does not. `directory` is where make finds the project's Makefile.
+
+The contract between a project and the factory is four make targets: `check`, `lint`, `test` and `sync`. `sync` is the fourth: the command that brings a checkout's tools up to date after a checkout (`uv sync --frozen` for Python; another stack names its own command in the same target). It is run by the stage environment, in its sync container before every agent run and in its check container before every check (above), and never as a stage's `checks` or `reports`; `check` does not run it. `template/Makefile` has the target and `template/factory/pipeline.yml` the command `sync` with a time limit. This repository's own `Makefile` has the target `sync` (`uv sync --frozen`), and its `factory/pipeline.yml` has the command `sync` with `time_limit: 5`.
+
+The records go through `RecordLog[R]` (`factory.shared.application.files`), an interface for an append-only file of records: `append(record)` raises `OSError` when it cannot write, `read()` gives the records in file order, `[]` without a file, and skips a blank line, a line that is not UTF-8 and a line that does not validate. `JsonLinesRecordLog(path, model)` (`factory.watching.adapters.record_log_jsonl`) is its implementation: one `model_dump_json()` line per record, written in one write to the file opened for appending, the folder created on the first append. It reads the file's bytes, splits them at `\n` alone and decodes each line on its own as strict UTF-8, so a line cut inside a multibyte character by a kill is skipped and a record holding U+2028, U+2029 or U+0085 stays whole (`str.splitlines` would cut it). A record appended after a torn line shares its line and is skipped with it. `build_boundaries` points it at `<state directory>/records/project-commands.jsonl`. Tests use `UnwritableRecordLog` (`tests/support/record_support.py`) for a log that cannot be written.
+
+The disk record uses the same log. `DiskRecord` (`factory.machine.domain.disk`: `at`, `occasion` of `DiskOccasion` = `start` or `acceptance`, and `folders`, a list of `DiskUse` with `path`, `free_bytes` and `used_bytes`, `None` when unknown) is what `Boundaries.disk_records` holds; `disk_line(record)` is its factory log line. `DiskRecorder(boundaries)` (`factory.machine.application.disk_records`) measures the checkout's parent, the state directory and, when `InstanceSettings.temporary_directory` is set, that directory through `DiskSpace`: `record(occasion)` appends the record, logs its line and returns it (a failed append is logged and the record still returned), and `last()` gives the latest record whatever its occasion. `run_instance` records `start` once; `read_environment_settings` sets `temporary_directory`, `read_settings` does not. `build_boundaries` points the log at `<state directory>/records/disk.jsonl`.
+
+The tests run under the umask pytest was started with; no module under `tests/` sets one, except the fixture `umask_of` of `tests/agents/adapters/test_calls_as_the_factory_user.py`, which sets a umask for one test and puts the earlier one back. Test: `tests/guards/test_tests_run_under_the_starting_umask.py`.
+
+The suite removes the agent's two login variables, `CLAUDE_CODE_OAUTH_TOKEN` and `ANTHROPIC_API_KEY` (`LOGIN_VARIABLE` and `API_LOGIN_VARIABLE` of `factory.agents.adapters.agent_launch`), from every test's environment: the autouse fixture `without_agent_login` in `tests/conftest.py` calls `monkeypatch.delenv` for each. An agent's run holds them, a child process that gets the process's own environment (the `version()` calls of both runtimes) inherits them, and an assertion message prints what it compares, so a failing test could print a key into the run's output. A test may still set either name with `monkeypatch.setenv`; `monkeypatch` restores the process's value afterwards. An assertion about an environment compares names, `set(environment)`, never the mapping, so that a failure prints names and no value. Test: `tests/guards/test_no_agent_login.py`.
+
+#### Known results
+
+`KnownResults(boundaries, definition)` (`factory.pipeline.application.known_results`) is what `StageFinisher` runs a stage's checks and reports through (see `pipeline.md`, *`StageFinisher.finish`*). `run(command)` gives a `CheckResult` and works in this order. Its records are `Boundaries.result_records`; `build_boundaries` points a `JsonLinesRecordLog` at `<state directory>/records/known-results.jsonl`.
+
+1. It builds the `ResultKey` (`factory.pipeline.domain.known_results`; frozen, no unknown keys): `command`, `tree` from `Git.work_tree_id(not_read)` with the command's `not_read` (S0001), `definition` from `definition_digest(definition)` (the SHA-256 of `definition.model_dump_json()`, computed once in the constructor, 64 lower-case hex characters, `DefinitionDigest`) and `image` from `settings.image`. A `GitError` logs `known results: no key for <command>: <error>` and runs the command with no record.
+2. It reads the records (an `OSError` logs `known results: cannot read the records: <error>` and counts as none) and asks `known_result(records, key)`: the last record of the key that is a real run (`reused` is `None`), when its status is `passed`; otherwise `None`. Reuse records are skipped, so a reuse never extends or ends a pass, and a later failed run of the key ends it.
+3. A known result is not run again. A `ResultRecord` with `status` `passed`, `duration_seconds` 0 and `reused` the first run's `at` is appended, and the result is a `CheckResult` with exit status 0, duration 0, the earlier `last_line`, an empty `output_tail`, no `targets` and `reused=ReusedRun(tree, at)`.
+4. Otherwise the command runs, the clock is read before it, and a `ResultRecord` (`key`, `at`, `status`, `last_line`, `duration_seconds`, `reused=None`) is appended. A failed append logs `known results: cannot write the record of <command>: <error>` and the result is still returned. A `ProjectCommandError` or `ValueError` of the run propagates and records nothing.
+
+`ResultRecord` refuses a `reused` on a status other than `passed`. `ReusedRun` (`factory.pipeline.domain.checks`: `tree`, `at`) is the earlier run a reused `CheckResult` took, and `command_line(result)` is the line of a result in an entry: `` `<command>`: <last line> `` and, for a reused result, `` (not run again: passed on tree <first 12 characters> at <UTC, whole seconds>) `` after it. For a result whose status is `time_limit` the line ends with `` (stopped at its time limit after <s> s) ``, `<s>` being `int(duration.total_seconds())` (whole seconds, rounded down), and with an empty `last_line` the note follows `` `<command>`: `` directly. A reused result is always `passed`, so the two notes never meet; a passed or failed result gets no note. Test: `tests/pipeline/domain/test_command_line_time_limit.py`, `tests/pipeline/application/test_stage_time_limited_report.py`.
+
+`RecordingProjectCommands` sits under `boundaries.project_commands` and is unchanged: it records every real run and sees no key. The preflight's probe does not use `KnownResults`. Tests: `tests/pipeline/domain/test_known_results.py`, `tests/pipeline/domain/test_command_line.py`, `tests/pipeline/application/test_known_results.py`, `tests/pipeline/application/test_stage_known_results.py`, `tests/entry/test_wiring_known_results.py`.
+
+A project declares its own layers and checks them with a project command of its own. To add the layers check, the project adds a make target (for example `layers`, which calls its tool through uv) to its Makefile and, where it belongs in the gate, makes `check` depend on it. The factory sees only that target's `CheckResult`: its status, `last_line` and `output_tail`.
+
+```python
+result = MakeProjectCommands(Path(".")).run("check", time_limit=timedelta(minutes=10))
+if not result.passed:
+    print(result.status, result.exit_status, result.last_line)
+```
+
+Tests write a Makefile into `tmp_path` and run the class against it; nothing is faked.
+
+## Mutation testing
+
+`make mutants` runs mutmut over the modules you name. It is not part of `make check`: it is slow. No stage and no agent runs it: mutation testing runs only as sweeps outside the factory, which the human starts (*Mutation testing runs only as sweeps outside the factory* and *The mutants target keeps only its sweep form* in the decision log).
+
+Nothing is kept between runs. Every run removes `mutants/` first, so mutmut makes it anew, copies the other files under `src/` (the contract's schemas) afresh and runs its stats again. A run therefore pays the stats every time (the operator guide, *Mutation testing by sweep*, gives the cost).
+
+**The modules** come from one of two variables:
+
+- `MODULES`, dotted modules or packages, each run by its pattern `<name>.*`: `make mutants MODULES='factory.machine.domain.disk factory.pipeline.application'`.
+- `FEATURE=<id>` (for example `make mutants FEATURE=F0012`): the modules under `src/factory` that the feature's story commits changed on `origin/main`, found from the commit subjects that start `work item <id>-S<nnnn>:` (or v1's older form, which the `FEATURE_MODULES` pattern in the `Makefile` names). It needs a checkout with its history.
+
+`MODULES` wins when both are given. With neither, the target prints `mutants: set MODULES or FEATURE, as in make mutants MODULES=factory.machine.domain.disk or make mutants FEATURE=F0012` and fails. When the feature changed no module, it prints `mutants: no module under src/factory changed by <id>` and exits 0.
+
+**The limits** are optional:
+
+- `MUTANTS_SECONDS` stops mutmut with `timeout` after that many seconds. With it unset there is no stop. A stopped run then fails with `mutants: stopped after <n> s, so the mutants it did not reach are not checked`. `timeout` puts mutmut into a process group of its own, but it stays in `make`'s session: a `make mutants` run through the factory's project commands (`MakeProjectCommands.run`) and killed at its time limit loses `make`'s process group only (*Killing a process group*), so a mutmut that `timeout` put into a group of its own is not ended by that kill (since F0044-S0010). A caller that kills `make` itself, such as a shell's `timeout`, reaches only `make`'s group too.
+- `MUTANTS_CHILDREN` passes `--max-children`. mutmut's default is every core the machine reports, also in a container limited to fewer.
+
+**The temporary folder.** The recipe runs mutmut with `TMPDIR` set to a folder of its own, made by `mktemp -d`, and its `EXIT` trap opens that folder for its owner and removes it. This happens also after a stop (`MUTANTS_SECONDS`) and after a failed run, so a run leaves `/tmp/pytest-of-<user>` as it found it (*make mutants runs under a temporary root of its own* in the decision log). A run that the factory kills at its time limit (`MakeProjectCommands.run`, *Killing a process group*) ends `make`'s group with SIGKILL, which runs no `EXIT` trap: the temporary folder stays, under the `TMPDIR` of the caller of `make`, and the operator removes it by hand. A process that one of mutmut's tests started through `factory.shared.adapters.process` is not in that session, because the code under test starts every command in a session of its own (`start_new_session`): the kill does not reach it, and it runs on until it ends by itself. This was seen on 2026-10-20: `make mutants`, killed by the factory at 50 s during mutmut's stats run, left the fake `claude` of `tests/agents/adapters/test_claude_runtime.py::test_call_over_its_time_limit_is_killed_with_unknown_measures` running for up to its 60 s.
+
+**The result.** The recipe ends with `uv run mutmut results` without the `not checked` lines. mutmut generates mutants for every module, and those outside the chosen ones stay `not checked`, so the listing holds only this run's mutants that mutmut did not kill, and none that a stop left unreached. A module with no mutant (mutmut mutates only functions without a decorator, so a module of interfaces, models or constants has none) is a run with nothing to check, not a failure.
+
+To read one survivor:
+
+```
+uv run mutmut show <name>
+```
+
+## Replaced in v1.2
+
+- *Running a project command as another user* (F0044-S0005): `MakeProjectCommands` runs `make` as the factory's own user and takes no user. The `sudo` chain and the second user are gone: every instance runs a project command in a check container, and `MakeProjectCommands` stays for the suite (*The checks*). The decision log keeps the chain that stood here (*The project commands run as the agent user, with the git folder sealed*).

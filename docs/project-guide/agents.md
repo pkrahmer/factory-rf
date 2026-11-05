@@ -1,6 +1,6 @@
-# The agent runtime, the agent files and the template
+# The agent runtime, the agent files, the template and the write paths
 
-This file covers the agent runtime, the agent files, the shipped agents and the template; read the index, `README.md`, first.
+This file covers the agent runtime, the agent files, the shipped agents, the template and the write paths; read the index, `README.md`, first.
 
 ## The agent runtime
 
@@ -25,7 +25,7 @@ With `login_file` or `api_login_file` set, every call (not `version()`) starts t
 
 ### Calls in a container
 
-Both runtimes take `containers: ContainerRuns | None = None`, readable as the `containers` property. This is step 5 of the cycle (*The agent's container* in `stage-environment.md`); the wiring that gives the runtimes their `PodmanRuns` is not part of the runtimes.
+Both runtimes take `containers: ContainerRuns | None = None`, readable as the `containers` property. This is step 5 of the cycle (*The agent's container* in `machine.md`); the wiring that gives the runtimes their `PodmanRuns` is not part of the runtimes.
 
 - The run's files are the same as on the host: the instructions file (Claude Code) or the configuration file (opencode) in the state directory, nothing else. Each call's `ProcessRequest` comes from `container_launch` instead of `run_launch`, the choice made in the runtime's `_process_request`. Its words are the same as on the host (the login shell words, then the runtime's), The files it mounts are `[*login_paths(files), <the call's file>]`, read-only at their own paths, so the words do not change. The environment is `{**extras, **run_environment(...)}`: for Claude Code the three switches, for opencode `OPENCODE_CONFIG` (the configuration file's path) and its switches, beneath which sit the operator's extras (`extra_environment` of the runtime's constructor: the names of `FACTORY_CONTAINER_ENV` and the CA variables), so a name the request or the runtime sets wins and `without_login` still removes the login names afterwards. `ca_bundle` is added to the mounted files, read-only at its own path. The working directory in the container is `/work/checkout` and `HOME` is whatever the request's environment says (`/work/home` in a stage); the request's `working_directory` is the `cwd` of podman on the host.
 - Nothing follows the call: the container ends with it, and podman's `--timeout` ends it whole. The login files are mounted, so the login shell reads them as ever and `factory-login-used:` is read as ever.
@@ -296,7 +296,7 @@ To change what an agent is told, edit its file under `claude/agents/`; there is 
 - `template/CLAUDE.md`, the starting rules file of a Python project. It has placeholders in angle brackets for the project's own architecture, test framework and checks, and it carries the Python lessons of v1.1's build (the `mypy --strict` traps in tests, low-entropy hexadecimal test values, and the time-limit lesson: a test that waits for a time limit gives the process it starts room to start). It also gives a standing leave to move a shared test helper: a helper, constant or fixture that a new test would copy from another story's test module, or that an earlier module still holds as a copy, may be moved to one shared place under `tests/`, and the earlier tests changed to use it, without asking, as long as every earlier test keeps its name and checks the same thing. The tester makes the move, never the coder; any other change to another story's test still needs the human's leave.
 - `template/Makefile`, the project commands of a Python project with a src layout, in the pattern of `kumpel-factory`'s own. Its targets are the contract's four, `check`, `lint`, `test` and `sync` (`uv sync --frozen`, between `check` and `lint`, not run by `check`), and the other targets `check` runs: `types`, `layers`, `sast`, `secrets` and `licenses`. Every recipe runs in one shell and ends with `<target>: green (<seconds> s)`; `make test` runs on every core and writes a JUnit report; `make secrets` scans the files changed against `origin/main`, and leaves out `uv.lock`, `.secrets.baseline` and every file ending `.costs.jsonl`. Those are the factory's cost records: they hold run metadata and no secret, and their 32-character hexadecimal run ids read to detect-secrets as high-entropy secrets, which made the coder's `make check` red at the tiny story of 2026-10-18 (F0099-S0001 on the todo demo). The todo demo's `secrets` recipe is the template's, and `tests/agent_files/test_demo_makefile_secrets.py` keeps them equal. `duplicates` is a report outside `check`: it writes similar code and dead code to `.reports/` and counts them, and compares them with no baseline. `mutants` is for a sweep by hand and is never run by a stage: `make mutants FEATURE=<feature id>` runs mutmut over the modules that the feature's story commits on `origin/main` changed, found by the subjects `work item <id>: ...` (or `<id>: ...` after a squash merge), and `FEATURE` is taken from an acceptance's branch `work-item/<feature id>-A<number>`. There is no `documents` target. A project fills in two placeholders, `SOURCE` (its package folder) and `LAYERS` (its layers command), and the file's header names the development dependencies the targets need.
 
-The template ships no forms. The story and feature forms (`factory/story-form.md`, `factory/feature-form.md`) are the human's to add to a project made from it. Until `factory/story-form.md` exists, `StoryFormChecker` (see *The story form check* in `stages.md`) stops every stage.
+The template ships no forms. The story and feature forms (`factory/story-form.md`, `factory/feature-form.md`) are the human's to add to a project made from it. Until `factory/story-form.md` exists, `StoryFormChecker` (see *The story form check* in `pipeline.md`) stops every stage.
 
 ## Replaced in v1.2
 
@@ -331,3 +331,42 @@ The shipped agents carry v1's texts, renamed with this table (the sentences are 
 | `Assignment`, `## Assignment` | `Description`, `## Description` |
 | `## Log (append only)` | `## Journal` |
 | `## Demo`, Demo (the story's section) | `## Smoke test`, smoke test |
+
+## The write paths
+
+What an agent may write is decided in one place, for the take of a stage.
+
+### Where they come from
+
+`WritePathService(boundaries).at(stage_start, work_item_path)` (`factory.agents.application.write_paths`) returns the `WritePathSettings` of the claimed stage. It reads `factory/pipeline.yml` at `stage_start.commit` with `git.show_file` and parses it with `pipeline_reader`; it never reads the work tree's copy, so an agent that rewrites the pipeline definition widens nothing and an invalid rewrite breaks nothing. The write paths are those of the role of `stage_start.claim.stage`, expanded; `root` is `boundaries.checkout`; `protected_paths` is `PROTECTED_PATHS`.
+
+It parses the definition itself and does not use `PipelineLoader`, which stays the one place that loads the definition for the tick. This read has another purpose: it checks no installed agent file and raises or clears no stop.
+
+Errors: `ValueError` when `work_item_path` is not `factory/features/<feature directory>/<lifecycle folder>/<work item file name>`. `PipelineDefinitionInvalid`, naming the fault, when the definition is absent or invalid at the commit, when the stage is not in it or has no role, and when a write path holds a placeholder other than the two below.
+
+### Matching and placeholders
+
+`factory.agents.domain.write_paths`, all pure. `matches_any(path, patterns)` is `fnmatch.fnmatchcase`: case-sensitive, and `*` also matches `/` (`src/*` matches `src/a/b.py`; `SRC/a.py` does not match). `is_writable(path, write_paths)` adds a safety test: an empty path, a path beginning with `/` and a path with a `..` segment are never writable (`src/../factory/pipeline.yml` does not pass `src/*`); `src/..x/a.py` is safe. Callers pass normalised repository paths (POSIX separators, no `.` or empty segment, no trailing `/`).
+
+`expand_write_paths(patterns, work_item_path=..., feature_path=...)` replaces `{work_item}` with the work item's path and `{feature}` with the feature's path, `factory/features/F0004-x` (the work item's path without its last two segments), keeps the order and leaves other patterns as they are. Any other `{name}` of lowercase letters and underscores raises `ValueError` naming it; a brace that is no such name (`{Feature}`, `{1}`) stays.
+
+### Protected paths and the refusal
+
+`PROTECTED_PATHS` is the engine's fixed list of twelve patterns: `.claude/*`, `*/.claude/*`, `CLAUDE.md`, `Makefile`, `pyproject.toml`, `uv.lock`, `factory/pipeline.yml`, `factory/story-form.md`, `factory/feature-form.md`, `feature.md`, `*/feature.md` and `factory/agents/*` (a project's own agents, `PROJECT_AGENTS_DIRECTORY` in `factory.shared.domain.paths`). The last pattern reaches subfolders too; `factory/agentsx/coder.md` and `docs/factory/agents/coder.md` are not protected. No write path can reach them, and a project cannot change the list. A `.claude` segment is protected at any depth (`src/.claude/skills/x/SKILL.md`) and only as a whole segment: `src/.claudex/a`, `src/x.claude/a`, `claude/agents/coder.md` and a path that only ends in `.claude` are not. The patterns are anchored: `docs/CLAUDE.md` and `src/pyproject.toml` are not protected. `docs/project-guide/` is not protected; the documenter keeps it.
+
+`refusal(path, settings)` is the one verdict, `None` when the write is allowed, else a text, checked in this order:
+
+1. `<path> is not a path inside the checkout.` (unsafe path, as above)
+2. `<path> is owned by the human; a change there is a question.` (matches `settings.protected_paths`, even when a write path also matches)
+3. `<path> is outside the write paths of this stage.` (matches no write path)
+
+Tests: `tests/agents/domain/test_write_paths.py`, `tests/pipeline/application/test_write_paths.py`; a later version of the definition is made with `human.push_file("main", "factory/pipeline.yml", text)` and `checkout.fetch()`.
+
+## Replaced in v1.2
+
+The kernel's write guard went with F0044-S0002; the write paths are kept by other means.
+
+- *The kernel's targets* (`write_targets`, `confinement_of`, the tool paths): replaced by the dataset's rollback and the take, which copies only the changed paths the role may write.
+- *The kernel's write guard* (`factory.adapters.landlock`): replaced by the dataset's rollback and the take.
+- *The start wrapper* (`factory-confine`, `factory.entry.confine`, `replace_process`): replaced by the dataset's rollback and the take; an agent call starts without a wrapper.
+- *The end of a run's processes* (`factory.entry.leftovers`, `factory.domain.leftovers`, `own_identity`, `signal_every_other`): replaced by the end of the call's container, which podman's time limit ends whole (F0044-S0003); the kill of a call at its time limit stays.
