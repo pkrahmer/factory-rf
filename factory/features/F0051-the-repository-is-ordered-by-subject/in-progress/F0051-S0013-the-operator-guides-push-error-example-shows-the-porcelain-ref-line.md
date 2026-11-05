@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 555
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T00:06:51.136317Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-05T00:06:51.136317Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T00:07:09.821781Z'
+  stage: intake
+  run: 8037b0aac87d47b3824f622d4b22235c
 ---
 
 # The operator guide's push error example shows the ref line the factory writes
@@ -71,3 +73,9 @@ Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [re
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: docs-only story, no module or signature changes (stated). The two edits are located and match the guide today: `docs/operator-guide.md:2487` holds the `-> work-item/` example line and line 2498 holds `` `! [remote rejected]` ``. Both are named exactly.
+   - Criteria: criterion 1 is checkable by grep (exact line and no `-> work-item/`), criterion 2 by grep (new wording; old string gone), criterion 3 by a diff limited to those two lines and an unchanged `docs/decisions.md`, criterion 4 is `make check`. The story states no new rule, limit or error, so there is no failing side to cover.
+   - Smoke test: the greps and the `uv run python -c` command are runnable. The pytest-addopts rule does not apply because none of them runs pytest. Each `Expect:` is checkable (`1`, `0`, the exact ref line). The third command imports `factory.domain.git`, which still exists until S0002, as the feature's build order notes.
+   - Architecture: documentation only, with no layer or wrapper involved. The docs criterion names the operator guide, which the documenter keeps.
+   - Scope: within F0051 (listed first in its build order, carried over from F0050-A0003). It changes no code, no decision-log entry and no behaviour, so nothing in "Out of scope" is touched.
