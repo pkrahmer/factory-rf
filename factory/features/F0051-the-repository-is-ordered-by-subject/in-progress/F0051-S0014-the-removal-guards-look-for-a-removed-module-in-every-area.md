@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T10:19:22.826277Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-05T10:19:17.141812Z'
   stage: review
   run: c38b47396dec4d2a813edd457b63720a
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:19:22.826277Z'
+  stage: doing
 ---
 
 # The removal guards look for a removed module in every area
@@ -247,3 +256,4 @@ Expect: `0`
     - `tests/guards/test_wrapper_out_of_the_call_path.py`: human's leave (journal 4)
     - `tests/pipeline/application/test_stall_environment.py`: human's leave (journal 4); only `test_the_stall_module_imports_no_name_of_the_undo` changes
     - `tests/support/module_names.py`: none needed. It is a support module, not a test; it only gains the helpers the Interface names plus a longer module docstring, and `has_name` and `module_exists` are unchanged.
+13. factory: started doing as vm.
