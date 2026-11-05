@@ -12,6 +12,8 @@ Under `src/factory/` the seven areas, `entry` and `contract` hold all modules. A
 
 Each file starts with a title and a sentence on what it covers.
 
+A guard (`tests/guards/test_project_guide_files.py`) requires every page of the folder to be named in this section and every area to have its page; headings are free.
+
 - `README.md` (this index): what holds for all code. Sections: *The code's layout*, *The files*, *Shared test helpers*, *Errors*, *The models' configuration*, *Kill points*, *Fault-injection paths*, *The demos* (`factory.entry.check_demos`).
 - `style.md`: how the documents read: the rules for all documents, and for the operator guide, the project guide and the README, each with its reader and an example. The documenter and the reviewer judge by it.
 - `glossary.md`: the words the factory gives its own meaning, one entry each, sorted alphabetically.

@@ -1596,3 +1596,11 @@ Date: 2026-11-05.
 - Decision: `docs/project-guide/style.md` is the written standard for all documents. It holds eight rules for all of them. It has one section each for the operator guide (numbered steps), the project guide (the idea first, then the API) and the README (what it is for, then try it).
 - Decision: `docs/project-guide/glossary.md` explains each factory word once. The documents link to it.
 - Why: the human chose these styles on 2026-11-05 from three samples for each document. The documenter and the reviewer need one standard to write and judge by.
+
+## The headings of the guides are not pinned
+
+Date: 2026-11-05 (F0052-S0005).
+
+- Decision: no test pins the headings of the project guide or the operator guide. The two tables of earlier headings and the tests that read them are gone. The project guide's guard reads its rule from the index instead: every page in the folder is named in the index's *The files*, every page named there exists, and every area keeps its page (`index_problems` in `tests/support/guide_files_support.py`). The searches for removed file names and the operator guide's list of topic files stay.
+- Why: the regrouping that the tables guarded is done, and a rewrite following the style page must rename headings without a test change.
+- Rejected: keeping the tables and changing their rows in each rewrite story, which would cost every rewrite a tester and a coder.
