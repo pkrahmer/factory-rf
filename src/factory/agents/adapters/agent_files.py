@@ -5,8 +5,8 @@ from typing import override
 
 from pydantic import ValidationError
 
-from factory.application.agent_runtime import AgentDefinitionReader
-from factory.domain.agent_runs import (
+from factory.agents.application.agent_runtime import AgentDefinitionReader
+from factory.agents.domain.agent_runs import (
     APPLIED_AGENT_KEYS,
     KEY_NOT_APPLIED,
     AgentDefinition,

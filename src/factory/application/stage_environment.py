@@ -7,12 +7,12 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import override
 
+from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.containers import ContainerRuns
 from factory.application.snapshots import Snapshots
 from factory.application.take import TakeReport, TakeService
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.checks import last_line
 from factory.domain.containers import (
     SYSTEM_PATH,

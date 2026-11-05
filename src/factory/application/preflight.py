@@ -9,16 +9,16 @@ from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
-from factory.application.boundaries import Boundaries
-from factory.application.stage_environment import stage_environment_of
-from factory.application.stops import StopService
-from factory.application.take import agent_working_directory
-from factory.domain.agent_runs import (
+from factory.agents.domain.agent_runs import (
     QUESTION,
     AgentDefinition,
     AgentRunRequest,
     Login,
 )
+from factory.application.boundaries import Boundaries
+from factory.application.stage_environment import stage_environment_of
+from factory.application.stops import StopService
+from factory.application.take import agent_working_directory
 from factory.domain.checks import CheckResult, command_ending
 from factory.domain.containers import ContainerResult
 from factory.domain.preflight import (

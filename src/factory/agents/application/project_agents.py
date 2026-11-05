@@ -2,9 +2,9 @@
 
 from typing import override
 
-from factory.application.agent_runtime import AgentDefinitionReader
+from factory.agents.application.agent_runtime import AgentDefinitionReader
+from factory.agents.domain.agent_runs import AgentDefinition, check_agent_name
 from factory.application.pipeline_loading import PIPELINE_REF
-from factory.domain.agent_runs import AgentDefinition, check_agent_name
 from factory.hosting.application.git import Git
 from factory.shared.domain.errors import AgentDefinitionInvalid
 from factory.shared.domain.identifiers import is_name

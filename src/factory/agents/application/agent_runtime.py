@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult
+from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult
 from factory.domain.cost_records import ToolUse
 from factory.domain.transcripts import Transcript
 

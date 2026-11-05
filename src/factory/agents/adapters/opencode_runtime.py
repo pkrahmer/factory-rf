@@ -22,7 +22,7 @@ from pydantic import (
     model_validator,
 )
 
-from factory.adapters.agent_launch import (
+from factory.agents.adapters.agent_launch import (
     ENTRY_DESCRIPTION,
     FINISH_MESSAGE,
     VERSION_TIME_LIMIT,
@@ -47,9 +47,8 @@ from factory.adapters.agent_launch import (
     version_launch,
     version_printed,
 )
-from factory.application.agent_runtime import AgentRuntime
-from factory.application.containers import ContainerRuns
-from factory.domain.agent_runs import (
+from factory.agents.application.agent_runtime import AgentRuntime
+from factory.agents.domain.agent_runs import (
     AgentDefinition,
     AgentRunRequest,
     AgentRunResult,
@@ -58,10 +57,11 @@ from factory.domain.agent_runs import (
     TokenCounts,
     resumed_result,
 )
+from factory.agents.domain.opencode_provider import provider_configuration, read_provider
+from factory.agents.domain.provider_limits import ProviderLimit, limit_in_text, named_wait
+from factory.agents.domain.tool_uses import opencode_tool_uses
+from factory.application.containers import ContainerRuns
 from factory.domain.cost_records import ToolUse
-from factory.domain.opencode_provider import provider_configuration, read_provider
-from factory.domain.provider_limits import ProviderLimit, limit_in_text, named_wait
-from factory.domain.tool_uses import opencode_tool_uses
 from factory.domain.transcripts import Transcript, transcript_lines
 from factory.shared.adapters.process import (
     ProcessRequest,

@@ -5,7 +5,7 @@ from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
 
-from factory.domain.tokens import Token, refresh_wait
+from factory.agents.domain.tokens import Token, refresh_wait
 from factory.shared.domain.errors import TokenError
 
 

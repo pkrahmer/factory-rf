@@ -4,7 +4,7 @@ import re
 from collections.abc import Sequence
 from fnmatch import fnmatchcase
 
-from factory.domain.agent_runs import WritePathSettings
+from factory.agents.domain.agent_runs import WritePathSettings
 from factory.domain.pipeline_definition import (
     FEATURE_PLACEHOLDER,
     WORK_ITEM_PLACEHOLDER,

@@ -8,8 +8,8 @@ import urllib.request
 from contextlib import AbstractContextManager
 from typing import Protocol
 
-from factory.application.tokens import TokenSource
-from factory.domain.tokens import Token, masked
+from factory.agents.application.tokens import TokenSource
+from factory.agents.domain.tokens import Token, masked
 from factory.shared.domain.errors import TokenError
 
 _DESCRIPTION_LIMIT = 200

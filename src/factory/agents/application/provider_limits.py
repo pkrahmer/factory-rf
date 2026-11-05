@@ -3,9 +3,14 @@
 from datetime import timedelta
 from decimal import Decimal
 
+from factory.agents.domain.agent_runs import (
+    AgentRunRequest,
+    AgentRunResult,
+    EndReason,
+    resumed_result,
+)
 from factory.application.boundaries import Boundaries
 from factory.application.machine import Waiter
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult, EndReason, resumed_result
 
 CONTINUE_PROMPT = (
     "The provider's spend limit stopped your run. Continue the work where you stopped, "

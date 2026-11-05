@@ -17,7 +17,7 @@ from pydantic import (
     model_validator,
 )
 
-from factory.domain.provider_limits import (
+from factory.agents.domain.provider_limits import (
     DEFAULT_CEILING,
     DEFAULT_COOLDOWN,
     DEFAULT_LIMIT_STATUS,

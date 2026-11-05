@@ -1,10 +1,10 @@
 """The write paths of a stage, read from the pipeline definition at its stage-start commit."""
 
+from factory.agents.domain.agent_runs import WritePathSettings
+from factory.agents.domain.write_paths import PROTECTED_PATHS, expand_write_paths
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
-from factory.domain.agent_runs import WritePathSettings
 from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition
-from factory.domain.write_paths import PROTECTED_PATHS, expand_write_paths
 from factory.shared.domain.errors import PipelineDefinitionInvalid
 from factory.shared.domain.paths import PIPELINE_DEFINITION_FILE, folder_of
 

@@ -6,7 +6,7 @@ from collections.abc import Mapping, Sequence
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.agent_launch import CONTAINER_KILL_STATUSES
+from factory.agents.adapters.agent_launch import CONTAINER_KILL_STATUSES
 from factory.application.containers import ContainerRuns
 from factory.domain.containers import (
     JOB_PODMAN_OPTIONS,

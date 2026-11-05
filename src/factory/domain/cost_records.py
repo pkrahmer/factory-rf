@@ -14,7 +14,7 @@ from pydantic import (
     model_validator,
 )
 
-from factory.domain.agent_runs import EndReason, Login, TokenCounts
+from factory.agents.domain.agent_runs import EndReason, Login, TokenCounts
 from factory.shared.domain.identifiers import Name, WorkItemId
 from factory.shared.domain.times import UtcDatetime
 

@@ -8,21 +8,21 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, PositiveInt
 
+from factory.agents.application.provider_limits import PatientRuns
+from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
+from factory.agents.domain.died_runs import died_line
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.costs import CostRecorder, CostRun
 from factory.application.handlers.recording import commit_subject
 from factory.application.known_results import KnownResults
-from factory.application.provider_limits import PatientRuns
 from factory.application.stage_environment import StageEnvironment, stage_environment_of
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.take import TakeReport
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
 from factory.application.transcripts import session_transcripts
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.checks import CheckResult, command_line
 from factory.domain.cost_records import ToolUse, TranscriptRef
-from factory.domain.died_runs import died_line
 from factory.domain.pipeline_definition import PipelineDefinition, ProjectCommandDefinition
 from factory.hosting.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.hosting.application.pushes import push_with_retries

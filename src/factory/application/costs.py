@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict
 
+from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.disk_records import bytes_or_unknown
-from factory.domain.agent_runs import AgentRunResult
 from factory.domain.bills import Bill, StageBill, bill, bills_by_stage, cost_line, cost_table
 from factory.domain.cost_records import CostRecord, MachineMeasures, ToolUse, TranscriptRef
 from factory.domain.machine import MachineTotals, machine_differences
