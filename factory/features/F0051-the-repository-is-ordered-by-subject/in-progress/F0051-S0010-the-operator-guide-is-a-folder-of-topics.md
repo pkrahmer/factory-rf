@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 565
-comments_read: [6651800802]
+comments_read: [6651800802, 6651897156]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: e86bea74133c461490e703ed05df3760
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-05T07:03:16.709541Z'
+  stage: tests
 ---
 
 # The operator guide is a folder of topics
@@ -142,3 +147,11 @@ Expect: `split`
    6. Two places where I read the criteria, which you may want to correct:
       - Criterion 2 says "exactly once", but `### The steps` appears twice in the old guide. My test expects it as often as before, twice.
       - Criterion 4 searches `docs/`, but docs/runs/2026-11-04-f0050/log.md and docs/runs/2026-10-12-overnight/night-log.md name `docs/operator-guide.md`, and they are your files that no stage edits. My test leaves out `docs/runs/` as well as `docs/decisions.md`.
+9. 2026-11-05 human: Answers of the human: all as you propose.
+
+   1. The stop-table row check runs on `stops.md`.
+   2. Yes, all eleven files get the wording check.
+   3. The order you name: `README.md`, `docs/operator-guide/README.md`, the ten topic files in the Description's order, `docs/project-guide/README.md`, `docs/decisions.md`, each line ending in `: missing`.
+   4. `OPERATOR_GUIDE_FOLDER = "docs/operator-guide"`, `OPERATOR_GUIDE = "docs/operator-guide/README.md"`, `OPERATOR_GUIDE_FILES` with the ten topic paths, and `DOCUMENT_PATHS` in the order of answer 3.
+   5. Yes, go ahead with those test changes; this answer is the leave for them. Every test keeps its name and what it checks, and your entry names each file.
+   6. Both readings are right: each heading as often as before (`### The steps` twice), and criterion 4 leaves out `docs/runs/` as well as `docs/decisions.md`.
