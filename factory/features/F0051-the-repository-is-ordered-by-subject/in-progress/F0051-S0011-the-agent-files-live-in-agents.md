@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 566
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T07:58:41.038765Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-05T07:58:35.523773Z'
   stage: intake
   run: fda051d1f6c74d9490e464490e4bf6db
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:58:41.038765Z'
+  stage: tests
 ---
 
 # The agent files live in `agents/`
@@ -78,3 +87,4 @@ Expect: `1`
    - Smoke test: three runnable commands, each with an `Expect:` that can be checked (`renamed`, `found`, `1`). None runs pytest.
    - Architecture: this only moves a folder and updates paths. No layer, wrapper or interface changes. The runtime names (`claude_runtime`, the `claude` command, `.claude/`) are explicitly left alone.
    - Scope: it matches feature.md's Scope line "`claude/` becomes `agents/`" and is not in Out of scope; `operator/claude/`, `operator/opencode/` and `docs/decisions.md` are excluded as the feature says. The write path and `CLAUDE.md` changes are the human's, made at the story's start, as the feature's "The human's changes" says.
+4. factory: started tests as vm.
