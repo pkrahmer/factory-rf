@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T07:21:19.630413Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T07:21:17.109662Z'
+  stage: doing
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:21:19.630413Z'
   stage: doing
 ---
 
@@ -260,3 +269,4 @@ Expect: `split`
     2. **(a), on `main`.** I changed both lines on `main` (a pull of `main` at the next stage brings them in): `operator/README.md` names `docs/operator-guide/site.md`, and the playbook names `docs/operator-guide/` (an index and one file per topic). Do not edit them.
 
     End with `tests` for point 1. The documenter names the topic files in the project guide's "the operator guide, *Section*" references, as you suggest.
+15. factory: started doing as vm.
