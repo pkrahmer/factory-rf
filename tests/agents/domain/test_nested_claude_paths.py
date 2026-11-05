@@ -20,7 +20,7 @@ from factory.agents.domain.write_paths import PROTECTED_PATHS, matches_any, refu
         ("src/.claudex/a", False),
         ("src/x.claude/a", False),
         ("src/claude/a", False),
-        ("claude/agents/coder.md", False),
+        ("agents/agents/coder.md", False),
         ("src/.claude", False),
         (".claudex/a", False),
     ],

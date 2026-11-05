@@ -48,10 +48,10 @@ RUNTIME_NAMES = ("claude", "opencode", "anthropic")
 LEFT_FROM_THE_INSTALL = ("/opt/factory/node", "/root/.npm")
 # Built from its parts: the path is the one the final stage empties, not a file a test writes.
 TEMPORARY = str(PurePosixPath("/", "tmp"))
-AGENT_FILES_COPY = "claude /etc/factory/claude"
+AGENT_FILES_COPY = "agents /etc/factory/agents"
 AGENT_FILES_MODES = (
-    "chmod 0755 /etc/factory/claude /etc/factory/claude/agents"
-    " && find /etc/factory/claude -type f -exec chmod 0644 {} +"
+    "chmod 0755 /etc/factory/agents /etc/factory/agents/agents"
+    " && find /etc/factory/agents -type f -exec chmod 0644 {} +"
 )
 ENV_NAMES = [
     "UV_LINK_MODE",

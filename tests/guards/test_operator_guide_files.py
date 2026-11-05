@@ -12,7 +12,7 @@ GUIDE = ROOT / "docs" / "operator-guide"
 OLD_GUIDE = ROOT / "docs" / "operator-guide.md"
 SEARCHED = (
     ROOT / "src",
-    ROOT / "claude",
+    ROOT / "agents",
     ROOT / "operator",
     ROOT / "vm",
     ROOT / "docs",

@@ -10,7 +10,7 @@ from factory.pipeline.domain.pipeline_definition import PipelineDefinition
 from factory.work.adapters.work_item_markdown import RuamelYamlHandler, split_front_matter
 
 ROOT = Path(__file__).parents[2]
-AGENT_HOME = ROOT / "claude"
+AGENT_HOME = ROOT / "agents"
 TEMPLATE_PIPELINE = ROOT / "template" / "factory" / "pipeline.yml"
 
 _ALL_TOOLS = ["Read", "Grep", "Glob", "Edit", "Bash", "Write", "Skill"]

@@ -80,7 +80,7 @@ def test_the_sync_container_gets_container_paths_mounts_environment_and_limit(
         "/work/checkout",
         "/work/home",
         "/upstream",
-        "/etc/factory/claude",
+        "/etc/factory/agents",
         "main",
         main_commit,
     ]
@@ -88,7 +88,7 @@ def test_the_sync_container_gets_container_paths_mounts_environment_and_limit(
         assert path not in script
     assert call.mounts == [
         Mount(source=boundaries.checkout / ".git", target="/upstream", read_only=True),
-        Mount(source=boundaries.settings.agent_home, target="/etc/factory/claude", read_only=True),
+        Mount(source=boundaries.settings.agent_home, target="/etc/factory/agents", read_only=True),
     ]
     assert call.environment == {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": "/work/home"}
     assert call.time_limit == FIVE_MINUTES

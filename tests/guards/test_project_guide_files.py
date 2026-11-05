@@ -28,7 +28,7 @@ REMOVED_FILES = (
     "stage-environment.md",
     "processes-and-checks.md",
 )
-SEARCHED = (ROOT / "claude", ROOT / "docs", ROOT / "README.md")
+SEARCHED = (ROOT / "agents", ROOT / "docs", ROOT / "README.md")
 NOT_SEARCHED = (
     ROOT / "docs" / "runs",
     ROOT / "docs" / "decisions.md",
