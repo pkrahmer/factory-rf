@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T08:45:17.332378Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -225,6 +221,12 @@ journal:
   kind: started
   at: '2026-11-05T08:45:17.332378Z'
   stage: review
+- number: 39
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T08:46:16.509744Z'
+  stage: review
+  run: 3cf8dc3c53754884953db5059169c1c7
 ---
 
 # The agent files live in `agents/`
@@ -593,3 +595,33 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 38. factory: started review as vm.
+39. reviewer: Review of round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`. The diff holds the eight renames `claude/` → `agents/`, all 100 % similar. It also holds `src/factory/machine/application/stage_environment.py:30`, `vm/Dockerfile:58-59`, `vm/job-start.sh:68`, `vm/setup.sh:427`, the path edits in `docs/operator-guide/` and `docs/project-guide/`, and the test changes. The factory's `make check` after the coder was green (entry 37, no stall after it).
+
+    The tester fixed both round-0 findings (entry 35):
+    - `tests/agent_files/test_agent_folder.py:7` now builds `AGENT_FILE_NAMES` from `SHIPPED_NAMES`.
+    - `STAGE_DOCKERFILE` moved into `tests/support/dockerfile_support.py:7-8`, and `tests/vm/test_stage_image.py` and `tests/vm/test_stage_image_agent_folder.py` both import it from there. No other test module still holds a copy of it. The new test keeps only the old-place assertion, and the `COPY agents /etc/factory/agents` line is still checked once, by `AGENT_FILES_COPY` in `test_stage_image.py`.
+
+    Group 1 (criteria): criterion 1 is covered by `tests/agent_files/test_agent_folder.py` (one row per file name, no other file, no file left under `claude/` as the human worded it in entry 23). Criterion 2 by `test_stage_image.py::test_the_agent_files_are_copied_read_only_to_their_place` and `test_stage_image_agent_folder.py`. Criterion 3 by `tests/entry/test_tick_shipped_agent_file.py` (intake, entry 11) and the container mount test. Criterion 4 by `tests/guards/test_agent_folder_names.py`, which uses the `(?<![\w.])` match from entry 11 and leaves out `docs/decisions.md` and `docs/runs/` (entry 6). The rename states no limit with two sides.
+
+    Group 2 (architecture): no layer, wrapper or interface changes. Only the constant `AGENT_FILES` changes.
+
+    Group 3 (security): no silencing marker, no secret, no command built from strings.
+
+    Group 4 (quality): the doc edits replace paths only, and every `.claude/` and runtime name is left alone. I grepped `src`, `vm`, `operator`, `docs` (without `runs/` and `decisions.md`), `README.md` and `agents/` for `claude/` with no `.` or word character before it. The only hit is `operator/README.md:31` (`claude/commands/kumpel.md`), which is `operator/claude/` and keeps its name as the Description says.
+
+    Group 5 (hygiene): the Description, Interface and criteria match what was built. The journal names the main choice (`FACTORY_CLAUDE_HOME` keeps its name, entries 11 and 17) and what was rejected. The take's dropped directory rename (entry 20) is named as a candidate for a story of its own. Criterion 6 still says what the documenter must write: `README.md`, the operator guide's topic file, the project guide's `agents.md`, and a `docs/decisions.md` entry.
+
+    no findings
+
+    Earlier tests (item 6), each with the leave it was changed under:
+    - `tests/agent_files/__init__.py`: the Interface's leave (feature decision 5), docstring path only.
+    - `tests/agents/domain/test_nested_claude_paths.py`: the Interface's leave (feature decision 5), one row's path.
+    - `tests/guards/test_operator_guide_files.py`: the Interface's leave (feature decision 5), the searched folder.
+    - `tests/guards/test_project_guide_files.py`: the Interface's leave (feature decision 5), the searched folder.
+    - `tests/machine/application/test_container_environment.py`: the Interface's leave (feature decision 5), `/etc/factory/agents`.
+    - `tests/machine/domain/test_containers.py`: the Interface's leave (feature decision 5), the "deep" sample path.
+    - `tests/support/shipped_agents.py`: the Interface's leave (feature decision 5), `AGENT_HOME`.
+    - `tests/support/vm_support.py`: the human's answer, entry 11.
+    - `tests/vm/test_vm_job_start.py`: the human's answer, entry 11.
+    - `tests/vm/test_stage_image.py`: the Interface's leave (feature decision 5) for `AGENT_FILES_COPY` and `AGENT_FILES_MODES`. Also the standing leave to move a shared test helper (`ROOT` and `STAGE_DOCKERFILE` moved out, every test keeps its name and what it checks).
+    - `tests/support/dockerfile_support.py`: the standing leave to move a shared test helper (`ROOT` and `STAGE_DOCKERFILE` moved in).
