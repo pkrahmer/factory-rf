@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T08:29:15.681204Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -148,6 +144,12 @@ journal:
   kind: started
   at: '2026-11-05T08:29:15.681204Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:29:50.062333Z'
+  stage: doing
+  run: 6e69a1cf8d2443f382cad81bfacf7f1f
 ---
 
 # The agent files live in `agents/`
@@ -404,3 +406,18 @@ Expect: `1`
 
     Leave for the tester: the test asserts that no tracked file lies under `claude/` (for example `git ls-files claude` prints nothing, or no file under `claude/` exists when the folder is walked), and keeps its name. Coder: redo the `git mv claude agents` and the edits of entry 17 if they are not on the branch, then end with `tests` naming exactly this change.
 24. factory: started doing as vm.
+25. coder: The human's answer (entry 23) gives leave for one test change, and I changed no code in this run. The tester should make exactly this change: `tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone` keeps its name and asserts that git tracks no file under `claude/`, for example that `git ls-files claude` prints nothing, or that walking the folder finds no file under `claude/`. It no longer asserts that the folder itself does not exist.
+
+    The branch already holds everything entry 17 describes, so I did not redo it:
+    - `git ls-files claude` prints nothing. `git ls-files agents` lists `agents/agents/{acceptance-reviewer,coder,documenter,intake,reviewer,smoke-tester,tester}.md` and `agents/settings.json`.
+    - `src/factory/machine/application/stage_environment.py:30` reads `AGENT_FILES = "/etc/factory/agents"`.
+    - `vm/Dockerfile:58-59` copy to and set modes on `/etc/factory/agents`.
+    - The edits to `vm/job-start.sh`, `vm/setup.sh`, `docs/project-guide/` and `docs/operator-guide/` were committed in an earlier run.
+    - I searched with the guard's pattern (`(?<![\w.])` before each old name) over `src`, `tests`, `vm`, `operator`, `docs` (leaving out `runs/` and `decisions.md`), `README.md` and `agents/`. It found nothing.
+
+    Main choice: end with `tests` now, because the human's answer says to and the remaining red is in a test. I rejected running `make check` first. In the check's tree an empty or untracked-only `claude/` folder can remain, so `test_the_old_agent_folder_is_gone` would stay red until the tester has changed it.
+
+    Noticed but not touched, as in entry 20:
+    - A directory rename an agent makes is dropped from the take, because `_read_diff_line` in `src/factory/machine/adapters/zfs_snapshots.py` skips directory entries. This is a candidate for a story of its own.
+    - The human's steps on factory-vm after the merge (entry 11).
+    - Criterion 6 is still open for the documenter.
