@@ -40,6 +40,8 @@ The build order: S0013 first, a docs repair carried over from F0050 (F0050-A0003
 - S0010: The operator guide is a folder of topics
 - S0011: The agent files live in `agents/`
 - S0012: The VM's files and the project template live in `operator/`
+- S0014: The removal guards look for a removed module in every area (from A0001)
+- S0015: The setup hints name the operator guide's topic file (from A0001)
 
 ## The human's changes
 

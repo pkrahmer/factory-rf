@@ -106,7 +106,7 @@ documents:
 
 # Mutation testing (mutmut), for a sweep by hand: no stage and no agent runs it (the human,
 # 2026-10-19). MODULES names dotted modules or packages, each run by its pattern <name>.*, as in
-# make mutants MODULES='factory.domain.disk factory.application'. FEATURE=<feature id> takes instead
+# make mutants MODULES='factory.machine.domain.disk factory.pipeline.application'. FEATURE=<feature id> takes instead
 # the modules under src/factory that the feature's story commits on origin/main changed, which needs
 # a checkout with its history; MODULES given by hand wins. MUTANTS_SECONDS stops mutmut after that
 # many seconds (no stop when it is empty); MUTANTS_CHILDREN caps its workers (mutmut's default is
@@ -117,7 +117,7 @@ MUTANTS_CHILDREN ?=
 FEATURE_MODULES = $(wildcard $(shell git log --format= --name-only -E --grep='^(ticket|work item) $(FEATURE)-S[0-9]{4}:' origin/main -- 'src/factory/*.py' 2>/dev/null | sort -u))
 MODULES ?= $(if $(FEATURE),$(foreach module,$(FEATURE_MODULES),$(subst /,.,$(patsubst src/%.py,%,$(module)))))
 mutants:
-	if [ -z "$(FEATURE)$(MODULES)" ]; then echo "mutants: set MODULES or FEATURE, as in make mutants MODULES=factory.domain.disk or make mutants FEATURE=F0012"; exit 2; fi
+	if [ -z "$(FEATURE)$(MODULES)" ]; then echo "mutants: set MODULES or FEATURE, as in make mutants MODULES=factory.machine.domain.disk or make mutants FEATURE=F0012"; exit 2; fi
 	if [ -z "$(strip $(MODULES))" ]; then echo "mutants: no module under src/factory changed by $(FEATURE)"; exit 0; fi
 	# mutmut stops a mutant's pytest at its time limit, which leaves that run's folder locked for
 	# three days under pytest's root in /tmp: give each run a root of its own and remove it after.

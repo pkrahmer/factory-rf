@@ -12,7 +12,7 @@ It is the input of two runs of the plan (`planning/overnight/restructure-after-f
   - `F0002-operations`: health endpoint, version command, statistics (S0001 to S0003).
   - `F0003-search`: title search (S0001).
 
-The pipeline definition is the template's (`template/factory/pipeline.yml`) with two changes: the coder may also write `docs/openapi.json`, which `make openapi` generates from the routes, and `make duplicates` runs as a report after the coder's stage.
+The pipeline definition is the template's (`operator/template/factory/pipeline.yml`) with two changes: the coder may also write `docs/openapi.json`, which `make openapi` generates from the routes, and `make duplicates` runs as a report after the coder's stage.
 
 ## What you need
 
@@ -24,7 +24,7 @@ The pipeline definition is the template's (`template/factory/pipeline.yml`) with
 
 ## How to run it with v1.1
 
-These steps run v1.1's container, which is kept at the tag `v1.1`; since F0044 an instance runs on the machine of `docs/operator-guide.md`, *The machine*.
+These steps run v1.1's container, which is kept at the tag `v1.1`; since F0044 an instance runs on the machine of `docs/operator-guide/machine.md`, *The machine*.
 
 1. Put the token in place:
 
