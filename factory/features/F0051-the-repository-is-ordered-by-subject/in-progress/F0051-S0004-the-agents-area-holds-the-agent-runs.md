@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 559
 comments_read: [6648033321]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T02:30:53.327119Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-05T02:30:48.313312Z'
   stage: doing
   run: 144fd8d0fe30450f91c1c8983f314181
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:30:53.327119Z'
+  stage: tests
 ---
 
 # The agents area holds the agent runs
@@ -213,3 +222,4 @@ Expect: `1`
     I have not run `make check` in this run because the test changes are still missing. Entry 7 records it green with those changes in the tree.
 
     What remains open, as entry 7 and the human's answer say: the old-path lines in `security/duplicates-baseline.txt`, `CLAUDE.md` line 19, and the old `pyproject.toml` keys all wait for the merge. The docs belong to the docs stage.
+11. factory: started tests as vm.
