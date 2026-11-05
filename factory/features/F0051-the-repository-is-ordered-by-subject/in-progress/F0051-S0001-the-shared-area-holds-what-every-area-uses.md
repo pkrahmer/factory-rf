@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T00:33:34.863004Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -65,6 +69,11 @@ journal:
   at: '2026-11-05T00:33:29.514603Z'
   stage: doing
   run: 24c787413db3499a8b08a94619ba780e
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:33:34.863004Z'
+  stage: tests
 ---
 
 # The shared area holds what every area uses
@@ -228,3 +237,4 @@ Expect: `1`
     Refactor: not done in this run, since my code did not change. Entry 7 found nothing to change in the source diff.
 
     Description unchanged: no journal entry changed the meaning of the task.
+11. factory: started tests as vm.
