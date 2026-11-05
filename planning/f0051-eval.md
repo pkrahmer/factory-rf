@@ -233,3 +233,55 @@ Both Interfaces already carry the tester sentence and the exact docstrings (I re
 ### 6. Carried over (S0004 and S0005)
 
 Confirmed: 54 (S0005 lean, S0004 three extra runs), 1 and 2 (S0004's coder 3 changed nothing and ran `make check` for 125 s, repeated by the gate), 47 (the gate could have reused the coder's result in S0005), 49 (smaller in cost, still the largest piece of the entry), 52 (the recipe was read from earlier journals in both stories), 12 (the smoke tester and the documenter read the work item whole), 28 (one denial), 51 (the pyproject question). Not seen: 55 (both reviews had no findings), 50, 37 (no intake question), 14 and 11 (no hung or flaky test). 36: `test` took 125.5 s in S0004's coder 3, as before. What worked, to keep: the merge of main into the branch after the human's answer; S0005's single coder run of 8 turns; two reviews of 17 and 19 modules with no findings.
+
+## 2026-11-05: F0051-S0006 (the machine area holds containers, images and disks) and F0051-S0007 (the pipeline area holds the stages and the tick)
+
+Figures are from the cost records and the transcripts in `session-logs/vm-f0051/`. Candidate 54 (the tester makes every test change in its first run) held in both stories: no relay after the tester's first run, no stall.
+
+### 1. F0051-S0006 (machine): 24 modules, 8 runs, $2.21, no question
+
+First run to last run 19.0 min, the cheapest per module of the seven ($0.092). Cost by role: tester $0.79 (two runs), reviewer $0.51, coder $0.44 (two runs), smoke test $0.22, documenter $0.17, intake $0.08. The tester `022ced29` ($0.64, 163 s, 23 turns) did the whole test side at once: the `AREAS` row, the import rewrite, two path guards, and the `git mv` of the test modules chosen by a script over `tests/test_areas.py`'s own helpers; it learned the recipe from S0005's commit (calls 3 and 4, 18 KB of `git show`). The coder `a6b056cc` moved `src/` with one `sed` loop, ran `make check` and stopped on one guard.
+
+**1. (new) The one hand-back came from a guard that holds layer names as strings in a tuple, which the tester's search cannot see.** `tests/test_stop_table.py:114` filters imports with `name.startswith(("factory.application", "factory.entry"))`. The tester searched for path and import forms, and its one `pytest` run covered only the files it had changed, which excludes an untouched guard. The coder's first `make check` found it (about 130 s of suite later). Cost: tester `5fb0aa81` ($0.15, 31 s, one `sed`) and coder `07ee2d47` ($0.095, 162 s, of which `make check` 133 s on an unchanged tree), so $0.245 and about 3.7 min; the gate then ran the same check again. S0007's tester fixed the same line in its first run because it read S0006's journal: the lesson crossed stories through the journal, not through a rule. Saving for a next move: $0.25 and 4 min. Change: one line in the recipe of feature decision 8: "grep the tests for the old package names in string form (`"factory.application"`), not only for import and path forms, and run the root guards `tests/test_stop_table.py tests/test_layers.py tests/test_areas.py` as well as the changed files".
+
+**2. (confirms 1, 2 and 53) The second coder changed nothing and ran a full `make check` (133 s) that the gate ran again.** After `make layers` and the one guard test it could have ended with `review`. Saving $0.05 and 133 s.
+
+**3. (confirms 49 in its cheap form) The reviewer `591b4638` cost $0.51 for 177 changed files.** 86 s, 11 turns: a count per kind (`awk '{print $1}' | sort | uniq -c`), a `git diff` filtered of import lines (207 bytes of output), no 20 KB list. This is the model for item 6 of `reviewer.md`; S0007's reviewer did not follow it (below).
+
+**4. (confirms 12)** The documenter and the smoke tester each read the whole work item (29 KB), the biggest tool output of both runs.
+
+Not seen: 3, 5, 6, 10, 50, 51. One denial (28): a `for ... git mv` loop in `022ced29`, retried in plain form at once. What worked: the intake accepted at once because FD8 held the answers; the documenter did one `perl` sweep from the reviewer's rename list and ended without `make check`.
+
+### 2. F0051-S0007 (pipeline): 27 modules and `handlers`, 10 runs, $5.26, two questions
+
+First run to last run 46.8 min, of which 16 min is waiting for the human (6.0 min after the coder's question, 10.1 min after the reviewer's). Cost by role: reviewer $2.08 (two runs), tester $1.90 (two), coder $0.69 (three), documenter $0.26, smoke test $0.24, intake $0.09. It also moved every test module still outside an area (377 earlier test files in the diff, 232 of them renamed), removed the three layer packages and wrote `tests/test_old_layer_packages_removed.py`.
+
+**1. (new) Both questions were facts about removing the old packages; together about $1.25 and 16 min (34 % of the wall time).** The intake `9b3d0bee` ($0.087) accepted the Interface without searching for what else names `factory.domain`, `factory.application` and `factory.adapters`.
+- Coder `ca6bf6fb` ($0.38, 252 s): two forbidden contracts in `pyproject.toml` (lines 103 to 111) and a mutmut deselect (lines 156 and 157) still named the old packages, so `make layers` said `Module 'factory.domain' does not exist.` The coder tried the fix on a temporary copy (4 contracts kept, 0 broken). The human had planned that change for the merge, while the coder's entry says the intake counted it as a change at the start. It also listed 16 failing test rows: 12 `find_spec` rows in eight `*_removed.py` tests, which raise `ModuleNotFoundError` once the parent package is gone; the paths of one `test_tick` row; two modules with a bare `import factory` that the area guard refuses. These could be seen only after the move, but they are a fixed set. Cost: coder 2 `bb544473` ($0.17, 180 s, `make check`), tester 2 `8b9998dc` ($0.36) and coder 3 `135d5e69` ($0.14, nothing changed, `make check` 131 s): $0.67 and 6.0 min of wait.
+- Reviewer `55e12555` ($1.50, 315 s): `README.md`, `docs/operator-guide.md:148` and four project guide lines still named the removed packages, and criterion 7 covered only the module paths. Only the reviewer and the intake can edit the work item, so it asked; the human chose (a), and the rerun `0fb92c85` ($0.585, 103 s) extended criterion 7. Cost $0.585 and 10.1 min; the documenter's own work ($0.26) was needed anyway.
+- Saving about $1.25 and 16 min for a story that removes names. Change: `claude/agents/intake.md` — "when the Interface removes a package, grep `pyproject.toml`, `docs/`, `README.md`, `CLAUDE.md` and `tests/` for its name and make each hit a criterion or a named human change". For the series, FD8 should say when the human changes `pyproject.toml` (before S0007) and give the three `*_removed`/`test_tick` changes to the tester's first run.
+
+**2. (new, confirms 52) The tester `41c43096` cost $1.54, 29 % of the story: 38 turns, 309 s of model time.** It decided the area of 232 remaining test modules with three throwaway planning scripts (outputs of 6.8, 16.1 and 10.0 KB), patching the rule twice (a tie goes to the non-`shared` area; `handlers` and the pipeline subjects go to `pipeline`). The result was right (the reviewer found no misplaced module). Saving with a script from the `AREAS` table and a majority-import rule: $0.4 to $0.6 and 2 to 3 min, in a story that sorts many tests; F0051-S0008 (the test support modules) may need the same.
+
+**3. (confirms 49 and 13) The reviewer's first run printed a 23 KB list of the changed earlier test files, and its rerun read the work item as a 62 KB persisted `Read`.** Round 0 cost $2.08 (40 % of the story) against $0.51 for S0006's single run on a diff of about half the test files. Saving $0.7 to $1.0 per story with S0006's form. Change: as candidate 49.
+
+**4. (confirms 1 and 2) Two coder runs had little to do and each ran a full suite.** `bb544473` found a leftover `src/factory/application/handlers/__init__.py` that the first coder missed (`ls src/factory` had shown `application`), moved it, ran `make check`; `135d5e69` changed nothing and ran it again (131 s); the gate repeated it. Saving $0.14 and 131 s.
+
+**5. (confirms 28)** Three denials in the tester `41c43096` (a `set -e` chain with `while read` over `git mv`, a `git add -A tests >/dev/null` chain, one more loop), each retried in plain form.
+
+Not seen: 3, 5, 6, 9, 10, 11, 14, 37, 50, 51. 36: `test` took 131 s, as before.
+
+### 3. The seven moves in sum
+
+| Story | Modules | Runs | Cost | Cost per module | Questions |
+|---|---|---|---|---|---|
+| S0001 (shared) | 18 | 13 | $5.63 | $0.31 | 0 (a stall and a red gate) |
+| S0002 (hosting) | 11 | 8 | $2.93 | $0.27 | 0 |
+| S0003 (work) | 14 | 11 | $2.95 | $0.21 | 1 (intake, six confirmations) |
+| S0004 (agents) | 19 | 9 | $3.04 | $0.16 | 1 (coder, `pyproject.toml`) |
+| S0005 (watching) | 17 | 6 | $2.15 | $0.126 | 0 |
+| S0006 (machine) | 24 | 8 | $2.21 | $0.092 | 0 |
+| S0007 (pipeline) | 27 and `handlers` | 10 | $5.26 | $0.195 | 2 (coder, reviewer) |
+| Sum | 130 and `handlers` | 65 | $24.17 | $0.186 | 4 |
+
+What made a move cheap was the number of runs, not of modules: S0005 and S0006 had 6 and 8 runs, a tester who made every test change in its first run, no question and a reviewer who wrote counts instead of lists, and the fixed costs (each run's start of about $0.09 and two `make check` calls of about 270 s) are the same for 11 modules or 24. What made a move dear was a round that only carried a fact from one role to another: a stall (S0001), a relay (S0002 to S0004), a question about something the intake or the feature could have listed (S0003, S0004, S0007) and the reviewer's long list (S0001, S0002, S0007). The lesson of the last four stories is that every change outside `src/` and the tests, `pyproject.toml` and the docs above all, should be named with its moment in the feature before the story starts.

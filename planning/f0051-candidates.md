@@ -84,6 +84,9 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 54. **The stage prompt does not carry the feature's decisions.** F0051-S0002 and S0003: feature decision 5 said the tester makes all test changes in its first run, but the testers never saw `feature.md`, wrote only the `AREAS` row, and the coder did the rewrite and handed it back (about $0.4 to $0.6 and 5 to 8 min per move). Fix: the prompt names `feature.md`'s decisions, or the story's Interface states what a role must do; the human wrote it into S0005 to S0007's Interfaces.
 55. **A round for a free-text docstring.** F0051-S0003: one review round ($0.59, 6.3 min) because a new package's docstring called a concrete reader a "port". Fix: a story that adds packages gives their docstrings.
 
+56. **A search for old names misses their string forms.** F0051-S0006: `tests/test_stop_table.py` held layer names as strings in a tuple; the tester's grep missed it and its one test run covered only the files it changed, so the coder handed back ($0.25, 4 min). Fix: a rename's recipe greps the string forms too and runs the root guards.
+57. **The last step of a migration meets facts no earlier step met.** F0051-S0007: both questions (the contracts that named the removed packages, the docs that named them) came from removing the old layers; $1.25 and 16 min. Fix: the intake greps for a removed package's name in `pyproject.toml`, the docs and the tests, and the feature says when the human's change lands.
+
 ## The repository is easier to navigate (the human, 2026-11-04)
 
 38. **`claude/` becomes `agents/`.** It holds the factory's agent files and `settings.json` in Claude Code's format, which the opencode runtime translates per run (decision of 2026-10-19, F0020-S0004); the name says one runtime. Touches `vm/Dockerfile`, the wiring, the coder's write paths in `factory/pipeline.yml`, the docs and tests.
