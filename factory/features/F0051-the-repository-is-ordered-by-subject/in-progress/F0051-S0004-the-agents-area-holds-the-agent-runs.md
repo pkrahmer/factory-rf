@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 559
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T02:14:44.201148Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-05T02:14:39.046659Z'
   stage: tests
   run: 4132ed73d1ae4447964fec777cb9f15d
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:14:44.201148Z'
+  stage: doing
 ---
 
 # The agents area holds the agent runs
@@ -125,3 +134,4 @@ Expect: `1`
    Run of `uv run pytest -q tests/test_areas.py`: the new rows fail for the right reason. The `factory.agents.*` modules cannot be imported yet (ModuleNotFoundError), and the old paths are still imported from `src/` and `tests/`. The runner could not import `factory.agents`, `factory.agents.domain`, `factory.agents.application`, `factory.agents.adapters`, or any of the 19 modules under them. `make lint` is green.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
