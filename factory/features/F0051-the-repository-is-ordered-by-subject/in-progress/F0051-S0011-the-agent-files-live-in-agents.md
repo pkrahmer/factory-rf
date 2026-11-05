@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T08:11:56.765939Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T08:11:54.187330Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:11:56.765939Z'
   stage: doing
 ---
 
@@ -214,3 +223,4 @@ Expect: `1`
     Leave for the tester for exactly these three changes. End with `tests` naming them.
 
     For me after the merge, on factory-vm, before its restart: the `FACTORY_CLAUDE_HOME` line of `factory.env` names `factory/agents`, the stage image is rebuilt (the Dockerfile's new `/etc/factory/agents`), and `image-id` is renewed.
+12. factory: started doing as vm.
