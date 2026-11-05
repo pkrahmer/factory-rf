@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T00:47:32.022958Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-11-05T00:47:32.022958Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-05T00:48:08.498147Z'
+  stage: doing
+  run: 2c594865e0ec4f4d9c74aa606d365dc0
 ---
 
 # The shared area holds what every area uses
@@ -746,3 +748,12 @@ Expect: `1`
     tests/domain/test_unhandled_event.py -> tests/shared/domain/ [mv]
     tests/domain/test_work_item_errors.py -> tests/shared/domain/ [mv]
 17. factory: started doing as vm.
+18. coder: Round 1. All three of the reviewer's findings in entry 16 are changes to tests, so I changed no code and nothing under `src/`. The working tree is clean. For the tester:
+
+    1. Criterion 5 (added by the reviewer) needs its test in `tests/test_areas.py`. Every test module under `tests/shared/` must take all its `factory` imports from `shared` and the areas moved before it, and at least one from `shared`. The test fails for a module there that imports an area not yet moved, or nothing of `shared`. All 60 modules meet this today, so the test will be green with no source change.
+    2. Finding 2: `tests/test_areas.py:94` `_factory_imports` copies `imported_modules` from `tests/source_search.py:22`. It should instead filter `imported_modules(tree)` to names that are `factory` or start with `factory.`.
+    3. Finding 1: `tests/adapters/test_work_item_markdown.py:449` `test_only_the_work_item_adapter_imports_frontmatter_and_ruamel` filters with `name.split(".")[1:2]`, so the 13 moved domain and application modules no longer fall under the rule. The filter should match the layer wherever it sits (`factory.<layer>.*` or `factory.<area>.<layer>.*`), the way `_is_domain` in `tests/domain/test_hosting.py` was changed. The reviewer notes that feature decision 5's list of guards does not name this test. If the tester reads that list as closed, this is a question for the human, not a change.
+
+    Main choice: hand the work to the tester (R9) rather than touch any test myself. I rejected changing code: nothing in the findings asks for it.
+
+    The reviewer also flagged two things outside every write path, and I left both alone: `security/duplicates-baseline.txt` lines 25 to 32 still name the old paths, and `CLAUDE.md` still names `factory.domain.contract.CONTRACT`. Both are for the human.
