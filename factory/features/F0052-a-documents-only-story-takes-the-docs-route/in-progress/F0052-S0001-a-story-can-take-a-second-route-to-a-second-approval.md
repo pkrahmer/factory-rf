@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T22:05:21.275403Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-05T22:05:13.335393Z'
   stage: doing
   run: db3000ac829a46cb9a795673c2d8522f
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:05:21.275403Z'
+  stage: review
 ---
 
 # A story can take a second route to a second approval
@@ -224,3 +233,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
+16. factory: started review as vm.
