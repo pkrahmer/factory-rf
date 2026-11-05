@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 562
 comments_read: [6649241093]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T04:00:35.462320Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-05T04:00:35.462320Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-05T04:05:55.946705Z'
+  stage: doing
+  run: 135d5e6949c448a3836fb1489103309d
 ---
 
 # The pipeline area holds the stages and the tick
@@ -309,3 +311,21 @@ Expect: `1`
 
     `lint`: lint: green (0.2 s)
 13. factory: started doing as vm.
+14. coder: I checked `make check` on the committed state, which holds the move from the earlier doing runs and the three test changes from the tester's entry 12. It ends `test: green (131.0 s)` and `check: green`, with total branch coverage at 99.26 %. I made no code changes this run.
+
+    What I built (all of it in the earlier doing runs, under `src/` only):
+    - The 27 modules of the table, including the `handlers` package with its `__init__.py`, moved with `git mv` to `src/factory/pipeline/{domain,application,adapters}/`.
+    - `src/factory/pipeline/__init__.py` and `src/factory/pipeline/{domain,application,adapters}/__init__.py` created, each with the docstring the Interface gives.
+    - The old `__init__.py` files of `factory.domain`, `factory.application` and `factory.adapters` removed. `src/factory/` now holds exactly `__init__.py`, the seven areas, `entry/` and `contract/`.
+    - Imports rewritten with the recipe's sed, then `ruff check --fix` and `ruff format`. A grep over `src/` for `factory.(domain|application|adapters)` and `factory/(domain|application|adapters)/` finds nothing.
+
+    Main choice: each file was moved whole with `git mv`, the leftover `handlers/__init__.py` included, so every module keeps its content and its history. I rejected writing a fresh `__init__.py` for `handlers`, and I rejected leaving re-exports at the old paths, which feature decision 4 rules out.
+
+    Refactor: I read the `src/` diff, which is a mechanical move plus import rewrites. Nothing in it needed changing.
+
+    The journal did not change what the task means. The human's answer in entry 8 only decided who makes the `pyproject.toml` change and the test changes, so the Description stays as it is.
+
+    Noticed, not touched: in `pyproject.toml`, the mutmut deselect of `tests/domain/test_hosting.py` (that file is now `tests/hosting/domain/test_hosting.py`). Only `make mutants` reads it, it is outside my write paths, and the human left it as a follow-up after the merge (entry 8).
+
+    `check`: check: green
+    `duplicates`: duplicates: 9 new, 36 known, 7 gone
