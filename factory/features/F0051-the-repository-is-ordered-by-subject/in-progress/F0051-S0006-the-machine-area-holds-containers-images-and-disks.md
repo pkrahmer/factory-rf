@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T03:28:55.141032Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-05T03:28:49.712873Z'
   stage: doing
   run: 07ee2d4707984192bfbc34dbd21f3b95
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T03:28:55.141032Z'
+  stage: review
 ---
 
 # The machine area holds containers, images and disks
@@ -244,3 +253,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 10 new, 35 known, 8 gone
+12. factory: started review as vm.
