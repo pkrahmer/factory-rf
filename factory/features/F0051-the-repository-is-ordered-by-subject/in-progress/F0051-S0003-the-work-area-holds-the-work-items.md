@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 558
-comments_read: []
+comments_read: [6647217933]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 383f628a60eb4660ab6a3731e3c3b398
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-05T01:38:56.739185Z'
+  stage: intake
 ---
 
 # The work area holds the work items
@@ -97,3 +102,13 @@ Expect: `1`
    5. Criterion 4 and the Interface rule on test moves depend on "areas moved before it". Say which areas those are when this story runs: S0001 (`shared`) and S0002 (`hosting`) only, or also S0013's nothing. Name them, so the test can compute the set.
    6. Criterion 3 should say that it covers both `import factory.x.y` and `from factory.x import y` forms. As written, "an import line that names `factory.<layer>.<name>`" misses `from factory.domain import journal`.
    Format check passed. The architecture and scope fit F0051 (decisions 1 to 5, and the map to `work`). With these answered I would accept.
+4. 2026-11-05 human: Answers of the human:
+
+   1. Yes, as you suggest: criterion 1 also says that `AREAS` has a `work` key whose modules are exactly the 14 of the table.
+   2. No criterion. The four test packages are structure; pytest's collection of same-named test modules already fails without them.
+   3. "Has a docstring" is enough; one line is not tested.
+   4. A leftover: remove "for `handlers`, the folder" from criterion 1. Only S0007 moves `handlers`.
+   5. The areas moved before this story are `shared` (S0001) and `hosting` (S0002). S0013 moved nothing.
+   6. Yes, both forms: `import factory.x.y`, `from factory.x.y import z` and `from factory.x import y`, as S0001's test already reads them with `imports()` from `tests/source_search.py`.
+
+   These answers hold for S0004 to S0007 as well; feature decision 8 records them.
