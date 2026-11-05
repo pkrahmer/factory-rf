@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T09:30:52.954804Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -127,6 +131,11 @@ journal:
   at: '2026-11-05T09:30:47.473536Z'
   stage: tests
   run: b5e7a726bce34f95ab65b19a61566641
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-05T09:30:52.954804Z'
+  stage: doing
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -358,3 +367,4 @@ Expect: `parsed`
     Test run: `uv run pytest -q tests/guards/test_root_operator_folders_removed.py`: all 22 tests pass, and every module imported. `make lint`: green.
 
     `lint`: lint: green (0.2 s)
+22. factory: started doing as vm.
