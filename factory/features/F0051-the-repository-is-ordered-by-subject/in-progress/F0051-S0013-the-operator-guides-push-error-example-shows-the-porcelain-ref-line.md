@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 555
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T00:07:14.746249Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-05T00:07:14.746249Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-05T00:07:33.059428Z'
+  stage: tests
+  run: 1bee7eb532974451a57b6476e197047e
 ---
 
 # The operator guide's push error example shows the ref line the factory writes
@@ -89,3 +91,12 @@ Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [re
    - Architecture: documentation only, with no layer or wrapper involved. The docs criterion names the operator guide, which the documenter keeps.
    - Scope: within F0051 (listed first in its build order, carried over from F0050-A0003). It changes no code, no decision-log entry and no behaviour, so nothing in "Out of scope" is touched.
 4. factory: started tests as vm.
+5. tester: No tests written, as the Interface says ("No module under `src/factory/` changes, and no test is written"). The story only changes the docs, and its criteria are checked by the smoke test's greps and by the review of the diff, not by pytest.
+   - criterion 1 (the example line in the porcelain form, no `-> work-item/` left): no test. The smoke test's first and second grep check it.
+   - criterion 2 (`[remote rejected]` on the refused ref's line, `` `! [remote rejected]` `` gone): no test. The smoke test's second grep checks it.
+   - criterion 3 (no other paragraph changes, `docs/decisions.md` unchanged): no test. The review of the diff checks it.
+   - criterion 4 (`make check` green): the factory's check.
+   - criterion 5 (docs): the documenter's criterion.
+   Files created: none. Modules the test run could not import: none. No tests were run, because there were no new test files. `make lint` is green. Rejected: a pytest test that greps `docs/operator-guide.md`. The Interface rules it out, and it would make guide wording a code check.
+
+   `lint`: lint: green (0.2 s)
