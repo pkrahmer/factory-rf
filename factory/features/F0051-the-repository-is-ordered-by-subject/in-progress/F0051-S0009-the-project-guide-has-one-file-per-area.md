@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283, 6651349591]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T06:40:39.642236Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -136,6 +132,12 @@ journal:
   kind: started
   at: '2026-11-05T06:40:39.642236Z'
   stage: docs
+- number: 23
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T06:41:14.404565Z'
+  stage: docs
+  run: 421194fec2694b4d94083723e5f580d1
 ---
 
 # The project guide has one file per area
@@ -401,3 +403,16 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
 
     Earlier tests: none changed. The diff only adds `tests/guards/test_project_guide_files.py`.
 22. factory: started docs as vm.
+23. documenter: I changed no file. The coder's commits already hold everything the docs criterion asks for.
+
+    - **Project guide:** `docs/project-guide/` holds exactly `README.md`, `operator.md` and the seven area files (`shared`, `hosting`, `work`, `agents`, `watching`, `machine`, `pipeline`). The index's *The files* names each of the eight other files with what it covers and the modules it describes. The index's *The code's layout* names the seven areas and their layers.
+    - **Operator guide:** `docs/operator-guide.md` has three lines that named a removed guide file, and each now names its new file: `stages.md` became `pipeline.md` (two lines) and `work-items.md` became `work.md` (one line).
+    - **Stale names:** a grep over `README.md`, `docs/` (without `docs/runs/` and `docs/decisions.md`) and `claude/` finds none of the seven removed guide file names.
+    - **Document check:** `make documents` prints `documents ok`. I did not run `make check`, because I changed no file; the factory's check runs right after this stage.
+    - **Cross-read:** I read the guide index and the operator-guide diff against this check. I found both current. I did not read the other guide files section by section, because this story moved them without rewording.
+    - **`docs/decisions.md`:** I wrote nothing there, as the criterion says. No "Rejected" line was needed.
+    - **Unrelated stale text:** none noticed.
+
+    `check`: check: green (not run again: passed on tree c21192296613 at 2026-11-05T06:33:29Z)
+    `secrets`: secrets: green (2.9 s)
+    `documents`: documents ok
