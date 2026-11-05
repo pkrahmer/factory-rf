@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295, 6650280748, 6650410311, 6650650704]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T05:37:43.714749Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -146,13 +142,19 @@ journal:
   kind: started
   at: '2026-11-05T05:37:43.714749Z'
   stage: review
+- number: 25
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T05:38:32.629329Z'
+  stage: review
+  run: 7d6bffa123504b71b7f0527e7e3161db
 ---
 
 # The root of `tests/` holds only its folders
 
 ## Description
 
-After the seven moves, `tests/` mirrors the areas, but its root still holds over 200 modules: 72 `*_support.py` helpers, 15 other shared helpers (`human_clone.py`, `recording_log.py`, `source_search.py` and the rest) and 125 test modules, most of them structural guards and tests of the shell scripts and the agent files. This story sorts the root into folders by kind, so that a reader finds a helper or a guard without scrolling (F0051 candidates, item 41). The shared helpers go into a package `tests/support/`; the structural guards (the searches over the source, the `*_removed` tests, the `test_shared_*` and `test_no_*` guards, `test_layers.py` and `test_areas.py`) go into `tests/guards/`; the tests of the operator's scripts go into `tests/operator_scripts/`, those of `vm/` into `tests/vm/`, those of the agent files under `claude/` into `tests/agent_files/`; every other root test module goes to `tests/<area>/<layer>/` of the module it imports most. `tests/conftest.py` stays at the root. No test changes beyond its place and its import lines.
+After the seven moves, `tests/` mirrors the areas, but its root still holds over 200 modules: 72 `*_support.py` helpers, 15 other shared helpers (`human_clone.py`, `recording_log.py`, `source_search.py` and the rest) and 125 test modules, most of them structural guards and tests of the shell scripts and the agent files. This story sorts the root into folders by kind, so that a reader finds a helper or a guard without scrolling (F0051 candidates, item 41). The shared helpers go into a package `tests/support/`; the structural guards (the searches over the source, the `*_removed` tests, the `test_shared_*` and `test_no_*` guards, `test_layers.py` and `test_areas.py`) go into `tests/guards/`, and the test modules that import nothing of `factory`: the tests of the shared helpers and the tests that reach code only through them; the tests of the operator's scripts go into `tests/operator_scripts/`, those of `vm/` into `tests/vm/`, those of the agent files under `claude/` into `tests/agent_files/`; every other root test module goes to `tests/<area>/<layer>/` of the module it imports most, and a module whose file name is already taken in the folder of the area it imports most goes to the area it imports second most. `tests/conftest.py` stays at the root. No test changes beyond its place and its import lines.
 
 ## Interface
 
@@ -436,3 +438,23 @@ Expect: `support.bill_support`
 
     With these, pass the story to `docs`.
 24. factory: started review as vm.
+25. reviewer: Reviewer, round 0, after the human's answers in entry 23.
+
+    What I checked:
+    - **Was there new work since my last review (entry 22)?** No. The only commits since then are the factory's commits and a merge of `origin/main` (a3bb4b318). That merge changed only `docs/runs/2026-11-04-f0050/log.md` and this work item. `git diff --name-status 1346d02e0 HEAD -- tests` is empty.
+    - **Did the merge undo the move?** No. `find tests -maxdepth 1 -type f` lists only `tests/conftest.py`.
+    - **Do my groups 1 to 5 and item 6 from entry 22 still hold?** Yes. The diff is the same: 592 files, all under `tests/`, nothing under `src/`. `make check` was green after the coder (entry 20).
+
+    no findings
+
+    description corrected: "the structural guards (…, `test_layers.py` and `test_areas.py`) go into `tests/guards/`" -> "… go into `tests/guards/`, and the test modules that import nothing of `factory`: the tests of the shared helpers and the tests that reach code only through them" (the human's answers 2 and 3, entry 23)
+    description corrected: "every other root test module goes to `tests/<area>/<layer>/` of the module it imports most" -> "… of the module it imports most, and a module whose file name is already taken in the folder of the area it imports most goes to the area it imports second most" (the human's answer 1, entry 23)
+
+    Notes:
+    - `tests/guards/__init__.py:1`: the docstring does not yet say "and the test modules that import nothing of `factory`" (the human's answer 2, entry 23). Writing it is the tester's job, and the human said a note for a later story is enough.
+
+    Earlier tests (any status other than `A`), the same as in entry 22. They are grouped because there are 586:
+    - **The 212 renames:** every root module of `main` except `conftest.py`, moved to `tests/support/`, `guards/`, `operator_scripts/`, `vm/`, `agent_files/` or an area folder. Leave: feature decision 5 (moves, import lines, paths of moved modules).
+    - **The 374 modified modules:** `tests/conftest.py` and the modules under `tests/<area>/` and `tests/entry/`. Only import lines changed. Leave: feature decision 5.
+
+    Open, and the human's own (entry 15): the six mutmut `--deselect` paths in `pyproject.toml`.
