@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 574
 comments_read: [6671915202, 6672097334]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T23:20:15.050088Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T23:20:12.226383Z'
+  stage: review
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:20:15.050088Z'
   stage: review
 ---
 
@@ -290,3 +299,4 @@ Expect: `named`
 
     I would choose (b): it puts the findings in front of the only role that may write them.
 18. 2026-11-05 human: (b): end with `docs`. The documenter fixes findings 1 to 5 there, before the smoke test. `docs` is the review's forward move, so it counts no round of rework.
+19. factory: started review as vm.
