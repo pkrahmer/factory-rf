@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T09:38:43.226339Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -169,6 +165,12 @@ journal:
   kind: started
   at: '2026-11-05T09:38:43.226339Z'
   stage: smoke-test
+- number: 29
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T09:39:17.718302Z'
+  stage: smoke-test
+  run: 6ac711aae5324b90b73871156986e3d1
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -487,3 +489,32 @@ Expect: `parsed`
     `secrets`: secrets: green (3.6 s)
     `documents`: documents ok
 28. factory: started smoke-test as vm.
+29. smoke-tester: Smoke test, round 0. I ran the three commands under `## Smoke test` from the repository root, as written and in order. No command starts a server.
+
+    **Command 1:** `ls -d vm template 2>/dev/null | wc -l`
+    ```
+    0
+    ```
+    Met `Expect: 0`.
+
+    **Command 2:** `test -f operator/vm/Dockerfile && test -f operator/template/Makefile && echo moved`
+    ```
+    moved
+    ```
+    Met `Expect: moved`.
+
+    **Command 3:** `bash -n operator/vm/setup.sh && bash -n operator/vm/job-start.sh && echo parsed`
+    ```
+    parsed
+    ```
+    Met `Expect: parsed`.
+
+    **Checked against the acceptance criteria:**
+    - Criterion 1: I compared the files under `vm/` and `template/` on `origin/main`, each with `operator/` put in front, against the files now under `operator/vm/` and `operator/template/`. The two lists match.
+    - Criterion 3: I searched `src/`, `tests/`, `operator/`, `agents/`, `docs/` (leaving out `docs/runs/` and `docs/decisions.md`) and `README.md` for a root-level `vm/setup.sh`, `vm/job-start.sh`, `vm/Dockerfile`, `vm/factory.service`, `vm/git-credential-factory` or `template/`. Nothing matched.
+    - Criteria 2 and 4 (the tests and `make check`): the smoke test does not run them, and I did not run them either; the factory's checks cover them. Nothing the smoke test showed contradicts them.
+    - Criterion 5 (docs): the smoke test reads no document, so nothing here contradicts it.
+
+    **Findings:** none.
+
+    **Open:** nothing.
