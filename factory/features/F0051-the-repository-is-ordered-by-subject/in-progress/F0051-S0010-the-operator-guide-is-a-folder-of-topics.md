@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T07:47:09.754440Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -217,6 +213,12 @@ journal:
   kind: started
   at: '2026-11-05T07:47:09.754440Z'
   stage: smoke-test
+- number: 38
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T07:47:31.295463Z'
+  stage: smoke-test
+  run: 6fe6e34bbb684fceaa5354e6d0e2d8fa
 ---
 
 # The operator guide is a folder of topics
@@ -643,3 +645,26 @@ Expect: `split`
     `secrets`: secrets: green (3.7 s)
     `documents`: documents ok
 37. factory: started smoke-test as vm.
+38. smoke-tester: Ran the two smoke-test commands from the repository root, in order, exactly as written.
+
+    Command 1:
+    ```bash
+    ls docs/operator-guide | wc -l
+    ```
+    ```
+    11
+    ```
+    Met `Expect: 11`.
+
+    Command 2:
+    ```bash
+    test -e docs/operator-guide.md && echo still there || echo split
+    ```
+    ```
+    split
+    ```
+    Met `Expect: split`.
+
+    Then I checked the output against the acceptance criteria. `ls docs/operator-guide` lists exactly `README.md` and the ten topic files the Description names: agent-runtime, cloud-run, health, install, machine, pipeline, records, site, stops, work-items. That agrees with criterion 1. I also grepped `src/`, `claude/`, `operator/`, `vm/`, `docs/` and `README.md` for `docs/operator-guide.md`. Leaving out `docs/decisions.md` and `docs/runs/`, nothing names it, which agrees with criterion 4. Nothing in the smoke test goes against any criterion. I did not run criteria 2, 3 and 5 here: the tests and the factory's checks cover them.
+
+    Findings: none.
