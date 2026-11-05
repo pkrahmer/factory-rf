@@ -9,7 +9,7 @@ import pytest
 
 import factory.shared.adapters.process
 from factory.shared.adapters.process import ProcessRequest, run_process
-from support.module_names import module_exists
+from support.module_names import module_exists_anywhere
 from support.search_support import modules_matching
 from support.vm_support import SETUP, SYSTEM_PATH, setup_code, step_texts
 
@@ -58,7 +58,7 @@ def test_the_setup_script_installs_the_moved_helper(tmp_path: Path) -> None:
 
 
 def _sessions_module_is_gone() -> bool:
-    return not module_exists("factory.domain.sessions")
+    return not module_exists_anywhere("factory.domain.sessions")
 
 
 def _process_table_reader_is_gone() -> bool:

@@ -3,6 +3,8 @@
 import ast
 from pathlib import Path
 
+from support.module_names import names_the_module_anywhere
+
 SOURCE = Path(__file__).resolve().parents[2] / "src" / "factory"
 GUARD_MODULES = {"factory.entry.confine", "factory.adapters.landlock", "factory.domain.confinement"}
 GUARD_IMPORTS = {"factory.domain.confinement", "factory.adapters.landlock"}
@@ -36,9 +38,11 @@ def test_only_the_guard_s_modules_name_the_wrapper_or_import_its_rules() -> None
         offenders.extend(
             f"{name}: {word}" for word in ("factory-confine:", "CLAUDE_CONFIG_DIR") if word in text
         )
+        imported_names = _imports(ast.parse(text))
         offenders.extend(
             f"{name}: imports {imported}"
-            for imported in sorted(_imports(ast.parse(text)) & GUARD_IMPORTS)
+            for imported in sorted(GUARD_IMPORTS)
+            if names_the_module_anywhere(imported_names, imported)
         )
 
     assert offenders == []

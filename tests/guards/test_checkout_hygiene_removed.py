@@ -11,7 +11,7 @@ from factory.hosting.domain.post_texts import stall_cause, stall_note
 from factory.pipeline.application.stage import LaunchedStage
 from factory.shared.domain import errors
 from factory.work.domain.journal import StallReason
-from support.module_names import module_exists
+from support.module_names import module_exists_anywhere
 
 REMOVED_OPERATIONS = {
     "seal",
@@ -40,7 +40,7 @@ def _no_stall_text_mentions_a_nested_repository() -> bool:
     "holds",
     [
         pytest.param(
-            lambda: not module_exists("factory.application.sealed_runs"),
+            lambda: not module_exists_anywhere("factory.application.sealed_runs"),
             id="sealed-runs-module",
         ),
         pytest.param(lambda: not REMOVED_OPERATIONS & Git.__abstractmethods__, id="git-operations"),

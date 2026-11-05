@@ -33,6 +33,7 @@ from factory.work.domain.work_item import WorkItemState
 from support.definition_support import pipeline_definition
 from support.git_support import install_agents, remote_commit
 from support.human_clone import HumanClone
+from support.module_names import names_the_module_anywhere
 from support.source_search import imported_modules
 from support.stage_run_support import (
     BRANCH,
@@ -136,7 +137,7 @@ def test_the_stall_module_imports_no_name_of_the_undo() -> None:
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     imported = imported_modules(tree)
 
-    assert "factory.application.undo" not in imported
+    assert not names_the_module_anywhere(imported, "factory.application.undo")
     assert not any(name.endswith(".UndoService") for name in imported)
 
 
