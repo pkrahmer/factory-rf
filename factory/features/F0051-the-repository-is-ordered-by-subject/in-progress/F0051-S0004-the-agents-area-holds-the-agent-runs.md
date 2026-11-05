@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 559
 comments_read: [6648033321]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T02:30:20.655034Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T02:30:18.231959Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:30:20.655034Z'
   stage: doing
 ---
 
@@ -191,3 +200,4 @@ Expect: `1`
    **(a).** `pyproject.toml` on `main` now has the three keys at the new paths, `src/factory/agents/adapters/claude_runtime.py`, `opencode_runtime.py` and `oauth_token.py`, with the same rules and comments, beside the old ones (the old keys go after this story's merge). The next stage merges `main` into the branch, so the keys reach it there. The baseline and `CLAUDE.md`'s line follow after the merge, as for the earlier moves.
 
    End with `tests`, and the tester makes the test changes you listed.
+9. factory: started doing as vm.
