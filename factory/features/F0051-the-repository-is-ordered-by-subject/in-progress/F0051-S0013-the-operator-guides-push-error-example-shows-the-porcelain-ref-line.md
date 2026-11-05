@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 555
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T00:07:14.746249Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-05T00:07:09.821781Z'
   stage: intake
   run: 8037b0aac87d47b3824f622d4b22235c
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:07:14.746249Z'
+  stage: tests
 ---
 
 # The operator guide's push error example shows the ref line the factory writes
@@ -79,3 +88,4 @@ Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [re
    - Smoke test: the greps and the `uv run python -c` command are runnable. The pytest-addopts rule does not apply because none of them runs pytest. Each `Expect:` is checkable (`1`, `0`, the exact ref line). The third command imports `factory.domain.git`, which still exists until S0002, as the feature's build order notes.
    - Architecture: documentation only, with no layer or wrapper involved. The docs criterion names the operator guide, which the documenter keeps.
    - Scope: within F0051 (listed first in its build order, carried over from F0050-A0003). It changes no code, no decision-log entry and no behaviour, so nothing in "Out of scope" is touched.
+4. factory: started tests as vm.
