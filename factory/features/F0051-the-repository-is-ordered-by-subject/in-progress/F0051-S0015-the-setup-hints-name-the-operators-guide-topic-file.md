@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T10:48:18.620340Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-05T10:48:18.620340Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-05T10:49:20.547304Z'
+  stage: tests
+  run: 219d88d9942b409599def49137913349
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -127,3 +129,19 @@ Expect: `1`
    Architecture: the change touches the operator's VM script, the skill reference and one guard test, and no `src/factory` layer. The tests go in `tests/guards/`, which is where `CLAUDE.md` puts them.
    Scope: within F0051, where S0015 is listed. The left-out items (`wiring.py` docstring, the playbook, the demo README, the Makefile example) are named in the Description.
 7. factory: started tests as vm.
+8. tester: Tests written from the Interface and the criteria. The two earlier tests changed only their expected strings, under the human's leave in `feature.md` ("At S0015's start", journal entry 4).
+
+   criterion 1: tests/vm/test_vm_setup_install_hint.py::test_a_differing_installed_file_names_the_operators_own_copy (rows `tools`, `service`; `HINTS` now ends with `(docs/operator-guide/machine.md, "The rebuild after a merge")`). It checks the hint appears once in its step and goes to stderr. The absence of `(operator guide, ` is tests/guards/test_operator_guide_pointers_search.py::test_the_setup_script_holds_no_old_pointer[(operator guide, ]
+   criterion 2: tests/guards/test_operator_guide_pointers_search.py::test_the_closing_line_names_the_machine_topic_file (the one `setup: done: ` line is exactly the new `printf ... "$instance"`), plus test_the_setup_script_holds_no_old_pointer[see the operator guide, ], plus tests/vm/test_vm_setup_text.py::test_the_refusals_modes_and_rerun_guards_are_in_their_steps[done-line] (its expected string is now `see "The machine" in docs/operator-guide/machine.md`)
+   criterion 3, files as they are after the story: tests/guards/test_operator_guide_pointers_search.py::test_every_mention_of_the_operator_guide_names_its_path
+   criterion 3, made-up lines (caught / topic file not caught / index file not caught): tests/guards/test_operator_guide_pointers_search.py::test_a_mention_without_a_path_is_caught (rows `no-path`, `topic-file`, `index-file`)
+   criterion 3, every named file exists: tests/guards/test_operator_guide_pointers_search.py::test_every_named_topic_file_exists
+   criterion 4 (`make check`) and criterion 5 (docs): no test, as usual.
+
+   How the search works: it reads every UTF-8 text file under `operator/vm/` and `operator/skill/`, and the match is case-sensitive on `operator guide`. A line counts as having a path when it contains `docs/operator-guide/`. The existence check reads `docs/operator-guide/<name>.md` from those lines and needs at least one such name.
+
+   Files created: tests/guards/test_operator_guide_pointers_search.py. Earlier test files changed under the leave: tests/vm/test_vm_setup_install_hint.py (`HINTS`) and tests/vm/test_vm_setup_text.py (row `done-line`).
+
+   One run of `uv run pytest -q` over the three files: the new texts are missing from `operator/vm/setup.sh` and `approving.md`, so the tests fail with wrong results. There were no collection errors, and every module imported (the tests read only text files). The last five lines showed the old-pointer, closing-line, `tools`/`service` hint and `done-line` failures. `make lint`: green.
+
+   `lint`: lint: green (0.2 s)
