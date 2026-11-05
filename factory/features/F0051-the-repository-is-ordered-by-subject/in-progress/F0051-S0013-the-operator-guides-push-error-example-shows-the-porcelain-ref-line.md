@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 555
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T00:07:38.428122Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-05T00:07:33.059428Z'
   stage: tests
   run: 1bee7eb532974451a57b6476e197047e
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:07:38.428122Z'
+  stage: doing
 ---
 
 # The operator guide's push error example shows the ref line the factory writes
@@ -100,3 +109,4 @@ Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [re
    Files created: none. Modules the test run could not import: none. No tests were run, because there were no new test files. `make lint` is green. Rejected: a pytest test that greps `docs/operator-guide.md`. The Interface rules it out, and it would make guide wording a code check.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
