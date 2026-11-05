@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T22:13:13.808251Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-05T22:13:13.808251Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-05T22:13:30.821812Z'
+  stage: intake
+  run: 2e242e9bacaf4333802d8ca9d8749c84
 ---
 
 # The agents know the docs route
@@ -58,9 +60,9 @@ Once the pipeline holds the docs route (the human adds it at this story's merge)
 
 ## Acceptance criteria
 
-1. `agents/agents/intake.md` holds the routing rule of the Interface, naming `docs-only`, `tests` and the three documenter paths.
-2. `agents/agents/documenter.md` has a section for the stage `docs-only` that ends with `docs-review`, or with `tests` and the change it needs when the story needs a change outside the documents.
-3. `agents/agents/reviewer.md` has a section for the stage `docs-review` that names `docs/project-guide/style.md`, ends with `docs-approval` or `docs-only`, and lists the seven style rules for as long as the style page is missing.
+1. `agents/agents/intake.md` holds the routing rule of the Interface, naming `docs-only`, `tests` and the three documenter paths, with the "otherwise `tests`" clause and the statement that a docs-route story has no tests stage and no doing stage, so its criteria are about documents only.
+2. `agents/agents/documenter.md` has a section for the stage `docs-only` that names `make documents`, ends with `docs-review`, or ends with `tests` when the story needs a change outside the documents, its entry then naming that change.
+3. `agents/agents/reviewer.md` has a section for the stage `docs-review` that names the command `git diff main...HEAD -- README.md docs operator/README.md` and the work item, names `docs/project-guide/style.md`, ends with `docs-approval`, or with `docs-only` and numbered findings, and lists the seven style rules for as long as the style page is missing.
 4. `make check` stays green.
 5. docs: `docs/project-guide/agents.md`: the docs route and which agent does what on it. `docs/operator-guide/pipeline.md`: the route in the operator's words. `docs/decisions.md`: an entry for feature decisions 1 to 6, naming F0052.
 
@@ -84,3 +86,9 @@ Expect: `named`
    5. The documenter's section says that when it ends with `tests`, its entry names the change so the tester and coder see why. Criterion 2 says "the change it needs", which is close, but it should say the entry names that change. I would reword it that way.
 4. 2026-11-05 human: Yes to all five, as you propose: (1) criterion 2 names `make documents`; (2) criterion 3 names the diff command and the work item; (3) criterion 3 says the findings are numbered; (4) criterion 1 requires the "otherwise `tests`" clause and that docs-route criteria are about documents only; (5) criterion 2 says the entry names that change.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: concrete files and sections (intake.md stage section, documenter.md `docs-only`, reviewer.md `docs-review`) and the new test module `tests/agent_files/test_claude_agent_texts_docs_route.py`; no signatures needed.
+   - Criteria: carried in the human's answer (journal 4, all five points) into criteria 1 to 3: the "otherwise `tests`" clause and the documents-only statement, `make documents`, the entry naming the outside change, the diff command and work item, and numbered findings. Each is now checkable by one test, and each rule has both sides (`docs-only` vs `tests`; `docs-review` vs `tests` for the documenter; `docs-approval` vs `docs-only` for the reviewer).
+   - Smoke test: the grep/awk command is runnable and `named` is checkable.
+   - Architecture: only agent text files and tests under `tests/agent_files/`; no runtime change, matches CLAUDE.md.
+   - Scope: within F0052 scope (S0002), touches nothing in Out of scope; the pipeline.yml change is the human's at merge.
