@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T10:18:04.751264Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-05T10:17:59.295994Z'
   stage: doing
   run: 8b2cb2c3f7c84af4a95ee1b08dc98aad
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:18:04.751264Z'
+  stage: review
 ---
 
 # The removal guards look for a removed module in every area
@@ -201,3 +210,4 @@ Expect: `0`
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
+11. factory: started review as vm.
