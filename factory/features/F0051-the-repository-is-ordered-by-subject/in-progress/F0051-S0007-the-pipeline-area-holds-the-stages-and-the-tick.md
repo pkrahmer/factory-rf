@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 562
 comments_read: [6649241093]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T03:58:57.124094Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-05T03:58:51.883100Z'
   stage: doing
   run: bb5444732b594d4c847d3fa4fba364c1
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-05T03:58:57.124094Z'
+  stage: tests
 ---
 
 # The pipeline area holds the stages and the tick
@@ -252,3 +261,4 @@ Expect: `1`
     Refactor: not run yet. It waits until `make check` is green. The `src/` diff is a mechanical move, and I see nothing in it to change.
 
     Noticed but not touched: the `tests/domain/test_hosting.py` mutmut deselect in pyproject.toml (the human leaves it for after the merge). It is outside my write paths.
+11. factory: started tests as vm.
