@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T00:59:52.475038Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-05T00:59:52.475038Z'
   stage: smoke-test
+- number: 28
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T01:00:29.957471Z'
+  stage: smoke-test
+  run: d94a19ac3951459d951b17e96f50bca3
 ---
 
 # The shared area holds what every area uses
@@ -1285,3 +1287,29 @@ Expect: `1`
     `secrets`: secrets: green (9.2 s)
     `documents`: documents ok
 27. factory: started smoke-test as vm.
+28. smoke-tester: I ran the three smoke-test commands exactly as written, in order, from the repository root. None of them starts a server. I changed nothing.
+
+    1. `uv run python -c "import factory.shared.domain.errors as m; print(m.__name__)"`
+    ```
+    Bytecode compiled 4164 files in 45ms
+    factory.shared.domain.errors
+    ```
+    Met `Expect: factory.shared.domain.errors`. The first line is uv's own message about compiling bytecode, not output from the command, and the command exited 0.
+
+    2. `test -e src/factory/domain/errors.py && echo still there || echo moved`
+    ```
+    moved
+    ```
+    Met `Expect: moved`.
+
+    3. `uv run pytest tests/test_areas.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Met `Expect: 1`. I ran it a second time without the `grep` to see the full last line: `101 passed in 5.53s`.
+
+    Against the acceptance criteria: none of the output contradicts a criterion. Command 1 confirms criterion 1 for `errors` and command 2 confirms the old path is gone. Command 3 runs the parametrized guards of criteria 1 to 3, and all 101 cases passed. The smoke test does not cover criteria 4 to 7. Criterion 6 (`make check`) is checked by the factory's own gate.
+
+    Findings: none.
+
+    Open: nothing.
