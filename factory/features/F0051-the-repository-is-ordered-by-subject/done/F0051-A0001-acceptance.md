@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-05T09:59:00.133527Z'
   stage: acceptance
   run: e2a6428d2e9347d98c90ca665cc73420
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-05T10:02:58.106187Z'
+  stage: done
 stories: [F0051-S0001, F0051-S0002, F0051-S0003, F0051-S0004, F0051-S0005, F0051-S0006, F0051-S0007, F0051-S0008, F0051-S0009, F0051-S0010, F0051-S0011, F0051-S0012, F0051-S0013]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The repository is ordered by subject
@@ -175,3 +180,4 @@ The human answered 19 questions (17 questions, 2 attempts caps) and waited 2.1 h
    6 Decisions: feature decisions 1 to 8, and the human's answers in S0007 to S0012. Among them, the coder's temporary doc write paths "for the rest of F0051 only" are still in `factory/pipeline.yml:24`, beside the old `vm/*`, `template/*` and `docs/operator-guide.md`. I found no earlier test changed without a leave.
    7 Slow checks: nothing beyond `make check`. The slowest tests are the time-limit tests at about 10 s each. Used disk is unchanged at 1.4 GB. The pool has 0.8 GB less free space, outside the instance's datasets, likely S0011's stage image rebuild.
    8 Cost: 139 runs, 273.8 min, $49.55. S0010 cost the most ($6.94, a review round over references). S0001 stalled first because the coder's test changes were dropped from the take. S0011 and S0012 reached the attempts cap through the take's directory-rename gap. The human answered 19 questions (17 questions, 2 attempts caps) and waited 2.1 h. S0008 needed the human most, with four answers: placement rules and two detect-secrets rewordings.
+3. factory: done (pull request merged); cost: 1 runs, 11.5 min, 53 turns, 129114 tokens in (4048007 more from cache), 37208 out, $2.59
