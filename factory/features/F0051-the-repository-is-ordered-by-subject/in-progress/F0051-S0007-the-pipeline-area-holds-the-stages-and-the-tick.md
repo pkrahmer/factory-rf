@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 562
 comments_read: [6649241093]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T03:58:57.124094Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-05T03:58:57.124094Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-11-05T04:00:30.146191Z'
+  stage: tests
+  run: 8b9998dc1c8b448da5b28fa69e0f8383
 ---
 
 # The pipeline area holds the stages and the tick
@@ -262,3 +264,38 @@ Expect: `1`
 
     Noticed but not touched: the `tests/domain/test_hosting.py` mutmut deselect in pyproject.toml (the human leaves it for after the merge). It is outside my write paths.
 11. factory: started tests as vm.
+12. tester: I made the three test changes the human approved in entry 8, as the coder listed them in entry 10. These change existing tests and add no new criterion, so there is no criterion → test mapping this run, and no new test files. Every test keeps its name and checks the same thing.
+
+    1. Removed-module checks. A `ModuleNotFoundError` raised because the parent package is gone now counts as "gone".
+       - New shared helper `module_exists(module) -> bool` in tests/module_names.py, beside `has_name`. It wraps `importlib.util.find_spec` and returns False on `ModuleNotFoundError`. I used one helper instead of eight copies of try/except.
+       - Rows changed to use it:
+         - tests/test_checkout_hygiene_removed.py [sealed-runs-module]
+         - tests/test_docker_path_removed.py (`_sessions_module_is_gone`)
+         - tests/entry/test_mutation_report_removed.py (all four rows; the "found" rows still expect True)
+         - tests/test_undo_removed.py [undo-module] (the expected value went from None to False)
+         - tests/test_home_reset_removed.py (test_the_modules_of_the_home_reset_are_gone)
+         - tests/test_hook_removed.py [adapter-module, entry-module] (expected None → False)
+         - tests/test_kernel_guard_removed.py (test_the_wrapper_and_the_kernel_s_modules_are_gone)
+         - tests/test_leftovers_program_removed.py (test_the_leftovers_modules_are_gone)
+       - ruff removed the `importlib.util` imports that were no longer used.
+    2. tests/pipeline/application/test_tick.py::test_the_tick_knows_no_run_record_and_no_lock: the rows `application/tick.py` and `domain/evaluation.py` are now `pipeline/application/tick.py` and `pipeline/domain/evaluation.py`. Both files exist.
+    3. tests/test_areas.py::test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own: the `outside` list now leaves out a bare `factory` import, because it belongs to no area. tests/shared/domain/test_settings_model_rules.py and tests/hosting/domain/test_hosting.py stay where they are.
+
+    Earlier test files changed (by the human's leave in entry 8, under feature decision 5):
+    - tests/module_names.py
+    - tests/test_checkout_hygiene_removed.py
+    - tests/test_docker_path_removed.py
+    - tests/entry/test_mutation_report_removed.py
+    - tests/test_undo_removed.py
+    - tests/test_home_reset_removed.py
+    - tests/test_hook_removed.py
+    - tests/test_kernel_guard_removed.py
+    - tests/test_leftovers_program_removed.py
+    - tests/pipeline/application/test_tick.py
+    - tests/test_areas.py
+
+    Run: I ran `uv run pytest -q` once over those files and it ended with every test passing. `make lint`: green. Every module imported; none were missing.
+
+    Still open, as the human said in entry 8: the mutmut deselect of `tests/domain/test_hosting.py` in pyproject.toml. It is outside my write paths.
+
+    `lint`: lint: green (0.2 s)

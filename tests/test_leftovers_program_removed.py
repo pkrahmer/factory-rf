@@ -1,6 +1,5 @@
 """The leftovers program, its modules and every name that started or configured it are gone."""
 
-import importlib.util
 import inspect
 from collections.abc import Callable
 
@@ -13,6 +12,7 @@ from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.entry import wiring
 from factory.entry.wiring import build_boundaries
 from factory.shared.adapters import process
+from module_names import module_exists
 from source_search import SRC
 
 
@@ -22,7 +22,7 @@ def _no_parameter(function: Callable[..., object], name: str) -> bool:
 
 @pytest.mark.parametrize("module", ["factory.entry.leftovers", "factory.domain.leftovers"])
 def test_the_leftovers_modules_are_gone(module: str) -> None:
-    assert importlib.util.find_spec(module) is None
+    assert not module_exists(module)
 
 
 @pytest.mark.parametrize(

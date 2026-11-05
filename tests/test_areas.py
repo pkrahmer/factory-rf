@@ -256,7 +256,8 @@ def test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own(
 ) -> None:
     found = _factory_imports(ast.parse(path.read_text(encoding="utf-8")))
 
-    outside = [module for module in found if not _in_a_moved_area(module)]
+    # A bare `import factory` belongs to no area.
+    outside = [module for module in found if module != "factory" and not _in_a_moved_area(module)]
     own = [module for module in found if module.startswith(f"factory.{area}.")]
 
     assert outside == [], f"{path.name} imports areas not yet moved: {outside}"

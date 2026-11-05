@@ -478,10 +478,10 @@ def test_v1_leftover_files_change_nothing(
 @pytest.mark.parametrize(
     "module",
     [
-        "application/tick.py",
+        "pipeline/application/tick.py",
         "watching/application/watcher.py",
         "work/application/work_items.py",
-        "domain/evaluation.py",
+        "pipeline/domain/evaluation.py",
     ],
 )
 def test_the_tick_knows_no_run_record_and_no_lock(module: str) -> None:

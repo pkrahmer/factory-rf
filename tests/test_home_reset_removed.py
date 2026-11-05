@@ -1,7 +1,6 @@
 """The reset of the agent's home is gone, with every module and name that existed only for it."""
 
 import dataclasses
-import importlib.util
 from collections.abc import Callable
 from types import ModuleType
 
@@ -12,6 +11,7 @@ from factory.entry import wiring
 from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain import settings
 from factory.shared.domain.settings import InstanceSettings
+from module_names import module_exists
 
 
 @pytest.mark.parametrize(
@@ -25,7 +25,7 @@ from factory.shared.domain.settings import InstanceSettings
     ],
 )
 def test_the_modules_of_the_home_reset_are_gone(module: str) -> None:
-    assert importlib.util.find_spec(module) is None
+    assert not module_exists(module)
 
 
 def _lacks(module: ModuleType, name: str) -> Callable[[], bool]:
