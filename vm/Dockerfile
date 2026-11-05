@@ -55,8 +55,8 @@ RUN case "${AGENT_RUNTIME}" in \
     esac \
  && chmod 0755 /usr/local/bin/${AGENT_RUNTIME}
 # The agent files, read-only; the sync container copies them into the dataset's home.
-COPY claude /etc/factory/claude
-RUN chmod 0755 /etc/factory/claude /etc/factory/claude/agents && find /etc/factory/claude -type f -exec chmod 0644 {} +
+COPY agents /etc/factory/agents
+RUN chmod 0755 /etc/factory/agents /etc/factory/agents/agents && find /etc/factory/agents -type f -exec chmod 0644 {} +
 ENV UV_LINK_MODE=copy
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV DISABLE_AUTOUPDATER=1

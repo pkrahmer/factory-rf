@@ -79,7 +79,7 @@ def _derived(root: Path) -> dict[str, str]:
         "FACTORY_WORKSPACE": f"{root}/work",
         "FACTORY_CHECKOUT": f"{root}/repo",
         "FACTORY_STATE": f"{root}/state",
-        "FACTORY_CLAUDE_HOME": f"{root}/factory/claude",
+        "FACTORY_CLAUDE_HOME": f"{root}/factory/agents",
         "FACTORY_IMAGE_ID_FILE": f"{root}/image-id",
         "FACTORY_CONTAINER_PROFILE": "job",
         "FACTORY_AGENT_RUNTIME": "opencode",

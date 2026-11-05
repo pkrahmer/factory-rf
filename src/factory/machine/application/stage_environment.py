@@ -27,7 +27,7 @@ from factory.pipeline.domain.checks import last_line
 from factory.shared.domain.errors import ContainerError
 
 UPSTREAM = "/upstream"
-AGENT_FILES = "/etc/factory/claude"
+AGENT_FILES = "/etc/factory/agents"
 SHELL = "/bin/sh"
 SYNC_ENVIRONMENT = {"PATH": SYSTEM_PATH, "HOME": WORK_HOME}
 TIMING_LINE = (

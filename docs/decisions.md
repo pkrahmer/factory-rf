@@ -1558,3 +1558,11 @@ Date: 2026-11-05 (F0051-S0010).
 - Decision: `docs/operator-guide.md` is the folder `docs/operator-guide/`, like the project guide: an index `README.md` (which also holds *Replaced in v1.2* and *Replaced from v1*) and ten topic files: `install.md`, `agent-runtime.md`, `machine.md`, `site.md`, `cloud-run.md`, `health.md`, `stops.md`, `pipeline.md`, `records.md` and `work-items.md`. Each section moved as it was; the words changed only where a section points to another one, which now names the topic file. The document check (`factory.shared.domain.documents`) requires the index and the ten files, and checks *Install* and *Configuration* in `install.md` and *The stops* in `stops.md`; a missing file is reported as `docs/operator-guide/<file>: missing`.
 - Why: the guide had 2,603 lines and 50 sections; an operator who looks for one topic scrolled through all of them, and every documenter run read far more than it needed.
 - No rejected option is named by the story for this entry, so none is written.
+
+## The agent files live in `agents/`
+
+Date: 2026-11-05 (F0051-S0011).
+
+- Decision: the folder of the shipped agent files and their settings is `agents/` (`agents/agents/*.md` and `agents/settings.json`), renamed with `git mv` from `claude/`, and the stage image copies it to `/etc/factory/agents`. The format of the files does not change. `operator/claude/` and `operator/opencode/`, the operator's commands for each runtime, keep their names, and so does the setting `FACTORY_CLAUDE_HOME`, whose value now ends in `factory/agents`. This changes the folder named in the entries above that say `claude/agents/*.md` and `claude/settings.json`.
+- Why: the files are written in Claude Code's format, but the opencode runtime reads them too and translates them per run (the decision of 2026-10-19, F0020-S0004), so the name `claude/` said one runtime where there are two.
+- Rejected: renaming the variable `FACTORY_CLAUDE_HOME` with the folder, because it is outside this story.

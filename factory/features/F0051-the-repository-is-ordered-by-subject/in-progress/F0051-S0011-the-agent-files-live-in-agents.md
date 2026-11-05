@@ -1,3 +1,256 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 566
+comments_read: [6652891790, 6653046965, 6653374440]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-05T07:58:12.339856Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:58:12.346437Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T07:58:35.523773Z'
+  stage: intake
+  run: fda051d1f6c74d9490e464490e4bf6db
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:58:41.038765Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-11-05T08:00:55.659696Z'
+  stage: tests
+  run: e3dd099e841440a2b851e9b58e45b1fb
+  blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-11-05T08:01:43.366131Z'
+  stage: tests
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:01:46.052042Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-05T08:02:16.171759Z'
+  stage: tests
+  run: eebe2efb96234aa68b00d232462a8da2
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:02:22.380627Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-05T08:05:45.888117Z'
+  stage: doing
+  run: 32cd3c49e86740268d39dd58bba12c03
+  blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-05T08:11:54.187330Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:11:56.765939Z'
+  stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:12:24.166753Z'
+  stage: doing
+  run: 7cc6803e6c794ff1b2f52aba09ee611c
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:12:30.289221Z'
+  stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-05T08:13:06.773925Z'
+  stage: tests
+  run: b7948b2218624f6aaac2b124643d26aa
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:13:12.507882Z'
+  stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:18:32.770970Z'
+  stage: doing
+  run: cfb3ee3bcb8f426ebbde5c76b04d5f26
+- number: 18
+  speaker: factory
+  kind: stall
+  at: '2026-11-05T08:18:32.926845Z'
+  stage: doing
+  run: cfb3ee3bcb8f426ebbde5c76b04d5f26
+  reason: check_red
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:18:39.962387Z'
+  stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:25:18.057159Z'
+  stage: doing
+  run: ed7f006d2c514633b6eef752b7be96c2
+- number: 21
+  speaker: factory
+  kind: stall
+  at: '2026-11-05T08:25:18.309663Z'
+  stage: doing
+  run: ed7f006d2c514633b6eef752b7be96c2
+  reason: check_red
+- number: 22
+  speaker: factory
+  kind: question
+  at: '2026-11-05T08:25:25.551481Z'
+  stage: doing
+  blocked: attempts_cap
+- number: 23
+  speaker: human
+  kind: comment
+  at: '2026-11-05T08:29:13.122946Z'
+  stage: doing
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:29:15.681204Z'
+  stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:29:50.062333Z'
+  stage: doing
+  run: 6e69a1cf8d2443f382cad81bfacf7f1f
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:29:55.558531Z'
+  stage: tests
+- number: 27
+  speaker: tester
+  kind: result
+  at: '2026-11-05T08:30:44.621772Z'
+  stage: tests
+  run: d945f6ec8cc24cf7af4e642e3601cf76
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:30:50.159931Z'
+  stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:36:16.066128Z'
+  stage: doing
+  run: 3b6582ee307b47abaa786912c9be2061
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:36:21.418993Z'
+  stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T08:37:58.896556Z'
+  stage: review
+  run: f4f8a74b3d294ec7bb75c072e7e4571e
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:38:04.376548Z'
+  stage: doing
+- number: 33
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:38:37.364765Z'
+  stage: doing
+  run: cd2ef9be23d74694b93cd33a2a8ab9e8
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:38:43.095902Z'
+  stage: tests
+- number: 35
+  speaker: tester
+  kind: result
+  at: '2026-11-05T08:39:34.915115Z'
+  stage: tests
+  run: e9802b2f6e35464ab022c41bedd4247f
+- number: 36
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:39:40.260833Z'
+  stage: doing
+- number: 37
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:45:12.046085Z'
+  stage: doing
+  run: 64cd0be6b18c4144ba7bdbf1b126622e
+- number: 38
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:45:17.332378Z'
+  stage: review
+- number: 39
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T08:46:16.509744Z'
+  stage: review
+  run: 3cf8dc3c53754884953db5059169c1c7
+- number: 40
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:46:21.980514Z'
+  stage: docs
+- number: 41
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T08:47:37.032225Z'
+  stage: docs
+  run: a91979d624a14b67bb78e9d25d06c75e
+- number: 42
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:47:42.696514Z'
+  stage: smoke-test
+- number: 43
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T08:48:30.612965Z'
+  stage: smoke-test
+  run: e8cc27a053f34af2b197493ccd9a59e2
+---
+
 # The agent files live in `agents/`
 
 ## Description
@@ -40,3 +293,402 @@ grep -c '/etc/factory/agents' vm/Dockerfile | awk '{print ($1>=1)}'
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-05 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: a rename, so it has no signatures. It names the moves (`claude/` → `agents/` by `git mv`), `vm/Dockerfile`'s copy and permission lines, and the places that name the folder. Code that holds the old path: `AGENT_FILES = "/etc/factory/claude"` in `src/factory/machine/application/stage_environment.py:30`, and `vm/Dockerfile:58-59`. The Interface's behaviour is only the new path, and criteria 1 to 4 cover it.
+   - Criteria: each is testable by one test function. 1: folder gone and same file names under `agents/agents/`. 2: Dockerfile copy and permission lines, as the stage image's tests check them today. 3: the fake-world stage reads `agents/agents/<role>.md`. 4: a scan that excludes `docs/decisions.md`. The rename adds no rule with a failing side beyond criteria 1 (old folder absent) and 4 (no old name). Criterion 3 does not name the constant, so the tester should pin `AGENT_FILES` and the host-side read.
+   - Smoke test: three runnable commands, each with an `Expect:` that can be checked (`renamed`, `found`, `1`). None runs pytest.
+   - Architecture: this only moves a folder and updates paths. No layer, wrapper or interface changes. The runtime names (`claude_runtime`, the `claude` command, `.claude/`) are explicitly left alone.
+   - Scope: it matches feature.md's Scope line "`claude/` becomes `agents/`" and is not in Out of scope; `operator/claude/`, `operator/opencode/` and `docs/decisions.md` are excluded as the feature says. The write path and `CLAUDE.md` changes are the human's, made at the story's start, as the feature's "The human's changes" says.
+4. factory: started tests as vm.
+5. tester: I wrote every test and every test change the rename needs, and they pass `make lint`. I stopped at one case in criterion 4 that I had to interpret. Criterion 4 says no file under `docs/` other than `docs/decisions.md` may name `claude/agents/`, `claude/settings.json` or `/etc/factory/claude`. Two such files under `docs/` are ones no stage of this story may change:
+   - `docs/runs/2026-10-12-overnight/night-log.md` (lines 252 and 590) is the human's file and outside every write path (CLAUDE.md, *The human's files*).
+   - `docs/operator-playbook.md:21` names `claude/agents/intake.md`. No stage keeps the playbook unless the docs criterion names it, and criterion 6 does not name it.
+
+   As criterion 4 is worded, its test can never go green on this branch. Options:
+   (a) Exclude `docs/runs/` from criterion 4, since it is history, and add `docs/operator-playbook.md` to criterion 6 so the documenter updates its path.
+   (b) Exclude both `docs/runs/` and `docs/operator-playbook.md` from criterion 4.
+   (c) The human changes both files themselves.
+   I would choose (a). The test as written already leaves out `docs/decisions.md` and `docs/runs/`, and still checks the playbook. For (b) I add one path to `NOT_SEARCHED`; for (c) I remove `docs/runs` from it.
+
+   Mapping as written:
+   - criterion 1: tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone, ::test_the_agent_folder_holds_each_agent_file (one row per file name), ::test_the_agent_folder_holds_no_other_agent_file
+   - criterion 2: tests/vm/test_stage_image.py::test_the_agent_files_are_copied_read_only_to_their_place (constants `AGENT_FILES_COPY`/`AGENT_FILES_MODES` changed to `agents /etc/factory/agents`), tests/vm/test_stage_image_agent_folder.py::test_the_image_names_no_agent_file_at_the_old_place
+   - criterion 3: tests/entry/test_tick_shipped_agent_file.py::test_a_stage_run_reads_its_agent_from_the_agent_folder (a fake-world tick runs the coder with the shipped `agents/agents/coder.md`), tests/machine/application/test_container_environment.py::test_the_sync_container_gets_container_paths_mounts_environment_and_limit (mount and argument now `/etc/factory/agents`)
+   - criterion 4: tests/guards/test_agent_folder_names.py::test_no_file_names_the_old_agent_folder (one row per old name)
+
+   Files created: tests/agent_files/test_agent_folder.py, tests/vm/test_stage_image_agent_folder.py, tests/entry/test_tick_shipped_agent_file.py, tests/guards/test_agent_folder_names.py.
+
+   Earlier test files changed, under the Interface's leave (feature decision 5), for the paths only:
+   - tests/support/shipped_agents.py (`AGENT_HOME = ROOT / "agents"`)
+   - tests/guards/test_operator_guide_files.py and tests/guards/test_project_guide_files.py (searched folder `agents`)
+   - tests/vm/test_stage_image.py
+   - tests/machine/application/test_container_environment.py
+   - tests/machine/domain/test_containers.py (sample mount target)
+   - tests/agents/domain/test_nested_claude_paths.py (row `agents/agents/coder.md`)
+   - tests/agent_files/__init__.py (docstring)
+
+   Test file names such as `test_claude_agent_*.py` stay: they name the Claude Code format, not the folder.
+
+   One run of the touched files: the expected tests fail, among them the guard rows, the stage image copy test and the container mount test. The output was cut at five lines, so I did not see whether the other new tests (folder, tick, Dockerfile) failed too. All of them read `agents/`, which does not exist yet, so they fail on a missing file, not on an import. Every module imported.
+6. 2026-11-05 human: Answer of the human:
+
+   `docs/runs/` is left out of criterion 4 (history, mine). The playbook is mine too: I changed its line on `main` to `agents/agents/intake.md`, and the next stage merges it in. So the test keeps checking the playbook and leaves out `docs/decisions.md` and `docs/runs/`, as you wrote it; criterion 6 stays as it is.
+
+   `CLAUDE.md`'s two lines that name the agent files change after the merge; they are mine and outside your search.
+7. factory: started tests as vm.
+8. tester: The human's answer leaves criterion 4's test as it was written: it leaves out `docs/decisions.md` and `docs/runs/` and still checks `docs/operator-playbook.md`. The branch now has the human's playbook line through the merge of `origin/main` (commit 9676aff05), so I did not need to change any test. The tests from the previous run were already committed, and I left them as they were.
+
+   Mapping:
+   - criterion 1: tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone, ::test_the_agent_folder_holds_each_agent_file (one row per file name), ::test_the_agent_folder_holds_no_other_agent_file
+   - criterion 2: tests/vm/test_stage_image.py::test_the_agent_files_are_copied_read_only_to_their_place, tests/vm/test_stage_image_agent_folder.py::test_the_image_names_no_agent_file_at_the_old_place
+   - criterion 3: tests/entry/test_tick_shipped_agent_file.py::test_a_stage_run_reads_its_agent_from_the_agent_folder, tests/machine/application/test_container_environment.py::test_the_sync_container_gets_container_paths_mounts_environment_and_limit
+   - criterion 4: tests/guards/test_agent_folder_names.py::test_no_file_names_the_old_agent_folder (one row per old name)
+
+   Files created, all in the previous run: tests/agent_files/test_agent_folder.py, tests/vm/test_stage_image_agent_folder.py, tests/entry/test_tick_shipped_agent_file.py, tests/guards/test_agent_folder_names.py. Earlier test files I changed under the leave of feature decision 5, all in the previous run (entry 5 lists them): tests/support/shipped_agents.py, tests/guards/test_operator_guide_files.py, tests/guards/test_project_guide_files.py, tests/vm/test_stage_image.py, tests/machine/application/test_container_environment.py, tests/machine/domain/test_containers.py, tests/agents/domain/test_nested_claude_paths.py, tests/agent_files/__init__.py.
+
+   I ran the touched test files once. They fail as expected: the tick test, the three guard rows and the container mount test show in the last five lines. The others read `agents/`, which does not exist yet. Every module imported, so no module was missing. `make lint` is green.
+
+   `lint`: lint: green (0.2 s)
+9. factory: started doing as vm.
+10. coder: I stopped before `make check` because three test problems are outside my write paths, and I may not edit tests (R9). Work so far, left in the working tree:
+    - `git mv claude agents`
+    - `src/factory/machine/application/stage_environment.py:30`: `AGENT_FILES = "/etc/factory/agents"`
+    - `vm/Dockerfile:58-59`: copies to and sets modes on `/etc/factory/agents`
+    - `vm/job-start.sh:68`: `"$code/agents"`
+    - `vm/setup.sh:427`: `FACTORY_CLAUDE_HOME=$base/factory/agents`. The two scripts must change because the clone's `claude/` folder no longer exists.
+    - The old paths in `docs/project-guide/{README,agents,machine}.md` and `docs/operator-guide/{agent-runtime,install,machine}.md`. I left every `.claude/` mention alone.
+
+    With these changes, the targeted tests show the problems below.
+
+    1. `tests/guards/test_agent_folder_names.py::test_no_file_names_the_old_agent_folder[claude/settings.json]` fails on `.claude/settings.json`. That is the human's `.claude/` folder, which the Interface says keeps its name. It appears as test data in `tests/agents/domain/test_nested_claude_paths.py:14,18,42,43`, `tests/agents/domain/test_write_paths.py:115,148` and `tests/pipeline/application/test_take_rule.py:19`. A substring check cannot tell the two apart.
+       Options:
+       (a) The guard matches only where no `.` or word character comes before the name, e.g. `re.search(r"(?<![\w.])" + re.escape(old_name), text)`. I would choose this.
+       (b) Those test files change their sample paths.
+
+    2. `tests/entry/test_tick_shipped_agent_file.py::test_a_stage_run_reads_its_agent_from_the_agent_folder` fails with `assert 'intake' == 'coder'`. A story started from the backlog runs the first stage, `intake`, so the coder never runs in one tick.
+       Options:
+       (a) `ROLE = "intake"`, which still reads a shipped file from `agents/agents/`. I would choose this.
+       (b) Move the work item to `doing` before the tick.
+
+    3. Two tests still pin the old folder of the factory's clone. The Interface says every place under `vm/` changes, and the instance would point at a folder that is gone:
+       - `tests/vm/test_vm_job_start.py:82` (`f"{root}/factory/claude"`), which fails `test_factory_run_gets_the_derived_settings_where_the_job_gave_none[derived]`
+       - `tests/support/vm_support.py:51` (`"$base/factory/claude"`), which fails `tests/vm/test_vm_setup_text.py::test_the_environment_file_holds_each_name_once_with_its_value[10-FACTORY_CLAUDE_HOME-...]`
+
+       I would choose to change both to `factory/agents`. The alternative is to keep the scripts on `factory/claude`, but that breaks every instance.
+
+    I would choose 1(a), 2(a) and 3 as changed. If you agree, the next doing run ends with `tests` naming exactly these changes, then finishes once the tester has made them.
+
+    Main choice so far: keep the variable name `FACTORY_CLAUDE_HOME` and change only its path, because renaming the variable is outside this story. I rejected renaming it.
+
+    Noticed but not touched: `operator/README.md:31` names `claude/commands/kumpel.md` (that is `operator/claude/`, so it is correct).
+11. 2026-11-05 human: Answers of the human: 1(a), 2(a) and 3 as you propose.
+
+    1. The guard matches a name only where no `.` or word character comes before it (`(?<![\w.])`), so `.claude/settings.json` does not count.
+    2. `ROLE = "intake"`.
+    3. Both test lines change to `factory/agents`; `FACTORY_CLAUDE_HOME` keeps its name.
+
+    Leave for the tester for exactly these three changes. End with `tests` naming them.
+
+    For me after the merge, on factory-vm, before its restart: the `FACTORY_CLAUDE_HOME` line of `factory.env` names `factory/agents`, the stage image is rebuilt (the Dockerfile's new `/etc/factory/agents`), and `image-id` is renewed.
+12. factory: started doing as vm.
+13. coder: The human's answer (entry 11) gives leave for three test changes. Following that answer, I changed no code in this run. The tester should make exactly these changes:
+    1. `tests/guards/test_agent_folder_names.py::test_no_file_names_the_old_agent_folder`: count an old name only where no `.` or word character comes before it, e.g. `re.search(r"(?<![\w.])" + re.escape(old_name), text)`. Then `.claude/settings.json` no longer counts.
+    2. `tests/entry/test_tick_shipped_agent_file.py`: `ROLE = "intake"` instead of `"coder"`.
+    3. `tests/vm/test_vm_job_start.py:82`: `f"{root}/factory/claude"` becomes `f"{root}/factory/agents"`. `tests/support/vm_support.py:51`: `"$base/factory/claude"` becomes `"$base/factory/agents"`. `FACTORY_CLAUDE_HOME` keeps its name.
+
+    The last doing run's commit does not include the folder move. On the branch, `claude/` still exists and `agents/` does not. The path edits from that run were committed: `src/factory/machine/application/stage_environment.py:30`, `vm/Dockerfile:58-59`, `vm/job-start.sh:68`, `vm/setup.sh:427` and the files under `docs/project-guide/` and `docs/operator-guide/`. I did not redo the move in this run so that it changes no code. The next doing run moves `claude/` to `agents/` and checks that the take records both the deletion and the new files. Both `claude/*` and `agents/*` are in the coder's write paths.
+
+    Main choice: end with `tests` now and leave the move for after the test changes. I rejected making the move in this run, because this step should change no code.
+
+    Noticed but not touched: nothing new beyond entry 10.
+14. factory: started tests as vm.
+15. tester: I made the three test changes the human approved in entry 11, as the coder listed them in entry 13. Nothing else changed.
+
+    1. `tests/guards/test_agent_folder_names.py::test_no_file_names_the_old_agent_folder` now counts an old name only where no `.` or word character comes before it: `re.search(r"(?<![\w.])" + re.escape(old_name), text)`, with `import re` added. So `.claude/settings.json` no longer counts. ruff format then rewrapped the condition over several lines.
+    2. `tests/entry/test_tick_shipped_agent_file.py`: `ROLE = "intake"` replaces `"coder"`, because the first tick runs the intake stage.
+    3. `tests/vm/test_vm_job_start.py:82` now expects `f"{root}/factory/agents"`, and `tests/support/vm_support.py:51` expects `"$base/factory/agents"`. `FACTORY_CLAUDE_HOME` keeps its name.
+
+    Mapping, unchanged from entry 8:
+    - criterion 1: tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone, ::test_the_agent_folder_holds_each_agent_file, ::test_the_agent_folder_holds_no_other_agent_file
+    - criterion 2: tests/vm/test_stage_image.py::test_the_agent_files_are_copied_read_only_to_their_place, tests/vm/test_stage_image_agent_folder.py::test_the_image_names_no_agent_file_at_the_old_place
+    - criterion 3: tests/entry/test_tick_shipped_agent_file.py::test_a_stage_run_reads_its_agent_from_the_agent_folder, tests/machine/application/test_container_environment.py::test_the_sync_container_gets_container_paths_mounts_environment_and_limit
+    - criterion 4: tests/guards/test_agent_folder_names.py::test_no_file_names_the_old_agent_folder
+
+    I created no new files in this run. Files changed: the four named above. All four are under the human's leave in entry 11; `tests/support/vm_support.py` and `tests/vm/test_vm_job_start.py` were written by other stories.
+
+    I ran `uv run pytest -q` once over the guard, tick, job-start and setup-text test files. Only one failure showed in the summary. The tick test fails with `FileNotFoundError: .../agents/agents/intake.md` because the coder has not moved `claude/` to `agents/` yet (entry 13). That is the expected red. Every module imported. `make lint`: lint: green (0.1 s).
+
+    `lint`: lint: green (0.2 s)
+16. factory: started doing as vm.
+17. coder: I moved the folder with `git mv claude agents`. `agents/agents/*.md` (seven files) and `agents/settings.json` keep their contents unchanged. The other edits were committed in the earlier doing run (entry 10): `src/factory/machine/application/stage_environment.py:30` (`AGENT_FILES = "/etc/factory/agents"`), `vm/Dockerfile:58-59`, `vm/job-start.sh:68`, `vm/setup.sh:427` (`FACTORY_CLAUDE_HOME=$base/factory/agents`), and the old paths in `docs/project-guide/{README,agents,machine}.md` and `docs/operator-guide/{agent-runtime,install,machine}.md`. The tester has now made the three test changes the human approved in entry 11. `make check` is green: coverage is 99.26 % and the run ends with `check: green`.
+
+    I also searched with the guard's own pattern (`(?<![\w.])` before `claude/agents/`, `claude/settings.json` or `/etc/factory/claude`) over `src`, `tests`, `vm`, `operator`, `docs` (leaving out `runs/` and `decisions.md`), `README.md` and `agents/`. It found nothing. `README.md` named no old path, so I did not change it. Every remaining `claude` under `src/` and `vm/` is the runtime's name (the `claude` command, `.claude/`, the claude-code package), which the Interface keeps.
+
+    Main choice: `FACTORY_CLAUDE_HOME` keeps its name and only its value changes, as the human confirmed in entry 11. I rejected renaming the variable because that is beyond this story.
+
+    Refactor: the diff against `main` only changes paths (19 lines in 10 files, plus the eight renames), so there was nothing to simplify.
+
+    Noticed but not touched:
+    - `operator/README.md:31` names `claude/commands/kumpel.md`. That is `operator/claude/`, so the name is correct.
+    - The human's steps on factory-vm after the merge, from entry 11: the `FACTORY_CLAUDE_HOME` line of `factory.env` must name `factory/agents`, the stage image must be rebuilt, and `image-id` must be renewed.
+    - Still open for the documenter (criterion 6): the decisions.md entry and the README mention of the new folder.
+18. factory: Stage doing stalled (attempt 1 of 2): a check is red after the stage: `check`
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_budget[intake] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent file /work/checkou...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_budget[tester] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent file /work/checkou...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_budget[coder] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent file /work/checkout...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_budget[reviewer] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent file /work/check...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_budget[documenter] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent file /work/che...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_budget[smoke-tester] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent file /work/c...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_call_passes_the_agent_budget[acceptance-reviewer] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent file ...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[intake] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent file /wo...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[tester] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent file /wo...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[coder] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent file /wor...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[reviewer] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent file /...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[documenter] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent file...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[smoke-tester] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent fi...
+    ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[acceptance-reviewer] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no a...
+    make: *** [Makefile:89: test] Error 1
+19. factory: started doing as vm.
+20. coder: I moved the agent files again, this time in a way the take keeps. In the working tree `claude/` is gone and `agents/agents/*.md` (seven files) and `agents/settings.json` are present. Each file is byte-for-byte the same as `HEAD:claude/<path>`, which I checked with `cmp`. The path edits in `src/factory/machine/application/stage_environment.py:30`, `vm/Dockerfile:58-59`, `vm/job-start.sh:68`, `vm/setup.sh:427` and the files under `docs/project-guide/` and `docs/operator-guide/` were already committed (entry 10). `make check` is green: coverage is 99.26 %, `test: green (130.8 s)`, `check: green`.
+
+    Why the stall in entry 18 happened: the earlier run's `git mv claude agents` renamed the directory in one step. `zfs diff` reports that as a single `R` line for the directory. `ZfsSnapshots.changed_paths` (`src/factory/machine/adapters/zfs_snapshots.py`, `_read_diff_line`) drops every entry whose kind is a directory. So the take recorded no added file under `agents/` and no deleted file under `claude/`, and the check ran on a tree that still had `claude/` and no `agents/`.
+
+    Main choice: I copied the files into a new `agents/` (`cp -r`, which makes new files) and deleted the old ones one by one (`git rm` on each path), so `zfs diff` lists every file as added or deleted. I rejected repeating `git mv`, which would be lost in the take again. I also rejected changing the snapshot adapter, which is beyond this story.
+
+    Refactor: the diff still only changes paths, so there was nothing to simplify.
+
+    Noticed but not touched:
+    - The take bug: any directory rename an agent makes in its stage is silently dropped from the take. `_read_diff_line` would have to list a renamed directory's files on both sides, or refuse the rename. This is a candidate for a story of its own.
+    - `operator/README.md:31` names `claude/commands/kumpel.md`, which is `operator/claude/`, so it is correct.
+    - The human's steps on factory-vm after the merge (entry 11): change the `FACTORY_CLAUDE_HOME` line of `factory.env` to `factory/agents`, rebuild the stage image and renew `image-id`.
+    - Still open for the documenter (criterion 6): the `docs/decisions.md` entry and the mention of the new folder in `README.md`.
+21. factory: Stage doing stalled (attempt 2 of 2): a check is red after the stage: `check`
+    src/factory/watching/application/transcripts.py         61      2     10      0    97%   91-92
+    src/factory/watching/domain/board.py                    55      0      4      1    98%   77->75
+    src/factory/watching/domain/machine.py                  52      3     18      5    89%   44->42, 47, 59, 77->75, 79
+    src/factory/watching/domain/transcripts.py              10      2      0      0    80%   20-21
+    src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   239
+    src/factory/work/application/work_items.py              90      2     24      2    96%   133, 169
+    src/factory/work/domain/acceptance.py                  186      1     46      1    99%   356
+    ------------------------------------------------------------------------------------------------
+    TOTAL                                                10644     49   2122     46    99%
+
+    154 files skipped due to complete coverage.
+    Required test coverage of 90.0% reached. Total coverage: 99.26%
+    ======================================================================================= short test summary info ========================================================================================
+    FAILED tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone - AssertionError: assert not True
+    make: *** [Makefile:89: test] Error 1
+22. factory: Stage doing stalled 2 times. The last time: Stage doing stalled (attempt 2 of 2): a check is red after the stage: `check`
+    src/factory/watching/application/transcripts.py         61      2     10      0    97%   91-92
+    src/factory/watching/domain/board.py                    55      0      4      1    98%   77->75
+    src/factory/watching/domain/machine.py                  52      3     18      5    89%   44->42, 47, 59, 77->75, 79
+    src/factory/watching/domain/transcripts.py              10      2      0      0    80%   20-21
+    src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   239
+    src/factory/work/application/work_items.py              90      2     24      2    96%   133, 169
+    src/factory/work/domain/acceptance.py                  186      1     46      1    99%   356
+    ------------------------------------------------------------------------------------------------
+    TOTAL                                                10644     49   2122     46    99%
+
+    154 files skipped due to complete coverage.
+    Required test coverage of 90.0% reached. Total coverage: 99.26%
+    ======================================================================================= short test summary info ========================================================================================
+    FAILED tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone - AssertionError: assert not True
+    make: *** [Makefile:89: test] Error 1
+
+    Comment anything to retry: the attempts go back to 0 and the stage runs again. Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
+23. 2026-11-05 human: Answer of the human (this comment also retries the stage):
+
+    The second stall's only red test, `tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone`, cannot pass as written: git tracks files, not folders, so after the take deletes the files an empty `claude/` folder (or one holding only untracked leftovers) can stay in the check's tree. The test must check what git holds.
+
+    Leave for the tester: the test asserts that no tracked file lies under `claude/` (for example `git ls-files claude` prints nothing, or no file under `claude/` exists when the folder is walked), and keeps its name. Coder: redo the `git mv claude agents` and the edits of entry 17 if they are not on the branch, then end with `tests` naming exactly this change.
+24. factory: started doing as vm.
+25. coder: The human's answer (entry 23) gives leave for one test change, and I changed no code in this run. The tester should make exactly this change: `tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone` keeps its name and asserts that git tracks no file under `claude/`, for example that `git ls-files claude` prints nothing, or that walking the folder finds no file under `claude/`. It no longer asserts that the folder itself does not exist.
+
+    The branch already holds everything entry 17 describes, so I did not redo it:
+    - `git ls-files claude` prints nothing. `git ls-files agents` lists `agents/agents/{acceptance-reviewer,coder,documenter,intake,reviewer,smoke-tester,tester}.md` and `agents/settings.json`.
+    - `src/factory/machine/application/stage_environment.py:30` reads `AGENT_FILES = "/etc/factory/agents"`.
+    - `vm/Dockerfile:58-59` copy to and set modes on `/etc/factory/agents`.
+    - The edits to `vm/job-start.sh`, `vm/setup.sh`, `docs/project-guide/` and `docs/operator-guide/` were committed in an earlier run.
+    - I searched with the guard's pattern (`(?<![\w.])` before each old name) over `src`, `tests`, `vm`, `operator`, `docs` (leaving out `runs/` and `decisions.md`), `README.md` and `agents/`. It found nothing.
+
+    Main choice: end with `tests` now, because the human's answer says to and the remaining red is in a test. I rejected running `make check` first. In the check's tree an empty or untracked-only `claude/` folder can remain, so `test_the_old_agent_folder_is_gone` would stay red until the tester has changed it.
+
+    Noticed but not touched, as in entry 20:
+    - A directory rename an agent makes is dropped from the take, because `_read_diff_line` in `src/factory/machine/adapters/zfs_snapshots.py` skips directory entries. This is a candidate for a story of its own.
+    - The human's steps on factory-vm after the merge (entry 11).
+    - Criterion 6 is still open for the documenter.
+26. factory: started tests as vm.
+27. tester: I made the one test change that the human approved in entry 23 and the coder named in entry 25. `tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone` keeps its name. It no longer asserts that the folder `claude/` is missing. It now walks `claude/` with `rglob("*")` and asserts that it finds no file. If the folder is missing, the walk finds nothing and the test passes. If an empty folder is left, the test also passes.
+
+    Main choice: I walked the folder instead of running `git ls-files claude`, which was the human's other option. No test in this suite runs git on the repository root, and I don't know whether the check container's tree has a `.git` with an index that matches the taken files. A walk depends only on the files that are actually there. The cost: if a file that git does not track were left under `claude/`, the test would still fail. The human's answer allows this form ("no file under `claude/` exists when the folder is walked").
+
+    Files changed: `tests/agent_files/test_agent_folder.py` (one line). I created no files. The test runner imported every module. `uv run pytest -q tests/agent_files/test_agent_folder.py` passed all 9 tests, and `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
+28. factory: started doing as vm.
+29. coder: I changed no code in this run. The tester's change in entry 27 was the last thing missing. With it, `make check` is green on the branch as it is: lint, types, layers, sast, secrets and licenses all green, `test: green (131.0 s)`, `check: green`. The working tree is clean. Everything else was committed in earlier runs (entries 17, 20 and 25):
+    - the move of `claude/` to `agents/` (`agents/agents/*.md`, `agents/settings.json`)
+    - `src/factory/machine/application/stage_environment.py` (`AGENT_FILES = "/etc/factory/agents"`)
+    - `vm/Dockerfile`, `vm/job-start.sh`, `vm/setup.sh`
+    - the mentions in `docs/project-guide/` and `docs/operator-guide/`
+
+    Main choice: hand forward as the branch stands. I rejected redoing the rename, because `git ls-files` already shows `agents/` in place and nothing under `claude/`.
+
+    Refactor: the diff only renames paths (18 files, 19 lines in and 19 out), so there was nothing to simplify.
+
+    Noticed but not touched:
+    - A directory that an agent renames is dropped from the take. `_read_diff_line` in `src/factory/machine/adapters/zfs_snapshots.py` skips directory entries in `zfs diff`. This is a candidate for a story of its own.
+    - The human's steps on factory-vm after the merge (entry 11): change `FACTORY_CLAUDE_HOME` in `factory.env` to `factory/agents`, rebuild the stage image and renew `image-id`.
+    - Criterion 6 is still open for the documenter: the `docs/decisions.md` entry and the mention of the new folder in `README.md`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
+30. factory: started review as vm.
+31. reviewer: Review of round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`: the eight renames `claude/` → `agents/` (all 100 % similar), `src/factory/machine/application/stage_environment.py:30`, `vm/Dockerfile:58-59`, `vm/job-start.sh:68`, `vm/setup.sh:427`, the path edits in `docs/operator-guide/` and `docs/project-guide/`, and the test changes. The factory's `make check` after the coder was green (entry 29, no stall after it).
+
+    Group 1 (criteria): each of criteria 1 to 4 has a test that checks what it is named after. 1: `tests/agent_files/test_agent_folder.py`. 2: `tests/vm/test_stage_image.py::test_the_agent_files_are_copied_read_only_to_their_place` and `tests/vm/test_stage_image_agent_folder.py`. 3: `tests/entry/test_tick_shipped_agent_file.py` and the container mount test. 4: `tests/guards/test_agent_folder_names.py`, which uses the `(?<![\w.])` match from entry 11. The rename has no limit with two sides. Group 2 (architecture): no layer, wrapper or interface changes. Group 3 (security): no silencing marker, no secret, no command built from strings. Group 5 (hygiene): the Description, Interface and criterion 6 match what was built, and the journal names the main choice (`FACTORY_CLAUDE_HOME` keeps its name) and what was rejected. A grep of `src`, `vm`, `operator`, `docs` and `README.md` finds only `operator/claude/` paths, which the Description keeps.
+
+    Findings (group 4, test quality; round 0, so they are findings):
+    1. `tests/agent_files/test_agent_folder.py:7-15`: `AGENT_FILE_NAMES` writes out by hand the list that `SHIPPED_NAMES` in `tests/support/shipped_agents.py:130` already holds. Fix: build it from `SHIPPED_NAMES`, e.g. `sorted(f"{name}.md" for name in SHIPPED_NAMES)`, and drop the hand-written list.
+    2. `tests/vm/test_stage_image_agent_folder.py:5-6,16`: `ROOT` and `STAGE_DOCKERFILE` copy `tests/vm/test_stage_image.py:33-34`. The second assert (`COPY agents /etc/factory/agents`) repeats the check that `test_stage_image.py:413` already makes with `AGENT_FILES_COPY`. Fix: move `STAGE_DOCKERFILE` into `tests/support/dockerfile_support.py` under the standing leave and use it from both modules, and keep only the old-place assertion in the new test.
+
+    Earlier tests (item 6), each with the leave it was changed under:
+    - `tests/agent_files/__init__.py`: the story's Interface leave (feature decision 5), docstring path only.
+    - `tests/agents/domain/test_nested_claude_paths.py`: the Interface leave (feature decision 5), one row's path.
+    - `tests/guards/test_operator_guide_files.py`: the Interface leave (feature decision 5), the searched folder.
+    - `tests/guards/test_project_guide_files.py`: the Interface leave (feature decision 5), the searched folder.
+    - `tests/machine/application/test_container_environment.py`: the Interface leave (feature decision 5), `/etc/factory/agents`.
+    - `tests/machine/domain/test_containers.py`: the Interface leave (feature decision 5), the "deep" sample path.
+    - `tests/support/shipped_agents.py`: the Interface leave (feature decision 5), `AGENT_HOME`.
+    - `tests/vm/test_stage_image.py`: the Interface leave (feature decision 5), `AGENT_FILES_COPY` and `AGENT_FILES_MODES`.
+    - `tests/support/vm_support.py`: the human's answer, entry 11.
+    - `tests/vm/test_vm_job_start.py`: the human's answer, entry 11.
+32. factory: started doing as vm.
+33. coder: Round 1. I changed no code. Both findings in the reviewer's entry 31 are about tests, and the coder does not edit tests. The tester should make exactly these two changes:
+
+    1. `tests/agent_files/test_agent_folder.py`: build `AGENT_FILE_NAMES` from `SHIPPED_NAMES` in `tests/support/shipped_agents.py:130`, for example `sorted(f"{name}.md" for name in SHIPPED_NAMES)`, and delete the hand-written list on lines 7-15.
+    2. Move `STAGE_DOCKERFILE` (and the `ROOT` it needs) out of `tests/vm/test_stage_image.py:33-34` into the existing `tests/support/dockerfile_support.py`, under the standing leave to move a shared test helper. Then use it from there in both `tests/vm/test_stage_image.py` and `tests/vm/test_stage_image_agent_folder.py`, and drop the local copies in `tests/vm/test_stage_image_agent_folder.py:5-6`. In `test_the_image_names_no_agent_file_at_the_old_place`, keep only the old-place assertion. The `COPY agents /etc/factory/agents` assertion repeats the `AGENT_FILES_COPY` check at `tests/vm/test_stage_image.py:413`. If that leaves `NEW_PLACE` unused, delete it too. Every earlier test keeps its name and checks the same thing.
+
+    Main choice: end with `tests` and leave the code alone, because the findings change only test files. I rejected making the edits myself: test files are outside my write paths, so the factory would drop them (R9).
+
+    Nothing else changes. The rename, `src/factory/machine/application/stage_environment.py:30`, `vm/Dockerfile`, `vm/job-start.sh`, `vm/setup.sh` and the guide edits are already on the branch. `make check` was green after entry 29. I did not run it in this round because the working tree is unchanged.
+
+    Noticed but not touched, as in entry 29:
+    - A directory that an agent renames is dropped from the take. `_read_diff_line` in `src/factory/machine/adapters/zfs_snapshots.py` skips directory entries in `zfs diff`. This is a candidate for a story of its own.
+    - The human's steps on factory-vm after the merge (entry 11): change `FACTORY_CLAUDE_HOME` in `factory.env`, rebuild the stage image and renew `image-id`.
+    - Criterion 6 is still open for the documenter.
+34. factory: started tests as vm.
+35. tester: Round 1. I made the two test changes that the coder named in entry 33 for the reviewer's findings in entry 31, and nothing else.
+
+    1. `tests/agent_files/test_agent_folder.py`: `AGENT_FILE_NAMES` is now built from `SHIPPED_NAMES` in `tests/support/shipped_agents.py` as `sorted(f"{name}.md" for name in SHIPPED_NAMES)`. I deleted the hand-written list and added `SHIPPED_NAMES` to the import. Every test keeps its name and checks the same seven file names.
+    2. I moved `ROOT` and `STAGE_DOCKERFILE` from `tests/vm/test_stage_image.py` into `tests/support/dockerfile_support.py`, under CLAUDE.md's standing leave to move a shared test helper. `ROOT` there is `Path(__file__).parents[2]`, which is still the repository root. Both `tests/vm/test_stage_image.py` and `tests/vm/test_stage_image_agent_folder.py` now import `STAGE_DOCKERFILE` from that module, and their local copies are gone. `test_stage_image.py` still uses `Path` elsewhere, so that import stays.
+       - In `test_the_image_names_no_agent_file_at_the_old_place`, only the old-place assertion is left. I removed the `COPY agents /etc/factory/agents` assertion because `AGENT_FILES_COPY` in `test_stage_image.py` already checks it. I also deleted `NEW_PLACE`, which nothing used after that.
+
+    Criterion mapping (unchanged):
+    - criterion 1: `tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone`, `::test_the_agent_folder_holds_each_agent_file`, `::test_the_agent_folder_holds_no_other_agent_file`
+    - criterion 2: `tests/vm/test_stage_image_agent_folder.py::test_the_image_names_no_agent_file_at_the_old_place` and the copy and mode checks in `tests/vm/test_stage_image.py`
+
+    Earlier test files I changed: `tests/vm/test_stage_image.py` and `tests/support/dockerfile_support.py`, both under the standing leave to move a shared helper. `tests/agent_files/test_agent_folder.py` and `tests/vm/test_stage_image_agent_folder.py` are this story's own tests.
+
+    Files created: none. Modules the test run could not import: none. `uv run pytest -q` on the three test files passed all of them, and `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
+36. factory: started doing as vm.
+37. coder: Round 1. I changed no code in this run. The reviewer's two findings in entry 31 were both about tests, and the tester made those changes in entry 35: `AGENT_FILE_NAMES` is now built from `SHIPPED_NAMES`, and `STAGE_DOCKERFILE` moved into `tests/support/dockerfile_support.py` with the repeated assertion removed. With those changes, `make check` is green on the branch as it stands: `test: green (130.8 s)`, coverage 99.26 %, `check: green`. The working tree is clean.
+
+    What was built in earlier runs and is already on the branch (entries 17, 20 and 25):
+    - the move of `claude/` to `agents/` (`agents/agents/*.md` and `agents/settings.json`)
+    - `src/factory/machine/application/stage_environment.py:30`
+    - `vm/Dockerfile`, `vm/job-start.sh` and `vm/setup.sh`
+    - the path changes in `docs/project-guide/` and `docs/operator-guide/`
+
+    Main choice: hand forward without touching code, because round 1's findings changed only tests. I rejected changing anything else, because the round covers only those findings.
+
+    Refactor: nothing to change. The diff only renames paths.
+
+    Noticed but not touched, as in entry 29:
+    - When an agent renames a folder, the take drops the rename. `_read_diff_line` in `src/factory/machine/adapters/zfs_snapshots.py` skips folder entries from `zfs diff`. This could be a story of its own.
+    - The human's steps on factory-vm after the merge (entry 11): change the `FACTORY_CLAUDE_HOME` line in `factory.env` to `factory/agents`, rebuild the stage image and renew `image-id`.
+    - Criterion 6 is still open for the documenter: the `docs/decisions.md` entry and the mention of the new folder in `README.md`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
+38. factory: started review as vm.
+39. reviewer: Review of round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`. The diff holds the eight renames `claude/` → `agents/`, all 100 % similar. It also holds `src/factory/machine/application/stage_environment.py:30`, `vm/Dockerfile:58-59`, `vm/job-start.sh:68`, `vm/setup.sh:427`, the path edits in `docs/operator-guide/` and `docs/project-guide/`, and the test changes. The factory's `make check` after the coder was green (entry 37, no stall after it).
+
+    The tester fixed both round-0 findings (entry 35):
+    - `tests/agent_files/test_agent_folder.py:7` now builds `AGENT_FILE_NAMES` from `SHIPPED_NAMES`.
+    - `STAGE_DOCKERFILE` moved into `tests/support/dockerfile_support.py:7-8`, and `tests/vm/test_stage_image.py` and `tests/vm/test_stage_image_agent_folder.py` both import it from there. No other test module still holds a copy of it. The new test keeps only the old-place assertion, and the `COPY agents /etc/factory/agents` line is still checked once, by `AGENT_FILES_COPY` in `test_stage_image.py`.
+
+    Group 1 (criteria): criterion 1 is covered by `tests/agent_files/test_agent_folder.py` (one row per file name, no other file, no file left under `claude/` as the human worded it in entry 23). Criterion 2 by `test_stage_image.py::test_the_agent_files_are_copied_read_only_to_their_place` and `test_stage_image_agent_folder.py`. Criterion 3 by `tests/entry/test_tick_shipped_agent_file.py` (intake, entry 11) and the container mount test. Criterion 4 by `tests/guards/test_agent_folder_names.py`, which uses the `(?<![\w.])` match from entry 11 and leaves out `docs/decisions.md` and `docs/runs/` (entry 6). The rename states no limit with two sides.
+
+    Group 2 (architecture): no layer, wrapper or interface changes. Only the constant `AGENT_FILES` changes.
+
+    Group 3 (security): no silencing marker, no secret, no command built from strings.
+
+    Group 4 (quality): the doc edits replace paths only, and every `.claude/` and runtime name is left alone. I grepped `src`, `vm`, `operator`, `docs` (without `runs/` and `decisions.md`), `README.md` and `agents/` for `claude/` with no `.` or word character before it. The only hit is `operator/README.md:31` (`claude/commands/kumpel.md`), which is `operator/claude/` and keeps its name as the Description says.
+
+    Group 5 (hygiene): the Description, Interface and criteria match what was built. The journal names the main choice (`FACTORY_CLAUDE_HOME` keeps its name, entries 11 and 17) and what was rejected. The take's dropped directory rename (entry 20) is named as a candidate for a story of its own. Criterion 6 still says what the documenter must write: `README.md`, the operator guide's topic file, the project guide's `agents.md`, and a `docs/decisions.md` entry.
+
+    no findings
+
+    Earlier tests (item 6), each with the leave it was changed under:
+    - `tests/agent_files/__init__.py`: the Interface's leave (feature decision 5), docstring path only.
+    - `tests/agents/domain/test_nested_claude_paths.py`: the Interface's leave (feature decision 5), one row's path.
+    - `tests/guards/test_operator_guide_files.py`: the Interface's leave (feature decision 5), the searched folder.
+    - `tests/guards/test_project_guide_files.py`: the Interface's leave (feature decision 5), the searched folder.
+    - `tests/machine/application/test_container_environment.py`: the Interface's leave (feature decision 5), `/etc/factory/agents`.
+    - `tests/machine/domain/test_containers.py`: the Interface's leave (feature decision 5), the "deep" sample path.
+    - `tests/support/shipped_agents.py`: the Interface's leave (feature decision 5), `AGENT_HOME`.
+    - `tests/support/vm_support.py`: the human's answer, entry 11.
+    - `tests/vm/test_vm_job_start.py`: the human's answer, entry 11.
+    - `tests/vm/test_stage_image.py`: the Interface's leave (feature decision 5) for `AGENT_FILES_COPY` and `AGENT_FILES_MODES`. Also the standing leave to move a shared test helper (`ROOT` and `STAGE_DOCKERFILE` moved out, every test keeps its name and what it checks).
+    - `tests/support/dockerfile_support.py`: the standing leave to move a shared test helper (`ROOT` and `STAGE_DOCKERFILE` moved in).
+40. factory: started docs as vm.
+41. documenter: Docs for the rename of `claude/` to `agents/`. I changed only documents, so I did not run `make check`; the factory's checks decide.
+
+    Files changed:
+    - `README.md`: a line under *Where to look next* names the `agents/` folder (`agents/agents/<role>.md`, `agents/settings.json`), says both runtimes read it, and gives the image's `/etc/factory/agents`.
+    - `docs/operator-guide/agent-runtime.md`: *The shipped agents and settings* says where the files live in the checkout and the image. It says why the folder has no runtime's name and that `FACTORY_CLAUDE_HOME` keeps its name.
+    - `docs/decisions.md`: new entry "The agent files live in `agents/`" (F0051-S0011), with Decision and Why from the story's Description. Its Rejected line is the one rejected option the journal names: renaming `FACTORY_CLAUDE_HOME`. The entry also says that older entries naming `claude/agents/*.md` and `claude/settings.json` mean this folder.
+
+    Cross-read and found current: the operator guide's `install.md`, `machine.md`, `health.md`, `cloud-run.md` and `records.md`; the project guide's `README.md`, `agents.md`, `machine.md`, `operator.md` and `pipeline.md`. The coder already changed the paths in them. A grep of README, `docs/` (without `docs/runs/` and `docs/decisions.md`) for `claude/` and `/etc/factory/claude` finds only `operator/claude/commands/kumpel.md` in `docs/project-guide/operator.md`, which keeps its name.
+
+    Stale text seen and not touched: older entries in `docs/decisions.md` (lines 11, 764, 850) still say `claude/`. They are history, and criterion 4 leaves that file out. Not a docs matter: the human's steps on factory-vm after the merge (`FACTORY_CLAUDE_HOME` line, image rebuild, `image-id`), already in the journal.
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 6d1f3396bb2c at 2026-11-05T08:42:47Z)
+    `secrets`: secrets: green (3.0 s)
+    `documents`: documents ok
+42. factory: started smoke-test as vm.
+43. smoke-tester: Ran the three smoke-test commands from the repository root, exactly as written and in order.
+
+    Command 1: `test -d claude && echo still there || echo renamed`
+    ```
+    renamed
+    ```
+    Met `Expect: renamed`.
+
+    Command 2: `test -f agents/settings.json && test -f agents/agents/coder.md && echo found`
+    ```
+    found
+    ```
+    Met `Expect: found`.
+
+    Command 3: `grep -c '/etc/factory/agents' vm/Dockerfile | awk '{print ($1>=1)}'`
+    ```
+    1
+    ```
+    Met `Expect: 1`.
+
+    Checked the acceptance criteria against the smoke test and the tree:
+    - Criterion 1: `claude/` is gone. `agents/agents/` holds acceptance-reviewer, coder, documenter, intake, reviewer, smoke-tester and tester `.md`.
+    - Criterion 4: I searched `src tests vm operator docs README.md` for `claude/agents/`, `claude/settings.json` and `/etc/factory/claude`, leaving out `docs/decisions.md`. Under `tests/` the only hits are `.claude/settings.json`, which is the agent home's folder, a runtime name the Interface keeps. The other hits are in `docs/runs/`, which the human's answer in the journal (entry 6) leaves out of criterion 4 as history. `tests/guards/test_agent_folder_names.py` leaves it out the same way. So this is not a finding.
+    - Criterion 6: `README.md` line 30 names `agents/` and `/etc/factory/agents`. `docs/operator-guide/agent-runtime.md`, `docs/operator-guide/machine.md` and `docs/project-guide/agents.md` name `agents/agents`. `docs/decisions.md` names F0051-S0011.
+    - Criteria 2, 3 and 5 are covered by the tests and the factory's checks. The smoke test contradicts none of them.
+
+    Findings: none.

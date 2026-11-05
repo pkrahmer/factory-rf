@@ -14,7 +14,7 @@ from factory.machine.domain.containers import ContainerLaunch, ContainerResult, 
     [
         pytest.param("/work", True, id="work"),
         pytest.param("/work/checkout", True, id="work-checkout"),
-        pytest.param("/etc/factory/claude", True, id="deep"),
+        pytest.param("/etc/factory/agents", True, id="deep"),
         pytest.param("/", False, id="root-alone"),
         pytest.param("work/x", False, id="relative"),
         pytest.param("/a/../b", False, id="dot-dot"),

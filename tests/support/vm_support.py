@@ -48,7 +48,7 @@ ENVIRONMENT = (
     ("FACTORY_CHECKOUT", re.escape("$base/repo") + VALUE_END),
     ("FACTORY_STATE", re.escape("$base/state") + VALUE_END),
     ("FACTORY_IMAGE_ID_FILE", re.escape("$base/image-id") + VALUE_END),
-    ("FACTORY_CLAUDE_HOME", re.escape("$base/factory/claude") + VALUE_END),
+    ("FACTORY_CLAUDE_HOME", re.escape("$base/factory/agents") + VALUE_END),
     ("FACTORY_TOKEN_FILE", re.escape("/home/factory/.secrets/hosting-token") + VALUE_END),
     ("FACTORY_CLAUDE_LOGIN_FILE", re.escape("/home/factory/.secrets/claude-token") + VALUE_END),
     ("FACTORY_API_LOGIN_FILE", re.escape("/home/factory/.secrets/anthropic-api-key") + VALUE_END),

@@ -116,7 +116,7 @@ It holds:
 
 - the pinned base image, and Debian's `git`, `make`, `curl`, `ca-certificates`, `procps` and `xz-utils`, at the versions the base image's Debian release ships;
 - `uv` and one agent runtime, Claude Code or opencode, at exact versions, with the runtimes' environment: `DISABLE_AUTOUPDATER`, `UV_LINK_MODE`, `PYTHONDONTWRITEBYTECODE`, the two version records `FACTORY_CLAUDE_VERSION` and `FACTORY_OPENCODE_VERSION`, and the opencode model ids `FACTORY_OPENCODE_MODELS`;
-- the agent files (`claude/agents` and `claude/settings.json`) at `/etc/factory/claude`, read-only.
+- the agent files (`agents/agents` and `agents/settings.json`) at `/etc/factory/agents`, read-only.
 
 It holds no user of its own and no `sudo`, no copy of the factory's source or its `uv sync`, no image-id file and no login or token path: the container runs as the caller's user (`--userns=keep-id`) and mounts the dataset.
 
@@ -357,7 +357,7 @@ The environment file holds these variables, which *Configuration* in [install.md
 | `FACTORY_CHECKOUT` | `/srv/factory/<instance>/repo` |
 | `FACTORY_STATE` | `/srv/factory/<instance>/state` |
 | `FACTORY_IMAGE_ID_FILE` | `/srv/factory/<instance>/image-id` |
-| `FACTORY_CLAUDE_HOME` | `/srv/factory/<instance>/factory/claude` |
+| `FACTORY_CLAUDE_HOME` | `/srv/factory/<instance>/factory/agents` |
 | `FACTORY_TOKEN_FILE` | `/home/factory/.secrets/hosting-token` |
 | `FACTORY_CLAUDE_LOGIN_FILE` | `/home/factory/.secrets/claude-token` |
 | `FACTORY_API_LOGIN_FILE` | `/home/factory/.secrets/anthropic-api-key` |
