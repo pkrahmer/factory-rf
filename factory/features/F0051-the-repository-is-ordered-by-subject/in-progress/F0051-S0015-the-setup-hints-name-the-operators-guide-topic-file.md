@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 570
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T10:39:36.372134Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-05T10:39:36.372134Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-05T10:40:01.129317Z'
+  stage: intake
+  run: f07e02d197cd46e69df3d30b220325e6
+  blocked: question
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -87,3 +90,4 @@ Expect: `1`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: 1. The story changes two tests that other stories wrote: `tests/vm/test_vm_setup_install_hint.py` (`HINTS`) and `tests/vm/test_vm_setup_text.py` (row `done-line`). Its Description and Interface say the human's leave in `feature.md` is needed. `feature.md`'s *The human's changes* has no such leave for S0015. It has one for S0014 only, and decision 5 covers only the modules a move story moves. Without the leave, the tester cannot change those expected strings. Options: (a) you add to `feature.md` a line "At S0015's start: a leave for its tester: `tests/vm/test_vm_setup_install_hint.py` (`HINTS`) and `tests/vm/test_vm_setup_text.py` (row `done-line`) may change their expected strings to the new texts, nothing else; each test keeps its name and what it checks"; or (b) you answer here that this entry is the leave. I would choose (a). Everything else checks out; I am asking only about this. Interface: concrete files and exact lines. Criteria: testable, each rule has a failing-side row, including the made-up line that is caught. Smoke test: runnable, and `Expect:` lines are checkable. The pytest command correctly passes no `-q`, because `addopts` already sets it. Architecture and scope: fit, and the left-out items are named.
