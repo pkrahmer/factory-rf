@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T02:02:14.291518Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-11-05T02:02:09.038817Z'
   stage: review
   run: 9c4c77ed98094ace934372e9c4588767
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:02:14.291518Z'
+  stage: docs
 ---
 
 # The work area holds the work items
@@ -366,3 +375,4 @@ Expect: `1`
     - tests/adapters/test_{journal_as_data,journal_causes_file,journal_stamps_file,work_item_markdown,work_item_markdown_acceptance}.py -> tests/work/adapters/: feature decision 5 (move plus import lines)
 
     Open: `security/duplicates-baseline.txt` still names the old paths, so `make duplicates` reports 11 new findings, which are the known findings under their `factory.work.*` paths. The file is the human's, and `make duplicates` is a record, not a check.
+21. factory: started docs as vm.
