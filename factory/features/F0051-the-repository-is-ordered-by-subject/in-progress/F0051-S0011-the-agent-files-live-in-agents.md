@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T08:11:56.765939Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-05T08:11:56.765939Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:12:24.166753Z'
+  stage: doing
+  run: 7cc6803e6c794ff1b2f52aba09ee611c
 ---
 
 # The agent files live in `agents/`
@@ -224,3 +226,13 @@ Expect: `1`
 
     For me after the merge, on factory-vm, before its restart: the `FACTORY_CLAUDE_HOME` line of `factory.env` names `factory/agents`, the stage image is rebuilt (the Dockerfile's new `/etc/factory/agents`), and `image-id` is renewed.
 12. factory: started doing as vm.
+13. coder: The human's answer (entry 11) gives leave for three test changes. Following that answer, I changed no code in this run. The tester should make exactly these changes:
+    1. `tests/guards/test_agent_folder_names.py::test_no_file_names_the_old_agent_folder`: count an old name only where no `.` or word character comes before it, e.g. `re.search(r"(?<![\w.])" + re.escape(old_name), text)`. Then `.claude/settings.json` no longer counts.
+    2. `tests/entry/test_tick_shipped_agent_file.py`: `ROLE = "intake"` instead of `"coder"`.
+    3. `tests/vm/test_vm_job_start.py:82`: `f"{root}/factory/claude"` becomes `f"{root}/factory/agents"`. `tests/support/vm_support.py:51`: `"$base/factory/claude"` becomes `"$base/factory/agents"`. `FACTORY_CLAUDE_HOME` keeps its name.
+
+    The last doing run's commit does not include the folder move. On the branch, `claude/` still exists and `agents/` does not. The path edits from that run were committed: `src/factory/machine/application/stage_environment.py:30`, `vm/Dockerfile:58-59`, `vm/job-start.sh:68`, `vm/setup.sh:427` and the files under `docs/project-guide/` and `docs/operator-guide/`. I did not redo the move in this run so that it changes no code. The next doing run moves `claude/` to `agents/` and checks that the take records both the deletion and the new files. Both `claude/*` and `agents/*` are in the coder's write paths.
+
+    Main choice: end with `tests` now and leave the move for after the test changes. I rejected making the move in this run, because this step should change no code.
+
+    Noticed but not touched: nothing new beyond entry 10.
