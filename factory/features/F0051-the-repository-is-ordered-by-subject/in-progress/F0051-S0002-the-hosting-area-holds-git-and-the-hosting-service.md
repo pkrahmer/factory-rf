@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 557
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T01:20:53.640317Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-05T01:20:53.640317Z'
   stage: review
+- number: 13
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T01:25:47.443639Z'
+  stage: review
+  run: 1010ee9a1c9b484caeb8c7a9068ac237
 ---
 
 # The hosting area holds git and the hosting service
@@ -239,3 +241,245 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 13 new, 32 known, 11 gone
 12. factory: started review as vm.
+13. reviewer: Round 0 review of `git diff main...HEAD -- . ':!factory'` (292 files) against the work item.
+
+    no findings
+
+    What I checked:
+    - Group 1 (criteria): criteria 1 to 4 are covered by the `hosting` row of `AREAS` in `tests/test_areas.py`, which drives S0001's parametrized tests. Criterion 1 is `test_a_moved_module_imports_from_its_area_and_is_gone_from_its_layer`: one row per module, checking that the new import succeeds and that the old `.py` file or folder is gone. Criterion 2 is `test_an_area_package_imports_and_has_a_docstring`: the 4 packages. Criterion 3 is `test_no_file_imports_a_moved_module_from_its_old_path`: one row per module. It goes through `source_search.imported_modules`, so the `from factory.domain import git` form is caught too. Criterion 4 is `test_no_test_module_stays_in_its_layer_folder_when_all_it_imports_has_moved`. The Interface's "at least one is of hosting" side is pinned by `test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own`. The coder's `make check` was green (entry 11). The criterion-1 note "for `handlers`, the folder" is a leftover from S0001's wording; the test checks both a file and a folder.
+    - Group 2 (architecture): under `src/` the diff is 11 renames plus import lines only, and 4 new `__init__.py` files that each hold a one-line docstring. I filtered the diff for any non-import line in `src/` and found none. Every module stays in its own layer inside `factory.hosting`. The import-linter contracts in `pyproject.toml` (`factory.*.domain` etc., unchanged since S0001) cover the new area. A grep of `src`, `tests`, `pyproject.toml` and `Makefile` finds no dotted or file path of an old module. The only hits are the report sample strings in `tests/shared/domain/test_duplicates.py`, which are not imports.
+    - Group 3 (security): no new markers, no secrets, no strings built into commands.
+    - Group 4 (quality): the names and content of the moved modules are unchanged, and the new package docstrings say what each package holds. `make duplicates` gives `13 new, 32 known, 11 gone`. Nine of the new findings are the same accepted baseline entries under the new paths (`src/factory/hosting/adapters/fake_hosting.py` and `src/factory/hosting/domain/git.py`). The other new ones (in `cost_records`, and claude_runtime/opencode_runtime similar code) come from modules whose content this diff does not change. `security/duplicates-baseline.txt` is in no role's write paths. Updating it is the human's follow-up, as it was after S0001 (commit 159f946a2).
+    - Group 5 (hygiene): entry 11 gives the main choice (a straight move, no re-export shims) and what was rejected. The Description matches what was built. The docs criterion still holds. The project guide also names some of the 34 moved test modules by their old paths (for example `docs/project-guide/git-and-hosting.md:29,38,101` and `docs/project-guide/stage-environment.md:318`). S0001's documenter updated test paths under the same wording (commit ce87b8c22), so the documenter should do the same here.
+    - I rejected two possible findings. The coder's note on `tests/adapters/test_work_item_markdown.py` is out of date: `_layer` there already reads `factory.<area>.<layer>`. And `tests/hosting/adapters/test_zfs_snapshots_diff.py` landing under `hosting` is odd, but it follows the Interface's import rule (it imports only `factory.hosting.domain.git` and `factory.shared`).
+
+    Earlier tests changed (every diff line is an import line, a dotted module path or a file path, or a `git mv`; every test keeps its name and what it checks). "FD5" below means the human's leave in feature decision 5 of `feature.md`:
+    - tests/test_areas.py: the human's leave, this story's Interface (adds the `hosting` row of `AREAS` and nothing else)
+    - tests/domain/test_hosting.py: FD5, the guard `test_domain_modules_import_only_stdlib_pydantic_and_domain` over the new layout (`_is_domain` also counts `factory.hosting.domain`), plus import lines and module paths
+    - tests/test_test_names.py: FD5, file paths of the moved test modules
+    - tests/acceptance_walk.py: FD5, import lines and module paths
+    - tests/adapters/test_claude_runtime_environment.py: FD5, import lines and module paths
+    - tests/adapters/test_copy_snapshots.py: FD5, import lines and module paths
+    - tests/adapters/test_fake_snapshots.py: FD5, import lines and module paths
+    - tests/adapters/test_make_commands_container.py: FD5, import lines and module paths
+    - tests/application/handlers/conftest.py: FD5, import lines and module paths
+    - tests/application/handlers/test_closed.py: FD5, import lines and module paths
+    - tests/application/handlers/test_closed_send_back.py: FD5, import lines and module paths
+    - tests/application/handlers/test_comment_handler.py: FD5, import lines and module paths
+    - tests/application/handlers/test_comments.py: FD5, import lines and module paths
+    - tests/application/handlers/test_comments_crash_cap.py: FD5, import lines and module paths
+    - tests/application/handlers/test_hand_over.py: FD5, import lines and module paths
+    - tests/application/handlers/test_handler_subjects.py: FD5, import lines and module paths
+    - tests/application/handlers/test_lookups.py: FD5, import lines and module paths
+    - tests/application/handlers/test_merged.py: FD5, import lines and module paths
+    - tests/application/handlers/test_questions.py: FD5, import lines and module paths
+    - tests/application/handlers/test_recording.py: FD5, import lines and module paths
+    - tests/application/handlers/test_reject.py: FD5, import lines and module paths
+    - tests/application/handlers/test_run.py: FD5, import lines and module paths
+    - tests/application/handlers/test_run_gate.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_closed.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_hand_over.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_merged.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_merged_before_approval.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_no_state_refusals.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_repeated.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_reviewer_role.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_service.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_snapshots.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_ticks_closed.py: FD5, import lines and module paths
+    - tests/application/test_acceptance_ticks_merged.py: FD5, import lines and module paths
+    - tests/application/test_after_agent.py: FD5, import lines and module paths
+    - tests/application/test_after_agent_edges.py: FD5, import lines and module paths
+    - tests/application/test_agent_run_probe_environment.py: FD5, import lines and module paths
+    - tests/application/test_bill_service.py: FD5, import lines and module paths
+    - tests/application/test_checkout_preparer.py: FD5, import lines and module paths
+    - tests/application/test_claims.py: FD5, import lines and module paths
+    - tests/application/test_claims_refusals.py: FD5, import lines and module paths
+    - tests/application/test_container_environment.py: FD5, import lines and module paths
+    - tests/application/test_container_stage_checks.py: FD5, import lines and module paths
+    - tests/application/test_container_sync_origin.py: FD5, import lines and module paths
+    - tests/application/test_costs.py: FD5, import lines and module paths
+    - tests/application/test_dispatcher.py: FD5, import lines and module paths
+    - tests/application/test_dispatcher_without_state.py: FD5, import lines and module paths
+    - tests/application/test_hosting_failure_releases_claim.py: FD5, import lines and module paths
+    - tests/application/test_human_line_posts.py: FD5, import lines and module paths
+    - tests/application/test_interfaces.py: FD5, import lines and module paths
+    - tests/application/test_known_results.py: FD5, import lines and module paths
+    - tests/application/test_no_state_refusals.py: FD5, import lines and module paths
+    - tests/application/test_opening.py: FD5, import lines and module paths
+    - tests/application/test_opening_journal_edges.py: FD5, import lines and module paths
+    - tests/application/test_pipeline_loading.py: FD5, import lines and module paths
+    - tests/application/test_pipeline_loading_agents.py: FD5, import lines and module paths
+    - tests/application/test_pipeline_loading_rules.py: FD5, import lines and module paths
+    - tests/application/test_pipeline_loading_stage_moves.py: FD5, import lines and module paths
+    - tests/application/test_pipeline_loading_strict_values.py: FD5, import lines and module paths
+    - tests/application/test_pipeline_loading_yaml_fault.py: FD5, import lines and module paths
+    - tests/application/test_preflight.py: FD5, import lines and module paths
+    - tests/application/test_preflight_login_line.py: FD5, import lines and module paths
+    - tests/application/test_preflight_run.py: FD5, import lines and module paths
+    - tests/application/test_preflight_stale_main_stop.py: FD5, import lines and module paths
+    - tests/application/test_preflight_stop_detail.py: FD5, import lines and module paths
+    - tests/application/test_question_causes_recorded.py: FD5, import lines and module paths
+    - tests/application/test_recording_project_commands.py: FD5, import lines and module paths
+    - tests/application/test_recovery_cap.py: FD5, import lines and module paths
+    - tests/application/test_recovery_crash.py: FD5, import lines and module paths
+    - tests/application/test_recovery_expiry.py: FD5, import lines and module paths
+    - tests/application/test_recovery_expiry_key.py: FD5, import lines and module paths
+    - tests/application/test_recovery_subjects.py: FD5, import lines and module paths
+    - tests/application/test_repository_waiter.py: FD5, import lines and module paths
+    - tests/application/test_scheduler.py: FD5, import lines and module paths
+    - tests/application/test_snapshots_interface.py: FD5, import lines and module paths
+    - tests/application/test_stage_environment_calls.py: FD5, import lines and module paths
+    - tests/application/test_stage_finish.py: FD5, import lines and module paths
+    - tests/application/test_stage_known_results.py: FD5, import lines and module paths
+    - tests/application/test_stage_launch.py: FD5, import lines and module paths
+    - tests/application/test_stage_provider_limit.py: FD5, import lines and module paths
+    - tests/application/test_stage_run.py: FD5, import lines and module paths
+    - tests/application/test_stage_run_acceptance.py: FD5, import lines and module paths
+    - tests/application/test_stale_branches.py: FD5, import lines and module paths
+    - tests/application/test_stall_edges.py: FD5, import lines and module paths
+    - tests/application/test_stall_environment.py: FD5, import lines and module paths
+    - tests/application/test_stall_labels.py: FD5, import lines and module paths
+    - tests/application/test_stall_reasons_recorded.py: FD5, import lines and module paths
+    - tests/application/test_stalls.py: FD5, import lines and module paths
+    - tests/application/test_stop_posting.py: FD5, import lines and module paths
+    - tests/application/test_stop_publisher.py: FD5, import lines and module paths
+    - tests/application/test_stops.py: FD5, import lines and module paths
+    - tests/application/test_take_edges.py: FD5, import lines and module paths
+    - tests/application/test_tick.py: FD5, import lines and module paths
+    - tests/application/test_tick_agent_definition.py: FD5, import lines and module paths
+    - tests/application/test_tick_own_fetch.py: FD5, import lines and module paths
+    - tests/application/test_tick_preflight.py: FD5, import lines and module paths
+    - tests/application/test_tick_restore_ignored.py: FD5, import lines and module paths
+    - tests/application/test_tick_stale_branch.py: FD5, import lines and module paths
+    - tests/application/test_tick_stop_details.py: FD5, import lines and module paths
+    - tests/application/test_tick_stop_records.py: FD5, import lines and module paths
+    - tests/application/test_watcher.py: FD5, import lines and module paths
+    - tests/application/test_watcher_acceptance.py: FD5, import lines and module paths
+    - tests/application/test_watcher_main_ref.py: FD5, import lines and module paths
+    - tests/application/test_watcher_move_rule.py: FD5, import lines and module paths
+    - tests/application/test_work_items.py: FD5, import lines and module paths
+    - tests/application/test_work_items_duplicate.py: FD5, import lines and module paths
+    - tests/application/test_write_paths.py: FD5, import lines and module paths
+    - tests/application/test_write_paths_guard.py: FD5, import lines and module paths
+    - tests/branch_reading.py: FD5, import lines and module paths
+    - tests/conftest.py: FD5, import lines and module paths
+    - tests/container_extra_support.py: FD5, import lines and module paths
+    - tests/container_support.py: FD5, import lines and module paths
+    - tests/cost_image_support.py: FD5, import lines and module paths
+    - tests/crash_support.py: FD5, import lines and module paths
+    - tests/domain/test_acceptance_booking.py: FD5, import lines and module paths
+    - tests/domain/test_archive_texts.py: FD5, import lines and module paths
+    - tests/domain/test_decide_docs_slip.py: FD5, import lines and module paths
+    - tests/domain/test_decision_rules.py: FD5, import lines and module paths
+    - tests/domain/test_evaluation.py: FD5, import lines and module paths
+    - tests/domain/test_evaluation_details.py: FD5, import lines and module paths
+    - tests/domain/test_evaluation_due.py: FD5, import lines and module paths
+    - tests/domain/test_evaluation_reject.py: FD5, import lines and module paths
+    - tests/domain/test_hand_over.py: FD5, import lines and module paths
+    - tests/domain/test_human_waits.py: FD5, import lines and module paths
+    - tests/domain/test_post_texts_notes.py: FD5, import lines and module paths
+    - tests/domain/test_preflight_stop_records_paths.py: FD5, import lines and module paths
+    - tests/domain/test_provider_limit_stall_text.py: FD5, import lines and module paths
+    - tests/domain/test_question_texts.py: FD5, import lines and module paths
+    - tests/domain/test_stall_reason_removed.py: FD5, import lines and module paths
+    - tests/domain/test_stall_texts.py: FD5, import lines and module paths
+    - tests/domain/test_times.py: FD5, import lines and module paths
+    - tests/domain/test_work_item_stop.py: FD5, import lines and module paths
+    - tests/entry/test_bill.py: FD5, import lines and module paths
+    - tests/entry/test_git_hooks.py: FD5, import lines and module paths
+    - tests/entry/test_git_nested_repositories.py: FD5, import lines and module paths
+    - tests/entry/test_run.py: FD5, import lines and module paths
+    - tests/entry/test_run_fetch_before_tick.py: FD5, import lines and module paths
+    - tests/entry/test_run_health_file.py: FD5, import lines and module paths
+    - tests/entry/test_run_idle_exit.py: FD5, import lines and module paths
+    - tests/entry/test_run_image_sizes.py: FD5, import lines and module paths
+    - tests/entry/test_run_machine_stop_exit.py: FD5, import lines and module paths
+    - tests/entry/test_run_one_fetch.py: FD5, import lines and module paths
+    - tests/entry/test_run_project_image_rebuild.py: FD5, import lines and module paths
+    - tests/entry/test_run_stop_requested.py: FD5, import lines and module paths
+    - tests/entry/test_run_waiter.py: FD5, import lines and module paths
+    - tests/entry/test_watch.py: FD5, import lines and module paths
+    - tests/entry/test_watch_main.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_acceptance.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_api_login.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_boundaries.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_command_records.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_container_extra.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_container_profile.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_copy_snapshots.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_drop_caches.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_image_path.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_instance_label.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_known_results.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_login.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_machine_inputs.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_one_environment.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_opencode.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_opencode_provider.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_project_agents.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_project_image.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_provider_limit.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_record_logs.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_run.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_stage_environment.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_stop_records.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_transcripts.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_waiter.py: FD5, import lines and module paths
+    - tests/entry/test_wiring_without_agent_user.py: FD5, import lines and module paths
+    - tests/evaluation_support.py: FD5, import lines and module paths
+    - tests/git_support.py: FD5, import lines and module paths
+    - tests/hosting_interface_support.py: FD5, import lines and module paths
+    - tests/human_clone.py: FD5, import lines and module paths
+    - tests/observing_runtime.py: FD5, import lines and module paths
+    - tests/preflight_support.py: FD5, import lines and module paths
+    - tests/proof_support.py: FD5, import lines and module paths
+    - tests/push_retry_support.py: FD5, import lines and module paths
+    - tests/scripted_tick_support.py: FD5, import lines and module paths
+    - tests/stage_run_support.py: FD5, import lines and module paths
+    - tests/stall_support.py: FD5, import lines and module paths
+    - tests/take_support.py: FD5, import lines and module paths
+    - tests/test_approval_description.py: FD5, import lines and module paths
+    - tests/test_checkout_hygiene_removed.py: FD5, import lines and module paths
+    - tests/test_hosting_search.py: FD5, import lines and module paths
+    - tests/test_kill_points.py: FD5, import lines and module paths
+    - tests/test_no_journal_reading.py: FD5, import lines and module paths
+    - tests/test_retrying_wording.py: FD5, import lines and module paths
+    - tests/test_shared_branch_helpers.py: FD5, import lines and module paths
+    - tests/test_stop_table.py: FD5, import lines and module paths
+    - tests/test_wrapper_search.py: FD5, import lines and module paths
+    - tests/write_path_support.py: FD5, import lines and module paths
+    - tests/adapters/test_fake_hosting.py -> tests/hosting/adapters/test_fake_hosting.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_arguments.py -> tests/hosting/adapters/test_git_cli_arguments.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_branches.py -> tests/hosting/adapters/test_git_cli_branches.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_check_ignore.py -> tests/hosting/adapters/test_git_cli_check_ignore.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_history.py -> tests/hosting/adapters/test_git_cli_history.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_reading.py -> tests/hosting/adapters/test_git_cli_reading.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_restoring.py -> tests/hosting/adapters/test_git_cli_restoring.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_seal.py -> tests/hosting/adapters/test_git_cli_seal.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_work_tree.py -> tests/hosting/adapters/test_git_cli_work_tree.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_work_tree_dash.py -> tests/hosting/adapters/test_git_cli_work_tree_dash.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_work_tree_tick.py -> tests/hosting/adapters/test_git_cli_work_tree_tick.py: FD5, git mv and import lines
+    - tests/adapters/test_git_cli_writing.py -> tests/hosting/adapters/test_git_cli_writing.py: FD5, git mv and import lines
+    - tests/adapters/test_pygithub_hosting.py -> tests/hosting/adapters/test_pygithub_hosting.py: FD5, git mv and import lines
+    - tests/adapters/test_pygithub_retry.py -> tests/hosting/adapters/test_pygithub_retry.py: FD5, git mv and import lines
+    - tests/adapters/test_pygithub_service.py -> tests/hosting/adapters/test_pygithub_service.py: FD5, git mv and import lines
+    - tests/adapters/test_zfs_snapshots_diff.py -> tests/hosting/adapters/test_zfs_snapshots_diff.py: FD5, git mv and import lines
+    - tests/application/test_acceptance_ticks_repeated.py -> tests/hosting/application/test_acceptance_ticks_repeated.py: FD5, git mv and import lines
+    - tests/application/test_git_interface.py -> tests/hosting/application/test_git_interface.py: FD5, git mv and import lines
+    - tests/application/test_hosting_interface.py -> tests/hosting/application/test_hosting_interface.py: FD5, git mv and import lines
+    - tests/domain/test_correction_texts.py -> tests/hosting/domain/test_correction_texts.py: FD5, git mv and import lines
+    - tests/domain/test_default_git_identity.py -> tests/hosting/domain/test_default_git_identity.py: FD5, git mv and import lines
+    - tests/domain/test_error_report_text.py -> tests/hosting/domain/test_error_report_text.py: FD5, git mv and import lines
+    - tests/domain/test_git.py -> tests/hosting/domain/test_git.py: FD5, git mv and import lines
+    - tests/domain/test_git_history.py -> tests/hosting/domain/test_git_history.py: FD5, git mv and import lines
+    - tests/domain/test_post_texts.py -> tests/hosting/domain/test_post_texts.py: FD5, git mv and import lines
+    - tests/domain/test_post_texts_crash_cap.py -> tests/hosting/domain/test_post_texts_crash_cap.py: FD5, git mv and import lines
+    - tests/domain/test_push_reason.py -> tests/hosting/domain/test_push_reason.py: FD5, git mv and import lines
+    - tests/domain/test_push_reason_porcelain.py -> tests/hosting/domain/test_push_reason_porcelain.py: FD5, git mv and import lines
+    - tests/domain/test_push_reason_summary_line.py -> tests/hosting/domain/test_push_reason_summary_line.py: FD5, git mv and import lines
+    - tests/domain/test_question_post_texts.py -> tests/hosting/domain/test_question_post_texts.py: FD5, git mv and import lines
+    - tests/domain/test_send_back_texts.py -> tests/hosting/domain/test_send_back_texts.py: FD5, git mv and import lines
+    - tests/domain/test_settings.py -> tests/hosting/domain/test_settings.py: FD5, git mv and import lines
+    - tests/domain/test_stall_note_block.py -> tests/hosting/domain/test_stall_note_block.py: FD5, git mv and import lines
+    - tests/domain/test_tree_id.py -> tests/hosting/domain/test_tree_id.py: FD5, git mv and import lines
