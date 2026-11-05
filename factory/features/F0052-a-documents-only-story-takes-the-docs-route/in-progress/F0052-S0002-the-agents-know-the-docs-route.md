@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 573
 comments_read: [6670865186]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T22:13:36.125816Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-05T22:13:36.125816Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-05T22:14:22.493010Z'
+  stage: tests
+  run: e03f3375198742c7bf1055f83e5cb99e
+  blocked: question
 ---
 
 # The agents know the docs route
@@ -102,3 +105,21 @@ Expect: `named`
    - Architecture: only agent text files and tests under `tests/agent_files/`; no runtime change, matches CLAUDE.md.
    - Scope: within F0052 scope (S0002), touches nothing in Out of scope; the pipeline.yml change is the human's at merge.
 7. factory: started tests as vm.
+8. tester: Questions before writing `tests/agent_files/test_claude_agent_texts_docs_route.py`. No test files are written yet. Criterion 1 is clear: the test checks the Interface's quoted routing rule word for word, exactly once, in the `## Stage` section of `agents/agents/intake.md`.
+
+   1. What form does "a section for the stage `docs-only`" (criterion 2) and "for the stage `docs-review`" (criterion 3) take? `tests/agent_files/test_claude_agent_texts.py::test_body_has_rules_role_stage_and_lessons_sections_in_order` pins every shipped agent's `## ` headings to exactly Rules, Role, Stage, Lessons. So a new `## docs-only` heading would turn that test red, and the coder may not change it. Options:
+      (a) a `### docs-only` subsection inside `## Stage` of `documenter.md`, and a `### docs-review` subsection inside `## Stage` of `reviewer.md`. The test reads the text from that heading to the next heading.
+      (b) a paragraph inside `## Stage` that opens with "In `docs-only`:" or "In `docs-review`:". The test reads that paragraph.
+      (c) a new `## ` heading, with your leave to change the heading-order test.
+      I would choose (a).
+
+   2. "Lists the seven style rules" (criterion 3): I may not read `feature.md`, and the work item doesn't give the seven rules. Options:
+      (a) you add the seven one-line rules, word for word, to the Interface. The test checks that each appears exactly once in the `docs-review` section.
+      (b) the test checks only the shape: a numbered list of exactly seven items (rows for 6, 7 and 8) in that section, after a sentence naming `docs/project-guide/style.md`.
+      (c) the rules stay untested.
+      I would choose (a).
+
+   3. "For as long as the style page is missing": `docs/project-guide/style.md` doesn't exist yet. Options:
+      (a) the test checks the seven rules unconditionally, and S0003 changes this test, with your leave, when it adds the page.
+      (b) the test checks them only while the page is missing.
+      I would choose (a).
