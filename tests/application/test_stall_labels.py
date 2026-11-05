@@ -11,13 +11,13 @@ from factory.application.boundaries import Boundaries
 from factory.application.stage import StageReport, StageRunner
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.journal import JournalRecord, entry_text
-from factory.domain.work_item import WorkItemDocument, WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.hosting.domain.hosting import PostKey
 from factory.shared.domain.errors import HostingServiceError
 from factory.shared.domain.identifiers import branch_name
+from factory.work.domain.journal import JournalRecord, entry_text
+from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import install_agents
 from human_clone import HumanClone
 from stage_run_support import ENVIRONMENT, INSTANCE, NOTES, pushed, pushed_state

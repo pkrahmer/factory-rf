@@ -5,12 +5,9 @@ from datetime import timedelta
 
 from pydantic import BaseModel, ConfigDict, PositiveInt
 
-from factory.application.acceptance import AcceptanceService
 from factory.application.boundaries import Boundaries
 from factory.application.take import agent_working_directory
-from factory.domain.acceptance import AcceptanceState, acceptance_prompt
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
-from factory.domain.journal import last_record
 from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition
 from factory.domain.prompts import (
     CODER_ROLE,
@@ -19,11 +16,14 @@ from factory.domain.prompts import (
     allowed_decisions,
     compose_prompt,
 )
-from factory.domain.story_form import FormFinding, check_story_form
-from factory.domain.work_item import WorkItemDocument, require_state
 from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.identifiers import Name, WorkItemId, feature_of, is_acceptance
 from factory.shared.domain.paths import MAIN_BRANCH, REMOTE, STORY_FORM_FILE
+from factory.work.application.acceptance import AcceptanceService
+from factory.work.domain.acceptance import AcceptanceState, acceptance_prompt
+from factory.work.domain.journal import last_record
+from factory.work.domain.story_form import FormFinding, check_story_form
+from factory.work.domain.work_item import WorkItemDocument, require_state
 
 # The form is read where only the human's merge changes it, never from the work tree an agent
 # writes in.

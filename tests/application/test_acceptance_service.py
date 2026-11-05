@@ -6,21 +6,21 @@ import pytest
 from pydantic import BaseModel, ValidationError
 
 from bill_support import completed_records, sidecar_text
-from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
-from factory.application.acceptance import AcceptanceService, OpenedAcceptance
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.costs import BillService
 from factory.application.write_paths import WritePathService
-from factory.domain.acceptance import AcceptanceState, acceptance_head
 from factory.domain.bills import bill, cost_line
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemDocument
 from factory.domain.write_paths import is_writable
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.errors import CannotHandle, PushFailed, WorkItemFormatError
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.shared.domain.paths import cost_records_path
+from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
+from factory.work.application.acceptance import AcceptanceService, OpenedAcceptance
+from factory.work.domain.acceptance import AcceptanceState, acceptance_head
+from factory.work.domain.work_item import WorkItemDocument
 from git_support import remote_commit, run_git, write_files
 from human_clone import HumanClone
 

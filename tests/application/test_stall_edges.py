@@ -7,8 +7,8 @@ import pytest
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
-from factory.domain.journal import entry_text
 from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.work.domain.journal import entry_text
 from human_clone import HumanClone
 from stage_run_support import (
     BRANCH,

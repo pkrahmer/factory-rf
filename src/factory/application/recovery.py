@@ -12,17 +12,8 @@ from factory.application.handlers.recording import (
     target_of,
 )
 from factory.application.stops import StopService
-from factory.application.work_items import RemoteWorkItems
 from factory.domain.evaluation import required_claim_status
 from factory.domain.events import Event, EventKind
-from factory.domain.journal import (
-    FACTORY,
-    JournalKind,
-    NewEntry,
-    append_entry,
-    entry_text,
-    last_record,
-)
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.recovery import (
     asking_crash_cap,
@@ -32,11 +23,6 @@ from factory.domain.recovery import (
     expiry_entry_text,
 )
 from factory.domain.stops import StopPosted, WorkItemStop
-from factory.domain.work_item import (
-    WorkItemDocument,
-    WorkItemSnapshot,
-    require_state,
-)
 from factory.hosting.domain.git import CommitId
 from factory.hosting.domain.hosting import PostKey
 from factory.hosting.domain.post_texts import crash_cap_question, expiry_note
@@ -44,6 +30,20 @@ from factory.shared.domain.errors import CannotHandle
 from factory.shared.domain.identifiers import WorkItemId, work_item_of_branch
 from factory.shared.domain.paths import LifecycleFolder
 from factory.shared.domain.sections import title
+from factory.work.application.work_items import RemoteWorkItems
+from factory.work.domain.journal import (
+    FACTORY,
+    JournalKind,
+    NewEntry,
+    append_entry,
+    entry_text,
+    last_record,
+)
+from factory.work.domain.work_item import (
+    WorkItemDocument,
+    WorkItemSnapshot,
+    require_state,
+)
 
 _KIND: Final = "crash"
 _EXPIRED: Final = "expired"

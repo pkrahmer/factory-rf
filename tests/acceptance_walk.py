@@ -3,16 +3,12 @@
 from pathlib import Path
 
 from bill_support import completed_records, sidecar_text
-from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
 from factory.application.tick import Tick, TickOutcome
 from factory.application.watcher import Watcher
-from factory.domain.acceptance import AcceptanceState
 from factory.domain.board import AcceptanceStatus
 from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event, EventKind
-from factory.domain.journal import FACTORY, NewEntry, append_entry, entry_text
-from factory.domain.work_item import Blocked, WorkItemDocument
 from factory.entry.wiring import handler_factory
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.identifiers import FeatureId, branch_name
@@ -22,6 +18,10 @@ from factory.shared.domain.paths import (
     feature_file_path,
     work_item_path,
 )
+from factory.work.application.acceptance_reading import AcceptanceReader
+from factory.work.domain.acceptance import AcceptanceState
+from factory.work.domain.journal import FACTORY, NewEntry, append_entry, entry_text
+from factory.work.domain.work_item import Blocked, WorkItemDocument
 from git_support import PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

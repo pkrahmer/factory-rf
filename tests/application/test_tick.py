@@ -9,12 +9,10 @@ from pathlib import Path
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.application.tick import IdleHandler, Tick, TickOutcome
 from factory.domain.events import Event, EventKind
-from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import GitOptions, PushOutcome
@@ -22,6 +20,8 @@ from factory.hosting.domain.hosting import PullRequestComment, PullRequestView
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import PushFailed, WorkItemFormatError
 from factory.shared.domain.identifiers import branch_name
+from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
+from factory.work.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 from git_support import (
     CHECKOUT,
     PIPELINE_YAML,
@@ -480,7 +480,7 @@ def test_v1_leftover_files_change_nothing(
     [
         "application/tick.py",
         "application/watcher.py",
-        "application/work_items.py",
+        "work/application/work_items.py",
         "domain/evaluation.py",
     ],
 )

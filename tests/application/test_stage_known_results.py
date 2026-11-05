@@ -9,10 +9,10 @@ from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.stage import StageReport, StageRunner
-from factory.domain.journal import entry_text
 from factory.domain.known_results import ResultRecord
-from factory.domain.work_item import WorkItemDocument, WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.work.domain.journal import entry_text
+from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML
 from human_clone import HumanClone
 from stage_run_support import (

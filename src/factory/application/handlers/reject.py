@@ -3,17 +3,7 @@
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.application.handlers.recording import WorkItemRecorder, commit_subject, target_of
-from factory.application.work_items import RemoteWorkItems
 from factory.domain.events import Event
-from factory.domain.journal import FACTORY, NewEntry, append_entry
-from factory.domain.labels import labels_for
-from factory.domain.move_rule import StageChange
-from factory.domain.work_item import (
-    WorkItemDocument,
-    WorkItemSnapshot,
-    WorkItemState,
-    require_state,
-)
 from factory.hosting.domain.hosting import PostKey
 from factory.hosting.domain.post_texts import (
     MOVED_BACK_MARKER,
@@ -21,6 +11,16 @@ from factory.hosting.domain.post_texts import (
     move_back_entry_text,
 )
 from factory.shared.domain.errors import CannotHandle
+from factory.work.application.work_items import RemoteWorkItems
+from factory.work.domain.journal import FACTORY, NewEntry, append_entry
+from factory.work.domain.labels import labels_for
+from factory.work.domain.move_rule import StageChange
+from factory.work.domain.work_item import (
+    WorkItemDocument,
+    WorkItemSnapshot,
+    WorkItemState,
+    require_state,
+)
 
 _KIND = "reject"
 

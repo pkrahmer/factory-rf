@@ -1,7 +1,7 @@
 """The story form and its smoke test, shared by the story form tests."""
 
-from factory.domain.journal import JournalRecord
-from factory.domain.work_item import WorkItemState
+from factory.work.domain.journal import JournalRecord
+from factory.work.domain.work_item import WorkItemState
 
 FORM = (
     "# Story form\n\n## Description\n\n## Interface\n\n## Acceptance criteria\n\n"

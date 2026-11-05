@@ -7,9 +7,9 @@ import pytest
 from source_search import modules
 
 COPY = "_state_of"
-COPY_MODULE = "factory.domain.journal"
+COPY_MODULE = "factory.work.domain.journal"
 ALLOWED_CHECKS = {
-    ("factory.domain.work_item", "require_state"),
+    ("factory.work.domain.work_item", "require_state"),
     (COPY_MODULE, COPY),
 }
 OUTSIDE = "factory.application.example"
@@ -132,7 +132,7 @@ def test_an_inline_state_check_is_found(source: str) -> None:
     ("module", "source"),
     [
         (
-            "factory.domain.work_item",
+            "factory.work.domain.work_item",
             ATTRIBUTE_CHECK.replace("def release", "def require_state"),
         ),
         (COPY_MODULE, ATTRIBUTE_CHECK.replace("def release", "def _state_of")),

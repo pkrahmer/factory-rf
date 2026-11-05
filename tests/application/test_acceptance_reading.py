@@ -2,14 +2,14 @@
 
 import pytest
 
-from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
-from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
-from factory.domain.acceptance import AcceptanceState, FeatureAcceptance, FeatureFiles
 from factory.domain.board import FeatureRow
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemDocument
 from factory.shared.domain.errors import WorkItemFormatError
+from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
+from factory.work.application.acceptance_reading import AcceptanceReader
+from factory.work.domain.acceptance import AcceptanceState, FeatureAcceptance, FeatureFiles
+from factory.work.domain.work_item import WorkItemDocument
 from git_support import write_files
 from human_clone import HumanClone
 

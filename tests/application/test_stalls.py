@@ -12,15 +12,15 @@ from factory.application.boundaries import Boundaries
 from factory.application.stage import StartedStage
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.domain.agent_runs import AgentRunResult, EndReason
-from factory.domain.decisions import StallReason, stall_reason_of
-from factory.domain.journal import JournalRecord, NewEntry, append_entry, entry_text
-from factory.domain.work_item import WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.application.opening import WorkItemOpening
 from factory.hosting.domain.hosting import PostKey, PullRequestView
 from factory.hosting.domain.post_texts import stall_cause, stall_note
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import HostingServiceError, PushFailed
+from factory.work.domain.decisions import StallReason, stall_reason_of
+from factory.work.domain.journal import JournalRecord, NewEntry, append_entry, entry_text
+from factory.work.domain.work_item import WorkItemState
 from git_support import remote_commit
 from human_clone import HumanClone
 from stage_run_support import (

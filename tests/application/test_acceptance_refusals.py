@@ -5,16 +5,16 @@ from pathlib import Path
 import pytest
 
 from acceptance_walk import FEATURE, FIRST, TODO, AcceptanceWalk, report_of
-from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
-from factory.application.acceptance import AcceptanceService
-from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
-from factory.domain.acceptance import AcceptanceOutcome, AcceptanceState
 from factory.domain.board import AcceptanceStatus
-from factory.domain.work_item import WorkItemDocument
 from factory.shared.domain.errors import CannotHandle
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import feature_file_path, work_item_path
+from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
+from factory.work.application.acceptance import AcceptanceService
+from factory.work.application.acceptance_reading import AcceptanceReader
+from factory.work.domain.acceptance import AcceptanceOutcome, AcceptanceState
+from factory.work.domain.work_item import WorkItemDocument
 from git_support import PIPELINE_YAML, remote_commit, run_git
 from human_clone import HumanClone
 

@@ -3,7 +3,7 @@
 import pytest
 
 from factory.domain.board import BoardRow, render_board, work_item_row
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot
+from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot
 
 ABSENT_ROW = BoardRow(
     work_item="F0001-S0001",

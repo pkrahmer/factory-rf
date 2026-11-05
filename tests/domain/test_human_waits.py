@@ -6,8 +6,8 @@ import pytest
 from pydantic import BaseModel, ValidationError
 
 from factory.domain.human_waits import HumanWait, human_line, human_waits
-from factory.domain.journal import HUMAN, JournalRecord
 from factory.hosting.domain.post_texts import cost_table_post
+from factory.work.domain.journal import HUMAN, JournalRecord
 
 REVIEWER = "reviewer"
 

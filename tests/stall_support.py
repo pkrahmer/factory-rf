@@ -11,11 +11,11 @@ from factory.application.boundaries import Boundaries
 from factory.application.stage import LaunchedStage, StageLauncher, StartedStage
 from factory.application.stalls import StallContext
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
-from factory.domain.journal import JournalRecord
-from factory.domain.work_item import WorkItemDocument, WorkItemState
 from factory.hosting.application.opening import WorkItemOpening
 from factory.hosting.domain.git import CommitId
 from factory.hosting.domain.hosting import PullRequestView
+from factory.work.domain.journal import JournalRecord
+from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import install_agents
 from human_clone import HumanClone
 from observing_runtime import ObservingRuntime

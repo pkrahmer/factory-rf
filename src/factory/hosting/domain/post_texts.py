@@ -12,8 +12,8 @@ from factory.hosting.domain.git import CommitId
 from factory.shared.domain.identifiers import WorkItemId
 
 if TYPE_CHECKING:
-    from factory.domain.decisions import StallReason
-    from factory.domain.story_form import FormFinding
+    from factory.work.domain.decisions import StallReason
+    from factory.work.domain.story_form import FormFinding
 
 
 def opened_for_stop_description(work_item: WorkItemId) -> str:

@@ -12,16 +12,16 @@ from factory.domain.bills import bills_by_stage, cost_table
 from factory.domain.events import Event
 from factory.domain.human_waits import human_line, human_waits
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import (
+from factory.hosting.domain.hand_over import cost_table_key, hand_over_description
+from factory.hosting.domain.post_texts import cost_table_post
+from factory.shared.domain.errors import CannotHandle
+from factory.shared.domain.paths import MAIN_BRANCH, cost_records_path
+from factory.work.domain.work_item import (
     WorkItemDocument,
     WorkItemSnapshot,
     WorkItemState,
     require_state,
 )
-from factory.hosting.domain.hand_over import cost_table_key, hand_over_description
-from factory.hosting.domain.post_texts import cost_table_post
-from factory.shared.domain.errors import CannotHandle
-from factory.shared.domain.paths import MAIN_BRANCH, cost_records_path
 
 _KIND = "hand_over"
 

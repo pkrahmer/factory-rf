@@ -45,6 +45,22 @@ AREAS: dict[str, tuple[str, ...]] = {
         "adapters.pygithub_hosting",
         "adapters.fake_hosting",
     ),
+    "work": (
+        "domain.acceptance",
+        "domain.answers",
+        "domain.archive",
+        "domain.decisions",
+        "domain.journal",
+        "domain.labels",
+        "domain.move_rule",
+        "domain.send_back",
+        "domain.story_form",
+        "domain.work_item",
+        "application.acceptance",
+        "application.acceptance_reading",
+        "application.work_items",
+        "adapters.work_item_markdown",
+    ),
 }
 
 MOVES = [

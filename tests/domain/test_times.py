@@ -9,10 +9,10 @@ from pydantic import ValidationError
 
 from factory.domain.cost_records import CostRecord
 from factory.domain.stops import RepositoryStop
-from factory.domain.work_item import Claim
 from factory.hosting.domain.git import CommitInfo
 from factory.hosting.domain.hosting import PullRequestComment
 from factory.shared.domain.times import in_utc
+from factory.work.domain.work_item import Claim
 from source_search import modules
 
 AWARE = datetime(2026, 10, 12, 14, 0, tzinfo=timezone(timedelta(hours=2)))
@@ -24,7 +24,7 @@ MODELS_WITH_TIMES = (
     "factory.hosting.domain.git",
     "factory.hosting.domain.hosting",
     "factory.domain.stops",
-    "factory.domain.work_item",
+    "factory.work.domain.work_item",
 )
 
 

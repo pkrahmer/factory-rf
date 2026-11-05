@@ -41,7 +41,7 @@ Three rules follow. A waiting work item holds back all new work, so one never st
 
 ### The move rule
 
-A stage changes only through the pipeline. `factory.domain.move_rule` holds the rule; every model in it is frozen and forbids unknown keys.
+A stage changes only through the pipeline. `factory.work.domain.move_rule` holds the rule; every model in it is frozen and forbids unknown keys.
 
 - `StageChange(from_stage, to_stage, correction=False)`: a change read from git. `correction` is true when the same commit appended a journal record of kind `move_back`. The factory's own correction is marked by that journal kind, never by a commit message.
 - `is_legal_change(definition, change)` is true when `correction` is set, when the stage is unchanged, when `to_stage` is in `from_stage`'s `next`, or when `to_stage` is `done` and `from_stage` is an approval stage (the human's merge accepts, even when that stage's `next` does not list `done`). A stage the definition lacks is never a legal side.
@@ -67,7 +67,7 @@ Otherwise it is a `StageChange`; `correction` is true only when `C`'s journal is
 
 `factory.entry.watch` (`factory-watch`, see the operator guide) shows the event of one evaluation and the board. `run_watch(boundaries, instance, out, err)` resolves `origin/main` (`GitError` when it does not), loads the definition with `PipelineLoader(boundaries).load(<that commit>)` (a commit id, not the ref, so no stop is raised or cleared), evaluates once with `Watcher(boundaries, instance, observer=True)` (a look from outside the tick) and writes `render_event(event)`, a blank line and `render_board(...)`. It returns 0, or 1 with `factory-watch: <fault>` on `err` for `PipelineDefinitionInvalid`. It fetches and writes nothing. `main(argv, *, boundaries, instance, out, err)` parses `argv` first with an `ArgumentParser(prog="factory-watch")` without options, so any option is `SystemExit(2)`; with no boundaries or no instance it takes both from `boundaries_from_environment(os.environ)` (the readers of `factory-run`) and runs as the settings' instance; a `SettingsInvalid` is written as `factory-watch: settings invalid: <variable>: <fault>` on `err`, nothing goes to `out`, and `main` returns 2.
 
-The board is `factory.domain.board` (`BoardRow`, `FeatureRow`, `work_item_row`, `feature_rows`, `render_board`, all pure) and `BoardReader(boundaries).read(definition)` in `factory.application.board`, which returns a `BoardView`. The reader takes the story files of the three folders from `RemoteWorkItems.list_stories`, the feature titles from `Git.show_file("origin/main", ".../feature.md")` and the rows from `running_work_items(...)` (`factory.application.acceptance_reading`): the snapshots of `RemoteWorkItems.read` and of `AcceptanceReader.snapshots()`, sorted by `(work_item_order(id), path)`, each mapped by `work_item_row`. `Watcher.evaluate` calls the same function, so board and watcher order work items alike. A report that `snapshots()` cannot read raises `WorkItemFormatError` from `read`. It reads the remote-tracking refs a second time next to the `Watcher`; it does not share the watcher's snapshots, so `Watcher.evaluate` still returns one event. `read` ends with `AcceptanceReader(boundaries, definition).fill_board(rows)`, which sets `FeatureRow.acceptance` (it stays `None` without an `acceptance_stage`).
+The board is `factory.domain.board` (`BoardRow`, `FeatureRow`, `work_item_row`, `feature_rows`, `render_board`, all pure) and `BoardReader(boundaries).read(definition)` in `factory.application.board`, which returns a `BoardView`. The reader takes the story files of the three folders from `RemoteWorkItems.list_stories`, the feature titles from `Git.show_file("origin/main", ".../feature.md")` and the rows from `running_work_items(...)` (`factory.work.application.acceptance_reading`): the snapshots of `RemoteWorkItems.read` and of `AcceptanceReader.snapshots()`, sorted by `(work_item_order(id), path)`, each mapped by `work_item_row`. `Watcher.evaluate` calls the same function, so board and watcher order work items alike. A report that `snapshots()` cannot read raises `WorkItemFormatError` from `read`. It reads the remote-tracking refs a second time next to the `Watcher`; it does not share the watcher's snapshots, so `Watcher.evaluate` still returns one event. `read` ends with `AcceptanceReader(boundaries, definition).fill_board(rows)`, which sets `FeatureRow.acceptance` (it stays `None` without an `acceptance_stage`).
 
 ## The tick
 
@@ -149,7 +149,7 @@ A handler that answers an act of the human on a pull request first records the a
 5. It writes the document at the new path and publishes on main with `commit_subject(id, "merged, archived")`; a push that is not `pushed` raises `PushFailed`.
 6. Only then `Git.delete_remote_branch(branch)`, which counts a branch already gone as `"pushed"`; any other outcome raises `PushFailed(branch, outcome)` and the archive stays pushed. Then `Git.delete_branch(branch)`.
 
-It posts nothing and does not touch the pull request. `destination_path(path, folder)` (`factory.domain.archive`) returns the same file name in `folder` of the same feature directory, and raises `ValueError` for a path that `folder_of` places in no lifecycle folder; the discard below reuses it. Tests: `tests/application/handlers/test_merged.py`, `tests/domain/test_archive.py`, `tests/domain/test_archive_texts.py`.
+It posts nothing and does not touch the pull request. `destination_path(path, folder)` (`factory.work.domain.archive`) returns the same file name in `folder` of the same feature directory, and raises `ValueError` for a path that `folder_of` places in no lifecycle folder; the discard below reuses it. Tests: `tests/application/handlers/test_merged.py`, `tests/work/domain/test_archive.py`, `tests/domain/test_archive_texts.py`.
 
 ### A close before the approval discards the story
 
@@ -164,7 +164,7 @@ It makes no hosting-service call. Tests: `tests/application/handlers/test_closed
 
 ### A close at the approval sends the story back
 
-`ClosedHandler._send_back(target)` handles a `closed` event at a stage whose `approval` is true; the operator guide says what the operator sees under "A close at the approval sends the story back". The rules are pure functions in `factory.domain.send_back`:
+`ClosedHandler._send_back(target)` handles a `closed` event at a stage whose `approval` is true; the operator guide says what the operator sees under "A close at the approval sends the story back". The rules are pure functions in `factory.work.domain.send_back`:
 
 - `send_back_target(definition, approval)` is `next[1]` of the approval, or `None` when `next` has fewer than two stages. `None` is `CannotHandle("closed", ...)` before anything is written.
 - `send_back_cap(definition, approval)` is the `round_cap` of the first stage whose `next[0]` is the approval and that has a cap, or `None`.
@@ -187,9 +187,9 @@ The handler posts nothing; `AskHandler` posts the question. Tests: `tests/applic
 
 - `blocked` unset: the comments are only copied.
 - `blocked` set: `copy` gets an `adjust` function, so the answer lands in the same commit as the copied comments. `adjust` finds the factory's post of the wait, the comment listed with `by_factory` and the key `PostKey(work_item, <the blocked value>, str(<number of the latest question record>))`. It applies `unblock` when a comment of this copy has a non-blank body and an id greater than the post's. With no such post (not posted yet, or only an earlier question's) or no such comment, the document is unchanged and the wait stays.
-- `unblock(state)` (`factory.domain.answers`) sets `blocked` to `None`, resets `attempts` to 0 when the wait was `attempts_cap` `crashes` to 0 when it was `crash_cap` and `round` to 0 when it was `round_cap`, so an answer at the round cap starts the count of rounds over (the count also holds the approval's send-backs). For any other wait, `send_back` included, it keeps `round`, so a later send-back past the cap asks again. A state that does not wait is returned as it is.
+- `unblock(state)` (`factory.work.domain.answers`) sets `blocked` to `None`, resets `attempts` to 0 when the wait was `attempts_cap` `crashes` to 0 when it was `crash_cap` and `round` to 0 when it was `round_cap`, so an answer at the round cap starts the count of rounds over (the count also holds the approval's send-backs). For any other wait, `send_back` included, it keeps `round`, so a later send-back past the cap asks again. A state that does not wait is returned as it is.
 
-The answer is read from ids and keys, never from the comment's text. Tests: `tests/application/handlers/test_comment_handler.py`, `tests/domain/test_answers.py`.
+The answer is read from ids and keys, never from the comment's text. Tests: `tests/application/handlers/test_comment_handler.py`, `tests/work/domain/test_answers.py`.
 
 ### The hand-over at the approval
 
@@ -202,7 +202,7 @@ The answer is read from ids and keys, never from the comment's text. Tests: `tes
 
 The description is already in place when the hand-over runs: the stage that reached the approval wrote it between its result commit and its push (see `StageFinisher.finish`). Step 1 writes it again with the same text, since it reads the same document and commits; the hand-over stays the place that marks the pull request ready, posts the cost table and records `handed_over`. If the stage's own write failed, step 1 is the first write.
 
-The first three effects are safe to repeat, so a failure or a kill anywhere before the record is retried whole; the record comes last. Tests: `tests/application/handlers/test_hand_over.py`, `tests/domain/test_hand_over.py`.
+The first three effects are safe to repeat, so a failure or a kill anywhere before the record is retried whole; the record comes last. Tests: `tests/application/handlers/test_hand_over.py`, `tests/work/domain/test_hand_over.py`.
 
 ### An illegal stage change is put back
 

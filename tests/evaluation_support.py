@@ -5,17 +5,8 @@ from datetime import UTC, datetime
 
 from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
 from factory.domain.events import Event
-from factory.domain.journal import JournalKind, JournalRecord
 from factory.domain.lease import ClaimStatus
 from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition, StageDefinition
-from factory.domain.work_item import (
-    Blocked,
-    Claim,
-    WorkItemDocument,
-    WorkItemSnapshot,
-    WorkItemState,
-    initial_state,
-)
 from factory.hosting.domain.hosting import (
     PostKey,
     PostKind,
@@ -24,6 +15,15 @@ from factory.hosting.domain.hosting import (
     PullRequestView,
 )
 from factory.shared.domain.errors import HostingServiceError
+from factory.work.domain.journal import JournalKind, JournalRecord
+from factory.work.domain.work_item import (
+    Blocked,
+    Claim,
+    WorkItemDocument,
+    WorkItemSnapshot,
+    WorkItemState,
+    initial_state,
+)
 
 MAIN = "a" * 40
 BRANCH_COMMIT = "b" * 40

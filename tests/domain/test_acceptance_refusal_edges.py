@@ -5,10 +5,10 @@ from datetime import date
 import pytest
 
 from acceptance_support import report_of
-from factory.domain.acceptance import AcceptanceState, book_refusal, refusal_reason
 from factory.domain.bills import bill
-from factory.domain.journal import JournalKind, JournalRecord
-from factory.domain.work_item import WorkItemDocument
+from factory.work.domain.acceptance import AcceptanceState, book_refusal, refusal_reason
+from factory.work.domain.journal import JournalKind, JournalRecord
+from factory.work.domain.work_item import WorkItemDocument
 
 ROLE = "acceptance-reviewer"
 ON = date(2026, 10, 12)

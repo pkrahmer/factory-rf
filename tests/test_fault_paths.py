@@ -2,10 +2,10 @@
 
 import pytest
 
-from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
-from factory.domain.story_form import check_story_form
 from factory.shared.domain.identifiers import WorkItemId
 from factory.shared.domain.kill_points import InjectedKill, KillPoint
+from factory.work.adapters.work_item_markdown import FrontmatterWorkItemReader
+from factory.work.domain.story_form import check_story_form
 from git_support import STORY_FORM
 from proof_support import (
     STORY,

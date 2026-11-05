@@ -20,15 +20,15 @@ from factory.application.stage import (
 )
 from factory.domain.agent_runs import QUESTION, AgentRunResult
 from factory.domain.checks import CheckResult
-from factory.domain.journal import JournalRecord, entry_text
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemDocument, WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.application.opening import WorkItemOpening
 from factory.hosting.domain.post_texts import findings_question, round_cap_question
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import HostingServiceError, PushFailed
 from factory.shared.domain.identifiers import branch_name
+from factory.work.domain.journal import JournalRecord, entry_text
+from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, install_agents
 from human_clone import HumanClone
 from stage_run_support import ENVIRONMENT, INSTANCE, branch_head, pushed, pushed_state

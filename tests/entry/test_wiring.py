@@ -1,7 +1,7 @@
 """The wiring: the one module of the entry layer that picks concrete adapters."""
 
-from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
 from factory.entry.wiring import build_work_item_reader
+from factory.work.adapters.work_item_markdown import FrontmatterWorkItemReader
 from source_search import imports, modules
 
 

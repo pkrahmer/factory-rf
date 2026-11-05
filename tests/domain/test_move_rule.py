@@ -3,18 +3,18 @@
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from factory.domain.move_rule import (
-    FactoryMove,
-    IllegalChange,
-    StageChange,
-    factory_moves,
-    is_legal_change,
-)
 from factory.domain.pipeline_definition import (
     PipelineDefinition,
     ProjectCommandDefinition,
     RoleDefinition,
     StageDefinition,
+)
+from factory.work.domain.move_rule import (
+    FactoryMove,
+    IllegalChange,
+    StageChange,
+    factory_moves,
+    is_legal_change,
 )
 
 # The pipeline definition of the test remote (`PIPELINE_YAML`), built without the YAML reader.

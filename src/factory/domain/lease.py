@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 from typing import Literal
 
-from factory.domain.work_item import Claim
+from factory.work.domain.work_item import Claim
 
 ClaimStatus = Literal["none", "own", "held", "expired"]
 

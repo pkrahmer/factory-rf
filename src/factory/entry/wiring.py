@@ -29,15 +29,7 @@ from factory.adapters.power_off import ProcessExit, SystemctlPowerOff
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.adapters.transcript_files import FileTranscriptStore
-from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.adapters.zfs_snapshots import DROP_CACHES_COMMAND, ZfsSnapshots
-from factory.application.acceptance import (
-    AcceptanceClosed,
-    AcceptanceDueHandler,
-    AcceptanceHandOver,
-    AcceptanceMerged,
-    SplitByWorkItemKind,
-)
 from factory.application.agent_runtime import AgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
@@ -121,6 +113,17 @@ from factory.shared.domain.settings import (
     InstanceSettings,
     read_setting_file,
     read_settings,
+)
+from factory.work.adapters.work_item_markdown import (
+    FrontmatterWorkItemReader,
+    FrontmatterWorkItemWriter,
+)
+from factory.work.application.acceptance import (
+    AcceptanceClosed,
+    AcceptanceDueHandler,
+    AcceptanceHandOver,
+    AcceptanceMerged,
+    SplitByWorkItemKind,
 )
 
 __all__ = [

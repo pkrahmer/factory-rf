@@ -6,7 +6,7 @@ import pytest
 from pydantic import BaseModel, ValidationError
 
 from factory.domain.events import Event, EventKind
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, initial_state
+from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, initial_state
 
 WORK_ITEM = "F0001-S0001"
 FEATURE = "F0001"

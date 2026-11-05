@@ -7,22 +7,22 @@ from pathlib import Path
 import pytest
 
 from acceptance_walk import FIRST, FIRST_RECORDS, AcceptanceWalk, report_of
-from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
-from factory.application.acceptance import (
-    AcceptanceClosed,
-    AcceptanceHandOver,
-    AcceptanceMerged,
-)
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.domain.events import Event
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemDocument
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.application.files import WorkItemReader
 from factory.shared.domain.errors import CannotHandle
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import MAIN_BRANCH
+from factory.work.adapters.work_item_markdown import FrontmatterWorkItemReader
+from factory.work.application.acceptance import (
+    AcceptanceClosed,
+    AcceptanceHandOver,
+    AcceptanceMerged,
+)
+from factory.work.domain.work_item import WorkItemDocument
 from git_support import remote_commit
 
 HandlerFactory = Callable[[Boundaries, PipelineDefinition], Handler]

@@ -4,14 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from factory.application.acceptance import AcceptanceService
-from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
-from factory.domain.acceptance import AcceptanceState
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.errors import WorkItemFormatError
+from factory.work.application.acceptance import AcceptanceService
+from factory.work.application.acceptance_reading import AcceptanceReader
+from factory.work.domain.acceptance import AcceptanceState
+from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from git_support import run_git
 from human_clone import HumanClone
 

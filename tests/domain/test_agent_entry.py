@@ -3,8 +3,8 @@
 import pytest
 
 from factory.domain.agent_runs import QUESTION
-from factory.domain.decisions import agent_entry
-from factory.domain.journal import NewEntry
+from factory.work.domain.decisions import agent_entry
+from factory.work.domain.journal import NewEntry
 
 ROLE = "tester"
 STAGE = "tests"

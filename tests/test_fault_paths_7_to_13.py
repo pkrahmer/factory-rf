@@ -5,10 +5,10 @@ from typing import Literal
 
 import pytest
 
-from factory.domain.acceptance import AcceptanceState
-from factory.domain.work_item import WorkItemState
 from factory.shared.domain.identifiers import WorkItemId, branch_name
 from factory.shared.domain.kill_points import InjectedKill, KillPoint
+from factory.work.domain.acceptance import AcceptanceState
+from factory.work.domain.work_item import WorkItemState
 from git_support import remote_commit
 from proof_support import (
     FEATURE,

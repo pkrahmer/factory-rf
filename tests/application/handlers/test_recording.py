@@ -14,10 +14,10 @@ from factory.application.handlers.recording import (
     target_of,
 )
 from factory.domain.events import Event, EventKind
-from factory.domain.journal import FACTORY, NewEntry, append_entry
-from factory.domain.work_item import WorkItemSnapshot, WorkItemState
 from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.domain.errors import CannotHandle, PushFailed
+from factory.work.domain.journal import FACTORY, NewEntry, append_entry
+from factory.work.domain.work_item import WorkItemSnapshot, WorkItemState
 from git_support import remote_commit
 from human_clone import HumanClone
 

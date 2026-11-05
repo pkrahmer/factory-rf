@@ -5,7 +5,7 @@ from datetime import timedelta
 import pytest
 
 from factory.domain.agent_runs import AgentRunResult, EndReason
-from factory.domain.decisions import stall_reason_of
+from factory.work.domain.decisions import stall_reason_of
 
 
 @pytest.mark.parametrize("end_reason", ["died", "time_limit", "budget", "no_result"])

@@ -10,14 +10,14 @@ from factory.domain.evaluation import EvaluationInput, PullRequestObservation, e
 from factory.domain.events import Event
 from factory.domain.lease import ClaimStatus
 from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition, StageDefinition
-from factory.domain.work_item import (
+from factory.hosting.domain.hosting import PullRequestView
+from factory.work.domain.work_item import (
     Claim,
     WorkItemDocument,
     WorkItemSnapshot,
     WorkItemState,
     initial_state,
 )
-from factory.hosting.domain.hosting import PullRequestView
 
 MAIN = "a" * 40
 BRANCH_COMMIT = "b" * 40

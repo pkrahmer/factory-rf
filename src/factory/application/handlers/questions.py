@@ -10,12 +10,12 @@ from factory.application.handlers.recording import (
     target_of,
 )
 from factory.domain.events import Event
-from factory.domain.journal import FACTORY, NewEntry, append_entry, entry_text, last_record
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import Blocked, WorkItemDocument, require_state
 from factory.hosting.domain.hosting import PostKey
 from factory.hosting.domain.post_texts import attempts_cap_question
 from factory.shared.domain.errors import CannotHandle
+from factory.work.domain.journal import FACTORY, NewEntry, append_entry, entry_text, last_record
+from factory.work.domain.work_item import Blocked, WorkItemDocument, require_state
 
 _KIND = "ask"
 

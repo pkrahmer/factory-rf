@@ -19,17 +19,14 @@ from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
-from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
 from factory.application.costs import read_cost_records
 from factory.application.tick import Tick
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.cost_records import CostRecord
 from factory.domain.disk import DiskRecord
-from factory.domain.journal import HUMAN, JournalRecord, NewEntry, append_entry
 from factory.domain.known_results import ResultRecord
 from factory.domain.stops import StopRecord
-from factory.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 from factory.entry.wiring import agent_environment, handler_factory
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
@@ -41,6 +38,12 @@ from factory.shared.domain.kill_point_cases import KILL_POINT_CASES, KillPointCa
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.shared.domain.paths import cost_records_path
 from factory.shared.domain.settings import InstanceSettings
+from factory.work.adapters.work_item_markdown import (
+    FrontmatterWorkItemReader,
+    FrontmatterWorkItemWriter,
+)
+from factory.work.domain.journal import HUMAN, JournalRecord, NewEntry, append_entry
+from factory.work.domain.work_item import WorkItemDocument, WorkItemState, initial_state
 from git_support import (
     CHECKOUT,
     PIPELINE_YAML,

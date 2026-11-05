@@ -2,10 +2,10 @@
 
 import pytest
 
-from factory.domain.decisions import StageMove, decide
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemState
 from factory.hosting.domain.post_texts import round_cap_question
+from factory.work.domain.decisions import StageMove, decide
+from factory.work.domain.work_item import WorkItemState
 from shipped_agents import template_definition
 
 

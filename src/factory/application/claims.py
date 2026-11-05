@@ -7,13 +7,13 @@ from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.recording import commit_subject
-from factory.domain.journal import NewEntry, append_entry
 from factory.domain.lease import ClaimStatus, claim_status, observed_claim_status
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState, require_state
 from factory.hosting.application.pushes import push_failure
 from factory.hosting.domain.git import CommitId
 from factory.shared.domain.identifiers import WorkItemId, branch_name, parse_work_item_file_name
+from factory.work.domain.journal import NewEntry, append_entry
+from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemState, require_state
 
 _INSTANCE_NAME = re.compile(r"[a-z][a-z0-9-]*")
 

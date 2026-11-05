@@ -7,15 +7,15 @@ import pytest
 
 from branch_reading import BODY, push_state
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
 from factory.application.watcher import Watcher
 from factory.domain.events import Event
-from factory.domain.journal import JournalKind, JournalRecord
-from factory.domain.move_rule import FactoryMove, factory_moves
-from factory.domain.work_item import WorkItemDocument, WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.identifiers import branch_name
+from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
+from factory.work.domain.journal import JournalKind, JournalRecord
+from factory.work.domain.move_rule import FactoryMove, factory_moves
+from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import PIPELINE_YAML, remote_commit
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

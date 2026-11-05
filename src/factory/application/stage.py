@@ -19,17 +19,11 @@ from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.take import TakeReport
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
 from factory.application.transcripts import session_transcripts
-from factory.domain.acceptance import acceptance_description
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.checks import CheckResult, command_line
 from factory.domain.cost_records import ToolUse, TranscriptRef
-from factory.domain.decisions import StageMove, StallReason, agent_entry, decide, stall_reason_of
 from factory.domain.died_runs import died_line
-from factory.domain.journal import FACTORY, NewEntry, append_entry
-from factory.domain.labels import labels_for
 from factory.domain.pipeline_definition import PipelineDefinition, ProjectCommandDefinition
-from factory.domain.story_form import FormFinding
-from factory.domain.work_item import WorkItemDocument, require_state
 from factory.hosting.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.hosting.application.pushes import push_with_retries
 from factory.hosting.domain.git import CommitId
@@ -38,6 +32,18 @@ from factory.hosting.domain.hosting import PullRequestView
 from factory.shared.domain.errors import HostingServiceError, PushFailed
 from factory.shared.domain.identifiers import Name, WorkItemId, is_acceptance
 from factory.shared.domain.paths import MAIN_BRANCH, cost_records_path
+from factory.work.domain.acceptance import acceptance_description
+from factory.work.domain.decisions import (
+    StageMove,
+    StallReason,
+    agent_entry,
+    decide,
+    stall_reason_of,
+)
+from factory.work.domain.journal import FACTORY, NewEntry, append_entry
+from factory.work.domain.labels import labels_for
+from factory.work.domain.story_form import FormFinding
+from factory.work.domain.work_item import WorkItemDocument, require_state
 
 STALL_TAIL_LINES = 15
 RELEASE_AFTER_HOSTING_FAILURE = "claim released: hosting failed"

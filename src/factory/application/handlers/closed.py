@@ -12,18 +12,8 @@ from factory.application.handlers.recording import (
     require_pull_request,
     target_of,
 )
-from factory.domain.archive import destination_path
 from factory.domain.events import Event
-from factory.domain.journal import FACTORY, HUMAN, NewEntry, append_entry
-from factory.domain.labels import labels_for
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.send_back import (
-    reason_given,
-    recorded_since_latest_result,
-    send_back_cap,
-    send_back_target,
-)
-from factory.domain.work_item import Blocked, WorkItemDocument, WorkItemSnapshot, require_state
 from factory.hosting.domain.post_texts import (
     CLOSE_ENTRY_TEXT,
     send_back_entry_text,
@@ -31,6 +21,16 @@ from factory.hosting.domain.post_texts import (
 )
 from factory.shared.domain.errors import CannotHandle
 from factory.shared.domain.paths import MAIN_BRANCH
+from factory.work.domain.archive import destination_path
+from factory.work.domain.journal import FACTORY, HUMAN, NewEntry, append_entry
+from factory.work.domain.labels import labels_for
+from factory.work.domain.send_back import (
+    reason_given,
+    recorded_since_latest_result,
+    send_back_cap,
+    send_back_target,
+)
+from factory.work.domain.work_item import Blocked, WorkItemDocument, WorkItemSnapshot, require_state
 
 _KIND = "closed"
 

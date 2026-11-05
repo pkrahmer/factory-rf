@@ -18,14 +18,14 @@ from factory.application.stage_environment import StageEnvironment
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.take import TakeReport
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
-from factory.domain.decisions import StallReason
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.application.opening import WorkItemOpening
 from factory.hosting.domain.git import CommitId, WorkTreeStatus
 from factory.shared.domain.errors import ContainerError, SnapshotError, WorkItemFormatError
 from factory.shared.domain.paths import cost_records_path
+from factory.work.domain.decisions import StallReason
+from factory.work.domain.work_item import WorkItemState
 from git_support import install_agents, remote_commit
 from human_clone import HumanClone
 from source_search import imported_modules

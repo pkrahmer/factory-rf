@@ -1,18 +1,18 @@
 """The watcher: reads the remote and evaluates it into one event for this instance."""
 
-from factory.application.acceptance_reading import AcceptanceReader, running_work_items
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
-from factory.application.work_items import RemoteWorkItems
 from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
 from factory.domain.events import Event
-from factory.domain.move_rule import IllegalChange, is_legal_change
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemSnapshot
 from factory.hosting.domain.git import CommitId
 from factory.shared.domain.errors import GitError
 from factory.shared.domain.identifiers import Name
 from factory.shared.domain.paths import MAIN_BRANCH, REMOTE
+from factory.work.application.acceptance_reading import AcceptanceReader, running_work_items
+from factory.work.application.work_items import RemoteWorkItems
+from factory.work.domain.move_rule import IllegalChange, is_legal_change
+from factory.work.domain.work_item import WorkItemSnapshot
 
 _MAIN_REF = f"{REMOTE}/{MAIN_BRANCH}"
 

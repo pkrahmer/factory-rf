@@ -15,8 +15,8 @@ from evaluation_support import (
 )
 from factory.domain.evaluation import question_posted
 from factory.domain.lease import ClaimStatus
-from factory.domain.work_item import WorkItemState
 from factory.hosting.domain.hosting import PullRequestComment, PullRequestView
+from factory.work.domain.work_item import WorkItemState
 
 
 @pytest.mark.parametrize(

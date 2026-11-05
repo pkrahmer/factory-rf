@@ -7,11 +7,11 @@ from collections.abc import Callable
 import pytest
 
 from factory.application.stage import LaunchedStage
-from factory.domain.journal import StallReason
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.application.git import Git
 from factory.hosting.domain.post_texts import stall_cause, stall_note
 from factory.shared.domain import errors
+from factory.work.domain.journal import StallReason
 
 REMOVED_OPERATIONS = {
     "seal",

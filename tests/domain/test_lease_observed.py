@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from factory.domain.lease import ClaimStatus, observed_claim_status
-from factory.domain.work_item import Claim
+from factory.work.domain.work_item import Claim
 from stage_run_support import INSTANCE
 
 OTHER_INSTANCE = "factory-2"

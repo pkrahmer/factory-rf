@@ -21,7 +21,6 @@ from factory.domain.agent_runs import AgentRunResult
 from factory.domain.disk import DiskRecord
 from factory.domain.events import Event, EventKind
 from factory.domain.stops import HealthStatus, RepositoryStop
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.entry.run import (
     activity,
     activity_tick,
@@ -35,6 +34,7 @@ from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings
+from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from git_support import PIPELINE_YAML, install_agents, run_git
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

@@ -6,7 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from factory.domain.prompts import END_LINE, PromptFacts, allowed_decisions, compose_prompt
-from factory.domain.story_form import FormFinding
+from factory.work.domain.story_form import FormFinding
 
 PATH = "factory/features/F0001-demo/in-progress/F0001-S0003-demo.md"
 MODE_LINE = "Mode: a test change the human approved; the coder's journal entry 4 names it."

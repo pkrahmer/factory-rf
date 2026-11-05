@@ -29,7 +29,6 @@ from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
-from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
 from factory.application.images import Images
 from factory.domain.disk import DiskRecord
@@ -45,6 +44,10 @@ from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from factory.shared.domain.identifiers import WorkItemId
 from factory.shared.domain.kill_points import KillPoints
 from factory.shared.domain.settings import InstanceSettings
+from factory.work.adapters.work_item_markdown import (
+    FrontmatterWorkItemReader,
+    FrontmatterWorkItemWriter,
+)
 from git_support import (
     CHECKOUT,
     PIPELINE_YAML,

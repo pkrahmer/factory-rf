@@ -19,11 +19,11 @@ from factory.domain.tick_status import (
     mark_reported,
     record_error,
 )
-from factory.domain.work_item import WorkItemSnapshot
 from factory.hosting.domain.hosting import PostKey
 from factory.hosting.domain.post_texts import error_report_text
 from factory.shared.domain.errors import HostingServiceError, UnhandledEvent
 from factory.shared.domain.sections import title
+from factory.work.domain.work_item import WorkItemSnapshot
 
 DispatchOutcome = Literal["handled", "error", "reported", "capped"]
 

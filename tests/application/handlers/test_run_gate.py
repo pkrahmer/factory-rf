@@ -12,12 +12,12 @@ from factory.application.handlers.closed import ClosedHandler
 from factory.application.handlers.merged import MergedHandler
 from factory.application.handlers.run_gate import RunGate
 from factory.domain.events import Event, EventKind
-from factory.domain.journal import HUMAN, JournalRecord
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.hosting import PullRequestView
 from factory.shared.domain.errors import HostingServiceError
+from factory.work.domain.journal import HUMAN, JournalRecord
+from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from git_support import PIPELINE_YAML, remote_commit
 from human_clone import HumanClone
 

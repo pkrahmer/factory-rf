@@ -5,12 +5,6 @@ from pathlib import Path
 
 from definition_support import pipeline_definition
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.application.acceptance import (
-    AcceptanceClosed,
-    AcceptanceHandOver,
-    AcceptanceMerged,
-    SplitByWorkItemKind,
-)
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.application.handlers.closed import ClosedHandler
@@ -26,6 +20,12 @@ from factory.application.tick import IdleHandler, Tick
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.events import EventKind
 from factory.entry.wiring import build_handlers
+from factory.work.application.acceptance import (
+    AcceptanceClosed,
+    AcceptanceHandOver,
+    AcceptanceMerged,
+    SplitByWorkItemKind,
+)
 from git_support import install_agents
 from human_clone import HumanClone
 from stage_run_support import INSTANCE
