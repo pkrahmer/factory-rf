@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T01:38:59.126382Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-05T01:38:59.126382Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-05T01:39:17.476226Z'
+  stage: intake
+  run: d2f740c301a64b8ba5bf665f4dacc5e0
 ---
 
 # The work area holds the work items
@@ -76,10 +78,10 @@ The moves (old → new), each file moved with `git mv`:
 
 ## Acceptance criteria
 
-1. For every module of the table above (one row each), `importlib.import_module("factory.work.<layer>.<name>")` succeeds, and `src/factory/<layer>/<name>.py` (for `handlers`, the folder) does not exist.
+1. For every module of the table above (one row each), `importlib.import_module("factory.work.<layer>.<name>")` succeeds, and `src/factory/<layer>/<name>.py` does not exist. `AREAS` of `tests/test_areas.py` has a `work` key whose modules are exactly the 14 of the table.
 2. Every package of the Interface (`factory.work`, `factory.work.domain`, `factory.work.application`, `factory.work.adapters`) imports and has a docstring.
-3. No `.py` file under `src/` or `tests/` has an import line that names `factory.<layer>.<name>` for a module of the table (one row per module).
-4. No test module left under `tests/domain/`, `tests/application/` or `tests/adapters/` takes all its `factory` imports from `work` and the areas moved before it.
+3. No `.py` file under `src/` or `tests/` has an import line that names `factory.<layer>.<name>` for a module of the table (one row per module), in each form `imports()` of `tests/source_search.py` reads: `import factory.x.y`, `from factory.x.y import z` and `from factory.x import y`.
+4. No test module left under `tests/domain/`, `tests/application/` or `tests/adapters/` takes all its `factory` imports from `work` and the areas moved before it (`shared` and `hosting`).
 5. `make check` stays green.
 6. docs: every module path of the table that `README.md`, `docs/operator-guide.md` or the project guide under `docs/project-guide/` names is changed to the new path, and `docs/project-guide/README.md`'s section on the code's layout names the area `work` and what it holds, in one sentence. `docs/decisions.md`: none, because the log is history and keeps the old paths.
 
@@ -122,3 +124,9 @@ Expect: `1`
 
    These answers hold for S0004 to S0007 as well; feature decision 8 records them.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: names 4 new packages and 14 concrete old → new module moves, each a `git mv`. The `AREAS` row rule now has a criterion (see below).
+   - Criteria: each is testable by one test function. I carried in the human's answers from journal entry 4. Criterion 1 now also says `AREAS` has a `work` key whose modules are exactly the 14 of the table (answer 1). I removed the "for `handlers`, the folder" leftover (answer 4). Criterion 3 now names the three import forms that `imports()` of `tests/source_search.py` reads (answer 6). Criterion 4 names the earlier areas as `shared` and `hosting` (answer 5). I added no criterion for the test packages' `__init__.py` files (answer 2) and none for a one-line docstring (answer 3). Each rule has its failing side: criteria 1 and 3 check that the old path is gone, and criterion 4 checks that no test module is left behind.
+   - Smoke test: the three commands are runnable. Each `Expect:` line is checkable. The pytest command passes no `-q`, and I did not check the pytest configuration's `addopts`. The `tail -1 | grep -c passed` expectation needs a summary line, so the tester should confirm `addopts` doesn't set `-qq`.
+   - Architecture: each module moves to the same layer inside `factory.work`, which fits the areas-with-layers design (feature decisions 1, 2 and 4). No re-export is left.
+   - Scope: within F0051 and not in its "Out of scope". The tester's leave is feature decision 5, and the standing answers are decision 8.
