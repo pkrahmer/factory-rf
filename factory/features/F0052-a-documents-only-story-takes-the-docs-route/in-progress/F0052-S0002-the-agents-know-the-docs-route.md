@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T22:30:04.041821Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-11-05T22:30:04.041821Z'
   stage: doing
+- number: 24
+  speaker: coder
+  kind: result
+  at: '2026-11-05T22:32:59.128580Z'
+  stage: doing
+  run: f51166b4fc534cf9afcc4156f70edddf
 ---
 
 # The agents know the docs route
@@ -315,3 +317,18 @@ Expect: `named`
     Earlier tests:
     - `tests/agent_files/test_claude_agent_texts_review_groups.py`: changed under the human's leave in journal entry 14. The `### docs-review` subsection is cut before the CRC, and the test keeps its name and its `_EARLIER_BODY_CRC32`. The change stays within that leave.
 23. factory: started doing as vm.
+24. coder: I fixed review findings 1 and 2 in the agent texts. Findings 3 and 4 need test changes, which are the tester's to make. `make check` is green with the new texts (`test: green (132.3 s)`, `check: green`).
+
+    What I changed:
+    - Finding 1, `agents/agents/documenter.md`, `### docs-only`: the opening paragraph now ends "In the stage `docs-only`, these bullets replace steps 1 to 6 above." I also added a bullet before the outside-the-documents bullet: when the latest entry is the reviewer's from `docs-review`, fix exactly its numbered findings, run `make documents` again and end with `docs-review`. It is a bullet, not a numbered step, because `test_claude_agent_texts_docs_slip.py` allows only one `1. ` line in the documenter's Stage.
+    - Finding 2, `agents/agents/reviewer.md`, `### docs-review`: the opening sentence now says that in the stage `docs-review` this subsection replaces the Role's scope, its checklist (groups 1 to 6) and its decisions, and Stage steps 1 to 3. I put it inside the subsection on purpose. The CRC test in `test_claude_agent_texts_review_groups.py` cuts the subsection out and pins the rest of the body, so text added anywhere else would turn it red.
+
+    Rejected: putting a "does not apply in `docs-review`" note into the reviewer's Role or checklist. That would break the CRC pin of the earlier body, and the human's leave in journal 14 does not cover it.
+
+    Test changes for the tester:
+    - Finding 3: in `tests/agent_files/test_claude_agent_texts_docs_route.py`, replace the rows `ends-with-tests` and `entry-names-the-change` of `test_the_documenter_in_docs_only_writes_the_documents_and_hands_to_review_or_tests` with one row. That row requires the bullet of the `### docs-only` subsection that holds "outside the documents" to also hold "end with `tests`" and "entry names that change". The current bullet holds all three: "…write nothing for it and end with `tests`. Your entry names that change…".
+    - Finding 4, under the standing leave to move a shared test helper: move `_stage_section` into `tests/support/shipped_agents.py`. It appears in `tests/agent_files/test_claude_agent_texts_docs_route.py:27` and as a copy in `tests/agent_files/test_claude_agent_texts_docs_slip.py:46`. Both modules then use the shared helper, and every earlier test keeps its name and checks the same thing.
+
+    Refactor: I read my diff and found nothing else to change. The Description is unchanged, because the review findings change the form of the texts, not what the task means.
+
+    Noticed, not touched: criterion 5 (the docs) is the documenter's. The pipeline definition change for the route is the human's at merge.
