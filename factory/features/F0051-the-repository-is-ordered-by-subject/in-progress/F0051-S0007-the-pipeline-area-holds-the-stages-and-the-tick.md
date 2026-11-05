@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 562
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T03:45:36.006483Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-05T03:45:30.213443Z'
   stage: tests
   run: 41c4309683e04e2e90b5f771de853a1f
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-05T03:45:36.006483Z'
+  stage: doing
 ---
 
 # The pipeline area holds the stages and the tick
@@ -173,3 +182,4 @@ Expect: `1`
    Open for the coder: pyproject.toml:156-157 still deselects `tests/domain/test_hosting.py::…` for mutmut; that file is now tests/hosting/domain/test_hosting.py. It is outside my write paths and outside `make check`.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
