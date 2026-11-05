@@ -2,7 +2,7 @@
 
 ## Before it starts
 
-Not started (the human, 2026-11-05): first a discussion of how versatile routes should be, so that this route is one case of a general rule and not a special one. Possible outcomes: routes chosen by the intake from a list in the pipeline definition, a route per kind of story, or this route as it stands. The stories below may change with it.
+Decided with the human on 2026-11-05: routes stay branches of the stage graph. The intake's `next` names the first stage of each route, and a route that can be sent back ends in an approval stage of its own. A later route is new lines in `factory/pipeline.yml`, not new code. Nothing else waits; the feature starts when the spending cap allows.
 
 ## Goal
 
@@ -48,3 +48,4 @@ The build order: the route must work before the agents choose it, and S0003 is t
 2. **The review comes after the writing.** On the docs route the reviewer reads the finished text, judges it against the style page and the docs criterion, and may send it back to the documenter within the round cap of two.
 3. **No smoke test on the docs route.** The document check (`make documents`) and `make secrets` run after the documenter, and `make check` reuses its result when only documents changed. A smoke test of prose adds nothing.
 4. **The intake decides, by the Interface.** A story goes down the docs route when every path its Interface changes is one the documenter may write (`README.md`, `docs/*`, `operator/README.md`). Anything else takes the old route.
+5. **Routes are branches of the stage graph** (the human, 2026-11-05). Rejected: a route as a list of stages that the intake writes into the work item, because the factory would have to keep a route per story and count rounds against it, for a need seen once; it stays possible later. Also rejected: sending a documents-only story from the intake to the existing `docs` stage, with a third way out of `docs` to `docs-approval`. That skips the review of the finished text, and since only `next[0]` is a forward move, the way to `docs-approval` would count as a round of rework: with the round cap of 2, the human could send such a story back only once.
