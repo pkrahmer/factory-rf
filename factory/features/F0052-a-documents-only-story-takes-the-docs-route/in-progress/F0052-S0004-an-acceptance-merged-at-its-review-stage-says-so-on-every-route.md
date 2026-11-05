@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 577
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T23:58:10.189111Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-05T23:58:10.189111Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T23:58:29.338834Z'
+  stage: intake
+  run: 70ad4fdba1fa413f9684862e51934748
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -69,3 +71,9 @@ Expect: `True True False`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: `is_before_approval(definition, stage)` in `factory.work.domain.acceptance` exists with the stated signature (`src/factory/work/domain/acceptance.py:309`). It names the two new test modules and the one earlier test row. That row is `test_docs_route.py` line 297, `("acceptance", False)`, and feature decision 7 gives the leave to change it. Every rule it states is covered: unknown stage, no approval stage, approval and `done` give False, the chain rule, and the loop and dead-end ends.
+   - Criteria: each is testable by one parametrized test. Criterion 1 has one row per stage. I walked the shipped `factory/pipeline.yml` by `next[0]`: the chains reach an approval stage or end as the criterion says (`smoke-test`→`approval`, `docs-only`→`docs-review`→`docs-approval`, `acceptance`→`approval`). Criterion 2 pins the old single-route results. Criterion 3 covers the loop, the dead end at `done` and the three-move chain. Criterion 4 covers both failing sides (`KeyError`, `ValueError`). Criterion 5 covers both merge entries, early at `acceptance` and ordinary at `approval`. The two closing criteria are in place.
+   - Smoke test: the command is runnable. `RuamelPipelineDefinitionReader().parse(text)` exists (`src/factory/pipeline/adapters/pipeline_yaml.py:25`), the command runs no pytest, and the Expect line `True True False` can be checked against the output.
+   - Architecture: the change is a pure rule in the work area's domain layer and adds no import. The booking, the merge handling and the pipeline definition stay as they are.
+   - Scope: the story is within F0052. It follows from the docs route that S0001 and S0002 added, and it touches nothing in "Out of scope". The change to the earlier test follows decision 7 and is limited to that one row.
