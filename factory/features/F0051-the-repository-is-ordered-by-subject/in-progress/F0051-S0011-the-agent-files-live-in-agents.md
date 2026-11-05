@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T08:30:50.159931Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -170,6 +166,12 @@ journal:
   kind: started
   at: '2026-11-05T08:30:50.159931Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-11-05T08:36:16.066128Z'
+  stage: doing
+  run: 3b6582ee307b47abaa786912c9be2061
 ---
 
 # The agent files live in `agents/`
@@ -450,3 +452,20 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 28. factory: started doing as vm.
+29. coder: I changed no code in this run. The tester's change in entry 27 was the last thing missing. With it, `make check` is green on the branch as it is: lint, types, layers, sast, secrets and licenses all green, `test: green (131.0 s)`, `check: green`. The working tree is clean. Everything else was committed in earlier runs (entries 17, 20 and 25):
+    - the move of `claude/` to `agents/` (`agents/agents/*.md`, `agents/settings.json`)
+    - `src/factory/machine/application/stage_environment.py` (`AGENT_FILES = "/etc/factory/agents"`)
+    - `vm/Dockerfile`, `vm/job-start.sh`, `vm/setup.sh`
+    - the mentions in `docs/project-guide/` and `docs/operator-guide/`
+
+    Main choice: hand forward as the branch stands. I rejected redoing the rename, because `git ls-files` already shows `agents/` in place and nothing under `claude/`.
+
+    Refactor: the diff only renames paths (18 files, 19 lines in and 19 out), so there was nothing to simplify.
+
+    Noticed but not touched:
+    - A directory that an agent renames is dropped from the take. `_read_diff_line` in `src/factory/machine/adapters/zfs_snapshots.py` skips directory entries in `zfs diff`. This is a candidate for a story of its own.
+    - The human's steps on factory-vm after the merge (entry 11): change `FACTORY_CLAUDE_HOME` in `factory.env` to `factory/agents`, rebuild the stage image and renew `image-id`.
+    - Criterion 6 is still open for the documenter: the `docs/decisions.md` entry and the mention of the new folder in `README.md`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
