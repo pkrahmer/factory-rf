@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T00:24:40.947127Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-05T00:24:35.937368Z'
   stage: tests
   run: 5e352e393a894dac99c57945fa8137ef
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:24:40.947127Z'
+  stage: doing
 ---
 
 # The shared area holds what every area uses
@@ -128,3 +137,4 @@ Expect: `1`
    Option I rejected: building the criterion 2 package list by hand. Building it from the table keeps later moves from editing anything but the table, as the Interface asks.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
