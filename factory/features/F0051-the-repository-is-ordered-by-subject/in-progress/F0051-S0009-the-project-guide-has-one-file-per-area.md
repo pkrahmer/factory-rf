@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 564
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T05:50:02.002233Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-05T05:50:02.002233Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-05T05:50:21.260474Z'
+  stage: intake
+  run: 3b60f030ca3643e2b10630e0b5196ac5
+  blocked: question
 ---
 
 # The project guide has one file per area
@@ -57,3 +60,9 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Placement has no criterion. The Description says each section moves "to the file of the area whose modules it describes", and a section that describes several areas goes to the area of its first module. Criterion 2 only checks that each heading appears exactly once somewhere in the new files. A coder could put every section in `shared.md` and still pass. Please add a table of heading → target file to the story, and a criterion that each heading is found in its file. I would choose that table, with the whole-file moves (`git-and-hosting.md`→`hosting.md`, `work-items.md`→`work.md`, `stage-environment.md`→`machine.md`, `stages.md`→`pipeline.md`) given as a rule, and only the sections of the other files (`agents.md`, `write-paths.md`, `costs.md`, `watching.md`, `processes-and-checks.md`) listed by heading.
+   2. The one-line pointers have no criterion. The Description says a multi-area section is "named from the others' files by a one-line pointer". Please add a criterion that names each such section, the file it moves to and the files that carry the pointer. I would choose one row per multi-area section.
+   3. "The words of the sections do not change, except the pointers between files" has no criterion. Please say how it is checked, for example that each section's body text, apart from lines naming guide files, is identical to the one on `origin/main`. Or please say it is the reviewer's judgement and not a test.
+   4. Criterion 3 says the index names "the modules it describes, by their new paths". Please state what is checked. I would choose: each of the eight files is named in *The files* with a sentence, and every `src/factory/<area>/` path it names exists.
+   5. Interface says "the agent files are changed to the new names", but the criteria only require that no named guide file is missing (criterion 4). Please confirm that the agent files must name the new files correctly, not merely existing ones. I would choose the criterion 4 wording as it stands.
+   6. Criterion 4 covers `claude/`, `docs/` and `README.md`. `CLAUDE.md` also names guide files and is the human's change. Please confirm that the test leaves `CLAUDE.md` out, or say that the human changes it first.
