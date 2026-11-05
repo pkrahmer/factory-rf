@@ -11,6 +11,8 @@ from factory.shared.domain.documents import (
     OPERATOR_GUIDE,
     OPERATOR_GUIDE_FILES,
     OPERATOR_GUIDE_SECTIONS,
+    OPERATOR_INSTALL,
+    OPERATOR_STOPS,
     PROJECT_GUIDE,
     PROJECT_GUIDE_SECTIONS,
     README,
@@ -21,8 +23,6 @@ from factory.shared.domain.documents import (
 from factory.shared.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase
 from support.document_texts import (
     INSTALL_SECTIONS,
-    OPERATOR_INSTALL,
-    OPERATOR_STOPS,
     PATH_7_TEST,
     STOPS_SECTIONS,
     clean_texts,

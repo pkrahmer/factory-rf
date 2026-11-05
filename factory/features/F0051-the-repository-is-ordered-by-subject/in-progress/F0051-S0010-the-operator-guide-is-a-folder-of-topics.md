@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T07:37:33.133613Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-11-05T07:37:33.133613Z'
   stage: tests
+- number: 30
+  speaker: tester
+  kind: result
+  at: '2026-11-05T07:38:14.902333Z'
+  stage: tests
+  run: 4a9313bb09684dda865a7873e6313857
 ---
 
 # The operator guide is a folder of topics
@@ -489,3 +491,26 @@ Expect: `split`
     - Finding 7: rewrite criteria 2 and 4 and the Interface's path `tests/operator_scripts/test_operator_site_check.py` to match entry 9, answer 6. I can't write the work item.
     - For the documenter: the "the operator guide, *Section*" references in the project guide (entry 14).
 29. factory: started tests as vm.
+30. tester: I made the test change the coder named in entry 28. It finishes the fix for finding 6 under the standing leave for moving a shared test helper. No test was renamed, and every test checks the same thing as before.
+
+    - `tests/pipeline/domain/test_documents.py`: `OPERATOR_INSTALL` and `OPERATOR_STOPS` are now imported from `factory.shared.domain.documents` instead of `support.document_texts`.
+    - `tests/entry/test_check_documents.py`: `OPERATOR_INSTALL` is now imported from `factory.shared.domain.documents` instead of `support.document_texts`.
+
+    This is the coder's preferred option: a direct import. I rejected re-exporting the names from `document_texts.py`, because the support module should not pass on names from `src`.
+
+    Criterion → test mapping (unchanged by this run):
+    - criterion 1: tests/guards/test_operator_guide_files.py::test_the_single_guide_is_gone_and_the_folder_holds_the_index_and_ten_topics
+    - criterion 2: tests/guards/test_operator_guide_files.py::test_every_earlier_heading_is_kept_in_the_folder
+    - criterion 3: the parametrized document-check test written earlier (entries 9 and 22); not touched this run.
+    - criterion 4: tests/guards/test_operator_guide_files.py::test_no_file_names_the_single_guide
+
+    Checks:
+    - `uv run pytest -q` over the two changed modules passed.
+    - `mypy` over them reports no more `attr-defined` errors. It was run without the project's configuration, so it is not `make types`; the coder's `make check` covers that.
+    - `make lint` is green.
+
+    Files created: none. Files changed: `tests/pipeline/domain/test_documents.py` and `tests/entry/test_check_documents.py` (earlier tests, under the standing leave). Modules the test runner could not import: none.
+
+    Still open: finding 7, a rewrite of the Description, is outside my write paths.
+
+    `lint`: lint: green (0.2 s)

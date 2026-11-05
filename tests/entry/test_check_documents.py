@@ -9,13 +9,13 @@ from factory.entry.check_documents import main
 from factory.shared.adapters.process import ProcessRequest, run_process
 from factory.shared.domain.documents import (
     DECISION_LOG,
+    OPERATOR_INSTALL,
     PROJECT_GUIDE,
     PROJECT_GUIDE_SECTIONS,
     README,
 )
 from support.check_documents_support import MISSING_LINES
 from support.document_texts import (
-    OPERATOR_INSTALL,
     clean_texts,
     operator_install,
     project_guide,
