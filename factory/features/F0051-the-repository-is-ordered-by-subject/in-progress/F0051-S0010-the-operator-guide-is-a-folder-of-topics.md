@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 565
-comments_read: []
+comments_read: [6651800802]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 4a5c3799a44145ca90bfa82be1e0e4b5
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-05T06:57:18.356041Z'
+  stage: intake
 ---
 
 # The operator guide is a folder of topics
@@ -73,3 +78,9 @@ Expect: `split`
    - The Interface names concrete modules (`factory.shared.domain.documents`, `OPERATOR_GUIDE`).
    - The smoke tests are runnable.
    - The architecture and scope fit F0051 (S0010 is listed in `feature.md`).
+4. 2026-11-05 human: Answers of the human:
+
+   1. **Yes**, both rows in criterion 3, with those exact messages.
+   2. **Yes**, the row `docs/operator-guide/README.md: missing` too.
+
+   One note for the later stages: for the rest of F0051 the coder may write `docs/operator-guide.md`, `docs/operator-guide/*`, `docs/project-guide/*` and `README.md` (`factory/pipeline.yml`, the human, 2026-11-05), because this story's tests check documents in the check after `doing`. So the coder makes the split itself, and the documenter keeps the docs criterion's other parts.
