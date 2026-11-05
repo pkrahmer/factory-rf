@@ -4,11 +4,11 @@ This file covers cost records and bills; read the index, `README.md`, first.
 
 ## Cost records
 
-One agent run is one cost record: a JSON line in the sidecar file beside the work item, `cost_records_path(path)` (`<work item>.costs.jsonl`, see *Identity, order and places of work items*). The format is `CostRecord` (`factory.domain.cost_records`), the interfaces `CostRecordReader` and `CostRecordWriter` (`factory.shared.application.files`), and `JsonLinesCostRecordReader` and `JsonLinesCostRecordWriter` (`factory.adapters.cost_records_jsonl`). How a bill is summed is in *Bills*; a crashed stage's records are discarded with the stage.
+One agent run is one cost record: a JSON line in the sidecar file beside the work item, `cost_records_path(path)` (`<work item>.costs.jsonl`, see *Identity, order and places of work items*). The format is `CostRecord` (`factory.watching.domain.cost_records`), the interfaces `CostRecordReader` and `CostRecordWriter` (`factory.shared.application.files`), and `JsonLinesCostRecordReader` and `JsonLinesCostRecordWriter` (`factory.watching.adapters.cost_records_jsonl`). How a bill is summed is in *Bills*; a crashed stage's records are discarded with the stage.
 
 ### When a record is created, completed and committed
 
-`CostRecorder` (`factory.application.costs`) keeps the records of one run in a `CostRun` (frozen, no unknown keys): `path` (the sidecar), `run` (the record's id) and `records` (every record of the work item, this run's last).
+`CostRecorder` (`factory.watching.application.costs`) keeps the records of one run in a `CostRun` (frozen, no unknown keys): `path` (the sidecar), `run` (the record's id) and `records` (every record of the work item, this run's last).
 
 - **Created at the start.** `StageLauncher.launch` calls `CostRecorder.begin` after it composes the request and right before the agent runtime runs. `begin` reads the sidecar in the work tree (a missing file is no records), adds a `started` record (a new `uuid4` hex `run`, the stage, the stage's role from the pipeline definition, `attempt` equal to the state's `attempts`, `started_at` from the clock, every measure `None`, and `image` and `instance` from the instance's settings) and writes the file.
 - **Until the stage's commit, the running run's record is uncommitted.** From `begin` until the stage's commit, the sidecar in the work tree holds the running run's `started` record and is not committed. The agent works on the dataset, where the sidecar is the one committed at the stage-start commit; the factory writes the host's copy after the take. An agent leaves it alone. The agent's own `make check` does scan it, which is why a project's secrets scan leaves the cost records out.
@@ -42,7 +42,7 @@ A line is one JSON object without spaces after `,` and `:`; keys are in field or
 
 ```bash
 uv run python -c "
-from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader
+from factory.watching.adapters.cost_records_jsonl import JsonLinesCostRecordReader
 from factory.shared.domain.errors import CostRecordFormatError
 try:
     JsonLinesCostRecordReader().parse('\n{not json}\n')
@@ -57,19 +57,19 @@ prints `2 not valid JSON | line 2: not valid JSON`.
 
 A bill is a sum of cost records and nothing else. The cost line a `done` journal entry carries is display text: no code reads it back, and a bill never depends on it.
 
-`factory.domain.bills` is pure. `Bill` (frozen, no unknown keys) holds `runs`, `runs_cost_unknown`, `duration`, `model_duration`, `turns`, `tokens` and `cost_usd`; `StageBill` pairs a `Name` with a `Bill`.
+`factory.watching.domain.bills` is pure. `Bill` (frozen, no unknown keys) holds `runs`, `runs_cost_unknown`, `duration`, `model_duration`, `turns`, `tokens` and `cost_usd`; `StageBill` pairs a `Name` with a `Bill`.
 
 - `bill(records)` counts every record in `runs`, whatever its status and end reason, so a failed run is in the bill. `runs_cost_unknown` counts the records whose `cost_usd` is `None`. `duration`, `model_duration`, `turns`, `tokens` (field by field) and `cost_usd` sum the known values; a `None` is skipped, never zero.
 - `bills_by_stage(records)` gives one `StageBill` per stage in the order of its first record; a stage that runs again joins its first group. `total(stage_bills)` sums them field by field.
 - `cost_line(bill)` and `cost_table(stage_bills)` build the text the operator guide describes. Minutes and dollars are rounded half up with `Decimal.quantize`; the minutes are computed from `Decimal(str(seconds))` to avoid float half-way errors. `one_decimal(value: Decimal) -> str` is the one public rounding helper of the module (one decimal, half up): the minutes and the human's hours both call it, so there is no second copy.
 
-`BillService(git, cost_reader)` (`factory.application.costs`) builds a `WorkItemBill` (`work_item`, `total`, `stages`, `line`, `table`). `for_work_item` reads only remote-tracking refs: `origin/<branch>` when it exists, else `origin/main`. It finds the first `.md` file under the features directory whose name parses to the id (none gives `None`), and reads that file's sidecar with `show_file` (no sidecar means no records). A local commit that was not pushed, and the contents of the `work` volume, have no influence, so a fresh clone shows the same bill. The service never fetches; the caller does. `in_flight()` returns the ids of the remote branches named like work item branches, sorted with `work_item_order`.
+`BillService(git, cost_reader)` (`factory.watching.application.costs`) builds a `WorkItemBill` (`work_item`, `total`, `stages`, `line`, `table`). `for_work_item` reads only remote-tracking refs: `origin/<branch>` when it exists, else `origin/main`. It finds the first `.md` file under the features directory whose name parses to the id (none gives `None`), and reads that file's sidecar with `show_file` (no sidecar means no records). A local commit that was not pushed, and the contents of the `work` volume, have no influence, so a fresh clone shows the same bill. The service never fetches; the caller does. `in_flight()` returns the ids of the remote branches named like work item branches, sorted with `work_item_order`.
 
 `factory.entry.bill` is the command `factory-bill` (`run(argv, service, out)` returns the exit status; `main` builds the service with `build_bill_service` from `factory.entry.wiring`, the only adapter import of the entry layer).
 
 ### The human's waits
 
-`factory.domain.human_waits` (pure) turns the journal's records into the time the factory waited for the human. The cause of each blocking question is data in the front matter (`blocked`), so no text is read.
+`factory.watching.domain.human_waits` (pure) turns the journal's records into the time the factory waited for the human. The cause of each blocking question is data in the front matter (`blocked`), so no text is read.
 
 - `human_waits(journal)` gives one `HumanWait` (`question`, `blocked`, `asked_at`, `answered_at`) for each record of kind `question` that has both `blocked` and `at`, in journal order. Any other record starts no wait.
 - A wait ends at the `at` of the first later record (higher `number`) whose speaker is `human` and that has an `at`, whatever its kind: a `comment` or a `close`. A record of another speaker, a human record without `at` and a human record before the question end nothing. With no such record `answered_at` is `None`.

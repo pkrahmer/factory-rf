@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 560
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T03:00:37.573329Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-05T03:00:37.573329Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T03:01:16.605763Z'
+  stage: docs
+  run: 29513458f9cd4fc3b91accc6c8fa8d47
 ---
 
 # The watching area holds what shows the factory and what it costs
@@ -328,3 +330,22 @@ Expect: `1`
 
    I compared each moved test module with its file on `main`: none differs in anything but import lines.
 10. factory: started docs as vm.
+11. documenter: Round 0. Only documents changed, so I ran no `make check`. The factory's checks after this stage decide.
+
+    Files changed:
+    - `docs/project-guide/README.md`: the layout section (line 9) now names the area `watching` and what it holds, in one sentence. The index lines for `costs.md`, `watching.md` and `processes-and-checks.md` now give the new module paths.
+    - `docs/project-guide/costs.md`, `docs/project-guide/watching.md`, `docs/project-guide/agents.md`, `docs/project-guide/work-items.md`, `docs/project-guide/processes-and-checks.md`: each module path of the table (17 modules) is now `factory.watching.<layer>.<name>`. This includes the import line in the runnable example in `costs.md` (line 45). I ran a pattern replace that does not touch similar names such as `machine_stop_exit`, then grepped again: no old path of a moved module remains in the README, the operator guide or the project guide.
+    - `docs/project-guide/stages.md` and `docs/project-guide/watching.md`: the reviewer's two moved test paths are now `tests/watching/adapters/test_waiters.py` and `tests/watching/domain/test_archive_texts.py`.
+
+    Cross-read and found current: `README.md` and `docs/operator-guide.md` name no moved module path, so I left them unchanged. I did not touch `docs/decisions.md`, as the criterion says. I added no entry there, so no "Rejected" line is missing.
+
+    I did not re-run the runnable example in `costs.md`. Its only change is the import path, and the module exists at the new path.
+
+    Code findings: none. The code matches the Interface.
+
+    Stale text I saw and did not touch (not mine to fix):
+    - `security/duplicates-baseline.txt` lines 22 and 23 still name `src/factory/domain/cost_records.py`. The file is outside every role's write path, as the coder and reviewer noted.
+
+    `check`: check: green (not run again: passed on tree 31bf5bf02204 at 2026-11-05T02:55:37Z)
+    `secrets`: secrets: green (3.5 s)
+    `documents`: documents ok
