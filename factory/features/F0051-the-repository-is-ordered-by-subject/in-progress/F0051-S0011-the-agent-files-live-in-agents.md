@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T08:01:46.052042Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-05T08:01:46.052042Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-05T08:02:16.171759Z'
+  stage: tests
+  run: eebe2efb96234aa68b00d232462a8da2
 ---
 
 # The agent files live in `agents/`
@@ -141,3 +143,16 @@ Expect: `1`
 
    `CLAUDE.md`'s two lines that name the agent files change after the merge; they are mine and outside your search.
 7. factory: started tests as vm.
+8. tester: The human's answer leaves criterion 4's test as it was written: it leaves out `docs/decisions.md` and `docs/runs/` and still checks `docs/operator-playbook.md`. The branch now has the human's playbook line through the merge of `origin/main` (commit 9676aff05), so I did not need to change any test. The tests from the previous run were already committed, and I left them as they were.
+
+   Mapping:
+   - criterion 1: tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone, ::test_the_agent_folder_holds_each_agent_file (one row per file name), ::test_the_agent_folder_holds_no_other_agent_file
+   - criterion 2: tests/vm/test_stage_image.py::test_the_agent_files_are_copied_read_only_to_their_place, tests/vm/test_stage_image_agent_folder.py::test_the_image_names_no_agent_file_at_the_old_place
+   - criterion 3: tests/entry/test_tick_shipped_agent_file.py::test_a_stage_run_reads_its_agent_from_the_agent_folder, tests/machine/application/test_container_environment.py::test_the_sync_container_gets_container_paths_mounts_environment_and_limit
+   - criterion 4: tests/guards/test_agent_folder_names.py::test_no_file_names_the_old_agent_folder (one row per old name)
+
+   Files created, all in the previous run: tests/agent_files/test_agent_folder.py, tests/vm/test_stage_image_agent_folder.py, tests/entry/test_tick_shipped_agent_file.py, tests/guards/test_agent_folder_names.py. Earlier test files I changed under the leave of feature decision 5, all in the previous run (entry 5 lists them): tests/support/shipped_agents.py, tests/guards/test_operator_guide_files.py, tests/guards/test_project_guide_files.py, tests/vm/test_stage_image.py, tests/machine/application/test_container_environment.py, tests/machine/domain/test_containers.py, tests/agents/domain/test_nested_claude_paths.py, tests/agent_files/__init__.py.
+
+   I ran the touched test files once. They fail as expected: the tick test, the three guard rows and the container mount test show in the last five lines. The others read `agents/`, which does not exist yet. Every module imported, so no module was missing. `make lint` is green.
+
+   `lint`: lint: green (0.2 s)
