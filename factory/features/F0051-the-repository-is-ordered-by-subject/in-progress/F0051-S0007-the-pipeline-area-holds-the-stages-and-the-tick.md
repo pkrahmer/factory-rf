@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 562
 comments_read: [6649241093]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T03:55:48.881975Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-05T03:55:48.881975Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-05T03:58:51.883100Z'
+  stage: doing
+  run: bb5444732b594d4c847d3fa4fba364c1
 ---
 
 # The pipeline area holds the stages and the tick
@@ -232,3 +234,21 @@ Expect: `1`
    - `tests/pipeline/application/test_tick.py`'s paths take the `pipeline/` prefix;
    - `tests/test_areas.py`'s guard accepts a bare `import factory` in an area folder (it belongs to no area, as S0001's tester already wrote), so the two modules stay where they moved.
 9. factory: started doing as vm.
+10. coder: Following the human's answer (a): the tester should make the three test changes the human approved under feature decision 5. Each test keeps its name and still checks the same thing:
+    - In the removed-module checks, a `ModuleNotFoundError` from `find_spec` or `import_module` (the parent package is gone) counts as "gone". These are the 12 rows in tests/test_checkout_hygiene_removed.py [sealed-runs-module], tests/test_docker_path_removed.py [sessions-module], tests/entry/test_mutation_report_removed.py [report-rules], tests/test_undo_removed.py [undo-module], tests/test_home_reset_removed.py (4 rows), tests/test_hook_removed.py [adapter-module], tests/test_kernel_guard_removed.py [factory.adapters.landlock, factory.domain.confinement] and tests/test_leftovers_program_removed.py [factory.domain.leftovers].
+    - In tests/pipeline/application/test_tick.py::test_the_tick_knows_no_run_record_and_no_lock, the paths in the rows `application/tick.py` and `domain/evaluation.py` take the `pipeline/` prefix.
+    - In tests/test_areas.py::test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own, the guard accepts a bare `import factory` in an area folder. That makes tests/shared/domain/test_settings_model_rules.py and tests/hosting/domain/test_hosting.py pass where they now are.
+
+    What I did this run (in `src/` only):
+    - The last run had left one tracked file behind: `src/factory/application/handlers/__init__.py`. That kept a `src/factory/application/` folder alive. I moved it with `git mv` to `src/factory/pipeline/application/handlers/__init__.py`, the package's `__init__.py`, which was missing there.
+    - `src/factory/` now holds exactly `__init__.py`, the seven areas, `entry/` and `contract/`.
+
+    Main choice: I moved the leftover file instead of writing a new `__init__.py`. The move keeps the original docstring and the file's history.
+
+    `make check` after the merge of `main`:
+    - lint, types, layers, sast, secrets and licenses are green. layers is green because `pyproject.toml` on `main` no longer names the old packages.
+    - test is red with exactly the 16 failures listed above, all on the test side.
+
+    Refactor: not run yet. It waits until `make check` is green. The `src/` diff is a mechanical move, and I see nothing in it to change.
+
+    Noticed but not touched: the `tests/domain/test_hosting.py` mutmut deselect in pyproject.toml (the human leaves it for after the merge). It is outside my write paths.
