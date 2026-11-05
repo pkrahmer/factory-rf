@@ -87,7 +87,7 @@ Measures of a resumed run: `turns`, `cost_usd` and each of the four token counts
 
 `version()` runs `<executable> --version` through `run_process` in the process's current directory, with its current environment and the limit `version_time_limit` (`VERSION_TIME_LIMIT`, 30 seconds). It returns the first word of the first non-blank line, so `2.1.289 (Claude Code)` gives `2.1.289`. It raises `AgentRuntimeError` when the call cannot be started, exits non-zero, reaches the limit or prints nothing.
 
-Tests use a stand-in executable (`tests/adapters/claude_stand_in.py`: `write_stand_in(directory, steps)` and `read_calls(directory)`) written into `tmp_path`; the real `claude` is never run.
+Tests use a stand-in executable (`tests/claude_stand_in.py`: `write_stand_in(directory, steps)` and `read_calls(directory)`) written into `tmp_path`; the real `claude` is never run.
 
 ### The agent's home
 
@@ -145,7 +145,7 @@ entry:
 
 **opencode's folders.** opencode writes its sessions, logs and caches to `.local/share/opencode`, `.local/state/opencode` and `.cache/opencode` in the agent's home. The runtime names no folder for them: no rules file allows or refuses a write since F0044-S0001, and the dataset's rollback clears them with the rest of the home. `.config/opencode` lies in the same home, so the rollback clears it too.
 
-Tests use `tests/adapters/opencode_stand_in.py` in `tmp_path`; the real `opencode` is never run.
+Tests use `tests/opencode_stand_in.py` in `tmp_path`; the real `opencode` is never run.
 
 **The bearer token.** The runtime does not renew a token. For a model API behind a client-credentials grant, `python -m factory.entry.refresh_token` (`factory.entry.refresh_token`) runs beside the factory and keeps the file `FACTORY_API_LOGIN_FILE` names fresh; the runtime reads that file at every call, as it always did. Its parts: `Token` and `refresh_wait` in `factory.agents.domain.tokens` (the wait is ten minutes, or half the token's life when shorter, at least thirty seconds; `TokenError` is in `factory.shared.domain.errors`), `TokenSource` and `TokenRefresher` in `factory.agents.application.tokens` (fetch, then write through `replace_text`), and `ClientCredentialsTokenSource` in `factory.agents.adapters.oauth_token`, the one module that may import `urllib.request` and `http.client` (`tests/test_hosting_search.py`). Every detail has the client secret and the token replaced by `***`. The operator's side: "A bearer token for the model API" in `docs/operator-guide.md`; why: *A refresher keeps the bearer token fresh* in `docs/decisions.md`.
 

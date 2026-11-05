@@ -4,7 +4,7 @@ This file covers the pipeline definition and a stage from the claim to the resul
 
 ## The claim service
 
-`factory.application.claims.ClaimService(boundaries, instance, definition)` makes the first half of a claim: the stage-start commit. `instance` is the factory instance's name and must match `[a-z][a-z0-9-]*`, otherwise the constructor raises `ValueError`. `definition` is the `PipelineDefinition` the caller loaded (normally from `origin/main`); the lease is copied from it.
+`factory.pipeline.application.claims.ClaimService(boundaries, instance, definition)` makes the first half of a claim: the stage-start commit. `instance` is the factory instance's name and must match `[a-z][a-z0-9-]*`, otherwise the constructor raises `ValueError`. `definition` is the `PipelineDefinition` the caller loaded (normally from `origin/main`); the lease is copied from it.
 
 `claim(branch, path, document, stage)` returns a `StageStart(commit, claim)`. It does this, in order:
 
@@ -18,21 +18,21 @@ This file covers the pipeline definition and a stage from the claim to the resul
 
 **The stage-start commit is the last commit before the agent run.** The commit stages every change in the work tree, so whatever the caller left uncommitted is part of it; for a new branch that is the work item's opening. The commit is therefore the baseline for what the agent may write and for the take's refusal rule.
 
-**Status.** `status(state)` returns a `ClaimStatus` (`factory.domain.lease`): `"none"` (no claim), `"own"` (the claim's `instance` is the service's, whatever its age, so a restarted instance with the same name reruns its stage at once), `"held"` (another instance's claim, lease still running) or `"expired"` (another instance's, lease run out). It uses `boundaries.clock.now()` and the claim's own `lease_duration`, never the definition's, so a later change of the definition does not shorten a running claim.
+**Status.** `status(state)` returns a `ClaimStatus` (`factory.pipeline.domain.lease`): `"none"` (no claim), `"own"` (the claim's `instance` is the service's, whatever its age, so a restarted instance with the same name reruns its stage at once), `"held"` (another instance's claim, lease still running) or `"expired"` (another instance's, lease run out). It uses `boundaries.clock.now()` and the claim's own `lease_duration`, never the definition's, so a later change of the definition does not shorten a running claim.
 
-**Observed status.** `observed_status(state)` is `status` as a look from outside the instance's tick sees it (`observed_claim_status` in `factory.domain.lease`, with the same clock): an own claim within its lease is `"held"`, since the tick may be running its stage, and at and past its lease `"own"`; every other claim, and no claim, gets what `status` gives. Only `Watcher(..., observer=True)` (`factory-watch`) uses it; the tick uses `status`.
+**Observed status.** `observed_status(state)` is `status` as a look from outside the instance's tick sees it (`observed_claim_status` in `factory.pipeline.domain.lease`, with the same clock): an own claim within its lease is `"held"`, since the tick may be running its stage, and at and past its lease `"own"`; every other claim, and no claim, gets what `status` gives. Only `Watcher(..., observer=True)` (`factory-watch`) uses it; the tick uses `status`.
 
 **The lease clock.** `lease_age(claim, now)` is `now - claim.started_at` (negative under clock skew); `lease_expired(claim, now)` is true when the age is at least `claim.lease_duration` minutes, and a negative age is never expired. Both are pure: `now` is passed in.
 
 **Release.** `release(document)` returns the document with `state.claim` set to `None`, for the stage's result commit. Journal, other state fields and body are unchanged and no entry is appended. A document without a claim comes back equal; one without a state raises `ValueError`.
 
-**`ClaimService` is the only module that builds or judges claims.** Only `factory.application.claims` imports `claim_status`, `lease_expired`, `lease_age` or `observed_claim_status`, and only it calls `Claim(...)`; `tests/test_claim_ownership.py` searches the source with `ast` and fails otherwise. Code that needs to know a claim's standing asks the service.
+**`ClaimService` is the only module that builds or judges claims.** Only `factory.pipeline.application.claims` imports `claim_status`, `lease_expired`, `lease_age` or `observed_claim_status`, and only it calls `Claim(...)`; `tests/test_claim_ownership.py` searches the source with `ast` and fails otherwise. Code that needs to know a claim's standing asks the service.
 
-In tests, set the work item up on its branch before `claim` (a state, a journal entry and a `## Journal` section, or `append_entry` raises `WorkItemFormatError`); `put_work_item` and `created_state` in `tests/work_item_support.py` do it, and `tests/application/test_claims.py` uses them.
+In tests, set the work item up on its branch before `claim` (a state, a journal entry and a `## Journal` section, or `append_entry` raises `WorkItemFormatError`); `put_work_item` and `created_state` in `tests/work_item_support.py` do it, and `tests/pipeline/application/test_claims.py` uses them.
 
 ## The pipeline definition
 
-The project's `factory/pipeline.yml` is read by `RuamelPipelineDefinitionReader.parse(text)` (`factory.adapters.pipeline_yaml`, the `PipelineDefinitionReader` interface in `factory.shared.application.files`, `Boundaries.pipeline_reader`) into a `PipelineDefinition` (`factory.domain.pipeline_definition`). The reader is the only one of this format and nothing writes it. The text is loaded in ruamel.yaml's safe mode, so only plain data is built and a key repeated in one mapping is refused. `PIPELINE_YAML` in `tests/git_support.py` is the example definition.
+The project's `factory/pipeline.yml` is read by `RuamelPipelineDefinitionReader.parse(text)` (`factory.pipeline.adapters.pipeline_yaml`, the `PipelineDefinitionReader` interface in `factory.shared.application.files`, `Boundaries.pipeline_reader`) into a `PipelineDefinition` (`factory.pipeline.domain.pipeline_definition`). The reader is the only one of this format and nothing writes it. The text is loaded in ruamel.yaml's safe mode, so only plain data is built and a key repeated in one mapping is refused. `PIPELINE_YAML` in `tests/git_support.py` is the example definition.
 
 | Key | Meaning | Default |
 |---|---|---|
@@ -52,7 +52,7 @@ A stage has `role` (none: no agent runs there), `next` (`next[0]` is the forward
 - A key with a default may be left out and takes it. A stage with nothing to say is written `done: {}`; `done:` alone is null and is refused (`invalid stages.done: ...`).
 - Unknown keys are refused at every level, so a misspelt key is never ignored.
 - A given `project_commands` replaces the default set as a whole; it does not merge. `lint: {}` takes `time_limit` 10.
-- `ProjectCommandDefinition` has `time_limit` and `not_read`: a list of write-path patterns (`matches_any`) for the paths the command does not read, default `[]` (nothing left out). A pattern must be relative, non-empty, hold no `..` segment, not start with `~` and hold no `{` or `}` (a placeholder is expanded in write paths only). Otherwise the load fails, with the last rule of the definition, one fault per pattern: `project command <name>: not_read <pattern> must be a path pattern inside the checkout`. `is_inside_checkout` lives in `factory.domain.pipeline_definition`; `write_paths` imports it. `KnownResults` passes it to `Git.work_tree_id` as `left_out`, and the tree that returns is part of the result's key.
+- `ProjectCommandDefinition` has `time_limit` and `not_read`: a list of write-path patterns (`matches_any`) for the paths the command does not read, default `[]` (nothing left out). A pattern must be relative, non-empty, hold no `..` segment, not start with `~` and hold no `{` or `}` (a placeholder is expanded in write paths only). Otherwise the load fails, with the last rule of the definition, one fault per pattern: `project command <name>: not_read <pattern> must be a path pattern inside the checkout`. `is_inside_checkout` lives in `factory.pipeline.domain.pipeline_definition`; `write_paths` imports it. `KnownResults` passes it to `Git.work_tree_id` as `left_out`, and the tree that returns is part of the result's key.
 - A name that breaks the pattern is reported at the path of its key: `invalid stages.<name>.[key]: ...`, likewise `roles.<name>.[key]` and `project_commands.<name>.[key]`.
 - The methods: `first_stage()`, `role_of(stage)` (`None` for a stage without a role, `KeyError` for an unknown stage) and `position(stage)` (index in `stages`; `ValueError` for an unknown one, not specified).
 - The rules that look across keys run at load, see "The rules of the definition" below. `first_stage()` is safe on a loaded definition, because rule 3 requires the stage `done`.
@@ -87,11 +87,11 @@ The faults, in the order of the rules (`<s>` a stage, `<t>` a stage name, `<r>` 
 
 Rules 10 and 11 apply to every stage except `done`, and only when the stage `done` exists. Without it the end of the pipeline is unknown, and rule 3's fault is the one that matters. A stage with an empty `next` has nowhere to send a forward outcome or an approval; a stage with neither a role nor `approval: true` runs no agent and waits for no human. Rule 10's faults come before rule 11's, each in the order of the stages. A stage no `next` names (such as `acceptance`) is accepted: there is no rule on reachability.
 
-Tests: `tests/adapters/test_pipeline_rules.py` (through the reader, comparing `fault`) and `tests/application/test_pipeline_loading_rules.py` (each refusal is one reported stop).
+Tests: `tests/pipeline/adapters/test_pipeline_rules.py` (through the reader, comparing `fault`) and `tests/pipeline/application/test_pipeline_loading_rules.py` (each refusal is one reported stop).
 
 ```bash
 uv run python -c "
-from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
+from factory.pipeline.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.shared.domain.errors import PipelineDefinitionInvalid
 TEXT = '''contract: '1.0'
 roles:
@@ -113,16 +113,16 @@ prints `doing 60 ['check', 'lint', 'test']` and then `unknown key: contrakt; mis
 
 ### The pipeline loader
 
-`PipelineLoader(boundaries).load(ref=PIPELINE_REF)` (`factory.application.pipeline_loading`; `PIPELINE_REF` is `origin/main`) is the one place that loads the definition. It reads `PIPELINE_DEFINITION_FILE` at `ref` with `git.show_file` (never the work tree), parses it with `pipeline_reader`, and only when the text is valid checks with `agent_definitions.names()` that every role has an agent. Every refusal of the definition is `PipelineDefinitionInvalid(fault)`; the faults are listed in the operator guide, "The stop `pipeline_definition_invalid`", and the rules in "The rules of the definition" above. When those checks pass, `load` clears `pipeline_definition_invalid` (at `PIPELINE_REF`) and then calls `agent_definitions.read(role)` for every role in the order of `roles`; an `AgentDefinitionInvalid` is raised to the caller as it is, not wrapped.
+`PipelineLoader(boundaries).load(ref=PIPELINE_REF)` (`factory.pipeline.application.pipeline_loading`; `PIPELINE_REF` is `origin/main`) is the one place that loads the definition. It reads `PIPELINE_DEFINITION_FILE` at `ref` with `git.show_file` (never the work tree), parses it with `pipeline_reader`, and only when the text is valid checks with `agent_definitions.names()` that every role has an agent. Every refusal of the definition is `PipelineDefinitionInvalid(fault)`; the faults are listed in the operator guide, "The stop `pipeline_definition_invalid`", and the rules in "The rules of the definition" above. When those checks pass, `load` clears `pipeline_definition_invalid` (at `PIPELINE_REF`) and then calls `agent_definitions.read(role)` for every role in the order of `roles`; an `AgentDefinitionInvalid` is raised to the caller as it is, not wrapped.
 
 - Only the loader raises and clears the stops `pipeline_definition_invalid` and `agent_definition_invalid`; no caller does. At `PIPELINE_REF` a refusal calls `StopService.raise_stop` before it raises, and a success calls `clear_stop` before it returns. A refused agent file raises `RepositoryStop(reason="agent_definition_invalid", detail="<agent name>: <fault>")`; since a definition that passes its own checks has already cleared `pipeline_definition_invalid`, only the agent stop remains. Any `AgentDefinitionInvalid` raises it, not only an unapplied key.
 - A load at any other ref raises the same refusal but raises and clears no stop, so a read of a branch never changes the health status. `WritePathService` ("The write paths" below) reads the definition at another commit and parses it directly with `pipeline_reader`, not through the loader.
 - A `GitError` propagates and raises no stop. An `OSError` of the stop's writes propagates in place of `PipelineDefinitionInvalid`.
-- Tests: `tests/application/test_pipeline_loading.py`, with `human.push_file` and `checkout.fetch()` for other versions of the file and `install_agents(agent_home, roles)` in `tests/git_support.py` for the agent files.
+- Tests: `tests/pipeline/application/test_pipeline_loading.py`, with `human.push_file` and `checkout.fetch()` for other versions of the file and `install_agents(agent_home, roles)` in `tests/git_support.py` for the agent files.
 
 ## The prompt and the request for a stage
 
-Before a stage's agent runs, `TaskComposer` (`factory.application.task`) builds its `AgentRunRequest`; the caller gives it `Boundaries`, the `PipelineDefinition` and the `environment`, and each call a `TaskContext` (work item, path, stage, document, branch, pull request, the form findings). The pure rules are in `factory.agents.domain.prompts`.
+Before a stage's agent runs, `TaskComposer` (`factory.pipeline.application.task`) builds its `AgentRunRequest`; the caller gives it `Boundaries`, the `PipelineDefinition` and the `environment`, and each call a `TaskContext` (work item, path, stage, document, branch, pull request, the form findings). The pure rules are in `factory.agents.domain.prompts`.
 
 ### The decisions
 
@@ -157,7 +157,7 @@ The prompt is `compose_prompt(facts)`, except for an acceptance at the definitio
 
 An acceptance runs through this same stage protocol (`StageLauncher`, `AfterAgent`, `StageRunner`) unchanged. Its report (`# Acceptance of <title>` and `## Journal`) has none of the story form's sections, so `findings` returns `[]` for a document whose state is an `AcceptanceState` (the opening always writes one), before it reads the form: a missing form file is then no `WorkItemFormatError` either. The checker receives only the document, which is why it looks at the type of the state and not at the work item id. Without this, decision rule 1 would turn the reviewer's forward decision into a question every time.
 
-Tests: `tests/agents/domain/test_prompts.py`, `tests/application/test_task.py`, `tests/application/test_task_acceptance.py`, `tests/application/test_stage_run_acceptance.py`.
+Tests: `tests/agents/domain/test_prompts.py`, `tests/pipeline/application/test_task.py`, `tests/pipeline/application/test_task_acceptance.py`, `tests/pipeline/application/test_stage_run_acceptance.py`.
 
 ## Opening a work item
 
@@ -176,11 +176,11 @@ Doing the merge here means the baseline of the take, taken at the stage-start co
 
 Returns, in this order: the pull request numbered in `document.state.pull_request` if it is open; the open pull request of the branch; a new draft titled `<id>: <title>` with the body as description. Only an open pull request is reused; a closed or merged one never is. The title is looked up only when a draft is created, and a body without a title line then raises `WorkItemFormatError`. A `HostingServiceError` propagates. No file changes.
 
-Tests: `tests/application/test_opening.py`.
+Tests: `tests/hosting/application/test_opening.py`.
 
 ## Starting a stage
 
-`StageLauncher(boundaries, instance, definition, environment, *, stage_environment=None)` (`factory.application.stage`) takes a `PreparedWorkItem` from `WorkItemOpening.prepare` and runs the stage's agent. `instance` and `definition` go to `ClaimService`; `environment` is the environment of the agent run and reaches `TaskComposer` unchanged, so the run holds exactly those entries.
+`StageLauncher(boundaries, instance, definition, environment, *, stage_environment=None)` (`factory.pipeline.application.stage`) takes a `PreparedWorkItem` from `WorkItemOpening.prepare` and runs the stage's agent. `instance` and `definition` go to `ClaimService`; `environment` is the environment of the agent run and reaches `TaskComposer` unchanged, so the run holds exactly those entries.
 
 `launch(prepared)` does these steps in this order. The claim in step 4 is the only write to the git remote.
 
@@ -196,7 +196,7 @@ Tests: `tests/application/test_opening.py`.
 
 **`PatientRuns`** (`factory.agents.application.provider_limits`; `PatientRuns(boundaries).run(request)`) wraps `boundaries.agent_runtime.run` for the stage launch. A result that does not end `provider_limit` comes back as it is. After a `provider_limit` it loops: (1) the budget left is the agent's `budget_usd` less the run's cost so far, and at or below zero the run ends `budget`; (2) the time left is the request's `time_limit` less the calls' durations (the waits do not count), and at or below zero it ends `time_limit`; (3) when the waits reach the ceiling it logs `provider limit: <agent> waited <s> s, the ceiling of <c> s; the run ends provider_limit` and returns the result; (4) otherwise it logs `provider limit: <agent> waits <w> s before it resumes <session>` (`a new run` without a session), waits the result's `limit_wait` or the cool-down, at most what is left of the ceiling, and (5) calls the runtime again with `request.model_copy(...)`: `CONTINUE_PROMPT` and `resume_session` with a session, the request's own prompt without one, and in both the budget and the time left; (6) `resumed_result` joins the calls. The cool-down and the ceiling are `boundaries.settings.provider_limit` (`ProviderLimit`, `factory.agents.domain.provider_limits`, defaults 10 and 120 minutes, from `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` and `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES`). It builds no `AgentRunRequest` of its own. The preflight's probe uses `run_sealed` without `run` and never waits.
 
-**`Waiter`** (`factory.watching.application.machine`) is the interface of waiting: `wait(duration)` returns after it and raises `ValueError` for a negative one. `SleepingWaiter` (`factory.shared.adapters.clock`) calls `time.sleep`; `ManualWaiter(clock)` advances a `ManualClock` by the duration, records it in `waits` and returns at once. `build_boundaries` gives `SleepingWaiter()`. Tests: `tests/application/test_patient_runs.py`, `tests/application/test_stage_provider_limit.py`, `tests/watching/adapters/test_waiters.py`.
+**`Waiter`** (`factory.watching.application.machine`) is the interface of waiting: `wait(duration)` returns after it and raises `ValueError` for a negative one. `SleepingWaiter` (`factory.shared.adapters.clock`) calls `time.sleep`; `ManualWaiter(clock)` advances a `ManualClock` by the duration, records it in `waits` and returns at once. `build_boundaries` gives `SleepingWaiter()`. Tests: `tests/agents/application/test_patient_runs.py`, `tests/pipeline/application/test_stage_provider_limit.py`, `tests/watching/adapters/test_waiters.py`.
 
 **No agent run precedes the pushed claim.** When `run` is called, `origin/<branch>` already holds the stage-start commit with the claim and the journal record (`factory`, `started`); when step 4 fails, no run starts. The stage-start commit is the last commit before the run: for a branch that existed it is one commit above the old head (the merge of `main` in `prepare` comes before it), for a new work item it is also the opening commit.
 
@@ -204,11 +204,11 @@ The stage-start commit does not change `pull_request`: it is `None` for a new wo
 
 `launch` returns a frozen `LaunchedStage`: `started` (a `StartedStage` with the work item, stage, branch, path, `stage_start`, `document`, `pull_request` and the form `findings` taken before the run), `request` and `result`. A run that dies, reaches its `time_limit` or its budget is a result. `PushFailed`, `AgentDefinitionMissing` and `AgentRuntimeError` propagate unchanged; after an `AgentRuntimeError` the claim stays pushed.
 
-Tests: `tests/application/test_stage_launch.py`. `ObservingRuntime` (`tests/observing_runtime.py`) is an `AgentRuntime` that records the remote branch's head, the checkout's `HEAD` and the pull requests in the hosting fake at the moment `run` is called, then delegates to `FakeAgentRuntime`.
+Tests: `tests/pipeline/application/test_stage_launch.py`. `ObservingRuntime` (`tests/observing_runtime.py`) is an `AgentRuntime` that records the remote branch's head, the checkout's `HEAD` and the pull requests in the hosting fake at the moment `run` is called, then delegates to `FakeAgentRuntime`.
 
 ## Stalls
 
-A stall is the one way a stage ends without a result the factory can keep. It costs one attempt and is a value, never an exception. `StallService.stall` (`factory.application.stalls`) does it; the later stories (the branch, the decision, the form, a red check, a merge conflict) call it with their reason.
+A stall is the one way a stage ends without a result the factory can keep. It costs one attempt and is a value, never an exception. `StallService.stall` (`factory.pipeline.application.stalls`) does it; the later stories (the branch, the decision, the form, a red check, a merge conflict) call it with their reason.
 
 ### The reasons
 
@@ -234,11 +234,11 @@ So a stall keeps the writes inside the write paths (the environment's take bring
 
 A `HostingServiceError` is not a stall and propagates unchanged: from step 3 before anything is written, committed or pushed, so the remote is unchanged; from step 6 after the push, so the stall commit stays on the remote, no note is posted and no label is written; from step 7, so the stall commit stays and the note stays posted. `StallResult` (frozen, no unknown keys) holds `reason`, `attempts`, `attempts_cap`, `commit` (the pushed head), `pull_request` (the last three at least 1), `note` (the `PostOutcome`) and `take` (a `TakeReport`, or `None`).
 
-Tests: `tests/agents/domain/test_decisions.py`, `tests/work/domain/test_stall_texts.py`, `tests/hosting/domain/test_stall_note_block.py`, `tests/application/test_stalls.py`, `tests/application/test_stall_labels.py`. The last starts stages with `StageLauncher` and the fake agent runtime; its `SwitchingRuntime` (a subclass of `ObservingRuntime`) switches the checkout to another branch while it runs.
+Tests: `tests/agents/domain/test_decisions.py`, `tests/work/domain/test_stall_texts.py`, `tests/hosting/domain/test_stall_note_block.py`, `tests/pipeline/application/test_stalls.py`, `tests/pipeline/application/test_stall_labels.py`. The last starts stages with `StageLauncher` and the fake agent runtime; its `SwitchingRuntime` (a subclass of `ObservingRuntime`) switches the checkout to another branch while it runs.
 
 ## After the agent run
 
-The factory believes what it observes, not what the agent reports. `AfterAgent(boundaries, instance, definition, *, stage_environment=None).process(launched)` (`factory.application.stage`) takes the `LaunchedStage` that `StageLauncher` returns and goes through these steps in order. The first step that fails is a stall (see "Stalls"), which counts one attempt, and the later steps do not run.
+The factory believes what it observes, not what the agent reports. `AfterAgent(boundaries, instance, definition, *, stage_environment=None).process(launched)` (`factory.pipeline.application.stage`) takes the `LaunchedStage` that `StageLauncher` returns and goes through these steps in order. The first step that fails is a stall (see "Stalls"), which counts one attempt, and the later steps do not run.
 
 1. **Result.** `stall_reason_of(result)` turns a run that died, ran out of budget or time, or gave no result into the stall of that reason; the detail is the first permission denial (`denied: <tool>: <detail>`), if any. A decision that is not one of the request's `allowed_decisions` is `decision_not_allowed`, with the decision and the allowed ones as detail.
 2. **Take and restore.** `stage_environment.take(stage_start, path)` puts the changes outside the write paths back; the container environment copies the changed paths the role may write, and `left` of its `TakeReport` is the paths it left in the dataset. Then the stage-start state (the claim included) and the stage-start journal are put back, whatever the agent wrote there: **the agent's edits to state and journal are always discarded.** The rest of the body keeps the agent's changes when the role may write the work item; when it may not, the take has put the whole file back and lists it in `left`.
@@ -247,7 +247,7 @@ The factory believes what it observes, not what the agent reports. `AfterAgent(b
 
 What comes back is an `AgentAftermath` (frozen, no unknown keys): `started`, `request`, `result`, `decision`, `document` (the work item after step 2, without the entry), `entry`, `take` (the `TakeReport`) and `form_findings` (all findings after the run). The stage's result commit ("The stage protocol", below) appends the entry.
 
-Tests: `tests/agents/domain/test_agent_entry.py`, `tests/application/test_after_agent.py`. The latter starts stages with `StageLauncher` and the fake agent runtime, whose `ScriptedRun.writes` tampers with the work item, writes outside the write paths and breaks the form.
+Tests: `tests/agents/domain/test_agent_entry.py`, `tests/pipeline/application/test_after_agent.py`. The latter starts stages with `StageLauncher` and the fake agent runtime, whose `ScriptedRun.writes` tampers with the work item, writes outside the write paths and breaks the form.
 
 ## The decision rules
 
@@ -271,11 +271,11 @@ Rules 3, 6 and 7 move, so they clear a `blocked` of `question`. `findings` matte
 
 The factory's own question texts are in `factory.hosting.domain.post_texts`: `round_cap_question(rounds, cap)`, `findings_question(findings)` (the messages numbered from 1, joined by one space) and `attempts_cap_question(stage, attempts, last_stall)`. That module imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, because `decisions` imports it.
 
-Tests: `tests/domain/test_decision_rules.py`, `tests/work/domain/test_question_texts.py`.
+Tests: `tests/work/domain/test_decision_rules.py`, `tests/work/domain/test_question_texts.py`.
 
 ## The stage protocol
 
-`StageRunner(boundaries, instance, definition, environment).run(work_item, path)` (`factory.application.stage`) is the one entry point that runs a stage from the claim to the result commit. It returns a frozen `StageReport`: `work_item`, `stage` (the stage that ran, from the state `prepare` read), `next_stage`, `rule` (the decision rule applied, 1 to 7, or `None` when the stage stalled before a decision), `commit` (the pushed head), `pull_request` and `stall`. `stall` is set exactly when the stage stalled; `next_stage` equals `stage` for a stall and for the rules that keep the stage (1, 2 and 4). A red check is rule 5.
+`StageRunner(boundaries, instance, definition, environment).run(work_item, path)` (`factory.pipeline.application.stage`) is the one entry point that runs a stage from the claim to the result commit. It returns a frozen `StageReport`: `work_item`, `stage` (the stage that ran, from the state `prepare` read), `next_stage`, `rule` (the decision rule applied, 1 to 7, or `None` when the stage stalled before a decision), `commit` (the pushed head), `pull_request` and `stall`. `stall` is set exactly when the stage stalled; `next_stage` equals `stage` for a stall and for the rules that keep the stage (1, 2 and 4). A red check is rule 5.
 
 `run` does these steps in this order; a `StallResult` from any step ends the run with a report whose `rule` is `None`:
 
@@ -300,4 +300,4 @@ Rules 1, 2, 3, 4 and 7 run no check and no report.
 
 A run adds exactly one commit of the factory's own on `origin/<branch>`: the result commit or the stall commit, directly above the stage-start commit, since the agent cannot commit. It holds the whole work tree, so a file a check creates is committed unless `.gitignore` covers it.
 
-Tests: `tests/work/domain/test_labels.py`, `tests/application/test_stage_finish.py`, `tests/application/test_stage_run.py`. The checks and reports are real `make` targets from a `Makefile` the tests push to `main`; the agent is `FakeAgentRuntime`, the hosting service its fake.
+Tests: `tests/work/domain/test_labels.py`, `tests/pipeline/application/test_stage_finish.py`, `tests/pipeline/application/test_stage_run.py`. The checks and reports are real `make` targets from a `Makefile` the tests push to `main`; the agent is `FakeAgentRuntime`, the hosting service its fake.

@@ -30,11 +30,11 @@ Errors: `ValueError` when `work_item_path` is not `factory/features/<feature dir
 2. `<path> is owned by the human; a change there is a question.` (matches `settings.protected_paths`, even when a write path also matches)
 3. `<path> is outside the write paths of this stage.` (matches no write path)
 
-Tests: `tests/agents/domain/test_write_paths.py`, `tests/application/test_write_paths.py`; a later version of the definition is made with `human.push_file("main", "factory/pipeline.yml", text)` and `checkout.fetch()`.
+Tests: `tests/agents/domain/test_write_paths.py`, `tests/pipeline/application/test_write_paths.py`; a later version of the definition is made with `human.push_file("main", "factory/pipeline.yml", text)` and `checkout.fetch()`.
 
 ## The take's rule
 
-`TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths)` (`factory.application.take`) copies from the dataset into the work tree what the role may write and leaves the rest. Its steps are in `stage-environment.md`, *The take*; this section is the rule they apply. Three functions of the module hold it: `is_refused(path, settings, work_item_path)`, `read_baseline` and `restore_work_item`.
+`TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths)` (`factory.pipeline.application.take`) copies from the dataset into the work tree what the role may write and leaves the rest. Its steps are in `stage-environment.md`, *The take*; this section is the rule they apply. Three functions of the module hold it: `is_refused(path, settings, work_item_path)`, `read_baseline` and `restore_work_item`.
 
 ### What is left out
 
@@ -61,7 +61,7 @@ The work item's `.costs.jsonl` is refused by the in-progress rule, so the take n
 - Ignored paths are not judged: the take drops them, and the factory removes none (see *The take*, `stage-environment.md`). Anything outside the checkout is not seen.
 - Git's paths are taken as they are; renames show as a deletion and an addition (see "The git wrapper").
 
-Tests: `tests/application/test_take_rule.py` (the rule through `TakeService.take` on `FakeSnapshots`), `tests/application/test_take.py` and `tests/application/test_take_edges.py`.
+Tests: `tests/pipeline/application/test_take_rule.py` (the rule through `TakeService.take` on `FakeSnapshots`), `tests/pipeline/application/test_take.py` and `tests/pipeline/application/test_take_edges.py`.
 
 ## Replaced in v1.2
 

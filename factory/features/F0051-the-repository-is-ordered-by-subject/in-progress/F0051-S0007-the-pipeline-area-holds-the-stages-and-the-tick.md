@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 562
 comments_read: [6649241093, 6649574994]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T04:23:12.434955Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-05T04:23:12.434955Z'
   stage: docs
+- number: 21
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T04:24:32.253424Z'
+  stage: docs
+  run: 65530bb8c0dc4449be7dad456c0f0009
 ---
 
 # The pipeline area holds the stages and the tick
@@ -816,3 +818,24 @@ Expect: `1`
     Modified in place under an area folder or entry/: FD5 (imports only): every agents/adapters/test_*.py, entry/test_*.py, hosting/adapters/test_pygithub_hosting.py, machine/adapters/test_*.py and watching/adapters/test_runtime_tool_uses.py that the diff modifies (the M list of `git diff -M --name-status main...HEAD -- tests`)
     Moved from tests/{domain,application,adapters}/ with `git mv` to tests/pipeline/, agents/, hosting/, machine/, watching/, work/, shared/, entry/ or the tests/ root, as entry 16 lists them by name: FD5 (move plus import rewrite)
 20. factory: started docs as vm.
+21. documenter: Documents only; no code, tests or comments changed. `make documents` passes ("documents ok"). I did not run `make check`, since only documents changed.
+
+    Files changed:
+    - `docs/project-guide/README.md`: the layout section now says `src/factory/` holds the seven areas, `entry` and `contract`, and each area has three layers. A new sentence names the area `pipeline` and what it holds. The module paths in the file index are rewritten. The handlers' conftest path is now under `tests/pipeline/application/handlers/`. Test paths are updated.
+    - `docs/project-guide/stages.md`, `watching.md`, `stage-environment.md`, `processes-and-checks.md`, `costs.md`, `write-paths.md`, `work-items.md`, `agents.md`, `git-and-hosting.md`: module paths of the 27 moved modules rewritten to `factory.pipeline.<layer>.<name>`, handlers submodules included. Test-file paths rewritten from the old `tests/{domain,application,adapters}/` to where `git` moved each file in this branch, including the stand-in support modules, which are now at the `tests/` root.
+    - `docs/project-guide/processes-and-checks.md`: the `make mutants` example uses `factory.pipeline.application`. The baseline sentence about fakes now names each fake's real module in place of `factory.adapters`.
+    - `docs/project-guide/work-items.md`: "in `factory.adapters`… in `factory.application`" now says "the `adapters` layer of its area… the `application` layer", and the check_story sentence says "an `adapters` layer".
+    - `docs/project-guide/watching.md`: `run_agent` lives in `factory.machine.application`, so that is what the sentence now says.
+    - `docs/operator-guide.md`: `make mutants MODULES=factory.pipeline.application`, and `STOP_TABLE` is located in `factory.pipeline.domain.stop_table`.
+
+    Cross-read and found current: `README.md` (no moved path or old layer package named), the rest of the operator guide, and `operator.md`.
+
+    Stale text I left alone:
+    - `docs/project-guide/write-paths.md` lines 71 and 73 name `factory.adapters.landlock` and `factory.domain.leftovers`. These are in the "Replaced in v1.2" list as modules that were removed long ago, so the old names are history.
+    - `docs/decisions.md` keeps the old paths, as criterion 7 says.
+
+    No findings for the coder. I set aside no skill. `make check` and `pyproject.toml` (the layers contract and the mutmut deselect) are the coder's open items from journal entry 7, not documentation.
+
+    `check`: check: green (not run again: passed on tree 4b9a4e02e3e2 at 2026-11-05T04:03:28Z)
+    `secrets`: secrets: green (7.7 s)
+    `documents`: documents ok
