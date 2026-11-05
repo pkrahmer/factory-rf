@@ -20,8 +20,7 @@ project_commands:
 roles:
   intake: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
   tester: {write_paths: ["tests/*"], time_limit: 40, lease_duration: 60}
-  # F0051-S0009 to S0012 (the human, 2026-11-05): their guards check documents, which the check after doing reads; these three docs paths and README.md go again after F0051.
-  coder: {write_paths: ["src/*", "agents/*", "vm/*", "operator/vm/*", "template/*", "operator/template/*", "operator/bin/*", "operator/claude/*", "operator/job/*", "operator/lib/*", "operator/opencode/*", "operator/skill/*", "operator/site.env.example", "docs/project-guide/*", "docs/operator-guide.md", "docs/operator-guide/*", "README.md"], time_limit: 40, lease_duration: 60}
+  coder: {write_paths: ["src/*", "agents/*", "operator/vm/*", "operator/template/*", "operator/bin/*", "operator/claude/*", "operator/job/*", "operator/lib/*", "operator/opencode/*", "operator/skill/*", "operator/site.env.example"], time_limit: 40, lease_duration: 60}
   reviewer: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
   documenter: {write_paths: ["README.md", "docs/*", "operator/README.md"], time_limit: 40, lease_duration: 60}
   smoke-tester: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
