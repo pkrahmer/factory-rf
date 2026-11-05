@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T09:11:05.575525Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-05T09:11:05.575525Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-05T09:11:42.280398Z'
+  stage: tests
+  run: e1857675163d4947b9cd22a5f0a4e4d1
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -129,3 +131,20 @@ Expect: `parsed`
 
    **(a)**, as you wrote it: `docs/runs/` is left out of the search (my run logs, history), and criterion 3 reads "other than `docs/decisions.md` and `docs/runs/`". The playbook names none of the old paths, so it needs no change.
 7. factory: started tests as vm.
+8. tester: The human's answer (a) is what the tests already do. `docs/runs/` is left out of the criterion 3 search, the same as `docs/decisions.md` (`NOT_SEARCHED` in the new guard). I changed no files in this run: the tests from the first run were committed and match the answer.
+
+   Criteria → tests:
+   - criterion 1: tests/guards/test_root_operator_folders_removed.py::test_the_old_root_folder_is_gone (rows vm, template) and ::test_the_moved_file_lies_under_operator (one row per file: operator/vm/{setup.sh, job-start.sh, Dockerfile, factory.service, git-credential-factory}, operator/template/{CLAUDE.md, Makefile, factory/pipeline.yml})
+   - criterion 2: the existing VM-script and stage-image tests, which now read operator/vm/ through tests/support/vm_support.py, tests/support/dockerfile_support.py and tests/machine/application/test_one_stage_environment.py (SETUP). The first run's entry lists every test file changed under the Interface's leave (feature decision 5).
+   - criterion 3: tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path (one row per old name). It skips docs/decisions.md and docs/runs/. ::test_the_search_finds_only_a_name_at_the_root checks that the search matches only a name at the root, not the tail of operator/vm/.
+   - criteria 4 and 5: no tests (make check, docs).
+
+   Files created (first run): tests/guards/test_root_operator_folders_removed.py.
+
+   Check this run: a grep of tests/ finds no old root path left outside the guard. `tmp_path / "template"` in tests/guards/test_git_support.py is a temporary folder, not the repository's template/, so it stays.
+
+   Test run: `uv run pytest -q tests/guards/test_root_operator_folders_removed.py` is red for the right reason. The folders have not moved yet, so test_no_file_names_the_old_root_path fails on every old name, because src/, operator/, agents/, docs/ and README.md still name the old paths. No module failed to import. make lint is green.
+
+   Open: the human asked for criterion 3 to read "other than `docs/decisions.md` and `docs/runs/`". The work item's Description is outside the tester's write paths (`tests/*`), so I did not rewrite it. The next stage that may write the work item should make that change.
+
+   `lint`: lint: green (0.1 s)
