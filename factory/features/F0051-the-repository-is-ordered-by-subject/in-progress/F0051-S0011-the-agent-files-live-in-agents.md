@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 566
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T07:58:12.346437Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-05T07:58:12.346437Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T07:58:35.523773Z'
+  stage: intake
+  run: fda051d1f6c74d9490e464490e4bf6db
 ---
 
 # The agent files live in `agents/`
@@ -70,3 +72,9 @@ Expect: `1`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: a rename, so it has no signatures. It names the moves (`claude/` → `agents/` by `git mv`), `vm/Dockerfile`'s copy and permission lines, and the places that name the folder. Code that holds the old path: `AGENT_FILES = "/etc/factory/claude"` in `src/factory/machine/application/stage_environment.py:30`, and `vm/Dockerfile:58-59`. The Interface's behaviour is only the new path, and criteria 1 to 4 cover it.
+   - Criteria: each is testable by one test function. 1: folder gone and same file names under `agents/agents/`. 2: Dockerfile copy and permission lines, as the stage image's tests check them today. 3: the fake-world stage reads `agents/agents/<role>.md`. 4: a scan that excludes `docs/decisions.md`. The rename adds no rule with a failing side beyond criteria 1 (old folder absent) and 4 (no old name). Criterion 3 does not name the constant, so the tester should pin `AGENT_FILES` and the host-side read.
+   - Smoke test: three runnable commands, each with an `Expect:` that can be checked (`renamed`, `found`, `1`). None runs pytest.
+   - Architecture: this only moves a folder and updates paths. No layer, wrapper or interface changes. The runtime names (`claude_runtime`, the `claude` command, `.claude/`) are explicitly left alone.
+   - Scope: it matches feature.md's Scope line "`claude/` becomes `agents/`" and is not in Out of scope; `operator/claude/`, `operator/opencode/` and `docs/decisions.md` are excluded as the feature says. The write path and `CLAUDE.md` changes are the human's, made at the story's start, as the feature's "The human's changes" says.
