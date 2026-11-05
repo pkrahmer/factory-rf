@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T21:46:48.647057Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-05T21:46:48.640497Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-05T21:46:48.647057Z'
+  stage: intake
+---
+
 # A story can take a second route to a second approval
 
 ## Description
@@ -31,3 +58,6 @@ uv run pytest tests/pipeline/application/test_docs_route.py 2>&1 | tail -1 | gre
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-05 human: created.
+2. factory: started intake as vm.
