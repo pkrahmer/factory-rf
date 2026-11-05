@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T04:40:51.872568Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-05T04:40:46.875742Z'
   stage: tests
   run: 7f173847a0b74385af2524e5a0aca39e
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-05T04:40:51.872568Z'
+  stage: doing
 ---
 
 # The root of `tests/` holds only its folders
@@ -155,3 +164,4 @@ Expect: `support.bill_support`
    Run: `uv run pytest -q tests/guards/test_tests_layout.py` ends with all its tests failing for the right reason. Each shows a helper still at the root (for example `['zfs_support.py'] == ['support/zfs_support.py']`), a non-package root, bare imports, or test modules not yet moved. The runner could import every module; nothing was missing. `make lint`: green.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
