@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T02:01:18.066000Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-05T02:01:18.066000Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T02:02:09.038817Z'
+  stage: review
+  run: 9c4c77ed98094ace934372e9c4588767
 ---
 
 # The work area holds the work items
@@ -345,3 +347,22 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 11 new, 34 known, 8 gone
 19. factory: started review as vm.
+20. reviewer: Review, round 1. I read the diff myself. Since my round-0 review (84bad52c3), the only change outside `factory/` is the docstring of `src/factory/work/application/__init__.py`. It now reads "The work area's application: reading the work items from git, the acceptance and its reading." This fixes finding 1 of entry 16: the package is no longer called a "port", and the text says what it holds. The rest of the diff is the same as in round 0. That is 14 modules renamed into `src/factory/work/<layer>/`, four new package `__init__.py` files, each with a docstring, four empty `tests/work/**/__init__.py` files, and 34 test modules moved to `tests/work/`. Every other changed line under `src/` is an import line, apart from one comment that names the new path (`# Not require_state: factory.work.domain.work_item ...`). In `tests/test_areas.py`, the only change is the `work` row of `AREAS`, which holds exactly the 14 modules of the Interface's table.
+
+    Criteria: the generic tests of `tests/test_areas.py` cover criteria 1 to 4 through the `work` row, as entry 16 found. Criterion 5: the factory's `make check` after the coder was green (entry 18, `check: green`). Criterion 6 belongs to the docs stage, and it still describes what the reader must know. Architecture: every module stays in its own layer, and import-linter is green. Security: the diff adds no markers or secrets. The Description matches what was built.
+
+    No findings.
+
+    Earlier tests (item 6), the same files and the same leave as in entry 16. All of them were changed or moved under the Interface's leave (feature decision 5), only in import lines, dotted module strings or the moved path. Every test keeps its name and what it checks. `tests/test_areas.py` is the exception: its change is the `work` row the Interface orders.
+    - tests/acceptance_support.py, tests/acceptance_walk.py, tests/branch_reading.py, tests/conftest.py, tests/cost_image_support.py, tests/crash_support.py, tests/evaluation_support.py, tests/proof_support.py, tests/push_retry_support.py, tests/shipped_agents.py, tests/stage_run_support.py, tests/stall_support.py, tests/story_form_support.py, tests/undo_support.py, tests/watch_support.py, tests/work_item_support.py, tests/write_path_support.py: feature decision 5 (import lines)
+    - tests/test_approval_description.py, tests/test_checkout_hygiene_removed.py, tests/test_claude_files.py, tests/test_fault_paths.py, tests/test_fault_paths_7_to_13.py, tests/test_model_configuration.py, tests/test_no_journal_reading.py, tests/test_no_state_copies.py, tests/test_proof_support.py, tests/test_shared_branch_helpers.py, tests/test_stop_table.py: feature decision 5 (imports and dotted module strings)
+    - tests/test_areas.py: the Interface's rule that `AREAS` gains the `work` row (row only)
+    - tests/application/handlers/{conftest,test_closed,test_closed_send_back,test_comment_handler,test_comments,test_hand_over,test_handler_subjects,test_lookups,test_merged,test_questions,test_recording,test_reject,test_run_gate}.py: feature decision 5 (import lines)
+    - tests/application/test_*.py, the 60 modules listed in entry 16: feature decision 5 (import lines)
+    - tests/application/test_tick.py: feature decision 5 (imports and the path row `work/application/work_items.py`)
+    - tests/domain/test_{acceptance_before_approval,acceptance_booking,acceptance_refusal_edges,agent_entry,board,board_absent_values,contract,decide_docs_slip,decision_rules,decisions,evaluation,evaluation_details,evaluation_due,evaluation_reject,events,human_waits,journal_stamps,lease,lease_observed,move_rule,prompts,recovery,recovery_cap,send_back,times}.py: feature decision 5 (import lines)
+    - tests/entry/test_{run,watch,wiring,wiring_acceptance,wiring_boundaries,wiring_handlers,wiring_human_handlers}.py: feature decision 5 (import lines)
+    - tests/domain/ -> tests/work/domain/, the 29 modules listed in entry 16: feature decision 5 (move plus import lines)
+    - tests/adapters/test_{journal_as_data,journal_causes_file,journal_stamps_file,work_item_markdown,work_item_markdown_acceptance}.py -> tests/work/adapters/: feature decision 5 (move plus import lines)
+
+    Open: `security/duplicates-baseline.txt` still names the old paths, so `make duplicates` reports 11 new findings, which are the known findings under their `factory.work.*` paths. The file is the human's, and `make duplicates` is a record, not a check.
