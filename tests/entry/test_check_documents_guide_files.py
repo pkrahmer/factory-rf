@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
-from factory.shared.domain.documents import DECISION_LOG, OPERATOR_GUIDE, README
+from factory.shared.domain.documents import PROJECT_GUIDE
 from support.check_documents_support import MISSING_LINES
 from support.document_texts import clean_texts, project_guide, write_documents
 
@@ -63,13 +63,10 @@ def test_the_files_beside_the_index_are_read(
 
 
 def _old_path_texts() -> dict[str, str | None]:
-    clean = clean_texts()
-    return {
-        README: clean[README],
-        OPERATOR_GUIDE: clean[OPERATOR_GUIDE],
-        DECISION_LOG: clean[DECISION_LOG],
-        "docs/project-guide.md": project_guide(),
-    }
+    texts = clean_texts()
+    del texts[PROJECT_GUIDE]
+    texts["docs/project-guide.md"] = project_guide()
+    return texts
 
 
 @pytest.mark.parametrize(

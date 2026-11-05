@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T07:03:19.222771Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-05T07:03:19.222771Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-05T07:05:50.903677Z'
+  stage: tests
+  run: 4a251c9016d545e2ad3821568d71c2b3
 ---
 
 # The operator guide is a folder of topics
@@ -165,3 +167,39 @@ Expect: `split`
    5. Yes, go ahead with those test changes; this answer is the leave for them. Every test keeps its name and what it checks, and your entry names each file.
    6. Both readings are right: each heading as often as before (`### The steps` twice), and criterion 4 leaves out `docs/runs/` as well as `docs/decisions.md`.
 10. factory: started tests as vm.
+11. tester: I wrote the tests for criteria 1–4 and changed the earlier document tests under the leave in the human's answer (entry 9), following answers 1–6.
+
+    Criterion → test:
+    - criterion 1: tests/guards/test_operator_guide_files.py::test_the_single_guide_is_gone_and_the_folder_holds_the_index_and_ten_topics
+    - criterion 2: tests/guards/test_operator_guide_files.py::test_every_earlier_heading_is_kept_in_the_folder. It has one row per heading of the old guide, with how often each appeared, so `### The steps` is expected twice (answer 6).
+    - criterion 3: tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file. It has six rows: as-it-is, no-stops-section, no-install-section, no-configuration-section, no-install-file and no-index.
+    - criterion 4: tests/guards/test_operator_guide_files.py::test_no_file_names_the_single_guide. It leaves out `docs/decisions.md` and `docs/runs/` (answer 6).
+
+    Files created (in the earlier tests run, kept): tests/guards/test_operator_guide_files.py and tests/entry/test_check_documents_operator_guide.py. This run the guard file takes its `TOPIC_FILES` from the support module instead of its own copy.
+
+    Earlier test files changed under the leave of entry 9. Every test keeps its name and what it checks:
+    - tests/support/document_texts.py: `operator_guide` is gone. In its place are `operator_index`, `operator_install` (sections *Install* and *Configuration*), `operator_stops` (section *The stops* and the stop rows), `operator_topic` and `operator_file(path)`. The module also gains the constants `OPERATOR_INSTALL`, `OPERATOR_STOPS`, `INSTALL_SECTIONS` and `STOPS_SECTIONS`. `clean_texts` now gives all fourteen documents.
+    - tests/support/check_documents_support.py: `MISSING_LINES` has the fourteen lines in the order of answer 3. A new `TOPIC_FILES` holds the ten topic names in the Description's order.
+    - tests/pipeline/domain/test_documents.py:
+      - The section rows check `install.md` and `stops.md`.
+      - The stop-row tests check `stops.md` (answer 1).
+      - `TEXT_GUIDES` covers the index and all ten topic files, so all eleven get the wording tests (answer 2).
+      - The v1-word tests use the index.
+      - The rule-order test now expects the findings of `install.md`, then `stops.md`, then the project guide.
+      - test_the_operator_guide_sections_are_the_three_in_their_order is unchanged, so `OPERATOR_GUIDE_SECTIONS` stays `("Install", "Configuration", "The stops")`.
+    - tests/shared/domain/test_documents_guide_files.py: test_the_guide_is_an_index_in_its_folder also pins `OPERATOR_GUIDE_FOLDER`, `OPERATOR_GUIDE` and `OPERATOR_GUIDE_FILES` (a tuple of the ten paths), and `DOCUMENT_PATHS` in the order of answer 3 (answer 4).
+    - tests/entry/test_check_documents.py: test_each_finding_prints_one_line_in_order_and_returns_one expects `docs/operator-guide/install.md: section 'Install' is missing`.
+    - tests/entry/test_check_documents_guide_files.py: `_old_path_texts` is the clean texts without the project guide's index, plus the old `docs/project-guide.md`.
+    - tests/operator_scripts/test_operator_site_check.py: test_the_guide_names_every_key_of_the_example_site_file reads `docs/operator-guide/site.md`.
+
+    Modules the test runner could not import: these four test modules fail at collection with an ImportError, because `factory.shared.domain.documents` has no `OPERATOR_GUIDE_FILES` or `OPERATOR_GUIDE_FOLDER` yet:
+    - tests/entry/test_check_documents.py
+    - tests/entry/test_check_documents_guide_files.py
+    - tests/pipeline/domain/test_documents.py
+    - tests/shared/domain/test_documents_guide_files.py
+
+    The collection errors stopped pytest before the other three files ran: the two guard and criterion-3 test files, and the site check test. Those three fail because `docs/operator-guide/` does not exist yet.
+
+    `make lint` is green. I skipped the type check, as this stage's instructions say.
+
+    `lint`: lint: green (0.2 s)

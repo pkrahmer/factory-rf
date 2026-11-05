@@ -1,4 +1,4 @@
-"""The check of the four documents: sections, table rows, replaced phrases and v1 words."""
+"""The check of the documents: sections, table rows, replaced phrases and v1 words."""
 
 import pytest
 
@@ -9,6 +9,7 @@ from factory.shared.domain.documents import (
     DOCUMENT_PATHS,
     GLOSSARY_FORBIDDEN,
     OPERATOR_GUIDE,
+    OPERATOR_GUIDE_FILES,
     OPERATOR_GUIDE_SECTIONS,
     PROJECT_GUIDE,
     PROJECT_GUIDE_SECTIONS,
@@ -19,23 +20,32 @@ from factory.shared.domain.documents import (
 )
 from factory.shared.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase
 from support.document_texts import (
+    INSTALL_SECTIONS,
+    OPERATOR_INSTALL,
+    OPERATOR_STOPS,
     PATH_7_TEST,
+    STOPS_SECTIONS,
     clean_texts,
     decision_log,
-    operator_guide,
+    operator_file,
+    operator_index,
+    operator_install,
+    operator_stops,
     project_guide,
     readme,
 )
 
 FENCE = "```"
 PATH_7_FINDING = f"fault-injection path 7 has no table row naming '{PATH_7_TEST}'"
-TEXT_GUIDES = (README, OPERATOR_GUIDE, PROJECT_GUIDE)
+TEXT_GUIDES = (README, OPERATOR_GUIDE, *OPERATOR_GUIDE_FILES, PROJECT_GUIDE)
 
 
 def _with(**documents: str | None) -> dict[str, str | None]:
     names = {
         "readme": README,
         "operator": OPERATOR_GUIDE,
+        "install": OPERATOR_INSTALL,
+        "stops": OPERATOR_STOPS,
         "project": PROJECT_GUIDE,
         "decisions": DECISION_LOG,
     }
@@ -48,9 +58,9 @@ def _with(**documents: str | None) -> dict[str, str | None]:
 def _guide(document: str, *, prefix: str = "", suffix: str = "") -> str:
     if document == README:
         return readme(prefix=prefix, suffix=suffix)
-    if document == OPERATOR_GUIDE:
-        return operator_guide(prefix=prefix, suffix=suffix)
-    return project_guide(prefix=prefix, suffix=suffix)
+    if document == PROJECT_GUIDE:
+        return project_guide(prefix=prefix, suffix=suffix)
+    return operator_file(document, prefix=prefix, suffix=suffix)
 
 
 def _finding(document: str, message: str) -> DocumentFinding:
@@ -84,16 +94,20 @@ def test_a_blank_document_gives_one_empty_finding(document: str, blank: str) -> 
 
 def _without_section(document: str, name: str, *, fenced: bool) -> dict[str, str | None]:
     fence = f"{FENCE}\n## {name}\n{FENCE}" if fenced else ""
-    if document == OPERATOR_GUIDE:
-        kept = [section for section in OPERATOR_GUIDE_SECTIONS if section != name]
-        return _with(operator=operator_guide(sections=kept, suffix=fence))
+    if document == OPERATOR_INSTALL:
+        kept = [section for section in INSTALL_SECTIONS if section != name]
+        return _with(install=operator_install(sections=kept, suffix=fence))
+    if document == OPERATOR_STOPS:
+        kept = [section for section in STOPS_SECTIONS if section != name]
+        return _with(stops=operator_stops(sections=kept, suffix=fence))
     kept = [section for section in PROJECT_GUIDE_SECTIONS if section != name]
     return _with(project=project_guide(sections=kept, suffix=fence))
 
 
-REQUIRED_SECTIONS = [(OPERATOR_GUIDE, name) for name in OPERATOR_GUIDE_SECTIONS] + [
-    (PROJECT_GUIDE, name) for name in PROJECT_GUIDE_SECTIONS
-]
+REQUIRED_SECTIONS = [
+    *((OPERATOR_INSTALL, name) for name in INSTALL_SECTIONS),
+    *((OPERATOR_STOPS, name) for name in STOPS_SECTIONS),
+] + [(PROJECT_GUIDE, name) for name in PROJECT_GUIDE_SECTIONS]
 
 
 @pytest.mark.parametrize(("document", "name"), REQUIRED_SECTIONS)
@@ -125,19 +139,19 @@ def test_a_required_heading_only_inside_a_code_fence_does_not_count(
     ids=["fenced", "no-backticks", "prose", "indented"],
 )
 def test_a_stop_without_its_table_row_is_a_finding(replacement: str) -> None:
-    texts = _with(operator=operator_guide(without_stop="fetch-failed", suffix=replacement))
+    texts = _with(stops=operator_stops(without_stop="fetch-failed", suffix=replacement))
 
     assert check_documents(texts) == [
-        _finding(OPERATOR_GUIDE, "stop 'fetch-failed' has no table row with its destination")
+        _finding(OPERATOR_STOPS, "stop 'fetch-failed' has no table row with its destination")
     ]
 
 
 @pytest.mark.parametrize("row", STOP_TABLE, ids=lambda row: row.id)
 def test_every_stop_without_its_table_row_is_a_finding(row: StopRow) -> None:
-    texts = _with(operator=operator_guide(without_stop=row.id))
+    texts = _with(stops=operator_stops(without_stop=row.id))
 
     assert check_documents(texts) == [
-        _finding(OPERATOR_GUIDE, f"stop '{row.id}' has no table row with its destination")
+        _finding(OPERATOR_STOPS, f"stop '{row.id}' has no table row with its destination")
     ]
 
 
@@ -155,10 +169,10 @@ def test_every_stop_without_its_table_row_is_a_finding(row: StopRow) -> None:
 def test_a_stop_row_needs_its_destination_in_words_in_any_case(
     stop: str, row: str, found: bool
 ) -> None:
-    texts = _with(operator=operator_guide(without_stop=stop, extra_rows=[row]))
+    texts = _with(stops=operator_stops(without_stop=stop, extra_rows=[row]))
 
     expected = (
-        [_finding(OPERATOR_GUIDE, f"stop '{stop}' has no table row with its destination")]
+        [_finding(OPERATOR_STOPS, f"stop '{stop}' has no table row with its destination")]
         if found
         else []
     )
@@ -281,14 +295,14 @@ def test_a_replaced_phrase_is_a_finding_for_its_document(
     ],
 )
 def test_a_v1_word_standing_alone_is_a_finding(line: str, entry: str) -> None:
-    texts = _with(operator=operator_guide(suffix=line))
+    texts = _with(operator=operator_index(suffix=line))
 
     assert check_documents(texts) == [_finding(OPERATOR_GUIDE, f"uses the v1 word '{entry}'")]
 
 
 @pytest.mark.parametrize("entry", GLOSSARY_FORBIDDEN, ids=GLOSSARY_FORBIDDEN)
 def test_every_v1_word_alone_on_its_line_is_one_finding(entry: str) -> None:
-    texts = _with(operator=operator_guide(suffix=f"It reads {entry} here."))
+    texts = _with(operator=operator_index(suffix=f"It reads {entry} here."))
 
     assert check_documents(texts) == [_finding(OPERATOR_GUIDE, f"uses the v1 word '{entry}'")]
 
@@ -298,7 +312,7 @@ def test_every_v1_word_alone_on_its_line_is_one_finding(entry: str) -> None:
     ["ticketing", "my-ticket", "_ticket", "ticket_1", "ticket1", "1ticket", "xticket", "ticket-x"],
 )
 def test_a_v1_word_inside_a_longer_word_is_no_finding(word: str) -> None:
-    texts = _with(operator=operator_guide(suffix=f"It reads {word} here."))
+    texts = _with(operator=operator_index(suffix=f"It reads {word} here."))
 
     assert check_documents(texts) == []
 
@@ -368,10 +382,10 @@ def test_a_decision_log_needs_a_heading_outside_code_fences(text: str, found: bo
 
 
 def test_findings_follow_the_rule_order_and_the_list_order() -> None:
-    sections = [name for name in OPERATOR_GUIDE_SECTIONS if name != "Install"]
     words = "A lane, another lane, a ticket, the factory-run.json and --follow."
     texts = _with(
-        operator=operator_guide(sections=sections, without_stop="fetch-failed", suffix=words),
+        install=operator_install(sections=["Configuration"]),
+        stops=operator_stops(sections=[], without_stop="fetch-failed", suffix=words),
         project=project_guide(
             sections=[name for name in PROJECT_GUIDE_SECTIONS if name != "Kill points"],
             without_case="commit-push",
@@ -380,12 +394,13 @@ def test_findings_follow_the_rule_order_and_the_list_order() -> None:
     )
 
     assert check_documents(texts) == [
-        _finding(OPERATOR_GUIDE, "section 'Install' is missing"),
-        _finding(OPERATOR_GUIDE, "stop 'fetch-failed' has no table row with its destination"),
-        _finding(OPERATOR_GUIDE, "describes a replaced behaviour: '--follow'"),
-        _finding(OPERATOR_GUIDE, "describes a replaced behaviour: 'factory-run.json'"),
-        _finding(OPERATOR_GUIDE, "uses the v1 word 'ticket'"),
-        _finding(OPERATOR_GUIDE, "uses the v1 word 'lane'"),
+        _finding(OPERATOR_INSTALL, "section 'Install' is missing"),
+        _finding(OPERATOR_STOPS, "section 'The stops' is missing"),
+        _finding(OPERATOR_STOPS, "stop 'fetch-failed' has no table row with its destination"),
+        _finding(OPERATOR_STOPS, "describes a replaced behaviour: '--follow'"),
+        _finding(OPERATOR_STOPS, "describes a replaced behaviour: 'factory-run.json'"),
+        _finding(OPERATOR_STOPS, "uses the v1 word 'ticket'"),
+        _finding(OPERATOR_STOPS, "uses the v1 word 'lane'"),
         _finding(PROJECT_GUIDE, "section 'Kill points' is missing"),
         _finding(PROJECT_GUIDE, "kill point case 'commit-push' has no table row"),
         _finding(PROJECT_GUIDE, PATH_7_FINDING),

@@ -5,21 +5,11 @@ from pathlib import Path
 
 import pytest
 
+from support.check_documents_support import TOPIC_FILES
+
 ROOT = Path(__file__).parents[2]
 GUIDE = ROOT / "docs" / "operator-guide"
 OLD_GUIDE = ROOT / "docs" / "operator-guide.md"
-TOPIC_FILES = (
-    "install.md",
-    "agent-runtime.md",
-    "machine.md",
-    "site.md",
-    "cloud-run.md",
-    "health.md",
-    "stops.md",
-    "pipeline.md",
-    "records.md",
-    "work-items.md",
-)
 SEARCHED = (
     ROOT / "src",
     ROOT / "claude",
