@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T03:23:36.801720Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-05T03:23:31.803104Z'
   stage: tests
   run: 5fb0aa8149ca41c5b6b5552ba70801b0
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-05T03:23:36.801720Z'
+  stage: doing
 ---
 
 # The machine area holds containers, images and disks
@@ -211,3 +220,4 @@ Expect: `1`
    Run: `uv run pytest -q tests/test_stop_table.py` passed all 26 tests, and every module imported. `make lint`: lint: green (0.1 s).
 
    `lint`: lint: green (0.2 s)
+10. factory: started doing as vm.
