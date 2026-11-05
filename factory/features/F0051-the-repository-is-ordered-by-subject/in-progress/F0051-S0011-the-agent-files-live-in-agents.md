@@ -11,6 +11,8 @@ The factory's agent files and their settings live in `claude/` (`claude/agents/*
 - Every place under `src/`, `tests/`, `vm/`, `operator/`, `docs/` and `README.md` that names the folder `claude/` of the agent files, or `/etc/factory/claude`, names the new one; a name of the runtime Claude Code (`claude_runtime`, the `claude` command, `.claude/` in an agent's home) does not change.
 - The coder's write path `claude/*` in `factory/pipeline.yml` and the names in `CLAUDE.md` are the human's changes, made at this story's start.
 
+- The tester makes every test change the rename needs in its first run, before the files move: every path and name of the old folders in `tests/`, under the leave of feature decision 5. The coder changes `src/`, the renamed folders and the documents it may write; its write paths do not hold `tests/`, so a test change it makes is dropped.
+
 ## Acceptance criteria
 
 1. `claude/` does not exist, and `agents/agents/` holds the same agent files that `claude/agents/` held before (one row per file name).
