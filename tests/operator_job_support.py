@@ -8,7 +8,7 @@ import shutil
 from collections.abc import Callable
 from pathlib import Path
 
-from factory.adapters.process import ProcessResult
+from factory.shared.adapters.process import ProcessResult
 from git_support import commit_all, run_git, write_executable
 from operator_support import ROOT, operator_environment, run_script
 

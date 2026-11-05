@@ -7,8 +7,8 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.project_commands import RecordingProjectCommands
 from factory.domain.known_results import ResultKey, ResultRecord
-from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
+from factory.shared.domain.settings import InstanceSettings
 from git_support import clone
 from wiring_support import CREDENTIAL
 

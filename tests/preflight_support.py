@@ -8,7 +8,6 @@ from typing import override
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.git_cli import GitCli
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
@@ -21,8 +20,9 @@ from factory.application.project_commands import ProjectCommands
 from factory.application.stops import StopService
 from factory.domain.checks import CheckResult
 from factory.domain.git import CommitId
-from factory.domain.settings import InstanceSettings
 from factory.domain.stops import RepositoryStop
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.settings import InstanceSettings
 from git_support import CHECKOUT, install_agents, run_git
 from human_clone import HumanClone
 

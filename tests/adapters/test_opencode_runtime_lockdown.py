@@ -19,7 +19,7 @@ from adapters.opencode_stand_in import (
 )
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.opencode_runtime import CONFIG_VARIABLE, LOCKDOWN_SWITCHES
-from factory.domain.errors import AgentRuntimeError
+from factory.shared.domain.errors import AgentRuntimeError
 from opencode_provider_support import PROVIDER, write_provider
 
 SWITCH_VALUES = {

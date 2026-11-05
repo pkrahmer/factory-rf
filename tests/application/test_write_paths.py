@@ -9,9 +9,9 @@ from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
 from factory.application.write_paths import WritePathService
 from factory.domain.agent_runs import WritePathSettings
-from factory.domain.errors import PipelineDefinitionInvalid
 from factory.domain.stops import HealthStatus
 from factory.domain.write_paths import PROTECTED_PATHS
+from factory.shared.domain.errors import PipelineDefinitionInvalid
 from git_support import PIPELINE_YAML
 from human_clone import HumanClone
 from write_path_support import PIPELINE_FILE, push_definition, stage_start

@@ -7,8 +7,8 @@ import pytest
 
 import factory.entry.contract
 from contract_support import USAGE, WRITTEN, MainRow
-from factory.domain.contract import CONTRACT, schema_file_name
 from factory.entry.contract import main, write_contract
+from factory.shared.domain.contract import CONTRACT, schema_file_name
 
 SCHEMA_NAMES = sorted(schema_file_name(entry) for entry in CONTRACT)
 

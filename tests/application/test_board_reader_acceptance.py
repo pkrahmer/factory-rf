@@ -6,17 +6,17 @@ from pathlib import Path
 import pytest
 
 from acceptance_walk import PROPOSED, PROPOSED_TEXT, AcceptanceWalk, report_of
-from factory.adapters.clock import ManualClock
 from factory.application.acceptance import AcceptanceService
 from factory.application.board import BoardReader
 from factory.application.boundaries import Boundaries
 from factory.domain.acceptance import AcceptanceState
 from factory.domain.board import BoardRow
-from factory.domain.errors import WorkItemFormatError
-from factory.domain.identifiers import branch_name
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
 from factory.entry.watch import run_watch
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.errors import WorkItemFormatError
+from factory.shared.domain.identifiers import branch_name
 from git_support import run_git
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

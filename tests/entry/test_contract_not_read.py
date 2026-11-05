@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import factory
-from factory.domain.contract import RECORDS_CONTRACT
+from factory.shared.domain.contract import RECORDS_CONTRACT
 
 SCHEMA = Path(factory.__file__).parent / "contract" / "pipeline-definition.schema.json"
 

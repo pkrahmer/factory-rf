@@ -4,9 +4,9 @@ import pytest
 
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.domain.acceptance import AcceptanceState
-from factory.domain.errors import WorkItemFormatError
 from factory.domain.journal import JournalRecord
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.shared.domain.errors import WorkItemFormatError
 
 PLAIN = "round: 1\nattempts: 0\n"
 BODY = "# Acceptance of Todo service\n"

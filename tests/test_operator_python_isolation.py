@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import ProcessResult
+from factory.shared.adapters.process import ProcessResult
 from operator_job_support import TAG, job_runner, make_job_repository
 from operator_skill_support import PREFIX, make_operator, pull, status_routes
 from operator_support import ROOT, example_values

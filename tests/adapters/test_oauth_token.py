@@ -7,8 +7,8 @@ from urllib.parse import parse_qs
 import pytest
 
 from factory.adapters.oauth_token import ClientCredentialsTokenSource
-from factory.domain.errors import TokenError
 from factory.domain.tokens import Token
+from factory.shared.domain.errors import TokenError
 from token_support import (
     ENDPOINT,
     HIDDEN,

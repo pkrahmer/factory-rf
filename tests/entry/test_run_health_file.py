@@ -6,11 +6,11 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.fake_hosting import FakeHostingService
-from factory.domain.errors import SettingsInvalid
-from factory.domain.settings import InstanceSettings
 from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_file, health_store
+from factory.shared.domain.errors import SettingsInvalid
+from factory.shared.domain.settings import InstanceSettings
 from wiring_support import with_dataset
 
 FETCH_FAILED = RepositoryStop(

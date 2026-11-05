@@ -1,7 +1,7 @@
 """The fault-injection paths as data: the rows, their cases and the closed model."""
 
 from factory.domain.fault_paths import FAULT_PATHS
-from factory.domain.kill_point_cases import KILL_POINT_CASES
+from factory.shared.domain.kill_point_cases import KILL_POINT_CASES
 
 
 def test_the_first_six_paths_are_the_six_rows_in_number_order() -> None:

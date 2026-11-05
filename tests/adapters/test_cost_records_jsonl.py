@@ -18,9 +18,9 @@ from factory.adapters.cost_records_jsonl import (
     JsonLinesCostRecordReader,
     JsonLinesCostRecordWriter,
 )
-from factory.application.files import CostRecordReader, CostRecordWriter
 from factory.domain.cost_records import CostRecord
-from factory.domain.errors import CostRecordFormatError
+from factory.shared.application.files import CostRecordReader, CostRecordWriter
+from factory.shared.domain.errors import CostRecordFormatError
 
 COMPLETED: dict[str, object] = {
     **REQUIRED,

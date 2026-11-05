@@ -7,10 +7,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualClock, SystemClock
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.application.machine import Clock, FactoryLog, HealthStatusStore
+from factory.shared.adapters.clock import ManualClock, SystemClock
 
 INTERFACES: list[tuple[type[object], set[str], list[type[object]]]] = [
     (Clock, {"now"}, [SystemClock, ManualClock]),

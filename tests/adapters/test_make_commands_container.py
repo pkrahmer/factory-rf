@@ -17,8 +17,8 @@ from factory.application.git import Git
 from factory.application.project_commands import ProjectCommands
 from factory.domain.checks import TargetTime
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
-from factory.domain.errors import ContainerError, GitError, ProjectCommandError
 from factory.domain.git import ChangedPath, GitOptions
+from factory.shared.domain.errors import ContainerError, GitError, ProjectCommandError
 from git_support import CHECKOUT, TEST_IDENTITY, commit_all, write_files
 
 LIMIT = timedelta(minutes=1)

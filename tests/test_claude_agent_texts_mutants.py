@@ -3,7 +3,7 @@ the acceptance's check 3 says it is done by sweep."""
 
 import pytest
 
-from factory.domain.sections import section_text
+from factory.shared.domain.sections import section_text
 from shipped_agents import ROOT, agent_body
 
 _MUTATION_TESTING_HEADING = "3. **Mutation testing.**"

@@ -9,7 +9,7 @@ import pytest
 
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.domain.containers import ContainerCall, ContainerResult, Mount
-from factory.domain.errors import ContainerError
+from factory.shared.domain.errors import ContainerError
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 SHELL_PREFIX = ["/bin/sh", "-c", 'cd "$1" && shift && exec "$@"', "fake-container"]

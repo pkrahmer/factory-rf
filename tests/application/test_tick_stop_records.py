@@ -11,7 +11,6 @@ import pytest
 
 from disk_support import FakeDiskSpace
 from factory.adapters.git_cli import GitCli
-from factory.adapters.process import ProcessRequest, run_process
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
@@ -19,10 +18,11 @@ from factory.application.tick import IdleHandler, Tick
 from factory.domain.disk import GIGABYTE
 from factory.domain.events import EventKind
 from factory.domain.git import GitOptions
-from factory.domain.paths import STOP_RECORDS_FILE
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.settings import InstanceSettings
 from factory.domain.stops import StopRecord, parse_stop_records
+from factory.shared.adapters.process import ProcessRequest, run_process
+from factory.shared.domain.paths import STOP_RECORDS_FILE
+from factory.shared.domain.settings import InstanceSettings
 from git_support import (
     CHECKOUT,
     COLOURED_AGENT_FILE,

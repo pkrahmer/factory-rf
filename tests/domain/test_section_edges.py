@@ -2,10 +2,10 @@
 
 import pytest
 
-from factory.domain.errors import WorkItemFormatError
 from factory.domain.journal import entry_text
-from factory.domain.sections import CodeBlock, code_blocks, section_text
 from factory.domain.work_item import WorkItemDocument, initial_state
+from factory.shared.domain.errors import WorkItemFormatError
+from factory.shared.domain.sections import CodeBlock, code_blocks, section_text
 from sections_support import TICKS
 
 

@@ -10,10 +10,10 @@ import pytest
 from factory.adapters.git_cli import GitCli
 from factory.application.machine import FactoryLog
 from factory.application.scheduler import CheckoutPreparer, Scheduler, pause_after
-from factory.domain.errors import AgentRuntimeError, GitError
 from factory.domain.git import GitOptions
-from factory.domain.kill_points import InjectedKill, KillPoint
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.errors import AgentRuntimeError, GitError
+from factory.shared.domain.kill_points import InjectedKill, KillPoint
+from factory.shared.domain.settings import InstanceSettings
 from git_support import CHECKOUT, TEST_IDENTITY
 from settings_support import AGENT_HOME
 

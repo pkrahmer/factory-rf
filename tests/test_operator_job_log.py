@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import ProcessResult
+from factory.shared.adapters.process import ProcessResult
 from git_support import write_executable
 from operator_job_support import BARE, IMPERSONATE, JOB, words
 from operator_support import ROOT, operator_environment, run_script

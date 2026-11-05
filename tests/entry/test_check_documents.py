@@ -7,8 +7,9 @@ import pytest
 
 from check_documents_support import MISSING_LINES
 from document_texts import clean_texts, operator_guide, project_guide, readme, write_documents
-from factory.adapters.process import ProcessRequest, run_process
-from factory.domain.documents import (
+from factory.entry.check_documents import main
+from factory.shared.adapters.process import ProcessRequest, run_process
+from factory.shared.domain.documents import (
     DECISION_LOG,
     OPERATOR_GUIDE,
     OPERATOR_GUIDE_SECTIONS,
@@ -16,7 +17,6 @@ from factory.domain.documents import (
     PROJECT_GUIDE_SECTIONS,
     README,
 )
-from factory.entry.check_documents import main
 
 
 def test_clean_documents_print_documents_ok_and_return_zero(

@@ -16,7 +16,7 @@ from adapters.opencode_stand_in import (
     write_opencode,
 )
 from factory.adapters.opencode_runtime import OpencodeRuntime
-from factory.domain.errors import AgentRuntimeError
+from factory.shared.domain.errors import AgentRuntimeError
 from opencode_provider_support import CONFIGURATION, write_provider
 
 

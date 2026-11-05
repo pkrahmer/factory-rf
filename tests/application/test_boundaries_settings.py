@@ -3,7 +3,7 @@
 import dataclasses
 
 from factory.application.boundaries import Boundaries
-from factory.domain.settings import read_settings
+from factory.shared.domain.settings import read_settings
 from settings_support import BASE
 
 

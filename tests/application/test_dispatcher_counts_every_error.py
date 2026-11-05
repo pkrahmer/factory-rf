@@ -3,9 +3,9 @@
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Dispatcher, Handler
 from factory.application.stops import StopService
-from factory.domain.errors import GitError
 from factory.domain.events import Event
 from factory.domain.tick_status import TickStatus
+from factory.shared.domain.errors import GitError
 
 STATE = "a" * 40
 

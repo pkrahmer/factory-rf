@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.git_cli import GitCli
-from factory.domain.errors import GitError
 from factory.domain.git import GitOptions
+from factory.shared.domain.errors import GitError
 from git_support import write_executable
 from human_clone import HumanClone
 

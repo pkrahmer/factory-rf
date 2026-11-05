@@ -9,10 +9,10 @@ import pytest
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.watcher import Watcher
-from factory.domain.errors import GitError
 from factory.domain.git import GitOptions
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.entry.watch import run_watch
+from factory.shared.domain.errors import GitError
 from git_support import TEST_IDENTITY, run_git
 
 UNRESOLVED = "resolve origin/main failed (no exit status): origin/main does not resolve"

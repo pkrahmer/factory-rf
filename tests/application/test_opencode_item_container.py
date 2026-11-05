@@ -4,7 +4,7 @@ import pytest
 
 from container_support import CONTAINER
 from factory.application.preflight import opencode_item
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 from settings_support import AGENT_HOME
 
 

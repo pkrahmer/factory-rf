@@ -11,8 +11,8 @@ from factory.domain.cost_records import CostRecord
 from factory.domain.git import CommitInfo
 from factory.domain.hosting import PullRequestComment
 from factory.domain.stops import RepositoryStop
-from factory.domain.times import in_utc
 from factory.domain.work_item import Claim
+from factory.shared.domain.times import in_utc
 from source_search import modules
 
 AWARE = datetime(2026, 10, 12, 14, 0, tzinfo=timezone(timedelta(hours=2)))
@@ -105,4 +105,4 @@ def _calls_astimezone(tree: ast.Module) -> bool:
 def test_only_the_times_module_converts_to_utc() -> None:
     found = modules()
     assert [name for name in MODELS_WITH_TIMES if _calls_astimezone(found[name])] == []
-    assert _calls_astimezone(found["factory.domain.times"])
+    assert _calls_astimezone(found["factory.shared.domain.times"])

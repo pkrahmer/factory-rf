@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.git_cli import GitCli
-from factory.domain.errors import GitError
 from factory.domain.git import GitOptions
+from factory.shared.domain.errors import GitError
 from git_support import CHECKOUT, TEST_IDENTITY, run_git, write_files
 
 IdPair = tuple[str, str]

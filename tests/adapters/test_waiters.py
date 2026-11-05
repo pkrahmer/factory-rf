@@ -5,8 +5,8 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from factory.adapters.clock import ManualClock, ManualWaiter, SleepingWaiter
 from factory.application.machine import Waiter
+from factory.shared.adapters.clock import ManualClock, ManualWaiter, SleepingWaiter
 
 START = datetime(2026, 10, 18, tzinfo=UTC)
 

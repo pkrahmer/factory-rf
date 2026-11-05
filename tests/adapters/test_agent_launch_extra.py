@@ -15,7 +15,7 @@ from container_extra_support import (
 )
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE
 from factory.domain.containers import CA_BUNDLE_NAMES, extra_environment
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 from settings_support import AGENT_HOME
 
 

@@ -8,7 +8,7 @@ from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
 from factory.domain.agent_runs import EndReason, Login
-from factory.domain.settings import AgentRuntimeName, InstanceSettings
+from factory.shared.domain.settings import AgentRuntimeName, InstanceSettings
 from git_support import install_agents
 from probe_login_support import HINT, LOGIN_FILE
 from probe_support import ENVIRONMENT, opencode_died, opencode_sso_hint, probe_result

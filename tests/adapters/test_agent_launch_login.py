@@ -19,8 +19,8 @@ from factory.adapters.agent_launch import (
     login_refusal,
     login_used,
 )
-from factory.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.domain.agent_runs import Login
+from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_process
 from run_layout_support import write_script
 
 SHELL_API_LOGIN = "shell-api-login"

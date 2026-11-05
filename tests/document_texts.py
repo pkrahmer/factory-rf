@@ -3,7 +3,9 @@
 from collections.abc import Sequence
 from pathlib import Path
 
-from factory.domain.documents import (
+from factory.domain.fault_paths import FAULT_PATHS
+from factory.domain.stop_table import STOP_TABLE, StopRow
+from factory.shared.domain.documents import (
     DECISION_LOG,
     OPERATOR_GUIDE,
     OPERATOR_GUIDE_SECTIONS,
@@ -11,9 +13,7 @@ from factory.domain.documents import (
     PROJECT_GUIDE_SECTIONS,
     README,
 )
-from factory.domain.fault_paths import FAULT_PATHS
-from factory.domain.kill_point_cases import KILL_POINT_CASES
-from factory.domain.stop_table import STOP_TABLE, StopRow
+from factory.shared.domain.kill_point_cases import KILL_POINT_CASES
 
 DESTINATION_WORDS = {
     "health_status": "health status",

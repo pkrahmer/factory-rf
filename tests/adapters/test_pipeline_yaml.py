@@ -5,8 +5,8 @@ from collections.abc import Callable
 import pytest
 
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.domain.errors import PipelineDefinitionInvalid
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.shared.domain.errors import PipelineDefinitionInvalid
 from git_support import PIPELINE_YAML
 
 MINIMAL = """\

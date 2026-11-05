@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.git_cli import GitCli
-from factory.domain.errors import GitError, NothingToCommit
 from factory.domain.git import GitIdentity, GitOptions
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.shared.domain.errors import GitError, NothingToCommit
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from git_support import (
     CHECKOUT,
     REMOTE_FILES,

@@ -25,9 +25,9 @@ from factory.adapters.agent_launch import (
 )
 from factory.adapters.claude_runtime import SWITCHES, ClaudeCodeRuntime
 from factory.adapters.fake_containers import FakeContainerRuns
-from factory.adapters.process import ProcessResult
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.containers import WORK_CHECKOUT, ContainerCall
+from factory.shared.adapters.process import ProcessResult
 from run_process_recorder import Recorder
 from time_limits import ROOMY_BOUND_SECONDS
 

@@ -1,6 +1,6 @@
 """A human's answer to the round cap question starts the count of rounds over."""
 
-from factory.domain.identifiers import WorkItemId
+from factory.shared.domain.identifiers import WorkItemId
 from proof_support import (
     World,
     completed,

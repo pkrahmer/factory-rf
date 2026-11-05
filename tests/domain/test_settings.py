@@ -6,9 +6,9 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from factory.domain.errors import FactoryError, SettingsInvalid
 from factory.domain.git import GitIdentity
-from factory.domain.settings import InstanceSettings, read_settings
+from factory.shared.domain.errors import FactoryError, SettingsInvalid
+from factory.shared.domain.settings import InstanceSettings, read_settings
 from settings_support import AGENT_HOME, BASE, raising
 
 URL = "/srv/project.git"

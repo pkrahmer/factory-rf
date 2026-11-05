@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.git_cli import GitCli
-from factory.domain.errors import GitError
-from factory.domain.kill_points import KillPoint, KillPoints
+from factory.shared.domain.errors import GitError
+from factory.shared.domain.kill_points import KillPoint, KillPoints
 from git_support import (
     CHECKOUT,
     TEST_IDENTITY,

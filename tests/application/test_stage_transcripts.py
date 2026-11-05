@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualClock, ManualWaiter
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.transcript_files import FileTranscriptStore
@@ -15,6 +14,7 @@ from factory.application.boundaries import Boundaries
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.provider_limits import ProviderLimit
 from factory.domain.transcripts import Transcript
+from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from human_clone import HumanClone
 from stage_run_support import WORK_ITEM, open_story, pushed_cost_records, run_stage
 from transcript_support import sha256_of

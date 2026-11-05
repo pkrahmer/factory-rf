@@ -1,8 +1,9 @@
 """The factory's one default git identity: its value, its one home and its overrides."""
 
-from factory.domain import git, settings
+from factory.domain import git
 from factory.domain.git import DEFAULT_GIT_IDENTITY, GitIdentity, GitOptions
-from factory.domain.settings import read_settings
+from factory.shared.domain import settings
+from factory.shared.domain.settings import read_settings
 from settings_support import BASE
 from source_search import modules, string_literals
 

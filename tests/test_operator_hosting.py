@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import ProcessResult
+from factory.shared.adapters.process import ProcessResult
 from git_support import commit_all, write_executable, write_files
 from operator_support import (
     CURL_STAND_IN,

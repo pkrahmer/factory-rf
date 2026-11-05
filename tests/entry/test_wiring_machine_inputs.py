@@ -4,8 +4,8 @@ from pathlib import Path
 
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.machine_files import CgroupMachineReadings
-from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
+from factory.shared.domain.settings import InstanceSettings
 from podman_support import IMAGE
 from sized_images import SizedImages, sized_by_tag
 from wiring_support import CREDENTIAL

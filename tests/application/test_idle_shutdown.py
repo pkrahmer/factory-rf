@@ -4,10 +4,10 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.application.idle_shutdown import IdleShutdown
 from factory.application.tick import TickOutcome
-from factory.domain.errors import PowerOffError
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.errors import PowerOffError
 from power_support import IDLE, IDLE_ERROR, OTHER, STOPPED, WAITS, CountingPower
 from recording_log import RecordingLog
 

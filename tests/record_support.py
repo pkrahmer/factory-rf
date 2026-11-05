@@ -4,7 +4,7 @@ from typing import override
 
 from pydantic import BaseModel
 
-from factory.application.files import RecordLog
+from factory.shared.application.files import RecordLog
 
 
 class UnwritableRecordLog[R: BaseModel](RecordLog[R]):

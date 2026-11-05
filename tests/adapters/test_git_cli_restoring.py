@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.git_cli import GitCli
-from factory.domain.errors import GitError
+from factory.shared.domain.errors import GitError
 from git_support import CHECKOUT, commit_all, head_of, run_git, write_files
 
 

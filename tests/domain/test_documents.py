@@ -10,7 +10,9 @@ from document_texts import (
     project_guide,
     readme,
 )
-from factory.domain.documents import (
+from factory.domain.fault_paths import FAULT_PATHS, FaultPath
+from factory.domain.stop_table import STOP_TABLE, StopRow
+from factory.shared.domain.documents import (
     DECISION_LOG,
     DOCUMENT_PATHS,
     GLOSSARY_FORBIDDEN,
@@ -23,9 +25,7 @@ from factory.domain.documents import (
     DocumentFinding,
     check_documents,
 )
-from factory.domain.fault_paths import FAULT_PATHS, FaultPath
-from factory.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase
-from factory.domain.stop_table import STOP_TABLE, StopRow
+from factory.shared.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase
 
 FENCE = "```"
 PATH_7_FINDING = f"fault-injection path 7 has no table row naming '{PATH_7_TEST}'"

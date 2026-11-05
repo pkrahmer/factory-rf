@@ -10,14 +10,14 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.reject import RejectHandler
-from factory.domain.errors import CannotHandle, HostingServiceError
 from factory.domain.events import Event
 from factory.domain.git import CommitInfo
 from factory.domain.hosting import PostKey, render_post
 from factory.domain.journal import FACTORY, HUMAN, JournalRecord, entry_text
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.domain.post_texts import MOVED_BACK_MARKER, correction_note, move_back_entry_text
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.shared.domain.errors import CannotHandle, HostingServiceError
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from git_support import clone, commit_all, remote_commit, run_git, write_files
 from human_clone import HumanClone
 

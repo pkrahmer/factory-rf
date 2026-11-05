@@ -9,7 +9,7 @@ import pytest
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.paths import cost_records_path
+from factory.shared.domain.paths import cost_records_path
 from human_clone import HumanClone
 from recording_log import RecordingLog
 from stage_run_support import PATH, WORK_ITEM, branch_head, completed, open_story, run_stage

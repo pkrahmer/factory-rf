@@ -18,7 +18,7 @@ from factory.domain.agent_runs import (
     ALLOWED_ENVIRONMENT_NAMES,
     scrub_environment,
 )
-from factory.domain.errors import AgentRuntimeError
+from factory.shared.domain.errors import AgentRuntimeError
 from run_process_recorder import Recorder
 
 CHANGED_LOGIN = "changed-login"

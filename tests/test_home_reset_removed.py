@@ -9,9 +9,9 @@ import pytest
 
 from factory.adapters import claude_runtime, opencode_runtime
 from factory.application.boundaries import Boundaries
-from factory.domain import settings
-from factory.domain.settings import InstanceSettings
 from factory.entry import wiring
+from factory.shared.domain import settings
+from factory.shared.domain.settings import InstanceSettings
 
 
 @pytest.mark.parametrize(

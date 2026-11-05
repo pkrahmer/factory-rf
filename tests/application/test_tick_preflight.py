@@ -16,9 +16,9 @@ from factory.application.preflight import MachineChecks, Preflight
 from factory.application.stops import StopService
 from factory.application.tick import IdleHandler, Tick, TickOutcome
 from factory.domain.events import EventKind
-from factory.domain.identifiers import branch_name
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.identifiers import branch_name
+from factory.shared.domain.settings import InstanceSettings
 from git_support import CHECKOUT, PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
 from log_support import state_log_lines

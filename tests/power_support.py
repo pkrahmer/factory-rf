@@ -4,8 +4,8 @@ from typing import override
 
 from factory.application.machine import PowerOff
 from factory.application.tick import TickOutcome
-from factory.domain.errors import PowerOffError
 from factory.domain.events import Event
+from factory.shared.domain.errors import PowerOffError
 
 STATE = "a" * 40
 IDLE = TickOutcome(event=Event(kind="idle", work_item=None, remote_state=STATE), dispatch="handled")

@@ -25,7 +25,7 @@ from factory.adapters.agent_launch import (
 )
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.opencode_runtime import CONFIG_VARIABLE, OpencodeRuntime
-from factory.adapters.process import ProcessRequest, ProcessResult, Stream, run_streaming
+from factory.shared.adapters.process import ProcessRequest, ProcessResult, Stream, run_streaming
 from run_layout_support import Layout, run_request, write_login_file, write_script
 from run_process_recorder import Recorder
 

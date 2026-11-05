@@ -1,6 +1,6 @@
 """A stand-in for the runtime's `run_process` that keeps each request it is handed."""
 
-from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_process
 
 
 class Recorder:

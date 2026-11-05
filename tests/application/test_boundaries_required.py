@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualWaiter
 from factory.application.boundaries import Boundaries
 from factory.application.disk_records import DiskRecorder
 from factory.domain.disk import DiskRecord, DiskUse
+from factory.shared.adapters.clock import ManualWaiter
 
 REQUIRED = ("settings", "disk", "disk_records", "stop_records", "waiter", "result_records")
 

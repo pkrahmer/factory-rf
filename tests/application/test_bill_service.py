@@ -7,8 +7,8 @@ from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader
 from factory.adapters.git_cli import GitCli
 from factory.application.costs import BillService
 from factory.domain.bills import bill, bills_by_stage, cost_line, cost_table
-from factory.domain.identifiers import branch_name
-from factory.domain.paths import cost_records_path
+from factory.shared.domain.identifiers import branch_name
+from factory.shared.domain.paths import cost_records_path
 from git_support import CHECKOUT, clone, write_files
 from human_clone import HumanClone
 

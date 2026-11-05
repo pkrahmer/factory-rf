@@ -8,16 +8,16 @@ from typing import override
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
-from factory.application.files import RecordLog
 from factory.application.known_results import KnownResults
 from factory.domain.checks import CheckResult, ReusedRun
-from factory.domain.errors import GitError, ProjectCommandError
 from factory.domain.git import TreeId
 from factory.domain.known_results import ResultKey, ResultRecord, definition_digest
-from factory.domain.settings import InstanceSettings
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.application.files import RecordLog
+from factory.shared.domain.errors import GitError, ProjectCommandError
+from factory.shared.domain.settings import InstanceSettings
 from human_clone import HumanClone
 from known_results_support import DEFINITION_YAML, TIME_LIMIT, Rig, _answering, _result, _rig
 from project_command_support import raising

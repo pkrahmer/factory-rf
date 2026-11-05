@@ -5,11 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualClock
-from factory.domain.errors import SettingsInvalid
-from factory.domain.settings import InstanceSettings
 from factory.entry.run import main
 from factory.entry.wiring import health_store
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.errors import SettingsInvalid
+from factory.shared.domain.settings import InstanceSettings
 
 STAMP = r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ "
 TWO_REPOSITORIES = "https://example.invalid/a.git,https://example.invalid/b.git"

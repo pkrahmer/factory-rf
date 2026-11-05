@@ -6,8 +6,8 @@ import pytest
 
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.transcript_files import FileTranscriptStore
-from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries
+from factory.shared.domain.settings import InstanceSettings
 from wiring_support import CREDENTIAL, with_dataset
 
 

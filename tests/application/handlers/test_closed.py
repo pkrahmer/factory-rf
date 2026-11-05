@@ -12,12 +12,12 @@ from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.costs import BillService
 from factory.application.handlers.closed import ClosedHandler
-from factory.domain.errors import PushFailed
 from factory.domain.events import Event
 from factory.domain.git import ChangedPath
 from factory.domain.journal import HUMAN, JournalRecord
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.shared.domain.errors import PushFailed
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from git_support import remote_commit, run_git
 from human_clone import HumanClone
 

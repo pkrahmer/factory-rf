@@ -16,8 +16,8 @@ from factory.adapters.zfs_snapshots import ZfsSnapshots
 from factory.application.project_commands import RecordingProjectCommands
 from factory.application.tick import Tick
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
-from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import build_boundaries, build_tick
+from factory.shared.domain.settings import InstanceSettings
 from podman_support import IMAGE
 from recording_stand_in_support import recorded_calls, recording_stand_in
 from wiring_support import CREDENTIAL, every_tool

@@ -29,8 +29,8 @@ from factory.application.containers import ContainerRuns
 from factory.application.stage_environment import ContainerEnvironment
 from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
-from factory.domain.errors import ContainerError, SnapshotError
 from factory.domain.git import CommitId
+from factory.shared.domain.errors import ContainerError, SnapshotError
 from git_support import AGENT_FILE, install_agents, run_git, write_agent, write_files
 from human_clone import HumanClone
 from undo_support import BRANCH, start_stage

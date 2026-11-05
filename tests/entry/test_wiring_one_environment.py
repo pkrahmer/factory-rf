@@ -11,9 +11,9 @@ from factory.adapters.opencode_runtime import OpencodeRuntime
 from factory.adapters.podman_runs import PodmanRuns
 from factory.adapters.zfs_snapshots import ZfsSnapshots
 from factory.application.project_commands import RecordingProjectCommands
-from factory.domain.errors import SettingsInvalid
-from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import agent_run_environment, build_boundaries
+from factory.shared.domain.errors import SettingsInvalid
+from factory.shared.domain.settings import InstanceSettings
 from podman_support import IMAGE, Podman
 from wiring_support import CREDENTIAL, HOSTED_URL, record_get_repo
 from zfs_support import DATASET, Zfs

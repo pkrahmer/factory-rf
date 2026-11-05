@@ -9,9 +9,9 @@ from factory.application.acceptance import AcceptanceService
 from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
 from factory.domain.acceptance import AcceptanceState
-from factory.domain.errors import WorkItemFormatError
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.shared.domain.errors import WorkItemFormatError
 from git_support import run_git
 from human_clone import HumanClone
 

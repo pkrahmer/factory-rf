@@ -6,7 +6,7 @@ import pytest
 
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
-from factory.domain.paths import cost_records_path
+from factory.shared.domain.paths import cost_records_path
 from git_support import run_git
 from human_clone import HumanClone
 from take_support import (

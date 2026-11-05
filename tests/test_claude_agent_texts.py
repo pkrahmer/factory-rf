@@ -4,7 +4,7 @@ import re
 
 import pytest
 
-from factory.domain.sections import section_text
+from factory.shared.domain.sections import section_text
 from shipped_agents import (
     SHIPPED_AGENTS,
     SHIPPED_NAMES,

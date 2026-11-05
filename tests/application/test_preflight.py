@@ -13,7 +13,7 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import MachineChecks, tool_item
 from factory.domain.preflight import PreflightItem
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 
 PINNED = "2.1.289"
 FIVE = [

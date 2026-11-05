@@ -8,10 +8,10 @@ import pytest
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.boundaries import Boundaries
 from factory.application.work_items import RemoteWorkItems
-from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalKind, JournalRecord
 from factory.domain.move_rule import StageChange
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.shared.domain.identifiers import branch_name
 from git_support import clone, commit_all, run_git, write_files
 from human_clone import HumanClone
 

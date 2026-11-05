@@ -5,7 +5,7 @@ import select
 import sys
 import threading
 
-from factory.adapters.process import Stream
+from factory.shared.adapters.process import Stream
 
 # A kill takes effect asynchronously: right after it, a busy machine may still run the process.
 GONE_WITHIN_SECONDS = 5.0

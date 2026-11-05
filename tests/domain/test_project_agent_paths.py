@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 
 from factory.domain.agent_runs import WritePathSettings
-from factory.domain.paths import PROJECT_AGENTS_DIRECTORY, project_agent_file
 from factory.domain.write_paths import PROTECTED_PATHS, matches_any, refusal
+from factory.shared.domain.paths import PROJECT_AGENTS_DIRECTORY, project_agent_file
 
 
 def test_the_project_agent_file_lies_in_the_project_agents_directory() -> None:

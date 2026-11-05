@@ -1,7 +1,7 @@
 """The pipeline definition's refusal error and the placeholders of its write paths."""
 
-from factory.domain.errors import FactoryError, PipelineDefinitionInvalid
 from factory.domain.pipeline_definition import FEATURE_PLACEHOLDER, WORK_ITEM_PLACEHOLDER
+from factory.shared.domain.errors import FactoryError, PipelineDefinitionInvalid
 
 
 def test_pipeline_definition_invalid_carries_its_fault_as_message() -> None:

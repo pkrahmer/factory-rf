@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import ProcessResult
+from factory.shared.adapters.process import ProcessResult
 from git_support import clone, run_git
 from operator_skill_support import (
     PREFIX,

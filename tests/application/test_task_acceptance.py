@@ -9,11 +9,11 @@ from factory.application.boundaries import Boundaries
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
 from factory.domain.acceptance import AcceptanceState, acceptance_prompt
 from factory.domain.agent_runs import AgentDefinition
-from factory.domain.errors import WorkItemFormatError
-from factory.domain.paths import STORY_FORM_FILE
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.prompts import PromptFacts, allowed_decisions, compose_prompt
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.shared.domain.errors import WorkItemFormatError
+from factory.shared.domain.paths import STORY_FORM_FILE
 from git_support import run_git
 from human_clone import HumanClone
 

@@ -39,14 +39,14 @@ def _route(node: ast.AST) -> set[str]:
 
 
 def routes_to_a_process(tree: ast.Module) -> set[str]:
-    """The routes to a process other than `factory.adapters.process` that `tree` uses."""
+    """The routes to a process other than `factory.shared.adapters.process` that `tree` uses."""
     return {route for node in ast.walk(tree) for route in _route(node)}
 
 
 def test_only_the_process_wrapper_imports_subprocess() -> None:
     importers = {name for name, tree in modules().items() if imports(tree, "subprocess")}
 
-    assert importers == {"factory.adapters.process"}
+    assert importers == {"factory.shared.adapters.process"}
 
 
 def test_no_module_uses_another_route_to_a_process() -> None:
@@ -67,7 +67,9 @@ def test_the_only_suppression_markers_are_the_four_in_the_process_wrapper() -> N
             found = {match.strip() for match in MARKER.findall(line)}
             if found:
                 markers.setdefault(path.relative_to(SRC).as_posix(), {})[number] = found
-    process_lines = (SRC / "adapters" / "process.py").read_text(encoding="utf-8").splitlines()
+    process_lines = (
+        (SRC / "shared" / "adapters" / "process.py").read_text(encoding="utf-8").splitlines()
+    )
     import_line = next(
         number
         for number, line in enumerate(process_lines, start=1)
@@ -80,7 +82,7 @@ def test_the_only_suppression_markers_are_the_four_in_the_process_wrapper() -> N
     )
 
     assert markers == {
-        "adapters/process.py": {
+        "shared/adapters/process.py": {
             import_line: {"noqa: S404", "nosec B404"},
             popen_line: {"noqa: S603", "nosec B603"},
         },

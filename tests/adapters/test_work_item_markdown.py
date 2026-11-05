@@ -11,10 +11,10 @@ from factory.adapters.work_item_markdown import (
     FrontmatterWorkItemWriter,
     RuamelYamlHandler,
 )
-from factory.application.files import WorkItemReader, WorkItemWriter
-from factory.domain.errors import WorkItemFormatError
 from factory.domain.journal import JournalRecord
 from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState, initial_state
+from factory.shared.application.files import WorkItemReader, WorkItemWriter
+from factory.shared.domain.errors import WorkItemFormatError
 from source_search import imports, modules
 
 STARTED_AT = datetime(2026, 10, 13, 8, 30, tzinfo=UTC)

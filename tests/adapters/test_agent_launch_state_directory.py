@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from factory.adapters.agent_launch import make_state_directory
-from factory.domain.errors import AgentRuntimeError
+from factory.shared.domain.errors import AgentRuntimeError
 
 
 def _nothing(root: Path) -> None:

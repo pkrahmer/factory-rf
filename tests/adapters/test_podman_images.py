@@ -10,9 +10,9 @@ from pydantic import BaseModel, ConfigDict
 
 from factory.adapters.podman_images import PodmanImages
 from factory.domain.containers import JOB_PODMAN_OPTIONS, SYSTEM_PATH
-from factory.domain.errors import ContainerError
-from factory.domain.settings import ContainerProfileName
 from factory.domain.stage_layer import stage_layer
+from factory.shared.domain.errors import ContainerError
+from factory.shared.domain.settings import ContainerProfileName
 from run_layout_support import read_records, write_script
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 

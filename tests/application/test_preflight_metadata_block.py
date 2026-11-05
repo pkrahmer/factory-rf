@@ -9,7 +9,7 @@ import preflight_support
 from factory.application.preflight import MachineChecks, Preflight, metadata_block_item
 from factory.application.stops import StopService
 from factory.domain.containers import ContainerResult
-from factory.domain.errors import ContainerError
+from factory.shared.domain.errors import ContainerError
 from preflight_support import IMAGE, Rig
 
 rig = preflight_support.rig

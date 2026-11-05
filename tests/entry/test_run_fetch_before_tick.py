@@ -16,13 +16,13 @@ from factory.application.hosting import HostingService
 from factory.application.images import Images
 from factory.application.tick import Tick, TickOutcome
 from factory.domain.containers import SYSTEM_PATH
-from factory.domain.errors import GitError
 from factory.domain.git import GitOptions
-from factory.domain.settings import InstanceSettings
 from factory.domain.stage_layer import STAGE_FILE, project_image_tag, stage_layer
 from factory.domain.stops import RepositoryStop
 from factory.entry.run import run_instance
 from factory.entry.wiring import git_options, health_store
+from factory.shared.domain.errors import GitError
+from factory.shared.domain.settings import InstanceSettings
 from human_clone import HumanClone
 from log_support import state_log_lines
 from remote_outage_support import RemoteOutage, fetch_failed

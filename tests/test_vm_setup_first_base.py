@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import ProcessResult
+from factory.shared.adapters.process import ProcessResult
 from git_support import write_executable
 from vm_support import REQUIRED, SYSTEM_PATH, in_order, run_setup, step_texts
 

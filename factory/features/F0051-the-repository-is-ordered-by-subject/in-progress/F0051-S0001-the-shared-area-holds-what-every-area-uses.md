@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T00:33:34.863004Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -74,6 +70,12 @@ journal:
   kind: started
   at: '2026-11-05T00:33:34.863004Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-11-05T00:37:45.931707Z'
+  stage: tests
+  run: 0c1842dc4b9a45e485f0a9f50534b604
 ---
 
 # The shared area holds what every area uses
@@ -238,3 +240,22 @@ Expect: `1`
 
     Description unchanged: no journal entry changed the meaning of the task.
 11. factory: started tests as vm.
+12. tester: Mode: an approved test change. I made the test changes the coder listed in entry 10, under the Interface's leave of feature decision 5. The source code was already in place, so this run touched tests only.
+
+    What I changed:
+    1. Imports: every `factory.<layer>.<name>` reference to one of the 18 moved modules under `tests/` now names `factory.shared.<layer>.<name>`. A script made the rewrite and changed 406 files. I also rewrote the `from factory.<layer> import <name>` forms by hand in `tests/test_home_reset_removed.py`, `tests/test_one_stage_environment.py`, `tests/test_second_user_removed.py`, `tests/test_checkout_hygiene_removed.py`, `tests/domain/test_settings_model_rules.py`, `tests/adapters/test_process_result_fields.py`, `tests/adapters/test_process_drain.py`, `tests/adapters/test_zfs_snapshots.py` and `tests/adapters/test_podman_runs_results.py`. I split the mixed import lines in `tests/domain/test_default_git_identity.py` and `tests/test_leftovers_program_removed.py`. Then `ruff check --fix` and `ruff format` re-sorted and re-wrapped the imports.
+    2. Created `tests/shared/__init__.py`, `tests/shared/domain/__init__.py`, `tests/shared/application/__init__.py` and `tests/shared/adapters/__init__.py`, all empty. I moved with `git mv` the 60 test modules that `tests/test_areas.py::test_no_test_module_stays_in_its_layer_folder_when_all_it_imports_has_moved` listed: 47 from `tests/domain/`, 3 from `tests/application/` and 10 from `tests/adapters/`. Each went to the same layer under `tests/shared/`.
+    3. Paths:
+       - `tests/test_process_search.py` now reads `SRC / "shared" / "adapters" / "process.py"` and uses the key `"shared/adapters/process.py"`.
+       - `tests/entry/test_watch.py`: `_names_the_replaced_phrases` and the `document-check` row now point at `shared/domain/documents.py`.
+       - `tests/test_suite_old_names.py`: the two moved contract modules are now under `shared/domain/`. `domain/test_contract_provider_limit.py` did not move and is unchanged.
+       - `tests/test_suite_held_once.py`: the three settings modules are now under `shared/domain/`.
+    4. `tests/domain/test_hosting.py::_is_domain` now also counts `factory.shared.domain` and `factory.shared.domain.*` as the domain layer. The coder's note left out the bare package name. It is needed because `from factory.shared.domain import identifiers` records the import as `factory.shared.domain`, and `test_domain_modules_import_only_stdlib_pydantic_and_domain[factory.shared.domain.paths]` failed in my run until I added it.
+
+    Every test keeps its name and checks the same thing as before. `tests/test_areas.py` is unchanged and passes.
+
+    The one test run: `uv run pytest -q -n auto` over every changed or moved test module. Its only failure was the `_is_domain` case above. After the fix, `tests/domain/test_hosting.py` passes; I did not run the rest again. `make lint` is green and `uv run mypy --strict src tests` is clean (937 files). I did not run `make check`.
+
+    Not touched (the coder noted these in entry 10): `security/duplicates-baseline.txt` still names the old paths, and only the human can update it. `tests/adapters/test_work_item_markdown.py`'s module filter does not look at `factory.shared.*`.
+
+    `lint`: lint: green (0.1 s)

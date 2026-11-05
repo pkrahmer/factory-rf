@@ -9,7 +9,7 @@ import pytest
 
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.application.boundaries import Boundaries
-from factory.application.files import PipelineDefinitionReader
+from factory.shared.application.files import PipelineDefinitionReader
 
 
 def _class_source(cls: type[object]) -> ast.ClassDef:

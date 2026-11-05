@@ -8,8 +8,8 @@ import pytest
 
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
-from factory.domain.errors import PushFailed
-from factory.domain.kill_points import KillPoints
+from factory.shared.domain.errors import PushFailed
+from factory.shared.domain.kill_points import KillPoints
 from human_clone import HumanClone
 from push_retry_support import PushCase, open_push_case
 from stage_run_support import BRANCH, pushed_state

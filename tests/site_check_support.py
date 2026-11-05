@@ -7,7 +7,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import NamedTuple
 
-from factory.adapters.process import ProcessResult
+from factory.shared.adapters.process import ProcessResult
 from git_support import run_git, write_executable
 from operator_support import CURL_STAND_IN, make_work_tree, operator_environment, run_site
 from recording_stand_in_support import read_records

@@ -6,8 +6,6 @@ import pytest
 from pydantic import BaseModel, ValidationError
 
 from factory.domain.board import BoardRow, FeatureRow, feature_rows, render_board, work_item_row
-from factory.domain.identifiers import branch_name
-from factory.domain.paths import LifecycleFolder, work_item_path
 from factory.domain.work_item import (
     Claim,
     StoryFile,
@@ -15,6 +13,8 @@ from factory.domain.work_item import (
     WorkItemSnapshot,
     WorkItemState,
 )
+from factory.shared.domain.identifiers import branch_name
+from factory.shared.domain.paths import LifecycleFolder, work_item_path
 
 WORK_ITEM = "F0001-S0001"
 DIRECTORY = "F0001-demo"

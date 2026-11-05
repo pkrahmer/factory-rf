@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_process
 from vm_support import SERVICE, SYSTEM_PATH
 
 LOCAL = "factory.local.env"

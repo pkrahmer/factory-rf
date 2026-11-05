@@ -9,15 +9,15 @@ from factory.adapters.copy_snapshots import CopySnapshots
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.zfs_snapshots import ZfsSnapshots
 from factory.application.boundaries import Boundaries
-from factory.domain.errors import SettingsInvalid
-from factory.domain.settings import (
+from factory.entry.wiring import build_boundaries, machine_extras
+from factory.shared.domain.errors import SettingsInvalid
+from factory.shared.domain.settings import (
     SNAPSHOT_BASE_VARIABLE,
     STAGE_IMAGE_VARIABLE,
     WORKSPACE_VARIABLE,
     InstanceSettings,
     read_settings,
 )
-from factory.entry.wiring import build_boundaries, machine_extras
 from podman_support import IMAGE, Podman
 from settings_support import BASE, CONTAINER
 from wiring_support import CONTAINER_ITEMS, CREDENTIAL

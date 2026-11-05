@@ -12,7 +12,7 @@ from cost_image_support import (
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.costs import CostRecorder
-from factory.domain.settings import InstanceSettings
+from factory.shared.domain.settings import InstanceSettings
 from human_clone import HumanClone
 
 

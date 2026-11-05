@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.application.boundaries import Boundaries
+from factory.shared.adapters.clock import ManualClock
 from known_results_support import TIME_LIMIT, Rig, _answering, _result, _rig
 from torn_record_support import result_record, torn_inside
 

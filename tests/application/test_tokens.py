@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.atomic_file import replace_text
 from factory.application.tokens import TokenRefresher
-from factory.domain.errors import TokenError
 from factory.domain.tokens import Token
+from factory.shared.adapters.atomic_file import replace_text
+from factory.shared.domain.errors import TokenError
 from token_support import ScriptedTokenSource
 
 

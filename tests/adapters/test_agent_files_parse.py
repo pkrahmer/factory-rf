@@ -7,7 +7,7 @@ import pytest
 
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.domain.agent_runs import AgentDefinition
-from factory.domain.errors import AgentDefinitionError, AgentDefinitionInvalid
+from factory.shared.domain.errors import AgentDefinitionError, AgentDefinitionInvalid
 from git_support import AGENT_FILE, COLOURED_AGENT_FILE, write_agent
 
 Outcome = AgentDefinition | tuple[str, str, str, str]

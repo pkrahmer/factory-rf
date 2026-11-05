@@ -12,16 +12,16 @@ from factory.domain.acceptance import AcceptanceState
 from factory.domain.board import AcceptanceStatus
 from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event, EventKind
-from factory.domain.identifiers import FeatureId, branch_name
 from factory.domain.journal import FACTORY, NewEntry, append_entry, entry_text
-from factory.domain.paths import (
+from factory.domain.work_item import Blocked, WorkItemDocument
+from factory.entry.wiring import handler_factory
+from factory.shared.domain.identifiers import FeatureId, branch_name
+from factory.shared.domain.paths import (
     LifecycleFolder,
     cost_records_path,
     feature_file_path,
     work_item_path,
 )
-from factory.domain.work_item import Blocked, WorkItemDocument
-from factory.entry.wiring import handler_factory
 from git_support import PIPELINE_YAML, install_agents, remote_commit
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

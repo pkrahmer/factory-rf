@@ -2,13 +2,13 @@
 
 from datetime import timedelta
 
-from factory.adapters.clock import ManualClock
 from factory.application.acceptance import AcceptanceService
 from factory.application.boundaries import Boundaries
 from factory.domain.acceptance import AcceptanceState
-from factory.domain.identifiers import branch_name
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import Claim, WorkItemDocument, initial_state
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.identifiers import branch_name
 from human_clone import HumanClone
 
 FEATURES = "factory/features"

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import ProcessResult
+from factory.shared.adapters.process import ProcessResult
 from operator_support import ROOT, operator_environment, run_script
 
 SANITISE_COMMAND = ROOT / "operator" / "bin" / "sanitise"

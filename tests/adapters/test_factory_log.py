@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.application.machine import Clock
+from factory.shared.adapters.clock import ManualClock
 
 FRACTIONAL = datetime(2026, 10, 12, 12, 0, 7, 987654, tzinfo=UTC)
 

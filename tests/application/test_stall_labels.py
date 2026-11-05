@@ -13,11 +13,11 @@ from factory.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.application.stage import StageReport, StageRunner
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.errors import HostingServiceError
 from factory.domain.hosting import PostKey
-from factory.domain.identifiers import branch_name
 from factory.domain.journal import JournalRecord, entry_text
 from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.shared.domain.errors import HostingServiceError
+from factory.shared.domain.identifiers import branch_name
 from git_support import install_agents
 from human_clone import HumanClone
 from stage_run_support import ENVIRONMENT, INSTANCE, NOTES, pushed, pushed_state

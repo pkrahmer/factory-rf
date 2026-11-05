@@ -4,9 +4,9 @@ import pytest
 
 from factory.application.acceptance import SplitByWorkItemKind
 from factory.application.dispatcher import Handler
-from factory.domain.errors import CannotHandle
 from factory.domain.events import Event, EventKind
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.shared.domain.errors import CannotHandle
 
 REMOTE_STATE = "a" * 40
 

@@ -5,13 +5,13 @@ from collections.abc import Mapping
 
 import pytest
 
-from factory.adapters.clock import ManualClock
 from factory.application.boundaries import Boundaries
 from factory.application.hosting import HostingService
-from factory.domain.identifiers import Name
-from factory.domain.settings import InstanceSettings
 from factory.entry import watch
 from factory.entry.watch import main
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.identifiers import Name
+from factory.shared.domain.settings import InstanceSettings
 from human_clone import HumanClone
 from stage_run_support import INSTANCE
 from watch_support import STORY, aged_claim, push_story_claim

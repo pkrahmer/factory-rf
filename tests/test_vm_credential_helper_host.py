@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_process
 from vm_support import EXAMPLE_VALUE, HELPER, SYSTEM_PATH
 
 PROJECT_URL = "https://git.example.invalid/o/r.git"

@@ -2,7 +2,7 @@
 
 import pytest
 
-from factory.domain.sections import section_text
+from factory.shared.domain.sections import section_text
 from shipped_agents import SHIPPED_NAMES, WRITE_PATHS_RULE, agent_body
 
 _OLD_ENDING = (

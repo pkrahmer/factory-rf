@@ -6,9 +6,9 @@ from factory.adapters.git_cli import GitCli
 from factory.adapters.work_item_markdown import FrontmatterWorkItemReader
 from factory.application.boundaries import Boundaries
 from factory.application.work_items import RemoteWorkItems
-from factory.domain.errors import WorkItemFormatError
-from factory.domain.identifiers import branch_name
 from factory.domain.work_item import initial_state
+from factory.shared.domain.errors import WorkItemFormatError
+from factory.shared.domain.identifiers import branch_name
 from git_support import PIPELINE_YAML
 from human_clone import HumanClone
 

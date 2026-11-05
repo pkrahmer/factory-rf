@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-import factory.adapters.process
-from factory.adapters.process import ProcessRequest, run_process
+import factory.shared.adapters.process
+from factory.shared.adapters.process import ProcessRequest, run_process
 from search_support import modules_matching
 from vm_support import SETUP, SYSTEM_PATH, setup_code, step_texts
 
@@ -62,7 +62,7 @@ def _sessions_module_is_gone() -> bool:
 
 
 def _process_table_reader_is_gone() -> bool:
-    return not hasattr(factory.adapters.process, "read_process_table")
+    return not hasattr(factory.shared.adapters.process, "read_process_table")
 
 
 def _names_the_process_table(text: str) -> bool:

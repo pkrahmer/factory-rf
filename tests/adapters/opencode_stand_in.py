@@ -16,8 +16,8 @@ from factory.adapters.opencode_runtime import (
 )
 from factory.application.containers import ContainerRuns
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
-from factory.domain.kill_points import KillPoints
 from factory.domain.provider_limits import ProviderLimit
+from factory.shared.domain.kill_points import KillPoints
 
 CONFIG_MODES = "config-modes.jsonl"
 SESSION = "ses_a"

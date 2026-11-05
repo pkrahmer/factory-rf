@@ -10,8 +10,8 @@ import pytest
 
 from factory.adapters.git_cli import GitCli
 from factory.application.git import Git
-from factory.domain.errors import FetchFailed, GitError
 from factory.domain.git import GitOptions, RemoteBranch
+from factory.shared.domain.errors import FetchFailed, GitError
 from git_support import CHECKOUT, clone, commit_all, run_git, write_executable, write_files
 
 

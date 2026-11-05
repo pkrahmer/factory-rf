@@ -12,12 +12,12 @@ from factory.application.dispatcher import Dispatcher, DispatchOutcome, Handler
 from factory.application.handlers.lookups import DuplicateHandler, PullRequestLookupHandler
 from factory.application.handlers.questions import AskHandler
 from factory.application.stops import StopService
-from factory.domain.errors import CannotHandle
 from factory.domain.events import Event, EventKind
 from factory.domain.hosting import PostKey, PullRequestComment
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.tick_status import TickStatus
 from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
+from factory.shared.domain.errors import CannotHandle
 from git_support import remote_commit
 from human_clone import HumanClone
 

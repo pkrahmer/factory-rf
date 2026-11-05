@@ -8,9 +8,9 @@ import pytest
 
 from factory.adapters import podman_runs
 from factory.adapters.podman_runs import PodmanRuns
-from factory.adapters.process import ProcessResult
 from factory.domain.containers import Mount
-from factory.domain.errors import ContainerError
+from factory.shared.adapters.process import ProcessResult
+from factory.shared.domain.errors import ContainerError
 from podman_support import IMAGE, INSTANCE, Podman, PodmanPlan, launch_words
 from run_process_recorder import Recorder
 

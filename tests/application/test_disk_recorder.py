@@ -8,12 +8,12 @@ from pathlib import Path
 import pytest
 
 from disk_support import FakeDiskSpace
-from factory.adapters.clock import ManualClock
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.application.boundaries import Boundaries
 from factory.application.disk_records import DiskRecorder
 from factory.domain.disk import DiskOccasion, DiskRecord, DiskUse, disk_line
-from factory.domain.settings import InstanceSettings
+from factory.shared.adapters.clock import ManualClock
+from factory.shared.domain.settings import InstanceSettings
 from log_support import log_lines
 from record_support import UnwritableRecordLog
 

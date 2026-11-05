@@ -11,7 +11,7 @@ from claude_reply_support import BUDGET_STOP
 from factory.adapters.agent_launch import API_LOGIN_VARIABLE, LOGIN_VARIABLE
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.domain.agent_runs import Login
-from factory.domain.errors import AgentRuntimeError
+from factory.shared.domain.errors import AgentRuntimeError
 from run_process_recorder import Recorder
 
 REQUEST_LOGIN = "request-login"

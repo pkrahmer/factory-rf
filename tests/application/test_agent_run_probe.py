@@ -27,9 +27,9 @@ from factory.domain.agent_runs import (
     EndReason,
 )
 from factory.domain.cost_records import ToolUse
-from factory.domain.errors import AgentRuntimeError
-from factory.domain.settings import InstanceSettings
 from factory.domain.transcripts import Transcript
+from factory.shared.domain.errors import AgentRuntimeError
+from factory.shared.domain.settings import InstanceSettings
 from git_support import install_agents
 from human_clone import HumanClone
 from probe_support import COMPLETED, ENVIRONMENT

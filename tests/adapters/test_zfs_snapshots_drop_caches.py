@@ -9,9 +9,9 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.printed_output import no_end_detail
 from factory.adapters.zfs_snapshots import ZfsSnapshots
-from factory.domain.errors import SnapshotError
+from factory.shared.adapters.printed_output import no_end_detail
+from factory.shared.domain.errors import SnapshotError
 from time_limits import ROOMY_BOUND_SECONDS
 from zfs_support import DATASET, MOUNT_POINT, Answer, write_drop, write_zfs
 

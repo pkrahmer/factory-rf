@@ -13,7 +13,7 @@ from factory.adapters import opencode_runtime
 from factory.adapters.claude_runtime import ClaudeCodeRuntime
 from factory.adapters.fake_containers import FakeContainerRuns
 from factory.adapters.opencode_runtime import OpencodeRuntime
-from factory.adapters.process import ProcessRequest, ProcessResult, Stream
+from factory.shared.adapters.process import ProcessRequest, ProcessResult, Stream
 from run_process_recorder import Recorder
 
 PODMAN_TIMEOUT = 255

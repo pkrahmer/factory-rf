@@ -13,13 +13,13 @@ from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
 from factory.application.project_commands import RecordingProjectCommands
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.settings import InstanceSettings
 from factory.entry.wiring import (
     CREDENTIAL_HELPER,
     build_boundaries,
     git_environment,
     machine_extras,
 )
+from factory.shared.domain.settings import InstanceSettings
 from git_support import install_agents
 from podman_support import IMAGE, Podman
 from probe_support import ENVIRONMENT

@@ -5,7 +5,6 @@ from datetime import UTC, datetime
 
 import pytest
 
-from factory.domain.errors import HostingServiceError
 from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
 from factory.domain.events import Event
 from factory.domain.hosting import PullRequestComment, PullRequestState, PullRequestView
@@ -20,6 +19,7 @@ from factory.domain.work_item import (
     WorkItemState,
     initial_state,
 )
+from factory.shared.domain.errors import HostingServiceError
 
 MAIN = "a" * 40
 MERGE_COMMIT = "c" * 40

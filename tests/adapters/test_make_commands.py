@@ -8,11 +8,11 @@ import pytest
 
 from factory.adapters import make_commands
 from factory.adapters.make_commands import MakeProjectCommands
-from factory.adapters.process import ProcessResult
 from factory.application.project_commands import ProjectCommands
 from factory.domain.checks import TargetTime
-from factory.domain.errors import ProjectCommandError
-from factory.domain.kill_points import KillPoint, KillPoints
+from factory.shared.adapters.process import ProcessResult
+from factory.shared.domain.errors import ProjectCommandError
+from factory.shared.domain.kill_points import KillPoint, KillPoints
 from process_support import is_gone
 from run_process_recorder import Recorder
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT

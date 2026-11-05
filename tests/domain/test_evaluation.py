@@ -20,12 +20,12 @@ from evaluation_support import (
     _snapshot,
     _view,
 )
-from factory.domain.errors import HostingServiceError
 from factory.domain.evaluation import question_posted
 from factory.domain.hosting import PullRequestComment, PullRequestState
 from factory.domain.journal import JournalKind
 from factory.domain.lease import ClaimStatus
 from factory.domain.work_item import WorkItemSnapshot, WorkItemState, initial_state
+from factory.shared.domain.errors import HostingServiceError
 
 
 def _runnable(*, attempts: int = 0) -> WorkItemState:

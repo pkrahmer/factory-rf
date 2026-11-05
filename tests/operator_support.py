@@ -4,7 +4,7 @@ import os
 import re
 from pathlib import Path
 
-from factory.adapters.process import ProcessRequest, ProcessResult, run_process
+from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_process
 from git_support import run_git
 
 ROOT = Path(__file__).parent.parent

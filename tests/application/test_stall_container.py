@@ -16,11 +16,11 @@ from container_support import (
     started_with_sync,
     timing_lines,
 )
-from factory.adapters.clock import ManualClock
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.take import TakeReport
 from factory.domain.agent_runs import AgentRunResult
+from factory.shared.adapters.clock import ManualClock
 from git_support import write_files
 from human_clone import HumanClone
 from stage_run_support import (

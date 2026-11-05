@@ -10,9 +10,9 @@ import factory.entry.run as run_module
 from factory.adapters.fake_hosting import FakeHostingService
 from factory.application.boundaries import Boundaries
 from factory.application.tick import Tick, TickOutcome
-from factory.domain.settings import InstanceSettings
 from factory.domain.stage_layer import STAGE_FILE
 from factory.entry.run import run_instance
+from factory.shared.domain.settings import InstanceSettings
 from human_clone import HumanClone
 from log_support import state_log_lines
 from sized_images import BASE_BYTES, PROJECT_BYTES, SizedImages, sized_by_tag

@@ -9,12 +9,12 @@ from factory.adapters.fake_hosting import FakeHostingService
 from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.stops import StopService
-from factory.domain.errors import GitError, HostingServiceError
 from factory.domain.git import GitOptions
 from factory.domain.hosting import PostKey
-from factory.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.domain.post_texts import opened_for_stop_description
 from factory.domain.stops import StopPosted, WorkItemStop
+from factory.shared.domain.errors import GitError, HostingServiceError
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from git_support import TEST_IDENTITY, run_git
 from human_clone import HumanClone
 

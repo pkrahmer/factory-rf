@@ -16,7 +16,7 @@ from factory.adapters.cost_records_jsonl import (
     JsonLinesCostRecordWriter,
 )
 from factory.domain.cost_records import CostRecord
-from factory.domain.errors import CostRecordFormatError
+from factory.shared.domain.errors import CostRecordFormatError
 
 
 def _with_instance(record: CostRecord) -> CostRecord:

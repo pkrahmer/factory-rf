@@ -10,7 +10,7 @@ from factory.adapters.git_cli import GitCli
 from factory.application.boundaries import Boundaries
 from factory.application.tick import IdleHandler, Tick, TickOutcome
 from factory.domain.git import GitOptions
-from factory.domain.kill_points import KillPoints
+from factory.shared.domain.kill_points import KillPoints
 from git_support import CHECKOUT, TEST_IDENTITY
 from remote_outage_support import move_remote_away
 from stage_run_support import INSTANCE
