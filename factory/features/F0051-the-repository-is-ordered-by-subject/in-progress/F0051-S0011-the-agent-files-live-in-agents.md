@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T08:02:22.380627Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-05T08:02:16.171759Z'
   stage: tests
   run: eebe2efb96234aa68b00d232462a8da2
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:02:22.380627Z'
+  stage: doing
 ---
 
 # The agent files live in `agents/`
@@ -156,3 +165,4 @@ Expect: `1`
    I ran the touched test files once. They fail as expected: the tick test, the three guard rows and the container mount test show in the last five lines. The others read `agents/`, which does not exist yet. Every module imported, so no module was missing. `make lint` is green.
 
    `lint`: lint: green (0.2 s)
+9. factory: started doing as vm.
