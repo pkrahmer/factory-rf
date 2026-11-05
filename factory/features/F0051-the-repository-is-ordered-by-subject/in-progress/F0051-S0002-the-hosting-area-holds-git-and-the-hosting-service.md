@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 557
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T01:06:17.478196Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-05T01:06:11.767541Z'
   stage: intake
   run: 5e6779303a574eaf999e8c8cb8ee7694
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:06:17.478196Z'
+  stage: tests
 ---
 
 # The hosting area holds git and the hosting service
@@ -95,3 +104,4 @@ Expect: `1`
    - Smoke test: the three commands are runnable. pyproject's `addopts` already sets `-q`, and the pytest command passes none, so the summary line exists and `grep -c passed` gives `1`. Each `Expect:` can be checked against the output.
    - Architecture: matches `CLAUDE.md` and feature decisions 1 to 4. Each module keeps its layer inside `factory.hosting`, and the layer rule is covered by the import-linter contracts that S0001 set.
    - Scope: within F0051's scope (S0002, the hosting area). The story changes no behaviour, and the test moves rest on the leave of feature decision 5. Nothing in it is out of scope.
+4. factory: started tests as vm.
