@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T00:47:32.022958Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-11-05T00:47:26.706427Z'
   stage: review
   run: b63cce3fe42e44818203d3856178176d
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:47:32.022958Z'
+  stage: doing
 ---
 
 # The shared area holds what every area uses
@@ -736,3 +745,4 @@ Expect: `1`
     tests/domain/test_settings_url_edges.py -> tests/shared/domain/ [mv]
     tests/domain/test_unhandled_event.py -> tests/shared/domain/ [mv]
     tests/domain/test_work_item_errors.py -> tests/shared/domain/ [mv]
+17. factory: started doing as vm.
