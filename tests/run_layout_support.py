@@ -8,8 +8,8 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from factory.application.agent_runtime import AgentRuntime
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
+from factory.agents.application.agent_runtime import AgentRuntime
+from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.shared.domain.errors import AgentRuntimeError
 
 LIMIT = timedelta(seconds=30)

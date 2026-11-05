@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.domain import agent_runs, write_paths
+from factory.agents.domain import agent_runs, write_paths
 from module_names import has_name
 from run_layout_support import Layout, build_layout
 from search_support import TESTS, modules_matching
@@ -24,7 +24,7 @@ def _planted(tmp_path: Path) -> Path:
     root = tmp_path / "src" / "factory"
     root.mkdir(parents=True)
     (root / "planted.py").write_text(
-        "from factory.domain.agent_runs import GuardSettings\n", encoding="utf-8"
+        "from factory.agents.domain.agent_runs import GuardSettings\n", encoding="utf-8"
     )
     return root
 
@@ -33,10 +33,14 @@ def _planted(tmp_path: Path) -> Path:
     ("check", "expected"),
     [
         pytest.param(
-            lambda: has_name("factory.domain.agent_runs", "WritePathSettings"), True, id="new-name"
+            lambda: has_name("factory.agents.domain.agent_runs", "WritePathSettings"),
+            True,
+            id="new-name",
         ),
         pytest.param(
-            lambda: has_name("factory.domain.agent_runs", "GuardSettings"), False, id="old-name"
+            lambda: has_name("factory.agents.domain.agent_runs", "GuardSettings"),
+            False,
+            id="old-name",
         ),
         pytest.param(
             lambda: list(agent_runs.WritePathSettings.model_fields),

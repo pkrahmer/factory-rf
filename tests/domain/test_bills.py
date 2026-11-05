@@ -6,7 +6,7 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from factory.domain.agent_runs import EndReason, TokenCounts
+from factory.agents.domain.agent_runs import EndReason, TokenCounts
 from factory.domain.bills import Bill, StageBill, bill, bills_by_stage, cost_line, cost_table
 from factory.domain.cost_records import CostRecord
 

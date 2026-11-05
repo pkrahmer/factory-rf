@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.domain.opencode_provider import read_provider
+from factory.agents.domain.opencode_provider import read_provider
 from git_support import commit_all, run_git
 from operator_job_support import (
     BARE,

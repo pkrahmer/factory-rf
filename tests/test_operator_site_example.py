@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.domain.opencode_provider import read_provider
+from factory.agents.domain.opencode_provider import read_provider
 from operator_job_support import INSTANCE, TAG, job_runner, make_job_repository, provider_text
 from operator_support import (
     INTERFACE_KEYS,

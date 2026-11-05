@@ -8,11 +8,11 @@ import pytest
 
 import factory.application.stage
 from definition_support import pipeline_definition
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.stage import AfterAgent, AgentAftermath
 from factory.application.stalls import StallResult
-from factory.domain.agent_runs import AgentRunResult
 from factory.work.domain.decisions import StallReason
 from factory.work.domain.work_item import WorkItemState
 from git_support import install_agents

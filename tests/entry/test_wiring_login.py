@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from adapters.claude_stand_in import REPLY, claude_request
-from factory.adapters.agent_launch import LoginFiles, login_argv
+from factory.agents.adapters.agent_launch import LoginFiles, login_argv
 from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.settings import InstanceSettings

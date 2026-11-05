@@ -4,7 +4,7 @@ from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult
+from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest, AgentRunResult
 
 COMPLETED = AgentRunResult(
     end_reason="completed", decision="question", entry="done", duration=timedelta(seconds=5)

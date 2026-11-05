@@ -9,9 +9,9 @@ import pytest
 from adapters.claude_stand_in import REPLY
 from adapters.opencode_stand_in import write_agent_settings
 from container_extra_support import COMMIT, OTHER, PROXY, env_words, volume, write_bundle
+from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.application.project_commands import RecordingProjectCommands
 from factory.application.stage_environment import stage_environment_of
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.containers import CA_BUNDLE_NAMES
 from factory.entry.wiring import build_boundaries
 from factory.hosting.adapters.fake_hosting import FakeHostingService

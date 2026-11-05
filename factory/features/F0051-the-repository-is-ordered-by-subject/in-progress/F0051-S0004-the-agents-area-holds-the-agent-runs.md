@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 559
 comments_read: [6648033321]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T02:30:53.327119Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-05T02:30:53.327119Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-11-05T02:34:06.421781Z'
+  stage: tests
+  run: 6c888f24a35c484092cf37a031d63260
 ---
 
 # The agents area holds the agent runs
@@ -223,3 +225,43 @@ Expect: `1`
 
     What remains open, as entry 7 and the human's answer say: the old-path lines in `security/duplicates-baseline.txt`, `CLAUDE.md` line 19, and the old `pyproject.toml` keys all wait for the merge. The docs belong to the docs stage.
 11. factory: started tests as vm.
+12. tester: Mode: the test change the human approved (answer (a) in entry 8; the change list is in the coder's entries 7 and 10, under the leave of feature decision 5). I made exactly the three changes listed. Every test keeps its name and checks the same thing. `tests/test_areas.py` is untouched.
+
+    1. **Import paths.** I ran sed over `tests/`, leaving out `tests/test_areas.py`, with the coder's regex: `factory.<layer>.<name>` for the 19 moved modules became `factory.agents.<layer>.<name>`. That changed 192 files.
+       - I rewrote or split the `from factory.<layer> import ...` lines in nine files:
+         - `tests/conftest.py`: `podman_runs` stays in `factory.adapters`, `claude_runtime` now comes from `factory.agents.adapters`.
+         - `tests/test_second_user_removed.py`: `make_commands` stays, `agent_launch` moves.
+         - `tests/test_removed_layer_names.py`: now `from factory.agents.domain import agent_runs, write_paths`.
+         - `tests/test_home_reset_removed.py`, `tests/test_leftovers_program_removed.py`, `tests/adapters/test_runtimes_without_wrapper.py`, `tests/adapters/test_opencode_runtime_container.py` and `tests/adapters/test_runtime_podman_timeout_status.py`: now import from `factory.agents.adapters`.
+         - `tests/adapters/test_calls_as_the_factory_user.py`: the same, before step 3 moved it to `tests/agents/adapters/`.
+       - Then I ran `ruff check --fix tests` and `ruff format tests` (2 files reformatted).
+    2. **Path references to moved test files:**
+       - `tests/test_no_agent_login.py:11` now reads `/ "agents" / "adapters" /`.
+       - `tests/test_suite_held_once.py:123` now names `agents/adapters/test_claude_runtime_no_hook.py`.
+       - `EXEMPT_FILE` in `tests/test_tests_run_under_the_starting_umask.py` is now `agents/adapters/test_calls_as_the_factory_user.py`.
+       - A grep found no other reference to the old paths of the moved test modules in `tests/`, `src/` or `pyproject.toml`.
+    3. **Moved test modules.** I created empty `tests/agents/__init__.py`, `tests/agents/domain/__init__.py`, `tests/agents/application/__init__.py` and `tests/agents/adapters/__init__.py`. Then I moved the 55 test modules of entry 7 with `git mv`: 18 from `tests/domain/`, 1 from `tests/application/` and 36 from `tests/adapters/`, each into the same layer folder under `tests/agents/`.
+
+    Criterion → test mapping is unchanged from entry 5:
+    - criterion 1: tests/test_areas.py::test_a_moved_module_imports_from_its_area_and_is_gone_from_its_layer
+    - criterion 2: tests/test_areas.py::test_an_area_package_imports_and_has_a_docstring
+    - criterion 3: tests/test_areas.py::test_no_file_imports_a_moved_module_from_its_old_path
+    - criterion 4: tests/test_areas.py::test_no_test_module_stays_in_its_layer_folder_when_all_it_imports_has_moved, and tests/test_areas.py::test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own
+    - criteria 5 and 6: the closing ones, not tested here.
+
+    **Files.**
+    - Created: the four `__init__.py` files under `tests/agents/`.
+    - Moved: the 55 modules above.
+    - Changed, all written by earlier stories (the leave of feature decision 5, which the human's answer confirms): the moved modules, plus the 192 files of step 1, including `tests/conftest.py`, the support modules and the three files of step 2.
+
+    **Run.** One run of `uv run pytest -q` over `tests/test_areas.py`, `tests/agents` and the changed top-level and adapter files:
+    - The tail showed only progress dots up to `[100%]`, with no failures shown.
+    - No module failed to import.
+    - `make lint`: lint: green (0.1 s).
+    - I did not run the whole `make test`; the coder's `make check` covers it.
+
+    **Open, as entries 7, 8 and 10 say:**
+    - The old paths in `security/duplicates-baseline.txt` and `CLAUDE.md` line 19, and the old `pyproject.toml` keys, wait for the merge.
+    - The docs belong to the docs stage.
+
+    `lint`: lint: green (0.1 s)

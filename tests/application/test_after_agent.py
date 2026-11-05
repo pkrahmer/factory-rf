@@ -6,17 +6,17 @@ from pathlib import Path
 import pytest
 
 from definition_support import pipeline_definition
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
-from factory.application.boundaries import Boundaries
-from factory.application.stage import AfterAgent, AgentAftermath, LaunchedStage, StageLauncher
-from factory.application.stalls import StallResult
-from factory.application.task import StoryFormChecker
-from factory.domain.agent_runs import (
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import (
     QUESTION,
     AgentRunResult,
     EndReason,
     PermissionDenial,
 )
+from factory.application.boundaries import Boundaries
+from factory.application.stage import AfterAgent, AgentAftermath, LaunchedStage, StageLauncher
+from factory.application.stalls import StallResult
+from factory.application.task import StoryFormChecker
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.application.opening import WorkItemOpening
 from factory.shared.adapters.clock import ManualClock

@@ -4,9 +4,9 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime
-from factory.application.agent_runtime import AgentRuntime
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.agents.application.agent_runtime import AgentRuntime
+from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.cost_records import ToolUse
 from factory.domain.transcripts import Transcript
 from factory.hosting.adapters.fake_hosting import FakeHostingService

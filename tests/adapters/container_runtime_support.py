@@ -5,7 +5,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from adapters.opencode_stand_in import opencode_request
-from factory.domain.agent_runs import AgentRunRequest
+from factory.agents.domain.agent_runs import AgentRunRequest
 from factory.domain.containers import WORK_HOME, Mount
 
 LANG = "C.UTF-8"

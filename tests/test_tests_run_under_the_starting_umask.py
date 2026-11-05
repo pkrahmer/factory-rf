@@ -4,7 +4,7 @@ import ast
 from pathlib import Path
 
 TESTS = Path(__file__).parent
-EXEMPT_FILE = "adapters/test_calls_as_the_factory_user.py"
+EXEMPT_FILE = "agents/adapters/test_calls_as_the_factory_user.py"
 EXEMPT_FUNCTION = "umask_of"
 
 

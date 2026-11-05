@@ -6,11 +6,11 @@ from decimal import Decimal
 from pathlib import Path
 
 from adapters.claude_stand_in import Step, write_stand_in
-from factory.adapters.claude_runtime import (
+from factory.agents.adapters.claude_runtime import (
     VERSION_TIME_LIMIT,
     ClaudeCodeRuntime,
 )
-from factory.domain.agent_runs import (
+from factory.agents.domain.agent_runs import (
     AgentDefinition,
     AgentRunRequest,
 )

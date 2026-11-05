@@ -4,7 +4,8 @@ from datetime import timedelta
 from pathlib import Path
 
 from definition_support import pipeline_definition
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import Handler
 from factory.application.handlers.closed import ClosedHandler
@@ -17,7 +18,6 @@ from factory.application.handlers.reject import RejectHandler
 from factory.application.handlers.run import RunHandler
 from factory.application.handlers.run_gate import RunGate
 from factory.application.tick import IdleHandler, Tick
-from factory.domain.agent_runs import AgentRunResult
 from factory.domain.events import EventKind
 from factory.entry.wiring import build_handlers
 from factory.work.application.acceptance import (

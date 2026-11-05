@@ -11,18 +11,18 @@ from typing import Final
 
 from container_support import fake_dataset
 from disk_support import FakeDiskSpace
-from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordReader, JsonLinesCostRecordWriter
 from factory.adapters.factory_log import TimestampedFactoryLog
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.make_commands import MakeProjectCommands
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.adapters.record_log_jsonl import JsonLinesRecordLog
+from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.costs import read_cost_records
 from factory.application.tick import Tick
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.cost_records import CostRecord
 from factory.domain.disk import DiskRecord
 from factory.domain.known_results import ResultRecord

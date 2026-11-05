@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 from factory.adapters.cost_records_jsonl import JsonLinesCostRecordWriter
-from factory.domain.agent_runs import TokenCounts
+from factory.agents.domain.agent_runs import TokenCounts
 from factory.domain.cost_records import CostRecord
 
 STAGES = ("tests", "doing", "review")

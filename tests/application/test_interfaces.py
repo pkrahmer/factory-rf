@@ -10,7 +10,7 @@ from typing import get_type_hints
 
 import pytest
 
-from factory.application.agent_runtime import AgentRuntime
+from factory.agents.application.agent_runtime import AgentRuntime
 from factory.application.containers import ContainerRuns
 from factory.application.project_commands import ProjectCommands
 from factory.application.snapshots import Snapshots

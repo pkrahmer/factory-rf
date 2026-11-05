@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.shared.domain.paths import cost_records_path
 from factory.work.domain.journal import entry_text

@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 
 from agent_definition_support import COMPLETED
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.application.project_agents import ProjectAgentDefinitions
 from factory.application.boundaries import Boundaries
-from factory.application.project_agents import ProjectAgentDefinitions
 from factory.application.tick import Tick
 from factory.entry.wiring import handler_factory
 from git_support import PIPELINE_YAML, install_agents

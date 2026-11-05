@@ -20,10 +20,10 @@ from adapters.opencode_stand_in import (
     tool_use,
     write_opencode,
 )
-from factory.adapters.opencode_runtime import OpencodeRuntime
+from factory.agents.adapters.opencode_runtime import OpencodeRuntime
+from factory.agents.domain.agent_runs import AgentRunResult, PermissionDenial, TokenCounts
 from factory.application.boundaries import Boundaries
 from factory.application.costs import CostRecorder, CostRun
-from factory.domain.agent_runs import AgentRunResult, PermissionDenial, TokenCounts
 from factory.domain.cost_records import CostRecord
 from opencode_events_support import WAIT_SECONDS
 from time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT

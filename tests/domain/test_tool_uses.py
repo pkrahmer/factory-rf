@@ -5,8 +5,8 @@ from collections.abc import Callable
 
 import pytest
 
+from factory.agents.domain.tool_uses import claude_tool_uses, opencode_tool_uses
 from factory.domain.cost_records import ToolUse
-from factory.domain.tool_uses import claude_tool_uses, opencode_tool_uses
 from tool_use_support import Call, claude_lines, opencode_lines
 
 Reading = Callable[[list[Call]], list[ToolUse] | None]

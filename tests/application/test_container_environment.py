@@ -23,11 +23,11 @@ from container_support import (
     push_main,
     sync_makefile,
 )
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.containers import ContainerRuns
 from factory.application.stage_environment import ContainerEnvironment
-from factory.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.hosting.domain.git import CommitId
 from factory.shared.domain.errors import ContainerError, SnapshotError

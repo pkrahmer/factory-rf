@@ -2,7 +2,7 @@
 
 from datetime import timedelta
 
-from factory.domain.agent_runs import AgentRunResult, EndReason, Login
+from factory.agents.domain.agent_runs import AgentRunResult, EndReason, Login
 
 ENVIRONMENT = {"PATH": "/opt/factory/bin:/usr/bin", "HOME": "/home/agent", "LANG": "C.UTF-8"}
 COMPLETED = AgentRunResult(

@@ -9,10 +9,15 @@ from pathlib import Path
 import pytest
 
 from adapters.claude_stand_in import Step, read_calls, write_stand_in
-from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
-from factory.application.agent_runtime import AgentRuntime
+from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.application.agent_runtime import AgentRuntime
+from factory.agents.domain.agent_runs import (
+    AgentRunRequest,
+    AgentRunResult,
+    EndReason,
+)
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import (
     PROBE_PROMPT,
@@ -21,11 +26,6 @@ from factory.application.preflight import (
     agent_run_probe_item,
 )
 from factory.application.stops import StopService
-from factory.domain.agent_runs import (
-    AgentRunRequest,
-    AgentRunResult,
-    EndReason,
-)
 from factory.domain.cost_records import ToolUse
 from factory.domain.transcripts import Transcript
 from factory.shared.domain.errors import AgentRuntimeError

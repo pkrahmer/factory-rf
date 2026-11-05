@@ -5,10 +5,10 @@ from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult
+from factory.agents.domain.provider_limits import ProviderLimit
 from factory.application.boundaries import Boundaries
-from factory.domain.agent_runs import AgentRunResult
-from factory.domain.provider_limits import ProviderLimit
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from factory.shared.domain.paths import cost_records_path

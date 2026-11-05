@@ -4,10 +4,10 @@ from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.stage import LaunchedStage, StageLauncher
-from factory.domain.agent_runs import AgentRunResult
 from factory.hosting.application.opening import WorkItemOpening
 from factory.shared.domain.settings import InstanceSettings
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState

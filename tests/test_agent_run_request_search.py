@@ -20,7 +20,7 @@ def _builds_a_request(tree: ast.Module) -> bool:
 
 
 def _must_not_read_the_process_environment(name: str) -> bool:
-    return name == "factory.adapters.claude_runtime" or any(
+    return name == "factory.agents.adapters.claude_runtime" or any(
         name == layer or name.startswith(f"{layer}.") for layer in WITHOUT_PROCESS_ENVIRONMENT
     )
 

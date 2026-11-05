@@ -11,8 +11,8 @@ from container_support import (
     assert_taken_and_pushed,
     whole_stage,
 )
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.adapters.make_commands import ContainerMakeCommands
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.stage import StageReport
 from factory.application.stage_environment import ContainerEnvironment

@@ -10,9 +10,9 @@ import pytest
 
 from agent_definition_support import COMPLETED
 from container_extra_support import CHECK_LIMIT, COMMIT, env_words
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.adapters.fake_images import FakeImages
 from factory.adapters.podman_images import PodmanImages
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.images import Images
 from factory.application.stage_environment import stage_environment_of

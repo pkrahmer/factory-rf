@@ -6,11 +6,11 @@ from pathlib import Path
 import pytest
 
 from container_support import RESET_PREFIX, timing_lines
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.domain.agent_runs import AgentDefinition, AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import agent_run_probe_item
 from factory.application.task import TaskComposer, TaskContext
-from factory.domain.agent_runs import AgentDefinition, AgentRunResult
 from factory.shared.domain.settings import InstanceSettings
 from factory.work.domain.journal import entry_text
 from factory.work.domain.work_item import WorkItemDocument, WorkItemState

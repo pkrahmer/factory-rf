@@ -6,13 +6,13 @@ import pytest
 from pydantic import BaseModel, ValidationError
 
 from bill_support import completed_records, sidecar_text
+from factory.agents.application.write_paths import WritePathService
+from factory.agents.domain.write_paths import is_writable
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.costs import BillService
-from factory.application.write_paths import WritePathService
 from factory.domain.bills import bill, cost_line
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.write_paths import is_writable
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.errors import CannotHandle, PushFailed, WorkItemFormatError
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints

@@ -10,18 +10,18 @@ from pydantic import BaseModel, ConfigDict
 import factory
 
 EXCEPTIONS = [
-    "factory.adapters.claude_runtime._Usage",
-    "factory.adapters.claude_runtime._Denial",
-    "factory.adapters.claude_runtime._StructuredOutput",
-    "factory.adapters.claude_runtime._Reply",
-    "factory.adapters.opencode_runtime._Event",
-    "factory.adapters.opencode_runtime._Part",
-    "factory.adapters.opencode_runtime._Tokens",
-    "factory.adapters.opencode_runtime._CacheTokens",
-    "factory.adapters.opencode_runtime._ToolState",
-    "factory.adapters.opencode_runtime._Span",
-    "factory.adapters.opencode_runtime._Error",
-    "factory.adapters.opencode_runtime._ErrorData",
+    "factory.agents.adapters.claude_runtime._Usage",
+    "factory.agents.adapters.claude_runtime._Denial",
+    "factory.agents.adapters.claude_runtime._StructuredOutput",
+    "factory.agents.adapters.claude_runtime._Reply",
+    "factory.agents.adapters.opencode_runtime._Event",
+    "factory.agents.adapters.opencode_runtime._Part",
+    "factory.agents.adapters.opencode_runtime._Tokens",
+    "factory.agents.adapters.opencode_runtime._CacheTokens",
+    "factory.agents.adapters.opencode_runtime._ToolState",
+    "factory.agents.adapters.opencode_runtime._Span",
+    "factory.agents.adapters.opencode_runtime._Error",
+    "factory.agents.adapters.opencode_runtime._ErrorData",
 ]
 
 
@@ -108,7 +108,7 @@ def test_the_collection_finds_every_model_and_nothing_else() -> None:
     assert len(MODELS) > 90
     assert "factory.work.domain.work_item.WorkItemState" in MODELS
     assert "factory.application.stage.StartedStage" in MODELS
-    assert "factory.adapters.claude_runtime._Reply" in MODELS
+    assert "factory.agents.adapters.claude_runtime._Reply" in MODELS
     assert "factory.application.boundaries.Boundaries" not in MODELS
     assert all(issubclass(model, BaseModel) for model in MODELS.values())
 

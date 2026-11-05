@@ -1,9 +1,9 @@
 """The guard settings of a stage hold the root, its write paths and the protected paths only."""
 
+from factory.agents.application.write_paths import WritePathService
+from factory.agents.domain.agent_runs import WritePathSettings
+from factory.agents.domain.write_paths import PROTECTED_PATHS
 from factory.application.boundaries import Boundaries
-from factory.application.write_paths import WritePathService
-from factory.domain.agent_runs import WritePathSettings
-from factory.domain.write_paths import PROTECTED_PATHS
 from factory.hosting.adapters.git_cli import GitCli
 from write_path_support import stage_start
 

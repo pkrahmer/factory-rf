@@ -17,15 +17,15 @@ from adapters.container_runtime_support import (
 from agent_login_support import API_LOGIN
 from claude_reply_support import BUDGET_STOP, LOGIN
 from command_words_support import value_after
-from factory.adapters.agent_launch import (
+from factory.adapters.fake_containers import FakeContainerRuns
+from factory.agents.adapters.agent_launch import (
     LOGIN_VARIABLE,
     VERSION_TIME_LIMIT,
     LoginFiles,
     login_argv,
 )
-from factory.adapters.claude_runtime import SWITCHES, ClaudeCodeRuntime
-from factory.adapters.fake_containers import FakeContainerRuns
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
+from factory.agents.adapters.claude_runtime import SWITCHES, ClaudeCodeRuntime
+from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest
 from factory.domain.containers import WORK_CHECKOUT, ContainerCall
 from factory.shared.adapters.process import ProcessResult
 from run_process_recorder import Recorder

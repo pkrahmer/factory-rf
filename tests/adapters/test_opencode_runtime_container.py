@@ -26,15 +26,15 @@ from adapters.opencode_stand_in import (
     write_opencode,
 )
 from agent_login_support import API_LOGIN
-from factory.adapters import opencode_runtime
-from factory.adapters.agent_launch import (
+from factory.adapters.fake_containers import FakeContainerRuns
+from factory.agents.adapters import opencode_runtime
+from factory.agents.adapters.agent_launch import (
     LOGIN_VARIABLE,
     VERSION_TIME_LIMIT,
     LoginFiles,
     login_argv,
 )
-from factory.adapters.fake_containers import FakeContainerRuns
-from factory.adapters.opencode_runtime import OpencodeRuntime
+from factory.agents.adapters.opencode_runtime import OpencodeRuntime
 from factory.domain.containers import WORK_CHECKOUT, ContainerCall
 from factory.shared.adapters.process import ProcessRequest, ProcessResult, Stream
 from run_process_recorder import Recorder

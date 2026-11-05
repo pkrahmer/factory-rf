@@ -7,7 +7,7 @@ from datetime import timedelta
 import pytest
 
 import preflight_support
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.dispatcher import Handler
 from factory.application.handlers.run import RunHandler
 from factory.application.tick import IdleHandler, Tick, TickOutcome

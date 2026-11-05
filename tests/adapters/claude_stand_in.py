@@ -8,7 +8,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
+from factory.agents.domain.agent_runs import AgentDefinition, AgentRunRequest
 
 CALLS = "calls.jsonl"
 STEPS = "steps.json"

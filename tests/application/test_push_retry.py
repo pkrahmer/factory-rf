@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.shared.domain.errors import PushFailed
 from factory.shared.domain.kill_points import KillPoints

@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.oauth_token import ClientCredentialsTokenSource
-from factory.application.tokens import TokenSource
-from factory.domain.tokens import Token
+from factory.agents.adapters.oauth_token import ClientCredentialsTokenSource
+from factory.agents.application.tokens import TokenSource
+from factory.agents.domain.tokens import Token
 from factory.entry.refresh_token import main
 from factory.shared.domain.errors import TokenError
 from token_support import (

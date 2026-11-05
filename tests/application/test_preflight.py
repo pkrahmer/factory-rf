@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
-from factory.adapters.claude_runtime import ClaudeCodeRuntime
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime
+from factory.agents.adapters.agent_files import FrontmatterAgentDefinitionReader
+from factory.agents.adapters.claude_runtime import ClaudeCodeRuntime
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
 from factory.application.preflight import MachineChecks, tool_item
 from factory.domain.preflight import PreflightItem

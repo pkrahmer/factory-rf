@@ -5,7 +5,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import override
 
-from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
+from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.project_commands import ProjectCommands
 from factory.domain.checks import CheckResult

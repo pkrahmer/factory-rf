@@ -7,12 +7,12 @@ import pytest
 
 from crash_support import Rerun
 from definition_support import pipeline_definition
+from factory.agents.domain.agent_runs import AgentDefinition
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.application.recovery import RecoveryHandler
 from factory.application.stalls import StallContext, StallService
 from factory.application.task import TaskComposer, TaskContext
-from factory.domain.agent_runs import AgentDefinition
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.shared.domain.errors import CannotHandle, WorkItemFormatError
 from factory.shared.domain.identifiers import branch_name
