@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 557
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T01:07:04.434712Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-05T01:06:58.805963Z'
   stage: tests
   run: 74f5c749261c455c83c99263b55e3599
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:07:04.434712Z'
+  stage: doing
 ---
 
 # The hosting area holds git and the hosting service
@@ -124,3 +133,4 @@ Expect: `1`
    Note: criterion 1 says "for `handlers`, the folder", but no row of the table is a folder. The existing test already checks both the `.py` file and a folder at the old path, so no question is needed.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
