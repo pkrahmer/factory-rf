@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 560
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T03:01:22.304424Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-05T03:01:16.605763Z'
   stage: docs
   run: 29513458f9cd4fc3b91accc6c8fa8d47
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T03:01:22.304424Z'
+  stage: smoke-test
 ---
 
 # The watching area holds what shows the factory and what it costs
@@ -349,3 +358,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 31bf5bf02204 at 2026-11-05T02:55:37Z)
     `secrets`: secrets: green (3.5 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
