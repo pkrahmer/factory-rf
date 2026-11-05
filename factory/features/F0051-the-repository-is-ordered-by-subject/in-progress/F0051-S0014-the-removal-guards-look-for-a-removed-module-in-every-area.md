@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T10:19:22.826277Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-05T10:19:22.826277Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-05T10:19:42.376480Z'
+  stage: doing
+  run: 786b0fc3bc264cf98ec798b3824d67f6
 ---
 
 # The removal guards look for a removed module in every area
@@ -257,3 +259,18 @@ Expect: `0`
     - `tests/pipeline/application/test_stall_environment.py`: human's leave (journal 4); only `test_the_stall_module_imports_no_name_of_the_undo` changes
     - `tests/support/module_names.py`: none needed. It is a support module, not a test; it only gains the helpers the Interface names plus a longer module docstring, and `has_name` and `module_exists` are unchanged.
 13. factory: started doing as vm.
+14. coder: Round 1: I changed no code. Every finding in the review (journal 12) is in files the tester wrote in this story, all under `tests/`, and my write paths don't cover `tests/`. Nothing under `src/` changes, so all four findings go to the tester.
+
+    The tester makes these changes, as the reviewer proposed:
+    1. `tests/support/module_names.py` (`areas()`): import `SRC` from `support.source_search` and iterate over it, in place of `Path(factory.__file__).parent`.
+    2. `tests/guards/test_removal_guards_search.py` (`_holds_an_old_layer_path`): use `string_literals` of `support.source_search` (`any(is_old_layer_path(text) for text in string_literals(tree))`) in place of its own walk over the tree.
+    3. `tests/guards/test_removal_guards_search.py`: import `TESTS` from `support.search_support` in place of `Path(__file__).resolve().parents[1]`.
+    4. Add one public predicate `is_old_layer_path(name: str) -> bool` to `tests/support/module_names.py`, built on `LAYERS`. `_in_every_area` and the search guard both use it, and the regex `OLD_LAYER_PATH` goes.
+
+    The reviewer also noted that the zero side of "`<rest>` one or more dotted names" has no row. These rows are optional, and they are the tester's to add: `"factory.domain"` → `False` in criterion 1's table, `({"factory.shared.domain"}, "factory.domain")` → `False` in criterion 2's, and `'NAME = "factory.adapters"\nmodule_exists(name)\n'` → not caught in criterion 3's parsed-source rows.
+
+    Main choice: I handed forward with `tests` rather than `question`. These are helper copies and one definition in the tester's own new files, inside this story. They need no new leave.
+
+    Description: the journal did not change what the task means.
+
+    Not run: `make check`. I changed nothing, and the tester's change comes back through doing.
