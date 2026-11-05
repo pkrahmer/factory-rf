@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T10:18:04.751264Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-05T10:18:04.751264Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T10:19:17.141812Z'
+  stage: review
+  run: c38b47396dec4d2a813edd457b63720a
 ---
 
 # The removal guards look for a removed module in every area
@@ -211,3 +213,37 @@ Expect: `0`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 11. factory: started review as vm.
+12. reviewer: Review of `git diff main...HEAD -- . ':!factory'` (round 0). Nothing under `src/` changes; every change is under `tests/`. Groups 1, 2, 3 and 5 are clean:
+    - Criterion 1 has its 8 rows and criterion 2 its 7 rows, each as one parametrized test.
+    - Criterion 3 has its 3 parsed-source rows plus the whole-of-`tests/` test.
+    - `make check` after the coder was green (journal 10).
+    - Nothing touches the architecture or security, and the Description matches what was built.
+
+    The findings are all in group 4. They are about test quality, and at round 0 they still send the work item back. All of them are the tester's to fix: every path is under `tests/`.
+
+    Findings:
+    1. `tests/support/module_names.py:30` (`areas()`): `Path(factory.__file__).parent` is a second copy of `SRC` in `tests/support/source_search.py:8`. Fix: import `SRC` from `support.source_search` and iterate over it.
+    2. `tests/guards/test_removal_guards_search.py:25-31` (`_holds_an_old_layer_path`): it walks the tree for string constants again, which copies `string_literals` in `tests/support/source_search.py:39`. Fix: `any(OLD_LAYER_PATH.fullmatch(text) for text in string_literals(tree))`.
+    3. `tests/guards/test_removal_guards_search.py:9`: `TESTS = Path(__file__).resolve().parents[1]` copies `TESTS` in `tests/support/search_support.py:7`. Fix: import it from `support.search_support`.
+    4. Two definitions of "old layer path" that do not agree:
+       - `tests/guards/test_removal_guards_search.py:10` uses the regex `OLD_LAYER_PATH`, which requires identifiers.
+       - `tests/support/module_names.py:10,39-42` uses `LAYERS` with the length check in `_in_every_area`, which accepts any non-empty part.
+       
+       Fix: one public predicate in `tests/support/module_names.py` (for example `is_old_layer_path(name: str) -> bool`, built on `LAYERS`). `_in_every_area` and the search guard both use it, and the regex goes.
+
+    Notes:
+    - `tests/guards/test_module_names.py`: the zero side of the Interface's limit "`<rest>` one or more dotted names" has no row. The code handles it as the Interface says (`len(parts) < 3` at `tests/support/module_names.py:41`). The missing row is `"factory.domain"` → `False` in criterion 1's table (and `({"factory.shared.domain"}, "factory.domain")` → `False` in criterion 2's).
+    - `tests/guards/test_removal_guards_search.py`: the same zero side of the old-path literal has no row. The regex's `+` (line 10) handles it. The missing row is `'NAME = "factory.adapters"\nmodule_exists(name)\n'` → not caught.
+
+    Earlier tests (item 6), changed under the human's leave in `feature.md` (*The human's changes*, "At S0014's start", journal entry 4). Each only swaps `module_exists` for `module_exists_anywhere`, or swaps the set comparison for `names_the_module_anywhere`, and each test keeps its name and rows:
+    - `tests/entry/test_mutation_report_removed.py`: human's leave (journal 4)
+    - `tests/guards/test_checkout_hygiene_removed.py`: human's leave (journal 4)
+    - `tests/guards/test_docker_path_removed.py`: human's leave (journal 4)
+    - `tests/guards/test_home_reset_removed.py`: human's leave (journal 4)
+    - `tests/guards/test_hook_removed.py`: human's leave (journal 4); ruff format re-wrapped some lines
+    - `tests/guards/test_kernel_guard_removed.py`: human's leave (journal 4)
+    - `tests/guards/test_leftovers_program_removed.py`: human's leave (journal 4)
+    - `tests/guards/test_undo_removed.py`: human's leave (journal 4)
+    - `tests/guards/test_wrapper_out_of_the_call_path.py`: human's leave (journal 4)
+    - `tests/pipeline/application/test_stall_environment.py`: human's leave (journal 4); only `test_the_stall_module_imports_no_name_of_the_undo` changes
+    - `tests/support/module_names.py`: none needed. It is a support module, not a test; it only gains the helpers the Interface names plus a longer module docstring, and `has_name` and `module_exists` are unchanged.
