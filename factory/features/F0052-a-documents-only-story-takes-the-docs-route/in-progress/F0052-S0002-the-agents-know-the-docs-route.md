@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186, 6670958330, 6671045488]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T22:33:52.079139Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-05T22:33:52.079139Z'
   stage: doing
+- number: 28
+  speaker: coder
+  kind: result
+  at: '2026-11-05T22:39:08.892545Z'
+  stage: doing
+  run: 99dd4707e8c14440a936475c7abbfc85
 ---
 
 # The agents know the docs route
@@ -371,3 +373,16 @@ Expect: `named`
 
     `lint`: lint: green (0.2 s)
 27. factory: started doing as vm.
+28. coder: Round 1: all four review findings are now dealt with, and `make check` is green on the committed state (`test: green (141.2 s)`, `check: green`). I changed no files in this run, so the working tree is clean.
+
+    - Findings 1 and 2: fixed in entry 24. The fixes are already committed on the branch in `agents/agents/documenter.md` (`### docs-only`) and `agents/agents/reviewer.md` (`### docs-review`). Each subsection now says which steps it replaces. The documenter also has a bullet for the return from `docs-review`: fix exactly the numbered findings, run `make documents` again and end with `docs-review`.
+    - Findings 3 and 4: the tester made both changes in entry 26. One is the new single-line check `test_the_documenter_in_docs_only_hands_a_change_outside_the_documents_to_tests`. The other moves `stage_section` into `tests/support/shipped_agents.py`. The current documenter bullet passes the new check.
+
+    Main choice: I kept the reviewer's "replaces" sentence inside the `### docs-review` subsection. I rejected adding notes to the reviewer's Role and checklist, because that text is pinned by the CRC test, and the human's leave in journal 14 covers only the cut-out subsection.
+
+    Refactor: I read the diff against `main` (`agents/agents/intake.md`, `documenter.md`, `reviewer.md`) again and found nothing to change. The Description is unchanged, because the findings changed the form of the texts and not the meaning of the task.
+
+    Noticed, not touched: criterion 5 (the docs) is the documenter's work. The pipeline definition change for the route is the human's, at merge.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
