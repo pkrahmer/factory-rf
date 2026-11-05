@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-11-05T23:55:40.576272Z'
   stage: smoke-test
   run: c973cfc49ea148c084739591e8fcf00a
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-11-05T23:57:32.421305Z'
+  stage: approval
 ---
 
 # A guide rewrite may rename its headings and add a page
@@ -264,3 +269,4 @@ Expect: `1`
     The smoke test contradicts no criterion.
 
     Findings: none.
+17. factory: done (pull request merged); cost: 7 runs, 6.2 min, 47 turns, 163387 tokens in (946024 more from cache), 18895 out, $1.56
