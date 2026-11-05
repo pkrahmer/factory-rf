@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283, 6651349591]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T06:27:38.992162Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -114,6 +110,12 @@ journal:
   kind: started
   at: '2026-11-05T06:27:38.992162Z'
   stage: doing
+- number: 19
+  speaker: coder
+  kind: result
+  at: '2026-11-05T06:36:07.926136Z'
+  stage: doing
+  run: 0e352388ce7d49ed845fe09e5fc62fcd
 ---
 
 # The project guide has one file per area
@@ -308,3 +310,42 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
 
     The Description's wording from journal 9 is the reviewer's to write back; the reviewer may do that in its run.
 18. factory: started doing as vm.
+19. coder: I redid the regrouping of the project guide into one file per area, as journal 13 describes it, now that the coder may write these paths (journal 17). Results:
+    - `tests/guards/test_project_guide_files.py` passes, every row of it.
+    - `make documents` prints `documents ok`.
+    - `make check` is green: `check: green`, with `test: green (142.0 s)`.
+    - `ls docs/project-guide` gives the nine files the smoke test expects.
+
+    What I built, under `docs/project-guide/` unless named otherwise:
+    - **Whole-file moves with `git mv`:** `git-and-hosting.md` → `hosting.md`, `work-items.md` → `work.md`, `stage-environment.md` → `machine.md`, `stages.md` → `pipeline.md`.
+    - **Sections moved by hand, unchanged, by the rule in journal 4.1:**
+      - `shared.md` is new. It holds *Starting a process*, *The duplicates report* and *The document check*.
+      - `machine.md` gains *Project commands*, *Mutation testing* and *Replaced in v1.2*, all from `processes-and-checks.md`.
+      - `pipeline.md` gains *The take's rule* (from `write-paths.md`), and *The tick*, *The handlers of the events* and *Stops, the clock and the factory log* (from `watching.md`).
+      - `watching.md` keeps *The evaluation* and gains *Cost records* and *Bills* from `costs.md`.
+      - `agents.md` gains *The write paths* and that file's *Replaced in v1.2*.
+      - The index `README.md` gains *The demos*, which names no area module.
+      - `processes-and-checks.md`, `write-paths.md` and `costs.md` are removed.
+    - **Titles and opening sentences:** new for the five files whose content changed (`shared.md`, `watching.md`, `agents.md`, `machine.md`, `pipeline.md`).
+    - **The index `README.md`:** the intro now says "one file per area of `src/factory/` and `operator.md`". *The files* has one entry per file in area order. Each entry names its `src/factory/<area>/` folder and its modules (the old module lists, regrouped). Every module and folder it names exists.
+    - **Pointers:**
+      - Every old guide-file name now names the file its section moved to.
+      - A pointer to a section now in the same file drops the file name: in `machine.md`, *Project commands*, *The checks*, *The preflight* and *Container project commands*; one self-reference became "(above)".
+      - Two references in `watching.md` line 17 (*The handlers of the events*, *An illegal stage change is put back*) now add `pipeline.md`.
+    - **`docs/operator-guide.md`:** the three lines 1870, 1977 and 2109 now name `pipeline.md` and `work.md`. `claude/` names no guide file, so it is unchanged.
+
+    I checked the words with a script: it compared every line of the new guide with the guide at `HEAD`. The only changed lines are titles, opening sentences, the index's intro and *The files*, and pointer lines.
+
+    Main choice: the regrouping rule covers only the ten per-domain files. The index's own sections (*Errors*, *Kill points* and the rest) stay in `README.md`, as "what holds for all code". I rejected moving *Errors* and *Kill points* to `shared.md` because of the module they name first. Two other cases are your call:
+    - *The duplicates report* and *The document check* name `factory.entry` first, and I placed them in `shared.md` after the `factory.shared.domain` modules they describe.
+    - *The handlers of the events* also names `factory.entry` first, and I placed it with the tick in `pipeline.md`.
+
+    Refactor: I re-read the diff and found nothing to change.
+
+    Seen but not touched:
+    - The Description still has its wording from before journal 9. Journal 9 changed the Interface line to "no module under `src/factory/` changes", criterion 2 to "found as often as before", and criteria 3, 4 and 6 as the tester's entry 11 says. Journal 17 leaves writing that back to the reviewer.
+    - `docs/decisions.md:775` and `docs/runs/` still name the old files. Both are excluded on purpose.
+    - `CLAUDE.md` is the human's change after the merge.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone

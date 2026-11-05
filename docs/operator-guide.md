@@ -1867,7 +1867,7 @@ The detail is the fault. The faults the load reports:
 |---|---|
 | `factory/pipeline.yml is missing at origin/main` | the file is not on `main`; merge it |
 | a fault of the text, such as `missing key: contract`, `unknown key: <path>`, `invalid <path>: <message>`, `not valid YAML: <problem> (line <l>, column <c>)` | fix `factory/pipeline.yml` on `main`; several faults are joined by `; `. A YAML fault is one line with a 1-based position, for example `not valid YAML: found duplicate key "done" with value "{}" (original value: "{}") (line 27, column 3)` (a stage key written twice; the factory refuses a repeated key on purpose) |
-| a fault of the rules across keys, such as `stage doing: next names unknown stage ship`, `contract major 2 is not supported (this factory reads major 1)`, `role coder: write_paths is empty`, `role coder at stage doing: 61 min exceed lease_duration 60 min` | fix `factory/pipeline.yml` on `main`; see "The pipeline definition" for the rules you meet most often and `docs/project-guide/stages.md`, "The rules of the definition", for the full list |
+| a fault of the rules across keys, such as `stage doing: next names unknown stage ship`, `contract major 2 is not supported (this factory reads major 1)`, `role coder: write_paths is empty`, `role coder at stage doing: 61 min exceed lease_duration 60 min` | fix `factory/pipeline.yml` on `main`; see "The pipeline definition" for the rules you meet most often and `docs/project-guide/pipeline.md`, "The rules of the definition", for the full list |
 | `role <role>: agent is not installed` | the role has neither a file `factory/agents/<role>.md` on `origin/main` nor a file `<agent home>/agents/<role>.md`; add one of them. Every missing role is named, in the order of `roles`, joined by `; ` |
 | `agent home unavailable: <fault>` | `<agent home>/agents` is missing or is not a directory (see "The agent files") |
 
@@ -1974,7 +1974,7 @@ The rules you meet most often:
 - A key that is not listed is refused, so a misspelt key is never ignored. A given `project_commands` replaces the default set as a whole: list `check`, `lint` and `test` again if you still want them. `sync` is a project command with a `time_limit` like the others (`sync: {time_limit: 5}` in the template), and the stage environment reads that limit for its sync container; no stage lists it in `checks` or `reports`, so it never enters a lease. A definition without `sync` gives the sync the default limit of 10 minutes.
 - Every role needs an agent file, a project's own or the installed one (see "The agent files").
 
-A refused definition raises the stop `pipeline_definition_invalid`, described above. `docs/project-guide/stages.md`, "The rules of the definition", lists every fault.
+A refused definition raises the stop `pipeline_definition_invalid`, described above. `docs/project-guide/pipeline.md`, "The rules of the definition", lists every fault.
 
 ## The agent files
 
@@ -2106,7 +2106,7 @@ Findings about the place, and what to do:
 | `the story <id> is in the directory of feature <id>` | move the story to its own feature's directory, or fix its id |
 | `the feature file feature.md is missing in factory/features/<directory>` | add the feature's `feature.md` |
 
-Findings about the content follow the form check (`docs/project-guide/work-items.md`, "The form check of a story"):
+Findings about the content follow the form check (`docs/project-guide/work.md`, "The form check of a story"):
 
 | Finding | What to do |
 |---|---|
