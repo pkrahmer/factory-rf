@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T00:32:36.014959Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -63,6 +59,12 @@ journal:
   kind: started
   at: '2026-11-05T00:32:36.014959Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-05T00:33:29.514603Z'
+  stage: doing
+  run: 24c787413db3499a8b08a94619ba780e
 ---
 
 # The shared area holds what every area uses
@@ -201,3 +203,28 @@ Expect: `1`
    Found 619 errors in 399 files (checked 933 source files)
    make: *** [Makefile:38: types] Error 1
 9. factory: started doing as vm.
+10. coder: Round 0, second attempt after the `check_red` stall. Code is unchanged in this run: what remains is test work, so I'm handing it to the tester.
+
+    Where it stands: the source side of the move is committed from the first attempt. All 18 modules are under `src/factory/shared/<layer>/`, the four packages `src/factory/shared/{,domain/,application/,adapters/}__init__.py` exist, and no file under `src/` imports an old path. `uv run mypy --strict src` is clean (161 files), and import-linter keeps all 4 contracts. `make check` is red only because of `tests/`. The first attempt changed the tests, but the factory dropped those changes because the coder's write paths do not include `tests/*`. The test files still import `factory.domain.errors`, `factory.adapters.clock` and the other old paths, which is where the 619 mypy errors in entry 8 come from.
+
+    The tester needs to make these test changes. The Interface's leave of feature decision 5 covers them.
+    1. Rewrite every import of a moved module under `tests/` to its new path `factory.shared.<layer>.<name>`, including the `from factory.<layer> import <name>` forms. Split the import lines that mix moved and unmoved modules: `tests/domain/test_default_git_identity.py` and `tests/test_leftovers_program_removed.py`.
+    2. Create `tests/shared/`, `tests/shared/domain/`, `tests/shared/application/` and `tests/shared/adapters/`, each with an `__init__.py`. Then `git mv` into `tests/shared/<layer>/` every test module that `tests/test_areas.py::test_no_test_module_stays_in_its_layer_folder_when_all_it_imports_has_moved` lists. Entry 7 counted 60, among them `test_errors.py`, `test_process*.py` and `test_push_retry_*.py`.
+    3. Change the paths that point at moved files:
+       - `tests/test_process_search.py`: `SRC / "shared" / "adapters" / "process.py"`, and the key `"shared/adapters/process.py"`.
+       - `tests/entry/test_watch.py`: `_names_the_replaced_phrases` and the `document-check` row point at `shared/domain/documents.py`.
+       - `tests/test_suite_old_names.py` and `tests/test_suite_held_once.py`: the paths of the moved test modules they read now start with `shared/domain/`.
+    4. `tests/domain/test_hosting.py`: `_is_domain` must also count `factory.shared.domain` as the domain layer, because the domain modules it checks now import shared domain modules.
+
+    After that, `make check` should be green with no change to code. The first attempt had it green with these exact changes.
+
+    Main choice: send the test changes to the tester rather than end with `question`. The work item already grants the leave, so the only open point was whose write paths these changes fall in, and those are the tester's. I rejected making the test changes again myself: they would be dropped a second time.
+
+    Noticed, not touched:
+    - `security/duplicates-baseline.txt` is in no role's write paths. Its five accepted dead-code findings in moved modules still name the old paths, so `make duplicates` will report them as gone and again as new. That file is only read by a report, not by a check, so it does not block anything, but only the human can update it.
+    - `tests/adapters/test_work_item_markdown.py::test_only_the_work_item_adapter_imports_frontmatter_and_ruamel` picks modules by `name.split(".")[1:2]`, so it does not look at `factory.shared.*`. It passes, but it covers less with every area that moves.
+    - `CLAUDE.md` still names `factory.domain.contract.CONTRACT`. That file is the human's.
+
+    Refactor: not done in this run, since my code did not change. Entry 7 found nothing to change in the source diff.
+
+    Description unchanged: no journal entry changed the meaning of the task.
