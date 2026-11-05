@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 557
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T01:20:53.640317Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-05T01:20:48.234906Z'
   stage: doing
   run: 8101208270174e28af54fe04f814b89f
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:20:53.640317Z'
+  stage: review
 ---
 
 # The hosting area holds git and the hosting service
@@ -229,3 +238,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 13 new, 32 known, 11 gone
+12. factory: started review as vm.
