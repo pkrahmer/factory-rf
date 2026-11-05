@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 560
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T02:49:49.337615Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-05T02:49:44.454039Z'
   stage: intake
   run: 32da5479f68a4b7ebcd4d64dac80909f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:49:49.337615Z'
+  stage: tests
 ---
 
 # The watching area holds what shows the factory and what it costs
@@ -99,3 +108,4 @@ Expect: `1`
    - Smoke test: The three commands are runnable. Each `Expect:` line can be checked against the output. The pytest command passes no `-q`, and `addopts` in `pyproject.toml` sets a single `-q`, so the summary line is printed.
    - Architecture: Each module goes to the same layer inside `factory.watching`, so the layer rule is kept. The moves are made with `git mv`, nothing is re-exported, and the coder changes only `src/`.
    - Scope: The story is the watching area of feature decision 2, with decisions 4 and 5 applied. It changes no behaviour, and nothing in the feature's "Out of scope" is touched.
+4. factory: started tests as vm.
