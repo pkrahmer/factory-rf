@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 562
 comments_read: [6649241093, 6649574994]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T04:23:12.434955Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-05T04:23:06.955531Z'
   stage: review
   run: 0fb92c858c8442e7aee6ac8f26823a7e
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-05T04:23:12.434955Z'
+  stage: docs
 ---
 
 # The pipeline area holds the stages and the tick
@@ -806,3 +815,4 @@ Expect: `1`
     Root test modules: FD5 (imports only): test_claim_ownership.py, test_claude_files.py, test_fault_paths_table.py, test_model_configuration.py, test_no_journal_reading.py, test_one_stage_environment.py, test_shared_branch_helpers.py, test_shared_definition.py, test_shared_imports.py, test_suite_fixtures.py, test_template_makefile.py, test_template_sync.py, test_time_limits.py
     Modified in place under an area folder or entry/: FD5 (imports only): every agents/adapters/test_*.py, entry/test_*.py, hosting/adapters/test_pygithub_hosting.py, machine/adapters/test_*.py and watching/adapters/test_runtime_tool_uses.py that the diff modifies (the M list of `git diff -M --name-status main...HEAD -- tests`)
     Moved from tests/{domain,application,adapters}/ with `git mv` to tests/pipeline/, agents/, hosting/, machine/, watching/, work/, shared/, entry/ or the tests/ root, as entry 16 lists them by name: FD5 (move plus import rewrite)
+20. factory: started docs as vm.
