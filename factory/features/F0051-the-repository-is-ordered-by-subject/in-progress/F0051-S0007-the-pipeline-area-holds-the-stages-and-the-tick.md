@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 562
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T03:39:39.410082Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-05T03:39:39.410082Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T03:40:02.178460Z'
+  stage: intake
+  run: 9b3d0beebc6e43e9be5a6a06cc886dad
 ---
 
 # The pipeline area holds the stages and the tick
@@ -103,3 +105,9 @@ Expect: `1`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: concrete. It gives 27 old → new module paths (11 domain, 15 application including the `handlers` package, 1 adapter), the four new packages with exact docstrings, and the test folders. The `AREAS` change is named. The recipe and the tester/coder split are stated.
+   - Criteria: each is testable by one parametrized test function. 1 has a row per module, covers the key and exact module set of `AREAS` (standing answer 8), and has both sides: the new path imports and the old path does not exist. 2 checks the four packages import and have a docstring. 3 has one row per module and covers all three import forms. 4 and 5 are existence and absence checks, with the old layer packages not importable. 6 and 7 are the closing criteria. The docstring text and the `__init__.py` files are not tested, per standing answer 8, so I did not ask for criteria for them.
+   - Smoke test: runnable. The pytest line passes no `-q` and `pyproject.toml` `addopts` already sets one `-q`, so the summary line exists and `grep -c passed` gives 1. Each `Expect:` can be checked against the output.
+   - Architecture: matches `CLAUDE.md`. Each layer stays inside `factory.pipeline` and keeps its name and content, with no re-export left behind. `Layers` losing the optional old layers and `make areas` are the human's changes at S0007's start and merge, not this story's scope.
+   - Scope: within F0051 (S0007 in the feature's list, the pipeline area last). It touches none of the feature's out-of-scope items and changes no behaviour. The names `known_results`, `recovery` and `stops` exist in both the domain and application layers, and each is listed in its own layer, so there is no ambiguity.
