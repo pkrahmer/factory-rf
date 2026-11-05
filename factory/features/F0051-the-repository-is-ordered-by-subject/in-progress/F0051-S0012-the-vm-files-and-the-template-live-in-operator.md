@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T09:36:10.854734Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -138,6 +142,11 @@ journal:
   at: '2026-11-05T09:36:05.336231Z'
   stage: doing
   run: e97d04f17b12445cb7a6f07c13e4638c
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-05T09:36:10.854734Z'
+  stage: review
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -392,3 +401,4 @@ Expect: `parsed`
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
+24. factory: started review as vm.
