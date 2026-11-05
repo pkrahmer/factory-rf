@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 557
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T01:26:53.268895Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-05T01:26:45.629791Z'
   stage: docs
   run: 0aca49918895424e82bdff790b01272f
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-05T01:26:53.268895Z'
+  stage: smoke-test
 ---
 
 # The hosting area holds git and the hosting service
@@ -515,3 +524,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 4cc7b7dab2a3 at 2026-11-05T01:18:30Z)
     `secrets`: secrets: green (5.3 s)
     `documents`: documents ok
+16. factory: started smoke-test as vm.
