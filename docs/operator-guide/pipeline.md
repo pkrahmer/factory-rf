@@ -34,6 +34,8 @@ The keys, with what a left-out key takes:
 
 A stage has `role` (none: no agent runs), `next` (the first name is the forward move), `approval` (the human decides), `checks` (project commands that must pass after the agent), `reports` (project commands run after green and only recorded) and `round_cap` (none: no cap). A role has `write_paths` (required), `lease_duration` (60 minutes) and `time_limit` (40 minutes, one agent run). A write path may hold `{work_item}`, the work item's own file, and `{feature}`, its feature's path (`factory/features/F0004-x`). The engine's protected paths (`factory/pipeline.yml`, the forms, `feature.md`, `CLAUDE.md`, `Makefile`, `pyproject.toml`, `uv.lock`, `.claude/`, `factory/agents/`) are outside every write path. Every limit is a positive whole number.
 
+A definition may hold more than one route and more than one approval stage; a close of a pull request at an approval stage sends the story to that stage's second `next`, and the stage whose first `next` is that approval counts the rounds.
+
 The template's smoke test reads `smoke-test: {role: smoke-tester, next: [approval, doing, docs], round_cap: 3}`. A finding that is only a slip in a document (`README.md` or a file under `docs/`) goes from the smoke test straight to `docs`, where the documenter fixes it and hands back to the smoke test; it counts as a rework round against the `round_cap`, as a return to `doing` does.
 
 An unknown key is refused with `pipeline_definition_invalid`. That includes `tool_paths`, which earlier versions read: a definition that still holds it stops the factory until you remove the key. The write paths are all that an agent run may write; there are no further folders for tool state.
