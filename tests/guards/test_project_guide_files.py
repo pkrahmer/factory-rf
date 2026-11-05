@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+from support.guide_files_support import guide_headings, lines_outside_fences, searched_files
+
 ROOT = Path(__file__).parents[2]
 GUIDE = ROOT / "docs" / "project-guide"
 AREA_FILES = (
@@ -198,28 +200,8 @@ HEADINGS = (
 )
 
 
-def _lines_outside_fences(text: str) -> list[str]:
-    lines: list[str] = []
-    fenced = False
-    for line in text.splitlines():
-        if line.startswith("```"):
-            fenced = not fenced
-        elif not fenced:
-            lines.append(line)
-    return lines
-
-
-def _guide_headings() -> list[str]:
-    return [
-        line
-        for path in sorted(GUIDE.glob("*.md"))
-        for line in _lines_outside_fences(path.read_text(encoding="utf-8"))
-        if re.match(r"#{2,3} ", line)
-    ]
-
-
 def _the_files_section() -> list[str]:
-    lines = _lines_outside_fences((GUIDE / "README.md").read_text(encoding="utf-8"))
+    lines = lines_outside_fences((GUIDE / "README.md").read_text(encoding="utf-8"))
     start = lines.index("## The files") + 1
     section: list[str] = []
     for line in lines[start:]:
@@ -229,19 +211,6 @@ def _the_files_section() -> list[str]:
     return section
 
 
-def _searched_files() -> list[Path]:
-    files: list[Path] = []
-    for place in SEARCHED:
-        candidates = [place] if place.is_file() else sorted(place.rglob("*"))
-        files.extend(
-            path
-            for path in candidates
-            if path.is_file()
-            and not any(path == skip or skip in path.parents for skip in NOT_SEARCHED)
-        )
-    return files
-
-
 def test_the_guide_holds_the_index_operator_and_the_seven_area_files() -> None:
     names = sorted(path.name for path in GUIDE.iterdir())
     assert names == sorted(("README.md", *NAMED_FILES))
@@ -249,7 +218,7 @@ def test_the_guide_holds_the_index_operator_and_the_seven_area_files() -> None:
 
 @pytest.mark.parametrize(("heading", "count"), HEADINGS)
 def test_every_earlier_heading_is_kept_as_often_as_before(heading: str, count: int) -> None:
-    assert _guide_headings().count(heading) == count
+    assert guide_headings(GUIDE).count(heading) == count
 
 
 @pytest.mark.parametrize("name", NAMED_FILES)
@@ -272,7 +241,7 @@ def test_no_file_names_a_removed_guide_file() -> None:
     )
     found = [
         f"{path.relative_to(ROOT)}:{number}: {match.group(0)}"
-        for path in _searched_files()
+        for path in searched_files(SEARCHED, NOT_SEARCHED)
         for number, line in enumerate(
             path.read_text(encoding="utf-8", errors="replace").splitlines(), start=1
         )

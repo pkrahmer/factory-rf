@@ -1,11 +1,11 @@
 """The operator guide is a folder of topic files, and nothing names the single file it was."""
 
-import re
 from pathlib import Path
 
 import pytest
 
 from support.check_documents_support import TOPIC_FILES
+from support.guide_files_support import guide_headings, searched_files
 
 ROOT = Path(__file__).parents[2]
 GUIDE = ROOT / "docs" / "operator-guide"
@@ -153,40 +153,6 @@ HEADINGS = (
 )
 
 
-def _lines_outside_fences(text: str) -> list[str]:
-    lines: list[str] = []
-    fenced = False
-    for line in text.splitlines():
-        if line.startswith("```"):
-            fenced = not fenced
-        elif not fenced:
-            lines.append(line)
-    return lines
-
-
-def _guide_headings() -> list[str]:
-    return [
-        line
-        for path in sorted(GUIDE.glob("*.md"))
-        for line in _lines_outside_fences(path.read_text(encoding="utf-8"))
-        if re.match(r"#{2,3} ", line)
-    ]
-
-
-def _searched_files() -> list[Path]:
-    files: list[Path] = []
-    for place in SEARCHED:
-        candidates = [place] if place.is_file() else sorted(place.rglob("*"))
-        files.extend(
-            path
-            for path in candidates
-            if path.is_file()
-            and "__pycache__" not in path.parts
-            and not any(path == skip or skip in path.parents for skip in NOT_SEARCHED)
-        )
-    return files
-
-
 def test_the_single_guide_is_gone_and_the_folder_holds_the_index_and_ten_topics() -> None:
     assert not OLD_GUIDE.exists()
     names = sorted(path.name for path in GUIDE.iterdir())
@@ -195,13 +161,13 @@ def test_the_single_guide_is_gone_and_the_folder_holds_the_index_and_ten_topics(
 
 @pytest.mark.parametrize(("heading", "count"), HEADINGS)
 def test_every_earlier_heading_is_kept_in_the_folder(heading: str, count: int) -> None:
-    assert _guide_headings().count(heading) == count
+    assert guide_headings(GUIDE).count(heading) == count
 
 
 def test_no_file_names_the_single_guide() -> None:
     found = [
         f"{path.relative_to(ROOT)}:{number}"
-        for path in _searched_files()
+        for path in searched_files(SEARCHED, NOT_SEARCHED)
         for number, line in enumerate(
             path.read_text(encoding="utf-8", errors="replace").splitlines(), start=1
         )

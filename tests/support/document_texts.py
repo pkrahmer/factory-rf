@@ -9,7 +9,8 @@ from factory.shared.domain.documents import (
     DECISION_LOG,
     OPERATOR_GUIDE,
     OPERATOR_GUIDE_FILES,
-    OPERATOR_GUIDE_FOLDER,
+    OPERATOR_INSTALL,
+    OPERATOR_STOPS,
     PROJECT_GUIDE,
     PROJECT_GUIDE_SECTIONS,
     README,
@@ -21,8 +22,6 @@ DESTINATION_WORDS = {
     "pull_request": "pull request",
     "none": "no stop",
 }
-OPERATOR_INSTALL = f"{OPERATOR_GUIDE_FOLDER}/install.md"
-OPERATOR_STOPS = f"{OPERATOR_GUIDE_FOLDER}/stops.md"
 INSTALL_SECTIONS = ("Install", "Configuration")
 STOPS_SECTIONS = ("The stops",)
 PATH_7_TEST = "test_round_cap_question_killed_between_post_and_record_posts_once_and_waits"

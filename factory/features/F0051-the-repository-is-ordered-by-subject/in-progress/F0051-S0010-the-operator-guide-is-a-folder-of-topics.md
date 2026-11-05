@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T07:35:22.942527Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-05T07:35:22.942527Z'
   stage: tests
+- number: 26
+  speaker: tester
+  kind: result
+  at: '2026-11-05T07:36:34.505319Z'
+  stage: tests
+  run: b948896794e24710a5e6bd756adc567b
 ---
 
 # The operator guide is a folder of topics
@@ -417,3 +419,31 @@ Expect: `split`
 
     Noticed, not touched: references in `docs/project-guide/` that say "the operator guide, *Section*" without the topic file. The human gave these to the documenter (entry 14).
 25. factory: started tests as vm.
+26. tester: I made the two test changes the coder named in entry 24, for the reviewer's findings 5 and 6 in entry 22. Both fall under the standing leave in `CLAUDE.md` for moving a shared test helper. No test was renamed, and every test checks the same thing as before.
+
+    - Finding 5: I created `tests/support/guide_files_support.py` with three helpers:
+      - `lines_outside_fences(text)`
+      - `guide_headings(folder)`
+      - `searched_files(searched, not_searched)`
+
+      These were private copies in both guard modules. I removed the copies, and both modules now import the helpers from the new module.
+      - `tests/guards/test_operator_guide_files.py`: changed; its unused `import re` is gone.
+      - `tests/guards/test_project_guide_files.py`: changed (this module belongs to an earlier story; the change uses the standing leave).
+      - One difference: the shared `searched_files` skips `__pycache__`, as the operator guard's copy did. The project guard's copy did not, but it searches `claude/`, `docs/` and `README.md`, which hold no `__pycache__` (checked with `find`). So it reads the same files as before.
+    - Finding 6: `tests/support/document_texts.py` no longer defines its own `OPERATOR_INSTALL` and `OPERATOR_STOPS`. It imports them from `factory.shared.domain.documents`, and its now-unused import of `OPERATOR_GUIDE_FOLDER` is dropped. The tests that import these names through `support.document_texts` work as before. `INSTALL_SECTIONS` and `STOPS_SECTIONS` stay as test data, as entry 24 asked.
+
+    Criterion → test mapping (unchanged by this run):
+    - criterion 1: tests/guards/test_operator_guide_files.py::test_the_single_guide_is_gone_and_the_folder_holds_the_index_and_ten_topics
+    - criterion 2: tests/guards/test_operator_guide_files.py::test_every_earlier_heading_is_kept_in_the_folder
+    - criterion 4: tests/guards/test_operator_guide_files.py::test_no_file_names_the_single_guide
+    - criterion 3: still covered by the parametrized document-check test written earlier (entries 9 and 22); this run did not touch it.
+
+    Run: `uv run pytest -q` over the two guard modules, `tests/pipeline/domain/test_documents.py` and `tests/entry/test_check_documents.py` passed. `make lint` is green.
+
+    Files created: `tests/support/guide_files_support.py`.
+    Files changed: `tests/guards/test_operator_guide_files.py`, `tests/guards/test_project_guide_files.py` (earlier story's test, standing leave), `tests/support/document_texts.py`.
+    Modules the test runner could not import: none.
+
+    Still open: finding 7 (criteria 2 and 4 and the Interface's path of the site-check test) is a rewrite of the Description. That is outside the tester's write paths for this mode, so I left it.
+
+    `lint`: lint: green (0.2 s)
