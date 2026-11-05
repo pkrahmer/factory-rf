@@ -507,5 +507,5 @@ def test_the_tools_check_names_every_missing_tool(machine: Machine) -> None:
 
 
 def test_the_guide_names_every_key_of_the_example_site_file() -> None:
-    text = (ROOT / "docs" / "operator-guide.md").read_text(encoding="utf-8")
+    text = (ROOT / "docs" / "operator-guide" / "site.md").read_text(encoding="utf-8")
     assert [key for key in example_keys() if not re.search(rf"\b{key}\b", text)] == []

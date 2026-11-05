@@ -5,23 +5,41 @@ import pytest
 from factory.shared.domain.documents import (
     DECISION_LOG,
     DOCUMENT_PATHS,
+    OPERATOR_GUIDE,
+    OPERATOR_GUIDE_FILES,
+    OPERATOR_GUIDE_FOLDER,
     PROJECT_GUIDE,
     PROJECT_GUIDE_FOLDER,
     DocumentFinding,
     check_documents,
     is_guide_file,
 )
+from support.check_documents_support import TOPIC_FILES
 from support.document_texts import clean_texts
 
 AGENTS = "docs/project-guide/agents.md"
+TOPIC_PATHS = tuple(f"docs/operator-guide/{name}" for name in TOPIC_FILES)
 
 
 def test_the_guide_is_an_index_in_its_folder() -> None:
     assert PROJECT_GUIDE == "docs/project-guide/README.md"
     assert PROJECT_GUIDE_FOLDER == "docs/project-guide"
+    assert OPERATOR_GUIDE_FOLDER == "docs/operator-guide"
+    assert OPERATOR_GUIDE == "docs/operator-guide/README.md"
+    assert OPERATOR_GUIDE_FILES == TOPIC_PATHS
     assert DOCUMENT_PATHS == (
         "README.md",
-        "docs/operator-guide.md",
+        "docs/operator-guide/README.md",
+        "docs/operator-guide/install.md",
+        "docs/operator-guide/agent-runtime.md",
+        "docs/operator-guide/machine.md",
+        "docs/operator-guide/site.md",
+        "docs/operator-guide/cloud-run.md",
+        "docs/operator-guide/health.md",
+        "docs/operator-guide/stops.md",
+        "docs/operator-guide/pipeline.md",
+        "docs/operator-guide/records.md",
+        "docs/operator-guide/work-items.md",
         "docs/project-guide/README.md",
         "docs/decisions.md",
     )

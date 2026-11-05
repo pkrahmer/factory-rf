@@ -1,4 +1,4 @@
-"""The documents command: the findings of the four documents and the guide's files, one per line."""
+"""The documents command: the findings of the documents and the guide's files, one per line."""
 
 import argparse
 from collections.abc import Sequence

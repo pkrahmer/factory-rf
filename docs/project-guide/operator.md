@@ -1,6 +1,6 @@
 # The operator's scripts
 
-The shell and Python scripts under `operator/`, which let an operator set up one machine from one site file, and the tests that run them. This file describes what they do today; the operator's side (install, the values, the stops) is `docs/operator-guide.md`, *Setting up an operator's machine*.
+The shell and Python scripts under `operator/`, which let an operator set up one machine from one site file, and the tests that run them. This file describes what they do today; the operator's side (install, the values, the stops) is `docs/operator-guide/site.md`, *Setting up an operator's machine*.
 
 ## The layout
 

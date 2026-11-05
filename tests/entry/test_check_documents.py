@@ -9,8 +9,7 @@ from factory.entry.check_documents import main
 from factory.shared.adapters.process import ProcessRequest, run_process
 from factory.shared.domain.documents import (
     DECISION_LOG,
-    OPERATOR_GUIDE,
-    OPERATOR_GUIDE_SECTIONS,
+    OPERATOR_INSTALL,
     PROJECT_GUIDE,
     PROJECT_GUIDE_SECTIONS,
     README,
@@ -18,7 +17,7 @@ from factory.shared.domain.documents import (
 from support.check_documents_support import MISSING_LINES
 from support.document_texts import (
     clean_texts,
-    operator_guide,
+    operator_install,
     project_guide,
     readme,
     write_documents,
@@ -41,9 +40,7 @@ def test_each_finding_prints_one_line_in_order_and_returns_one(
 ) -> None:
     texts = clean_texts()
     texts[README] = None
-    texts[OPERATOR_GUIDE] = operator_guide(
-        sections=[name for name in OPERATOR_GUIDE_SECTIONS if name != "Install"]
-    )
+    texts[OPERATOR_INSTALL] = operator_install(sections=["Configuration"])
     texts[PROJECT_GUIDE] = project_guide(
         sections=[name for name in PROJECT_GUIDE_SECTIONS if name != "Kill points"]
     )
@@ -54,7 +51,7 @@ def test_each_finding_prints_one_line_in_order_and_returns_one(
 
     assert capsys.readouterr().out == (
         "README.md: missing\n"
-        "docs/operator-guide.md: section 'Install' is missing\n"
+        "docs/operator-guide/install.md: section 'Install' is missing\n"
         "docs/project-guide/README.md: section 'Kill points' is missing\n"
         "docs/decisions.md: empty\n"
     )

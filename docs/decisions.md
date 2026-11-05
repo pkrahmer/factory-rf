@@ -1550,3 +1550,11 @@ Date: 2026-11-04 (F0050-S0007).
 - Decision: a VM keeps no retention of transcripts: the setup script writes no `tmpfiles.d` rule and has no option for an age, and removing old transcripts is the site's, by hand if ever needed. A Cloud Run bucket keeps its lifecycle rule, which deletes objects after 30 days. This replaces the VM's half of the S0005 entry's sentence on deletion (feature decision 11).
 - Why: the human, 2026-11-04: at about 5 MB per feature the folder on a VM grows too slowly to need a retention.
 - No rejected option is named by the story for this entry, so none is written.
+
+## The operator guide is a folder of topics
+
+Date: 2026-11-05 (F0051-S0010).
+
+- Decision: `docs/operator-guide.md` is the folder `docs/operator-guide/`, like the project guide: an index `README.md` (which also holds *Replaced in v1.2* and *Replaced from v1*) and ten topic files: `install.md`, `agent-runtime.md`, `machine.md`, `site.md`, `cloud-run.md`, `health.md`, `stops.md`, `pipeline.md`, `records.md` and `work-items.md`. Each section moved as it was; the words changed only where a section points to another one, which now names the topic file. The document check (`factory.shared.domain.documents`) requires the index and the ten files, and checks *Install* and *Configuration* in `install.md` and *The stops* in `stops.md`; a missing file is reported as `docs/operator-guide/<file>: missing`.
+- Why: the guide had 2,603 lines and 50 sections; an operator who looks for one topic scrolled through all of them, and every documenter run read far more than it needed.
+- No rejected option is named by the story for this entry, so none is written.
