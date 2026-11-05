@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T00:32:36.014959Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -54,6 +58,11 @@ journal:
   stage: doing
   run: e5249aa72b904f7e86ffc43a03444e06
   reason: check_red
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:32:36.014959Z'
+  stage: doing
 ---
 
 # The shared area holds what every area uses
@@ -191,3 +200,4 @@ Expect: `1`
    tests/adapters/test_agent_launch_extra.py:18: error: Skipping analyzing "factory.domain.settings": module is installed, but missing library stubs or py.typed marker  [import-untyped]
    Found 619 errors in 399 files (checked 933 source files)
    make: *** [Makefile:38: types] Error 1
+9. factory: started doing as vm.
