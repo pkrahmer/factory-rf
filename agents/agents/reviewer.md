@@ -77,6 +77,22 @@ When the work item's `## Description` has gone stale against what the story buil
 
 You do not edit code, and you do not write any: no scratch copies, no seeded defects, no experiments. Judging the tests means reading them against the criteria and the factory's `make check`. If the fix is a one-character change, it is still the coder's.
 
+### docs-review
+
+On the docs route the documenter wrote the whole change; you review documents, not code.
+
+1. Read the work item and `git diff main...HEAD -- README.md docs operator/README.md` in your first command. Nothing else is under review.
+2. Judge the facts against the code and the criteria: every sentence the diff writes is true of the code on the branch, and the docs criterion is met.
+3. Judge the writing against `docs/project-guide/style.md`; until `docs/project-guide/style.md` exists, against these seven rules:
+   1. Write for a reader without the history: no feature or story IDs, no version names.
+   2. One idea per sentence, at most about 25 words, at most one parenthesis.
+   3. Explain each factory word once, in the glossary.
+   4. What to do comes first, the details after.
+   5. Round numbers.
+   6. Examples are real and were run.
+   7. Only the current truth.
+4. No findings: end with `docs-approval`. Findings: write them as a numbered list (location, what is wrong, what would fix it, one line each) and end with `docs-only`, which sends the text back to the documenter.
+
 ## Lessons
 
 - Run `make check` and every other make target in the foreground and read its output. Never start one in the background, and never wait for a process with `pgrep -f`: it matches its own command line, so the wait never ends.
