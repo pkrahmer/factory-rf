@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T08:38:43.095902Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -194,6 +198,11 @@ journal:
   at: '2026-11-05T08:38:37.364765Z'
   stage: doing
   run: cd2ef9be23d74694b93cd33a2a8ab9e8
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:38:43.095902Z'
+  stage: tests
 ---
 
 # The agent files live in `agents/`
@@ -525,3 +534,4 @@ Expect: `1`
     - A directory that an agent renames is dropped from the take. `_read_diff_line` in `src/factory/machine/adapters/zfs_snapshots.py` skips directory entries in `zfs diff`. This is a candidate for a story of its own.
     - The human's steps on factory-vm after the merge (entry 11): change `FACTORY_CLAUDE_HOME` in `factory.env`, rebuild the stage image and renew `image-id`.
     - Criterion 6 is still open for the documenter.
+34. factory: started tests as vm.
