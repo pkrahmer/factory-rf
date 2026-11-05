@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T04:57:45.217934Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-05T04:57:39.381576Z'
   stage: tests
   run: 9fb60ef7527148d3a0fbe8295c3bd8c9
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-05T04:57:45.217934Z'
+  stage: doing
 ---
 
 # The root of `tests/` holds only its folders
@@ -256,3 +265,4 @@ Expect: `support.bill_support`
     Files created: `tests/{support,operator_scripts,vm,agent_files}/__init__.py`; the rest are moves and edits of existing test files. Every module imported; no import failed.
 
     `lint`: lint: green (0.1 s)
+13. factory: started doing as vm.
