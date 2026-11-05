@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T06:57:20.814822Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T06:57:18.356041Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-05T06:57:20.814822Z'
   stage: intake
 ---
 
@@ -84,3 +93,4 @@ Expect: `split`
    2. **Yes**, the row `docs/operator-guide/README.md: missing` too.
 
    One note for the later stages: for the rest of F0051 the coder may write `docs/operator-guide.md`, `docs/operator-guide/*`, `docs/project-guide/*` and `README.md` (`factory/pipeline.yml`, the human, 2026-11-05), because this story's tests check documents in the check after `doing`. So the coder makes the split itself, and the documenter keeps the docs criterion's other parts.
+5. factory: started intake as vm.
