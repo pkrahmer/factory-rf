@@ -201,7 +201,7 @@ log: push: retry 2 of 3 in 15 s: To /tmp/pytest-of-factory/pytest-1/test_walk0/o
 waits: [5.0, 15.0]
 machine: {'base_image_bytes': 580000000, 'project_layer_bytes': 0, 'store_free_bytes': None, 'dataset_free_bytes': None, 'memory_peak_since_boot_bytes': 8100000000, 'memory_total_bytes': 16000000000, 'cpu_seconds': 12.0, 'cpu_wait_seconds': 2.0, 'memory_wait_seconds': 0.0}
 tools: [{'tool': 'Bash', 'calls': 1, 'failed': 1, 'seconds': 2.0}, {'tool': 'Read', 'calls': 1, 'failed': 0, 'seconds': 0.5}]
-transcript: {'path': 'F0001-S0001/80012c2a23d640b5879c0efa09a38d85.jsonl.gz', 'sha256': '1ab3b19bca210f47caa6cdf1f86043fbabaab4aae5e7ae0a373f203a51e31e98'}
+transcript: {'path': 'F0001-S0001/80012c2a23d640b5879c0efa09a38d85.jsonl.gz', 'sha256': '1ab3b19bca21…' (shortened)}
 file mode 0o600 | sha256 matches True | lines 5
 SECRET in pushed records: False
 records valid against contract 4.4

@@ -227,7 +227,7 @@ log: push: retry 2 of 3 in 15 s: remote: Internal Server Error | error: failed t
 waits: [5.0, 15.0]
 machine: {'base_image_bytes': 580000000, 'project_layer_bytes': 0, 'store_free_bytes': None, 'dataset_free_bytes': None, 'memory_peak_since_boot_bytes': 8100000000, 'memory_total_bytes': 16000000000, 'cpu_seconds': 12.0, 'cpu_wait_seconds': 2.0, 'memory_wait_seconds': 0.0}
 tools: [{'tool': 'Bash', 'calls': 1, 'failed': 1, 'seconds': 2.0}, {'tool': 'Read', 'calls': 1, 'failed': 0, 'seconds': 0.5}]
-transcript: {'path': 'F0001-S0001/2910a9b15dbd489398151b3d40d12c8c.jsonl.gz', 'sha256': '6507a668cc0d4e5405e8ed36fde842b288929dff957cc42e13802f9a387ae406'}
+transcript: {'path': 'F0001-S0001/2910a9b15dbd489398151b3d40d12c8c.jsonl.gz', 'sha256': '6507a668cc0d…' (shortened)}
 file mode 0o600 | sha256 matches True | lines 7
 SECRET in pushed records: False
 records valid against contract 4.4
