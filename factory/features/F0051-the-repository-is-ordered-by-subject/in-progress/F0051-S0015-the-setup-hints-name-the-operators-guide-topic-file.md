@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T10:49:25.780323Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-05T10:49:20.547304Z'
   stage: tests
   run: 219d88d9942b409599def49137913349
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:49:25.780323Z'
+  stage: doing
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -145,3 +154,4 @@ Expect: `1`
    One run of `uv run pytest -q` over the three files: the new texts are missing from `operator/vm/setup.sh` and `approving.md`, so the tests fail with wrong results. There were no collection errors, and every module imported (the tests read only text files). The last five lines showed the old-pointer, closing-line, `tools`/`service` hint and `done-line` failures. `make lint`: green.
 
    `lint`: lint: green (0.2 s)
+9. factory: started doing as vm.
