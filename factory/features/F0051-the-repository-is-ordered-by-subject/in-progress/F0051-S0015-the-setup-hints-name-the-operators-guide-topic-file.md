@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506, 6656185279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T11:05:10.587802Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-05T11:05:05.130038Z'
   stage: review
   run: 83ac1b6ee2b446baaa670f3201ca651b
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-05T11:05:10.587802Z'
+  stage: docs
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -300,3 +309,4 @@ Expect: `1`
     Earlier tests:
     - tests/vm/test_vm_setup_install_hint.py: the human's leave in `feature.md`, "At S0015's start" (journal entry 4). Only `HINTS`' expected strings changed.
     - tests/vm/test_vm_setup_text.py: the human's leave in `feature.md`, "At S0015's start" (journal entry 4). Only the row `done-line`'s expected string changed.
+20. factory: started docs as vm.
