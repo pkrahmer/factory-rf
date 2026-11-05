@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T08:29:15.681204Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -138,6 +142,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T08:29:13.122946Z'
+  stage: doing
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:29:15.681204Z'
   stage: doing
 ---
 
@@ -394,3 +403,4 @@ Expect: `1`
     The second stall's only red test, `tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone`, cannot pass as written: git tracks files, not folders, so after the take deletes the files an empty `claude/` folder (or one holding only untracked leftovers) can stay in the check's tree. The test must check what git holds.
 
     Leave for the tester: the test asserts that no tracked file lies under `claude/` (for example `git ls-files claude` prints nothing, or no file under `claude/` exists when the folder is walked), and keeps its name. Coder: redo the `git mv claude agents` and the edits of entry 17 if they are not on the branch, then end with `tests` naming exactly this change.
+24. factory: started doing as vm.
