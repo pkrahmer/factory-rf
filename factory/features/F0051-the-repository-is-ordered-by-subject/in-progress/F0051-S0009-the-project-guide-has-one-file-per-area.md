@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283, 6651349591]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T06:40:39.642236Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -127,6 +131,11 @@ journal:
   at: '2026-11-05T06:40:33.899091Z'
   stage: review
   run: bcaf91a9d1b444e8a052b00a27acbcf9
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-05T06:40:39.642236Z'
+  stage: docs
 ---
 
 # The project guide has one file per area
@@ -391,3 +400,4 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
     - description corrected: criterion 6 "`README.md`, `docs/operator-guide.md` and `docs/decisions.md`: none" -> "in `docs/operator-guide.md`, every line that names a removed guide file names its new file. `README.md` and `docs/decisions.md`: none".
 
     Earlier tests: none changed. The diff only adds `tests/guards/test_project_guide_files.py`.
+22. factory: started docs as vm.
