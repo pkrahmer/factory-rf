@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T09:29:21.207040Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -104,6 +108,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T09:29:18.719471Z'
+  stage: doing
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-05T09:29:21.207040Z'
   stage: doing
 ---
 
@@ -304,3 +313,4 @@ Expect: `parsed`
 
     1. Leave for the tester: the test asserts that git tracks no file under `vm/` and under `template/` (`git ls-files vm template` prints nothing), keeping its name and rows, as S0011's `test_the_old_agent_folder_is_gone` does now.
     2. Coder: make sure every file of the two folders is on the branch at its new path, moved one file at a time (my note of 09:20), then end with `tests` naming change 1.
+18. factory: started doing as vm.
