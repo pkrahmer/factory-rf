@@ -1,5 +1,6 @@
 """No file names the agent files' old folder or the image's old place for them."""
 
+import re
 from pathlib import Path
 
 import pytest
@@ -25,7 +26,9 @@ def test_no_file_names_the_old_agent_folder(old_name: str) -> None:
     naming = [
         str(path.relative_to(ROOT))
         for path in searched_files(SEARCHED, NOT_SEARCHED)
-        if old_name in path.read_text(encoding="utf-8", errors="ignore")
+        if re.search(
+            r"(?<![\w.])" + re.escape(old_name), path.read_text(encoding="utf-8", errors="ignore")
+        )
     ]
 
     assert naming == []

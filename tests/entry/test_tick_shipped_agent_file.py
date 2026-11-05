@@ -14,7 +14,7 @@ from support.shipped_agents import AGENT_HOME, agent_body
 from support.stage_run_support import BACKLOG_PATH, INSTANCE, STORY
 from support.wiring_support import ENVIRONMENT
 
-ROLE = "coder"
+ROLE = "intake"
 
 
 def test_a_stage_run_reads_its_agent_from_the_agent_folder(

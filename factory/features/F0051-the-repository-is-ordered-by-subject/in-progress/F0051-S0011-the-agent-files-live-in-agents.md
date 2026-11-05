@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T08:12:30.289221Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-05T08:12:30.289221Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-05T08:13:06.773925Z'
+  stage: tests
+  run: b7948b2218624f6aaac2b124643d26aa
 ---
 
 # The agent files live in `agents/`
@@ -246,3 +248,20 @@ Expect: `1`
 
     Noticed but not touched: nothing new beyond entry 10.
 14. factory: started tests as vm.
+15. tester: I made the three test changes the human approved in entry 11, as the coder listed them in entry 13. Nothing else changed.
+
+    1. `tests/guards/test_agent_folder_names.py::test_no_file_names_the_old_agent_folder` now counts an old name only where no `.` or word character comes before it: `re.search(r"(?<![\w.])" + re.escape(old_name), text)`, with `import re` added. So `.claude/settings.json` no longer counts. ruff format then rewrapped the condition over several lines.
+    2. `tests/entry/test_tick_shipped_agent_file.py`: `ROLE = "intake"` replaces `"coder"`, because the first tick runs the intake stage.
+    3. `tests/vm/test_vm_job_start.py:82` now expects `f"{root}/factory/agents"`, and `tests/support/vm_support.py:51` expects `"$base/factory/agents"`. `FACTORY_CLAUDE_HOME` keeps its name.
+
+    Mapping, unchanged from entry 8:
+    - criterion 1: tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone, ::test_the_agent_folder_holds_each_agent_file, ::test_the_agent_folder_holds_no_other_agent_file
+    - criterion 2: tests/vm/test_stage_image.py::test_the_agent_files_are_copied_read_only_to_their_place, tests/vm/test_stage_image_agent_folder.py::test_the_image_names_no_agent_file_at_the_old_place
+    - criterion 3: tests/entry/test_tick_shipped_agent_file.py::test_a_stage_run_reads_its_agent_from_the_agent_folder, tests/machine/application/test_container_environment.py::test_the_sync_container_gets_container_paths_mounts_environment_and_limit
+    - criterion 4: tests/guards/test_agent_folder_names.py::test_no_file_names_the_old_agent_folder
+
+    I created no new files in this run. Files changed: the four named above. All four are under the human's leave in entry 11; `tests/support/vm_support.py` and `tests/vm/test_vm_job_start.py` were written by other stories.
+
+    I ran `uv run pytest -q` once over the guard, tick, job-start and setup-text test files. Only one failure showed in the summary. The tick test fails with `FileNotFoundError: .../agents/agents/intake.md` because the coder has not moved `claude/` to `agents/` yet (entry 13). That is the expected red. Every module imported. `make lint`: lint: green (0.1 s).
+
+    `lint`: lint: green (0.2 s)
