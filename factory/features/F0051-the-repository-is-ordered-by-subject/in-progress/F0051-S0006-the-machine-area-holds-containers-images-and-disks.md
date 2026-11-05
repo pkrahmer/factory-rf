@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 561
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T03:13:30.668826Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-05T03:13:30.668826Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T03:13:48.450409Z'
+  stage: intake
+  run: 3718a90250ba441da93dbc470520fb46
 ---
 
 # The machine area holds containers, images and disks
@@ -98,3 +100,9 @@ Expect: `1`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names 4 new packages with exact docstrings and 24 concrete old→new module moves (5 domain, 8 application, 11 adapters, which matches the Description's count). The tester's and coder's split of work follows feature decision 5.
+   - Criteria: each is testable by one parametrized test (one row per module for 1 and 3). Criterion 1 includes the AREAS key per decision 8. This is a pure move with no new rules, so there is no failing side to cover. Criterion 4 gives the rule for which test modules move.
+   - Smoke test: three commands are runnable. The pytest one passes no `-q` and relies on the project's addopts; its `tail -1 | grep -c passed` expectation (`1`) is checkable. The other two Expect lines are exact outputs.
+   - Architecture: modules go to the machine area with their layers inside, as feature decisions 1 and 2 say. The moves stay inside the layer rules. No re-export is left behind (decision 4).
+   - Scope: the story is inside F0051 scope (S0006 in the story list). It changes no behaviour or names, and it leaves docs/decisions.md alone. I did not open the source tree to confirm that each of the 24 old modules exists.
