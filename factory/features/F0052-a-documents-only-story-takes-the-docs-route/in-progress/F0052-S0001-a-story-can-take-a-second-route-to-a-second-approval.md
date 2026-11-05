@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-05T22:06:48.962506Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-11-05T22:06:43.768243Z'
   stage: docs
   run: 019f040ca4ec4de69eb3e11404686b71
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:06:48.962506Z'
+  stage: smoke-test
 ---
 
 # A story can take a second route to a second approval
@@ -293,3 +302,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 5cb5ca321340 at 2026-11-05T22:02:38Z)
     `secrets`: secrets: green (0.7 s)
     `documents`: documents ok
+20. factory: started smoke-test as vm.
