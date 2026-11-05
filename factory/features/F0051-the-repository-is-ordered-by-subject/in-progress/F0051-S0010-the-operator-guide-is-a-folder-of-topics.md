@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T07:43:39.954371Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -195,6 +191,12 @@ journal:
   kind: started
   at: '2026-11-05T07:43:39.954371Z'
   stage: review
+- number: 34
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T07:45:32.532712Z'
+  stage: review
+  run: e3594f18508343caaaf848f052d28077
 ---
 
 # The operator guide is a folder of topics
@@ -207,15 +209,15 @@ journal:
 
 - `factory.shared.domain.documents`: `OPERATOR_GUIDE` becomes the folder `docs/operator-guide` with its index `docs/operator-guide/README.md`, as `PROJECT_GUIDE_FOLDER` and `PROJECT_GUIDE` are today; the required sections are checked per file: *Install* and *Configuration* in `install.md`, *The stops* in `stops.md`. A missing topic file is reported as `docs/operator-guide/<file>: missing`, as a missing document is today.
 - Every place under `src/`, `claude/`, `operator/`, `vm/` and `README.md` that names `docs/operator-guide.md` names the folder or its topic file instead.
-- The tests that read the guide (`tests/test_operator_site_check.py` and the document check's tests) read the topic file that now holds their section; the leave of feature decision 5 covers it.
+- The tests that read the guide (`tests/operator_scripts/test_operator_site_check.py` and the document check's tests) read the topic file that now holds their section; the leave of feature decision 5 covers it.
 - `factory/story-form.md` names the four documents; its change to the folder is the human's, at this story's merge.
 
 ## Acceptance criteria
 
 1. `docs/operator-guide.md` does not exist; `docs/operator-guide/` holds `README.md` and the ten topic files named in the Description.
-2. Every section heading (`##` and `###`) of the guide before this story is found exactly once in the folder (one row per heading, from `origin/main` before the story).
+2. Every section heading (`##` and `###`) of the guide before this story is found in the folder as often as it appeared before (`### The steps` twice; one row per heading, from `origin/main` before the story).
 3. `factory-check-documents` reports `docs/operator-guide/stops.md: section 'The stops' is missing` when that heading is removed from `stops.md`, `docs/operator-guide/install.md: section 'Install' is missing` and `docs/operator-guide/install.md: section 'Configuration' is missing` when those headings are removed from `install.md`, `docs/operator-guide/install.md: missing` when `install.md` is removed, `docs/operator-guide/README.md: missing` when the index is removed, and nothing for the folder as it is (rows of one test).
-4. No file under `src/`, `claude/`, `operator/`, `vm/`, `docs/` or `README.md` names `docs/operator-guide.md`, except `docs/decisions.md`, which is history.
+4. No file under `src/`, `claude/`, `operator/`, `vm/`, `docs/` or `README.md` names `docs/operator-guide.md`, except `docs/decisions.md`, which is history, and `docs/runs/`, the human's run logs.
 5. `make check` stays green.
 6. docs: as criteria 1, 2 and 4; the index says in one sentence per file what it covers. `docs/project-guide/shared.md` (the document check): the new paths. `docs/decisions.md`: an entry for the split, naming F0051-S0010.
 
@@ -556,3 +558,41 @@ Expect: `split`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 33. factory: started review as vm.
+34. reviewer: Review of round 1. I read the work item, the diff against `main` (src, tests, README.md, docs/project-guide) and the eleven files of `docs/operator-guide/`. `make check` was green after the coder (entry 32: `check: green`, coverage 99.26 %). I did not run it myself.
+
+    No findings.
+
+    Round 0's findings (entry 22), checked against the code:
+    - 1 to 3: the cross-file references now name their file. I spot-checked `cloud-run.md:7`, `machine.md:109`, `records.md:166` and `agent-runtime.md:65`. The old guide and the new files differ in 157 lines each way. The only differences are the new `#` titles, the "A topic of the operator guide" lines, the index's list, the dropped table of contents, and references that gained `in [file.md](file.md)`. No other words changed.
+    - 4: `OPERATOR_GUIDE_SECTIONS` is now the one source of the required sections, through `_OPERATOR_SECTION_FILES` (`src/factory/shared/domain/documents.py:41-46`, `:176-177`). It is no longer dead code.
+    - 5: the guard helpers are in `tests/support/guide_files_support.py`, and both guard modules use them.
+    - 6: `tests/support/document_texts.py` imports `OPERATOR_INSTALL` and `OPERATOR_STOPS` from `factory.shared.domain.documents`. The tests that use them import them from there too.
+    - 7: corrected below. The human settled it in entry 9, answer 6.
+
+    Description corrected:
+    - Interface, the site-check test: `tests/test_operator_site_check.py` -> `tests/operator_scripts/test_operator_site_check.py`.
+    - Criterion 2: "is found exactly once in the folder" -> "is found in the folder as often as it appeared before (`### The steps` twice; ...)".
+    - Criterion 4: "except `docs/decisions.md`, which is history" -> "except `docs/decisions.md`, which is history, and `docs/runs/`, the human's run logs".
+
+    Checked and sound:
+    - Criterion 1: `test_the_single_guide_is_gone_and_the_folder_holds_the_index_and_ten_topics`.
+    - Criterion 2: `test_every_earlier_heading_is_kept_in_the_folder`. I compared it against `main`'s guide. The 128 headings outside fences and their counts match the folder exactly. The `##` sections sit in the files the Description names.
+    - Criterion 3: six rows of one parametrized test, each expecting the exact line. Both sides of every Interface rule are covered: each required section present and missing, `install.md` and the index present and missing.
+    - Criterion 4: `test_no_file_names_the_single_guide`, with the corrected exclusions. A grep found no other file that names the old path.
+    - `_RULES` replaces the `if` chain and behaves the same.
+    - Architecture holds: the domain layer does no I/O.
+    - Security: no markers in the diff, no secrets, no shell built from strings.
+    - Docstrings are present and accurate.
+    - Docs criterion 6 is still right for the documenter. Still open there: the project guide's "the operator guide, *Section*" references (entry 14) and `docs/project-guide/shared.md`.
+
+    Earlier tests (changed, status M):
+    - `tests/entry/test_check_documents.py`: the human's leave, entry 9 answer 5. The `OPERATOR_INSTALL` import moved under the standing leave to move a shared test helper (entry 30).
+    - `tests/entry/test_check_documents_guide_files.py`: the human's leave, entry 9 answer 5.
+    - `tests/pipeline/domain/test_documents.py`: the human's leave, entry 9 answers 1, 2 and 5. The constant imports moved under the standing leave (entry 30).
+    - `tests/shared/domain/test_documents_guide_files.py`: the human's leave, entry 9 answers 4 and 5.
+    - `tests/support/check_documents_support.py`: the human's leave, entry 9 answers 3 and 5.
+    - `tests/support/document_texts.py`: the human's leave, entry 9 answer 5. Its constants now come from `src` under the standing leave (entry 26).
+    - `tests/operator_scripts/test_operator_site_check.py`: the human's leave, entry 9 answer 5 (it reads `site.md`).
+    - `tests/guards/test_project_guide_files.py`: two leaves.
+      - The human's leave, entry 14 point 1: the `docs/operator-guide` exclusion and the `operator-guide/` lookbehind.
+      - The standing leave to move a shared test helper (entry 26): `_lines_outside_fences`, `_guide_headings` and `_searched_files` moved to `tests/support/guide_files_support.py`. Every test keeps its name. The `__pycache__` skip changes nothing, because the searched places hold none.
