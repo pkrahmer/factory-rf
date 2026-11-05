@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 559
 comments_read: [6648033321]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T02:41:57.971383Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-05T02:41:52.452158Z'
   stage: review
   run: f34daa5ab6d6447e998205a55eb1e9a2
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:41:57.971383Z'
+  stage: docs
 ---
 
 # The agents area holds the agent runs
@@ -366,3 +375,4 @@ Expect: `1`
       - `tests/entry/`: test_refresh_token.py, test_refresh_token_signals.py, test_run.py
       - `tests/entry/`: test_wiring_acceptance.py, test_wiring_api_login.py, test_wiring_boundaries.py, test_wiring_container_extra.py, test_wiring_environment.py, test_wiring_extras.py, test_wiring_handlers.py, test_wiring_human_handlers.py
       - `tests/entry/`: test_wiring_image_path.py, test_wiring_login.py, test_wiring_one_environment.py, test_wiring_opencode.py, test_wiring_opencode_provider.py, test_wiring_project_agents.py, test_wiring_provider_limit.py, test_wiring_run.py, test_wiring_stage_environment.py, test_wiring_without_agent_user.py
+17. factory: started docs as vm.
