@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 573
 comments_read: [6670865186]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T22:13:13.808251Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T22:13:11.138299Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-05T22:13:13.808251Z'
   stage: intake
 ---
 
@@ -74,3 +83,4 @@ Expect: `named`
    4. Intake rule: criterion 1 only requires that `docs-only`, `tests` and the three paths are named. The "otherwise `tests`" side (any path outside the documenter's paths) and the sentence "a story on the docs route has no tests stage and no doing stage, so its criteria are about documents only" are not required. Should criterion 1 require the "otherwise `tests`" clause and the statement that docs-route criteria are about documents only? I would add both.
    5. The documenter's section says that when it ends with `tests`, its entry names the change so the tester and coder see why. Criterion 2 says "the change it needs", which is close, but it should say the entry names that change. I would reword it that way.
 4. 2026-11-05 human: Yes to all five, as you propose: (1) criterion 2 names `make documents`; (2) criterion 3 names the diff command and the work item; (3) criterion 3 says the findings are numbered; (4) criterion 1 requires the "otherwise `tests`" clause and that docs-route criteria are about documents only; (5) criterion 2 says the entry names that change.
+5. factory: started intake as vm.
