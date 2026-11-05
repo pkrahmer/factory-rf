@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 574
 comments_read: [6671915202]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T23:10:43.942868Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -80,6 +76,12 @@ journal:
   kind: started
   at: '2026-11-05T23:10:43.942868Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-11-05T23:11:12.784336Z'
+  stage: tests
+  run: 14e25114c0ed422e8f780409ee9415b1
 ---
 
 # The documents have a style page and a glossary
@@ -199,3 +201,24 @@ Expect: `named`
 
     2. (i): no new tests. The Interface rules out tests, and the formats of the style page and the glossary stay the documenter's to choose. The guard change of point 1 is the only test work. The reviewer judges criteria 1 to 4, and `make documents` and `make secrets` cover 5 and 6.
 12. factory: started tests as vm.
+13. tester: I made the one test change the human approved in entry 11: option (a) for point 1 and option (i) for point 2.
+
+    Changed (an earlier story's test, with the human's leave in entry 11):
+    - `tests/guards/test_project_guide_files.py`: `NAMED_FILES` is now `(*AREA_FILES, "operator.md", "style.md", "glossary.md")`.
+    - In the same file, `test_the_guide_holds_the_index_operator_and_the_seven_area_files` is renamed to `test_the_guide_holds_the_index_and_its_named_files`. Its check is unchanged: the guide folder holds exactly `README.md` and the named files.
+    - Because of this change, `test_the_index_names_each_file_with_a_sentence` now also checks the index lines for `style.md` and `glossary.md`.
+
+    Criterion → test:
+    - criterion 3: `tests/guards/test_project_guide_files.py::test_the_index_names_each_file_with_a_sentence` (the `style.md` and `glossary.md` rows) and `::test_the_guide_holds_the_index_and_its_named_files`.
+    - criteria 1, 2 and 4: no test, by the human's answer (i). The reviewer judges them, and the formats stay the documenter's to choose.
+    - criteria 5 and 6: no test. The factory's checks (`make documents`, `make check`) cover them.
+
+    Files created: none. Every module was imported; nothing failed to import.
+
+    Results:
+    - `uv run pytest -q tests/guards/test_project_guide_files.py`: all pass. These tests are not red, because the documents are already on the branch.
+    - `make lint`: green.
+
+    Nothing is left for the coder to implement: the documents are in place, so `make check` should be green with this change. I did not run `make check` myself.
+
+    `lint`: lint: green (0.1 s)
