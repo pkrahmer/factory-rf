@@ -6,7 +6,7 @@ The new checks (names, settings, examples) will find many faults in today's docu
 
 ## Interface
 
-- The list is a file, `docs/checked-documents.txt`: one document path per line, `#` for comments, empty at first. It is a document file on purpose, so that a story on the docs route can add a line to it (the documenter writes `docs/*`).
+- The list is a file, `docs/checked-documents.txt`: one document path per line, `#` for comments. At first it holds `docs/project-guide/style.md` and `docs/project-guide/glossary.md`, the two pages already written in the new style (F0052-S0003); if one of them has a blocking finding, this story fixes it in the page. It is a document file on purpose, so that a story on the docs route can add a line to it (the documenter writes `docs/*`).
 - `factory.shared.domain.documents`: `read_checked_documents(text) -> list[str]` (pure; a path that is no document of the check is a finding), and the split of the findings into blocking and reported ones.
 - The command prints the blocking findings first, then the report, then its last line: `documents ok` when nothing blocks (also with a report), otherwise one line per blocking finding and exit status 1.
 - Tests: `tests/entry/test_check_documents_checked_files.py`.
@@ -15,7 +15,7 @@ The new checks (names, settings, examples) will find many faults in today's docu
 
 1. A finding of the name, settings or example check in a file on `docs/checked-documents.txt` fails the command; the same finding in a file not on it is printed under `Report (not checked yet):` and the command ends with `documents ok` (rows of one test).
 2. A finding of today's checks (a missing stop row, a missing section, an old word) fails the command for every file, as before.
-3. With today's documents and an empty `docs/checked-documents.txt`, `make documents` prints `documents ok` and a report.
+3. With today's documents and the first `docs/checked-documents.txt` (the style page and the glossary), `make documents` prints a report and ends with `documents ok`.
 4. `make check` stays green.
 5. docs: `docs/project-guide/shared.md`: the checked files and the report. `docs/decisions.md`: an entry for feature decisions 1 to 4, naming F0053.
 
