@@ -1588,3 +1588,10 @@ Date: 2026-11-05 (F0052).
 - Rejected: letting the intake jump to `docs` and the documenter jump to `review`. Those moves would count as rework in the old stages' rounds, and a close at `approval` would send the story to a coder who cannot write documents.
 - Rejected: a route as a list of stages that the intake writes into the work item. The factory would have to keep a route per story and count rounds against it, for a need seen once.
 - Rejected: sending the story from the intake to the existing `docs` stage, with a third way out to `docs-approval`. That skips the review of the finished text, and the way to `docs-approval` would count as a round of rework.
+
+## The documents follow one style page and one glossary
+
+Date: 2026-11-05.
+
+- Decision: `docs/project-guide/style.md` is the written standard for all documents: eight rules for all of them, and one section each for the operator guide (numbered steps), the project guide (the idea first, then the API) and the README (what it is for, then try it). `docs/project-guide/glossary.md` explains each factory word once, and the documents link to it.
+- Why: the human chose these styles on 2026-11-05 from three samples for each document. The documenter and the reviewer need one standard to write and judge by.

@@ -2,16 +2,12 @@
 stage: docs-only
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 574
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-05T23:02:14.880601Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,19 @@ journal:
   kind: started
   at: '2026-11-05T23:02:14.880601Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T23:05:41.551287Z'
+  stage: docs-only
+  run: ee04e77905884528ac7e9d5eb6c8c563
+- number: 6
+  speaker: factory
+  kind: stall
+  at: '2026-11-05T23:05:41.715767Z'
+  stage: docs-only
+  run: ee04e77905884528ac7e9d5eb6c8c563
+  reason: check_red
 ---
 
 # The documents have a style page and a glossary
@@ -83,3 +92,34 @@ Expect: `named`
    - Scope: within the feature's S0003 scope. The rewrite of the guides and the README stays out, as the feature requires.
    Route: docs-only, because every path the Interface changes is one the documenter may write.
 4. factory: started docs-only as vm.
+5. documenter: Wrote the style page and the glossary, and added both to the project guide's index. `make documents` prints `documents ok`. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/project-guide/style.md` (new): rules 1 to 7 from `planning/doc-style-drafts.md`, in the page's own words. Rule 8 is the human's rule on relative links, with no GitHub URLs, no `#L42` and one link above a code block. Then one section each for the operator guide, the project guide and the README, with reader, rules and the chosen example. The take example's closing "See also" now links `pipeline.md`, so the example follows rule 8.
+   - `docs/project-guide/glossary.md` (new): 27 entries, sorted alphabetically, one to two sentences each. They cover every word the Interface lists, plus `feature`, `story` and `role`, which it names too. Wording of `stall`, `crash`, `lease`, `claim`, `stop` and `cost record` follows `docs/operator-guide/stops.md` and the decision log.
+   - `docs/project-guide/README.md`: one line each for `style.md` and `glossary.md` in *The files*, ahead of `shared.md`.
+   - `docs/decisions.md`: a new last entry, "The documents follow one style page and one glossary", naming the human's choice of 2026-11-05. The story names no rejected option for it, so the entry has no "Rejected" line.
+
+   Cross-read and found current for this story: `docs/project-guide/README.md` (index structure and the *The files* format) and the last entry of `docs/decisions.md`. I did not cross-read the other area files or the operator guide. Per the story, no other document is rewritten.
+
+   Open for the reviewer:
+   - The drafts in `planning/doc-style-drafts.md` have rules 8 to 10 (facts from the code, keep the detail in a *Reference* section, examples run and show where). The story asks for seven common rules plus the link rule, so I left those three out. Say if they should go in.
+   - I did not measure sentence length by tool. I wrote to about 25 words.
+
+   Stale text seen, not touched: the header comments of `factory/pipeline.yml` and some older `docs/decisions.md` entries use version names (v1, v1.1). Those are outside this story's paths and, for the pipeline definition, outside my write paths.
+6. factory: Stage docs-only stalled (attempt 1 of 2): a check is red after the stage: `check`
+   src/factory/watching/application/transcripts.py         61      2     10      0    97%   91-92
+   src/factory/watching/domain/board.py                    55      0      4      1    98%   77->75
+   src/factory/watching/domain/machine.py                  52      3     18      5    89%   44->42, 47, 59, 77->75, 79
+   src/factory/watching/domain/transcripts.py              10      2      0      0    80%   20-21
+   src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   239
+   src/factory/work/application/work_items.py              90      2     24      2    96%   133, 169
+   src/factory/work/domain/acceptance.py                  186      1     46      1    99%   356
+   ------------------------------------------------------------------------------------------------
+   TOTAL                                                10644     49   2122     46    99%
+
+   154 files skipped due to complete coverage.
+   Required test coverage of 90.0% reached. Total coverage: 99.26%
+   ======================================================================================= short test summary info ========================================================================================
+   FAILED tests/guards/test_project_guide_files.py::test_the_guide_holds_the_index_operator_and_the_seven_area_files - AssertionError: assert ['README.md',...ator.md', ...] == ['README.md',...line.md'...
+   make: *** [Makefile:89: test] Error 1

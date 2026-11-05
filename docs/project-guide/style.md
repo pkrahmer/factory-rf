@@ -1,0 +1,91 @@
+# Style of the documents
+
+How the factory's documents read. The documenter writes to this page, and the reviewer judges the documents by it. It holds the rules for all documents, then one section for each document: the operator guide, the project guide and the README.
+
+## Rules for all documents
+
+1. **Write for the reader who never saw the factory's history.** Use no feature or story IDs, no version names and no "replaced in" notes. The history lives in [decisions.md](../decisions.md); a guide may point there in one line.
+2. **One idea per sentence.** Split a sentence of more than about 25 words. Use at most one parenthesis per sentence, and none inside another.
+3. **Explain a factory word once.** The words the factory gave its own meaning are explained in the [glossary](glossary.md) and linked at their first use in a file. Use no other private words.
+4. **Say what to do, or what happens, first.** The details come after. Put the rule before its exceptions and the common case before the rare one.
+5. **Round numbers where exactness does not matter.** Write "about two minutes", not "117.5 s".
+6. **Examples are real and were run.** Put commands in code blocks, each followed by what it prints.
+7. **Write the current truth only.** Write no changelog, no "since" and no "no longer". A removed behaviour goes from the text, with one line in the decision log.
+8. **Link a file of the repository by a relative link.** Write `[process.py](../../src/factory/shared/adapters/process.py)`, never a GitHub URL and never a link to a line (`#L42`). A code block holds no links, so link the file it shows once, above the block.
+
+## The operator guide
+
+The guide is in `docs/operator-guide/`. Its reader runs an instance: installs it, configures it, watches it and fixes its stops. They know Linux, git and a terminal. They do not read the code.
+
+- A task is a list of numbered steps. Each step is one action with its command. If the step needs a reason, give it in one sentence after the step.
+- Every stop has the same three parts: what you see, what it means, what you do.
+- Settings are tables with four columns: name, what it does, default, example.
+- Name no module or class. Name a source path only if the operator edits or runs that file.
+
+Example:
+
+```markdown
+## Install
+
+1. Install the factory's packages:
+
+       uv sync
+
+2. Check the installation. The last line must be `check: green`:
+
+       make check
+
+3. Prepare the machine: run `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>` on a fresh Ubuntu 24.04 machine. It installs the packages, the ZFS pool, the factory and its service.
+
+4. Set the instance's settings, as "Configuration" describes.
+```
+
+## The project guide
+
+The guide is in `docs/project-guide/`. Its reader is an agent or a developer about to change the code of one area. They need exact names, but they must first know what a part is for.
+
+- Each section starts with two or three plain sentences: what the part does and why it exists.
+- Then come the names: the module, the class and its main function, in a code block with the signature.
+- Then come the rules, one per bullet. Each is a sentence that a test could check.
+- Then comes "See also", with links to the sections this one depends on.
+- Code names stay exact. The prose around them follows the rules for all documents.
+
+Example:
+
+```markdown
+## The take
+
+After an agent's run, the factory copies back only what the agent's role may write. The agent works on its own copy of the repository (the dataset), and everything else it changed is dropped. This copy step is the take.
+
+    TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths) -> TakeReport
+
+- A path goes back when the role's write paths allow it and no protected path forbids it.
+- `changed_paths` come from `Snapshots.changed_paths()`, relative to `mount_point`.
+- The work item's state and journal are restored from the stage-start commit.
+
+See also: *The take's rule* in [pipeline.md](pipeline.md).
+```
+
+## The README
+
+The reader opens the repository for the first time and decides whether to go on.
+
+- First comes what the factory is and what it is for, in three or four sentences that a non-developer could follow.
+- Then comes how to try it, in at most five commands.
+- Then comes where to read next, one line per document.
+- Put no settings, no exceptions and no history in it. Those belong in the guides.
+
+Example:
+
+```markdown
+# kumpel-factory
+
+kumpel-factory builds software from stories. You describe a feature as a few short stories. The factory hands each story to AI agents in turn: one writes the tests, one the code, one reviews it, one updates the docs. Then it opens a pull request, and you approve it or send it back.
+
+It runs on a Linux VM or as a Cloud Run job, with Claude Code or opencode as the agents.
+
+## Try it
+
+    uv sync
+    make check     # ends with check: green
+```
