@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 562
 comments_read: [6649241093]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T04:06:01.069731Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,13 +91,20 @@ journal:
   kind: started
   at: '2026-11-05T04:06:01.069731Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: question
+  at: '2026-11-05T04:11:19.357087Z'
+  stage: review
+  run: 55e125550bef4aa481102a956ad4c1da
+  blocked: question
 ---
 
 # The pipeline area holds the stages and the tick
 
 ## Description
 
-F0051 orders `src/factory/` by subject (feature decisions 1 to 3). This story moves the `pipeline` area: the pipeline definition, stages, checks, events, the tick, the scheduler and dispatcher, the handlers, claims, leases, stops, stalls, recovery and `Boundaries`. Each of its 27 modules moves from its layer package to the same layer inside `factory.pipeline`, keeps its name and its content, and is imported from the new path everywhere; nothing stays at the old path, not even a re-export (feature decision 4). The test modules of these modules move with them to `tests/pipeline/<layer>/` (feature decision 5). It is the last move: afterwards `src/factory/` holds only the seven areas, `entry/` and `contract/`; the old layer packages `factory.domain`, `factory.application` and `factory.adapters` are gone, and every test module still left under `tests/domain/`, `tests/application/` or `tests/adapters/` moves to the area of the module it imports most. No behaviour changes: every test that passed before passes after, with only its import lines and paths changed.
+F0051 orders `src/factory/` by subject (feature decisions 1 to 3). This story moves the `pipeline` area: the pipeline definition, stages, checks, events, the tick, the scheduler and dispatcher, the handlers, claims, leases, stops, stalls, recovery and `Boundaries`. Each of its 27 modules moves from its layer package to the same layer inside `factory.pipeline`, keeps its name and its content, and is imported from the new path everywhere; nothing stays at the old path, not even a re-export (feature decision 4). The test modules of these modules move with them to `tests/pipeline/<layer>/` (feature decision 5). It is the last move: afterwards `src/factory/` holds only the seven areas, `entry/` and `contract/`; the old layer packages `factory.domain`, `factory.application` and `factory.adapters` are gone, and every test module still left under `tests/domain/`, `tests/application/` or `tests/adapters/` moves to the area of the module it imports most, except that one that imports `factory.entry` moves to `tests/entry/` and one that imports no factory module moves to the `tests/` root, because an area folder holds only test modules that import their own area and no `factory.entry`. No behaviour changes: every test that passed before passes after. Only its import lines and paths change, apart from the guards that pin the old layout (feature decision 5) and the three test changes the human allowed in journal entry 8.
 
 ## Interface
 
@@ -339,3 +342,403 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 9 new, 36 known, 7 gone
 15. factory: started review as vm.
+16. reviewer: Question for the human: criterion 7 (docs) covers only the module paths in the table. It does not cover the docs that name the three packages this story removes, and after this story they point at nothing:
+    - docs/operator-guide.md:148: `make mutants MODULES=factory.application ...`. That example would now mutate nothing.
+    - docs/project-guide/processes-and-checks.md:120: "the fakes of `factory.adapters`".
+    - docs/project-guide/processes-and-checks.md:174: the example `MODULES='factory.machine.domain.disk factory.application'`.
+    - docs/project-guide/watching.md:274: "called in `factory.application`".
+    - docs/project-guide/work-items.md:190: "one reader class and one writer class in `factory.adapters`, behind an interface in `factory.application`".
+
+    Only the reviewer, intake and smoke-test can write the work item, so sending it back to `doing` cannot fix the criterion. Options:
+    (a) On the rerun I extend criterion 7 with: "every place in `README.md`, `docs/operator-guide.md` or `docs/project-guide/` that names `factory.domain`, `factory.application` or `factory.adapters` as a package names the area package or layer that holds it now". Then I pass the story to `docs`.
+    (b) Criterion 7 stays as it is, and these lines go to a later story.
+    I would choose (a): this is the story that removes those packages.
+
+    Review of the diff (round 0), apart from that: no findings.
+    - Group 1: criteria 1 to 3 are the rows `pipeline.<layer>.<name>` and the four packages in tests/test_areas.py. Criteria 4 and 5 are in tests/test_old_layer_packages_removed.py. Each test checks what its criterion says, and the coder's `make check` was green (entry 14).
+    - Group 2: the src/ diff is 27 modules moved with `git mv` (handlers with its `__init__.py`), four new package `__init__.py` files with the Interface's docstrings, the three old `__init__.py` files removed, and import lines rewritten. Apart from import lines and docstrings, no src/ line changed. `src/factory/` holds exactly the areas, `entry/`, `contract/` and `__init__.py`, and no src/ file names an old path.
+    - Group 3: no new noqa, nosec, nosemgrep, allowlist or type: ignore marker.
+    - Group 4: I ran `make duplicates`: 9 new. Five are the old baseline entries under their new paths, and the same five show as gone: hand_over/acceptance, stage/stalls, dispatcher `unhandled_kinds`, stage `next_stage`, take `restored_work_item`. The other four (claude_runtime/opencode_runtime similar code, and three cost_records dead-code variables) are in files this diff does not touch. Still open, outside every stage's write paths: `security/duplicates-baseline.txt` (lines 2, 3, 19, 20, 33) keeps the old paths, and the `tests/domain/test_hosting.py` mutmut deselect in `pyproject.toml` is stale (entry 8 leaves it as a follow-up).
+    - Group 5: covered by the question and the corrections below.
+
+    description corrected: "every test module still left under ... moves to the area of the module it imports most" -> the same, plus: a module that imports `factory.entry` moves to `tests/entry/`, and one that imports no factory module moves to the `tests/` root. The guard in tests/test_areas.py and CLAUDE.md's rule for modules outside the layers settle that.
+    description corrected: "with only its import lines and paths changed" -> "Only its import lines and paths change, apart from the guards that pin the old layout (feature decision 5) and the three test changes the human allowed in journal entry 8."
+
+    Earlier tests (paths under tests/; FD5 = feature decision 5's leave: import lines and module/file paths of moved modules rewritten, test module moved with `git mv`, test package created, or a guard of the old layout changed). For every FD5 line I read the non-import lines of the diff, and each test keeps its name and what it checks:
+    module_names.py: human's leave, entry 8 (`module_exists` added)
+    test_checkout_hygiene_removed.py: human's leave, entry 8
+    test_docker_path_removed.py: human's leave, entry 8
+    test_home_reset_removed.py: human's leave, entry 8
+    test_hook_removed.py: human's leave, entry 8
+    test_kernel_guard_removed.py: human's leave, entry 8, plus FD5 (module path)
+    test_leftovers_program_removed.py: human's leave, entry 8
+    test_undo_removed.py: human's leave, entry 8, plus FD5 (module path)
+    entry/test_mutation_report_removed.py: human's leave, entry 8
+    application/test_tick.py -> pipeline/application/test_tick.py: FD5 (move), human's leave, entry 8 (`pipeline/` path prefix)
+    test_areas.py: the story's Interface (`AREAS` row), human's leave, entry 8 (bare `import factory`)
+    adapters/claude_stand_in.py -> claude_stand_in.py: standing leave to move a shared test helper
+    adapters/container_runtime_support.py -> container_runtime_support.py: standing leave to move a shared test helper
+    adapters/opencode_stand_in.py -> opencode_stand_in.py: standing leave to move a shared test helper
+    adapters/pygithub_stand_ins.py -> pygithub_stand_ins.py: standing leave to move a shared test helper
+    adapters/__init__.py -> pipeline/__init__.py: FD5
+    application/__init__.py -> pipeline/adapters/__init__.py: FD5
+    application/handlers/__init__.py -> pipeline/application/__init__.py: FD5
+    domain/__init__.py -> pipeline/application/handlers/__init__.py: FD5
+    test_layers.py: FD5 (guard)
+    domain/test_hosting.py -> hosting/domain/test_hosting.py: FD5 (guard)
+    test_agent_run_request_search.py: FD5 (guard)
+    test_stop_table.py: FD5
+    test_opencode_shared_steps.py: FD5 (path of the moved stand-in)
+    test_suite_held_once.py: FD5 (paths)
+    test_suite_leftovers.py: FD5 (paths)
+    test_suite_old_names.py: FD5 (paths)
+    test_make_search.py: FD5 (paths)
+    application/test_interfaces.py -> machine/application/test_interfaces.py: FD5 (depth)
+    adapters/test_pipeline_yaml_tool_paths.py -> pipeline/adapters/test_pipeline_yaml_tool_paths.py: FD5 (depth)
+    acceptance_walk.py: FD5
+    branch_reading.py: FD5
+    claude_resume_support.py: FD5
+    conftest.py: FD5
+    container_extra_support.py: FD5
+    container_support.py: FD5
+    cost_image_support.py: FD5
+    crash_support.py: FD5
+    definition_support.py: FD5
+    document_texts.py: FD5
+    evaluation_support.py: FD5
+    git_support.py: FD5
+    known_results_support.py: FD5
+    power_support.py: FD5
+    preflight_support.py: FD5
+    project_command_support.py: FD5
+    proof_support.py: FD5
+    push_retry_support.py: FD5
+    remote_outage_support.py: FD5
+    scripted_tick_support.py: FD5
+    shipped_agents.py: FD5
+    stage_run_support.py: FD5
+    stall_support.py: FD5
+    take_support.py: FD5
+    template_make_support.py: FD5
+    tick_support.py: FD5
+    torn_record_support.py: FD5
+    undo_support.py: FD5
+    watch_support.py: FD5
+    wiring_support.py: FD5
+    work_item_support.py: FD5
+    write_path_support.py: FD5
+    test_claim_ownership.py: FD5
+    test_claude_files.py: FD5
+    test_fault_paths_table.py: FD5
+    test_model_configuration.py: FD5
+    test_no_journal_reading.py: FD5
+    test_one_stage_environment.py: FD5
+    test_shared_branch_helpers.py: FD5
+    test_shared_definition.py: FD5
+    test_shared_imports.py: FD5
+    test_suite_fixtures.py: FD5
+    test_template_makefile.py: FD5
+    test_template_sync.py: FD5
+    test_time_limits.py: FD5
+    domain/test_contract_login.py -> test_contract_login.py: FD5
+    domain/test_contract_provider_limit.py -> test_contract_provider_limit.py: FD5
+    adapters/test_opencode_limit_wait_on_stderr.py -> test_opencode_limit_wait_on_stderr.py: FD5
+    adapters/test_opencode_resume_session.py -> test_opencode_resume_session.py: FD5
+    adapters/test_opencode_runtime_transcript.py -> test_opencode_runtime_transcript.py: FD5
+    adapters/test_pipeline_stage_moves.py -> test_pipeline_stage_moves.py: FD5
+    shared/domain/test_duplicates.py: FD5
+    domain/test_settings_model_rules.py -> shared/domain/test_settings_model_rules.py: FD5
+    application/test_acceptance_reviewer_role.py -> shared/application/test_acceptance_reviewer_role.py: FD5
+    application/test_acceptance_ticks_closed.py -> shared/application/test_acceptance_ticks_closed.py: FD5
+    application/test_push_retry.py -> shared/application/test_push_retry.py: FD5
+    agents/adapters/test_calls_as_the_factory_user.py: FD5
+    agents/adapters/test_claude_runtime.py: FD5
+    agents/adapters/test_claude_runtime_api_login.py: FD5
+    agents/adapters/test_claude_runtime_denial_paths.py: FD5
+    agents/adapters/test_claude_runtime_environment.py: FD5
+    agents/adapters/test_claude_runtime_login.py: FD5
+    agents/adapters/test_claude_runtime_no_hook.py: FD5
+    agents/adapters/test_claude_runtime_provider_limit.py: FD5
+    agents/adapters/test_claude_runtime_resume.py: FD5
+    agents/adapters/test_claude_runtime_resume_session.py: FD5
+    agents/adapters/test_opencode_budget.py: FD5
+    agents/adapters/test_opencode_left_out_tools.py: FD5
+    agents/adapters/test_opencode_measures.py: FD5
+    agents/adapters/test_opencode_provider_limit.py: FD5
+    agents/adapters/test_opencode_resumed_words.py: FD5
+    agents/adapters/test_opencode_runtime.py: FD5
+    agents/adapters/test_opencode_runtime_launch.py: FD5
+    agents/adapters/test_opencode_runtime_provider.py: FD5
+    agents/adapters/test_opencode_runtime_runs_folder.py: FD5
+    agents/adapters/test_runtime_died_text.py: FD5
+    agents/adapters/test_runtime_state_directory_write.py: FD5
+    agents/adapters/test_shipped_agents_effect.py: FD5
+    application/test_after_agent_edges.py -> agents/application/test_after_agent_edges.py: FD5
+    application/test_agent_definition_reader.py -> agents/application/test_agent_definition_reader.py: FD5
+    application/test_agent_run_probe.py -> agents/application/test_agent_run_probe.py: FD5
+    application/test_agent_run_probe_api_login.py -> agents/application/test_agent_run_probe_api_login.py: FD5
+    application/test_agent_run_probe_factory_user.py -> agents/application/test_agent_run_probe_factory_user.py: FD5
+    application/test_agent_run_probe_login.py -> agents/application/test_agent_run_probe_login.py: FD5
+    application/test_agent_run_probe_opencode.py -> agents/application/test_agent_run_probe_opencode.py: FD5
+    application/test_agent_run_probe_project_agent.py -> agents/application/test_agent_run_probe_project_agent.py: FD5
+    application/test_patient_runs.py -> agents/application/test_patient_runs.py: FD5
+    application/test_preflight.py -> agents/application/test_preflight.py: FD5
+    application/test_project_agents.py -> agents/application/test_project_agents.py: FD5
+    application/test_sealed_runs_runner.py -> agents/application/test_sealed_runs_runner.py: FD5
+    application/test_write_paths_guard.py -> agents/application/test_write_paths_guard.py: FD5
+    application/test_board_reader_acceptance.py -> entry/test_board_reader_acceptance.py: FD5
+    adapters/test_runtimes_without_wrapper.py -> entry/test_runtimes_without_wrapper.py: FD5
+    application/test_tick_agent_definition.py -> entry/test_tick_agent_definition.py: FD5
+    application/test_tick_project_agent.py -> entry/test_tick_project_agent.py: FD5
+    application/test_watcher_main_ref.py -> entry/test_watcher_main_ref.py: FD5
+    entry/test_entry_arguments.py: FD5
+    entry/test_health.py: FD5
+    entry/test_health_missing.py: FD5
+    entry/test_run.py: FD5
+    entry/test_run_fetch_before_tick.py: FD5
+    entry/test_run_health_file.py: FD5
+    entry/test_run_idle_exit.py: FD5
+    entry/test_run_idle_shutdown.py: FD5
+    entry/test_run_image_sizes.py: FD5
+    entry/test_run_machine_stop_exit.py: FD5
+    entry/test_run_one_fetch.py: FD5
+    entry/test_run_project_image_rebuild.py: FD5
+    entry/test_run_stop_requested.py: FD5
+    entry/test_watch.py: FD5
+    entry/test_watch_acceptance.py: FD5
+    entry/test_watch_agent_definition.py: FD5
+    entry/test_watch_main.py: FD5
+    entry/test_watch_own_claim.py: FD5
+    entry/test_watch_settings.py: FD5
+    entry/test_wiring.py: FD5 (guard)
+    entry/test_wiring_acceptance.py: FD5
+    entry/test_wiring_api_login.py: FD5
+    entry/test_wiring_boundaries.py: FD5
+    entry/test_wiring_constants.py: FD5
+    entry/test_wiring_container_extra.py: FD5
+    entry/test_wiring_container_extras.py: FD5
+    entry/test_wiring_copy_snapshots.py: FD5
+    entry/test_wiring_environment.py: FD5
+    entry/test_wiring_extras.py: FD5
+    entry/test_wiring_handlers.py: FD5
+    entry/test_wiring_human_handlers.py: FD5
+    entry/test_wiring_idle_shutdown.py: FD5
+    entry/test_wiring_idle_shutdown_action.py: FD5
+    entry/test_wiring_image_path.py: FD5
+    entry/test_wiring_known_results.py: FD5
+    entry/test_wiring_login.py: FD5
+    entry/test_wiring_metadata_block.py: FD5
+    entry/test_wiring_one_preflight.py: FD5
+    entry/test_wiring_opencode.py: FD5
+    entry/test_wiring_opencode_provider.py: FD5
+    entry/test_wiring_preflight.py: FD5
+    entry/test_wiring_project_image.py: FD5
+    entry/test_wiring_provider_limit.py: FD5
+    entry/test_wiring_record_logs.py: FD5
+    entry/test_wiring_recovery.py: FD5
+    entry/test_wiring_recovery_expired.py: FD5
+    entry/test_wiring_run.py: FD5
+    entry/test_wiring_stage_environment.py: FD5
+    entry/test_wiring_stage_image_sizes.py: FD5
+    entry/test_wiring_stop_records.py: FD5
+    entry/test_wiring_without_agent_user.py: FD5
+    hosting/adapters/test_pygithub_hosting.py: FD5
+    application/test_agent_run_probe_environment.py -> hosting/application/test_agent_run_probe_environment.py: FD5
+    application/test_checkout_preparer.py -> hosting/application/test_checkout_preparer.py: FD5
+    application/test_costs.py -> hosting/application/test_costs.py: FD5
+    application/test_hosting_failure_releases_claim.py -> hosting/application/test_hosting_failure_releases_claim.py: FD5
+    application/test_opening.py -> hosting/application/test_opening.py: FD5
+    application/test_preflight_stale_main_stop.py -> hosting/application/test_preflight_stale_main_stop.py: FD5
+    application/test_recording_project_commands.py -> hosting/application/test_recording_project_commands.py: FD5
+    application/test_watcher.py -> hosting/application/test_watcher.py: FD5
+    domain/test_times.py -> hosting/domain/test_times.py: FD5
+    machine/adapters/test_agent_launch_container.py: FD5
+    machine/adapters/test_agent_launch_extra.py: FD5
+    machine/adapters/test_claude_runtime_container.py: FD5
+    adapters/test_make_commands.py -> machine/adapters/test_make_commands.py: FD5
+    adapters/test_make_commands_container.py -> machine/adapters/test_make_commands_container.py: FD5
+    machine/adapters/test_opencode_runtime_container.py: FD5
+    machine/adapters/test_opencode_runtime_lockdown.py: FD5
+    machine/adapters/test_runtime_podman_timeout_status.py: FD5
+    application/test_acceptance_facts_disk.py -> machine/application/test_acceptance_facts_disk.py: FD5
+    application/test_container_environment.py -> machine/application/test_container_environment.py: FD5
+    application/test_disk_recorder.py -> machine/application/test_disk_recorder.py: FD5
+    application/test_machine_checks_container.py -> machine/application/test_machine_checks_container.py: FD5
+    application/test_preflight_login_line.py -> machine/application/test_preflight_login_line.py: FD5
+    application/test_preflight_metadata_block.py -> machine/application/test_preflight_metadata_block.py: FD5
+    application/test_preflight_run.py -> machine/application/test_preflight_run.py: FD5
+    application/test_preflight_run_environment.py -> machine/application/test_preflight_run_environment.py: FD5
+    adapters/test_make_last_line_shared.py -> pipeline/adapters/test_make_last_line_shared.py: FD5
+    adapters/test_pipeline_rules.py -> pipeline/adapters/test_pipeline_rules.py: FD5
+    adapters/test_pipeline_strict_values.py -> pipeline/adapters/test_pipeline_strict_values.py: FD5
+    adapters/test_pipeline_yaml.py -> pipeline/adapters/test_pipeline_yaml.py: FD5
+    adapters/test_pipeline_yaml_one_line_fault.py -> pipeline/adapters/test_pipeline_yaml_one_line_fault.py: FD5
+    adapters/test_record_log_jsonl.py -> pipeline/adapters/test_record_log_jsonl.py: FD5
+    adapters/test_record_log_jsonl_torn.py -> pipeline/adapters/test_record_log_jsonl_torn.py: FD5
+    application/handlers/conftest.py -> pipeline/application/handlers/conftest.py: FD5
+    application/handlers/test_closed.py -> pipeline/application/handlers/test_closed.py: FD5
+    application/handlers/test_closed_send_back.py -> pipeline/application/handlers/test_closed_send_back.py: FD5
+    application/handlers/test_comment_handler.py -> pipeline/application/handlers/test_comment_handler.py: FD5
+    application/handlers/test_comments.py -> pipeline/application/handlers/test_comments.py: FD5
+    application/handlers/test_comments_crash_cap.py -> pipeline/application/handlers/test_comments_crash_cap.py: FD5
+    application/handlers/test_hand_over.py -> pipeline/application/handlers/test_hand_over.py: FD5
+    application/handlers/test_handler_subjects.py -> pipeline/application/handlers/test_handler_subjects.py: FD5
+    application/handlers/test_handlers_raise.py -> pipeline/application/handlers/test_handlers_raise.py: FD5
+    application/handlers/test_lookups.py -> pipeline/application/handlers/test_lookups.py: FD5
+    application/handlers/test_merged.py -> pipeline/application/handlers/test_merged.py: FD5
+    application/handlers/test_questions.py -> pipeline/application/handlers/test_questions.py: FD5
+    application/handlers/test_recording.py -> pipeline/application/handlers/test_recording.py: FD5
+    application/handlers/test_reject.py -> pipeline/application/handlers/test_reject.py: FD5
+    application/handlers/test_run.py -> pipeline/application/handlers/test_run.py: FD5
+    application/handlers/test_run_gate.py -> pipeline/application/handlers/test_run_gate.py: FD5
+    application/test_acceptance_due_handler.py -> pipeline/application/test_acceptance_due_handler.py: FD5
+    application/test_acceptance_hand_over.py -> pipeline/application/test_acceptance_hand_over.py: FD5
+    application/test_acceptance_merged.py -> pipeline/application/test_acceptance_merged.py: FD5
+    application/test_acceptance_no_state_refusals.py -> pipeline/application/test_acceptance_no_state_refusals.py: FD5
+    application/test_after_agent.py -> pipeline/application/test_after_agent.py: FD5
+    application/test_boundaries.py -> pipeline/application/test_boundaries.py: FD5
+    application/test_boundaries_required.py -> pipeline/application/test_boundaries_required.py: FD5
+    application/test_boundaries_settings.py -> pipeline/application/test_boundaries_settings.py: FD5
+    application/test_claims.py -> pipeline/application/test_claims.py: FD5
+    application/test_claims_observed.py -> pipeline/application/test_claims_observed.py: FD5
+    application/test_claims_refusals.py -> pipeline/application/test_claims_refusals.py: FD5
+    application/test_container_environment_take.py -> pipeline/application/test_container_environment_take.py: FD5
+    application/test_container_stage_checks.py -> pipeline/application/test_container_stage_checks.py: FD5
+    application/test_container_sync_origin.py -> pipeline/application/test_container_sync_origin.py: FD5
+    application/test_cost_image.py -> pipeline/application/test_cost_image.py: FD5
+    application/test_cost_instance.py -> pipeline/application/test_cost_instance.py: FD5
+    application/test_dispatcher.py -> pipeline/application/test_dispatcher.py: FD5
+    application/test_dispatcher_counts_every_error.py -> pipeline/application/test_dispatcher_counts_every_error.py: FD5
+    application/test_dispatcher_error_lines.py -> pipeline/application/test_dispatcher_error_lines.py: FD5
+    application/test_dispatcher_without_state.py -> pipeline/application/test_dispatcher_without_state.py: FD5
+    application/test_human_line_posts.py -> pipeline/application/test_human_line_posts.py: FD5
+    application/test_idle_shutdown.py -> pipeline/application/test_idle_shutdown.py: FD5
+    application/test_known_results.py -> pipeline/application/test_known_results.py: FD5
+    application/test_known_results_torn.py -> pipeline/application/test_known_results_torn.py: FD5
+    application/test_left_out_stage.py -> pipeline/application/test_left_out_stage.py: FD5
+    application/test_machine_checks_runtime.py -> pipeline/application/test_machine_checks_runtime.py: FD5
+    application/test_no_branch_check.py -> pipeline/application/test_no_branch_check.py: FD5
+    application/test_no_state_refusals.py -> pipeline/application/test_no_state_refusals.py: FD5
+    application/test_opencode_item.py -> pipeline/application/test_opencode_item.py: FD5
+    application/test_opening_journal_edges.py -> pipeline/application/test_opening_journal_edges.py: FD5
+    application/test_pipeline_definition_reader.py -> pipeline/application/test_pipeline_definition_reader.py: FD5
+    application/test_pipeline_loading.py -> pipeline/application/test_pipeline_loading.py: FD5
+    application/test_pipeline_loading_agents.py -> pipeline/application/test_pipeline_loading_agents.py: FD5
+    application/test_pipeline_loading_project_agents.py -> pipeline/application/test_pipeline_loading_project_agents.py: FD5
+    application/test_pipeline_loading_rules.py -> pipeline/application/test_pipeline_loading_rules.py: FD5
+    application/test_pipeline_loading_stage_moves.py -> pipeline/application/test_pipeline_loading_stage_moves.py: FD5
+    application/test_pipeline_loading_strict_values.py -> pipeline/application/test_pipeline_loading_strict_values.py: FD5
+    application/test_pipeline_loading_yaml_fault.py -> pipeline/application/test_pipeline_loading_yaml_fault.py: FD5
+    application/test_preflight_stop_detail.py -> pipeline/application/test_preflight_stop_detail.py: FD5
+    application/test_preflight_stops_commit.py -> pipeline/application/test_preflight_stops_commit.py: FD5
+    application/test_probe_nested_repository.py -> pipeline/application/test_probe_nested_repository.py: FD5
+    application/test_question_causes_recorded.py -> pipeline/application/test_question_causes_recorded.py: FD5
+    application/test_recovery_cap.py -> pipeline/application/test_recovery_cap.py: FD5
+    application/test_recovery_crash.py -> pipeline/application/test_recovery_crash.py: FD5
+    application/test_recovery_expiry.py -> pipeline/application/test_recovery_expiry.py: FD5
+    application/test_recovery_expiry_key.py -> pipeline/application/test_recovery_expiry_key.py: FD5
+    application/test_recovery_subjects.py -> pipeline/application/test_recovery_subjects.py: FD5
+    application/test_repository_waiter.py -> pipeline/application/test_repository_waiter.py: FD5
+    application/test_request_working_directory.py -> pipeline/application/test_request_working_directory.py: FD5
+    application/test_scheduler.py -> pipeline/application/test_scheduler.py: FD5
+    application/test_split_by_work_item_kind.py -> pipeline/application/test_split_by_work_item_kind.py: FD5
+    application/test_stage_changes.py -> pipeline/application/test_stage_changes.py: FD5
+    application/test_stage_died_line.py -> pipeline/application/test_stage_died_line.py: FD5
+    application/test_stage_environment_calls.py -> pipeline/application/test_stage_environment_calls.py: FD5
+    application/test_stage_environment_of.py -> pipeline/application/test_stage_environment_of.py: FD5
+    application/test_stage_finish.py -> pipeline/application/test_stage_finish.py: FD5
+    application/test_stage_finish_causes.py -> pipeline/application/test_stage_finish_causes.py: FD5
+    application/test_stage_known_results.py -> pipeline/application/test_stage_known_results.py: FD5
+    application/test_stage_launch.py -> pipeline/application/test_stage_launch.py: FD5
+    application/test_stage_nested_repository.py -> pipeline/application/test_stage_nested_repository.py: FD5
+    application/test_stage_on_container_fakes.py -> pipeline/application/test_stage_on_container_fakes.py: FD5
+    application/test_stage_provider_limit.py -> pipeline/application/test_stage_provider_limit.py: FD5
+    application/test_stage_run.py -> pipeline/application/test_stage_run.py: FD5
+    application/test_stage_run_acceptance.py -> pipeline/application/test_stage_run_acceptance.py: FD5
+    application/test_stage_time_limited_report.py -> pipeline/application/test_stage_time_limited_report.py: FD5
+    application/test_stage_tool_uses.py -> pipeline/application/test_stage_tool_uses.py: FD5
+    application/test_stage_transcripts.py -> pipeline/application/test_stage_transcripts.py: FD5
+    application/test_stale_branches.py -> pipeline/application/test_stale_branches.py: FD5
+    application/test_stall_container.py -> pipeline/application/test_stall_container.py: FD5
+    application/test_stall_edges.py -> pipeline/application/test_stall_edges.py: FD5
+    application/test_stall_environment.py -> pipeline/application/test_stall_environment.py: FD5
+    application/test_stall_labels.py -> pipeline/application/test_stall_labels.py: FD5
+    application/test_stall_reasons_recorded.py -> pipeline/application/test_stall_reasons_recorded.py: FD5
+    application/test_stalls.py -> pipeline/application/test_stalls.py: FD5
+    application/test_stop_log_once.py -> pipeline/application/test_stop_log_once.py: FD5
+    application/test_stop_posting.py -> pipeline/application/test_stop_posting.py: FD5
+    application/test_stop_publisher.py -> pipeline/application/test_stop_publisher.py: FD5
+    application/test_stop_records_service.py -> pipeline/application/test_stop_records_service.py: FD5
+    application/test_stops.py -> pipeline/application/test_stops.py: FD5
+    application/test_take.py -> pipeline/application/test_take.py: FD5
+    application/test_take_edges.py -> pipeline/application/test_take_edges.py: FD5
+    application/test_take_rule.py -> pipeline/application/test_take_rule.py: FD5
+    application/test_task.py -> pipeline/application/test_task.py: FD5
+    application/test_task_acceptance.py -> pipeline/application/test_task_acceptance.py: FD5
+    application/test_tick_disk.py -> pipeline/application/test_tick_disk.py: FD5
+    application/test_tick_docstrings.py -> pipeline/application/test_tick_docstrings.py: FD5
+    application/test_tick_own_fetch.py -> pipeline/application/test_tick_own_fetch.py: FD5
+    application/test_tick_preflight.py -> pipeline/application/test_tick_preflight.py: FD5
+    application/test_tick_restore_ignored.py -> pipeline/application/test_tick_restore_ignored.py: FD5
+    application/test_tick_stale_branch.py -> pipeline/application/test_tick_stale_branch.py: FD5
+    application/test_tick_stop_details.py -> pipeline/application/test_tick_stop_details.py: FD5
+    application/test_tick_stop_records.py -> pipeline/application/test_tick_stop_records.py: FD5
+    application/test_watcher_acceptance.py -> pipeline/application/test_watcher_acceptance.py: FD5
+    application/test_watcher_observer.py -> pipeline/application/test_watcher_observer.py: FD5
+    application/test_write_paths.py -> pipeline/application/test_write_paths.py: FD5
+    domain/test_checks.py -> pipeline/domain/test_checks.py: FD5
+    domain/test_checks_last_line.py -> pipeline/domain/test_checks_last_line.py: FD5
+    domain/test_command_ending.py -> pipeline/domain/test_command_ending.py: FD5
+    domain/test_command_line.py -> pipeline/domain/test_command_line.py: FD5
+    domain/test_command_line_time_limit.py -> pipeline/domain/test_command_line_time_limit.py: FD5
+    domain/test_contract.py -> pipeline/domain/test_contract.py: FD5
+    domain/test_documents.py -> pipeline/domain/test_documents.py: FD5
+    domain/test_evaluation.py -> pipeline/domain/test_evaluation.py: FD5
+    domain/test_evaluation_details.py -> pipeline/domain/test_evaluation_details.py: FD5
+    domain/test_evaluation_due.py -> pipeline/domain/test_evaluation_due.py: FD5
+    domain/test_evaluation_reject.py -> pipeline/domain/test_evaluation_reject.py: FD5
+    domain/test_events.py -> pipeline/domain/test_events.py: FD5
+    domain/test_fault_paths.py -> pipeline/domain/test_fault_paths.py: FD5
+    domain/test_fault_paths_all_rows.py -> pipeline/domain/test_fault_paths_all_rows.py: FD5
+    domain/test_known_results.py -> pipeline/domain/test_known_results.py: FD5
+    domain/test_lease.py -> pipeline/domain/test_lease.py: FD5
+    domain/test_lease_observed.py -> pipeline/domain/test_lease_observed.py: FD5
+    domain/test_move_rule.py -> pipeline/domain/test_move_rule.py: FD5
+    domain/test_pipeline_definition.py -> pipeline/domain/test_pipeline_definition.py: FD5
+    domain/test_pipeline_not_read.py -> pipeline/domain/test_pipeline_not_read.py: FD5
+    domain/test_recovery.py -> pipeline/domain/test_recovery.py: FD5
+    domain/test_recovery_cap.py -> pipeline/domain/test_recovery_cap.py: FD5
+    domain/test_recovery_expiry_text.py -> pipeline/domain/test_recovery_expiry_text.py: FD5
+    domain/test_stop_records.py -> pipeline/domain/test_stop_records.py: FD5
+    domain/test_stop_table.py -> pipeline/domain/test_stop_table.py: FD5
+    domain/test_stops.py -> pipeline/domain/test_stops.py: FD5
+    domain/test_target_times.py -> pipeline/domain/test_target_times.py: FD5
+    domain/test_tick_status.py -> pipeline/domain/test_tick_status.py: FD5
+    domain/test_tick_status_mark.py -> pipeline/domain/test_tick_status_mark.py: FD5
+    domain/test_work_item_stop.py -> pipeline/domain/test_work_item_stop.py: FD5
+    adapters/test_health_file.py -> watching/adapters/test_health_file.py: FD5
+    adapters/test_opencode_events.py -> watching/adapters/test_opencode_events.py: FD5
+    watching/adapters/test_runtime_tool_uses.py: FD5
+    application/test_board_in_progress.py -> watching/application/test_board_in_progress.py: FD5
+    application/test_cost_record_machine_measures.py -> watching/application/test_cost_record_machine_measures.py: FD5
+    application/test_costs_denials.py -> watching/application/test_costs_denials.py: FD5
+    application/test_costs_died_text.py -> watching/application/test_costs_died_text.py: FD5
+    application/test_costs_login.py -> watching/application/test_costs_login.py: FD5
+    application/test_costs_model_seconds.py -> watching/application/test_costs_model_seconds.py: FD5
+    application/test_costs_provider_limit.py -> watching/application/test_costs_provider_limit.py: FD5
+    application/test_acceptance_closed.py -> work/application/test_acceptance_closed.py: FD5
+    application/test_acceptance_facts_human.py -> work/application/test_acceptance_facts_human.py: FD5
+    application/test_acceptance_merged_before_approval.py -> work/application/test_acceptance_merged_before_approval.py: FD5
+    application/test_acceptance_reading.py -> work/application/test_acceptance_reading.py: FD5
+    application/test_acceptance_refusals.py -> work/application/test_acceptance_refusals.py: FD5
+    application/test_acceptance_repeated.py -> work/application/test_acceptance_repeated.py: FD5
+    application/test_acceptance_service.py -> work/application/test_acceptance_service.py: FD5
+    application/test_acceptance_snapshots.py -> work/application/test_acceptance_snapshots.py: FD5
+    application/test_board_reader.py -> work/application/test_board_reader.py: FD5
+    application/test_watcher_move_rule.py -> work/application/test_watcher_move_rule.py: FD5
+    application/test_work_items.py -> work/application/test_work_items.py: FD5
+    application/test_work_items_duplicate.py -> work/application/test_work_items_duplicate.py: FD5
+    domain/test_acceptance_before_approval.py -> work/domain/test_acceptance_before_approval.py: FD5
+    domain/test_decide_docs_slip.py -> work/domain/test_decide_docs_slip.py: FD5
+    domain/test_decision_rules.py -> work/domain/test_decision_rules.py: FD5
+    domain/test_send_back.py -> work/domain/test_send_back.py: FD5
