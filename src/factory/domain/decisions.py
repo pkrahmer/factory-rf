@@ -9,9 +9,9 @@ from factory.domain import journal
 from factory.domain.agent_runs import QUESTION, AgentRunResult
 from factory.domain.journal import JournalKind, NewEntry
 from factory.domain.pipeline_definition import PipelineDefinition, StageDefinition
-from factory.domain.post_texts import findings_question, round_cap_question
 from factory.domain.story_form import FormFinding
 from factory.domain.work_item import Blocked, WorkItemState
+from factory.hosting.domain.post_texts import findings_question, round_cap_question
 from factory.shared.domain.identifiers import Name
 
 StallReason = journal.StallReason

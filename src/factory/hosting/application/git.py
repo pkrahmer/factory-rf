@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
-from factory.domain.git import (
+from factory.hosting.domain.git import (
     ChangedPath,
     CommitId,
     CommitInfo,

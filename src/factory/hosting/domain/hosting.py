@@ -13,7 +13,7 @@ from pydantic import (
     model_validator,
 )
 
-from factory.domain.git import CommitId
+from factory.hosting.domain.git import CommitId
 from factory.shared.domain.identifiers import WorkItemId
 from factory.shared.domain.times import UtcDatetime
 

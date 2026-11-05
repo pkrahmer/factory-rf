@@ -2,10 +2,10 @@
 
 from collections.abc import Sequence
 
-from factory.domain.git import CommitInfo
-from factory.domain.hosting import PostKey
 from factory.domain.journal import entry_text, last_record
 from factory.domain.work_item import WorkItemDocument
+from factory.hosting.domain.git import CommitInfo
+from factory.hosting.domain.hosting import PostKey
 from factory.shared.domain.identifiers import WorkItemId
 from factory.shared.domain.sections import ACCEPTANCE_CRITERIA, DESCRIPTION, section_text
 

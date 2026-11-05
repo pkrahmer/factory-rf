@@ -3,17 +3,17 @@
 from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
-from factory.application.git import Git
-from factory.application.pushes import push_failure, push_with_retries
 from factory.domain.archive import destination_path
 from factory.domain.events import Event
-from factory.domain.git import CommitId
 from factory.domain.work_item import (
     WorkItemDocument,
     WorkItemSnapshot,
     WorkItemState,
     require_state,
 )
+from factory.hosting.application.git import Git
+from factory.hosting.application.pushes import push_failure, push_with_retries
+from factory.hosting.domain.git import CommitId
 from factory.shared.domain.errors import CannotHandle
 from factory.shared.domain.paths import LifecycleFolder, cost_records_path
 

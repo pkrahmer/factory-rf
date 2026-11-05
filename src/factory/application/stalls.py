@@ -6,18 +6,18 @@ from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.costs import CostRecorder, CostRun
 from factory.application.handlers.recording import commit_subject
-from factory.application.opening import WorkItemOpening
-from factory.application.pushes import push_failure
 from factory.application.stage_environment import StageEnvironment, stage_environment_of
 from factory.application.take import TakeReport
 from factory.domain.decisions import StallReason
-from factory.domain.git import CommitId
-from factory.domain.hosting import PostKey, PostOutcome, PullRequestView
 from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.domain.labels import labels_for
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.post_texts import stall_cause, stall_note
 from factory.domain.work_item import WorkItemDocument, require_state
+from factory.hosting.application.opening import WorkItemOpening
+from factory.hosting.application.pushes import push_failure
+from factory.hosting.domain.git import CommitId
+from factory.hosting.domain.hosting import PostKey, PostOutcome, PullRequestView
+from factory.hosting.domain.post_texts import stall_cause, stall_note
 from factory.shared.domain.identifiers import Name, WorkItemId
 
 

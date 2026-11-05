@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from factory.domain.git import ChangedPath
+from factory.hosting.domain.git import ChangedPath
 
 
 class Snapshots(ABC):

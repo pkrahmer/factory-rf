@@ -4,9 +4,9 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
-from factory.application.hosting import HostingService
-from factory.domain.git import CommitId
-from factory.domain.hosting import (
+from factory.hosting.application.hosting import HostingService
+from factory.hosting.domain.git import CommitId
+from factory.hosting.domain.hosting import (
     PostKey,
     PostOutcome,
     PullRequestComment,

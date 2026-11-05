@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
-from factory.domain.hosting import PostKey, PostOutcome, PullRequestComment, PullRequestView
+from factory.hosting.domain.hosting import PostKey, PostOutcome, PullRequestComment, PullRequestView
 
 
 class HostingService(ABC):

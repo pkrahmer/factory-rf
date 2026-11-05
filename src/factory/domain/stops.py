@@ -12,7 +12,7 @@ from pydantic import (
     model_validator,
 )
 
-from factory.domain.hosting import PostKey, PostOutcome
+from factory.hosting.domain.hosting import PostKey, PostOutcome
 from factory.shared.domain.identifiers import Name, branch_name
 from factory.shared.domain.times import UtcDatetime
 

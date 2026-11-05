@@ -8,7 +8,6 @@ from pathlib import Path
 
 from factory.adapters.agent_launch import SHELL_EXECUTABLE, Launch
 from factory.application.containers import ContainerRuns
-from factory.application.git import Git
 from factory.application.project_commands import ProjectCommands
 from factory.application.snapshots import Snapshots
 from factory.application.stage_environment import SYNC_ENVIRONMENT
@@ -22,6 +21,7 @@ from factory.domain.checks import (
     target_times,
 )
 from factory.domain.containers import SYSTEM_PATH, WORK_CHECKOUT, bundle_mounts
+from factory.hosting.application.git import Git
 from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.shared.domain.errors import ContainerError, ProjectCommandError, SnapshotError
 from factory.shared.domain.kill_points import KillPoints

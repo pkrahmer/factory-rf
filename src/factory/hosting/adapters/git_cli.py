@@ -7,8 +7,9 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 
-from factory.application.git import Git
-from factory.domain.git import (
+from factory.domain.write_paths import matches_any
+from factory.hosting.application.git import Git
+from factory.hosting.domain.git import (
     ChangedPath,
     ChangeKind,
     CommitId,
@@ -23,7 +24,6 @@ from factory.domain.git import (
     check_git_argument,
     check_repository_path,
 )
-from factory.domain.write_paths import matches_any
 from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_process
 from factory.shared.domain.errors import FetchFailed, GitError, NothingToCommit
 from factory.shared.domain.kill_points import KillPoint

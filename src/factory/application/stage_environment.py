@@ -23,7 +23,7 @@ from factory.domain.containers import (
     Mount,
     bundle_mounts,
 )
-from factory.domain.git import CommitId
+from factory.hosting.domain.git import CommitId
 from factory.shared.domain.errors import ContainerError
 
 UPSTREAM = "/upstream"

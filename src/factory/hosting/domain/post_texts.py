@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 from factory.domain.bills import Bill, cost_line
-from factory.domain.git import CommitId
+from factory.hosting.domain.git import CommitId
 from factory.shared.domain.identifiers import WorkItemId
 
 if TYPE_CHECKING:

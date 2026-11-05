@@ -6,7 +6,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, NonNegativeFloat, StringConstraints, model_validator
 
-from factory.domain.git import TreeId
+from factory.hosting.domain.git import TreeId
 from factory.shared.domain.times import UtcDatetime
 
 OUTPUT_TAIL_LINES = 30

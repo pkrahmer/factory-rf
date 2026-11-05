@@ -3,10 +3,10 @@
 from pydantic import BaseModel, ConfigDict
 
 from factory.application.boundaries import Boundaries
-from factory.domain.hosting import PullRequestView
 from factory.domain.journal import HUMAN, NewEntry, append_entry
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.work_item import WorkItemDocument, initial_state
+from factory.hosting.domain.hosting import PullRequestView
 from factory.shared.domain.errors import WorkItemFormatError
 from factory.shared.domain.identifiers import WorkItemId, branch_name
 from factory.shared.domain.sections import JOURNAL, sections, title

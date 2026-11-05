@@ -8,8 +8,8 @@ from pydantic import BaseModel, ConfigDict, StringConstraints, model_validator
 
 from factory.domain.checks import CheckStatus, CommandName
 from factory.domain.cost_records import Duration
-from factory.domain.git import TreeId
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.hosting.domain.git import TreeId
 from factory.shared.domain.times import UtcDatetime
 
 DefinitionDigest = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]

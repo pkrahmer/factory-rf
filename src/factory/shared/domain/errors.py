@@ -1,6 +1,6 @@
 """The root of the errors the factory raises on purpose."""
 
-from factory.domain.git import PushOutcome
+from factory.hosting.domain.git import PushOutcome
 
 
 class FactoryError(Exception):

@@ -18,7 +18,6 @@ from factory.application.handlers.recording import (
     require_pull_request,
     target_of,
 )
-from factory.application.pushes import push_failure
 from factory.application.work_items import read_feature_file
 from factory.domain.acceptance import (
     AcceptanceFacts,
@@ -36,18 +35,19 @@ from factory.domain.bills import bill, bills_by_stage, cost_line, cost_table
 from factory.domain.cost_records import CostRecord
 from factory.domain.disk import disk_line
 from factory.domain.events import Event
-from factory.domain.git import CommitId
-from factory.domain.hand_over import cost_table_key
 from factory.domain.human_waits import HumanWait, human_line, human_waits
 from factory.domain.journal import HUMAN, NewEntry, append_entry, last_record
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.post_texts import CLOSE_ENTRY_TEXT, cost_table_post
 from factory.domain.work_item import (
     WorkItemDocument,
     WorkItemSnapshot,
     WorkItemState,
     require_state,
 )
+from factory.hosting.application.pushes import push_failure
+from factory.hosting.domain.git import CommitId
+from factory.hosting.domain.hand_over import cost_table_key
+from factory.hosting.domain.post_texts import CLOSE_ENTRY_TEXT, cost_table_post
 from factory.shared.domain.errors import CannotHandle, WorkItemFormatError
 from factory.shared.domain.identifiers import (
     FeatureId,

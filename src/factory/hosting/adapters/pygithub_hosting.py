@@ -10,8 +10,8 @@ from github.IssueComment import IssueComment
 from github.PullRequest import PullRequest
 from github.Repository import Repository
 
-from factory.application.hosting import HostingService
-from factory.domain.hosting import (
+from factory.hosting.application.hosting import HostingService
+from factory.hosting.domain.hosting import (
     PostKey,
     PostOutcome,
     PullRequestComment,

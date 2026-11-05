@@ -6,8 +6,6 @@ from pathlib import Path
 
 from factory.application.agent_runtime import AgentDefinitionReader, AgentRuntime
 from factory.application.containers import ContainerRuns
-from factory.application.git import Git
-from factory.application.hosting import HostingService
 from factory.application.machine import (
     Clock,
     DiskSpace,
@@ -23,6 +21,8 @@ from factory.domain.containers import SYSTEM_PATH
 from factory.domain.disk import DiskRecord
 from factory.domain.known_results import ResultRecord
 from factory.domain.stops import StopRecord
+from factory.hosting.application.git import Git
+from factory.hosting.application.hosting import HostingService
 from factory.shared.application.files import (
     CostRecordReader,
     CostRecordWriter,

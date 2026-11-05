@@ -12,7 +12,6 @@ from typing import TypedDict, Unpack
 
 from factory.application.boundaries import Boundaries
 from factory.application.disk_records import DiskRecorder
-from factory.application.hosting import HostingService
 from factory.application.idle_shutdown import IdleShutdown
 from factory.application.images import Images
 from factory.application.machine import Clock
@@ -37,6 +36,7 @@ from factory.entry.wiring import (
     stage_image_report,
     system_clock,
 )
+from factory.hosting.application.hosting import HostingService
 from factory.shared.domain.errors import FetchFailed, MachineStopStood, SettingsInvalid
 from factory.shared.domain.settings import STATE_DIRECTORY, InstanceSettings, named_state_directory
 

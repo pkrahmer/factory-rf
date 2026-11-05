@@ -17,7 +17,6 @@ from pydantic import (
     model_validator,
 )
 
-from factory.domain.git import DEFAULT_GIT_IDENTITY, GitIdentity
 from factory.domain.provider_limits import (
     DEFAULT_CEILING,
     DEFAULT_COOLDOWN,
@@ -26,6 +25,7 @@ from factory.domain.provider_limits import (
     LOWEST_STATUS,
     ProviderLimit,
 )
+from factory.hosting.domain.git import DEFAULT_GIT_IDENTITY, GitIdentity
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.identifiers import Name
 
