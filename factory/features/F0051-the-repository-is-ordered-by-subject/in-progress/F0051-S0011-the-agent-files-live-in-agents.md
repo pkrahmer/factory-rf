@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T08:36:21.418993Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -172,6 +176,11 @@ journal:
   at: '2026-11-05T08:36:16.066128Z'
   stage: doing
   run: 3b6582ee307b47abaa786912c9be2061
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:36:21.418993Z'
+  stage: review
 ---
 
 # The agent files live in `agents/`
@@ -469,3 +478,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
+30. factory: started review as vm.
