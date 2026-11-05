@@ -18,7 +18,7 @@ AREA_FILES = (
     "machine.md",
     "pipeline.md",
 )
-NAMED_FILES = (*AREA_FILES, "operator.md")
+NAMED_FILES = (*AREA_FILES, "operator.md", "style.md", "glossary.md")
 REMOVED_FILES = (
     "git-and-hosting.md",
     "work-items.md",
@@ -211,7 +211,7 @@ def _the_files_section() -> list[str]:
     return section
 
 
-def test_the_guide_holds_the_index_operator_and_the_seven_area_files() -> None:
+def test_the_guide_holds_the_index_and_its_named_files() -> None:
     names = sorted(path.name for path in GUIDE.iterdir())
     assert names == sorted(("README.md", *NAMED_FILES))
 
