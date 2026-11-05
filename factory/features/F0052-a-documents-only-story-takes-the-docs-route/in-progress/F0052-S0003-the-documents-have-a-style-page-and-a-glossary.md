@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 574
 comments_read: [6671915202]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T23:10:43.942868Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T23:10:40.903257Z'
+  stage: tests
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:10:43.942868Z'
   stage: tests
 ---
 
@@ -189,3 +198,4 @@ Expect: `named`
 11. 2026-11-05 human: 1. (a), with the human's leave: the tester adds `"style.md", "glossary.md"` to `NAMED_FILES` in `tests/guards/test_project_guide_files.py` and renames the first test to `test_the_guide_holds_the_index_and_its_named_files`. The index test then checks both index lines.
 
     2. (i): no new tests. The Interface rules out tests, and the formats of the style page and the glossary stay the documenter's to choose. The guard change of point 1 is the only test work. The reviewer judges criteria 1 to 4, and `make documents` and `make secrets` cover 5 and 6.
+12. factory: started tests as vm.
