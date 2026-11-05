@@ -45,9 +45,9 @@ The moves (old → new), each file moved with `git mv`:
 
 ## Acceptance criteria
 
-1. For every module of the table above (one row each), `importlib.import_module("factory.pipeline.<layer>.<name>")` succeeds, and `src/factory/<layer>/<name>.py` (for `handlers`, the folder) does not exist.
+1. `AREAS` in `tests/test_areas.py` has this story's area as a key whose modules are exactly those of the table above; and for every module of the table (one row each), `importlib.import_module("factory.pipeline.<layer>.<name>")` succeeds, and `src/factory/<layer>/<name>.py` (for `handlers`, the folder) does not exist.
 2. Every package of the Interface (`factory.pipeline`, `factory.pipeline.domain`, `factory.pipeline.application`, `factory.pipeline.adapters`) imports and has a docstring.
-3. No `.py` file under `src/` or `tests/` has an import line that names `factory.<layer>.<name>` for a module of the table (one row per module).
+3. No `.py` file under `src/` or `tests/` imports `factory.<layer>.<name>` of a module of the table, in any form (`import factory.<layer>.<name>`, `from factory.<layer>.<name> import x`, `from factory.<layer> import <name>`; one row per module).
 4. `tests/domain/`, `tests/application/` and `tests/adapters/` do not exist.
 5. `src/factory/` holds exactly `__init__.py`, the seven area packages, `entry/` and `contract/`; `factory.domain`, `factory.application` and `factory.adapters` cannot be imported.
 6. `make check` stays green.
