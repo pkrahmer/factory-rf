@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 564
-comments_read: []
+comments_read: [6650898693]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 3b60f030ca3643e2b10630e0b5196ac5
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-05T05:56:14.852314Z'
+  stage: intake
 ---
 
 # The project guide has one file per area
@@ -66,3 +71,13 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
    4. Criterion 3 says the index names "the modules it describes, by their new paths". Please state what is checked. I would choose: each of the eight files is named in *The files* with a sentence, and every `src/factory/<area>/` path it names exists.
    5. Interface says "the agent files are changed to the new names", but the criteria only require that no named guide file is missing (criterion 4). Please confirm that the agent files must name the new files correctly, not merely existing ones. I would choose the criterion 4 wording as it stands.
    6. Criterion 4 covers `claude/`, `docs/` and `README.md`. `CLAUDE.md` also names guide files and is the human's change. Please confirm that the test leaves `CLAUDE.md` out, or say that the human changes it first.
+4. 2026-11-05 human: Answers of the human:
+
+   This is a documents-only story; keep its tests few and let the reviewer judge the prose.
+
+   1. **No table.** The rule decides: the four whole-file moves as you name them, and every other section goes to the file of the area of the first `factory.<area>` module it names (a section that names none stays in `README.md`). Placement is the reviewer's check against that rule, not a test.
+   2. **No criterion.** The pointers are the reviewer's judgement.
+   3. **The reviewer's judgement, not a test.** The reviewer compares the moved sections with `origin/main` and counts any change beyond pointers as a finding.
+   4. **As you propose:** each of the eight files is named in *The files* with a sentence, and every `src/factory/<area>/` path the index names exists.
+   5. **Criterion 4 as it stands.**
+   6. **`CLAUDE.md` is left out of the test.** I change its guide-file names after the merge, as the Interface says.
