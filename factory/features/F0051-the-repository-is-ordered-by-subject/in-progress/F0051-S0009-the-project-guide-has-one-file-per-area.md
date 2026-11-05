@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 564
 comments_read: [6650898693, 6650987283]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T06:04:59.979265Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-11-05T06:04:54.697067Z'
   stage: tests
   run: 1effae5adebf45c180d337ab1cbab9f3
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-05T06:04:59.979265Z'
+  stage: doing
 ---
 
 # The project guide has one file per area
@@ -190,3 +199,4 @@ Expect: `README.md agents.md hosting.md machine.md operator.md pipeline.md share
     The factory left out changes outside the write paths: factory/features/F0051-the-repository-is-ordered-by-subject/in-progress/F0051-S0009-the-project-guide-has-one-file-per-area.md.
 
     `lint`: lint: green (0.1 s)
+12. factory: started doing as vm.
