@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T00:48:14.428736Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-11-05T00:48:08.498147Z'
   stage: doing
   run: 2c594865e0ec4f4d9c74aa606d365dc0
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:48:14.428736Z'
+  stage: tests
 ---
 
 # The shared area holds what every area uses
@@ -757,3 +766,4 @@ Expect: `1`
     Main choice: hand the work to the tester (R9) rather than touch any test myself. I rejected changing code: nothing in the findings asks for it.
 
     The reviewer also flagged two things outside every write path, and I left both alone: `security/duplicates-baseline.txt` lines 25 to 32 still name the old paths, and `CLAUDE.md` still names `factory.domain.contract.CONTRACT`. Both are for the human.
+19. factory: started tests as vm.
