@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 1
@@ -164,6 +164,11 @@ journal:
   at: '2026-11-05T01:00:29.957471Z'
   stage: smoke-test
   run: d94a19ac3951459d951b17e96f50bca3
+- number: 29
+  speaker: factory
+  kind: done
+  at: '2026-11-05T01:04:27.877798Z'
+  stage: approval
 ---
 
 # The shared area holds what every area uses
@@ -1313,3 +1318,4 @@ Expect: `1`
     Findings: none.
 
     Open: nothing.
+29. factory: done (pull request merged); cost: 13 runs, 30.9 min, 164 turns, 392484 tokens in (5280974 more from cache), 85643 out, $5.63
