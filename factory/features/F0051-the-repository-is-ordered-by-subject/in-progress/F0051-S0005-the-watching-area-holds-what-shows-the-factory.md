@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 560
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T02:49:26.547377Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-05T02:49:26.547377Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T02:49:44.454039Z'
+  stage: intake
+  run: 32da5479f68a4b7ebcd4d64dac80909f
 ---
 
 # The watching area holds what shows the factory and what it costs
@@ -91,3 +93,9 @@ Expect: `1`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: The 17 moves are listed old → new, six in domain, five in application and six in adapters. The four new packages are named and their docstrings are given. The tester's and the coder's tasks are split by write paths. Nothing is missing.
+   - Criteria: Each criterion is testable by one parametrized test. Criterion 1 has a row per module and checks the `AREAS` key, the import and the old path's absence, which is the standing answer 8 of the feature. Criterion 3 has a row per module and covers the three import forms, and criterion 4 is the test-move rule. The failing side is covered: the old path no longer exists and nothing imports it. The package docstring wording is not tested, as standing answer 8 says.
+   - Smoke test: The three commands are runnable. Each `Expect:` line can be checked against the output. The pytest command passes no `-q`, and `addopts` in `pyproject.toml` sets a single `-q`, so the summary line is printed.
+   - Architecture: Each module goes to the same layer inside `factory.watching`, so the layer rule is kept. The moves are made with `git mv`, nothing is re-exported, and the coder changes only `src/`.
+   - Scope: The story is the watching area of feature decision 2, with decisions 4 and 5 applied. It changes no behaviour, and nothing in the feature's "Out of scope" is touched.
