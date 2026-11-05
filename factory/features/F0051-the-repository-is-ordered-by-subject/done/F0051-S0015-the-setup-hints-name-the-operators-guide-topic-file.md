@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -136,6 +136,11 @@ journal:
   at: '2026-11-05T11:06:09.657208Z'
   stage: smoke-test
   run: 45cadcc653574c1bb60ce6222c2990f6
+- number: 24
+  speaker: factory
+  kind: done
+  at: '2026-11-05T11:12:08.507481Z'
+  stage: approval
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -376,3 +381,4 @@ Expect: `1`
     - Criterion 5: `docs/operator-guide/machine.md` lines 284, 295 and 296 quote the three new lines word for word.
 
     Open: nothing for this story. The documenter noted stale "operator guide" pointers in `docs/decisions.md` at lines 179, 572 and 1432. They are outside this story's scope.
+24. factory: done (pull request merged); cost: 10 runs, 9.0 min, 55 turns, 177888 tokens in (1031265 more from cache), 17074 out, $1.73
