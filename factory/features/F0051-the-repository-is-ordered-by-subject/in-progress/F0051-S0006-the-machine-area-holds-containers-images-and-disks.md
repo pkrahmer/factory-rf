@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 561
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T03:28:55.141032Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-05T03:28:55.141032Z'
   stage: review
+- number: 13
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T03:30:24.334982Z'
+  stage: review
+  run: 591b46383bc74247866bf7b2a1b513f4
 ---
 
 # The machine area holds containers, images and disks
@@ -254,3 +256,36 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 10 new, 35 known, 8 gone
 12. factory: started review as vm.
+13. reviewer: Round 0 review of `git diff main...HEAD -- . ':!factory'` (177 files) against the work item.
+
+    no findings
+
+    What I checked:
+    - Acceptance criteria. Criteria 1 to 4 are covered by the tests in `tests/test_areas.py`, which are parametrized over `AREAS`. Its new `machine` row holds exactly the 24 modules of the table. Coder's entry 11 says the factory's `make check` was green. I read the criterion 4 test (`tests/test_areas.py:205`) and it walks every layer folder. Two modules I checked by hand stay correctly: `tests/adapters/test_make_commands.py` still imports `factory.domain.checks` and `tests/application/test_preflight.py` imports `factory.application.boundaries`. This story is a pure move, so the Interface states no rule with a failing side.
+    - Architecture. Under `src/factory/{domain,application,adapters}/` none of the 24 modules is left, and there is no re-export. Every one of the 24 is under `src/factory/machine/<layer>/`. The four package docstrings match the Interface word for word. Apart from those four new `__init__.py` files, every changed line under `src/` is an import line. Module contents are otherwise the same (feature decision 4).
+    - Security. There are no markers, secrets or baseline entries.
+    - Quality. A grep under `src/` and `tests/` for an old path of any of the 24 modules found nothing outside the `MOVES` mechanism of `tests/test_areas.py`. The `duplicates: 10 new, 35 known, 8 gone` record comes from the baseline still naming old paths (`security/duplicates-baseline.txt`, the human's file, as entry 11 says). No new code came in.
+    - Work item hygiene. The Description matches what was built. The journal names the main choice (rewriting each module's path by word boundary rather than by package prefix) and the prefix rewrite it rejected. Criterion 6 still says what the documenter must change.
+
+    Open, not findings (the human's files):
+    - `pyproject.toml` lines 63 and 66 still hold per-file-ignores for the old `src/factory/adapters/{make_commands,podman_runs}.py` paths, beside the new ones.
+    - `security/duplicates-baseline.txt` lines 37 to 41 still name the old `src/factory/adapters/` paths.
+
+    Earlier tests (134 files that `main` holds, changed or moved). The leave for all of them is F0051 feature decision 5. I read every non-import line of the test diff.
+    - Moved with `git mv`, import lines only (41 files):
+      - tests/machine/domain/: test_command_records, test_container_extra_environment, test_containers, test_containers_beneath_or_at, test_containers_job_options, test_disk, test_disk_records, test_preflight, test_preflight_stamp, test_preflight_stop_records_paths, test_stage_layer.
+      - tests/machine/application/: test_container_environment_extra, test_container_items, test_containers_interface, test_disk_space_interface, test_opencode_item_container, test_preflight_snapshots_item, test_snapshots_interface, test_token_file_item.
+      - tests/machine/adapters/: test_agent_launch_container, test_agent_launch_extra, test_claude_runtime_container, test_copy_snapshots, test_disk_space, test_fake_containers, test_fake_snapshots, test_opencode_runtime_container, test_opencode_runtime_lockdown, test_podman_images, test_podman_runs, test_podman_runs_fence, test_podman_runs_instance_label, test_podman_runs_job_profile, test_podman_runs_results, test_podman_timeout_status, test_power_off, test_preflight_stamp_file, test_process_exit, test_runtime_podman_timeout_status, test_zfs_snapshots, test_zfs_snapshots_drop_caches.
+    - Import lines only, file not moved (85 files):
+      - tests/adapters/: container_runtime_support.py, opencode_stand_in.py, test_make_commands.py, test_make_commands_container.py, test_make_last_line_shared.py, test_record_log_jsonl.py, test_runtimes_without_wrapper.py.
+      - tests/application/: test_acceptance_facts_disk, test_agent_run_probe, test_agent_run_probe_api_login, test_agent_run_probe_environment, test_agent_run_probe_factory_user, test_agent_run_probe_login, test_agent_run_probe_opencode, test_agent_run_probe_project_agent, test_boundaries_required, test_container_environment, test_container_environment_take, test_container_stage_checks, test_container_sync_origin, test_disk_recorder, test_interfaces, test_machine_checks_container, test_machine_checks_runtime, test_opencode_item, test_preflight, test_preflight_login_line, test_preflight_metadata_block, test_preflight_run, test_preflight_run_environment, test_preflight_stops_commit, test_probe_nested_repository, test_recording_project_commands, test_request_working_directory, test_sealed_runs_runner, test_stage_environment_calls, test_stage_environment_of, test_stage_finish, test_stage_on_container_fakes, test_stage_time_limited_report, test_stage_transcripts, test_stall_environment, test_take_rule, test_tick_disk, test_tick_preflight, test_tick_stop_records.
+      - tests/entry/: test_run, test_run_fetch_before_tick, test_run_image_sizes, test_run_one_fetch, test_run_project_image_rebuild, test_run_stop_requested, test_wiring_boundaries, test_wiring_command_records, test_wiring_container_extra, test_wiring_container_profile, test_wiring_copy_snapshots, test_wiring_drop_caches, test_wiring_idle_shutdown, test_wiring_idle_shutdown_action, test_wiring_image_path, test_wiring_instance_label, test_wiring_known_results, test_wiring_metadata_block, test_wiring_one_environment, test_wiring_one_preflight, test_wiring_preflight, test_wiring_project_image, test_wiring_record_logs, test_wiring_stage_environment, test_wiring_stage_image_sizes, test_wiring_without_agent_user.
+      - tests/ root: conftest.py, container_extra_support.py, container_support.py, podman_support.py, preflight_support.py, proof_support.py, sized_images.py, stage_image_support.py, wiring_support.py, zfs_support.py, test_hook_removed.py, test_one_stage_environment.py, test_second_user_removed.py, test_vm_job_start.py.
+    - Module path strings and guards of the old layout (8 files):
+      - tests/test_suite_fixtures.py: the module path given to `has_name`.
+      - tests/test_agent_run_request_search.py: the module path in `BUILDERS` (a `*_search` guard).
+      - tests/test_wrapper_search.py: the expected module paths (a `*_search` guard).
+      - tests/test_make_search.py: `CHECK_MODULES` paths and the expected module (a `*_search` guard).
+      - tests/shared/adapters/test_run_or_raise.py: the source path of its three moved wrappers.
+      - tests/test_stop_table.py: the module prefix filter gains `factory.machine.application`. This is a guard of the old layout, changed so it checks the same set of modules. The coder asked for it in entry 7 and the tester made it in entry 9, so it came after the tester's first run, not in it.
+      - tests/test_areas.py: the `machine` row of `AREAS` only, as the Interface asks.
