@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T10:10:40.711139Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-05T10:10:40.711139Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-05T10:11:00.627662Z'
+  stage: intake
+  run: 5470464d0bd74e9cb4c999c09dd224bc
 ---
 
 # The removal guards look for a removed module in every area
@@ -134,3 +136,9 @@ Expect: `0`
 
    **(a).** `feature.md` on `main` now has the entry under *The human's changes*: "At S0014's start: a leave for its tester: the eight removal guards it names, `tests/guards/test_wrapper_out_of_the_call_path.py` and `tests/pipeline/application/test_stall_environment.py::test_the_stall_module_imports_no_name_of_the_undo` may change to call `module_exists_anywhere` and `names_the_module_anywhere`, nothing else in them; each test keeps its name and what it checks." Go on with the intake.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: `tests/support/module_names.py` exists and holds `module_exists`. The story adds `module_exists_anywhere(module: str) -> bool` and `names_the_module_anywhere(names: Collection[str], module: str) -> bool`, with signatures, the old-layer-path definition, how areas are read (package folders under `src/factory/` except `entry` and `contract`) and both sides of each rule. All ten changed tests are named.
+   - Criteria: criteria 1 and 2 are tables with one row each, and each is a single parametrized test. They cover both sides (found or not found, the `_extra` prefix, another layer, `entry`, `contract`). Criterion 3 has rows on parsed source, caught and not caught, plus the whole of `tests/`. Criteria 4 and 5 are the two closing ones. The human's leave for the ten tests (journal 4) is in `feature.md` under *The human's changes*, which I read.
+   - Smoke test: the commands are runnable. `pyproject.toml` sets `addopts = "-q ..."` and the pytest command passes no `-q`, so `tail -1` shows the summary line that `grep -c passed` counts. Each `Expect:` can be checked against the output: `True False`, `1` and `0`.
+   - Architecture: only helpers under `tests/support/` and guards under `tests/guards/` change. Nothing under `src/` changes. The new test modules sit in the right folders, and nothing imports a `test_*.py` module.
+   - Scope: S0014 is listed in `feature.md` (from A0001), and it changes no behaviour or module name. The story's goal sits inside the feature's goal (an ordered repository, guards kept true), and no *Out of scope* item is touched.
