@@ -5,7 +5,7 @@ from pathlib import Path
 from agent_run_support import COMPLETED
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
-from factory.application.preflight import agent_run_probe_item
+from factory.machine.application.preflight import agent_run_probe_item
 from factory.shared.domain.settings import InstanceSettings
 from git_support import install_agents
 from stage_run_support import ENVIRONMENT

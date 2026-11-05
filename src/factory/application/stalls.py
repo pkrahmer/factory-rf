@@ -5,7 +5,6 @@ from pydantic import BaseModel, ConfigDict, PositiveInt
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.handlers.recording import commit_subject
-from factory.application.stage_environment import StageEnvironment, stage_environment_of
 from factory.application.take import TakeReport
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.hosting.application.opening import WorkItemOpening
@@ -13,6 +12,7 @@ from factory.hosting.application.pushes import push_failure
 from factory.hosting.domain.git import CommitId
 from factory.hosting.domain.hosting import PostKey, PostOutcome, PullRequestView
 from factory.hosting.domain.post_texts import stall_cause, stall_note
+from factory.machine.application.stage_environment import StageEnvironment, stage_environment_of
 from factory.shared.domain.identifiers import Name, WorkItemId
 from factory.watching.application.costs import CostRecorder, CostRun
 from factory.work.domain.decisions import StallReason

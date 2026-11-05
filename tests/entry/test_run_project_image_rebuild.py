@@ -9,15 +9,20 @@ from typing import override
 import pytest
 
 import factory.entry.run as run_module
-from factory.adapters.fake_images import BuildCall, FakeImages
 from factory.application.boundaries import Boundaries
-from factory.application.images import IMAGE_BUILD_TIME_LIMIT, ImageBuild
 from factory.application.tick import Tick, TickOutcome
-from factory.domain.containers import SYSTEM_PATH
-from factory.domain.stage_layer import STAGE_FILE, StageLayer, project_image_tag, stage_layer
 from factory.entry.run import run_instance
 from factory.entry.wiring import health_store
 from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.machine.adapters.fake_images import BuildCall, FakeImages
+from factory.machine.application.images import IMAGE_BUILD_TIME_LIMIT, ImageBuild
+from factory.machine.domain.containers import SYSTEM_PATH
+from factory.machine.domain.stage_layer import (
+    STAGE_FILE,
+    StageLayer,
+    project_image_tag,
+    stage_layer,
+)
 from factory.shared.domain.settings import InstanceSettings
 from git_support import remote_commit
 from human_clone import HumanClone

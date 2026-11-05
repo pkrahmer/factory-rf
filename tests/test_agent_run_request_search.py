@@ -4,7 +4,7 @@ import ast
 
 from source_search import modules, reads_os_environ
 
-BUILDERS = {"factory.application.task", "factory.application.preflight"}
+BUILDERS = {"factory.application.task", "factory.machine.application.preflight"}
 WITHOUT_PROCESS_ENVIRONMENT = ("factory.domain", "factory.application")
 
 

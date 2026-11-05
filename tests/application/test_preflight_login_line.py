@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.preflight_stamp_file import JsonPreflightStampFile
 from factory.application.boundaries import Boundaries
-from factory.application.preflight import MachineChecks, Preflight
 from factory.application.stops import StopService
-from factory.domain.preflight import PreflightItem
 from factory.hosting.adapters.git_cli import GitCli
+from factory.machine.adapters.preflight_stamp_file import JsonPreflightStampFile
+from factory.machine.application.preflight import MachineChecks, Preflight
+from factory.machine.domain.preflight import PreflightItem
 from factory.shared.domain.settings import InstanceSettings
 from git_support import install_agents
 from human_clone import HumanClone

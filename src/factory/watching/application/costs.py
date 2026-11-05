@@ -10,8 +10,8 @@ from pydantic import BaseModel, ConfigDict
 
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.application.boundaries import Boundaries
-from factory.application.disk_records import bytes_or_unknown
 from factory.hosting.application.git import Git
+from factory.machine.application.disk_records import bytes_or_unknown
 from factory.shared.application.files import CostRecordReader
 from factory.shared.domain.identifiers import (
     WorkItemId,

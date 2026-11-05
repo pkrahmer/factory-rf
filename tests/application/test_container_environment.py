@@ -26,10 +26,10 @@ from container_support import (
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.application.boundaries import Boundaries
-from factory.application.containers import ContainerRuns
-from factory.application.stage_environment import ContainerEnvironment
-from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.hosting.domain.git import CommitId
+from factory.machine.application.containers import ContainerRuns
+from factory.machine.application.stage_environment import ContainerEnvironment
+from factory.machine.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.shared.domain.errors import ContainerError, SnapshotError
 from git_support import AGENT_FILE, install_agents, run_git, write_agent, write_files
 from human_clone import HumanClone

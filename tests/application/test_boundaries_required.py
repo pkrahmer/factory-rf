@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 
 from factory.application.boundaries import Boundaries
-from factory.application.disk_records import DiskRecorder
-from factory.domain.disk import DiskRecord, DiskUse
+from factory.machine.application.disk_records import DiskRecorder
+from factory.machine.domain.disk import DiskRecord, DiskUse
 from factory.shared.adapters.clock import ManualWaiter
 
 REQUIRED = ("settings", "disk", "disk_records", "stop_records", "waiter", "result_records")

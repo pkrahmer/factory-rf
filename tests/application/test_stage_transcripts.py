@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters.fake_containers import FakeContainerRuns
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.domain.agent_runs import AgentRunResult
 from factory.agents.domain.provider_limits import ProviderLimit
 from factory.application.boundaries import Boundaries
+from factory.machine.adapters.fake_containers import FakeContainerRuns
 from factory.shared.adapters.clock import ManualClock, ManualWaiter
 from factory.watching.adapters.transcript_files import FileTranscriptStore
 from factory.watching.domain.transcripts import Transcript

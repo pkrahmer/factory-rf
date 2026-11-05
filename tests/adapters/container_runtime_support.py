@@ -6,7 +6,7 @@ from pathlib import Path
 
 from adapters.opencode_stand_in import opencode_request
 from factory.agents.domain.agent_runs import AgentRunRequest
-from factory.domain.containers import WORK_HOME, Mount
+from factory.machine.domain.containers import WORK_HOME, Mount
 
 LANG = "C.UTF-8"
 LIMIT = timedelta(seconds=30)

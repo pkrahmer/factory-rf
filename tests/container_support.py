@@ -6,20 +6,20 @@ from dataclasses import dataclass, replace
 from datetime import timedelta
 from pathlib import Path
 
-from factory.adapters.fake_containers import FakeContainerRuns
-from factory.adapters.fake_snapshots import FakeSnapshots
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.agents.application.agent_runtime import AgentRuntime
 from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult
 from factory.application.boundaries import Boundaries
 from factory.application.claims import StageStart
-from factory.application.containers import ContainerRuns
-from factory.application.project_commands import ProjectCommands
-from factory.application.snapshots import Snapshots
 from factory.application.stage import StageReport
-from factory.application.stage_environment import ContainerEnvironment
-from factory.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.hosting.domain.git import ChangedPath, CommitId
+from factory.machine.adapters.fake_containers import FakeContainerRuns
+from factory.machine.adapters.fake_snapshots import FakeSnapshots
+from factory.machine.application.containers import ContainerRuns
+from factory.machine.application.project_commands import ProjectCommands
+from factory.machine.application.snapshots import Snapshots
+from factory.machine.application.stage_environment import ContainerEnvironment
+from factory.machine.domain.containers import ContainerLaunch, ContainerResult, Mount
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.domain.cost_records import ToolUse

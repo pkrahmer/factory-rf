@@ -9,8 +9,8 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, JsonValue
 
 from factory.agents.domain.agent_runs import AgentRunRequest, AgentRunResult, EndReason, Login
-from factory.application.containers import ContainerRuns
-from factory.domain.containers import WORK_CHECKOUT, read_only_at_own_path
+from factory.machine.application.containers import ContainerRuns
+from factory.machine.domain.containers import WORK_CHECKOUT, read_only_at_own_path
 from factory.shared.domain.errors import AgentRuntimeError
 from factory.shared.domain.kill_points import KillPoint, KillPoints
 

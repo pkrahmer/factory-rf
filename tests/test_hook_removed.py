@@ -62,7 +62,7 @@ def _confine_command() -> object:
             id="protected",
         ),
         pytest.param(
-            lambda: has_name("factory.application.preflight", "confinement_item"),
+            lambda: has_name("factory.machine.application.preflight", "confinement_item"),
             False,
             id="confinement-item",
         ),

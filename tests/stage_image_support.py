@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from factory.domain.containers import SYSTEM_PATH
+from factory.machine.domain.containers import SYSTEM_PATH
 
 BASE_IDENTITY = "sha256-base"
 FIRST = "ARG FACTORY_BASE\nFROM ${FACTORY_BASE}\nRUN echo first\n"

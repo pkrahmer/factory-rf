@@ -6,8 +6,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.adapters.podman_runs import PodmanRuns
-from factory.domain.containers import Mount
+from factory.machine.adapters.podman_runs import PodmanRuns
+from factory.machine.domain.containers import Mount
 from run_layout_support import read_records, write_script
 
 IMAGE = "factory-stage:1"

@@ -5,9 +5,7 @@ from datetime import timedelta
 import pytest
 
 from factory.application.boundaries import Boundaries
-from factory.application.images import ImageBuild
 from factory.application.stops import StopService
-from factory.domain.stage_layer import STAGE_FILE, project_image_tag, stage_layer
 from factory.entry.wiring import (
     ImageSizes,
     StageImageReport,
@@ -15,6 +13,8 @@ from factory.entry.wiring import (
     image_sizes,
     project_image_settings,
 )
+from factory.machine.application.images import ImageBuild
+from factory.machine.domain.stage_layer import STAGE_FILE, project_image_tag, stage_layer
 from factory.shared.domain.settings import InstanceSettings
 from human_clone import HumanClone
 from recording_log import RecordingLog

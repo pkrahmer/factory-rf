@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from factory.adapters import make_commands
-from factory.adapters.make_commands import MakeProjectCommands
-from factory.application.project_commands import ProjectCommands
 from factory.domain.checks import TargetTime
+from factory.machine.adapters import make_commands
+from factory.machine.adapters.make_commands import MakeProjectCommands
+from factory.machine.application.project_commands import ProjectCommands
 from factory.shared.adapters.process import ProcessResult
 from factory.shared.domain.errors import ProjectCommandError
 from factory.shared.domain.kill_points import KillPoint, KillPoints

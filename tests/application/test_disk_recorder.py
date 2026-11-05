@@ -9,8 +9,8 @@ import pytest
 
 from disk_support import FakeDiskSpace
 from factory.application.boundaries import Boundaries
-from factory.application.disk_records import DiskRecorder
-from factory.domain.disk import DiskOccasion, DiskRecord, DiskUse, disk_line
+from factory.machine.application.disk_records import DiskRecorder
+from factory.machine.domain.disk import DiskOccasion, DiskRecord, DiskUse, disk_line
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.settings import InstanceSettings
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog

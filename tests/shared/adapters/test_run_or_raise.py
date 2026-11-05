@@ -144,7 +144,7 @@ def _request_builders(node: ast.AST, function: str | None = None) -> list[str | 
 def test_the_wrappers_hold_no_copy_of_the_run_or_raise_block(
     module: str, builders: list[str | None]
 ) -> None:
-    path = SRC / "adapters" / f"{module}.py"
+    path = SRC / "machine" / "adapters" / f"{module}.py"
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
 
     assert "_ROOT" not in _assigned_names(tree)

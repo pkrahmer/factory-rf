@@ -15,7 +15,6 @@ from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService, StageStart
 from factory.application.handlers.recording import commit_subject
 from factory.application.known_results import KnownResults
-from factory.application.stage_environment import StageEnvironment, stage_environment_of
 from factory.application.stalls import StallContext, StallResult, StallService
 from factory.application.take import TakeReport
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
@@ -26,6 +25,7 @@ from factory.hosting.application.pushes import push_with_retries
 from factory.hosting.domain.git import CommitId
 from factory.hosting.domain.hand_over import hand_over_description
 from factory.hosting.domain.hosting import PullRequestView
+from factory.machine.application.stage_environment import StageEnvironment, stage_environment_of
 from factory.shared.domain.errors import HostingServiceError, PushFailed
 from factory.shared.domain.identifiers import Name, WorkItemId, is_acceptance
 from factory.shared.domain.paths import MAIN_BRANCH, cost_records_path

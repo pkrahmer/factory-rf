@@ -19,8 +19,8 @@ from container_support import (
 )
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime
 from factory.application.boundaries import Boundaries
-from factory.application.stage_environment import ContainerEnvironment
 from factory.application.take import TakeReport
+from factory.machine.application.stage_environment import ContainerEnvironment
 from factory.shared.adapters.clock import ManualClock
 from git_support import write_files
 from human_clone import HumanClone

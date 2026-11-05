@@ -6,8 +6,8 @@ from source_search import SRC, modules, string_literals
 
 CHECK_MODULES = (
     "domain/checks.py",
-    "application/project_commands.py",
-    "adapters/make_commands.py",
+    "machine/application/project_commands.py",
+    "machine/adapters/make_commands.py",
 )
 
 
@@ -30,7 +30,7 @@ def _identifiers(tree: ast.Module) -> set[str]:
 def test_only_the_make_class_names_make() -> None:
     naming = {name for name, tree in modules().items() if "make" in string_literals(tree)}
 
-    assert naming == {"factory.adapters.make_commands"}
+    assert naming == {"factory.machine.adapters.make_commands"}
 
 
 def test_no_identifier_in_the_check_modules_names_a_layer() -> None:

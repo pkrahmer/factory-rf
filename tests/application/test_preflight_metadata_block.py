@@ -6,9 +6,9 @@ from datetime import timedelta
 import pytest
 
 import preflight_support
-from factory.application.preflight import MachineChecks, Preflight, metadata_block_item
 from factory.application.stops import StopService
-from factory.domain.containers import ContainerResult
+from factory.machine.application.preflight import MachineChecks, Preflight, metadata_block_item
+from factory.machine.domain.containers import ContainerResult
 from factory.shared.domain.errors import ContainerError
 from preflight_support import IMAGE, Rig
 

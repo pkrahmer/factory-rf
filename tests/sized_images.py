@@ -3,8 +3,8 @@
 from collections.abc import Callable
 from pathlib import Path
 
-from factory.adapters.fake_images import PASSED_BUILD, FakeImages
-from factory.application.images import ImageBuild
+from factory.machine.adapters.fake_images import PASSED_BUILD, FakeImages
+from factory.machine.application.images import ImageBuild
 
 BASE_BYTES = 1_580_000_000
 PROJECT_BYTES = 2_000_000_000

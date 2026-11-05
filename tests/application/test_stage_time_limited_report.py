@@ -7,8 +7,8 @@ from typing import override
 
 from factory.agents.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
-from factory.application.project_commands import ProjectCommands
 from factory.domain.checks import CheckResult
+from factory.machine.application.project_commands import ProjectCommands
 from factory.work.domain.journal import entry_text
 from human_clone import HumanClone
 from stage_run_support import PATH, branch_head, completed, open_story, run_stage, stage_makefile

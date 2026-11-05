@@ -17,7 +17,6 @@ from factory.application.boundaries import Boundaries
 from factory.application.dispatcher import DispatchOutcome
 from factory.application.idle_shutdown import IdleShutdown
 from factory.application.tick import Tick, TickOutcome
-from factory.domain.disk import DiskRecord
 from factory.domain.events import Event, EventKind
 from factory.domain.stops import HealthStatus, RepositoryStop
 from factory.entry.run import (
@@ -30,6 +29,7 @@ from factory.entry.run import (
 )
 from factory.entry.wiring import handler_factory, health_store, read_environment_settings
 from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.machine.domain.disk import DiskRecord
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings

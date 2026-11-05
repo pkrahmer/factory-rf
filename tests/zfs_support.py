@@ -7,7 +7,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
-from factory.adapters.zfs_snapshots import ZfsSnapshots
+from factory.machine.adapters.zfs_snapshots import ZfsSnapshots
 from run_layout_support import read_records, write_script
 
 CALLS = "zfs-calls.jsonl"

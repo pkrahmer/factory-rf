@@ -3,9 +3,9 @@
 import ast
 from pathlib import Path
 
-from factory.adapters.zfs_snapshots import DROP_CACHES_COMMAND
 from factory.entry.wiring import boundaries_from_environment
 from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.machine.adapters.zfs_snapshots import DROP_CACHES_COMMAND
 
 SOURCE = Path(__file__).parent.parent.parent / "src" / "factory"
 WIRING = SOURCE / "entry" / "wiring.py"
