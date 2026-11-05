@@ -11,7 +11,7 @@ from factory.pipeline.application.boundaries import Boundaries
 from factory.shared.domain import settings
 from factory.shared.domain.settings import InstanceSettings
 
-SETUP = Path(__file__).resolve().parents[3] / "vm" / "setup.sh"
+SETUP = Path(__file__).resolve().parents[3] / "operator" / "vm" / "setup.sh"
 
 
 def _required_without_default(name: str) -> bool:

@@ -20,7 +20,7 @@ _NEW_HEADER_LINE = (
 def test_template_makefile_header_calls_mutants_a_sweep_by_hand(
     text: str, count: int | None, line_number: int | None
 ) -> None:
-    makefile = (ROOT / "template" / "Makefile").read_text(encoding="utf-8")
+    makefile = (ROOT / "operator" / "template" / "Makefile").read_text(encoding="utf-8")
     if count is not None:
         assert makefile.count(text) == count
     if line_number is not None:

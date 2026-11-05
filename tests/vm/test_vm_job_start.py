@@ -393,7 +393,7 @@ def test_the_stage_image_is_built_on_a_tmpfs_with_the_job_options(
             "--layers=false",
             "--network=host",
             "-f",
-            "vm/Dockerfile",
+            "operator/vm/Dockerfile",
             "--build-arg",
             f"FACTORY_IMAGE={JOB_CODE_REF}",
             "-t",
@@ -418,7 +418,7 @@ def _builds_for_the_instance_runtime(script: str) -> bool:
     builds = [
         shlex.split(line)
         for line in _uncommented(script).splitlines()
-        if " build " in line and "vm/Dockerfile" in line
+        if " build " in line and "operator/vm/Dockerfile" in line
     ]
     return len(builds) == 1 and any(
         builds[0][index : index + 2] == ["--build-arg", "AGENT_RUNTIME=$FACTORY_AGENT_RUNTIME"]

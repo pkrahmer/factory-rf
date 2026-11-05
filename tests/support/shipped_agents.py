@@ -11,7 +11,7 @@ from factory.work.adapters.work_item_markdown import RuamelYamlHandler, split_fr
 
 ROOT = Path(__file__).parents[2]
 AGENT_HOME = ROOT / "agents"
-TEMPLATE_PIPELINE = ROOT / "template" / "factory" / "pipeline.yml"
+TEMPLATE_PIPELINE = ROOT / "operator" / "template" / "factory" / "pipeline.yml"
 
 _ALL_TOOLS = ["Read", "Grep", "Glob", "Edit", "Bash", "Write", "Skill"]
 _TOOLS_WITHOUT_WRITE = ["Read", "Grep", "Glob", "Edit", "Bash", "Skill"]

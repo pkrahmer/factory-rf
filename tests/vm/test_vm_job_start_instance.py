@@ -32,7 +32,7 @@ def test_the_code_step_installs_the_checkout_s_helper_between_the_checkout_and_u
 
     assert run.result.exit_status == 0, run.result.stderr
     assert [call.argv for call in helper_calls] == [
-        ["-m", "0755", str(run.root / "factory" / "vm" / HELPER), target]
+        ["-m", "0755", str(run.root / "factory" / "operator" / "vm" / HELPER), target]
     ]
     assert _index(run, checkout) < _index(run, helper_calls[0]) < _index(run, first_uv)
 

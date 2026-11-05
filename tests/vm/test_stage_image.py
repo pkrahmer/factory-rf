@@ -508,7 +508,7 @@ def test_the_first_line_names_the_build_command_with_the_runtime(
     first = change(stage_dockerfile).splitlines()[0]
 
     assert first.startswith("#")
-    assert "podman build -f vm/Dockerfile" in first
+    assert "podman build -f operator/vm/Dockerfile" in first
     assert ("--build-arg AGENT_RUNTIME=<claude|opencode>" in first) == named
 
 

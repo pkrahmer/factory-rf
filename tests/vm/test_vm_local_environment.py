@@ -11,7 +11,7 @@ from support.vm_support import SERVICE, SYSTEM_PATH
 LOCAL = "factory.local.env"
 UNIT = """\
 # The factory as a system service, one instance per name: factory@vm runs the instance vm.
-# vm/setup.sh installs it as factory@.service and enables it; the operator starts it.
+# operator/vm/setup.sh installs it as factory@.service and enables it; the operator starts it.
 [Unit]
 Description=The factory, instance %i
 After=network-online.target zfs.target

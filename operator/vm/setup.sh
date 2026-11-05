@@ -384,7 +384,7 @@ fi
 echo "setup: checkout: $(said "found $askpass unchanged and $checkout")"
 
 changes=
-dockerfile=$checkout/vm/Dockerfile
+dockerfile=$checkout/operator/vm/Dockerfile
 uv_version=$(sed -n 's/^ARG UV_VERSION=//p' "$dockerfile")
 if [ ! -d "$tools" ]; then
   as_factory python3 -m venv "$tools"
@@ -397,12 +397,12 @@ fi
 # uv sync changes nothing when the virtual environment already matches the lockfile.
 (cd "$checkout" && as_factory $tools/bin/uv sync --frozen --no-dev)
 # The factory's own git reaches the token only through this helper.
-if ! cmp -s "$checkout/vm/git-credential-factory" /usr/local/bin/git-credential-factory; then
+if ! cmp -s "$checkout/operator/vm/git-credential-factory" /usr/local/bin/git-credential-factory; then
   if [ "$cloned" = yes ] || [ ! -e /usr/local/bin/git-credential-factory ]; then
-    install -m 0755 "$checkout/vm/git-credential-factory" /usr/local/bin/git-credential-factory
+    install -m 0755 "$checkout/operator/vm/git-credential-factory" /usr/local/bin/git-credential-factory
     changed "installed /usr/local/bin/git-credential-factory"
   else
-    echo 'setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed; install it from your own copy of vm/git-credential-factory (operator guide, "The rebuild after a merge")' >&2
+    echo 'setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed; install it from your own copy of operator/vm/git-credential-factory (operator guide, "The rebuild after a merge")' >&2
   fi
 fi
 echo "setup: tools: $(said "found $tools with uv $uv_version, the virtual environment of $checkout in sync and /usr/local/bin/git-credential-factory in place")"
@@ -413,7 +413,7 @@ claude_version=$(sed -n 's/^ARG CLAUDE_CODE_VERSION=//p' "$dockerfile")
 opencode_version=$(sed -n 's/^ARG OPENCODE_VERSION=//p' "$dockerfile")
 opencode_models=$(sed -n 's/^ENV FACTORY_OPENCODE_MODELS=//p' "$dockerfile")
 stage <<EOF
-# Written by vm/setup.sh from its arguments and vm/Dockerfile; change those and run it again.
+# Written by operator/vm/setup.sh from its arguments and operator/vm/Dockerfile; change those and run it again.
 FACTORY_INSTANCE=$instance
 FACTORY_REPOSITORY_URL=$repository_url
 FACTORY_AGENT_RUNTIME=$runtime
@@ -445,12 +445,12 @@ fi
 echo "setup: environment: $(said "found $env_file unchanged")"
 
 changes=
-if ! cmp -s "$checkout/vm/factory.service" /etc/systemd/system/factory@.service; then
+if ! cmp -s "$checkout/operator/vm/factory.service" /etc/systemd/system/factory@.service; then
   if [ "$cloned" = yes ] || [ ! -e /etc/systemd/system/factory@.service ]; then
-    install -m 0644 "$checkout/vm/factory.service" /etc/systemd/system/factory@.service
+    install -m 0644 "$checkout/operator/vm/factory.service" /etc/systemd/system/factory@.service
     changed "installed /etc/systemd/system/factory@.service"
   else
-    echo 'setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed; install it from your own copy of vm/factory.service (operator guide, "The rebuild after a merge")' >&2
+    echo 'setup: service: /etc/systemd/system/factory@.service differs from the checkout; not installed; install it from your own copy of operator/vm/factory.service (operator guide, "The rebuild after a merge")' >&2
   fi
 fi
 systemctl daemon-reload

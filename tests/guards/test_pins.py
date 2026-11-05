@@ -12,7 +12,7 @@ from support.dockerfile_support import floating_references
 ROOT = Path(__file__).parents[2]
 PYPROJECT = ROOT / "pyproject.toml"
 LOCKFILE = ROOT / "uv.lock"
-TEMPLATE = ROOT / "template"
+TEMPLATE = ROOT / "operator" / "template"
 PRODUCTION_DEPENDENCIES = ["pydantic", "PyGithub", "ruamel.yaml", "python-frontmatter"]
 
 

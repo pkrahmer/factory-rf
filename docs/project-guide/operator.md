@@ -10,6 +10,8 @@ The shell and Python scripts under `operator/`, which let an operator set up one
 - `operator/bin/site`: the command for the site file (`path`, `init`, `show`, `get`, `check`).
 - `operator/bin/sanitise`: the sanitiser.
 - `operator/job/job.sh`: the factory's Cloud Run job.
+- `operator/vm/`: what sets up and runs an instance on a VM (`setup.sh`, `job-start.sh`, `factory.service`, `git-credential-factory`) and the base image's `Dockerfile`.
+- `operator/template/`: what the operator copies into a new project (`CLAUDE.md`, `Makefile`, `factory/`).
 - `operator/skill/kumpel/`: the skill. `SKILL.md`, `references/` (the standing orders and how to answer, approve and shape) and `scripts/` (`settings.sh`, `status.sh`, `wait.sh`, `approval.sh`, `next-story.sh`, `start-story.sh`, `comment.sh`, `merge.sh`, `reset-to-tag.sh`).
 - `operator/opencode/command/kumpel.md` and `operator/claude/commands/kumpel.md`: the `/kumpel` command for each tool.
 - `operator/README.md` is the documenter's (decision 22 of F0048): its table maps each file to the story that made it. Keep it current from the docs criterion; do not copy the table here.
@@ -42,7 +44,7 @@ The site file holds a site's own values (`SITE_*` keys) in `KEY=value` lines. It
 `operator/job/job.sh` works from the site's values alone: `create` and `update` (both take `--dry-run`, which prints the gcloud call one argument per line and runs nothing), `execute`, `delete [--yes]`, `log [N] [--execution NAME] [--quiet]` and `status`.
 
 - **No guessed values.** `require_settings` needs every key of `site_job_keys` and stops naming the missing ones. Only `SITE_CPU`, `SITE_MEMORY`, `SITE_TIMEOUT` and `SITE_IDLE_MINUTES` have defaults. `check_instance`, `check_env_values` and `check_costs` refuse values that would break the env list (`@` is its delimiter) or the shell text.
-- **The start script comes from `SITE_CODE_REF`.** `write_wrapper` takes `vm/job-start.sh` with `git show "$SITE_CODE_REF:vm/job-start.sh"`, never from the working tree, so the wrapper and the code it starts are one version. `check_code_ref` stops when the ref is unknown here. The wrapper is gzipped and base64-encoded into the job's `--args`.
+- **The start script comes from `SITE_CODE_REF`.** `write_wrapper` takes `operator/vm/job-start.sh` with `git show "$SITE_CODE_REF:operator/vm/job-start.sh"`, never from the working tree, so the wrapper and the code it starts are one version. `check_code_ref` stops when the ref is unknown here. The wrapper is gzipped and base64-encoded into the job's `--args`.
 - **The provider file** is made by `provider_json` (`python3 -I`) from the site's model values and travels in the wrapper.
 - **No two executions at once.** `execute` lists the executions and refuses while one has a running count of at least 1 (`running_execution`). It prints the new execution's name and writes it to `<state folder>/last-execution`; `log` and `status` default to it.
 - `delete` without `--yes` prints what it would do and exits 1. `status` prints the newest executions and the factory's stop, if any (`stop_line`).

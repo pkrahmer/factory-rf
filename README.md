@@ -9,7 +9,7 @@ uv sync                       # install
 make check                    # everything the pipeline checks: lint, types, layers, sast, secrets, licenses, tests
 ```
 
-When it works, `make check` ends with the line `check: green`. An instance runs on a VM that `vm/setup.sh` prepares: see *The machine* in `docs/operator-guide/machine.md`; the guide's topic files also give the exit statuses of the commands you run.
+When it works, `make check` ends with the line `check: green`. An instance runs on a VM that `operator/vm/setup.sh` prepares: see *The machine* in `docs/operator-guide/machine.md`; the guide's topic files also give the exit statuses of the commands you run.
 
 | Command | What it does |
 | --- | --- |
@@ -21,7 +21,7 @@ When it works, `make check` ends with the line `check: green`. An instance runs 
 
 Beside the five console commands, `uv run python -m factory.entry.contract [<folder>]` regenerates the records contract's schemas (a story that changes a model the contract covers runs it), and `uv run python -m factory.entry.check_documents` checks these documents (they exist, say what v1.1 does in its own words, and name every stop, kill point and fault-injection path); it prints `documents ok` or one finding per line. It is no console script, and `make check` does not run it.
 
-The factory runs as a service on a Linux VM with ZFS and rootless Podman, and every stage runs in throwaway containers on one ZFS dataset. `vm/setup.sh` prepares the VM; *The machine* in `docs/operator-guide/machine.md` takes you there, and what v1.1 did differently is under *Replaced in v1.2* in the guide's index, `docs/operator-guide/README.md`. It also runs in a Cloud Run job, whose command `vm/job-start.sh` builds the instance at every start: see *On Cloud Run* in `docs/operator-guide/cloud-run.md`. A project can add tools to its stage image with a file `factory/stage.Containerfile` on its `main`: see *The project's stage file* in `docs/operator-guide/machine.md`.
+The factory runs as a service on a Linux VM with ZFS and rootless Podman, and every stage runs in throwaway containers on one ZFS dataset. `operator/vm/setup.sh` prepares the VM; *The machine* in `docs/operator-guide/machine.md` takes you there, and what v1.1 did differently is under *Replaced in v1.2* in the guide's index, `docs/operator-guide/README.md`. It also runs in a Cloud Run job, whose command `operator/vm/job-start.sh` builds the instance at every start: see *On Cloud Run* in `docs/operator-guide/cloud-run.md`. A project can add tools to its stage image with a file `factory/stage.Containerfile` on its `main`: see *The project's stage file* in `docs/operator-guide/machine.md`.
 
 ## Where to look next
 

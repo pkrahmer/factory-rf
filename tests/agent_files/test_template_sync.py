@@ -17,7 +17,7 @@ from support.template_make_support import (
     template_project,
 )
 
-TEMPLATE = ROOT / "template"
+TEMPLATE = ROOT / "operator" / "template"
 FIRST_LINE = (
     "# The contract between a project and the factory is four targets: "
     "`check`, `lint`, `test`, `sync`."

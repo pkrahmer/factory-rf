@@ -156,9 +156,9 @@ check_code_ref() {
 write_wrapper() {
   root=$(job_root)
   provider=$(provider_json) || exit 1
-  git -C "$repository" show "$SITE_CODE_REF:vm/job-start.sh" >"$work/job-start.sh" || exit 1
+  git -C "$repository" show "$SITE_CODE_REF:operator/vm/job-start.sh" >"$work/job-start.sh" || exit 1
   if grep -qx "$start_end" "$work/job-start.sh"; then
-    echo "job: vm/job-start.sh holds the line $start_end; the wrapper cannot carry it" >&2
+    echo "job: operator/vm/job-start.sh holds the line $start_end; the wrapper cannot carry it" >&2
     exit 1
   fi
   {

@@ -67,11 +67,10 @@ def wrapper_of(call: list[str]) -> str:
 
 
 def make_job_repository(folder: Path) -> Path:
-    """A git repository in `folder` with `operator/` and `vm/` committed and tagged `t1`."""
+    """A git repository in `folder` with `operator/` committed and tagged `t1`."""
     folder.mkdir()
     run_git(folder, "init", "-q")
-    for name in ("operator", "vm"):
-        shutil.copytree(ROOT / name, folder / name)
+    shutil.copytree(ROOT / "operator", folder / "operator")
     commit_all(folder, "the operator's scripts")
     run_git(folder, "tag", TAG)
     return folder

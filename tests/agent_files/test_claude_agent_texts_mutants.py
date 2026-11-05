@@ -93,6 +93,6 @@ def test_reviewer_item_6_is_followed_by_the_findings_paragraph() -> None:
     ],
 )
 def test_template_makefile_leaves_mutants_to_a_sweep_by_hand(text: str, count: int) -> None:
-    makefile = (ROOT / "template" / "Makefile").read_text(encoding="utf-8")
+    makefile = (ROOT / "operator" / "template" / "Makefile").read_text(encoding="utf-8")
 
     assert makefile.count(text) == count
