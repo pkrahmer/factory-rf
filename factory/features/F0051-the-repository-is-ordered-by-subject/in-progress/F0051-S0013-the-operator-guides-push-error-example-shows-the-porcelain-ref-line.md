@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 555
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T00:12:46.189507Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-05T00:12:40.887823Z'
   stage: review
   run: 678fdf08d8f8451289813b4e8d461b52
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:12:46.189507Z'
+  stage: docs
 ---
 
 # The operator guide's push error example shows the ref line the factory writes
@@ -150,3 +159,4 @@ Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [re
       - `push_reason` is at `src/factory/domain/git.py:158`.
       - The journal explains the main choice (the edits go to the documenter, not the coder) and what was rejected. Criterion 5 tells the documenter exactly which two lines to change and what to write.
    6. Earlier tests: none. The diff changes no test file.
+10. factory: started docs as vm.
