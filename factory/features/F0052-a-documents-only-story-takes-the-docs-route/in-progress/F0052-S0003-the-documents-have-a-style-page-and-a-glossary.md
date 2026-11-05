@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: question
+blocked: null
 round: 0
 attempts: 1
 crashes: 0
 pull_request: 574
-comments_read: [6671915202]
+comments_read: [6671915202, 6672097334]
 handed_over: null
 claim: null
 journal:
@@ -105,6 +105,11 @@ journal:
   stage: review
   run: a3940524d522498b90687b953693d325
   blocked: question
+- number: 18
+  speaker: human
+  kind: comment
+  at: '2026-11-05T23:20:12.226383Z'
+  stage: review
 ---
 
 # The documents have a style page and a glossary
@@ -284,3 +289,4 @@ Expect: `named`
     - (c) You fix the five points by hand on the branch, and I pass.
 
     I would choose (b): it puts the findings in front of the only role that may write them.
+18. 2026-11-05 human: (b): end with `docs`. The documenter fixes findings 1 to 5 there, before the smoke test. `docs` is the review's forward move, so it counts no round of rework.
