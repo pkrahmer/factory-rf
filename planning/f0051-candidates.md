@@ -89,6 +89,8 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 
 58. **A flagged line is found by a guess.** F0051-S0008: `make secrets` named only the hash and a line number; the coder named the wrong line, I reworded it after a scan that was not the hook's, and the story lost a second coder run (about 20 min and two runs). Fix: the factory's stall text quotes the flagged line, and the reword step always runs `detect-secrets-hook` on the old and the new text.
 
+59. **A test of documents cannot pass the check after `doing`.** F0051-S0009: the tester wrote a guard over the regrouped guide; only the documenter may write `docs/`, but the check after `doing` runs before the docs stage, so the coder's regrouping was dropped and the gate stayed red (one stall, about $1). The human let the coder write the guides for the rest of F0051. Fix to decide: a documents-only story skips `tests` and `doing` (candidate 46), or a guard over documents runs only in the docs stage's checks.
+
 ## The repository is easier to navigate (the human, 2026-11-04)
 
 38. **`claude/` becomes `agents/`.** It holds the factory's agent files and `settings.json` in Claude Code's format, which the opencode runtime translates per run (decision of 2026-10-19, F0020-S0004); the name says one runtime. Touches `vm/Dockerfile`, the wiring, the coder's write paths in `factory/pipeline.yml`, the docs and tests.
