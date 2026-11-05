@@ -161,7 +161,7 @@ Tests: `tests/domain/test_prompts.py`, `tests/application/test_task.py`, `tests/
 
 ## Opening a work item
 
-`WorkItemOpening` (`factory.application.opening`) runs before a stage is claimed. It is built with `Boundaries` and the `PipelineDefinition`. Neither method commits, pushes or fetches; the tick fetched before, so a commit pushed since is not seen. The claim makes the first commit, which for a new branch is also the opening commit.
+`WorkItemOpening` (`factory.hosting.application.opening`) runs before a stage is claimed. It is built with `Boundaries` and the `PipelineDefinition`. Neither method commits, pushes or fetches; the tick fetched before, so a commit pushed since is not seen. The claim makes the first commit, which for a new branch is also the opening commit.
 
 ### `prepare(work_item, path)`
 
@@ -214,7 +214,7 @@ A stall is the one way a stage ends without a result the factory can keep. It co
 
 `factory.domain.decisions.StallReason` (defined in `factory.domain.journal`, which the stall record names) is one of `died`, `time_limit`, `budget`, `provider_limit`, `no_result`, `decision_not_allowed`, `form_invalid`, `check_red`, `merge_conflict`. `stall_reason_of(result)` maps the end reason of an `AgentRunResult` to the reason of the same name and `completed` to `None`.
 
-`factory.domain.post_texts.stall_cause(reason, detail="")` gives the reason's sentence, and `<sentence>: <detail>` with a detail. `stall_note(reason, attempts, attempts_cap, *, detail="")` gives `Stalled (attempt <n> of <cap>): <cause>. ` and then `Retrying on the next tick.` when `attempts < attempts_cap`, otherwise `The attempts cap is reached; the factory asks you next.` The word "retry" appears only in the first case.
+`factory.hosting.domain.post_texts.stall_cause(reason, detail="")` gives the reason's sentence, and `<sentence>: <detail>` with a detail. `stall_note(reason, attempts, attempts_cap, *, detail="")` gives `Stalled (attempt <n> of <cap>): <cause>. ` and then `Retrying on the next tick.` when `attempts < attempts_cap`, otherwise `The attempts cap is reached; the factory asks you next.` The word "retry" appears only in the first case.
 
 The detail's trailing line breaks are removed. A detail of one line is part of the sentence, as above. A detail of several lines puts its first line through `stall_cause` into the sentence, so the follow-up stays on that first line, and the remaining lines follow after an empty line in a fenced block: the fence `` ```text ``, the lines unchanged, the closing fence. GitHub renders a comment as Markdown, and unfenced output loses `<module>` and turns `__init__` bold. The fence is three backticks, or one more than the longest run of backticks in the remaining lines when that run is three or longer. The journal's stall entry is unchanged and keeps the detail as continuation lines.
 
@@ -234,7 +234,7 @@ So a stall keeps the writes inside the write paths (the environment's take bring
 
 A `HostingServiceError` is not a stall and propagates unchanged: from step 3 before anything is written, committed or pushed, so the remote is unchanged; from step 6 after the push, so the stall commit stays on the remote, no note is posted and no label is written; from step 7, so the stall commit stays and the note stays posted. `StallResult` (frozen, no unknown keys) holds `reason`, `attempts`, `attempts_cap`, `commit` (the pushed head), `pull_request` (the last three at least 1), `note` (the `PostOutcome`) and `take` (a `TakeReport`, or `None`).
 
-Tests: `tests/domain/test_decisions.py`, `tests/domain/test_stall_texts.py`, `tests/domain/test_stall_note_block.py`, `tests/application/test_stalls.py`, `tests/application/test_stall_labels.py`. The last starts stages with `StageLauncher` and the fake agent runtime; its `SwitchingRuntime` (a subclass of `ObservingRuntime`) switches the checkout to another branch while it runs.
+Tests: `tests/domain/test_decisions.py`, `tests/domain/test_stall_texts.py`, `tests/hosting/domain/test_stall_note_block.py`, `tests/application/test_stalls.py`, `tests/application/test_stall_labels.py`. The last starts stages with `StageLauncher` and the fake agent runtime; its `SwitchingRuntime` (a subclass of `ObservingRuntime`) switches the checkout to another branch while it runs.
 
 ## After the agent run
 
@@ -269,7 +269,7 @@ The rules are tried in v1's order; rule 5 (a red check) is not decided here but 
 
 Rules 3, 6 and 7 move, so they clear a `blocked` of `question`. `findings` matter only to a forward decision. Rule 6 only says the move; its checks run afterwards.
 
-The factory's own question texts are in `factory.domain.post_texts`: `round_cap_question(rounds, cap)`, `findings_question(findings)` (the messages numbered from 1, joined by one space) and `attempts_cap_question(stage, attempts, last_stall)`. That module imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, because `decisions` imports it.
+The factory's own question texts are in `factory.hosting.domain.post_texts`: `round_cap_question(rounds, cap)`, `findings_question(findings)` (the messages numbered from 1, joined by one space) and `attempts_cap_question(stage, attempts, last_stall)`. That module imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, because `decisions` imports it.
 
 Tests: `tests/domain/test_decision_rules.py`, `tests/domain/test_question_texts.py`.
 
@@ -292,7 +292,7 @@ Tests: `tests/domain/test_decision_rules.py`, `tests/domain/test_question_texts.
 4. The agent's entry gains, after a blank line, one line `` `<command>`: <last line of its output> `` (`command_line`) for each green check and each report, in the order they ran (for example `` `check`: 12 passed ``). A result taken instead of a run adds `` (not run again: passed on tree <12 characters> at <time>) ``, and a result stopped at its time limit adds `` (stopped at its time limit after <s> s) ``. A stage with neither gets no such lines.
 5. The entry is appended; when the move has a question (rules 1 and 4), a `factory` entry of kind `question` follows it.
 6. The new state takes `stage`, `blocked` and `round` from the move and `pull_request` from the started stage, and the claim is released. `crashes` is reset to 0 on rule 6, a forward move, and unchanged otherwise; `attempts`, `comments_read` and `handed_over` never change.
-7. The file is written, everything in the work tree is committed in one commit and pushed through `push_with_retries` (`factory.application.pushes`): a server refusal (`[remote rejected]`) or an unreachable remote is pushed again after 5, 15 and 45 s (`RETRY_WAITS`, waited through `boundaries.waiter`), each wait after the log line `push: retry <n> of 3 in <s> s: <reason>`; the same commit, the same command, no force. Any other refusal, and the last failure, raises `PushFailed` with git's reason, and no label has been written.
+7. The file is written, everything in the work tree is committed in one commit and pushed through `push_with_retries` (`factory.hosting.application.pushes`): a server refusal (`[remote rejected]`) or an unreachable remote is pushed again after 5, 15 and 45 s (`RETRY_WAITS`, waited through `boundaries.waiter`), each wait after the log line `push: retry <n> of 3 in <s> s: <reason>`; the same commit, the same command, no force. Any other refusal, and the last failure, raises `PushFailed` with git's reason, and no label has been written.
    Between the commit and the push, when the move's stage is an approval stage (`approval` in the pipeline definition): `HostingService.set_description(number, text)`, with `hand_over_description(moved, Git.log("HEAD", since="origin/main"))` for a story, or `acceptance_description(moved, role)` for an acceptance, `role` being the role of the stage that ran. After the push those commits are the ones the hand-over reads from `origin/<branch>`. A `HostingServiceError` there is caught and logged as `pull request #<number>: description not written before the push: <error>`, and the push goes on; the hand-over writes the description on the next tick. A forward move, a rework and a question write no description. It is the private `_describe` of `_commit_and_push`; the order commit, description, push is fixed. `handed_over` stays unset.
 8. Last, `HostingService.set_labels(pull_request, labels_for(new_state))`. `labels_for` (`factory.domain.labels`) gives `[LABEL_PREFIX + state.stage]`, for example `["stage:review"]`. Labels are a projection of the stage: they are written after the push and never read back. A `HostingServiceError` from this step propagates; the result commit stays pushed.
 

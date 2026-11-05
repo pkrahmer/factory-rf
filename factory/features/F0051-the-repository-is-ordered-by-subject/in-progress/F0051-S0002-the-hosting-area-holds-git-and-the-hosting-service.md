@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 557
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-05T01:25:52.888950Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-05T01:25:52.888950Z'
   stage: docs
+- number: 15
+  speaker: documenter
+  kind: result
+  at: '2026-11-05T01:26:45.629791Z'
+  stage: docs
+  run: 0aca49918895424e82bdff790b01272f
 ---
 
 # The hosting area holds git and the hosting service
@@ -493,3 +495,23 @@ Expect: `1`
     - tests/domain/test_stall_note_block.py -> tests/hosting/domain/test_stall_note_block.py: FD5, git mv and import lines
     - tests/domain/test_tree_id.py -> tests/hosting/domain/test_tree_id.py: FD5, git mv and import lines
 14. factory: started docs as vm.
+15. documenter: Docs stage, round 0. Only documents changed, so I did not run `make check`; the factory's checks after this stage decide.
+
+    Files changed:
+    - `docs/project-guide/README.md`: the moved modules are named at their `factory.hosting.<layer>.<name>` paths. The section *The code's layout* has a new sentence naming the area `hosting` and what it holds: git, the hosting service, pushes, the hand-over and the opening of pull requests.
+    - `docs/project-guide/git-and-hosting.md`, `stages.md`, `watching.md`, `costs.md`, `processes-and-checks.md`, `stage-environment.md`, `work-items.md`: the dotted module paths of the 11 moved modules are replaced with the new ones. The same files also have the moved tests' paths changed from `tests/<layer>/` to `tests/hosting/<layer>/`: the 34 renames the diff shows under `tests/domain`, `tests/application` and `tests/adapters`.
+
+    Checked, no change needed:
+    - I searched `README.md` and `docs/operator-guide.md` for an old path of a moved module and found none.
+    - Every `tests/(domain|application|adapters)/*.py` path the docs name still exists.
+    - `tests/adapters/pygithub_stand_ins.py` is not a test module and did not move, so `git-and-hosting.md` still names it correctly.
+    - `docs/decisions.md` is left alone, as the criterion says. I added no "Why" or "Rejected" text.
+    - I did not compare the docs' prose with the code, only the module and test paths.
+
+    Not touched: `docs/operator-playbook.md` and `docs/runs/` are outside this stage's write paths, and I did not search them for old paths.
+
+    No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 4cc7b7dab2a3 at 2026-11-05T01:18:30Z)
+    `secrets`: secrets: green (5.3 s)
+    `documents`: documents ok
