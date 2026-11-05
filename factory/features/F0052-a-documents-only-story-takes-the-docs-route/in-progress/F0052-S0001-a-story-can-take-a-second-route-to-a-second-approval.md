@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T21:47:18.190209Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-05T21:47:12.581520Z'
   stage: intake
   run: 59f0f1b316854d9dbf59911b4476524b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T21:47:18.190209Z'
+  stage: tests
 ---
 
 # A story can take a second route to a second approval
@@ -69,3 +78,4 @@ Expect: `1`
    - Smoke test: `uv run pytest tests/pipeline/application/test_docs_route.py 2>&1 | tail -1 | grep -c passed` is runnable. It passes no `-q`, and `pyproject.toml` `addopts` already sets one, so the last line is the `N passed` summary. `Expect: 1` can be checked against the output.
    - Architecture: the test sits in `tests/pipeline/application/`, which mirrors the package. It uses the fake world and the fake agent runtime, and git is not faked. A fix would land in the `work` or `pipeline` area. The story makes no new package or dependency and does not touch `factory/pipeline.yml`.
    - Scope: the story is S0001 of F0052 and matches the feature's scope bullet 1. It makes no pipeline definition change (that is the human's at S0002's merge), changes no agent, and does not touch the code route. Nothing in "Out of scope" is touched.
+4. factory: started tests as vm.
