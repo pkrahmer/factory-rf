@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 576
 comments_read: [6672543099]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T23:55:17.257885Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-05T23:55:17.257885Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T23:55:40.576272Z'
+  stage: smoke-test
+  run: c973cfc49ea148c084739591e8fcf00a
 ---
 
 # A guide rewrite may rename its headings and add a page
@@ -238,3 +240,27 @@ Expect: `1`
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok
 15. factory: started smoke-test as vm.
+16. smoke-tester: Smoke test passed with no findings. I ran both commands from the repository root exactly as the story gives them.
+
+    Command 1: `grep -c "^HEADINGS" tests/guards/test_project_guide_files.py tests/guards/test_operator_guide_files.py | awk -F: '{s += $2} END {print s}'`
+    ```
+    0
+    ```
+    Expected `0`. Met.
+
+    Command 2: `uv run pytest tests/guards/test_project_guide_files.py tests/guards/test_operator_guide_files.py tests/guards/test_guide_index_problems.py 2>&1 | tail -1 | grep -c " passed"`
+    ```
+    1
+    ```
+    Expected `1`. Met. I ran the same pytest command again without the `grep` to see the result. It ended `17 passed in 0.06s`.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: the 12 rows of the parametrized test pass. They are part of the 17 tests that passed in command 2.
+    - Criterion 2: `test_the_guide_holds_the_index_and_its_named_files`, which checks `index_problems(GUIDE, AREA_FILES) == []`, passes on the repository.
+    - Criterion 3: searching `tests/guards/` for `HEADINGS` or `guide_headings` finds nothing.
+    - Criterion 4: I did not run `make check` in this stage. The coder's run was green (journal entry 10), and the documenter changed only documents after that.
+    - Criterion 5: the sentence is at `docs/project-guide/README.md:15`. The decision-log entry "The headings of the guides are not pinned" is at `docs/decisions.md:1600`. Nothing under `docs/operator-guide/` changed.
+
+    The smoke test contradicts no criterion.
+
+    Findings: none.
