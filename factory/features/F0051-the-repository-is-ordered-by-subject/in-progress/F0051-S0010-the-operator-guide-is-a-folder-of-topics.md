@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 565
 comments_read: [6651800802, 6651897156, 6652196970]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T07:27:38.539714Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-11-05T07:27:33.413291Z'
   stage: doing
   run: 59e475635b0f4856813c3ce3aadf2e85
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-05T07:27:38.539714Z'
+  stage: review
 ---
 
 # The operator guide is a folder of topics
@@ -339,3 +348,4 @@ Expect: `split`
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 40 known, 3 gone
+21. factory: started review as vm.
