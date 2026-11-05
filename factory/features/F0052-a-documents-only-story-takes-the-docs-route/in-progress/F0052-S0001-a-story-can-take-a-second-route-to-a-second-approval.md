@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 572
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T21:46:48.647057Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-05T21:46:48.647057Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T21:47:12.581520Z'
+  stage: intake
+  run: 59f0f1b316854d9dbf59911b4476524b
 ---
 
 # A story can take a second route to a second approval
@@ -61,3 +63,9 @@ Expect: `1`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: no new module by design. It names the one new test file, `tests/pipeline/application/test_docs_route.py`, and the test pipeline definition stage by stage (intake `next`, `docs-only`, `docs-review`, `docs-approval`, their order). It names the two functions the walk exercises in the Description, `is_before_approval` (`factory.work.domain.acceptance:309`) and `send_back_target` (`factory.work.domain.send_back:30`); both exist. Any fix is located by the walk, and the coder names it in its entry.
+   - Criteria: 1 to 7 each describe one walk or one table, and each is testable by one test function (7 is one row per stage). Failing sides are covered. The close at `docs-approval` going to `docs-only` and not to `doing` is criterion 3. The round cap is criterion 4, and the round-free move to `tests` is criterion 5. The old route is unchanged in criterion 6. `is_before_approval` is false for the approval stages in criterion 7. The Interface states no rule beyond these. Criteria 8 and 9 are the closing ones, in order.
+   - Smoke test: `uv run pytest tests/pipeline/application/test_docs_route.py 2>&1 | tail -1 | grep -c passed` is runnable. It passes no `-q`, and `pyproject.toml` `addopts` already sets one, so the last line is the `N passed` summary. `Expect: 1` can be checked against the output.
+   - Architecture: the test sits in `tests/pipeline/application/`, which mirrors the package. It uses the fake world and the fake agent runtime, and git is not faked. A fix would land in the `work` or `pipeline` area. The story makes no new package or dependency and does not touch `factory/pipeline.yml`.
+   - Scope: the story is S0001 of F0052 and matches the feature's scope bullet 1. It makes no pipeline definition change (that is the human's at S0002's merge), changes no agent, and does not touch the code route. Nothing in "Out of scope" is touched.
