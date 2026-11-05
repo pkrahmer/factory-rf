@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T09:36:10.854734Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -147,6 +143,12 @@ journal:
   kind: started
   at: '2026-11-05T09:36:10.854734Z'
   stage: review
+- number: 25
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T09:37:56.876551Z'
+  stage: review
+  run: 3eeb57bf46064a0393286e56aa418d05
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -158,7 +160,7 @@ Two folders at the root of the repository belong to the operator: `vm/` holds wh
 ## Interface
 
 - `vm/` → `operator/vm/` and `template/` → `operator/template/`, with `git mv`.
-- Every place under `src/`, `tests/`, `operator/`, `agents/`, `docs/` other than `docs/decisions.md`, and `README.md` that names `vm/<file>` or `template/<file>` names the new path. A build command that names the Dockerfile (`podman build -f vm/Dockerfile`, in `operator/vm/job-start.sh`, the guide and the tests) names `operator/vm/Dockerfile`.
+- Every place under `src/`, `tests/`, `operator/`, `agents/`, `docs/` other than `docs/decisions.md` and `docs/runs/`, and `README.md` that names `vm/<file>` or `template/<file>` names the new path. A build command that names the Dockerfile (`podman build -f vm/Dockerfile`, in `operator/vm/job-start.sh`, the guide and the tests) names `operator/vm/Dockerfile`.
 - The coder's write paths `vm/*` and `template/*` in `factory/pipeline.yml`, a name in `Makefile` and the names in `CLAUDE.md` are the human's changes, made at this story's start. The VM's installed copies (the systemd unit, the credential helper) are the human's change on factory-vm after the merge.
 
 - The tester makes every test change the rename needs in its first run, before the files move: every path and name of the old folders in `tests/`, under the leave of feature decision 5. The coder changes `src/`, the renamed folders and the documents it may write; its write paths do not hold `tests/`, so a test change it makes is dropped.
@@ -167,7 +169,7 @@ Two folders at the root of the repository belong to the operator: `vm/` holds wh
 
 1. `vm/` and `template/` do not exist; `operator/vm/` and `operator/template/` hold the same files (one row per file, from `origin/main` before the story).
 2. The tests of the VM's scripts and of the stage image pass against the files at their new place (they read `operator/vm/`).
-3. No file under `src/`, `tests/`, `operator/`, `agents/`, `docs/` other than `docs/decisions.md`, or `README.md` names `vm/setup.sh`, `vm/job-start.sh`, `vm/Dockerfile`, `vm/factory.service`, `vm/git-credential-factory` or `template/` at the root.
+3. No file under `src/`, `tests/`, `operator/`, `agents/`, `docs/` other than `docs/decisions.md` and `docs/runs/`, or `README.md` names `vm/setup.sh`, `vm/job-start.sh`, `vm/Dockerfile`, `vm/factory.service`, `vm/git-credential-factory` or `template/` at the root.
 4. `make check` stays green.
 5. docs: the new paths in `README.md`, the operator guide's topic files and the project guide's `operator.md`, whose *The layout* names the two new folders. `docs/decisions.md`: one entry for the move, naming F0051-S0012.
 
@@ -402,3 +404,53 @@ Expect: `parsed`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 24. factory: started review as vm.
+25. reviewer: no findings
+
+    Reviewed `git diff -M main...HEAD -- . ':!factory'` against the work item.
+
+    1. Acceptance criteria:
+       - Criterion 1 is tested by `tests/guards/test_root_operator_folders_removed.py`. `test_the_old_root_folder_is_gone` has the rows `vm` and `template`, and now checks for files, as the human asked in entry 17. `test_the_moved_file_lies_under_operator` has one row for each of the 8 files that `main` held. The diff shows them as R100/R96/R85/R100/R94/R95 renames.
+       - Criterion 2: the VM-script and stage-image tests read `operator/vm/` through `tests/support/{vm_support,dockerfile_support}.py` and `test_one_stage_environment.py`.
+       - Criterion 3 is tested by `test_no_file_names_the_old_root_path`, one row per old name. Both sides of the anchored search are rows of `test_the_search_finds_only_a_name_at_the_root`: at-root, under-a-checkout and in-a-git-show match; moved, tests-folder and other-file do not.
+       - Criterion 4: the coder's `make check` was green (entry 23).
+       - Criterion 5 belongs to the documenter.
+       - My own anchored grep over `src`, `tests`, `operator`, `agents`, `docs` (without `decisions.md` and `runs/`) and `README.md` found no old root path. It found none in `Makefile` or `CLAUDE.md` either.
+    2. Architecture: `src/` is unchanged. The scripts' paths (`operator/vm/setup.sh`, `operator/vm/job-start.sh`, `operator/job/job.sh`) and the build command `-f operator/vm/Dockerfile` follow the move. Nothing else changes.
+    3. Security: no new marker, secret or baseline entry. The shell changes are path literals only.
+    4. Quality: the changes are path rewrites. Two strings are rewrapped for the line length (`test_vm_service_stop.py`, `test_operator_job.py`). The docstring of `run_job_start` is split, and its meaning is unchanged.
+    5. Hygiene: the journal explains the file-by-file move and why the whole-folder move was rejected (the take drops the unchanged files of a renamed directory). Criterion 5 still describes what the documenter must write.
+
+    Corrections (the human's answer, entry 6):
+    - description corrected: Interface, second point, "`docs/` other than `docs/decisions.md`" -> "`docs/` other than `docs/decisions.md` and `docs/runs/`".
+    - description corrected: criterion 3, "`docs/` other than `docs/decisions.md`" -> "`docs/` other than `docs/decisions.md` and `docs/runs/`".
+
+    Open, for the human (outside the diff and every write path, so no stage can fix it):
+    - `pyproject.toml:169`: `[tool.mutmut] also_copy` still lists `"template/"` and `"vm/"`, and it holds no `"operator/"`. The tests that now read `operator/vm/` and `operator/template/` cannot find those files in mutmut's copy during a sweep.
+    - `"claude/"` in the same list already looked stale before this story.
+
+    Earlier tests (item 6), every one changed under feature decision 5 (the tester may change the file paths of the moved files in any test module and the guards that pin the old layout). Each keeps its tests' names and what they check:
+    - tests/agent_files/__init__.py: feature decision 5 (docstring path)
+    - tests/agent_files/test_claude_agent_texts_mutants.py: feature decision 5
+    - tests/agent_files/test_claude_files.py: feature decision 5
+    - tests/agent_files/test_demo_makefile_secrets.py: feature decision 5
+    - tests/agent_files/test_template_makefile_header.py: feature decision 5
+    - tests/agent_files/test_template_sync.py: feature decision 5
+    - tests/guards/test_agent_folder_names.py: feature decision 5 (guard; `ROOT / "vm"` dropped from SEARCHED, since `operator/` covers it)
+    - tests/guards/test_docker_path_removed.py: feature decision 5
+    - tests/guards/test_operator_guide_files.py: feature decision 5 (guard; `ROOT / "vm"` dropped, as above)
+    - tests/guards/test_pins.py: feature decision 5
+    - tests/machine/application/test_one_stage_environment.py: feature decision 5
+    - tests/operator_scripts/test_operator_job.py: feature decision 5 (paths, message path, docstring)
+    - tests/pipeline/adapters/test_pipeline_yaml_tool_paths.py: feature decision 5
+    - tests/support/dockerfile_support.py: feature decision 5
+    - tests/support/operator_job_support.py: feature decision 5 (copies only `operator/` now, since `vm/` is inside it)
+    - tests/support/shipped_agents.py: feature decision 5
+    - tests/support/template_make_support.py: feature decision 5
+    - tests/support/vm_support.py: feature decision 5 (paths, the clone stand-in's Dockerfile path, docstring)
+    - tests/vm/__init__.py: feature decision 5
+    - tests/vm/test_stage_image.py: feature decision 5
+    - tests/vm/test_vm_job_start.py: feature decision 5
+    - tests/vm/test_vm_job_start_instance.py: feature decision 5
+    - tests/vm/test_vm_local_environment.py: feature decision 5
+    - tests/vm/test_vm_service_stop.py: feature decision 5
+    - tests/vm/test_vm_setup_install_hint.py: feature decision 5
