@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T08:47:42.696514Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -247,6 +243,12 @@ journal:
   kind: started
   at: '2026-11-05T08:47:42.696514Z'
   stage: smoke-test
+- number: 43
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T08:48:30.612965Z'
+  stage: smoke-test
+  run: e8cc27a053f34af2b197493ccd9a59e2
 ---
 
 # The agent files live in `agents/`
@@ -663,3 +665,30 @@ Expect: `1`
     `secrets`: secrets: green (3.0 s)
     `documents`: documents ok
 42. factory: started smoke-test as vm.
+43. smoke-tester: Ran the three smoke-test commands from the repository root, exactly as written and in order.
+
+    Command 1: `test -d claude && echo still there || echo renamed`
+    ```
+    renamed
+    ```
+    Met `Expect: renamed`.
+
+    Command 2: `test -f agents/settings.json && test -f agents/agents/coder.md && echo found`
+    ```
+    found
+    ```
+    Met `Expect: found`.
+
+    Command 3: `grep -c '/etc/factory/agents' vm/Dockerfile | awk '{print ($1>=1)}'`
+    ```
+    1
+    ```
+    Met `Expect: 1`.
+
+    Checked the acceptance criteria against the smoke test and the tree:
+    - Criterion 1: `claude/` is gone. `agents/agents/` holds acceptance-reviewer, coder, documenter, intake, reviewer, smoke-tester and tester `.md`.
+    - Criterion 4: I searched `src tests vm operator docs README.md` for `claude/agents/`, `claude/settings.json` and `/etc/factory/claude`, leaving out `docs/decisions.md`. Under `tests/` the only hits are `.claude/settings.json`, which is the agent home's folder, a runtime name the Interface keeps. The other hits are in `docs/runs/`, which the human's answer in the journal (entry 6) leaves out of criterion 4 as history. `tests/guards/test_agent_folder_names.py` leaves it out the same way. So this is not a finding.
+    - Criterion 6: `README.md` line 30 names `agents/` and `/etc/factory/agents`. `docs/operator-guide/agent-runtime.md`, `docs/operator-guide/machine.md` and `docs/project-guide/agents.md` name `agents/agents`. `docs/decisions.md` names F0051-S0011.
+    - Criteria 2, 3 and 5 are covered by the tests and the factory's checks. The smoke test contradicts none of them.
+
+    Findings: none.
