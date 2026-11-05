@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T01:39:22.530581Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-05T01:39:22.530581Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-05T01:40:31.695373Z'
+  stage: tests
+  run: e27f1848590449218b893d5f81600b43
 ---
 
 # The work area holds the work items
@@ -140,3 +142,19 @@ Expect: `1`
    - Architecture: each module moves to the same layer inside `factory.work`, which fits the areas-with-layers design (feature decisions 1, 2 and 4). No re-export is left.
    - Scope: within F0051 and not in its "Out of scope". The tester's leave is feature decision 5, and the standing answers are decision 8.
 7. factory: started tests as vm.
+8. tester: I added the `work` row to the table `AREAS` in `tests/test_areas.py`. It holds the 14 modules of the Interface's table, in that order. Nothing else in the module changed, as the Interface asks. The tests S0001 and S0002 wrote are generic over `AREAS`, so the new row gives each criterion its cases for `work`:
+
+   - criterion 1: tests/test_areas.py::test_a_moved_module_imports_from_its_area_and_is_gone_from_its_layer, one row per module, ids `work.<layer>.<name>`. The "exactly the 14" part is the `work` row of `AREAS` itself. I wrote no separate test that compares the table with a copy of itself.
+   - criterion 2: tests/test_areas.py::test_an_area_package_imports_and_has_a_docstring, rows `factory.work`, `factory.work.domain`, `factory.work.application`, `factory.work.adapters`.
+   - criterion 3: tests/test_areas.py::test_no_file_imports_a_moved_module_from_its_old_path, one row per module. It uses `imports()` of `tests/source_search.py`, which covers all three import forms.
+   - criterion 4: tests/test_areas.py::test_no_test_module_stays_in_its_layer_folder_when_all_it_imports_has_moved. `_in_a_moved_area` now counts the `work` modules, under their new and old paths, beside `shared` and `hosting`. tests/test_areas.py::test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own also checks the test modules that move to `tests/work/`.
+   - criterion 5: `make check`, run by the coder and the factory; no test function.
+   - criterion 6: docs stage; no test function.
+
+   Files created: none. Changed: tests/test_areas.py, the row only. This module was written by S0001 and S0002 of this feature; the Interface orders this change and feature decision 5 covers it.
+
+   Run: `uv run pytest -q tests/test_areas.py` fails on the `work` rows. Only the last five lines were printed: all five are `work` rows of the old-path test, which fails because files still import the old paths. The test runner could not import these modules: `factory.work.domain.acceptance`, `factory.work.domain.answers`, `factory.work.domain.archive`, `factory.work.domain.decisions`, `factory.work.domain.journal`, `factory.work.domain.labels`, `factory.work.domain.move_rule`, `factory.work.domain.send_back`, `factory.work.domain.story_form`, `factory.work.domain.work_item`, `factory.work.application.acceptance`, `factory.work.application.acceptance_reading`, `factory.work.application.work_items`, `factory.work.adapters.work_item_markdown`, and the packages `factory.work`, `factory.work.domain`, `factory.work.application`, `factory.work.adapters`. `make lint`: green.
+
+   Open: on the intake's note about `addopts` and `-qq` in the smoke test's pytest command: following the stage's rule against reading tool configuration, I did not check it.
+
+   `lint`: lint: green (0.1 s)
