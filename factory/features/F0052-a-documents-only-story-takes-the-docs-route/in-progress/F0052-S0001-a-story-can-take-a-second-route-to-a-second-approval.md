@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T21:58:33.586146Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-05T21:58:33.586146Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-11-05T21:59:48.625000Z'
+  stage: tests
+  run: b158bac7bfd0435ba78ce325118a9563
 ---
 
 # A story can take a second route to a second approval
@@ -185,3 +187,17 @@ Expect: `1`
 
     Description: the reviewer already updated it to name three order-dependent places (`send_back_cap` is the third) and added criterion 8. That makes the closing criteria 9 and 10, so there is nothing left for me to rewrite. Once the tester has made these changes, the next doing round runs `make check` on the new test. If the round-three row fails, the fix goes in `send_back_cap` or `ClosedHandler._send_back` (`src/factory/pipeline/application/handlers/closed.py`).
 12. factory: started tests as vm.
+13. tester: Round 1, approved test change. I made the three changes to `tests/pipeline/application/test_docs_route.py` that the coder listed in entry 11, from the reviewer's findings in entry 9. No other test file changed and I created no files.
+
+    - **Criterion 8:** added `test_a_close_at_docs_approval_takes_the_round_cap_of_docs_review`, a parametrized test with two rows:
+      - `second-at-the-cap`: two closes leave the story at `docs-only`, round 2, not blocked, with no `send_back` question posted.
+      - `third-past-the-cap`: three closes leave it at `docs-only`, round 3, blocked `send_back`, with one `send_back` question posted.
+      - Each close has a human comment as its reason. Between closes the story walks `docs-only` → `docs-review` → `docs-approval` and is handed over again. One extra tick after the last close lets the ask handler post the question.
+    - **`# noqa: E501` removed:** `TWO_ROUTES` now fits the line length because two lines are written in block style instead of flow style: the `acceptance-reviewer` role and the `docs` stage, which was also too long. Its content is the same.
+    - **Fixture change:** `test_only_the_docs_routes_working_stages_lie_before_the_approval` now takes `world` instead of `two_routes`, so its rows no longer push to `main`.
+
+    The criterion → test map is otherwise unchanged from entry 5; criterion 8 maps to `tests/pipeline/application/test_docs_route.py::test_a_close_at_docs_approval_takes_the_round_cap_of_docs_review`.
+
+    The one run (`uv run pytest -q tests/pipeline/application/test_docs_route.py`) passed all 15 tests and every module imported. The cap at `docs-approval` already behaves as criterion 8 says, so the branch still has no red test. A line-length fix came after that run, and I checked it with a second run, which also passed. `make lint`: lint: green (0.1 s). I skipped the type check, as this stage says.
+
+    `lint`: lint: green (0.1 s)

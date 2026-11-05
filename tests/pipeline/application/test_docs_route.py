@@ -46,13 +46,20 @@ roles:
   reviewer: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
   documenter: {write_paths: ["README.md", "docs/*"], time_limit: 40, lease_duration: 60}
   smoke-tester: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
-  acceptance-reviewer: {write_paths: ["{work_item}", "{feature}/backlog/*"], time_limit: 40, lease_duration: 60}
+  acceptance-reviewer:
+    write_paths: ["{work_item}", "{feature}/backlog/*"]
+    time_limit: 40
+    lease_duration: 60
 stages:
   intake: {role: intake, next: [tests, docs-only]}
   tests: {role: tester, next: [doing], checks: [lint]}
   doing: {role: coder, next: [review, tests], checks: [check], reports: [duplicates]}
   review: {role: reviewer, next: [docs, doing], round_cap: 2}
-  docs: {role: documenter, next: [smoke-test, doing], checks: [check, secrets, documents], round_cap: 2}
+  docs:
+    role: documenter
+    next: [smoke-test, doing]
+    checks: [check, secrets, documents]
+    round_cap: 2
   smoke-test: {role: smoke-tester, next: [approval, doing, docs], round_cap: 2}
   docs-only: {role: documenter, next: [docs-review, tests], checks: [check, secrets, documents]}
   docs-review: {role: reviewer, next: [docs-approval, docs-only], round_cap: 2}
@@ -60,7 +67,7 @@ stages:
   acceptance: {role: acceptance-reviewer, next: [approval]}
   approval: {approval: true, next: [done, doing]}
   done: {}
-"""  # noqa: E501
+"""
 MAKEFILE: Final[str] = "".join(
     f"{target}:\n\t@:\n"
     for target in ("sync", "check", "lint", "test", "duplicates", "documents", "secrets")
@@ -198,6 +205,29 @@ def test_a_close_at_docs_approval_sends_the_story_back_to_docs_only(
 
 
 @pytest.mark.parametrize(
+    ("closes", "blocked", "questions"),
+    [
+        pytest.param(2, None, 0, id="second-at-the-cap"),
+        pytest.param(3, "send_back", 1, id="third-past-the-cap"),
+    ],
+)
+def test_a_close_at_docs_approval_takes_the_round_cap_of_docs_review(
+    two_routes: World, story: WorkItemId, *, closes: int, blocked: str | None, questions: int
+) -> None:
+    state = _walk_docs_route(two_routes, story)
+    for closed in range(1, closes + 1):
+        if closed > 1:
+            _step(two_routes, story, "docs-review", "docs-only")
+            _step(two_routes, story, "docs-approval", "docs-review")
+            _hand_over(two_routes, story)
+        state = _close_with_reason(two_routes, story)
+    two_routes.tick.run()
+
+    assert (state.stage, state.round, state.blocked) == ("docs-only", closes, blocked)
+    assert len(posts(two_routes, story, "send_back")) == questions
+
+
+@pytest.mark.parametrize(
     ("send_backs", "stage", "round_number", "blocked"),
     [
         pytest.param(1, "docs-only", 1, None, id="first"),
@@ -269,8 +299,8 @@ def test_an_intake_decision_tests_still_takes_todays_route_to_approval(
     ],
 )
 def test_only_the_docs_routes_working_stages_lie_before_the_approval(
-    two_routes: World, stage: str, before: bool
+    world: World, stage: str, before: bool
 ) -> None:
-    definition: PipelineDefinition = two_routes.boundaries.pipeline_reader.parse(TWO_ROUTES)
+    definition: PipelineDefinition = world.boundaries.pipeline_reader.parse(TWO_ROUTES)
 
     assert is_before_approval(definition, stage) is before
