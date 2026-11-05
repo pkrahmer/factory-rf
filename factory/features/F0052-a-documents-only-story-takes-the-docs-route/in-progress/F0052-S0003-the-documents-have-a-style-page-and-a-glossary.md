@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 574
 comments_read: [6671915202, 6672097334]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-05T23:20:44.830664Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -121,6 +125,11 @@ journal:
   at: '2026-11-05T23:20:39.355700Z'
   stage: review
   run: 71491052339f492fbdbc3e564c402e86
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:20:44.830664Z'
+  stage: docs
 ---
 
 # The documents have a style page and a glossary
@@ -332,3 +341,4 @@ Expect: `named`
 
     Earlier tests:
     - `tests/guards/test_project_guide_files.py`: changed under the human's leave in journal entry 11 (option (a)). The change does what that answer allows and nothing more: `NAMED_FILES` gains `style.md` and `glossary.md`, and one test is renamed to `test_the_guide_holds_the_index_and_its_named_files`.
+21. factory: started docs as vm.
