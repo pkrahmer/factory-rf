@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 559
 comments_read: [6648033321]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-05T02:43:00.447654Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-05T02:43:00.447654Z'
   stage: smoke-test
+- number: 20
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-05T02:44:12.232327Z'
+  stage: smoke-test
+  run: e2fc89ffc7a34dd291f057b2e10d490f
 ---
 
 # The agents area holds the agent runs
@@ -412,3 +414,32 @@ Expect: `1`
     `secrets`: secrets: green (4.1 s)
     `documents`: documents ok
 19. factory: started smoke-test as vm.
+20. smoke-tester: Ran the three smoke-test commands from the repository root, exactly as written and in order. Each one met its `Expect:` line. Nothing was fixed.
+
+    1. `uv run python -c "import factory.agents.domain.agent_runs as m; print(m.__name__)"`
+    ```
+    Bytecode compiled 4164 files in 53ms
+    factory.agents.domain.agent_runs
+    ```
+    Met: it printed `factory.agents.domain.agent_runs` and exited 0. The first line is uv's own message about compiling bytecode, not the module's output.
+
+    2. `test -e src/factory/domain/agent_runs.py && echo still there || echo moved`
+    ```
+    moved
+    ```
+    Met.
+
+    3. `uv run pytest tests/test_areas.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Met. Without the `grep`, the last line of the run is `324 passed in 16.03s`.
+
+    Checked against the acceptance criteria: none of them is contradicted. To back that up I ran some read-only checks beyond the smoke test, covering all 19 modules in the Interface table:
+    - No module file is left at its old path under `src/factory/<layer>/`, and each one exists under `src/factory/agents/<layer>/`.
+    - A grep of `src/`, `tests/`, `README.md`, `docs/operator-guide.md` and `docs/project-guide/` finds no old dotted path and no `from factory.<layer> import <name>` form.
+    - The layout section of `docs/project-guide/README.md` names the `agents` area and what it holds in one sentence (criterion 6).
+
+    I did not run `make check` (criterion 5) at this stage; the factory runs it as the stage's check.
+
+    Findings: none.
