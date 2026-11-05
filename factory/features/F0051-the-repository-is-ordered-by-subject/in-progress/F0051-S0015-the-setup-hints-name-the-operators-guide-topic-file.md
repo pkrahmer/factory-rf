@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506, 6656185279]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T10:58:40.878516Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-05T10:58:35.242606Z'
   stage: doing
   run: 48e5280b462d4c52a03e0fbaaede925d
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:58:40.878516Z'
+  stage: tests
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -208,3 +217,4 @@ Expect: `1`
     State on the branch: the four texts from the Interface are already committed. They are in `operator/vm/setup.sh` (the `tools` and `service` hints and the `setup: done:` line) and in `operator/skill/kumpel/references/approving.md`.
 
     `make test` this round: every test passed except `test_every_named_topic_file_exists`. It failed at `tests/guards/test_operator_guide_pointers_search.py:64: E assert set() != set()`. That is the fault the human's answer addresses. After the tester's change, the doing stage should only need to run `make check`. The docs criterion (`docs/operator-guide/machine.md`, lines 284, 295 and 296) is the docs stage's work, and I did not touch it.
+14. factory: started tests as vm.
