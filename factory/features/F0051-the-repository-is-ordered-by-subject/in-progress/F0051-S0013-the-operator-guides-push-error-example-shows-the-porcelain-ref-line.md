@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 555
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-05T00:12:18.857226Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-05T00:12:18.857226Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-05T00:12:40.887823Z'
+  stage: review
+  run: 678fdf08d8f8451289813b4e8d461b52
 ---
 
 # The operator guide's push error example shows the ref line the factory writes
@@ -133,3 +135,18 @@ Expect: `! refs/heads/work-item/F0001-S0001:refs/heads/work-item/F0001-S0001 [re
    `check`: check: green
    `duplicates`: duplicates: 4 new, 41 known, 2 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   Scope: `git diff main...HEAD -- . ':!factory'` is empty. The branch only adds the work item and its `.costs.jsonl` sidecar. That matches the Interface ("No module under `src/factory/` changes, and no test is written") and the coder's entry 7, which leaves the two guide edits to the documenter, because the docs criterion (5) puts them there.
+
+   1. Acceptance criteria: criteria 1 to 3 are documentation criteria. The documenter meets them through criterion 5, and the smoke test's greps check them. pytest does not, and the Interface rules a test out. The story states no rule or limit, so no failing side or boundary needs a test. The factory's `make check` after the coder was green (entry 7: `check: green`, coverage 99.26 %).
+   2. Architecture: nothing under `src/` changed.
+   3. Security: nothing changed, and no suppression marker was added.
+   4. Quality: no code under review. `make duplicates` reported 4 new findings in entry 7, but this diff changes no code under `src/factory`, so those findings are not this story's.
+   5. Work item hygiene: I checked the Description's claims against the code and the guide, without relying on the work item's own account.
+      - `docs/operator-guide.md:2487` holds the `-> work-item/` example line.
+      - `docs/operator-guide.md:2498` holds "git's `` `! [remote rejected]` ``".
+      - `SERVER_REFUSAL = "[remote rejected]"` is at `src/factory/domain/git.py:40`, and `push_is_retried` uses it at line 187.
+      - `push_reason` is at `src/factory/domain/git.py:158`.
+      - The journal explains the main choice (the edits go to the documenter, not the coder) and what was rejected. Criterion 5 tells the documenter exactly which two lines to change and what to write.
+   6. Earlier tests: none. The diff changes no test file.
