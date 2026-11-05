@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 567
 comments_read: [6654125104, 6654318355, 6654469893]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T09:29:21.207040Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -114,6 +110,12 @@ journal:
   kind: started
   at: '2026-11-05T09:29:21.207040Z'
   stage: doing
+- number: 19
+  speaker: coder
+  kind: result
+  at: '2026-11-05T09:29:48.495394Z'
+  stage: doing
+  run: 1b1622da5a2f46f6970d6dc2c9fbfd4b
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -314,3 +316,19 @@ Expect: `parsed`
     1. Leave for the tester: the test asserts that git tracks no file under `vm/` and under `template/` (`git ls-files vm template` prints nothing), keeping its name and rows, as S0011's `test_the_old_agent_folder_is_gone` does now.
     2. Coder: make sure every file of the two folders is on the branch at its new path, moved one file at a time (my note of 09:20), then end with `tests` naming change 1.
 18. factory: started doing as vm.
+19. coder: Test change from the human's answer (entry 17, point 1): `tests/guards/test_root_operator_folders_removed.py::test_the_old_root_folder_is_gone` (rows `vm`, `template`) should assert that git tracks no file under the folder (`git ls-files vm template` prints nothing) rather than that the folder is missing, keeping its name and rows. This matches what S0011's `test_the_old_agent_folder_is_gone` does now.
+
+    Point 2 is already done on the branch, so this run changed no files. I checked the committed state (HEAD):
+    - `git ls-files vm template` prints nothing, and neither folder exists in the checkout.
+    - `git ls-files operator/vm operator/template` lists all eight files that `origin/main` held under `vm/` and `template/`: `operator/vm/{Dockerfile,factory.service,git-credential-factory,job-start.sh,setup.sh}` and `operator/template/{CLAUDE.md,Makefile,factory/pipeline.yml}`.
+    - The four files that moved without edits (`template/CLAUDE.md`, `template/Makefile`, `template/factory/pipeline.yml`, `vm/git-credential-factory`) match their `origin/main` contents exactly (`git diff --quiet origin/main:<old> HEAD:operator/<old>`).
+    - `git status --short` is empty.
+
+    I did not run `make check` this run. The one red test from the last stall is the one this change rewrites, and the rest of the suite was green then (coverage 99.26 %).
+
+    Main choice: end with `tests` and leave the code alone, as the human asked. The alternative was to look for an empty-folder cleanup in the check's tree, which I rejected: git tracks files, not folders, and the take can leave an empty folder there (as in F0051-S0011), so only the test can stop depending on it.
+
+    Noticed but not touched (still open from entries 10 and 13):
+    - The directory-rename gap in `ZfsSnapshots._read_diff_line` (`src/factory/machine/adapters/zfs_snapshots.py`) is worth a story of its own.
+    - Criterion 3 in the Description still lacks the human's wording "other than `docs/decisions.md` and `docs/runs/`" (entry 6). The work item is outside the coder's write paths.
+    - The rest of criterion 5 (*The layout* in `docs/project-guide/operator.md` and the `docs/decisions.md` entry) is the documenter's.
