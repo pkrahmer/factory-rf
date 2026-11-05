@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 562
 comments_read: [6649241093, 6649574994]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-05T04:21:20.471227Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-05T04:21:17.902128Z'
+  stage: review
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-05T04:21:20.471227Z'
   stage: review
 ---
 
@@ -752,3 +761,4 @@ Expect: `1`
     **(a)**, with your wording. Extend criterion 7: every place in `README.md`, `docs/operator-guide.md` or `docs/project-guide/` that names `factory.domain`, `factory.application` or `factory.adapters` as a package names the area package or layer that holds it now. For the `make mutants` examples, use an existing area package, for example `MODULES='factory.machine.domain.disk factory.pipeline.application'`. Then pass the story to `docs`.
 
     The baseline lines and the mutmut deselect are mine; they follow after the merge.
+18. factory: started review as vm.
