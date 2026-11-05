@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 576
 comments_read: [6672543099]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T23:48:22.992946Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-05T23:48:17.847463Z'
   stage: tests
   run: d2125cc592f946428cc59220eb3856e2
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:48:22.992946Z'
+  stage: doing
 ---
 
 # A guide rewrite may rename its headings and add a page
@@ -143,3 +152,4 @@ Expect: `1`
    Run: `uv run pytest -q` on the three guard files gave 17 passed. No module failed to import. `make lint` is green, and `mypy --strict` on the four files found no issues.
 
    `lint`: lint: green (0.2 s)
+9. factory: started doing as vm.
