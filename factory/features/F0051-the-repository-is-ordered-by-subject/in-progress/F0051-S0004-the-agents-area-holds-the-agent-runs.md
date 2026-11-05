@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 559
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T02:13:44.797849Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-05T02:13:39.485040Z'
   stage: intake
   run: 642d092507c9489ab4a4e99520322e98
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-05T02:13:44.797849Z'
+  stage: tests
 ---
 
 # The agents area holds the agent runs
@@ -100,3 +109,4 @@ Expect: `1`
    - Smoke test: the three commands are runnable and each Expect line can be checked against the output. The pytest command passes no `-q`, and `pyproject.toml`'s `addopts` already sets one, so `tail -1` shows the "N passed" summary line.
    - Architecture: the move keeps each module in its own layer inside `factory.agents`, so the layer rule holds. It matches feature decisions 1 to 4 and 7.
    - Scope: this is the agents area of S0004 in the feature's stories list, and it changes no behaviour. `docs/decisions.md` is untouched, as the feature's out-of-scope list requires. No test that another story wrote is changed beyond the leave in feature decision 5.
+4. factory: started tests as vm.
