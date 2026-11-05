@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T08:13:12.507882Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-05T08:13:06.773925Z'
   stage: tests
   run: b7948b2218624f6aaac2b124643d26aa
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:13:12.507882Z'
+  stage: doing
 ---
 
 # The agent files live in `agents/`
@@ -265,3 +274,4 @@ Expect: `1`
     I ran `uv run pytest -q` once over the guard, tick, job-start and setup-text test files. Only one failure showed in the summary. The tick test fails with `FileNotFoundError: .../agents/agents/intake.md` because the coder has not moved `claude/` to `agents/` yet (entry 13). That is the expected red. Every module imported. `make lint`: lint: green (0.1 s).
 
     `lint`: lint: green (0.2 s)
+16. factory: started doing as vm.
