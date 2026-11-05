@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 574
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T23:01:53.351464Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-05T23:01:53.351464Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T23:02:10.005208Z'
+  stage: intake
+  run: 4faa5f9a78d545808b9ecdeb60ad8887
 ---
 
 # The documents have a style page and a glossary
@@ -64,3 +66,10 @@ Expect: `named`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete paths only (`docs/project-guide/style.md` and `glossary.md` new, the `README.md` index lines); no code, so no signatures are needed. The glossary lists the required words, sorted alphabetically. The source drafts exist in `planning/`.
+   - Criteria: each is checkable by reading the files or running a command. 1 covers the seven rules, the relative-link rule and the three sections with reader, rules and example. 2 covers the entries, alphabetical order and the three-sentence limit. 3 covers the index. 4 covers the pages' own rules (the reviewer judges length). 5 and 6 are commands. 7 is the docs criterion. The relative-link rule has its criterion in 1.
+   - Smoke test: both commands are runnable (`test -f`, `grep -c` piped to awk), and each Expect line (`both`, `named`) is exact. No pytest is involved.
+   - Architecture: every changed path is a document under `docs/`, which the documenter may write. Nothing outside the doc areas is touched, and `planning/` is only read.
+   - Scope: within the feature's S0003 scope. The rewrite of the guides and the README stays out, as the feature requires.
+   Route: docs-only, because every path the Interface changes is one the documenter may write.
