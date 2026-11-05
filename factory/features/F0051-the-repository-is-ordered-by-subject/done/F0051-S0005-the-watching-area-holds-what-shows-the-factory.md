@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-05T03:02:27.308497Z'
   stage: smoke-test
   run: 61dc22bdbd3a49f0b952002e6ca17507
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-05T03:12:28.112107Z'
+  stage: approval
 ---
 
 # The watching area holds what shows the factory and what it costs
@@ -390,3 +395,4 @@ Expect: `1`
     Findings: none.
 
     Open, not a finding: `security/duplicates-baseline.txt:22-23` still names `src/factory/domain/cost_records.py`. The coder, the reviewer and the documenter all reported it. The file is outside every role's write path, and `make duplicates` is a record, not a check.
+14. factory: done (pull request merged); cost: 6 runs, 9.9 min, 66 turns, 180589 tokens in (1898293 more from cache), 27554 out, $2.15
