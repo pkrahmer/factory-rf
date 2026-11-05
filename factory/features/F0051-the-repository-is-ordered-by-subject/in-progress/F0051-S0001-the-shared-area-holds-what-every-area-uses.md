@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T00:22:36.312432Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-05T00:22:36.306042Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:22:36.312432Z'
+  stage: intake
+---
+
 # The shared area holds what every area uses
 
 ## Description
@@ -61,3 +88,6 @@ uv run pytest tests/test_areas.py 2>&1 | tail -1 | grep -c passed
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-05 human: created.
+2. factory: started intake as vm.
