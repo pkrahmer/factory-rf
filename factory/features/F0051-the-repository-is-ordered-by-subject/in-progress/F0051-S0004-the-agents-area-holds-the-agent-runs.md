@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 559
 comments_read: [6648033321]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T02:34:11.882358Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-05T02:34:11.882358Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-05T02:39:26.374559Z'
+  stage: doing
+  run: 176ec0a247384616881c3723d756971f
 ---
 
 # The agents area holds the agent runs
@@ -275,3 +277,23 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 13. factory: started doing as vm.
+14. coder: Round 0, after the tester's test changes (entry 12). I changed no code in this run. The branch already has everything this story needs, and `make check` is green on it as it is: `test: green (125.5 s)`, total coverage 99.26 %, `check: green`. My working tree is clean.
+
+    What was built (committed in the earlier doing runs, entries 7 and 10):
+    - `src/factory/agents/__init__.py`, `src/factory/agents/domain/__init__.py`, `src/factory/agents/application/__init__.py` and `src/factory/agents/adapters/__init__.py`, each with a one-line docstring.
+    - The 19 modules of the Interface, moved with `git mv` to `src/factory/agents/<layer>/<name>.py`. None remains at its old path under `src/factory/{domain,application,adapters}/`; I checked the folder listings.
+    - Every import under `src/` now uses the new paths. The diff against `main` under `src` is 41 files, +77/−68, and only import lines changed.
+    - The tester moved 55 test modules to `tests/agents/<layer>/` and rewrote the test imports (entry 12).
+
+    Main choice: I kept S0003's split. The coder moves `src/`, the tester moves and rewrites `tests/`, and `pyproject.toml` came through the human's change on `main` (answer (a), entry 8). I rejected putting `# noqa` in the moved sources, because the per-file-ignores comments forbid it.
+
+    Refactor: the diff is mechanical (moves and import lines), so nothing needed changing.
+
+    Noticed, not touched (open, as entries 7, 8 and 10 say):
+    - The old-path lines in `security/duplicates-baseline.txt`.
+    - `CLAUDE.md` line 19 still names `factory.adapters.agent_launch`.
+    - The old `pyproject.toml` per-file-ignores keys. The human said all three of these wait for the merge.
+    - The docs that name old paths belong to the docs stage (criterion 6).
+
+    `check`: check: green
+    `duplicates`: duplicates: 12 new, 33 known, 10 gone
