@@ -14,7 +14,8 @@ An example that shows a command and what it prints is the claim a reader trusts 
   - `ExampleRunner`, an interface: `run_document(document, examples, fixtures) -> list[str]` gives the findings of one document.
   - The fixture `checkout`: a copy of the repository's tracked files at the checked commit, as a git checkout.
 - An adapter runs a document's commands through the project commands' container environment (the container a check runs in), in a temporary folder that the fixture prepared, with `env -i` and `TZ=UTC`, `LANG=C.UTF-8`, `HOME` a temporary folder, `PATH` the container's; each command has a time limit of 60 seconds. The folder is removed afterwards.
-- `make documents` runs the examples; `make check` does not.
+- `make documents` runs the examples; `make check` does not. It ends with `documents: green (<seconds> s)` like the other targets, so that its time shows in every docs stage's output.
+- A command that runs the test suite or `make check` (`make check`, `make test`, `pytest` over the suite) is never a runnable example: the document marks it `console vm`, and the acceptance reviewer runs it once per feature. `examples` reports such a command in a runnable block as a finding (the human, 2026-11-05: the examples must not make the docs stage grow with the suite).
 - Tests: `tests/shared/domain/test_document_examples.py` (pure), and an adapter test with the fake containers.
 
 ## Acceptance criteria
@@ -25,8 +26,9 @@ An example that shows a command and what it prints is the claim a reader trusts 
 4. A command whose output differs gives one finding, `<document>:<line>: the example printed <first differing line>`; one that matches gives none. A command that runs past 60 seconds gives `<document>:<line>: the example did not end in 60 s`, and the document's later blocks are not run.
 5. A block that names an unknown fixture gives `<document>:<line>: no fixture <name>`.
 6. The commands never run in the checkout itself; `env` inside a block shows only the fixed environment and the fixture's variables.
-7. `make check` stays green.
-8. docs: `docs/project-guide/style.md` (from F0052) or, until it exists, `docs/project-guide/shared.md`: how to write a runnable example, name a fixture, use the placeholders, and mark one that needs the VM, GitHub or a model.
+7. `make documents` ends with `documents: green (<seconds> s)` when it finds nothing. A runnable block whose command is `make check`, `make test` or `pytest` without a file gives `<document>:<line>: the suite is not a runnable example; mark it console vm` (rows per command).
+8. `make check` stays green.
+9. docs: `docs/project-guide/style.md` (from F0052) or, until it exists, `docs/project-guide/shared.md`: how to write a runnable example, name a fixture, use the placeholders, and mark one that needs the VM, GitHub or a model; that a command running the suite or `make check` is marked `console vm`.
 
 ## Smoke test
 
