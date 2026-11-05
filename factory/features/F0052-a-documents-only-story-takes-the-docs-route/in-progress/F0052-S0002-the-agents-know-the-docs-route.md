@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 573
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T22:09:03.847414Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-05T22:09:03.847414Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-05T22:09:21.098293Z'
+  stage: intake
+  run: e4f95fe29d414628983fab6a841727b7
+  blocked: question
 ---
 
 # The agents know the docs route
@@ -58,3 +61,10 @@ Expect: `named`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed; the Interface, architecture and scope are fine, but the criteria leave Interface behaviours untested):
+
+   1. The Interface says the documenter in `docs-only` runs `make documents`, but no criterion covers it. Criterion 2 mentions only the two decisions. Should criterion 2 also require that the section names `make documents`? I would add that.
+   2. The Interface says the reviewer in `docs-review` reads `git diff main...HEAD -- README.md docs operator/README.md` and the work item, and that it judges facts against the code and the criteria. No criterion covers any of this. Should criterion 3 require that the section names that diff command and the work item? I would add that.
+   3. The Interface says the reviewer ends with `docs-only` and numbered findings. Criterion 3 requires `docs-only` but not the numbered findings. Should criterion 3 require that the section says the findings are numbered? I would add that.
+   4. Intake rule: criterion 1 only requires that `docs-only`, `tests` and the three paths are named. The "otherwise `tests`" side (any path outside the documenter's paths) and the sentence "a story on the docs route has no tests stage and no doing stage, so its criteria are about documents only" are not required. Should criterion 1 require the "otherwise `tests`" clause and the statement that docs-route criteria are about documents only? I would add both.
+   5. The documenter's section says that when it ends with `tests`, its entry names the change so the tester and coder see why. Criterion 2 says "the change it needs", which is close, but it should say the entry names that change. I would reword it that way.
