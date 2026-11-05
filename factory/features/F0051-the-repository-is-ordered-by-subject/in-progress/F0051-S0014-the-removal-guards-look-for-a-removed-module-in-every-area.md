@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T10:12:55.292394Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-05T10:12:55.292394Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-05T10:17:59.295994Z'
+  stage: doing
+  run: 8b2cb2c3f7c84af4a95ee1b08dc98aad
 ---
 
 # The removal guards look for a removed module in every area
@@ -187,3 +189,15 @@ Expect: `0`
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: I built nothing. The story changes no module under `src/` (see its Interface), and the tester already wrote everything under `tests/`: the two helpers in `tests/support/module_names.py`, the two new guard modules and the ten earlier tests the leave covers. My write paths don't include `tests/`, so I changed none of it.
+
+    What I did: I ran `make check` on the committed tree. It ended with `check: green` (`test: green (131.1 s)`, coverage 99.26 %).
+
+    Main choice: I left the tree as I found it. The alternative I rejected was moving or reworking the helpers, which is the tester's work. `git diff main -- . ':!factory' ':!tests'` is empty, so the refactor step had nothing of mine to review.
+
+    Description: the journal did not change what the task means. The human's answer (entry 4) only added the leave to `feature.md`.
+
+    Noticed, not touched: `tests/guards/test_wrapper_out_of_the_call_path.py` still skips `GUARD_MODULES` by their exact names, as the tester's entry says. The leave covers only the helper calls, so I left it.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
