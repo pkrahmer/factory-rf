@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 562
 comments_read: [6649241093]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T04:00:35.462320Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-05T04:00:30.146191Z'
   stage: tests
   run: 8b9998dc1c8b448da5b28fa69e0f8383
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-05T04:00:35.462320Z'
+  stage: doing
 ---
 
 # The pipeline area holds the stages and the tick
@@ -299,3 +308,4 @@ Expect: `1`
     Still open, as the human said in entry 8: the mutmut deselect of `tests/domain/test_hosting.py` in pyproject.toml. It is outside my write paths.
 
     `lint`: lint: green (0.2 s)
+13. factory: started doing as vm.
