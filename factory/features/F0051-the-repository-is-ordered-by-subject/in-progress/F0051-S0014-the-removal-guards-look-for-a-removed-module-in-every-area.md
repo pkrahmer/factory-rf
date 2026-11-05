@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T10:11:05.796252Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-05T10:11:00.627662Z'
   stage: intake
   run: 5470464d0bd74e9cb4c999c09dd224bc
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:11:05.796252Z'
+  stage: tests
 ---
 
 # The removal guards look for a removed module in every area
@@ -142,3 +151,4 @@ Expect: `0`
    - Smoke test: the commands are runnable. `pyproject.toml` sets `addopts = "-q ..."` and the pytest command passes no `-q`, so `tail -1` shows the summary line that `grep -c passed` counts. Each `Expect:` can be checked against the output: `True False`, `1` and `0`.
    - Architecture: only helpers under `tests/support/` and guards under `tests/guards/` change. Nothing under `src/` changes. The new test modules sit in the right folders, and nothing imports a `test_*.py` module.
    - Scope: S0014 is listed in `feature.md` (from A0001), and it changes no behaviour or module name. The story's goal sits inside the feature's goal (an ordered repository, guards kept true), and no *Out of scope* item is touched.
+7. factory: started tests as vm.
