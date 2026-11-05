@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-05T00:03:00.804196Z'
   stage: acceptance
   run: 615004053aca43e29fba6f74877f2ea8
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-05T00:04:54.708040Z'
+  stage: done
 stories: [F0050-S0001, F0050-S0002, F0050-S0003, F0050-S0004, F0050-S0005, F0050-S0006, F0050-S0007, F0050-S0008, F0050-S0009, F0050-S0010, F0050-S0011, F0050-S0012, F0050-S0013, F0050-S0014]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The factory shows what it runs and what it uses
@@ -205,3 +210,4 @@ Human interventions: 28 questions answered (25 questions, 2 at the round cap, 1 
    6 Decisions: feature decisions 1 to 12 and the journal defaults are listed in the report. In S0013 the coder chose a prefix match on the stripped line. In S0014 the documenter put the sentence inside the Decision bullet. Still open for the human: the write paths in `factory/pipeline.yml`, two branch commits per outage tick, a second run of `vm/setup.sh`, the duplicates baseline. The one earlier test changed (`tests/application/test_push_retry_reason.py`) was changed under the standing leave.
    7 Slow checks: `make documents` is ok. `make duplicates` gives `4 new, 41 known, 2 gone` (the same four since S0002). The slowest tests are about 10 s each, the `ROOMY_LIMIT` waits. Used disk is unchanged at 1.3 GB, but free space fell by 0.1 GB on the shared filesystem outside the measured paths. That may be rounding, the feature's changes do not explain it, and it is too small to act on.
    8 Cost: 204 runs, 337.2 min, $72.54 in total. S0013 and S0014 cost $2.63 together and needed no answer. The total is 28 questions answered (25 questions, 2 at the round cap, 1 at the crash cap) and 3.4 h waited. S0002 is still the most expensive story and the one that needed the human most.
+3. factory: done (pull request merged); cost: 1 runs, 5.3 min, 21 turns, 69300 tokens in (990625 more from cache), 17202 out, $1.10
