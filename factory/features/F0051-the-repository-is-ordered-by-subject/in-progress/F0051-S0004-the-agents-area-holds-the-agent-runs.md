@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 559
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T02:13:20.639563Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-05T02:13:20.639563Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T02:13:39.485040Z'
+  stage: intake
+  run: 642d092507c9489ab4a4e99520322e98
 ---
 
 # The agents area holds the agent runs
@@ -92,3 +94,9 @@ Expect: `1`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: the four new packages and the 19 moves are listed old to new with concrete module paths. The rules (no old path, no re-export, which test modules move) are stated and each has a criterion.
+   - Criteria: 1 (AREAS row, import of each new path, old file gone, one row per module), 2 (packages import and have a docstring), 3 (no old import, one row per module, in the three forms of feature decision 8) and 4 (no test module left that takes all its imports from agents and earlier areas) are each testable by one test function. 5 and 6 are the closing criteria. Both sides of every rule are covered: the new path exists and the old one does not, and an old import is absent. Feature decision 8 supplies the standing answers on the AREAS key, the untested `__init__.py` files and docstring form, which areas count as "moved before", and the import forms.
+   - Smoke test: the three commands are runnable and each Expect line can be checked against the output. The pytest command passes no `-q`, and `pyproject.toml`'s `addopts` already sets one, so `tail -1` shows the "N passed" summary line.
+   - Architecture: the move keeps each module in its own layer inside `factory.agents`, so the layer rule holds. It matches feature decisions 1 to 4 and 7.
+   - Scope: this is the agents area of S0004 in the feature's stories list, and it changes no behaviour. `docs/decisions.md` is untouched, as the feature's out-of-scope list requires. No test that another story wrote is changed beyond the leave in feature decision 5.
