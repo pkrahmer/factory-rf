@@ -10,6 +10,7 @@ import pytest
 from support.dockerfile_support import (
     DIGEST,
     SECRET_WORDS,
+    STAGE_DOCKERFILE,
     THREE_NUMBERS,
     Command,
     Instruction,
@@ -30,8 +31,6 @@ from support.dockerfile_support import (
     floating_references,
 )
 
-ROOT = Path(__file__).parents[2]
-STAGE_DOCKERFILE = ROOT / "vm" / "Dockerfile"
 STAGE_PACKAGES = ["git", "make", "curl", "ca-certificates", "procps", "xz-utils"]
 FACTORY_PREFIX = "/opt/factory"
 FACTORY_NODE_DIRECTORY = "/opt/factory/node"

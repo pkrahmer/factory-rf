@@ -2,17 +2,9 @@
 
 import pytest
 
-from support.shipped_agents import AGENT_HOME, ROOT
+from support.shipped_agents import AGENT_HOME, ROOT, SHIPPED_NAMES
 
-AGENT_FILE_NAMES = [
-    "acceptance-reviewer.md",
-    "coder.md",
-    "documenter.md",
-    "intake.md",
-    "reviewer.md",
-    "smoke-tester.md",
-    "tester.md",
-]
+AGENT_FILE_NAMES = sorted(f"{name}.md" for name in SHIPPED_NAMES)
 
 
 def test_the_old_agent_folder_is_gone() -> None:

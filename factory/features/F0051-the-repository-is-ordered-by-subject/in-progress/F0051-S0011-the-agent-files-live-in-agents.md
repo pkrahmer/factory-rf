@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965, 6653374440]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T08:38:43.095902Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -203,6 +199,12 @@ journal:
   kind: started
   at: '2026-11-05T08:38:43.095902Z'
   stage: tests
+- number: 35
+  speaker: tester
+  kind: result
+  at: '2026-11-05T08:39:34.915115Z'
+  stage: tests
+  run: e9802b2f6e35464ab022c41bedd4247f
 ---
 
 # The agent files live in `agents/`
@@ -535,3 +537,18 @@ Expect: `1`
     - The human's steps on factory-vm after the merge (entry 11): change `FACTORY_CLAUDE_HOME` in `factory.env`, rebuild the stage image and renew `image-id`.
     - Criterion 6 is still open for the documenter.
 34. factory: started tests as vm.
+35. tester: Round 1. I made the two test changes that the coder named in entry 33 for the reviewer's findings in entry 31, and nothing else.
+
+    1. `tests/agent_files/test_agent_folder.py`: `AGENT_FILE_NAMES` is now built from `SHIPPED_NAMES` in `tests/support/shipped_agents.py` as `sorted(f"{name}.md" for name in SHIPPED_NAMES)`. I deleted the hand-written list and added `SHIPPED_NAMES` to the import. Every test keeps its name and checks the same seven file names.
+    2. I moved `ROOT` and `STAGE_DOCKERFILE` from `tests/vm/test_stage_image.py` into `tests/support/dockerfile_support.py`, under CLAUDE.md's standing leave to move a shared test helper. `ROOT` there is `Path(__file__).parents[2]`, which is still the repository root. Both `tests/vm/test_stage_image.py` and `tests/vm/test_stage_image_agent_folder.py` now import `STAGE_DOCKERFILE` from that module, and their local copies are gone. `test_stage_image.py` still uses `Path` elsewhere, so that import stays.
+       - In `test_the_image_names_no_agent_file_at_the_old_place`, only the old-place assertion is left. I removed the `COPY agents /etc/factory/agents` assertion because `AGENT_FILES_COPY` in `test_stage_image.py` already checks it. I also deleted `NEW_PLACE`, which nothing used after that.
+
+    Criterion mapping (unchanged):
+    - criterion 1: `tests/agent_files/test_agent_folder.py::test_the_old_agent_folder_is_gone`, `::test_the_agent_folder_holds_each_agent_file`, `::test_the_agent_folder_holds_no_other_agent_file`
+    - criterion 2: `tests/vm/test_stage_image_agent_folder.py::test_the_image_names_no_agent_file_at_the_old_place` and the copy and mode checks in `tests/vm/test_stage_image.py`
+
+    Earlier test files I changed: `tests/vm/test_stage_image.py` and `tests/support/dockerfile_support.py`, both under the standing leave to move a shared helper. `tests/agent_files/test_agent_folder.py` and `tests/vm/test_stage_image_agent_folder.py` are this story's own tests.
+
+    Files created: none. Modules the test run could not import: none. `uv run pytest -q` on the three test files passed all of them, and `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
