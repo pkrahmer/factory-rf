@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 556
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T00:49:41.924080Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -120,6 +124,11 @@ journal:
   at: '2026-11-05T00:49:36.322835Z'
   stage: tests
   run: 1c6ae20e08894fbabf643e7f97344ca0
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-05T00:49:41.924080Z'
+  stage: doing
 ---
 
 # The shared area holds what every area uses
@@ -784,3 +793,4 @@ Expect: `1`
     Still open, outside my write paths, from entry 16: `security/duplicates-baseline.txt` still names old paths, and `CLAUDE.md` still names `factory.domain.contract.CONTRACT`.
 
     `lint`: lint: green (0.1 s)
+21. factory: started doing as vm.
