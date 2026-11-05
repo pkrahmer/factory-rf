@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T04:33:54.255697Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-05T04:33:54.248583Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-05T04:33:54.255697Z'
+  stage: intake
+---
+
 # The root of `tests/` holds only its folders
 
 ## Description
@@ -33,3 +60,6 @@ uv run python -c "import sys; sys.path.insert(0, 'tests'); import support.bill_s
 Expect: `support.bill_support`
 
 ## Journal
+
+1. 2026-11-05 human: created.
+2. factory: started intake as vm.
