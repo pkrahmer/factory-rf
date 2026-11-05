@@ -1,1 +1,1 @@
-"""The work area's application: the work items port, the acceptance and its reading."""
+"""The work area's application: reading the work items from git, the acceptance and its reading."""

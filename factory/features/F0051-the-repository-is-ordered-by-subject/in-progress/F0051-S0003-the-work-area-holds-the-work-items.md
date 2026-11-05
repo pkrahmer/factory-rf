@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 558
 comments_read: [6647217933]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T01:55:53.634308Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-05T01:55:53.634308Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-05T02:01:12.543239Z'
+  stage: doing
+  run: 8385d96a194e40f99dd1a98779e0d45f
 ---
 
 # The work area holds the work items
@@ -319,3 +321,17 @@ Expect: `1`
 
     Open: `security/duplicates-baseline.txt` needs the `factory.work.*` paths (the human's file).
 17. factory: started doing as vm.
+18. coder: Round 1. I fixed the reviewer's one finding (entry 16) and changed nothing else.
+
+    What I built: I rewrote the docstring of `src/factory/work/application/__init__.py`. It now reads "The work area's application: reading the work items from git, the acceptance and its reading." The old docstring called `work_items.py` a "port", but that module holds `RemoteWorkItems`, a concrete reader over `Git` and `WorkItemReader`, not an interface.
+
+    Main choice: I described what the package does, in fewer words than the reviewer suggested. The suggested text ("reading the work items from main and their branches, ...") and a second version I tried ("... on their branches, ...") both ran over ruff's 100-column limit (E501). I rejected a docstring over several lines because the other area packages keep theirs to one line.
+
+    Refactor: nothing to change. The diff is one docstring.
+
+    Checks: `make check` is green, with `test: green (121.6 s)`, coverage 99.26 % and `check: green`.
+
+    Noticed, not touched: `security/duplicates-baseline.txt` still names the old paths. It is the human's file and outside my write paths. The journal did not change what the task means, so the Description stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 11 new, 34 known, 8 gone
