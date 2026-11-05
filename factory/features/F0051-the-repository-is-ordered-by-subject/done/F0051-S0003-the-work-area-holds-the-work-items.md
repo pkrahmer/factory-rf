@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-11-05T02:04:22.553730Z'
   stage: smoke-test
   run: 19e0e1c867d34f9d9a215dccf6bbec69
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-11-05T02:12:20.994173Z'
+  stage: approval
 ---
 
 # The work area holds the work items
@@ -430,3 +435,4 @@ Expect: `1`
     I then re-read the acceptance criteria, and nothing in the smoke test contradicts any of them. I also checked all 14 rows of the move table: none of the old paths `src/factory/<layer>/<name>.py` exists, and every new `src/factory/work/<layer>/<name>.py` exists. That backs up criterion 1 beyond the one module the commands looked at. Criteria 3 to 5 (import lines, where the test modules sit, `make check`) and the docs criterion are not things these commands show. I did not run `make check` or `make documents`; the factory's checks cover those.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 19.5 min, 111 turns, 250047 tokens in (2662361 more from cache), 35729 out, $2.95
