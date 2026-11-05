@@ -13,8 +13,8 @@ from factory.application.boundaries import Boundaries
 from factory.application.stage import AfterAgent, AgentAftermath
 from factory.application.stalls import StallResult
 from factory.domain.agent_runs import AgentRunResult
-from factory.domain.decisions import StallReason
-from factory.domain.work_item import WorkItemState
+from factory.work.domain.decisions import StallReason
+from factory.work.domain.work_item import WorkItemState
 from git_support import install_agents
 from human_clone import HumanClone
 from stage_run_support import INSTANCE, completed

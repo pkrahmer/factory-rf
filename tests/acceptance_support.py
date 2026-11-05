@@ -1,8 +1,8 @@
 """Helpers for acceptance tests: a report whose journal holds given entries."""
 
-from factory.domain.acceptance import AcceptanceState
-from factory.domain.journal import HUMAN, JournalKind, JournalRecord
-from factory.domain.work_item import WorkItemDocument
+from factory.work.domain.acceptance import AcceptanceState
+from factory.work.domain.journal import HUMAN, JournalKind, JournalRecord
+from factory.work.domain.work_item import WorkItemDocument
 
 
 def report_of(entries: list[tuple[str, JournalKind, str]]) -> WorkItemDocument:

@@ -11,17 +11,17 @@ from factory.application.dispatcher import Handler
 from factory.application.handlers.closed import ClosedHandler
 from factory.application.tick import IdleHandler, Tick, TickOutcome
 from factory.domain.events import Event
-from factory.domain.journal import HUMAN, JournalRecord
-from factory.domain.work_item import (
+from factory.hosting.adapters.fake_hosting import FakeHostingService
+from factory.hosting.adapters.git_cli import GitCli
+from factory.shared.domain.identifiers import branch_name
+from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.work.domain.journal import HUMAN, JournalRecord
+from factory.work.domain.work_item import (
     WorkItemDocument,
     WorkItemSnapshot,
     WorkItemState,
     initial_state,
 )
-from factory.hosting.adapters.fake_hosting import FakeHostingService
-from factory.hosting.adapters.git_cli import GitCli
-from factory.shared.domain.identifiers import branch_name
-from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from git_support import CHECKOUT, install_agents, remote_commit
 from human_clone import HumanClone
 from log_support import log_lines

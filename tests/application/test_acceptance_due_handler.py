@@ -4,11 +4,11 @@ from pathlib import Path
 
 import pytest
 
-from factory.application.acceptance import AcceptanceDueHandler
 from factory.application.boundaries import Boundaries
 from factory.domain.events import Event
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.shared.domain.errors import CannotHandle
+from factory.work.application.acceptance import AcceptanceDueHandler
 from git_support import remote_commit, run_git
 from human_clone import HumanClone
 

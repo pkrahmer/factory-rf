@@ -106,7 +106,7 @@ def test_every_model_is_frozen_and_forbids_unknown_keys(name: str) -> None:
 
 def test_the_collection_finds_every_model_and_nothing_else() -> None:
     assert len(MODELS) > 90
-    assert "factory.domain.work_item.WorkItemState" in MODELS
+    assert "factory.work.domain.work_item.WorkItemState" in MODELS
     assert "factory.application.stage.StartedStage" in MODELS
     assert "factory.adapters.claude_runtime._Reply" in MODELS
     assert "factory.application.boundaries.Boundaries" not in MODELS

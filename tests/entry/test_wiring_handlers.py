@@ -18,13 +18,13 @@ from factory.application.tick import IdleHandler, Tick
 from factory.domain.agent_runs import AgentRunResult
 from factory.domain.events import Event, EventKind
 from factory.domain.tick_status import TickStatus, find_error
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.entry.wiring import (
     agent_environment,
     build_handlers,
     handler_factory,
     production_environment,
 )
+from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from git_support import install_agents
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

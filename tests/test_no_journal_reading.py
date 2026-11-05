@@ -8,19 +8,19 @@ from source_search import modules, string_literals
 
 ALLOWED = {
     "entry_text": {
-        "factory.domain.journal",
+        "factory.work.domain.journal",
         "factory.hosting.domain.hand_over",
-        "factory.domain.acceptance",
+        "factory.work.domain.acceptance",
         "factory.application.handlers.questions",
         "factory.application.recovery",
     },
     "JOURNAL": {
         "factory.shared.domain.sections",
-        "factory.domain.journal",
-        "factory.domain.story_form",
-        "factory.adapters.work_item_markdown",
+        "factory.work.domain.journal",
+        "factory.work.domain.story_form",
+        "factory.work.adapters.work_item_markdown",
         "factory.hosting.application.opening",
-        "factory.domain.acceptance",
+        "factory.work.domain.acceptance",
     },
 }
 LITERALS = {"Journal", "## Journal"}
@@ -63,7 +63,7 @@ def test_no_module_reads_data_from_the_journal_text() -> None:
 @pytest.mark.parametrize(
     "source",
     [
-        "from factory.domain.journal import entry_text\n",
+        "from factory.work.domain.journal import entry_text\n",
         "entry_text(document, 1)\n",
         "journal.entry_text(document, 1)\n",
         "from factory.shared.domain.sections import JOURNAL\n",
@@ -90,7 +90,7 @@ def test_a_journal_reference_outside_the_allowed_modules_is_found(source: str) -
 @pytest.mark.parametrize(
     ("module", "source"),
     [
-        ("factory.domain.journal", "entry_text(document, 1)\n"),
+        ("factory.work.domain.journal", "entry_text(document, 1)\n"),
         ("factory.hosting.application.opening", "heading = JOURNAL\n"),
         ("factory.shared.domain.sections", 'JOURNAL = "Journal"\n'),
     ],

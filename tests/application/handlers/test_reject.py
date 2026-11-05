@@ -9,8 +9,6 @@ from branch_reading import remote_document
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.reject import RejectHandler
 from factory.domain.events import Event
-from factory.domain.journal import FACTORY, HUMAN, JournalRecord, entry_text
-from factory.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import CommitInfo
@@ -22,6 +20,8 @@ from factory.hosting.domain.post_texts import (
 )
 from factory.shared.domain.errors import CannotHandle, HostingServiceError
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.work.domain.journal import FACTORY, HUMAN, JournalRecord, entry_text
+from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemSnapshot, WorkItemState
 from git_support import clone, commit_all, remote_commit, run_git, write_files
 from human_clone import HumanClone
 

@@ -6,22 +6,22 @@ from pathlib import Path
 import pytest
 
 from bill_support import completed_records, sidecar_text
-from factory.application.acceptance import AcceptanceMerged, AcceptanceService
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.recording import commit_subject
-from factory.domain.acceptance import AcceptanceState, book_merge
 from factory.domain.bills import bill
 from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event, EventKind
-from factory.domain.journal import FACTORY, JournalRecord
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.errors import CannotHandle, PushFailed
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.shared.domain.paths import cost_records_path
+from factory.work.application.acceptance import AcceptanceMerged, AcceptanceService
+from factory.work.domain.acceptance import AcceptanceState, book_merge
+from factory.work.domain.journal import FACTORY, JournalRecord
+from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from git_support import remote_commit, run_git
 from human_clone import HumanClone
 

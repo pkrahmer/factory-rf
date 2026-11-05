@@ -11,13 +11,13 @@ from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
 from factory.application.boundaries import Boundaries
 from factory.application.task import StoryFormChecker, TaskComposer, TaskContext
 from factory.domain.agent_runs import AgentDefinition
-from factory.domain.journal import JournalKind, JournalRecord
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.prompts import PromptFacts, allowed_decisions, compose_prompt
-from factory.domain.story_form import FormFinding
-from factory.domain.work_item import WorkItemDocument, WorkItemState
 from factory.shared.domain.errors import AgentDefinitionMissing, WorkItemFormatError
 from factory.shared.domain.paths import STORY_FORM_FILE
+from factory.work.domain.journal import JournalKind, JournalRecord
+from factory.work.domain.story_form import FormFinding
+from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 from git_support import CHECKOUT, PIPELINE_YAML, STORY_FORM, install_agents, run_git, write_files
 from human_clone import HumanClone
 

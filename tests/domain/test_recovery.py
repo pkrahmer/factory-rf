@@ -4,9 +4,9 @@ from datetime import UTC, datetime
 
 import pytest
 
-from factory.domain.journal import JournalRecord
 from factory.domain.recovery import crash_entry_text, crashed
-from factory.domain.work_item import Claim, WorkItemState
+from factory.work.domain.journal import JournalRecord
+from factory.work.domain.work_item import Claim, WorkItemState
 
 CLAIM = Claim(
     instance="factory-1",

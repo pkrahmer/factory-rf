@@ -12,14 +12,14 @@ from factory.application.handlers.comments import CommentHandler
 from factory.application.handlers.questions import AskHandler
 from factory.application.stops import StopService
 from factory.domain.events import Event, EventKind
-from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.tick_status import TickStatus
-from factory.domain.work_item import Blocked, WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.hosting import FACTORY_MARKER, PostKey
 from factory.shared.domain.errors import CannotHandle, HostingServiceError
+from factory.work.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
+from factory.work.domain.work_item import Blocked, WorkItemDocument, WorkItemSnapshot, WorkItemState
 from git_support import remote_commit
 from human_clone import HumanClone
 

@@ -7,18 +7,18 @@ import pytest
 
 from acceptance_support import report_of
 from bill_support import completed_records
-from factory.domain.acceptance import (
+from factory.domain.bills import Bill, bill, cost_line
+from factory.hosting.domain.post_texts import done_entry_text
+from factory.shared.domain.sections import section_text, sections
+from factory.work.domain.acceptance import (
     NO_REASON,
     AcceptanceState,
     book_merge,
     book_refusal,
     refusal_reason,
 )
-from factory.domain.bills import Bill, bill, cost_line
-from factory.domain.journal import FACTORY, HUMAN, JournalKind, JournalRecord, entry_text
-from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
-from factory.hosting.domain.post_texts import done_entry_text
-from factory.shared.domain.sections import section_text, sections
+from factory.work.domain.journal import FACTORY, HUMAN, JournalKind, JournalRecord, entry_text
+from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemState
 
 ROLE = "acceptance-reviewer"
 ON = date(2026, 10, 12)

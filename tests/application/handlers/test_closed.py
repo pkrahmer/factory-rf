@@ -11,13 +11,13 @@ from factory.application.boundaries import Boundaries
 from factory.application.costs import BillService
 from factory.application.handlers.closed import ClosedHandler
 from factory.domain.events import Event
-from factory.domain.journal import HUMAN, JournalRecord
-from factory.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import ChangedPath
 from factory.shared.domain.errors import PushFailed
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
+from factory.work.domain.journal import HUMAN, JournalRecord
+from factory.work.domain.work_item import WorkItemDocument, WorkItemSnapshot, WorkItemState
 from git_support import remote_commit, run_git
 from human_clone import HumanClone
 

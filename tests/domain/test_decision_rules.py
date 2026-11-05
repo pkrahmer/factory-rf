@@ -3,15 +3,15 @@
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from factory.domain.decisions import StageMove, decide
 from factory.domain.pipeline_definition import (
     PipelineDefinition,
     RoleDefinition,
     StageDefinition,
 )
-from factory.domain.story_form import FormFinding
-from factory.domain.work_item import WorkItemState
 from factory.hosting.domain.post_texts import findings_question, round_cap_question
+from factory.work.domain.decisions import StageMove, decide
+from factory.work.domain.story_form import FormFinding
+from factory.work.domain.work_item import WorkItemState
 
 FINDINGS = (FormFinding(line=3, message="The story has no Interface section."),)
 

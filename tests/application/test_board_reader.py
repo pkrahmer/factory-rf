@@ -1,13 +1,13 @@
 """The board reader counts the story files on origin/main and reads the work items in progress."""
 
 from definition_support import pipeline_definition
-from factory.adapters.work_item_markdown import FrontmatterWorkItemWriter
 from factory.application.board import BoardReader, BoardView
 from factory.application.boundaries import Boundaries
 from factory.domain.board import FeatureRow
-from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.identifiers import branch_name
+from factory.work.adapters.work_item_markdown import FrontmatterWorkItemWriter
+from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemState
 from human_clone import HumanClone
 from stage_run_support import INSTANCE
 

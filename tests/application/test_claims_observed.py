@@ -7,8 +7,8 @@ import pytest
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.domain.lease import ClaimStatus
-from factory.domain.work_item import Claim, WorkItemState
 from factory.shared.adapters.clock import ManualClock
+from factory.work.domain.work_item import Claim, WorkItemState
 from git_support import PIPELINE_YAML
 from stage_run_support import INSTANCE
 

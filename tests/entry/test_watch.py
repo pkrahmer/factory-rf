@@ -19,7 +19,6 @@ from factory.application.watcher import Watcher
 from factory.domain.board import render_board
 from factory.domain.events import Event, EventKind
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemState
 from factory.entry.watch import main, render_event, run_watch
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
@@ -27,6 +26,7 @@ from factory.hosting.domain.git import GitOptions
 from factory.hosting.domain.hosting import PullRequestComment, PullRequestView
 from factory.shared.domain.errors import GitError, PipelineDefinitionInvalid
 from factory.shared.domain.identifiers import branch_name
+from factory.work.domain.work_item import WorkItemState
 from git_support import PIPELINE_YAML, TEST_IDENTITY, run_git
 from human_clone import HumanClone
 from source_search import SRC

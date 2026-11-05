@@ -6,7 +6,7 @@ import pytest
 
 from factory.adapters.agent_files import FrontmatterAgentDefinitionReader
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.adapters.work_item_markdown import RuamelYamlHandler
+from factory.work.adapters.work_item_markdown import RuamelYamlHandler
 from shipped_agents import (
     AGENT_HOME,
     ROOT,

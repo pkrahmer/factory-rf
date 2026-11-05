@@ -6,8 +6,8 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict
 
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.adapters.work_item_markdown import RuamelYamlHandler, split_front_matter
 from factory.domain.pipeline_definition import PipelineDefinition
+from factory.work.adapters.work_item_markdown import RuamelYamlHandler, split_front_matter
 
 ROOT = Path(__file__).parent.parent
 AGENT_HOME = ROOT / "claude"

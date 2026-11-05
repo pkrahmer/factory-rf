@@ -4,9 +4,9 @@ from datetime import UTC, datetime
 
 import pytest
 
-from factory.domain.journal import JournalRecord
 from factory.domain.recovery import asking_crash_cap, at_crash_cap
-from factory.domain.work_item import Claim, WorkItemState
+from factory.work.domain.journal import JournalRecord
+from factory.work.domain.work_item import Claim, WorkItemState
 
 STATE = WorkItemState(
     stage="doing",

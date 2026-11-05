@@ -2,10 +2,10 @@
 
 import pytest
 
-from factory.domain.journal import JournalKind, JournalRecord
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.send_back import reason_given, send_back_cap, send_back_target
-from factory.domain.work_item import WorkItemDocument, WorkItemState
+from factory.work.domain.journal import JournalKind, JournalRecord
+from factory.work.domain.send_back import reason_given, send_back_cap, send_back_target
+from factory.work.domain.work_item import WorkItemDocument, WorkItemState
 
 ROLES = {
     "coder": {"write_paths": ["src/*"]},

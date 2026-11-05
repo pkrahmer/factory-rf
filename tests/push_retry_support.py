@@ -9,12 +9,12 @@ from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.application.handlers.recording import WorkItemRecorder
 from factory.application.stage import AfterAgent, AgentAftermath, StageFinisher, StageLauncher
-from factory.domain.journal import FACTORY, NewEntry, append_entry
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.application.opening import WorkItemOpening
 from factory.hosting.domain.git import CommitId, GitOptions, PushOutcome
 from factory.shared.adapters.clock import ManualWaiter
 from factory.shared.domain.kill_points import KillPoints
+from factory.work.domain.journal import FACTORY, NewEntry, append_entry
 from git_support import CHECKOUT, PIPELINE_YAML, TEST_IDENTITY
 from human_clone import HumanClone
 from recording_log import RecordingLog

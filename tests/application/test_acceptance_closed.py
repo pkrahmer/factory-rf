@@ -7,25 +7,12 @@ from pathlib import Path
 import pytest
 
 from bill_support import completed_records, sidecar_text
-from factory.application.acceptance import AcceptanceClosed, AcceptanceService
-from factory.application.acceptance_reading import AcceptanceReader
 from factory.application.boundaries import Boundaries
-from factory.domain.acceptance import RECOMMENDATION, AcceptanceState, book_refusal
 from factory.domain.bills import bill
 from factory.domain.board import AcceptanceStatus
 from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event, EventKind
-from factory.domain.journal import (
-    FACTORY,
-    HUMAN,
-    JournalKind,
-    JournalRecord,
-    NewEntry,
-    append_entry,
-    entry_text,
-)
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import Blocked, WorkItemDocument, WorkItemSnapshot, WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.hosting import PostKey
@@ -35,6 +22,19 @@ from factory.shared.domain.errors import CannotHandle, PushFailed
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.shared.domain.paths import cost_records_path
 from factory.shared.domain.sections import section_text
+from factory.work.application.acceptance import AcceptanceClosed, AcceptanceService
+from factory.work.application.acceptance_reading import AcceptanceReader
+from factory.work.domain.acceptance import RECOMMENDATION, AcceptanceState, book_refusal
+from factory.work.domain.journal import (
+    FACTORY,
+    HUMAN,
+    JournalKind,
+    JournalRecord,
+    NewEntry,
+    append_entry,
+    entry_text,
+)
+from factory.work.domain.work_item import Blocked, WorkItemDocument, WorkItemSnapshot, WorkItemState
 from git_support import remote_commit, run_git
 from human_clone import HumanClone
 

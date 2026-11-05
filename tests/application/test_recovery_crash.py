@@ -16,24 +16,8 @@ from factory.application.machine import Clock
 from factory.application.recovery import RecoveryHandler
 from factory.domain.cost_records import CostRecord
 from factory.domain.events import Event, EventKind
-from factory.domain.journal import (
-    FACTORY,
-    HUMAN,
-    JournalRecord,
-    NewEntry,
-    append_entry,
-    entry_text,
-    last_record,
-)
 from factory.domain.pipeline_definition import PipelineDefinition
 from factory.domain.recovery import crash_entry_text
-from factory.domain.work_item import (
-    Claim,
-    WorkItemDocument,
-    WorkItemSnapshot,
-    WorkItemState,
-    initial_state,
-)
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.domain.git import ChangedPath
@@ -42,6 +26,22 @@ from factory.shared.domain.errors import CannotHandle, GitError, PushFailed
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.kill_points import InjectedKill, KillPoint, KillPoints
 from factory.shared.domain.paths import cost_records_path
+from factory.work.domain.journal import (
+    FACTORY,
+    HUMAN,
+    JournalRecord,
+    NewEntry,
+    append_entry,
+    entry_text,
+    last_record,
+)
+from factory.work.domain.work_item import (
+    Claim,
+    WorkItemDocument,
+    WorkItemSnapshot,
+    WorkItemState,
+    initial_state,
+)
 from git_support import PIPELINE_YAML, remote_commit, write_files
 from human_clone import HumanClone
 from stage_run_support import INSTANCE

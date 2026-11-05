@@ -17,13 +17,13 @@ from factory.domain.agent_runs import (
     EndReason,
     PermissionDenial,
 )
-from factory.domain.journal import JournalRecord, entry_text
-from factory.domain.work_item import Claim, WorkItemDocument, WorkItemState
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.application.opening import WorkItemOpening
 from factory.shared.adapters.clock import ManualClock
 from factory.shared.domain.identifiers import branch_name
 from factory.shared.domain.paths import cost_records_path
+from factory.work.domain.journal import JournalRecord, entry_text
+from factory.work.domain.work_item import Claim, WorkItemDocument, WorkItemState
 from git_support import install_agents
 from human_clone import HumanClone
 from stage_run_support import ENVIRONMENT, INSTANCE, pushed, pushed_state

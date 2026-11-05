@@ -9,7 +9,6 @@ import pytest
 
 from factory.application.handlers.recording import commit_subject
 from factory.application.stage import StageLauncher
-from factory.domain.work_item import WorkItemDocument
 from factory.hosting.adapters.fake_hosting import FakeHostingService
 from factory.hosting.application.opening import PreparedWorkItem, WorkItemOpening
 from factory.hosting.domain.git import CommitInfo
@@ -17,6 +16,7 @@ from factory.hosting.domain.hosting import PullRequestView
 from factory.shared.domain.errors import HostingServiceError, WorkItemFormatError
 from factory.shared.domain.identifiers import WorkItemId, branch_name
 from factory.shared.domain.kill_points import KillPoints
+from factory.work.domain.work_item import WorkItemDocument
 from git_support import PIPELINE_YAML
 from log_support import state_log_lines
 from proof_support import (

@@ -7,7 +7,7 @@ import pytest
 from factory.adapters.fake_agent_runtime import FakeAgentRuntime, ScriptedRun
 from factory.application.boundaries import Boundaries
 from factory.domain.agent_runs import QUESTION
-from factory.domain.work_item import WorkItemState
+from factory.work.domain.work_item import WorkItemState
 from human_clone import HumanClone
 from stage_run_support import (
     CREATED,

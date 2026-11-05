@@ -15,7 +15,6 @@ from factory.adapters.disk_space import ShutilDiskSpace
 from factory.adapters.factory_log import TimestampedFactoryLog
 from factory.adapters.health_file import JsonHealthStatusFile
 from factory.adapters.pipeline_yaml import RuamelPipelineDefinitionReader
-from factory.adapters.work_item_markdown import FrontmatterWorkItemReader, FrontmatterWorkItemWriter
 from factory.application.project_agents import ProjectAgentDefinitions
 from factory.application.project_commands import RecordingProjectCommands
 from factory.domain.agent_runs import AgentDefinition, AgentRunRequest
@@ -34,6 +33,10 @@ from factory.hosting.domain.git import GitIdentity
 from factory.shared.adapters.clock import SystemClock
 from factory.shared.domain.errors import SettingsInvalid
 from factory.shared.domain.settings import InstanceSettings, read_settings
+from factory.work.adapters.work_item_markdown import (
+    FrontmatterWorkItemReader,
+    FrontmatterWorkItemWriter,
+)
 from git_support import clone, install_agents, write_executable
 from podman_support import PodmanPlan
 from wiring_support import (

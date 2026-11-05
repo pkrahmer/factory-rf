@@ -7,8 +7,8 @@ import pytest
 from factory.application.boundaries import Boundaries
 from factory.application.claims import ClaimService
 from factory.domain.pipeline_definition import PipelineDefinition
-from factory.domain.work_item import WorkItemDocument
 from factory.hosting.domain.git import WorkTreeStatus
+from factory.work.domain.work_item import WorkItemDocument
 from git_support import remote_commit
 from work_item_support import checkout_text, created_state, put_work_item
 

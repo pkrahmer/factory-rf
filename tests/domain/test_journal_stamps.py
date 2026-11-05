@@ -6,10 +6,10 @@ from datetime import UTC, date, datetime, timedelta, timezone
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from factory.domain.acceptance import AcceptanceState, book_merge, book_refusal
 from factory.domain.bills import bill
-from factory.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
-from factory.domain.work_item import WorkItemDocument, initial_state
+from factory.work.domain.acceptance import AcceptanceState, book_merge, book_refusal
+from factory.work.domain.journal import FACTORY, HUMAN, JournalRecord, NewEntry, append_entry
+from factory.work.domain.work_item import WorkItemDocument, initial_state
 
 AT = datetime(2026, 10, 17, 20, 31, tzinfo=UTC)
 RUN = "a" * 32

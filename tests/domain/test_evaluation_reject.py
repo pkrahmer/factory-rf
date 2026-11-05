@@ -7,19 +7,19 @@ import pytest
 
 from factory.domain.evaluation import EvaluationInput, PullRequestObservation, evaluate
 from factory.domain.events import Event
-from factory.domain.journal import JournalRecord
 from factory.domain.lease import ClaimStatus
-from factory.domain.move_rule import IllegalChange, StageChange
 from factory.domain.pipeline_definition import PipelineDefinition, RoleDefinition, StageDefinition
-from factory.domain.work_item import (
+from factory.hosting.domain.hosting import PullRequestComment, PullRequestState, PullRequestView
+from factory.shared.domain.errors import HostingServiceError
+from factory.work.domain.journal import JournalRecord
+from factory.work.domain.move_rule import IllegalChange, StageChange
+from factory.work.domain.work_item import (
     Claim,
     WorkItemDocument,
     WorkItemSnapshot,
     WorkItemState,
     initial_state,
 )
-from factory.hosting.domain.hosting import PullRequestComment, PullRequestState, PullRequestView
-from factory.shared.domain.errors import HostingServiceError
 
 MAIN = "a" * 40
 MERGE_COMMIT = "c" * 40
