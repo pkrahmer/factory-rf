@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -249,6 +249,11 @@ journal:
   at: '2026-11-05T08:48:30.612965Z'
   stage: smoke-test
   run: e8cc27a053f34af2b197493ccd9a59e2
+- number: 44
+  speaker: factory
+  kind: done
+  at: '2026-11-05T08:56:30.401064Z'
+  stage: approval
 ---
 
 # The agent files live in `agents/`
@@ -692,3 +697,4 @@ Expect: `1`
     - Criteria 2, 3 and 5 are covered by the tests and the factory's checks. The smoke test contradicts none of them.
 
     Findings: none.
+44. factory: done (pull request merged); cost: 18 runs, 27.3 min, 173 turns, 405341 tokens in (4409137 more from cache), 57444 out, $4.99
