@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 563
-comments_read: []
+comments_read: [6649815295]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 8ff0f9d70dbd4873b3c98284e47b9c77
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-05T04:38:07.659435Z'
+  stage: intake
 ---
 
 # The root of `tests/` holds only its folders
@@ -77,3 +82,22 @@ Expect: `support.bill_support`
    4. Criterion 4 is not testable by a test function. The count of collected tests is compared with `origin/main`, and "the tester writes into its entry" is a report, not a test. Please say how it is checked. My choice: keep it as the tester's recorded figure, and add a criterion that the set of test function names is unchanged. That needs a stored list, which seems heavy. Please confirm which you want.
 
    5. `import support.<name>` and the smoke test's `sys.path.insert(0, 'tests')` assume `tests/` is on the import path. A new package named `tests/operator` or `tests/vm` could clash with other names once `tests/` is on `sys.path`. The story says a `pyproject.toml` change is the human's. Is `tests/` already on pytest's `pythonpath`, so that `from support.bill_support import ...` works under `make test` and `mypy --strict`? If not, please say that the human adds it at the story's start, as the feature's *The human's changes* says it will for "a path that `pyproject.toml` needs".
+4. 2026-11-05 human: Answers of the human:
+
+   1. **The rule, as you propose:** a shared helper is every module at the root of `tests/` whose name does not start with `test_`, except `conftest.py`. Criterion 2's rows come from that rule.
+
+   2. **Rules by name, not a table**, and one criterion for them. Each root test module goes, by the first rule that fits:
+      - `tests/guards/`: `test_*_search.py`, `test_*_removed.py`, `test_shared_*.py`, `test_no_*.py`, `test_suite_*.py`, `test_layers.py`, `test_areas.py`, `test_test_names.py`, `test_tests_run_under_the_starting_umask.py` and `test_model_configuration.py`;
+      - `tests/operator_scripts/` (not `operator`: a package named `operator` on `sys.path` would hide the standard library's `operator`): `test_operator_*.py` and any other test of files under `operator/`;
+      - `tests/vm/`: `test_vm_*.py`, `test_stage_image*.py` and any other test of files under `vm/`;
+      - `tests/agent_files/`: `test_claude_*.py`, `test_shipped_agents*.py`, `test_template_*.py` and any other test of files under `claude/` or `template/`;
+      - every other root test module: `tests/<area>/<layer>/` of the module it imports most, or `tests/entry/` when that is an entry module.
+      New criterion: every module whose name fits one of the patterns above sits in that pattern's folder (one row per pattern). For the "imports most" ones, the tester lists module and folder in its entry and the reviewer checks the list; no criterion.
+
+   3. **No criterion.** The tester lists, in its entry, every moved module that builds a path from `__file__`, with the change it made (for example `parent` to `parents[1]`); the reviewer checks those lines. Criterion 4's unchanged count of passing tests is the backstop.
+
+   4. **Keep the recorded figure.** The tester writes the count of collected tests before and after into its entry; the reviewer compares. No stored list.
+
+   5. **No `pyproject.toml` change is needed.** `tests/` has no `__init__.py`, so pytest's rootdir import puts `tests/` on `sys.path`, and mypy names `tests/support/x.py` as `support.x`, as it names today's root helpers. The one clash is `operator`, hence answer 2's `tests/operator_scripts/`. If a check still needs a path, ask again.
+
+   The Description's and Interface's `tests/operator/` reads `tests/operator_scripts/` from here on.
