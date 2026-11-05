@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 570
 comments_read: [6656020506]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-05T10:48:18.620340Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-05T10:48:13.403469Z'
   stage: intake
   run: 032c998b2dea4513a95e5fe323661a29
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-05T10:48:18.620340Z'
+  stage: tests
 ---
 
 # The setup's hints name the operator guide's topic file
@@ -117,3 +126,4 @@ Expect: `1`
    Smoke test: the four commands are runnable. Every `Expect:` is a count or a "passed" match that the output can be checked against. The pytest command passes no `-q`, because `addopts` already sets it.
    Architecture: the change touches the operator's VM script, the skill reference and one guard test, and no `src/factory` layer. The tests go in `tests/guards/`, which is where `CLAUDE.md` puts them.
    Scope: within F0051, where S0015 is listed. The left-out items (`wiring.py` docstring, the playbook, the demo README, the Makefile example) are named in the Description.
+7. factory: started tests as vm.
