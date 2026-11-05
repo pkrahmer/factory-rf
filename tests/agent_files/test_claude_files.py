@@ -16,7 +16,7 @@ from support.shipped_agents import (
     front_matter_and_body,
 )
 
-TEMPLATE = ROOT / "template"
+TEMPLATE = ROOT / "operator" / "template"
 
 SETTINGS = {
     "permissions": {

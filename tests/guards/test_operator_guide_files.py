@@ -14,7 +14,6 @@ SEARCHED = (
     ROOT / "src",
     ROOT / "agents",
     ROOT / "operator",
-    ROOT / "vm",
     ROOT / "docs",
     ROOT / "README.md",
 )

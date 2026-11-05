@@ -11,7 +11,6 @@ ROOT = Path(__file__).parents[2]
 SEARCHED = (
     ROOT / "src",
     ROOT / "tests",
-    ROOT / "vm",
     ROOT / "operator",
     ROOT / "docs",
     ROOT / "README.md",

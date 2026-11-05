@@ -5,7 +5,7 @@ import shlex
 from pathlib import Path
 
 ROOT = Path(__file__).parents[2]
-STAGE_DOCKERFILE = ROOT / "vm" / "Dockerfile"
+STAGE_DOCKERFILE = ROOT / "operator" / "vm" / "Dockerfile"
 SECRET_WORDS = ("TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
 DIGEST = re.compile(r"@sha256:[0-9a-f]{64}$")
 THREE_NUMBERS = re.compile(r"^\d+\.\d+\.\d+$")

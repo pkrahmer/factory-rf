@@ -16,7 +16,7 @@ from support.vm_support import SETUP, SYSTEM_PATH, setup_code, step_texts
 ROOT = Path(__file__).parents[2]
 SOURCE = ROOT / "src" / "factory"
 THIS = Path(__file__).name
-HELPER = "vm/git-credential-factory"
+HELPER = "operator/vm/git-credential-factory"
 INSTALLED_HELPER = "/usr/local/bin/git-credential-factory"
 # A string literal that begins `image/`, or a path built with the part `image`.
 IMAGE_PATH = r"[\"']image/|/\s*[\"']image[\"']"

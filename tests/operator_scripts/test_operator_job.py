@@ -116,7 +116,7 @@ def flag(call: list[str], name: str) -> str:
 
 @pytest.fixture
 def repository(tmp_path: Path) -> Path:
-    """A git repository with `operator/` and `vm/` committed and tagged `t1`."""
+    """A git repository with `operator/` committed and tagged `t1`."""
     return make_job_repository(tmp_path / "repo")
 
 
@@ -300,7 +300,7 @@ def test_the_secrets_reach_the_job_only_as_mounts(run_job: RunJob, records: Path
 def test_the_wrapper_writes_the_provider_and_hands_over_to_the_tagged_start_script(
     run_job: RunJob, records: Path, repository: Path
 ) -> None:
-    start = repository / "vm" / "job-start.sh"
+    start = repository / "operator" / "vm" / "job-start.sh"
     tagged = start.read_text(encoding="utf-8")
     start.write_text(tagged + "# changed in the work tree only\n", encoding="utf-8")
     result = run_job(["create"], SITE)
@@ -533,12 +533,14 @@ def test_a_wrong_command_line_prints_the_usage(
 def test_a_start_script_holding_the_wrappers_end_line_is_refused(
     run_job: RunJob, records: Path, repository: Path
 ) -> None:
-    start = repository / "vm" / "job-start.sh"
+    start = repository / "operator" / "vm" / "job-start.sh"
     start.write_text(start.read_text(encoding="utf-8") + "JOB_START_SH_END\n", encoding="utf-8")
     commit_all(repository, "a start script holding the end line")
     run_git(repository, "tag", "t2")
     result = run_job(["create"], {**SITE, "SITE_CODE_REF": "t2"})
-    message = "job: vm/job-start.sh holds the line JOB_START_SH_END; the wrapper cannot carry it"
+    message = (
+        "job: operator/vm/job-start.sh holds the line JOB_START_SH_END; the wrapper cannot carry it"
+    )
     assert message in result.stderr.splitlines()
     assert result.exit_status == 1
     assert read_records(records) == []

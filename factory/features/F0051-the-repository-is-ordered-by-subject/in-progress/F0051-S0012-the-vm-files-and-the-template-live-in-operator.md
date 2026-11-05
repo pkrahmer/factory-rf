@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 567
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T09:00:10.647564Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,13 @@ journal:
   kind: started
   at: '2026-11-05T09:00:10.647564Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: question
+  at: '2026-11-05T09:03:05.798695Z'
+  stage: tests
+  run: 706ecf4afd194a41b681f451faf2159d
+  blocked: question
 ---
 
 # The VM's files and the project template live in `operator/`
@@ -86,3 +89,25 @@ Expect: `parsed`
    - Architecture: it moves operator-side files only. `src/factory` and its areas are untouched, except for any paths named in source. `demo/` stays at the root, as CLAUDE.md and feature.md say.
    - Scope: it matches the feature's scope line for S0012 and its "The human's changes" entry for S0012. It leaves `docs/decisions.md`'s old entries and the `operator/claude` and `operator/opencode` folders alone, as the Out of scope section requires.
 4. factory: started tests as vm.
+5. tester: Question on criterion 3. It searches every file under `docs/` other than `docs/decisions.md`. But `docs/runs/` still names the old paths: `2026-10-12-overnight/night-log.md` (30 lines), `report.md`, `s0006-morning-answer.md` and `2026-11-04-f0050/log.md`. `CLAUDE.md` says `docs/runs/` is the human's and no stage edits it, so as worded the criterion can never pass. Options:
+   (a) Leave `docs/runs/` out of the search, as the existing guards `tests/guards/test_agent_folder_names.py` and `test_operator_guide_files.py` do. This is my choice, and the test is written this way.
+   (b) Keep it in, and the human rewrites those logs.
+   If (a), the Description's criterion 3 should say "other than `docs/decisions.md` and `docs/runs/`".
+
+   Work done (tests are in the working tree, written as (a)):
+   - criterion 1: tests/guards/test_root_operator_folders_removed.py::test_the_old_root_folder_is_gone (rows vm, template) and ::test_the_moved_file_lies_under_operator (one row per file: operator/vm/{setup.sh, job-start.sh, Dockerfile, factory.service, git-credential-factory}, operator/template/{CLAUDE.md, Makefile, factory/pipeline.yml})
+   - criterion 2: the existing VM-script and stage-image tests, now reading operator/vm/ through tests/support/vm_support.py (SETUP, SERVICE, HELPER, JOB_START), tests/support/dockerfile_support.py (STAGE_DOCKERFILE) and tests/machine/application/test_one_stage_environment.py (SETUP)
+   - criterion 3: tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path (one row per old name). The search finds only names at the root: tests/guards/test_root_operator_folders_removed.py::test_the_search_finds_only_a_name_at_the_root checks this, as intake asked.
+   - criteria 4 and 5: no tests (make check, docs).
+
+   Created: tests/guards/test_root_operator_folders_removed.py.
+
+   Changed, under the Interface's leave (feature decision 5), every old path in tests/:
+   - support: support/{shipped_agents, template_make_support, dockerfile_support, vm_support, operator_job_support}.py. The git-clone stand-in now writes operator/vm/Dockerfile. make_job_repository now copies only operator/.
+   - guards: guards/{test_pins, test_docker_path_removed} (HELPER), and guards/{test_agent_folder_names, test_operator_guide_files}, where ROOT/"vm" is dropped from the searched paths because operator/ covers it.
+   - machine and pipeline: machine/application/test_one_stage_environment, pipeline/adapters/test_pipeline_yaml_tool_paths.
+   - operator scripts: operator_scripts/test_operator_job. It expects operator/vm/job-start.sh in the repository and in job.sh's refusal message.
+   - vm: vm/{__init__, test_stage_image, test_vm_job_start, test_vm_job_start_instance, test_vm_local_environment, test_vm_service_stop, test_vm_setup_install_hint}. These expect the new paths in the build command, the unit's comment and the setup hints.
+   - agent files: agent_files/{__init__, test_claude_agent_texts_mutants, test_claude_files, test_demo_makefile_secrets, test_template_makefile_header, test_template_sync}.
+
+   Test run: `uv run pytest` ran once over the changed and new files. The VM tests are red with errors, because operator/vm/ does not exist yet. That is the right reason; the run's last five lines were ERROR lines, so neither its summary line nor the errors' text was seen. No module failed to import. make lint is green.

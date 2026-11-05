@@ -10,7 +10,7 @@ from factory.shared.adapters.process import ProcessRequest, ProcessResult, run_p
 from support.claude_stand_in import Step, write_stand_in
 from support.shipped_agents import ROOT
 
-MAKEFILE = ROOT / "template" / "Makefile"
+MAKEFILE = ROOT / "operator" / "template" / "Makefile"
 
 # An outer `make` passes its variables on through these; the run must see none of them.
 DROPPED = {"MAKEFLAGS", "MFLAGS", "MAKELEVEL", "FEATURE", "SOURCE", "LAYERS"}

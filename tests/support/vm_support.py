@@ -13,9 +13,9 @@ from support.time_limits import ROOMY_LIMIT
 
 ROOT = Path(__file__).parents[2]
 SYSTEM_PATH = "/usr/local/bin:/usr/bin:/bin"
-SETUP = ROOT / "vm" / "setup.sh"
-SERVICE = ROOT / "vm" / "factory.service"
-HELPER = ROOT / "vm" / "git-credential-factory"
+SETUP = ROOT / "operator" / "vm" / "setup.sh"
+SERVICE = ROOT / "operator" / "vm" / "factory.service"
+HELPER = ROOT / "operator" / "vm" / "git-credential-factory"
 EXAMPLE_VALUE = "example-value"
 STEPS = (
     "packages",
@@ -168,7 +168,7 @@ def writes_path(line: str, path: str) -> bool:
     )
 
 
-JOB_START = ROOT / "vm" / "job-start.sh"
+JOB_START = ROOT / "operator" / "vm" / "job-start.sh"
 JOB_STAND_INS = (
     "apt-get",
     "curl",
@@ -206,8 +206,8 @@ if name == "curl":
             with open(argv[argv.index(flag) + 1], "w", encoding="utf-8") as out:
                 out.write("a downloaded binary\\n")
 if name == "git" and "clone" in argv:
-    os.makedirs(os.path.join(argv[-1], "vm"), exist_ok=True)
-    with open(os.path.join(argv[-1], "vm", "Dockerfile"), "w", encoding="utf-8") as out:
+    os.makedirs(os.path.join(argv[-1], "operator", "vm"), exist_ok=True)
+    with open(os.path.join(argv[-1], "operator", "vm", "Dockerfile"), "w", encoding="utf-8") as out:
         out.write({dockerfile!r})
 if name == "git" and any({missing!r} in word for word in argv):
     sys.exit(1)
@@ -271,7 +271,9 @@ def run_job_start(
     background: bool = False,
     failing_install_target: Path | None = None,
 ) -> JobRun:
-    """Run `vm/job-start.sh` with every required input, changed by `inputs` (`None` removes one).
+    """Run `operator/vm/job-start.sh` with every required input, changed by `inputs`.
+
+    `None` in `inputs` removes one.
 
     The stand-ins of `JOB_STAND_INS` lie first on `PATH`; `failing` names those that exit 1
     (`factory-python` fails only its `--once` call). With `background`, `factory-run` waits
