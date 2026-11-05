@@ -15,7 +15,7 @@ Prose about behaviour stays the reviewer's to judge against the code. Today's do
 
 - The name check: every backticked dotted name under `factory.` and every backticked repository path in the documents resolves (S0001).
 - The settings check: the operator guide's settings tables agree with the settings code (S0002).
-- Runnable examples: a marked block's commands run like notebook cells, in order, from a fresh fixture per document, and their output is compared (S0003); the fixtures `instance` and `world` (S0006).
+- Runnable examples: a marked block's commands run like notebook cells, in order, from a fresh fixture per document, and their output is compared (S0003); the fixture `instance` (S0006).
 - The checked-files list, and a report of every file's findings (S0004).
 - The agents' rules: the documenter reads the code it describes and writes runnable examples; the reviewer judges facts against the code and counts an unchecked claim as a finding (S0005).
 
@@ -33,7 +33,7 @@ The build order: S0006 comes right after S0003, since the operator guide's examp
 - S0001: Every name a document writes in backticks exists
 - S0002: The operator guide's settings agree with the settings code
 - S0003: A document's marked examples are run by the check
-- S0006: The examples start from a known instance or world
+- S0006: The examples start from a known instance
 - S0004: The checks block the listed files and report on the others
 - S0005: The agents write and review documents against the code
 - S0007: Each area names its guide page
@@ -46,6 +46,6 @@ The build order: S0006 comes right after S0003, since the operator guide's examp
 
 1. **Checks live in `make documents`.** The docs stages already run it, and `make check` stays fast.
 2. **Report everywhere, block where rewritten.** A list of checked files (`docs/checked-documents.txt`, a document so that a docs-route story can extend it) decides which findings fail the check; the others are printed as a report. Rejected: blocking at once, which would stop every docs stage until all files are rewritten.
-3. **An example says where it runs.** A marked block runs in a check container, in a temporary folder its fixture prepared (`checkout`, `instance` or `world`); the blocks of one document run in order and share it, like notebook cells, and each document starts fresh (the human, 2026-11-05). A block marked for the VM, GitHub or a model, and a block that runs the test suite, is skipped by the check and listed in the report; nobody runs them routinely, since the name and settings checks and the scripts' own tests already catch most of what they would (the human, 2026-11-05). A `vm` example is copied from a real run and says where it ran.
+3. **An example says where it runs.** A marked block runs in a check container, in a temporary folder its fixture prepared (`checkout` or `instance`); the blocks of one document run in order and share it, like notebook cells, and each document starts fresh (the human, 2026-11-05). A block marked for the VM, GitHub or a model, and a block that runs the test suite, is skipped by the check and listed in the report; nobody runs them routinely, since the name and settings checks and the scripts' own tests already catch most of what they would (the human, 2026-11-05). A `vm` example is copied from a real run and says where it ran.
 4. **History is exempt.** `docs/decisions.md` and `docs/runs/` keep old names and paths on purpose.
 5. **Links between the documents and the code** (the human, 2026-11-05). The documents link to files by relative links, which the name check of S0001 resolves; never a GitHub URL or a line anchor, which would go stale. The way back is one line per area, in the area package's docstring (S0007), not one per module. Rewriting the module docstrings for readability is left for later (`planning/f0051-candidates.md`, item 67).
