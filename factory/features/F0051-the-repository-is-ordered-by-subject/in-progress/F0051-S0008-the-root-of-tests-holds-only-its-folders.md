@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 563
 comments_read: [6649815295]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T04:40:51.872568Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-05T04:40:51.872568Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-05T04:41:35.625669Z'
+  stage: doing
+  run: d06b83916de1422f9d3f49387f802fc1
 ---
 
 # The root of `tests/` holds only its folders
@@ -165,3 +167,26 @@ Expect: `support.bill_support`
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: I changed no code. This story's whole change is to tests, so it goes back to the tester.
+
+    - **What fails.** I ran `uv run pytest -q tests/guards/test_tests_layout.py`. Every failure is a module that has not moved yet:
+      - helpers still at the root;
+      - the root still holds files other than `conftest.py`;
+      - bare imports of the helpers;
+      - root test modules not yet in `tests/guards/`, `tests/operator_scripts/`, `tests/vm/` or `tests/agent_files/`.
+      Nothing under `src/` or the coder's other write paths is involved.
+    - **Why I did not move them.** The coder's write paths in the pipeline definition are `src/*`, `template/*`, `claude/*`, `vm/*` and `operator/...`, which do not include `tests/*`. The coder also never edits tests (R9). Any `git mv` or import-line change I made under `tests/` would be dropped from the take. The story's Interface puts these changes under the leave of feature decision 5, which the intake entry gives to the tester.
+    - **The change for the tester.**
+      1. Create the packages `tests/support/`, `tests/operator_scripts/`, `tests/vm/` and `tests/agent_files/`, each with a one-line `__init__.py` docstring. `tests/guards/` already exists.
+      2. `git mv` every root module except `conftest.py`:
+         - each non-`test_` helper to `tests/support/`;
+         - each test module by the human's rules (journal entry 4, answer 2).
+      3. Rewrite every bare helper import as `support.<name>`.
+      4. Fix each moved module's `Path(__file__)` walks (for example `parent` to `parents[1]`).
+      5. In the entry, record:
+         - the "imports most" placements;
+         - the `__file__` changes;
+         - the collected-test count after the moves, against 9955 before.
+    - **Rejected:** making the moves myself. They would be lost in the take, and they are test edits.
+    - **Noticed, not touched:** if `[tool.mutmut]` or another setting in `pyproject.toml` names root test paths, that change is the human's (Interface). Whoever finds one should ask with a question.
+    - **Not run:** I did not run `make test` or `make check`. Neither can turn green before the moves.
