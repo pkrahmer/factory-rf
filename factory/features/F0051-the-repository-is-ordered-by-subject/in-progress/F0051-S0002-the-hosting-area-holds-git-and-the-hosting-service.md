@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 557
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-05T01:05:48.021384Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-05T01:05:48.021384Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-05T01:06:11.767541Z'
+  stage: intake
+  run: 5e6779303a574eaf999e8c8cb8ee7694
 ---
 
 # The hosting area holds git and the hosting service
@@ -84,3 +86,12 @@ Expect: `1`
 
 1. 2026-11-05 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: concrete. It names 11 old to new module paths, 4 new source packages and the matching test packages, and says `AREAS` in `tests/test_areas.py` gains a `hosting` row. `tests/test_areas.py` exists (from S0001) and `src/factory/shared` exists.
+   - Criteria: each can be tested by one parametrized test.
+     - Criterion 1 has one row per module, with the import succeeding and the old file absent. Criterion 2 covers the 4 package imports and docstrings. Criterion 3 is a source scan of import lines, one row per module. Criterion 4 is a scan of the left-over test modules.
+     - The rules have their failing side: the old path must not exist (criterion 1) and no import of an old path may remain (criterion 3). Criterion 5 is `make check`. Criterion 6 is docs.
+     - Minor note: criterion 1 says "for `handlers`, the folder", but no table row is a folder and `src/factory/handlers` does not exist. I read it as a leftover. The tester should ignore it, and I did not turn it into a question.
+   - Smoke test: the three commands are runnable. pyproject's `addopts` already sets `-q`, and the pytest command passes none, so the summary line exists and `grep -c passed` gives `1`. Each `Expect:` can be checked against the output.
+   - Architecture: matches `CLAUDE.md` and feature decisions 1 to 4. Each module keeps its layer inside `factory.hosting`, and the layer rule is covered by the import-linter contracts that S0001 set.
+   - Scope: within F0051's scope (S0002, the hosting area). The story changes no behaviour, and the test moves rest on the leave of feature decision 5. Nothing in it is out of scope.
