@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 566
 comments_read: [6652891790, 6653046965]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-05T08:18:39.962387Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -110,6 +114,11 @@ journal:
   stage: doing
   run: cfb3ee3bcb8f426ebbde5c76b04d5f26
   reason: check_red
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-05T08:18:39.962387Z'
+  stage: doing
 ---
 
 # The agent files live in `agents/`
@@ -312,3 +321,4 @@ Expect: `1`
     ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[smoke-tester] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no agent fi...
     ERROR tests/agents/adapters/test_shipped_agents_effect.py::test_instructions_file_holds_the_agent_body[acceptance-reviewer] - factory.shared.domain.errors.AgentDefinitionMissing: agent intake: no a...
     make: *** [Makefile:89: test] Error 1
+19. factory: started doing as vm.
