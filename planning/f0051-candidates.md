@@ -91,6 +91,9 @@ Collected on 2026-11-04 from the eval of every F0050 story (`planning/f0050-eval
 
 59. **A test of documents cannot pass the check after `doing`.** F0051-S0009: the tester wrote a guard over the regrouped guide; only the documenter may write `docs/`, but the check after `doing` runs before the docs stage, so the coder's regrouping was dropped and the gate stayed red (one stall, about $1). The human let the coder write the guides for the rest of F0051. Fix to decide: a documents-only story skips `tests` and `doing` (candidate 46), or a guard over documents runs only in the docs stage's checks.
 
+60. **The intake does not try its criteria or check who may write.** F0051-S0009: the intake accepted criteria that could not pass (headings "exactly once" where five repeat, a search that two untouchable documents fail) and did not see that only the documenter writes `docs/`; the tester's question and the stall that followed cost about $1.5 and 30 min. Fix: `intake.md` asks for a dry run of every search criterion on `main` and a check that each changed path class is in the write paths of the role that must change it (candidate 51).
+61. **A flagged entry is found only by the next stage.** F0051-S0008: the factory committed a journal entry that `make secrets` then refused, and two later runs looked for the line ($0.53, 26 min). Fix: the factory scans each agent entry before it commits it and hands a flagged line back in the same run (with candidate 58).
+
 ## The repository is easier to navigate (the human, 2026-11-04)
 
 38. **`claude/` becomes `agents/`.** It holds the factory's agent files and `settings.json` in Claude Code's format, which the opencode runtime translates per run (decision of 2026-10-19, F0020-S0004); the name says one runtime. Touches `vm/Dockerfile`, the wiring, the coder's write paths in `factory/pipeline.yml`, the docs and tests.
