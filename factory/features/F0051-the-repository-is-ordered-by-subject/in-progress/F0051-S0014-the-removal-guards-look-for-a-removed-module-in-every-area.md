@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 569
 comments_read: [6655308033]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T10:20:48.068027Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-05T10:20:48.068027Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-05T10:25:54.884780Z'
+  stage: doing
+  run: bcbf6cc941a04f95bf0a2f1965ca289b
 ---
 
 # The removal guards look for a removed module in every area
@@ -321,3 +323,17 @@ Expect: `0`
 
     `lint`: lint: green (0.2 s)
 17. factory: started doing as vm.
+18. coder: Round 1: I built nothing. The tester's round-1 changes (journal 16) settle every finding in the review (journal 12). Those changes are: `SRC` from `support.source_search` in `areas()`, `string_literals` and `TESTS` reused in `tests/guards/test_removal_guards_search.py`, one `is_old_layer_path` in `tests/support/module_names.py` in place of the regex, and the three zero-side rows. All of them are under `tests/`, which is outside my write paths. Nothing under `src/` changes, as the Interface says.
+
+    What I did: I ran `make check` on the committed tree. It ended with `check: green` (`test: green (131.9 s)`, coverage 99.26 %).
+
+    Main choice: I handed forward to review unchanged. The alternative I rejected was going over the tester's helpers again, which is not mine to change. `git diff main -- . ':!factory' ':!tests'` and `git status --short` are both empty, so the refactor step had nothing to change.
+
+    Description: the journal did not change what the task means.
+
+    Noticed, not touched: nothing new.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
