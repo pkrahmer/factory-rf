@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 572
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-05T21:50:44.049380Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-05T21:50:44.049380Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-05T21:55:58.342600Z'
+  stage: doing
+  run: a66fb417f67a4cb38098e47a20b90b43
 ---
 
 # A story can take a second route to a second approval
@@ -111,3 +113,13 @@ Expect: `1`
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: Ran `make check` on the tester's commit: `check: green`, with `test: green (141.1 s)` and total coverage at 99.26 %. `tests/pipeline/application/test_docs_route.py` was already green before I did anything, so there were no failing tests to work from. I changed no code and wrote no files. The working tree is clean apart from the factory's own files.
+
+   - What I built: nothing. In the fake world, all the walks pass against today's code on the `TWO_ROUTES` definition: the docs route to a hand-over at `docs-approval`, the merge to `done/`, the close back to `docs-only`, the round cap at `docs-review`, the way back through `tests`, the unchanged code route, and the `is_before_approval` table. Nothing failed, so there was no fault to locate and no fix to name, as the Interface says.
+   - Main decision: leave `is_before_approval` (`factory.work.domain.acceptance`) and `send_back_target` (`factory.work.domain.send_back`) as they are. I rejected guarding them against other stage orders: no failing test asks for it, it is beyond the description, and it would be a new story (R13).
+   - Refactor: no diff, so nothing to refactor.
+   - Description: no journal entry changed the meaning of the task, so I left it as it is.
+   - Noticed but did not touch: the docs criterion (criterion 9) is still open for the docs stage.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 40 known, 3 gone
