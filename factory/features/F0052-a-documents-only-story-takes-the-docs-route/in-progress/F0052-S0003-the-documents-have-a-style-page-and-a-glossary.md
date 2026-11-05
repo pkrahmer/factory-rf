@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-05T23:01:53.351464Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-05T23:01:53.344731Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-05T23:01:53.351464Z'
+  stage: intake
+---
+
 # The documents have a style page and a glossary
 
 ## Description
@@ -34,3 +61,6 @@ grep -c "style.md\|glossary.md" docs/project-guide/README.md | awk '{print ($1 >
 Expect: `named`
 
 ## Journal
+
+1. 2026-11-05 human: created.
+2. factory: started intake as vm.
