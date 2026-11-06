@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T02:12:08.113561Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T02:12:05.409785Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:12:08.113561Z'
   stage: intake
 ---
 
@@ -81,3 +90,4 @@ Expect: `counted`
    5. Yes: a *Replaced* section ends at the next `##` heading, and a missing name after it is reported again.
    6. Yes: criterion 4's test also shows that the command reads `README.md`, `docs/operator-guide/` and `docs/project-guide/`, with one planted missing name in each.
    Smoke test: yes, make it print the number of findings, with `Expect:` a number alone.
+5. factory: started intake as vm.
