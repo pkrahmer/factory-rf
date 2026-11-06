@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T01:39:43.573036Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T01:39:43.565974Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:39:43.573036Z'
+  stage: intake
+---
+
 # The project guide says which lines of its index name a page
 ## Description
 
@@ -34,3 +61,6 @@ make documents 2>&1 | tail -1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
