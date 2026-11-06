@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T21:03:41.547198Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-06T21:03:36.319382Z'
   stage: tests
   run: 02f9739596c94ef699951f25502c6230
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-06T21:03:41.547198Z'
+  stage: doing
 ---
 
 # The document check's tests run on documents they write
@@ -189,3 +198,4 @@ Expect: `documents ok (<seconds> s)`
    - The listed rewrite of the Interface was clear enough that I needed no interpretation.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
