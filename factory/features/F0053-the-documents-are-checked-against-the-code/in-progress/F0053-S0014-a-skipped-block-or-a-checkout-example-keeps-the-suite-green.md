@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T19:31:08.857262Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-11-06T19:31:03.737402Z'
   stage: docs
   run: 0c8c9829aaf54ae6b353f035e2a25809
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-06T19:31:08.857262Z'
+  stage: smoke-test
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -353,3 +362,4 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
     `check`: check: green
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (0.6 s)
+23. factory: started smoke-test as vm.
