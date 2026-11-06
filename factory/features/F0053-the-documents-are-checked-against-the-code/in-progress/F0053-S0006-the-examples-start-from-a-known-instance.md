@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T09:03:12.463404Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-06T09:03:12.463404Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-06T09:03:49.334502Z'
+  stage: tests
+  run: 6f3ac62d58de4eb2b4b643be3e748a29
 ---
 
 # The examples start from a known instance
@@ -217,3 +219,27 @@ Expect: `1`
 
     The Description is unchanged: journal 11 changes a test import and adds an internal constant, not the meaning of the task.
 14. factory: started tests as vm.
+15. tester: I made the one test change the human approved in journal 11, which the coder named in journal 13. Nothing else in the tests changed.
+
+    The change is in `tests/hosting/adapters/test_instance_fixture.py::test_the_state_folder_holds_the_health_file_factory_health_reads`:
+    - I removed the import `from factory.entry.wiring import health_file`. The area guard (`tests/guards/test_areas.py:263`) forbids a test under `tests/hosting/` from importing `factory.entry`.
+    - The module now imports `HEALTH_FILE_NAME` from `factory.watching.adapters.health_file`.
+    - The test checks that `(Path(environment[STATE_VARIABLE]) / HEALTH_FILE_NAME).is_file()`. `STATE_VARIABLE` is the settings constant for `FACTORY_STATE`.
+
+    The test still checks criterion 4. No guard changed.
+
+    Criterion → test (all in `tests/hosting/adapters/test_instance_fixture.py`, unchanged except criterion 4's test):
+    - criterion 1: `test_the_commands_of_a_block_on_the_instance_print_what_a_valid_instance_prints[healthy]`
+    - criterion 2: `test_the_commands_of_a_block_on_the_instance_print_what_a_valid_instance_prints[a-wrong-instance-name-is-refused]`
+    - criterion 3: `test_the_environment_names_the_instance_docs_with_copied_snapshots_and_folders_inside`
+    - criterion 4: `test_the_state_folder_holds_the_health_file_factory_health_reads`
+    - criterion 5: `test_each_document_gets_a_fresh_instance_in_a_folder_of_its_own`
+    - criterion 6: `test_the_fixture_creates_no_path_outside_its_folder`
+    - criterion 7: `test_the_instance_s_remote_is_a_bare_repository_under_the_folder`
+    - criteria 8 and 9: no test (`make check`, docs).
+
+    Files: I created none this round and changed only `tests/hosting/adapters/test_instance_fixture.py`. I changed no earlier test file.
+
+    The one run, `uv run pytest -q tests/hosting/adapters/test_instance_fixture.py`, passed all 7 tests, because the coder's code is already in place. Every module imported. `make lint`: green (0.1 s). The coder runs `make check` next.
+
+    `lint`: lint: green (0.1 s)

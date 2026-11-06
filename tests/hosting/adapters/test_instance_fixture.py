@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from factory.entry.wiring import health_file
 from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.adapters.instance_fixture import InstanceFixture
 from factory.shared.adapters.document_examples import ProcessExampleRunner
@@ -17,6 +16,7 @@ from factory.shared.domain.settings import (
     SNAPSHOTS_VARIABLE,
     STATE_VARIABLE,
 )
+from factory.watching.adapters.health_file import HEALTH_FILE_NAME
 from support.document_texts import FENCE
 from support.git_support import run_git
 
@@ -103,7 +103,7 @@ def test_the_environment_names_the_instance_docs_with_copied_snapshots_and_folde
 def test_the_state_folder_holds_the_health_file_factory_health_reads(
     environment: dict[str, str],
 ) -> None:
-    assert health_file(Path(environment[STATE_VARIABLE])).is_file()
+    assert (Path(environment[STATE_VARIABLE]) / HEALTH_FILE_NAME).is_file()
 
 
 def test_each_document_gets_a_fresh_instance_in_a_folder_of_its_own(checkout: GitCli) -> None:
