@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 596
 comments_read: [6685329163]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T12:59:00.475682Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-06T12:59:00.475682Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-06T13:03:11.550596Z'
+  stage: doing
+  run: 8e33431235fc4d56b56e39a67634d09c
 ---
 
 # The example runner's tests use the roomy limit
@@ -144,3 +146,17 @@ Expect: `1`
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: I built nothing. The story only repairs tests, and the tester already made every change (journal 8). The Interface says no module under `src/` changes. `git diff main -- src` is empty and the working tree is clean.
+
+    I ran `make check` in the foreground and it is green: `test: green (104.8 s)`, `check: green`, with total coverage at 99.22 %. I spot-checked criterion 1: `grep -c ELAPSED_BOUND_SECONDS tests/shared/adapters/test_document_examples.py` prints `0`. I also spot-checked criterion 2: the smoke grep prints only `tests/support/check_documents_support.py:1`.
+
+    Main choice: I left the tests exactly as the tester wrote them and changed no code. The alternative I rejected was touching `src/` to tidy anything, which the Interface forbids.
+
+    Refactor step: there is no diff of mine to refactor, so nothing changed.
+
+    The journal did not change the meaning of the task after intake rewrote the Description, so I left the Description as it is.
+
+    Noticed but not touched: as the tester said, `tests/entry/test_check_documents_copies.py:20` still writes the literal `docs/checked-documents.txt`. No criterion covers it, and coders never edit tests.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
