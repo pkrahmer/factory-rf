@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 580
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-06T01:11:44.039583Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -76,6 +80,11 @@ journal:
   at: '2026-11-06T01:11:39.035056Z'
   stage: docs-only
   run: 7246e4c871d146449d233f1781bd13da
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:11:44.039583Z'
+  stage: docs-review
 ---
 
 # The project guide names the headings a check still requires
@@ -176,3 +185,4 @@ Expect: `documents ok`
     `check`: check: green (not run again: passed on tree 2503ea5b3c55 at 2026-11-06T01:07:59Z)
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok
+13. factory: started docs-review as vm.
