@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T19:58:15.579394Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-06T19:58:15.579394Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-11-06T19:58:40.742937Z'
+  stage: doing
+  run: 5c9ac453c4e84e93b1b3ff07c625b27b
 ---
 
 # Listing a right document keeps the suite green
@@ -169,3 +171,15 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
    - tests/entry/test_check_documents_suite_copy.py: the human's leave, feature decision 8, named in the story's Interface.
    - tests/support/check_documents_support.py: none needed. The change only adds `write_checked_list` and receives the moved helper, and leaves every helper the file held as it was.
 10. factory: started doing as vm.
+11. coder: Round 1. All three review findings are in test files that the tester wrote in this story. I don't edit tests, so I changed nothing and am sending the story back to the tester. Nothing under `src/` changes.
+
+    The change for the tester: in `tests/support/check_documents_support.py` and `tests/entry/test_check_documents_any_list.py`, replace the copied path constants with the ones in `factory.shared.domain.documents`. I checked that all three exist there:
+    1. Drop `CHECKED_LIST` (`tests/support/check_documents_support.py:32`). Use `CHECKED_DOCUMENTS` (`src/factory/shared/domain/documents.py:564`) in `write_checked_list` and everywhere in `tests/entry/test_check_documents_any_list.py` (lines 11, 32, 101, 117).
+    2. Drop `INSTALL` (`tests/support/check_documents_support.py:33`). Use `OPERATOR_INSTALL` (`documents.py:25`) in `drop_settings_row`.
+    3. In `tests/entry/test_check_documents_any_list.py`, replace `_INDEX` (line 21) with `OPERATOR_GUIDE` (`documents.py:24`), and the literal `"docs/operator-guide/install.md"` in `_NEWLY_LISTED` (line 23) with `OPERATOR_INSTALL`.
+
+    Every test keeps its name, its ids and what it checks.
+
+    Main decision: I sent this to the tester rather than making the edits myself. The alternative, editing the tests directly, is ruled out because the coder never changes tests. These are the tester's own files from this story, so the change needs no further leave from the human.
+
+    Noticed but not touched: `tests/support/check_documents_support.py:24-25` spells out `docs/operator-guide/` in the expected output text. That code was there before this story and the reviewer did not name it, so I left it. Criterion 6 (`docs/project-guide/shared.md`, *The settings check*) is still open for the docs stage. The journal did not change the meaning of the task, so the Description stays. I made no code change, so there was nothing to refactor and I did not run `make check` this round.
