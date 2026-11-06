@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T09:02:26.496824Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T09:02:23.965476Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:02:26.496824Z'
   stage: doing
 ---
 
@@ -179,3 +188,4 @@ Expect: `1`
     I noticed one thing and left it alone: `DEFAULT_FIXTURE` (`"checkout"`) lives in `shared.domain.documents`, while the name `"instance"` is a private constant in `check_documents.py`. It may be worth having one place for the fixture names later. No refactor needed beyond what is above.
 11. 2026-11-06 human: 1: end with `tests`. The tester changes criterion 4's test in its own new module to import `HEALTH_FILE_NAME` from `factory.watching.adapters.health_file` and check that `Path(environment["FACTORY_STATE"]) / HEALTH_FILE_NAME` is a file. No guard changes.
     And yes to the cleanup you noticed, in this story: the name `instance` becomes a public constant beside `DEFAULT_FIXTURE` in `factory.shared.domain.documents` (for example `INSTANCE_FIXTURE = "instance"`), and `check_documents` uses both, so the fixture names live in one place.
+12. factory: started doing as vm.
