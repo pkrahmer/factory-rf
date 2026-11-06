@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T02:12:08.113561Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-06T02:12:08.113561Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-06T02:12:32.622625Z'
+  stage: intake
+  run: a1db2cd2f186412e9bd23f987a89d05c
 ---
 
 # Every name a document writes in backticks exists
@@ -50,26 +52,27 @@ A document that names a module, a function or a file the code no longer has misl
 
 ## Interface
 
-- `factory.shared.domain.documents`: `named_references(text) -> list[Reference]` (pure), which finds the backticked names and paths of one document with their line numbers, and `unresolved(references, exists) -> list[str]`, which gives one finding per reference that `exists` refuses, as `<document>:<line>: <name> does not exist`. A relative link's target is a `Reference` too, resolved against the document's folder, with the part after a `#` left off.
-- The command `factory.entry.check_documents` gives `exists` its real meaning: a module or attribute found by `importlib`, a path found under the checkout.
-- A section headed `## Replaced from v1` or `## Replaced in v1.2` is not checked.
+- `factory.shared.domain.documents`: a frozen model `Reference(document: str, line: int, name: str, kind: Literal["module", "path", "link"])`; `named_references(document: str, text: str, top_level: frozenset[str]) -> list[Reference]` (pure), which finds the backticked names and paths of one document with their line numbers, and `unresolved(references: list[Reference], exists: Callable[[Reference], bool]) -> list[str]`, which gives one finding per reference that `exists` refuses, as `<document>:<line>: <name> does not exist`. A relative link's target is a `Reference` of kind `link` too, resolved against the document's folder (`../` included), with the part after a `#` left off.
+- A backticked text is a path when it contains `/`, has no whitespace, does not start with `/` or `~`, holds no `://`, and either its first segment is in `top_level` (the checkout's top-level entries, passed by the command) or its last segment has a file extension. A dotted name is a module reference only when it starts with `factory.`.
+- The command `factory.entry.check_documents` fills in `document` (the path relative to the checkout) and `top_level`, and gives `exists` its real meaning: a module or attribute found by `importlib`, a path found under the checkout. It reads `README.md`, `docs/operator-guide/` and `docs/project-guide/`.
+- A section headed `## Replaced from v1` or `## Replaced in v1.2` is not checked; it ends at the next `##` heading.
 - Tests: `tests/shared/domain/test_document_references.py` (the pure functions) and `tests/entry/test_check_documents_references.py` (the command over a temporary checkout).
 
 ## Acceptance criteria
 
-1. `named_references` finds `factory.a.b`, `factory.a.b.C.method` and a repository path such as `operator/vm/setup.sh` in backticks, with their lines; it leaves out a placeholder in angle brackets, a glob, an absolute path and anything inside a fenced block (one row per case).
-2. A document that names a missing module, a missing attribute or a missing path, or links to a missing file (`[x](../../src/factory/nothing.py)`), gets one finding each; a link to `https://...` or to `#a-heading` gets none, in the form of the Interface; existing ones get none (rows of one test).
-3. `docs/decisions.md`, `docs/runs/` and the two *Replaced* sections give no finding, whatever they name.
-4. The command prints the findings after today's findings of the document check, and its exit status does not change for them until S0004.
+1. `named_references` finds `factory.a.b`, `factory.a.b.C.method` and a repository path such as `operator/vm/setup.sh` in backticks, with their lines; `claude/agents/reviewer.md` with `top_level` lacking `claude` is a path; it leaves out a placeholder in angle brackets, a glob, an absolute path (`/srv/factory`, `/etc/...`), `origin/main`, `os.path`, and anything inside a fenced block (one row per case). A link target with a `#fragment` (`[x](a.md#h)`) is the reference `a.md`.
+2. A document that names a missing module, a missing attribute or a missing path, or links to a missing file (`[x](../../src/factory/nothing.py)`), gets one finding each; `[x](a.md#h)` with `a.md` missing is one finding; `../` is resolved from the document's folder (`docs/project-guide/`); a link to `https://...` or to `#a-heading` gets none, in the form of the Interface; existing ones get none (rows of one test).
+3. `docs/decisions.md`, `docs/runs/` and the two *Replaced* sections give no finding, whatever they name; a missing name after a *Replaced* section's end (the next `##` heading) is reported.
+4. The command prints the findings after today's findings of the document check, and its exit status does not change for them until S0004; it reads `README.md`, `docs/operator-guide/` and `docs/project-guide/`, shown by one planted missing name in each.
 5. `make check` stays green.
 6. docs: `docs/project-guide/shared.md`, *The document check*: the name check. `docs/operator-guide/pipeline.md`: none. `docs/decisions.md`: none (the feature's decisions go in at S0004).
 
 ## Smoke test
 
 ```bash
-uv run python -m factory.entry.check_documents | grep -c "does not exist" | awk '{print ($1 >= 0) ? "counted" : "error"}'
+uv run python -m factory.entry.check_documents | grep -c "does not exist"
 ```
-Expect: `counted`
+Expect: a number alone (the count of findings, possibly `0`)
 
 ## Journal
 
@@ -91,3 +94,9 @@ Expect: `counted`
    6. Yes: criterion 4's test also shows that the command reads `README.md`, `docs/operator-guide/` and `docs/project-guide/`, with one planted missing name in each.
    Smoke test: yes, make it print the number of findings, with `Expect:` a number alone.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answers (journal entry 4) carried into the story. I wrote exactly these, nothing of my own: the `Reference(document, line, name, kind)` model, `named_references(document, text, top_level)` and the path rule (point 1, 2) into the Interface; the extra rows in criterion 1 (`claude/agents/reviewer.md`, `origin/main`, `/srv/factory`, `os.path`, the `#fragment` link) from points 2 and 3; the rows in criterion 2 (`a.md#h` with `a.md` missing, `../` from the document's folder) from point 4; the end of a *Replaced* section at the next `##` in the Interface and criterion 3 (point 5); the three read locations in the Interface and criterion 4 (point 6); the smoke test now prints the finding count, with `Expect:` a number alone.
+   - Interface: names concrete modules and signatures (`factory.shared.domain.documents`, `factory.entry.check_documents`); it changes only `src` and tests, so the route is tests, not docs-only.
+   - Criteria: each is testable by a test function, and each rule has its failing side (missing module, attribute, path or link; exempt places; a name after a *Replaced* section is reported again).
+   - Smoke test: runnable (`grep -c` prints a number); the `Expect:` can be checked against the output. The command uses no pytest.
+   - Architecture: the pure rules in `shared.domain`, the I/O (`importlib`, filesystem, `top_level`) in `entry`, as CLAUDE.md asks.
+   - Scope: within the feature's S0001; `docs/decisions.md` and `docs/runs/` are excluded, as the feature's "Out of scope" says.
