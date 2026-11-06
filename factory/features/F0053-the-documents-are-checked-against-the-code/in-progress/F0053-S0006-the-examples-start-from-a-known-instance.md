@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T09:15:54.908746Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-06T09:15:49.482191Z'
   stage: review
   run: 443d83f0131c4b3aac8ac5faa78a0002
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:15:54.908746Z'
+  stage: docs
 ---
 
 # The examples start from a known instance
@@ -431,3 +440,4 @@ Expect: `1`
     1. `tests/hosting/adapters/test_instance_fixture.py:24`: `SETTINGS_FILE = "factory.env"` repeats `factory.hosting.adapters.instance_fixture.SETTINGS_FILE` (`src/factory/hosting/adapters/instance_fixture.py:25`). The tester chose to keep the criterion's own name in the test (journal 23). Importing the constant would leave one definition.
 
     Earlier tests: none needed. The diff only adds `tests/hosting/adapters/test_instance_fixture.py` (status `A`) and changes no test file that `main` already holds.
+28. factory: started docs as vm.
