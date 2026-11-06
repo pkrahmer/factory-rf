@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T12:33:57.193526Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T12:33:51.353640Z'
   stage: intake
   run: 729e9be60e814337a2697a060c9eea1b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:33:57.193526Z'
+  stage: tests
 ---
 
 # A configuration section without its settings table is a finding
@@ -65,3 +74,4 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
    - Docs criterion: it names what the reader must know (a guide without a counting table is a finding, not a silent pass) and in which section. It dictates no sentences.
    - Architecture: the change is in the shared domain layer. It is pure, with no I/O.
    - Scope: within the feature's settings check (S0002) and its decision 6. It is not in the feature's "Out of scope". The route is `tests` because the Interface changes `src` code.
+4. factory: started tests as vm.
