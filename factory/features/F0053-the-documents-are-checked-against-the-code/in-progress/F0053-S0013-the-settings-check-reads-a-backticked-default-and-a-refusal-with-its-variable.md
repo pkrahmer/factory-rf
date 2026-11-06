@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T13:38:04.245700Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-06T13:38:04.245700Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-11-06T13:38:16.640911Z'
+  stage: doing
+  run: 805e4910b447447c923f305f149a0d12
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -173,3 +175,6 @@ Expect: `0 []`
    Earlier tests:
    - `tests/shared/domain/test_document_settings.py`: none needed. The change only adds three tests and two imports, and every earlier test is as it was.
 10. factory: started doing as vm.
+11. coder: The reviewer added criterion 4, and only its test is missing: one more row in `tests/shared/domain/test_document_settings.py::test_refusal_pieces_are_checked_without_their_colons_and_spaces`. The row is the refusal `<variable>: is not a colour: <value>` against the source that holds `is not a colour`, and it expects no finding.
+
+    I changed no code. `_is_held` in `src/factory/shared/domain/documents.py` already strips whitespace and `:` from both ends of each piece, so the new row should pass once the tester adds it. Description: the reviewer's entry added criterion 4 and renumbered the last two criteria to 5 and 6; nothing else about the task changed.
