@@ -17,6 +17,7 @@ from factory.shared.domain.documents import (
     DEFAULT_FIXTURE,
     DOCUMENT_PATHS,
     INSTANCE_FIXTURE,
+    NO_COMMAND,
     OPERATOR_GUIDE_FOLDER,
     OPERATOR_INSTALL,
     PROJECT_GUIDE_FOLDER,
@@ -142,6 +143,10 @@ def _example_results(
     not_run: list[str] = []
     for document in documents:
         found = examples((root / document).read_text(encoding="utf-8"))
+        findings += [
+            GatedFinding(document=document, line=f"{document}:{line}: {NO_COMMAND}")
+            for line in found.without_command
+        ]
         if found.runnable:
             lines = runner.run_document(document, found.runnable, fixtures)
             findings += [GatedFinding(document=document, line=line) for line in lines]

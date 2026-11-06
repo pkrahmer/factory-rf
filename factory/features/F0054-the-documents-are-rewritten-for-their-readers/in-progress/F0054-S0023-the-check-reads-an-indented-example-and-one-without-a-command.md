@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 609
 comments_read: [6697578988]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T22:41:32.403983Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-06T22:41:32.403983Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-06T22:46:35.986904Z'
+  stage: doing
+  run: ddf3b1cfbea5456b9047a1d68cecdb34
 ---
 
 # The check reads an indented example and one without a command
@@ -130,3 +132,29 @@ Expect: `1 echo hi`
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: I made the 13 red rows pass without changing a test. `make check` is green (`check: green`).
+
+    What I built:
+    - `src/factory/shared/domain/documents.py`:
+      - The new `_block_lines` removes the opening fence's indentation from each line of a block, using `str.removeprefix`. A line indented less than its fence keeps what it has, and line numbers do not change.
+      - `_commands` returns `[]` for a block with no `$ ` line. Before, it crashed with the strict `zip` error.
+      - `examples` sends such a block to a new field, `Examples.without_command`, which holds the fence line of each block without a command. Such a block is neither runnable nor skipped.
+      - The finding's text is the new public constant `NO_COMMAND`.
+    - `src/factory/entry/check_documents.py`, `_example_results`: it turns each line in `without_command` into a `GatedFinding` `<document>:<line>: the example has no command`. These go to the same `split_findings` path as the runner's findings, so they block in a listed file and are reported in any other.
+
+    The Interface says "no other module changes", but the entry tests for criteria 2 and 3 need `main` to print the finding. The Interface also says it goes "through the same path as the other example findings", and that path is in the entry module. So this four-line change there is unavoidable; please judge whether it is acceptable.
+
+    Main design decision: the domain reports blocks without a command as a list of fence lines, and the entry formats the finding with the document name, the way it already formats the "not run" lines. I rejected two alternatives:
+    - Reporting such a block as a `Skipped` kind: the entry would print it as "not run (...)" in the report and never block on it.
+    - Building finding strings in `examples`: it does not know the document's path.
+
+    Refactor: I read my diff once and found nothing to change.
+
+    The smoke-test command was refused by the shell's permission check, so I did not run it. The tester's indented rows in `tests/shared/domain/test_document_examples.py` check the same thing (`echo hi` from a block indented three spaces) and pass.
+
+    Noticed, not touched: an unclosed `console` block still reads to the end of the document, as before.
+
+    The journal did not change the meaning of the task beyond what intake already carried into the Description.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
