@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T20:07:50.446610Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-11-06T20:07:44.941933Z'
   stage: docs
   run: fb692a7be1fe448394741f781a85a95b
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:07:50.446610Z'
+  stage: smoke-test
 ---
 
 # Listing a right document keeps the suite green
@@ -316,3 +325,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     `check`: check: green
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (0.6 s)
+20. factory: started smoke-test as vm.
