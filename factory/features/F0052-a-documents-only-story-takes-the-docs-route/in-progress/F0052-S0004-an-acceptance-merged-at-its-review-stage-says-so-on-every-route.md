@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 577
 comments_read: [6672901695]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T00:16:41.052718Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-06T00:16:41.052718Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T00:17:47.372125Z'
+  stage: review
+  run: a45988830328409587a7023e4ea698f8
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -236,3 +238,14 @@ Expect: `True True False`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 40 known, 3 gone
 15. factory: started review as vm.
+16. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`, which covers five files. The code change is `is_before_approval` in `src/factory/work/domain/acceptance.py:309-327`. It keeps the `KeyError` and `ValueError` paths. It gives `False` for an approval stage, follows `next[0]` with a visited set, and returns `True` when it reaches an approval stage. It returns `False` at a stage without `next` or on a loop. That matches every rule of the Interface. The rows of criteria 1, 3 and 5 test what they are named after. The factory's `make check` after the coder was green (entry 14). Architecture holds: a pure domain rule, no new import. Security: nothing to report, no silencing marker.
+
+    Findings:
+    1. `tests/work/domain/test_acceptance_before_approval_routes.py:43-55` (`SINGLE_ROUTE`), `:73-83` (`WITHOUT_APPROVAL`) and `:8-16` (`ROLES`): these copy `FIXTURE` and `_without_approval` of `tests/work/domain/test_acceptance_before_approval.py:17-57`. Criterion 2 itself says to use the single-route definition of that file. Fix: the tester moves `FIXTURE` and the definition without an approval stage to a module in `tests/support/`, under the standing leave to move a shared test helper. Both modules then import them from there, and every earlier test keeps its name and what it checks.
+    2. `tests/work/domain/test_acceptance_before_approval_routes.py:26-41` (`SHIPPED`): this is a second copy, as a dict, of the stages of `TWO_ROUTES` in `tests/support/two_routes_support.py`. The two can drift apart without any test noticing. Fix: build `SHIPPED` from `TWO_ROUTES` through the pipeline reader, as `test_docs_route.py:263` does, or keep one shared source for both.
+    3. `tests/work/domain/test_acceptance_before_approval_routes.py:107-112` and `:126-137`: `test_the_single_route_keeps_its_results` and `test_an_unknown_stage_or_a_definition_without_approval_is_refused` repeat the same rows as the earlier tests at `tests/work/domain/test_acceptance_before_approval.py:60-79`. Those earlier tests already pin criteria 2 and 4 on the same definitions. Fix: drop the two duplicates and map criteria 2 and 4 to the earlier tests. Or, if the tester keeps them here, they must at least share the definitions as finding 1 says.
+    4. `src/factory/pipeline/domain/pipeline_definition.py:109-111` (`PipelineDefinition.position`): this diff removed the method's only caller under `src/`, so it is now dead code. Only the earlier test `tests/pipeline/adapters/test_pipeline_yaml.py:78-80` still calls it. Fix: remove the method. Removing the earlier test `test_position_is_the_index_in_the_stages` with it needs the human's leave, so the coder asks first (R8). The other option is to keep the method with a recorded reason and an accepted entry in `security/duplicates-baseline.txt`.
+    5. The work item's acceptance criterion 7: it does not name `tests/support/two_routes_support.py`. `docs/project-guide/README.md` (*Shared test helpers*) says that a story adding a support module names it in that list through its docs criterion, and the human asked for it in entry 8. The documenter writes from the criterion, so the module would be left out. Fix: add to criterion 7 that `docs/project-guide/README.md`'s shared-helper list names `tests/support/two_routes_support.py` and `TWO_ROUTES`, the two-route definition in the shipped order.
+
+    Earlier tests:
+    - `tests/pipeline/application/test_docs_route.py`: changed under two leaves. Its `TWO_ROUTES` moved to `tests/support/two_routes_support.py` under the standing leave to move a shared test helper. The row `("acceptance", False)` became `("acceptance", True)` in `test_only_the_docs_routes_working_stages_lie_before_the_approval`, under the human's leave: feature decision 7, named in the story's Interface. No other change.
