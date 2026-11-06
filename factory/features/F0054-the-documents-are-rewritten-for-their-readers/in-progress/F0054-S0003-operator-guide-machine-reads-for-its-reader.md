@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 611
 comments_read: [6698650455]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-06T23:35:30.561856Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -74,6 +78,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T23:35:28.001875Z'
+  stage: docs-review
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:35:30.561856Z'
   stage: docs-review
 ---
 
@@ -231,3 +240,4 @@ Expect: `1`
     Criterion 2: I found no name, command, setting or rule dropped beyond the two history sentences that round 0 already named. No *Reference* section was added.
 12. 2026-11-06 human: (A), and the rule goes into the style page in this story, so that the later pages of the rewrite meet it without asking: a command that acts on a real machine or a cloud account, where no run can be copied, stands in an `sh` block of bare commands, without `$ ` and without output, under its numbered step, and the text above it says where it runs. A command an agent can run stays a `console` block with its output; one copied from a real run stays `console vm` with the run named. The documenter adds this to `docs/project-guide/style.md`, *Runnable examples* (one short paragraph, by the style page's own rules), and this story's Description counts as amended by this answer.
     And yes to findings 1 to 7 as you wrote them: bare commands in every unrun block, the long sentences split, the environment file's table in the four columns, the copied `setup.sh` with the first run's arguments for the idle shutdown, and one italic heading per reference.
+13. factory: started docs-review as vm.
