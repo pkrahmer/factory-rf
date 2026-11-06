@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T21:25:55.907291Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-06T21:25:50.719749Z'
   stage: review
   run: 6d9b2e37e9ef47c9b81197c0d421c1bb
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-06T21:25:55.907291Z'
+  stage: docs
 ---
 
 # The document check's tests run on documents they write
@@ -458,3 +467,4 @@ Expect: `documents ok (<seconds> s)`
     - `tests/entry/test_check_documents_todays_names.py`: the human's leave, feature decision 10.
     - `tests/support/documents_copy_support.py` (deleted): the human's leave, feature decision 10.
     - `tests/support/document_texts.py`: the standing leave to move a shared test helper (`CLAUDE.md` *Tests*). The shared module now reads the code's tables when called, so that it can replace the copy in the new support module. Every builder keeps its name and signature, and gives the same text when nothing is patched, so every earlier test that uses it checks the same thing.
+28. factory: started docs as vm.
