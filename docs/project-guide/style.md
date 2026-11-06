@@ -70,6 +70,8 @@ Add a mark to the info string for an example that needs more than the check cont
 
 A `vm` example comes from a real run, and the text above it says where it ran. A block that runs the whole suite (`make check`, `make test`, or `pytest` without a test file, also after `uv run`) is skipped without a mark, so that the docs stage does not grow with the suite. `uv run pytest <file>` is run.
 
+A command that acts on a real machine or a cloud account, where no run can be copied, stands in an `sh` block of bare commands, without `$ ` and without output, under its numbered step. The text above the block says where it runs. An `sh` block is never run. A command an agent can run stays a `console` block with its output, and one copied from a real run stays `console vm` with the run named.
+
 The report lists every skipped block as `<document>:<line>: not run (<kind>)`, with the kind `vm`, `github`, `model` or `suite`. A block with another info string, such as `markdown` or none, is never run.
 
 ## The operator guide
