@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 580
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T01:11:44.039583Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-11-06T01:11:44.039583Z'
   stage: docs-review
+- number: 14
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T01:12:04.054887Z'
+  stage: docs-review
+  run: 6589ef4d94624e6c95d4ab3dcdaad0b7
 ---
 
 # The project guide names the headings a check still requires
@@ -186,3 +188,19 @@ Expect: `documents ok`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok
 13. factory: started docs-review as vm.
+14. reviewer: Round 1 review of `git diff main...HEAD -- README.md docs operator/README.md`. The diff changes only `docs/project-guide/README.md`, *The files*.
+
+    The round-0 finding is fixed. The lead-in "The folder holds these pages:" now separates the list of headings that keep their names from the list of pages, so they render as two lists. The new line does not start with "- `", so the guard does not read it as a page entry. Entry 12 shows the guard test passing and `documents ok`.
+
+    Facts: I did not check the eight existing headings, the document check's sections or the `setup.sh` messages again. They are unchanged since my round-0 check (entry 10). In this round I checked one new thing: the reason given for *Replaced from v1* is true. Rule 1 of `docs/project-guide/style.md` forbids "replaced in" notes and version names, and rule 7 asks for the current truth only.
+
+    Criteria:
+    - Criterion 1 is met: all nine headings are named, each with its file and its reason, and *Replaced from v1* is "wherever it stands" and "may be removed … but not renamed".
+    - Criterion 2 is met: the sentence now reads "Headings are free except these".
+    - Criterion 3 is met (checked in round 0).
+    - Criterion 4 is met: entry 12 shows `documents ok`.
+    - Criterion 5 is met: `make check` was green on tree 2503ea5b3c55. That run came before the one-line document change, and the factory reused its result.
+
+    Writing: no sentence in the change runs much past about 25 words. Each sentence has at most one parenthesis. There is no history wording. The paths are written in the page's own form, with code paths and no links.
+
+    no findings
