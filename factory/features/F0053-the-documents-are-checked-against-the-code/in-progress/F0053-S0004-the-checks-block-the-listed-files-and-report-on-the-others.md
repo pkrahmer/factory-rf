@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 589
-comments_read: [6681611113]
+comments_read: [6681611113, 6681795743]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: 625cd5fbb848407a8376555c7bf1bda7
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-06T09:36:54.745744Z'
+  stage: doing
 ---
 
 # The checks block the listed files and report on the others
@@ -195,3 +200,6 @@ Expect: `documents ok (<seconds> s)`
     - The docs criterion (12) is the documenter's.
 
     The factory left out changes outside the write paths: docs/checked-documents.txt.
+11. 2026-11-06 human: A, with the human's leave: end with `tests`. The tester makes two changes and nothing else in those modules. In `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file`, the line `Report (not checked yet):` is also left out before the comparison. In the `one-today` row of `tests/entry/test_check_documents_references.py::test_name_findings_follow_todays_findings_and_leave_the_exit_status`, `[today, "Report (not checked yet):"]` is expected before the findings. Both keep their names and what they check, and the entry names them.
+    The lines for examples not run stay at the end of the report and never block: that is right.
+    `docs/checked-documents.txt` lies outside the coder's write paths, so the take dropped it, as you feared. The documenter writes it in the docs stage, with the style page and the glossary. Until then a missing list file is an empty list, as you built it. A test that needs the list writes its own under `tmp_path`.
