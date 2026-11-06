@@ -38,7 +38,7 @@ A definition may hold more than one route and more than one approval stage; a cl
 
 ### The docs route
 
-A story that changes only documents (`README.md`, files under `docs/`, `operator/README.md`) skips the tests, doing and review stages. The intake chooses the route: `docs-only` when every path the story's Interface changes is one the documenter may write, otherwise `tests`. The documenter writes the whole change and runs `make documents`; the reviewer reads the documents against the story's criteria and the code, and against the style page, `docs/project-guide/style.md`, once it exists. It then sends the story to `docs-approval`, where you decide, or back to the documenter with numbered findings.
+A story that changes only documents (`README.md`, files under `docs/`, `operator/README.md`) skips the tests, doing and review stages. The intake chooses the route: `docs-only` when every path the story's Interface changes is one the documenter may write, otherwise `tests`. The documenter writes the whole change and runs `make documents`. `make check` runs after `docs-only`, or is reused only when no document that a test reads changed. The reviewer reads the documents against the story's criteria and the code, and against the style page, `docs/project-guide/style.md`, once it exists. It then sends the story to `docs-approval`, where you decide, or back to the documenter with numbered findings.
 
 If the documenter finds that the story needs more than documents, it hands the story to the tests stage and says what is needed; the story then takes the normal route. The route works only when your pipeline definition holds the stages `docs-only`, `docs-review` and `docs-approval` and the intake's `next` lists `docs-only`; the agents do nothing on it without them.
 
@@ -50,16 +50,16 @@ An unknown key is refused with `pipeline_definition_invalid`. That includes `too
 
 ```yaml
 project_commands:
-  check: {time_limit: 10, not_read: ["README.md", "docs/*.md"]}
+  check: {time_limit: 10, not_read: ["notes/*.md", "docs/runs/*"]}
 ```
 
 A pattern that cannot name a path inside the checkout (empty, starting with `/` or `~`, holding a `..` segment, or holding `{` or `}`) stops the definition from loading: `project command lint: not_read /etc/* must be a path pattern inside the checkout`. `not_read` is what lets a known result survive a change: the paths it names are left out of the tree that the key holds (see "The known results" in [health.md](health.md)), so a change only there is no reason to run the command again. List only what the command does not read at all. A linter, formatter or type checker that walks the whole tree reads every source file in every folder, so leave out file types it does not read, never a whole folder. A forgotten path costs one run; a path listed by mistake can let a reused `check` pass a fault.
 
-kumpel-factory's own definition, `factory/pipeline.yml`, takes this, and only Markdown and JSON Lines files, because `make lint` reads every Python file of the tree, wherever it lies:
+kumpel-factory's own definition, `factory/pipeline.yml`, takes this, and only the Markdown and JSON Lines files that no test reads, because `make lint` reads every Python file of the tree, wherever it lies. `README.md` and `docs/` stay in the key: the guide guards under `tests/guards/` and other tests of `make test` read the real documents, so a documents-only change can turn `make check` red. Of `docs/` only `docs/runs/*` is left out, which no test reads.
 
 ```yaml
 project_commands:
-  check: {time_limit: 8, not_read: ["README.md", "docs/*.md", "factory/features/*.md", "factory/features/*.jsonl", "factory/stops.jsonl", "planning/*", "session-logs/*"]}
+  check: {time_limit: 8, not_read: ["docs/runs/*", "factory/features/*.md", "factory/features/*.jsonl", "factory/archive/*", "factory/stops.jsonl", "planning/*", "session-logs/*"]}
 ```
 
 Two warnings:

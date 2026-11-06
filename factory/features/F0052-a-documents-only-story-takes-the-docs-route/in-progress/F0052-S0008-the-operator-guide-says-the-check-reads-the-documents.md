@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 582
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T01:29:21.777039Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-06T01:29:21.777039Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T01:32:30.300201Z'
+  stage: docs-only
+  run: 66dbc02f03014a8188a8924851a6b6a2
 ---
 
 # The operator guide says that the check reads the documents
@@ -85,3 +87,22 @@ Expect: `documents ok`
    - Scope: it matches `feature.md` *The human's changes* ("Before S0008's start"). The rewrite of the rest of `pipeline.md` is expressly left for the next feature.
    - Note for the documenter: the live `check:` line is `{time_limit: 8, not_read: [...]}` and also lists `factory/archive/*`. The guide's block must copy the line exactly.
 4. factory: started docs-only as vm.
+5. documenter: Changed files:
+   - `docs/operator-guide/pipeline.md`: the paragraph "kumpel-factory's own definition" now says that only Markdown and JSON Lines files no test reads are left out. It names the guide guards under `tests/guards/` and the other `make test` tests as the reason `README.md` and `docs/` stay in the key, and says only `docs/runs/*` of `docs/` is left out. The `yaml` block now holds the `check:` line copied from `factory/pipeline.yml`.
+   - `docs/operator-guide/pipeline.md`, *The docs route*: one sentence added saying `make check` runs after `docs-only`, or is reused only when no document a test reads changed. The rest of the section is unchanged.
+   - `docs/operator-guide/pipeline.md`, the generic `not_read` example above the paragraph: it listed `"docs/*.md"`, which the smoke test's grep (expects 0) counts, and it would have read as advice to leave the documents out. I changed it to `["notes/*.md", "docs/runs/*"]`. This goes slightly beyond the Interface, so the reviewer should check it.
+   - `docs/decisions.md`: under *A known result is not checked again*, a Decision line that a test reads the documents so `not_read` keeps them in, and a `Rejected:` line for moving the guide guards into `make documents`. Both come from the criterion 6 text. The story gives no reason beyond that, so I wrote no "Reasons" line.
+
+   Checks run:
+   - The smoke test's grep returns 0.
+   - The diff of the `check:` line returns `same`.
+   - `make documents` prints `documents ok`.
+   - I did not run `make check`, as only documents changed.
+
+   Cross-read and found current: the other operator-guide files were not searched beyond a grep for `not_read` and `documents`. `docs/project-guide/` was not touched, as the criterion says it does not quote the definition.
+
+   Stale text I noticed but did not touch: the "Two warnings" bullet in `pipeline.md` says the docs stage runs `secrets` with nothing left out. The rewrite of the docs route is left for the next feature, so I did not check whether that bullet is still accurate.
+
+   `check`: check: green
+   `secrets`: secrets: green (1.3 s)
+   `documents`: documents ok
