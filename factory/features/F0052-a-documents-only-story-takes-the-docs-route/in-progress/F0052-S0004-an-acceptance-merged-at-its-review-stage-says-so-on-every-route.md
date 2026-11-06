@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695, 6673109567]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T00:33:29.815005Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-06T00:33:29.815005Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T00:33:54.259423Z'
+  stage: smoke-test
+  run: 951f9792ada04abd87bc9c2f289a1176
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -449,3 +451,19 @@ Expect: `True True False`
     `secrets`: secrets: green (2.0 s)
     `documents`: documents ok
 30. factory: started smoke-test as vm.
+31. smoke-tester: I ran the smoke test's one command from the repository root, exactly as written. It met its expectation, and I found nothing that contradicts the work item.
+
+    Command 1: parse the shipped `factory/pipeline.yml` and call `is_before_approval` on `acceptance`, `docs-review` and `docs-approval`.
+
+    ```
+    True True False
+    ```
+
+    Expect: `True True False`. Met.
+
+    Checking the acceptance criteria again:
+    - The output agrees with criterion 1 for the three stages it covers: `acceptance` and `docs-review` lie before the approval, and `docs-approval` does not.
+    - Criterion 7 also holds. I searched `src/` and found no `def position` and no `.position(` call left. `docs/project-guide/pipeline.md` no longer names `position(stage)` or the rule that a route's stages must be listed before the first approval stage. `docs/project-guide/README.md` lists `support/before_approval_support.py` and `support/two_routes_support.py`. `docs/decisions.md` has an entry titled "Before the approval" is read from the forward moves.
+    - The smoke test does not reach criteria 2 to 6: the other tables, the fake-world merge and `make check`. The factory's checks and the earlier stages cover those, and nothing I saw contradicts them.
+
+    Findings: none.
