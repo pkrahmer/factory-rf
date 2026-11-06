@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -91,6 +91,11 @@ journal:
   at: '2026-11-06T01:50:55.127359Z'
   stage: docs-review
   run: a3b68eadaea44a8b9e54de9ad051f580
+- number: 16
+  speaker: factory
+  kind: done
+  at: '2026-11-06T01:52:56.814427Z'
+  stage: docs-approval
 ---
 
 # The project guide says which lines of its index name a page
@@ -187,3 +192,4 @@ Expect: `documents ok`
     Writing: round 1's finding is fixed. The 35-word sentence is split, and the backwards "so that" clause is gone. The last sentence ("A list item that starts with a name in backticks, … and the guard fails when no such page exists.") is about 27 words. It has a cause and its effect, close to the wording round 1 proposed. I did not count it as a finding. The first new sentence has one idea and was accepted in rounds 0 and 1.
 
     no findings
+16. factory: done (pull request merged); cost: 7 runs, 2.5 min, 35 turns, 119274 tokens in (494627 more from cache), 10132 out, $0.95
