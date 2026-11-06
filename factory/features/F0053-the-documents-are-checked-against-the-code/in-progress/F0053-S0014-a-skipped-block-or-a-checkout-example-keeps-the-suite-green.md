@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T19:23:34.465960Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-06T19:23:34.465960Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-06T19:27:44.425524Z'
+  stage: doing
+  run: 98805114f2ce48dca3fc8ff378eb5d12
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -272,3 +274,17 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
 
     `lint`: lint: green (0.2 s)
 17. factory: started doing as vm.
+18. coder: Round 1. I built nothing and changed no code. The tester made all three of the reviewer's findings from entry 12 in entry 16, and the Interface forbids any change under `src/factory/`. The working tree has no change of mine.
+
+    What I did: I ran `make check` on the branch with the tester's changes and it is green. The last lines were `test: green (100.9 s)` and then `check: green`. That is inside the Interface's ten-second allowance: before was 106.8 s on `main` and after was 105.6 s, both from entry 10.
+
+    Main choice: I handed forward to review without touching anything. The alternative I rejected was going over the tester's helper moves again myself. I checked finding 1 in round 1, and the fixes are changes to test files, which the coder does not make.
+
+    Refactor step: nothing to change. My diff against `main` holds only tests, and the coder does not edit tests.
+
+    Noticed, not touched: `tests/entry/test_check_documents_copies.py` keeps a private `_append_example` around the shared `append_block`, as the tester describes in entry 16. The reviewer may want to confirm it is not a leftover copy.
+
+    The journal changed nothing in the Description.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
