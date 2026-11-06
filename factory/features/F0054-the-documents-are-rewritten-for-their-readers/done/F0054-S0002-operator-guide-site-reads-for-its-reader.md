@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 3
 attempts: 0
@@ -113,6 +113,11 @@ journal:
   at: '2026-11-06T23:16:26.093957Z'
   stage: docs-review
   run: 2147bf3b39404036af44acc99ccb19be
+- number: 20
+  speaker: factory
+  kind: done
+  at: '2026-11-06T23:20:20.507367Z'
+  stage: docs-approval
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -346,3 +351,4 @@ Expect: `1`
     no findings
 
     Open, for the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules were meant, so I left the Description as it is.
+20. factory: done (pull request merged); cost: 9 runs, 11.1 min, 86 turns, 363583 tokens in (2795387 more from cache), 66912 out, $3.77
