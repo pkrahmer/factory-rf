@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 586
 comments_read: [6675609802]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T02:58:20.069603Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-06T02:58:20.069603Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-06T02:59:06.021521Z'
+  stage: tests
+  run: c86e053805c24193a32f60118b22394b
+  blocked: question
 ---
 
 # The operator guide's settings agree with the settings code
@@ -108,3 +111,14 @@ Expect: `True`
    - Architecture: the models sit in the shared domain layer, the functions are pure, and nothing needs I/O.
    - Scope: the story is inside the feature's settings check and not in its Out of scope. `install.md` stays unchanged.
 7. factory: started tests as vm.
+8. tester: stopped before writing any test. I can't write the tests against the Interface as it stands without guessing at names and signatures, so I wrote no files and did not run `make test` or `make lint`.
+
+   1. **How a refusal table is recognised and checked (criterion 4).** `GuideTable` has only `header` and `rows`. It does not record the heading it sits under, so `settings_findings(guide_tables, settings)` cannot tell whether a `Refusal` table is under `The refusals`. The signature also takes no settings source, so a pure function cannot check pieces against `factory.shared.domain.settings`. Options:
+      (a) Add `heading: str` to `GuideTable` and a third parameter, `settings_source: str`, to `settings_findings`. The tests pass the source text, or a fake one.
+      (b) A separate pure function, `refusal_findings(guide_tables: list[GuideTable], settings_source: str) -> list[str]`. The parser keeps only the tables under `The refusals`.
+      (c) `settings_findings` reads the module source itself, which would make it impure.
+      I would choose (a). Then criterion 4's rows construct `GuideTable(heading="The refusals", header=("Refusal", …), rows=…)` with a small fake source, and a table under another heading gives no finding.
+   2. **The Markdown parser has no public name.** The Interface says `GuideTable` is "parsed from the Markdown by a pure function" but does not name it or its signature. No criterion tests the parser directly, but criterion 4's heading rule depends on it. I would name it `guide_tables(text: str, section: str) -> list[GuideTable]`: the tables inside the section `section` and its subsections, each with its nearest heading. It is fine to leave it untested beyond criterion 5 if you prefer.
+   3. **The form of a finding (criteria 2, 4, 5).** The tests would check only that each finding is one string that contains the setting's name (or the refusal text). Criterion 5 would build a copy of the docs in `tmp_path` whose install.md drops one setting's row, run `factory.entry.check_documents.main(["--root", …])`, and check two things: a printed line names that setting, and the exit status is the same as with the row present. Tell me if criterion 5 should instead run on the repository's own guide. Today it may give no settings finding at all, so a test of "today's guide gives findings" could not be checked.
+
+   Criteria 1 to 3 are clear. Once 1 and 2 are answered, they map to `tests/shared/domain/test_settings_table.py::test_settings_table_names_what_read_settings_reads` and `tests/shared/domain/test_document_settings.py::{test_name_and_default_mismatches_are_findings, test_table_with_another_first_column_is_ignored, test_refusal_texts_are_checked_against_the_settings_source}`, plus a `tests/entry/` test for criterion 5.
