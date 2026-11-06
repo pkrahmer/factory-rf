@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 597
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T13:09:43.724652Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T13:09:43.724652Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T13:10:02.971236Z'
+  stage: intake
+  run: 06d5f702d1f54155bde6f14630985d05
 ---
 
 # The guides say what shapes the checks read
@@ -58,3 +60,10 @@ Expect: a number greater than `0`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names only `docs/project-guide/style.md` and `README.md`, both paths the documenter may write; no module under `src/` changes, so the route is docs-only.
+   - Criteria: criterion 1 names the facts to check against the code (header cells `Name` and `Default`, the install.md *Configuration* section, `The refusals` with first column `Refusal`, backticked text, `<placeholder>`). I confirmed `_SETTINGS_FIRST_COLUMNS` (`Name`, `Variable`), `_DEFAULT_COLUMN` and `_REFUSAL_FIRST_COLUMN` in `src/factory/shared/domain/documents.py`. Criterion 2 is checkable by reading `README.md`, and `Report (not checked yet):` matches `_REPORT_HEADING` in `src/factory/entry/check_documents.py`. Criteria 3 and 4 are commands. No Interface behaviour or rule lacks a criterion, because the Interface states none beyond the file list.
+   - Smoke test: both commands are `grep -c` runs with checkable expectations (a number greater than 0). No pytest command is involved.
+   - Docs criterion: it names what each reader must know (the table shapes the settings check compares; what the document check checks and that it blocks only listed files) and dictates no sentences. The operator guide is explicitly left unchanged.
+   - Architecture: documents only, so nothing is placed in code. The project guide and README are written by the documenter.
+   - Scope: it fits feature F0053 (the documents are checked against the code). It rewrites no operator-guide content and changes no checks, so it stays out of "Out of scope". It is not listed in the feature's Stories section, which names S0001 to S0007. I did not treat that as blocking, since it was started from `backlog/` by the human.
