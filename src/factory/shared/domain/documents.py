@@ -1,8 +1,9 @@
 """The check of the documents and the project guide's files: sections, rows, phrases, words."""
 
+import posixpath
 import re
 from collections.abc import Callable, Mapping, Sequence
-from typing import Final
+from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -87,6 +88,19 @@ _TABLE_ROW_PREFIX = "|"
 _GUIDE_FILE_NAME = re.compile(r"[^/]+\.md")
 # A word character or a hyphen: next to an entry, it makes the entry part of a longer word.
 _WORD_EDGE = r"[\w-]"
+UNCHECKED_SECTIONS: Final = ("Replaced from v1", "Replaced in v1.2")
+_BACKTICKED = re.compile(r"`([^`]+)`")
+_LINK_TARGET = re.compile(r"\]\(([^)\s]+)")
+_MODULE_NAME = re.compile(r"factory(\.\w+)+")
+_FILE_EXTENSION = re.compile(r".+\.\w+")
+_PLACEHOLDER_OR_GLOB = ("<", ">", "*")
+_WEB_ADDRESS = "://"
+_FRAGMENT = "#"
+_PATH_SEPARATOR = "/"
+_HOME = "~"
+_MAIL_PREFIX = "mailto:"
+
+ReferenceKind = Literal["module", "path", "link"]
 
 
 class DocumentFinding(BaseModel):
@@ -96,6 +110,17 @@ class DocumentFinding(BaseModel):
 
     document: str
     message: str
+
+
+class Reference(BaseModel):
+    """A name, path or link target one line of a document names, which must exist."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    document: str
+    line: int
+    name: str
+    kind: ReferenceKind
 
 
 def _table_rows(text: str) -> list[str]:
@@ -235,4 +260,83 @@ def check_documents(texts: Mapping[str, str | None]) -> list[DocumentFinding]:
         DocumentFinding(document=document, message=message)
         for document in documents
         for message in _messages(document, texts.get(document))
+    ]
+
+
+def _is_path(text: str, top_level: frozenset[str]) -> bool:
+    if _PATH_SEPARATOR not in text or any(character.isspace() for character in text):
+        return False
+    if text.startswith((_PATH_SEPARATOR, _HOME)) or _WEB_ADDRESS in text:
+        return False
+    segments = text.rstrip(_PATH_SEPARATOR).split(_PATH_SEPARATOR)
+    return segments[0] in top_level or _FILE_EXTENSION.fullmatch(segments[-1]) is not None
+
+
+def _backticked_kind(text: str, top_level: frozenset[str]) -> ReferenceKind | None:
+    if any(marker in text for marker in _PLACEHOLDER_OR_GLOB):
+        return None
+    if _MODULE_NAME.fullmatch(text) is not None:
+        return "module"
+    if _is_path(text, top_level):
+        return "path"
+    return None
+
+
+def _link_name(document: str, target: str) -> str | None:
+    if target.startswith((_FRAGMENT, _PATH_SEPARATOR, _MAIL_PREFIX)) or _WEB_ADDRESS in target:
+        return None
+    if any(marker in target for marker in _PLACEHOLDER_OR_GLOB):
+        return None
+    relative = target.split(_FRAGMENT, 1)[0]
+    return posixpath.normpath(posixpath.join(posixpath.dirname(document), relative))
+
+
+def _line_references(
+    document: str, number: int, line: str, top_level: frozenset[str]
+) -> list[Reference]:
+    references: list[Reference] = []
+    for text in _BACKTICKED.findall(line):
+        kind = _backticked_kind(text, top_level)
+        if kind is not None:
+            references.append(Reference(document=document, line=number, name=text, kind=kind))
+    for target in _LINK_TARGET.findall(line):
+        name = _link_name(document, target)
+        if name is not None:
+            references.append(Reference(document=document, line=number, name=name, kind="link"))
+    return references
+
+
+def _checked_lines(text: str) -> list[int]:
+    exempt: set[int] = set()
+    for found in sections(text):
+        if found.heading in UNCHECKED_SECTIONS:
+            exempt.update(range(found.start, found.end))
+    lines = split_lines(text)
+    return [index for index in lines_outside_blocks(lines) if index not in exempt]
+
+
+def named_references(document: str, text: str, top_level: frozenset[str]) -> list[Reference]:
+    """The backticked `factory.` names and repository paths and the relative links of a document.
+
+    Fenced blocks and the sections under `UNCHECKED_SECTIONS` are left out; a path counts
+    when its first segment is in `top_level` or its last segment has a file extension, and
+    a link's target is resolved against the document's folder, without its fragment.
+    """
+    lines = split_lines(text)
+    return [
+        reference
+        for index in _checked_lines(text)
+        for reference in _line_references(document, index + 1, lines[index], top_level)
+    ]
+
+
+def unresolved(references: list[Reference], exists: Callable[[Reference], bool]) -> list[str]:
+    """One finding per reference that `exists` refuses, in their order.
+
+    Each reads `<document>:<line>: <name> does not exist`.
+    """
+    return [
+        f"{reference.document}:{reference.line}: {reference.name} does not exist"
+        for reference in references
+        if not exists(reference)
     ]

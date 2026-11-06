@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 585
 comments_read: [6674965185]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T02:14:52.333588Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-06T02:14:52.333588Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-06T02:20:07.301341Z'
+  stage: doing
+  run: d0cdf849536f49a9a34cc1a509d497fa
+  blocked: question
 ---
 
 # Every name a document writes in backticks exists
@@ -140,3 +143,32 @@ Expect: a number alone (the count of findings, possibly `0`)
 
    `lint`: lint: green (0.2 s)
 9. factory: started doing as vm.
+10. coder: I stopped with the code written and `make check` red. Two tests fail because of the tests themselves, not the code, and I may not change either one.
+
+    What I built (left in the working tree):
+    - `src/factory/shared/domain/documents.py`: `Reference`, `named_references`, `unresolved` and `UNCHECKED_SECTIONS` (the two *Replaced* headings). The fenced-block and section helpers come from `factory.shared.domain.sections`. A link's name is its target, resolved against the document's folder without its `#fragment`.
+    - `src/factory/entry/check_documents.py`: prints today's findings (or `documents ok`), then the name findings, and keeps the exit status as today's findings set it. It reads `README.md` and every `*.md` file under `docs/operator-guide/` and `docs/project-guide/`. `top_level` holds the root's entries. A module name exists when its longest importable prefix (found through `importlib`) has the rest as attributes. A path or link exists when it lies under the root and exists there.
+    - With those, the new tests are green: `tests/shared/domain/test_document_references.py` and `tests/entry/test_check_documents_references.py`. lint, types, layers, sast, secrets and licenses are green too, and coverage is 99 %.
+
+    Failures in `make check` (from `--tb=short`):
+    1. `tests/guards/test_agent_folder_names.py::test_no_file_names_the_old_agent_folder[claude/agents/]`: `E AssertionError: assert ['tests/share...eferences.py'] == []`, `E Left contains one more item: 'tests/shared/domain/test_document_references.py'`. The guard refuses any file that names the old agent folder. The new test's row `path-with-extension-outside-top-level` writes that folder's name literally, as criterion 1 asks. The guard file itself avoids this by building the name from parts.
+    2. `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file`, all six rows, e.g. `[as-it-is]`: `E AssertionError: assert 'documents ok...s not exist\n' == 'documents ok\n'` at `tests/entry/test_check_documents_operator_guide.py:97`. Its fixture copies only the documents into `tmp_path`. Every repository path they name (`operator/vm/setup.sh`, `src/factory/...`) is therefore missing there, and criterion 4 asks the command to print those findings. The tester predicted this failure in entry 8. That test belongs to another story, so changing it needs your leave.
+
+    Question, for both:
+    - (1) I propose the tester, whose own test file this is, builds the string from parts in that row (`"claude" + "/agents/reviewer.md"`), as `test_agent_folder_names.py` does. The other option is an exception in the guard, which I would not choose.
+    - (2) Options:
+      - (a) The test compares only the lines that do not end in ` does not exist`, so it still checks exactly today's output and exit status.
+      - (b) Its fixture also copies or symlinks the top-level folders the documents name, so the name findings match the real repository's.
+      - (c) The command prints name findings only behind a flag. I rule this out because it contradicts criterion 4.
+
+      I would choose (a), and I would end with `tests` naming both changes.
+
+    Noticed, not touched: on the real repository the command prints 152 name findings, and the smoke test prints `152`. Many are false positives of the agreed path rule:
+    - example paths in prose (`src/a/b.py`, `docs/a.txt`)
+    - paths of the project the factory runs on (`project/factory/pipeline.yml`, `factory/agents/`)
+    - paths relative to `tests/` (`support/*_support.py`)
+    - pytest node ids (`tests/...py::test_...`)
+    - `$XDG_CONFIG_HOME/...`
+    - the unit name `factory.service`, which reads as a module
+
+    These are for S0004 to settle; the exit status does not change for them now. The refactor step is not done yet, because `make check` is not green.
