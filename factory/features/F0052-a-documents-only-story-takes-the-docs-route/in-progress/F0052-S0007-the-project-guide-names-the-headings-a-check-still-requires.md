@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 580
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T01:04:23.762263Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T01:04:23.762263Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T01:04:39.265523Z'
+  stage: intake
+  run: 77da8bd4626f4feab22947f9ebb9f5f1
 ---
 
 # The project guide names the headings a check still requires
@@ -61,3 +63,9 @@ Expect: `documents ok`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names one document, `docs/project-guide/README.md` (*The files*, the sentence at line 15 that says "headings are free"), with the nine headings and their files spelled out; no code, no test. The documenter may write it.
+   - Criteria: criterion 1 (nine headings, each with its file and reason), criterion 2 (the unqualified "headings are free" is gone), criterion 3 (each named heading exists today; I checked the eight present ones, and *Replaced from v1* has no section now, which the story allows with "wherever it stands" and "may be removed") and criterion 4 (`make documents` prints `documents ok`) are each testable by one check. This is a failing-side rule: criterion 2 covers the old wording being removed. Criterion 5 and the `docs:` criterion close the list.
+   - Smoke test: both commands run as written. `make documents` is not pytest, so the `-q` rule does not apply. Each `Expect:` can be checked (a count of at least 1; `documents ok`). The first Expect is weak, since it counts matching lines and not all nine headings, but it is checkable.
+   - Architecture: documents only, no layer or area is touched.
+   - Scope: within F0052's goal (the docs route and the guide's rewrite). It is the proposed S0007 from the acceptance, and it is not in "Out of scope". Route: docs-only, because the only path the Interface changes is `docs/project-guide/README.md`.
