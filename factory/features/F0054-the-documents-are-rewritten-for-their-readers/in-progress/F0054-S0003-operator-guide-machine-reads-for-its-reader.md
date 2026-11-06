@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 611
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T23:31:39.635672Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,13 @@ journal:
   kind: started
   at: '2026-11-06T23:31:39.635672Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: question
+  at: '2026-11-06T23:33:38.384786Z'
+  stage: docs-review
+  run: 022a0f3263ba45479e6a6ecc2539882e
+  blocked: question
 ---
 
 # The operator guide's the machine reads for the operator
@@ -200,3 +203,24 @@ Expect: `1`
    `secrets`: secrets: green (0.5 s)
    `documents`: documents ok (2.3 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 docs-review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md` (`docs/operator-guide/machine.md`, `docs/checked-documents.txt`) and judged them against the code, the criteria and `docs/project-guide/style.md`. The round-0 fixes are in. The two links (`work-items.md` *A restart during a stage*, `health.md` *The hosting-service token*) resolve. I checked these claims against the code and found them true: `ExecStopPost=-/usr/bin/podman stop --filter label=factory.instance=%i` and `Restart=always`/`RestartSec=15` (`operator/vm/factory.service:15-17`), the drop-caches command (`src/factory/machine/adapters/zfs_snapshots.py:16`), and `FACTORY_IDLE_SHUTDOWN_MINUTES` default `0` with blank read as off (`src/factory/shared/domain/settings.py:176,512-523`). `make documents` passes (entry 9).
+
+    Question for the human. No stage can settle it.
+
+    The Description says: "Every command the file shows is a runnable example or is marked for the VM, GitHub or a model". The style guide says a `vm` block "comes from a real run, and the text above it says where it ran". In round 1 the documenter turned every VM, cloud and own-computer command into an unrun `sh` block with no output (`machine.md:5`; for example 115, 141, 247, 264, 341, 378, 416-524, 596-605, 610, 628, 636-665). Such a block is neither runnable nor marked, so the Description is not met. No agent can copy a real run of `gcloud projects create`, `sudo sh setup.sh` or `podman build`. The options I see:
+    - (A) Allow unrun command blocks for commands that need a real machine or a cloud account, and amend this story's Description to say so. The wording would be: "...or, when it acts on a real machine or cloud account and no run can be copied, stands in an `sh` block of bare commands without `$ ` and without output, and the text above it says where it runs." The style guide's own operator-guide example already shows unrun commands under numbered steps. A later story could put the rule into `style.md`.
+    - (B) Keep the Description. The human runs the commands on `factory-vm`, and the documenter copies each into a `console vm` block with its output and names the run. One-time commands such as the project, budget and VM creation cannot be run again for this.
+    - (C) Put the commands inline in the numbered steps (`run \`...\``), with no blocks. This avoids the rule rather than meeting it.
+
+    I would choose (A).
+
+    Whichever you choose, the documenter's next round must also fix these findings:
+    1. `docs/operator-guide/machine.md:116,142,248,265,379-381,417-424,429-432,437-439,444-445,450-454,467-471,477-481,488-491,496-499,505-509,516-517,523-524,612` against `:170,342,348-349,597,604,628,638-644,654-655,663-665`: the `sh` blocks mix two forms. Some prefix every command with `$ `, some do not. Line 5 says they show no output, so the `$ ` lines read like transcripts with their output missing. Fix: use one form in every unrun block, the one your answer names (bare commands under (A)).
+    2. `machine.md:3`: the sentence is about 60 words long, and its list is broken: "...[stop] and [work item], [claim], [cost record], [crash] and [role]" has two "and"s. Fix: one list with one final "and", split into two sentences (rule 2).
+    3. `machine.md:68`: the first sentence is about 45 words long and holds two parentheses, "(`--network=host`)" and "(reachable from host-network and bridge containers, ...)" (rule 2). Fix: split it, and make the reachability note its own sentence.
+    4. `machine.md:21,119,149` (last sentence)`,153,198,253,307` (step 5)`,315` (step 13)`,330,370,376,484,549,585,589`: each of these lines still holds a sentence of about 40 to 70 words. Line 549 also has two parentheses in its first sentence (rule 2: about 25 words, at most one parenthesis). Fix: split each into sentences of one idea.
+    5. `machine.md:388-408` (the environment file's variables): this is a settings table, but it is headed `Variable | Value`, while the Description and the style guide want `Name`, `What it does`, `Default`, `Example`. Fix: rebuild it with those four columns. Use the value the script writes as the default, and add what each variable does or a link to its row in `install.md` *Configuration*.
+    6. `machine.md:597` (*The idle shutdown*, "Turning it on and off", step 1): the step runs `sudo sh operator/vm/setup.sh --device /dev/sdb ...` from a checkout on the VM. `machine.md:651` says "Root runs nothing from `/srv/factory/vm/factory`", and the rebuild runs `sudo sh setup.sh` from your own copy with the first run's arguments (`:663-664`). Fix: tell the reader to run their copied `setup.sh` with the arguments of the first run plus `--idle-shutdown 30`, as in step 5 of *The rebuild after a merge*.
+    7. `machine.md:473`: the reference `(see *The script*, "The two passes")` mixes italics and quotes, while every other reference in the file is one italic heading. Fix: `(see *The two passes*)`.
+
+    Criterion 2: I found no name, command, setting or rule dropped beyond the two history sentences that round 0 already named. No *Reference* section was added.
