@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T09:15:54.908746Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-06T09:15:54.908746Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T09:18:48.958317Z'
+  stage: docs
+  run: dc342ab8cbea49cd8a9fbca76332779c
 ---
 
 # The examples start from a known instance
@@ -441,3 +443,22 @@ Expect: `1`
 
     Earlier tests: none needed. The diff only adds `tests/hosting/adapters/test_instance_fixture.py` (status `A`) and changes no test file that `main` already holds.
 28. factory: started docs as vm.
+29. documenter: I wrote the documentation the docs criterion (11) asks for and found nothing in the code that contradicts the Interface or the criteria.
+
+    Files changed:
+    - `docs/project-guide/style.md`, *The fixture*: it now describes both fixtures. `checkout` is the default. `instance` is a fresh valid instance for each document, named `docs`, with `FACTORY_SNAPSHOTS=copy`. It lists what the instance holds (a settings file `factory.env`, a state folder with a healthy health file, a bare remote, the empty agent home, workspace and copy base) and says that every path lies in the document's temporary folder. It says how to see a refusal by setting a variable on the command, and that the stage image is a placeholder. It also says that a command needing the hosting service has no fixture and is marked `console github`.
+    - `docs/project-guide/shared.md`, *The examples*: a bullet for `InstanceFixture` (what `prepare` builds, `GitCli.clone_bare`, `HEALTH_FILE_NAME`, `INSTANCE_FIXTURE`, `GitError` becoming `FixtureError`). The bullet on `check_documents` now says it wires the runner and the two fixtures.
+    - `docs/decisions.md`: a new entry, *The production code has no fake hosting service for the documents*. Its Why is the human's decision of 2026-11-05 that the production code gets no switch for tests. Its Rejected line is the `world` fixture behind `FACTORY_HOSTING=fake`, which the criterion names.
+
+    I wrote no `console` example block, so none was run. I ran `uv run python -m factory.entry.check_documents`. It ends `documents ok`, and its count of "does not exist" findings is 152, the same as on the unchanged branch. My first draft added one finding, for the file name `factory.env` written in backticks, so I wrote that name without backticks. I did not run `make check`, because I changed only documents.
+
+    Cross-read and found current: the fixture and example-runner parts of `docs/project-guide/shared.md`, `docs/project-guide/hosting.md` and `docs/project-guide/pipeline.md` (the `health.json` name and the `Boundaries` fixture), and `docs/operator-guide/health.md` (`factory-health`).
+
+    Stale text noticed and not touched (not this story's):
+    - The name check already lists 152 "does not exist" findings. Examples are `docs/project-guide/operator.md:21`, `docs/project-guide/work.md:13` and `work.md:186`. Only the document findings set the exit status, so `make documents` stays green.
+    - The reviewer's note about `SETTINGS_FILE` repeated in the test is for the tester or coder, not for me.
+    - The coder's note stands: the stage image and image id are placeholders, so a container-starting example is not possible yet.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.7 s)
+    `documents`: documents ok (0.4 s)
