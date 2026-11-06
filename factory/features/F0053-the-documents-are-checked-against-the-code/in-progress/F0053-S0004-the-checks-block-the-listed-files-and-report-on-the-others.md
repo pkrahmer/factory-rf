@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T09:29:25.114973Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-06T09:29:19.677546Z'
   stage: tests
   run: f83c76cb0fd3459f936643d8dbad3fc2
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:29:25.114973Z'
+  stage: doing
 ---
 
 # The checks block the listed files and report on the others
@@ -150,3 +159,4 @@ Expect: `documents ok (<seconds> s)`
    Module the test run could not import: `factory.shared.domain.documents.read_checked_documents`.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
