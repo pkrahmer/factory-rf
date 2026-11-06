@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-11-06T13:46:23.565101Z'
   stage: smoke-test
   run: 18863897ac5e4650abc37e1a661274f1
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-11-06T13:48:15.811425Z'
+  stage: approval
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -314,3 +319,4 @@ Expect: `0 []`
     I read the acceptance criteria again. The output agrees with criterion 3, which is the one the command targets, and contradicts none of the others. Criteria 1, 2 and 4 are table rows that the smoke test does not run. Criterion 5 (`make check`) is the factory's gate, and criterion 6 (docs) is a document criterion that the command does not read.
 
     Findings: none. I fixed nothing, and nothing is open.
+22. factory: done (pull request merged); cost: 10 runs, 7.6 min, 48 turns, 176721 tokens in (789494 more from cache), 16598 out, $1.72
