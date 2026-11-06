@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-11-06T21:29:31.856669Z'
   stage: smoke-test
   run: 0e635cd1b0bd43ff89b4a3b221980034
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-11-06T21:31:24.464487Z'
+  stage: approval
 ---
 
 # The document check's tests run on documents they write
@@ -525,3 +530,4 @@ Expect: `documents ok (<seconds> s)`
     - The smoke test contradicts no criterion. Criteria 1–4 and 6–7 are left to the tests and to the factory's `make check`; I did not run them here.
 
     Findings: none.
+32. factory: done (pull request merged); cost: 14 runs, 22.7 min, 140 turns, 403986 tokens in (4734509 more from cache), 72419 out, $5.19
