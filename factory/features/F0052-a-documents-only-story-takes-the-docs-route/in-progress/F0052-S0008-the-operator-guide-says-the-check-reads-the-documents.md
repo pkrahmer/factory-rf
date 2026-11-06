@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 582
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T01:29:00.534908Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T01:29:00.534908Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T01:29:16.805324Z'
+  stage: intake
+  run: ab9062fcb97d4c248f6f1e8be4ba1a2a
 ---
 
 # The operator guide says that the check reads the documents
@@ -66,3 +68,10 @@ Expect: `documents ok`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete places, all documenter paths (`docs/operator-guide/pipeline.md`, its "kumpel-factory's own definition" paragraph and yaml block, and *The docs route*; `docs/decisions.md`). No code or test changes, so the route is docs-only.
+   - Criteria: criteria 1 to 3 are each checkable by reading the document. Criterion 1 compares the `check:` line character for character with `factory/pipeline.yml`, and a block that still lists `"README.md"` or `"docs/*.md"` fails it, so both sides are covered. Criterion 2 has the positive side (names the tests) and the negative side (no longer says every Markdown file is left out). Criterion 3 is one sentence plus "rest unchanged". Criteria 4 and 5 are the gates.
+   - Smoke test: the commands are runnable. The grep expects `0` and the diff expects `same` against the real `check:` line, which `factory/pipeline.yml:10` already holds after the human's change; the guide still has the old block at line 62. `make documents` expects `documents ok`. No pytest command is involved.
+   - Architecture: documents only, inside the documenter's write paths. `docs/project-guide/` is rightly left alone.
+   - Scope: it matches `feature.md` *The human's changes* ("Before S0008's start"). The rewrite of the rest of `pipeline.md` is expressly left for the next feature.
+   - Note for the documenter: the live `check:` line is `{time_limit: 8, not_read: [...]}` and also lists `factory/archive/*`. The guide's block must copy the line exactly.
