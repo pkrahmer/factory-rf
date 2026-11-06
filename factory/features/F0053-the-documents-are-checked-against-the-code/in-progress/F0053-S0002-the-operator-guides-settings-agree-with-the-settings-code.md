@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T03:00:57.953996Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T03:00:55.495035Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T03:00:57.953996Z'
   stage: tests
 ---
 
@@ -130,3 +139,4 @@ Expect: `True`
 9. 2026-11-06 human: 1. (b), with the heading: `GuideTable` gets `heading: str`, the nearest heading above it, and `refusal_findings(guide_tables: list[GuideTable], settings_source: str) -> list[str]` is a separate pure function that checks the tables headed `The refusals` with first column `Refusal`. `settings_findings(guide_tables, settings)` keeps its signature and checks only the settings tables. The command passes the source text of `factory.shared.domain.settings`; the tests pass a small fake source. A `Refusal` table under another heading gives no finding (one row).
    2. Yes: `guide_tables(text: str, section: str) -> list[GuideTable]`, the tables inside `section` and its subsections, each with its nearest heading. Give it one test of its own: two tables under two headings come back with their headings.
    3. Yes, as you propose: a finding is one string containing the setting's name or the refusal text. Criterion 5 runs on a copy in `tmp_path` whose `install.md` drops one setting's row, and checks that a printed line names that setting and that the exit status is the same as with the row present.
+10. factory: started tests as vm.
