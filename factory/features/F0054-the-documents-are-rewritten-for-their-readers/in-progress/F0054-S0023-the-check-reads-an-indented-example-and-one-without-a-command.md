@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 609
 comments_read: [6697578988]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T22:39:05.960744Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-06T22:39:00.812571Z'
   stage: intake
   run: 6b09def657a4483891f0cd8612b3835a
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:39:05.960744Z'
+  stage: tests
 ---
 
 # The check reads an indented example and one without a command
@@ -94,3 +103,4 @@ Expect: `1 echo hi`
    - Docs criterion: it names what the reader must know (an indented example under a step, at least one `$ ` command, the indentation removal, the new finding) and dictates no sentences.
    - Architecture: the change is domain-only in the shared area, with no new dependency.
    - Scope: it fits F0054. It is the code-fault follow-up story that the feature's Out of scope calls for.
+7. factory: started tests as vm.
