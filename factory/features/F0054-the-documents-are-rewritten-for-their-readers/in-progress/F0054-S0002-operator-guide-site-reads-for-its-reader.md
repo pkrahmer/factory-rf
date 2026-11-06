@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T22:56:30.294569Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-06T22:56:30.294569Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:00:28.504605Z'
+  stage: docs-only
+  run: 19a3c910cef4445ab675d63ef8012ca9
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -77,3 +79,34 @@ Expect: `1`
    - Architecture: nothing in `src` changes. This is a document rewrite on the docs route, checked by the F0053 document checks.
    - Scope: it is S0002 of F0054, which lists it. It stays inside the feature's scope (one file rewritten and added to the checked list). It touches none of the feature's out-of-scope files (`docs/decisions.md`, `docs/runs/`, `docs/operator-playbook.md`) and changes no behaviour.
 4. factory: started docs-only as vm.
+5. documenter: Rewrote `docs/operator-guide/site.md` for the operator and added it to `docs/checked-documents.txt`. `make documents` ends with `documents ok (1.9 s)`. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/operator-guide/site.md`: the whole file, rewritten.
+     - Headings that other files link to are kept: *The site file*, *The keys*, *Sanitising what leaves the machine*, *Setting up an operator's machine*, *Repeating a trial*, *Telling Kumpel's acts from the human's*.
+     - Intro: new, for an operator who does not read the code. It links `instance`, `work item` and `stop` to the glossary.
+     - Tasks: now numbered steps. The place, the site commands, the repeat-a-trial reset and the machine setup were already steps or lists; the "Its place" paths are now a numbered list.
+     - Failures: given as what you see, what it means and what you do. This covers the sanitise rule faults, the reset refusals and the `site check` table.
+     - Keys: the table now has the columns Name, What it does, Default and Example. The Example values come from `operator/site.env.example`.
+     - *Reference*, new section at the end: loader and `site` statuses, return codes of the hosting library, the three built-in sanitiser rules, the `sanitise check` exit statuses, and `KUMPEL_POLL_SECONDS` and `KUMPEL_ARCHIVE_WAIT` as a settings table.
+     - Examples: the site, token and sanitise examples and the no-site-file `site check` example are now `console` blocks and were run by `make documents`. The two `reset-to-tag.sh` blocks are marked `console github` and are not run, and they show no output because I have not seen it.
+     - Content: I added two things from `operator/site.env.example`: the format of `SITE_INSTANCE`, and that `SITE_REPOSITORY` and `SITE_CHECKOUT` are always required. I moved no rule out of the file and dropped none on purpose.
+   - `docs/checked-documents.txt`: one new line, `docs/operator-guide/site.md`.
+
+   Cross-read and found current:
+   - `docs/operator-guide/cloud-run.md`, `README.md` (operator guide), `docs/project-guide/operator.md` and the repository `README.md`: every link to `site.md` points to a heading that still exists.
+   - `docs/operator-guide/stops.md`: opened only for the link I added to it. I did not read it for stale text.
+
+   For the reviewer:
+   - I did not compare the old file's claims against the shell scripts line by line. I carried the old text over, and checked only that `operator/site.env.example` agrees with the keys table. Please spot-check the statuses and messages in the *Reference* against `operator/lib/` and `operator/bin/`.
+   - I wrote the loader status table in *Reference* from the old prose, not from a new reading of the scripts.
+   - `KUMPEL_POLL_SECONDS` and `KUMPEL_ARCHIVE_WAIT` are in a table with an Example column, with the defaults the old text gave (15 and 300).
+
+   Stale text I saw and left alone:
+   - `make documents` prints many `does not exist` lines for `docs/project-guide/*.md`, for example `README.md:127` and `agents.md:146`. They are in files not on the checked list. They are unrelated to this story.
+
+   No findings for the coder.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (2.2 s)
