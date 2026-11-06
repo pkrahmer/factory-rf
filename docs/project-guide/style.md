@@ -47,7 +47,12 @@ A finding says `<document>:<line>: the example printed <line>`, where the line i
 
 ### The fixture
 
-The info string may name the starting point of the folder: `console fixture=<name>`. The only one today is `checkout`, which is also the default: a copy of the repository's tracked files at the checked commit. The commands never run in the real checkout. A name that does not exist is a finding, `no fixture <name>`.
+The info string may name the starting point of the folder: `console fixture=<name>`. There are two. A name that does not exist is a finding, `no fixture <name>`. The commands never run in the real checkout or the real state.
+
+- `checkout` is the default: a copy of the repository's tracked files at the checked commit.
+- `instance` is a valid instance, built fresh for each document, named `docs` (`FACTORY_INSTANCE=docs`, `FACTORY_SNAPSHOTS=copy`). Its folder holds a settings file (named factory.env, one `NAME=value` line for each variable), a state folder with a healthy health file, a bare remote of the checkout and empty folders for the agent home, the workspace and the copy base. Every setting the fixture makes is in the environment of the block's commands, and every path lies in the document's temporary folder, so `$FACTORY_STATE` names a state in which `factory-health --state-directory "$FACTORY_STATE"` prints `healthy`. Set a variable on the command, such as `FACTORY_INSTANCE=Factory-1 factory-run`, to see the refusal that setting gives. The stage image and its id are placeholders that the settings check accepts; an example cannot start a container.
+
+A command that needs the hosting service has no fixture: mark its block `console github`, and the check lists it and does not run it.
 
 ### Examples that are not run
 

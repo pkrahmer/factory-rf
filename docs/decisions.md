@@ -1614,3 +1614,11 @@ Date: 2026-11-06 (F0052-S0004).
 - Decision: `is_before_approval` (`factory.work.domain.acceptance`) follows the first `next` of each stage and answers `True` when that chain reaches an approval stage. It no longer compares the stage's position with the first approval stage in the file. `PipelineDefinition.position` is removed, because no code calls it any more.
 - Why: the docs route lists `docs-approval` before `acceptance`, so by position an acceptance was no longer before the approval, and the early merge of an acceptance got the ordinary entry instead of `done (pull request merged before approval)`.
 - Rejected: reordering `factory/pipeline.yml` so that every approval stage comes last. That would put a rule into the file's order that nothing checks.
+
+## The production code has no fake hosting service for the documents
+
+Date: 2026-11-06 (F0053-S0006).
+
+- Decision: the documents' examples get two fixtures, `checkout` and `instance`. A command that needs the hosting service, such as `factory-watch` with a story in progress, has no fixture: its block is marked `console github` and only listed.
+- Why: the human decided on 2026-11-05 that the production code gets no switch for tests.
+- Rejected: a `world` fixture behind `FACTORY_HOSTING=fake`, which would put a fake hosting service into the production wiring.

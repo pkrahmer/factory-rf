@@ -383,6 +383,13 @@ class GitCli(Git):
             prefix = f"{folder.absolute()}{os.sep}"
             self._run(["checkout-index", "--all", f"--prefix={prefix}"], index=index)
 
+    # Not an operation of `Git` either: only the examples' instance fixture makes a remote, and
+    # it holds a `GitCli`.
+    def clone_bare(self, destination: Path) -> None:
+        """Clone the bound working copy as a bare repository at `destination`."""
+        source = str(self._directory.absolute())
+        self._run(["clone", "--bare", "--quiet", source, str(destination.absolute())])
+
     def work_tree_id(self, left_out: Sequence[str] = ()) -> TreeId:
         """Stage the work tree in a temporary index, drop the paths left out, write its tree."""
         with tempfile.TemporaryDirectory() as folder:
