@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 587
 comments_read: [6679620269]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T07:29:03.790530Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-06T07:29:03.790530Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-06T07:30:00.894290Z'
+  stage: tests
+  run: b81caa3c331d4e8aa9601f79214aa9c1
+  blocked: question
 ---
 
 # A document's marked examples are run by the check
@@ -114,3 +117,31 @@ Expect: `1`
    - Architecture: this fits. Pure code is in shared domain, interfaces in shared application, the process adapter in shared adapters, git in hosting adapters, wiring in entry. Processes start only through `factory.shared.adapters.process`.
    - Scope: this is within the feature's S0003. It leaves out the `instance` fixture (S0006) and blocking (S0004). The route is `tests` because the Interface changes `src` code.
 7. factory: started tests as vm.
+8. tester: I wrote no tests. The Interface leaves the following open, and the tests would otherwise decide each one. I read `factory.entry.check_documents`, `factory.shared.domain.documents`, `factory.shared.adapters.process` and `tests/entry/test_check_documents.py`.
+
+   1. An existing test conflicts with criterion 7. `tests/entry/test_check_documents.py::test_clean_documents_print_documents_ok_and_return_zero` asserts the output is exactly `"documents ok\n"`. Today `documents ok` is printed first, before the name and settings findings. Criterion 7 wants `documents ok (<seconds> s)` as the last line. That test belongs to another story, so changing it needs your leave. Options: (a) I change its assertion to the output's last line matching `documents ok (<n> s)`; (b) the coder keeps the old line too. I would choose (a).
+
+   2. Which documents have their examples run? (a) The documents `_named_documents` already reads: `README.md` and every `*.md` under `docs/operator-guide/` and `docs/project-guide/`. (b) Only `DOCUMENT_PATHS` and the guide files. I would choose (a). In both cases the document is named by its path relative to the root.
+
+   3. Names and shapes the tests need:
+      - (a) `Example` fields. I would choose `line: int` (the block's opening fence), `fixture: str`, `commands: list[Command]`, with `Command` holding `line: int` (the `$ ` line), `command: str` (without `$ `) and `expected: list[str]`.
+      - (b) Which line a finding names. I would choose the `$ ` line for criterion 4, and the fence line for criteria 1 (skipped) and 5 (unknown fixture).
+      - (c) The runner's signature. I would choose `run_document(document: str, examples: list[Example], fixtures: Mapping[str, Fixture]) -> list[str]`.
+      - (d) How the shorter limit is passed in. I would choose `ProcessExampleRunner(time_limit: timedelta = timedelta(seconds=60))`. The finding then names the limit's seconds, so with the test's limit it reads `did not end in <n> s`.
+      - (e) How a command is run. I would choose `sh -c <command>`, with the command's stdout and stderr merged, compared against the expected lines.
+
+   4. Criterion 6, "`env` shows only the fixed environment". A shell adds `PWD` (and bash also adds `SHLVL` and `_`). Options:
+      - (a) The test checks that the output of `env | sort` holds exactly `HOME`, `LANG`, `PATH`, `TZ`, the fixture's variables and `PWD`.
+      - (b) The test checks that those variables are present and that a variable set in the test's own environment is absent.
+
+      I would choose (b), since it doesn't pin the shell.
+
+   5. Criterion 7 through `main(["--root", tmp])`. `factory.entry` wires `CheckoutFixture`, but a tmp root with only skipped blocks is no git repository. Options:
+      - (a) The test's root holds only skipped blocks, and `main` builds or uses the fixture only when a block runs.
+      - (b) `main` takes the runner and fixtures as parameters.
+
+      I would choose (a). CheckoutFixture's own behaviour (the tracked files at the checked commit) has no criterion. Should it get a test with a real local repository: a tracked file is in the folder, an untracked one is not? I would say yes, as part of criterion 6.
+
+   6. The Interface says "an adapter test with the fake containers", but your answer in journal entry 4 says real short commands in `tmp_path` and no container. I will follow your answer: real `echo`, `printf` and `sleep` through `ProcessExampleRunner`, in `tests/shared/adapters/test_document_examples.py`. The pure tests go in `tests/shared/domain/test_document_examples.py`, and the report tests in `tests/entry/test_check_documents_examples.py`.
+
+   Files created: none. Modules not imported: none (no test run).
