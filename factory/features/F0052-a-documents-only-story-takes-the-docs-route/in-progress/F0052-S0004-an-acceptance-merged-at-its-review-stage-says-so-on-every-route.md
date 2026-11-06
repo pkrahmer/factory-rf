@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 577
 comments_read: [6672901695]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T00:17:52.792155Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,13 @@ journal:
   kind: started
   at: '2026-11-06T00:17:52.792155Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: question
+  at: '2026-11-06T00:18:30.525959Z'
+  stage: doing
+  run: 9f79958530f6463486e7e719a4aa32eb
+  blocked: question
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -259,3 +262,22 @@ Expect: `True True False`
     Earlier tests:
     - `tests/pipeline/application/test_docs_route.py`: changed under two leaves. Its `TWO_ROUTES` moved to `tests/support/two_routes_support.py` under the standing leave to move a shared test helper. The row `("acceptance", False)` became `("acceptance", True)` in `test_only_the_docs_routes_working_stages_lie_before_the_approval`, under the human's leave: feature decision 7, named in the story's Interface. No other change.
 17. factory: started doing as vm.
+18. coder: Rework round 1. I stopped before any code change because finding 4 of the review (entry 16) needs your word. Findings 1 to 3 are test changes, which I will pass to the tester with `tests` once you have answered. Finding 5 is done.
+
+    Question: what should happen to `PipelineDefinition.position` (`src/factory/pipeline/domain/pipeline_definition.py:109-111`)? I checked with grep: no code under `src/` calls it any more. Its only caller is the earlier test `tests/pipeline/adapters/test_pipeline_yaml.py::test_position_is_the_index_in_the_stages`, at line 80, which another story wrote. The options I see:
+    - (a) Remove both. You give leave to delete that earlier test. In the next round I end with `tests` and name the deletion together with findings 1 to 3. Once the tester has made those changes, I remove the method. The test has to go first, or `make check` turns red.
+    - (b) Keep the method. I add an accepted entry for it in `security/duplicates-baseline.txt` and give a reason. The only reason I can see is that the method is public on the pipeline definition, and that is weak.
+    - (c) Leave it out of this story and open a separate story for it later.
+
+    I would choose (a): the method is dead code because of this story, and its test pins nothing the factory uses.
+
+    Findings 1 to 3, all for the tester in the next round under the standing leave to move a shared test helper:
+    - (1) Move `FIXTURE`, the definition without an approval stage, and `ROLES` from `tests/work/domain/test_acceptance_before_approval.py` to a module in `tests/support/`. Both domain test modules then import them from there.
+    - (2) Build `SHIPPED` in `test_acceptance_before_approval_routes.py` from `TWO_ROUTES` through the pipeline reader.
+    - (3) Remove the two tests in `test_acceptance_before_approval_routes.py` that repeat the earlier tests of criteria 2 and 4. Those criteria then map to the earlier tests.
+
+    Finding 5, done: your answer in entry 8 changed the docs criterion. I rewrote criterion 7 in `## Description`, whose heading now says "as of the human's answer in entry 8". The criterion now names `tests/support/two_routes_support.py` and `TWO_ROUTES` for the *Shared test helpers* list in `docs/project-guide/README.md`.
+
+    Code: unchanged since entry 14. I did not run `make check` in this round, because no code changed.
+
+    The factory left out changes outside the write paths: factory/features/F0052-a-documents-only-story-takes-the-docs-route/in-progress/F0052-S0004-an-acceptance-merged-at-its-review-stage-says-so-on-every-route.md.
