@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 591
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T11:19:44.398515Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-06T11:19:38.884641Z'
   stage: review
   run: 77973e9090354003ab33dd69ed1c84b7
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:19:44.398515Z'
+  stage: docs
 ---
 
 # Each area names its guide page
@@ -137,3 +146,4 @@ Expect: `8`
    - Work item hygiene: the Description matches what was built. The coder's entry names the main choice (the line at column 0) and what it rejected. The docs criterion (one sentence in `docs/project-guide/README.md`, none in `docs/decisions.md`) still describes what the reader must know.
    - Earlier tests: the diff changes no test file that `main` already holds. Its only test file, `tests/guards/test_area_guides.py`, is new (status `A`).
    - Documents: the diff changes none.
+10. factory: started docs as vm.
