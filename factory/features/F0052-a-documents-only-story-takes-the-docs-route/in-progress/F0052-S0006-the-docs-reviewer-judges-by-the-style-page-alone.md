@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 579
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T00:58:15.898779Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-06T00:58:15.898779Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T00:58:41.504594Z'
+  stage: smoke-test
+  run: de69386ca5e54eafb3fe7b493fa7f3f8
 ---
 
 # The docs reviewer judges by the style page alone
@@ -183,3 +185,32 @@ Expect: `1`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok
 12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test: I ran all three commands from the repository root, exactly as written and in order. Each one met its `Expect:` line. I fixed nothing.
+
+    1. Count of the old fallback text in `### docs-review`:
+    ```
+    0
+    ```
+    Expect: `0`. Met.
+
+    2. Count of the new step 3 sentence in `### docs-review`:
+    ```
+    1
+    ```
+    Expect: `1`. Met.
+
+    3. pytest over the docs-route and review-groups agent-text modules, piped to `grep -c " passed"`:
+    ```
+    1
+    ```
+    Expect: `1`. Met. I reran the same pytest command without the grep to see the summary line: `34 passed in 0.03s`.
+
+    Checking the acceptance criteria against what I saw:
+    - Criterion 1: the subsection holds the Interface sentence once (command 2) and none of the old text (command 1). A whole-word `grep -c -w until` over the subsection also gives `0`.
+    - Criterion 2: the existing docs-review rows pass inside the 34 passed in command 3.
+    - Criterion 3: the smoke test does not touch it. The coder's entry 7 records `check: green`, and the factory's check after docs reused that result.
+    - Criterion 4: `grep -c "Until the style page exists" docs/project-guide/agents.md` gives `0`. Line 295 of that file now says that on `docs-review` the reviewer judges the writing against `docs/project-guide/style.md` alone.
+
+    Nothing in the run contradicts any criterion.
+
+    Findings: none.
