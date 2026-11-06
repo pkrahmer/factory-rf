@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T09:53:41.221286Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-06T09:53:35.791558Z'
   stage: review
   run: 647fbbfe124949dcbb34989fa588cc8f
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:53:41.221286Z'
+  stage: docs
 ---
 
 # The checks block the listed files and report on the others
@@ -453,3 +462,4 @@ Expect: `documents ok (<seconds> s)`
     - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, journal entry 11. Only the heading line was added to the lines left out before the comparison.
     - `tests/entry/test_check_documents_references.py`: the human's leave, journal entry 11. Only the expectation of the `one-today` row changed.
     - `tests/shared/domain/test_document_references.py`: none needed. Rows were only added to the parametrized name-check test, and every existing row is as it was.
+28. factory: started docs as vm.
