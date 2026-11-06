@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T21:24:30.955077Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-11-06T21:24:25.467868Z'
   stage: doing
   run: bdfd60b6d1cb4c88b8547942be67bb58
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-06T21:24:30.955077Z'
+  stage: review
 ---
 
 # The document check's tests run on documents they write
@@ -425,3 +434,4 @@ Expect: `documents ok (<seconds> s)`
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+26. factory: started review as vm.
