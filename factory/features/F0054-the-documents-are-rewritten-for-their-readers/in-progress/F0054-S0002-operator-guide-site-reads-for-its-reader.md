@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-06T23:07:30.490747Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-06T23:07:25.227201Z'
   stage: docs-only
   run: eb2b350cbf1f4f19b753948272cd305a
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:07:30.490747Z'
+  stage: docs-review
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -189,3 +198,4 @@ Expect: `1`
    `check`: check: green
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (2.2 s)
+10. factory: started docs-review as vm.
