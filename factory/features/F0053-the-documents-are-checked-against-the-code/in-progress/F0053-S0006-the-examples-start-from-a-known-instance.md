@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T08:53:34.042028Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-06T08:53:34.042028Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-06T08:53:57.519164Z'
+  stage: intake
+  run: 53aef9b2d4e04e3285f9fb55b5df582d
 ---
 
 # The examples start from a known instance
@@ -50,24 +52,28 @@ Many commands of the operator guide need more than a repository: `factory-health
 
 ## Interface
 
-- `factory.shared.adapters.document_fixtures` (new): the fixture `instance`, a `Fixture` (S0003) built from the factory's own git wrapper, with the fixed instance name `docs`.
-- `instance` gives the environment of a valid instance (`FACTORY_INSTANCE=docs`, the folders under the fixture's folder, `FACTORY_SNAPSHOTS=copy`), so that `factory-health` prints `healthy` and a changed variable gives its real refusal.
-- No change to the factory's wiring or settings: the fixture uses only what an operator could set.
+- `factory.hosting.adapters.instance_fixture` (new): `class InstanceFixture(Fixture)` beside `CheckoutFixture`, constructed as `InstanceFixture(git: GitCli)`, with `prepare(folder: Path) -> dict[str, str]`: it builds the instance in `folder` (a settings file, a state folder with the health file `factory-health` reads, a local bare remote of the checkout, built with the factory's own git wrapper) and returns its environment.
+- The environment holds `FACTORY_INSTANCE=docs` and `FACTORY_SNAPSHOTS=copy`, and every folder variable it sets lies under `folder`, so that `factory-health` prints `healthy` and a changed variable gives its real refusal.
+- `factory.entry.check_documents` adds it to the name-to-fixture table under `instance` (`{"checkout": ..., "instance": InstanceFixture(...)}`); this is the one place the story wires. No change to the factory's own run and watch commands or settings: the fixture uses only what an operator could set.
 - The runner of S0003 finds the fixture by name; an unknown name stays the finding of S0003.
-- Tests: `tests/shared/adapters/test_document_fixtures.py` (the fixture builds, and its first command gives the expected output).
+- Tests: `tests/hosting/adapters/test_instance_fixture.py`.
 
 ## Acceptance criteria
 
-1. With `fixture=instance`, `factory-health --state-directory "$FACTORY_STATE"` prints `healthy`, and with `FACTORY_INSTANCE=Factory-1` set in the block, `factory-run` prints `settings invalid: FACTORY_INSTANCE: is not a name` and exits 2.
-2. Each document gets a fresh fixture: a change one document's example makes is gone for the next document.
-3. The fixture's folder holds no file outside the temporary folder the runner gave it, and the instance's remote is a local bare repository, not a network address.
-4. `make check` stays green.
-5. docs: `docs/project-guide/style.md` (or `shared.md`): the two fixtures, `checkout` and `instance`, what each holds, and the instance's fixed name; that a command needing the hosting service is marked `console github`. `docs/decisions.md`: an entry for having no fake hosting service in the production wiring, with its reason (no switch for tests in the production code) and what was rejected (a `world` fixture behind `FACTORY_HOSTING=fake`).
+1. With `fixture=instance`, `factory-health --state-directory "$FACTORY_STATE"` prints `healthy`.
+2. With `FACTORY_INSTANCE=Factory-1` set in the block, `factory-run` prints `settings invalid: FACTORY_INSTANCE: is not a name` and exits 2.
+3. The environment `prepare` returns holds `FACTORY_INSTANCE=docs` and `FACTORY_SNAPSHOTS=copy`, and every folder variable it sets lies under the folder given.
+4. The state folder holds the health file that `factory-health` reads.
+5. Each document gets a fresh fixture: two `prepare` calls for two documents give two different folders, and a file written into the first is absent from the second.
+6. Every path the fixture creates lies under its folder.
+7. The instance's remote URL is a path under the folder, and `git rev-parse --is-bare-repository` in it prints `true`.
+8. `make check` stays green.
+9. docs: `docs/project-guide/style.md` (or `shared.md`): the two fixtures, `checkout` and `instance`, what each holds, and the instance's fixed name; that a command needing the hosting service is marked `console github`. `docs/decisions.md`: an entry for having no fake hosting service in the production wiring, with its reason (no switch for tests in the production code) and what was rejected (a `world` fixture behind `FACTORY_HOSTING=fake`).
 
 ## Smoke test
 
 ```bash
-uv run pytest tests/shared/adapters/test_document_fixtures.py 2>&1 | tail -1 | grep -c passed
+uv run pytest tests/hosting/adapters/test_instance_fixture.py 2>&1 | tail -1 | grep -c passed
 ```
 Expect: `1`
 
@@ -88,3 +94,9 @@ Expect: `1`
    4. Yes: 3a, every path the fixture creates lies under its folder; 3b, the remote URL is a path under the folder and `git rev-parse --is-bare-repository` in it prints `true`.
    5. Yes: two `prepare` calls for two documents give two different folders, and a file written into the first is absent from the second.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answer (journal 4) carried into the story.
+   - Interface: I rewrote it from journal 4. It now names `factory.hosting.adapters.instance_fixture.InstanceFixture(Fixture)`, constructed as `InstanceFixture(git: GitCli)`, with `prepare(folder: Path) -> dict[str, str]`. The environment it returns holds `FACTORY_INSTANCE=docs` and `FACTORY_SNAPSHOTS=copy`. The wiring is one entry in the table in `factory.entry.check_documents`, and the test module is `tests/hosting/adapters/test_instance_fixture.py`. The `document_fixtures` line is gone.
+   - Criteria: I rewrote them as answers 2 to 5 of journal 4 ask. Criterion 1 is now two (1 the healthy output, 2 the refusal and exit 2). New criteria cover the environment (3), the health file (4) and freshness (5). The paths under the folder and the local bare remote are now two criteria (6 and 7). `make check` and `docs:` stay last. Each criterion is testable by one test function. Each rule has a failing side: the `Factory-1` refusal, and the file written in the first folder being absent from the second.
+   - Smoke test: the command now names the new test path. It is runnable, and it is correct under the project's `-q` addopts, which gives a summary line. `Expect: 1` is checkable.
+   - Architecture: the fixture sits in `hosting.adapters` beside `CheckoutFixture` because it needs git. It changes no setting and no run or watch wiring. That fits the layering.
+   - Scope: it is within F0053 (S0006, runnable examples) and touches nothing under "Out of scope". The route is `tests`, since the Interface changes `src` code.
