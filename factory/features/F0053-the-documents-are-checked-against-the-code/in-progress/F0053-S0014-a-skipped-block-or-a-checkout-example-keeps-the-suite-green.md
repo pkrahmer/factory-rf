@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T19:31:08.857262Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-11-06T19:31:08.857262Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T19:32:21.510694Z'
+  stage: smoke-test
+  run: 1eb4d826aad044abb1b0f560d52660c9
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -363,3 +365,34 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (0.6 s)
 23. factory: started smoke-test as vm.
+24. smoke-tester: Smoke test run from the repository root, round 1. The sandbox turned down two things, and I worked around neither: the script as one command, and `git commit -qam smoke` inside the throwaway clone (agents may not commit). So I ran the other commands one at a time, exactly as written, and left out the commit. That does not change what the test sees. `tracked_files_repository` (`tests/support/documents_copy_support.py`) copies every file `git ls-files` lists from the clone's working tree, so the appended blocks are in the `documents` copy whether they are committed or not. The `documents` fixture (`tests/conftest.py:613`) then commits that copy. `git status --porcelain` in the clone showed ` M docs/project-guide/machine.md` before pytest ran.
+
+    Command 1: `d=$(mktemp -d); trap ... EXIT` and `git clone -q . "$d/c"`, then `git config user.name/user.email/gc.auto`. Run, no output, all succeeded.
+
+    Command 2: `printf ... >> docs/project-guide/machine.md`. Run. The tail of the file:
+    ```
+    ```console vm
+    $ systemctl is-active factory-vm
+    active
+    ```
+
+    ```console
+    $ ls operator/vm/setup.sh
+    operator/vm/setup.sh
+    ```
+    ```
+
+    Command 3: `git commit -qam smoke`. Not run: the sandbox turned it down.
+
+    Command 4: `PATH="$OLDPWD/.venv/bin:$PATH" python -m pytest -p no:cacheprovider -o addopts= tests/entry/test_check_documents_operator_guide.py 2>&1 | tail -1`, with OLDPWD=/work/checkout.
+    ```
+    ============================== 6 passed in 4.86s ===============================
+    ```
+    Expect: a last line `<n> passed in <seconds>s` with no `failed`. Met. All six rows of `test_the_operator_guide_folder_is_checked_per_file` pass with a `console vm` block and a `console` block that reads a tracked file (`operator/vm/setup.sh`) appended to the documents. That fits criteria 1, 2 and 4.
+
+    Acceptance criteria checked against the run: none is contradicted. Criteria 3 and 5 (the copy's contents and copies kept separate), 6 (`make check`) and 7 (docs) are not covered by these commands. The smoke test neither confirms nor contradicts them.
+
+    Findings: none.
+
+    Left open: the sandbox also turned down `rm -rf /tmp/tmp.feI3YSB3Un`, so the throwaway clone with one uncommitted edit to `docs/project-guide/machine.md` is still in `/tmp` on the machine that ran this stage. The human may want to delete it.
+    ```
