@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T02:47:18.804267Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-11-06T02:47:13.486350Z'
   stage: docs
   run: fa1f3d19c216470a8e9eef554cea0ab8
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:47:18.804267Z'
+  stage: smoke-test
 ---
 
 # Every name a document writes in backticks exists
@@ -465,3 +474,4 @@ Expect: a number alone (the count of findings, possibly `0`)
     `check`: check: green
     `secrets`: secrets: green (0.4 s)
     `documents`: docs/project-guide/work.md:186: tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones does not exist
+30. factory: started smoke-test as vm.
