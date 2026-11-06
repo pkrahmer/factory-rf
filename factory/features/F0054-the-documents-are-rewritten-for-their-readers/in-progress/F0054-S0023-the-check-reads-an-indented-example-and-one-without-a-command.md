@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 609
 comments_read: [6697578988]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T22:50:30.247468Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-06T22:50:30.247468Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T22:50:50.803664Z'
+  stage: smoke-test
+  run: 7b7d2f5935274450986d4dddf7ba32e8
 ---
 
 # The check reads an indented example and one without a command
@@ -227,3 +229,18 @@ Expect: `1 echo hi`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (1.9 s)
 15. factory: started smoke-test as vm.
+16. smoke-tester: Smoke test passed. I ran its one command from the repository root exactly as written. It met its `Expect:` line and the run produced no findings.
+
+    Command 1: writes a document whose `console` block is indented by three spaces under the numbered step "1. Run it:", then reads it with `factory.shared.domain.documents.examples` and prints the number of runnable examples and the first command.
+
+    ```
+    Bytecode compiled 4164 files in 49ms
+    1 echo hi
+    ```
+    (exit status 0)
+
+    Expect: `1 echo hi`. **Met.** The first line is uv compiling bytecode; the program printed only `1 echo hi`. The indented block gives one `Example` whose command is `echo hi`, with no `ValueError` from `_commands`.
+
+    Against the acceptance criteria: the output agrees with criterion 1 (a block indented three spaces under a numbered step gives one `Example` with the command `echo hi`) and contradicts none of the others. The command did not exercise criteria 2 to 6: the `the example has no command` finding, the blocking in listed and unlisted files through `main(["--root", ...])`, `make check` and the docs. I did not judge those beyond what the output shows.
+
+    Findings: none.
