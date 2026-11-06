@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 609
 comments_read: [6697578988]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T22:50:30.247468Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-06T22:50:24.695313Z'
   stage: docs
   run: 3eebbff62cc245d7ade27b8dfffb69b8
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:50:30.247468Z'
+  stage: smoke-test
 ---
 
 # The check reads an indented example and one without a command
@@ -217,3 +226,4 @@ Expect: `1 echo hi`
     `check`: check: green
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (1.9 s)
+15. factory: started smoke-test as vm.
