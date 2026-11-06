@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 1
 attempts: 1
 crashes: 0
 pull_request: 593
 comments_read: [6684236950]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T12:00:56.973958Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -146,6 +142,13 @@ journal:
   kind: started
   at: '2026-11-06T12:00:56.973958Z'
   stage: review
+- number: 25
+  speaker: reviewer
+  kind: question
+  at: '2026-11-06T12:02:22.601624Z'
+  stage: review
+  run: cfd8f001357540cd9df394574f96144b
+  blocked: question
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -363,3 +366,31 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 24. factory: started review as vm.
+25. reviewer: Round 1 review. I read the work item and `git diff main...HEAD -- . ':!factory'`: `docs/project-guide/style.md`, `tests/conftest.py`, `tests/entry/test_check_documents_checked_files.py` and the new `tests/entry/test_check_documents_copies.py`. Nothing under `src/` changes.
+
+    Findings:
+    1. `docs/project-guide/style.md:32` (the new paragraph under *Runnable examples*) is contradicted by the tests, and so is the reader's lesson that criterion 5 dictates. The page says: "A wrong example therefore fails the suite only in a file listed in `docs/checked-documents.txt`; in any other file it is printed under `Report (not checked yet):`."
+       - Why it is false: the `documents` fixture copies no `docs/checked-documents.txt`, so in its copy no file is listed. A wrong example in an unlisted page, for example `docs/project-guide/shared.md`, therefore prints a report line `docs/project-guide/shared.md:<n>: the example printed ...` (`src/factory/entry/check_documents.py:186-189`).
+       - `tests/entry/test_check_documents_operator_guide.py:89-96` compares every printed line with the expected output. It leaves out only lines that end in ` does not exist` and the report heading. That report line is kept, so the six rows with an `output` (`no-stops-section` and the rest) fail.
+       - So the suite fails for a wrong example in any copied document, listed or not. A listed one also fails through `test_todays_documents_with_the_first_list_give_a_report_and_pass`.
+       - The same sentence also says the fixture "makes each copy a git repository". The copy in `test_check_documents_checked_files.py:151-155` is built by that test, not by the fixture.
+       - Fix: the sentence and criterion 5 must state one truth. Which truth needs the human; see the question below.
+
+    Groups checked with no other finding:
+    - 1, criteria: criterion 1 is covered by `test_a_matching_example_in_a_copied_document_gives_no_finding` (rows `unlisted` and `listed`). Criterion 2 is covered by `test_a_wrong_example_in_a_copied_document_fails_only_a_listed_one` (both sides, rows of one test). Criterion 3 is covered by `test_the_copied_documents_are_a_clean_git_work_tree`. Criterion 4: the coder's `make check` was green (entry 23).
+    - 2, architecture: only tests and one document change. The fixture reuses `run_git` and `commit_all` from `tests/support/git_support.py`.
+    - 3, security: no secrets, no markers, no commands built from strings.
+    - 4, quality: names and docstrings are fine, and there is no copied helper.
+    - 5, hygiene: the journal explains the choices, and the Description matches what was built. Criterion 5's lesson is the false statement in finding 1.
+    - Documents: the other claims of the changed paragraphs hold. The `console` blocks are real, and `echo "took $((40 + 2)) s"` matches `took <seconds> s`.
+
+    Earlier tests:
+    - `tests/conftest.py` (fixture `documents`): changed under feature decision 6, as the Interface cites it, and the human's entry 19. Its name and the folder it returns stay the same.
+    - `tests/entry/test_check_documents_checked_files.py` (`test_todays_documents_with_the_first_list_give_a_report_and_pass`): changed under the human's leave in entry 19. The change is exactly `git init` plus one `commit_all` after the list is written. Its name and its three assertions stay the same.
+
+    Question for the human: criterion 5 wants the reader to learn that "a wrong example fails the suite only in a listed file". The test suite contradicts that (finding 1). Which should hold?
+    - (a) Correct criterion 5 and the style page to the truth. A wrong example fails `make documents` only in a listed file. In the tests, a wrong example in any copied document fails the suite: in a listed file through the run of the real list, in any other file through the operator-guide test's line-by-line comparison of the report. No test changes. The documenter rewrites the paragraph, and the next review corrects criterion 5's wording from your answer.
+    - (b) Keep criterion 5's statement and make it true. `test_the_operator_guide_folder_is_checked_per_file` would also leave out the `the example printed` report lines from its comparison. That changes a test F0053-S0002 wrote, so it needs your leave. The Description rejected that kind of filtering, though for a different problem.
+    - (c) Drop the sentence about the suite from the style page and from criterion 5, and keep only that the copies are git repositories.
+
+    I would choose (a). It is true today, needs no test change, and a suite that catches every wrong example is the stricter guard.
