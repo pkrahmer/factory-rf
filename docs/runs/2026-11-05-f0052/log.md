@@ -86,3 +86,4 @@ Times are UTC. The plan: `night-plan.md`.
 - 12:33Z: F0053-S0009 (a configuration section without its settings table is a finding) started.
 - 12:54Z: F0053-S0009 PR #595 merged after the six checks: (1) a Configuration section without its settings table is one finding (none on top of a missing section), shared.md; (2) review fine; (3) smoke test met; (4) earlier tests under decision 6 as written in the Interface; (5) none of the human's files; (6) $2.29, 10 runs, no question. src/ changed: factory-vm moved with no PR open; active, no stops.
 - 12:54Z: F0053-S0012 (the example runner's tests use the roomy limit) started.
+- 12:56Z: F0053-S0012 PR #596 intake question 3 answered: criteria for the two imported constants; import both; copies.py added for REPORT_HEADING; one rule for the limits (only the time-limit test builds a runner below ROOMY_LIMIT, no local bound); the seven changed modules named.
