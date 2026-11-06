@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T11:53:49.646720Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -98,6 +102,11 @@ journal:
   at: '2026-11-06T11:53:44.238654Z'
   stage: doing
   run: a1a857e8d7b642d2916639c242f57424
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:53:49.646720Z'
+  stage: tests
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -266,3 +275,4 @@ Expect: `1`
     Open for the tester, the leave: F0053-S0004 wrote this test. The Interface cites feature decision 6 for the tests F0053-S0002 and F0053-S0003 wrote, and names the `tests/entry/test_check_documents*.py` files that use `documents`. This test matches that file pattern but does not use the fixture. If the tester reads decision 6 as not covering this test, the change is a question for the human. The other options I see are to have this test use the `documents` fixture's way of building a copy, or to drop the `console` blocks from style.md again, which would undo criterion 5. I would make the commit change.
 
     Noticed, not touched: other tests in that file that copy `ROOT` with `_NOT_COPIED` may need the same change when they list style.md. In my run, only this one failed.
+17. factory: started tests as vm.
