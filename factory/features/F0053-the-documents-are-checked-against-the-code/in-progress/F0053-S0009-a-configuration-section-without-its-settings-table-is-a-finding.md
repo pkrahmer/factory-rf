@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T12:33:57.193526Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-06T12:33:57.193526Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-06T12:35:45.186437Z'
+  stage: tests
+  run: 75ee9c2b0c034c2a98c8a015b93b587a
 ---
 
 # A configuration section without its settings table is a finding
@@ -75,3 +77,23 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
    - Architecture: the change is in the shared domain layer. It is pure, with no I/O.
    - Scope: within the feature's settings check (S0002) and its decision 6. It is not in the feature's "Out of scope". The route is `tests` because the Interface changes `src` code.
 4. factory: started tests as vm.
+5. tester: Wrote the tests for the settings check's missing-table finding. Four rows are red on purpose: `settings_findings` still returns `[]` when no table counts, so the failures are wrong results, not import errors.
+
+   - criterion 1: tests/shared/domain/test_document_settings.py::test_guide_without_a_counting_table_is_one_finding_when_there_are_settings. It has five rows:
+     - no table with one setting, no table with two settings, and a table whose first column is `Setting` with one setting: each expects exactly the one finding.
+     - no table with no settings, and the `Setting` table with no settings: each expects `[]`.
+   - criterion 2: tests/shared/domain/test_document_settings.py::test_guide_with_a_counting_table_gives_no_missing_table_finding. One row: a `Variable` table next to a `Setting` table, with matching settings, gives `[]`.
+   - criterion 3: tests/shared/domain/test_document_settings.py::test_todays_install_guide_gives_no_settings_finding. It reads today's `docs/operator-guide/install.md` from the repository root, takes the tables of its *Configuration* section, and expects `settings_findings` to return `[]` for `SETTINGS`. It passes today, which is correct: it guards against a regression. It runs the same domain functions the entry runs, not `make documents` itself, because the Interface puts the tests in this file.
+   - criteria 4 and 5 (`make check`, docs): no test.
+
+   Earlier tests changed under the leave the Interface gives (feature decision 6):
+   - tests/shared/domain/test_document_settings.py::test_guide_without_a_settings_table_gives_no_settings_finding: its `no-settings-table` row now expects the one finding. The test keeps its name and still checks which names are in the findings.
+   - tests/support/document_texts.py: `operator_install` now writes a `Variable | Meaning` table naming every `SETTINGS` entry, so `clean_texts` carries a settings table. Otherwise `test_each_finding_prints_one_line_in_order_and_returns_one` in tests/entry/test_check_documents.py would get a report line it does not expect. No test function was changed for this.
+
+   Files created: none. Files changed: the two above.
+
+   Test run: `uv run pytest -q` over test_document_settings.py, tests/shared/domain/test_documents_guide_files.py and the entry files tests/entry/test_check_documents.py, test_check_documents_operator_guide.py, test_check_documents_references.py and test_check_documents_settings.py. Only the four expected rows failed (`no-settings-table`, `no-table-one-setting`, `no-table-two-settings`, `setting-column`); the entry tests pass with the new clean texts. Every module imported. `make lint` is green.
+
+   Open for the coder: the Interface says that a missing *Configuration* section adds no settings finding, while `check_documents` stays unchanged. No criterion covers that case, so I did not test it. As the code stands, `guide_tables` would return `[]` for that section, and the new finding would appear.
+
+   `lint`: lint: green (0.2 s)
