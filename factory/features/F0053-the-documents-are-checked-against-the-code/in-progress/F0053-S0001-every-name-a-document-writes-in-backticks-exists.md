@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T02:32:51.754335Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-06T02:32:43.370458Z'
   stage: review
   run: da950e68da4246e998db3be8a972e4d7
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:32:51.754335Z'
+  stage: doing
 ---
 
 # Every name a document writes in backticks exists
@@ -303,3 +312,4 @@ Expect: a number alone (the count of findings, possibly `0`)
 
     Earlier tests:
     - `tests/entry/test_check_documents_operator_guide.py`: changed under the human's leave in journal entry 11, answer 2(a). The change is only the comparison that leaves out the ` does not exist` lines, which is within that leave.
+20. factory: started doing as vm.
