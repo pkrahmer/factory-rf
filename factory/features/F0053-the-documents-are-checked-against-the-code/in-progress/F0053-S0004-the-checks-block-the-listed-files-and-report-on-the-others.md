@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T09:36:57.258125Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-06T09:36:57.258125Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-06T09:37:28.343874Z'
+  stage: doing
+  run: 5f289285080748c29677ac2d1410e235
 ---
 
 # The checks block the listed files and report on the others
@@ -213,3 +215,15 @@ Expect: `documents ok (<seconds> s)`
     The lines for examples not run stay at the end of the report and never block: that is right.
     `docs/checked-documents.txt` lies outside the coder's write paths, so the take dropped it, as you feared. The documenter writes it in the docs stage, with the style page and the glossary. Until then a missing list file is an empty list, as you built it. A test that needs the list writes its own under `tmp_path`.
 12. factory: started doing as vm.
+13. coder: No code changed this round. Following the human's answer (journal entry 11, option A), the work item goes to the tester for test changes. The code from the previous doing round is already committed in 2b6135a73 (`src/factory/shared/domain/documents.py`, `src/factory/entry/check_documents.py`).
+
+    Test changes for the tester:
+    1. In `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file`, also leave out the line `Report (not checked yet):` before the comparison. This makes rows `no-stops-section`, `no-install-section`, `no-configuration-section`, `no-install-file` and `no-index` pass.
+    2. In the `one-today` row of `tests/entry/test_check_documents_references.py::test_name_findings_follow_todays_findings_and_leave_the_exit_status`, expect `[today, "Report (not checked yet):"]` before the findings.
+    3. This one is the tester's own test, which entry 11 covers with "a test that needs the list writes its own under tmp_path". `tests/entry/test_check_documents_checked_files.py::test_todays_documents_with_the_first_list_give_a_report_and_pass` fails here with `FileNotFoundError: [Errno 2] No such file or directory: '/work/checkout/docs/checked-documents.txt'` at `tests/entry/test_check_documents_checked_files.py:136`. The test reads the real list, and the documenter only writes that file in the docs stage. Until then the command treats a missing list as an empty list, as built. The test needs to give the command its own list instead of the repository's. For example: build the list from `[STYLE, GLOSSARY]` and point the run at it, or copy the needed tree into `tmp_path`. If the tester sees no way to do this without a change to the code's interface, that is a question for the human.
+
+    Main decision (from the previous round, unchanged): each new finding carries its document, and the list decides by document what blocks. Rejected: parsing the `doc:line:` prefix of the printed lines.
+
+    Still open:
+    - The refactor step is left for the next doing round, once all tests are green.
+    - `docs/checked-documents.txt` and criterion 12 belong to the documenter.
