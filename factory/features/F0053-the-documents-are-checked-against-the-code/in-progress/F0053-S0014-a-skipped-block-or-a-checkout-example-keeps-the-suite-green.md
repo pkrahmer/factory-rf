@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T19:19:53.170758Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-06T19:19:53.170758Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T19:21:11.081302Z'
+  stage: review
+  run: b3d28e9808ea4776a6c7e12d408afafe
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -182,3 +184,18 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 11. factory: started review as vm.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (test files only, no change under `src/`) against the work item. Every criterion has a test. Criterion 1 is the 5 rows of `test_a_skipped_block_leaves_the_output_as_it_was_and_a_wrong_example_adds_its_line`, criterion 2 the 2 rows of `test_an_example_reads_the_tracked_files_of_the_repository`, criterion 3 `test_the_copy_holds_the_tracked_files_and_nothing_untracked`, criterion 4 the unchanged rows of `test_the_operator_guide_folder_is_checked_per_file`, criterion 5 `test_two_copies_of_the_session_repository_are_separate`. The coder's `make check` was green (journal entry 10). It gives the `make test` time as 106.8 s before and 105.6 s after, inside the Interface's ten seconds. Architecture and security: nothing under `src/`, no markers, no strings built into shell commands.
+
+    I checked the tester's reading of criterion 2 (count only the `machine.md` lines at or after the appended block's opening fence) and accept it. Today's `machine.md` already gives `does not exist` lines in the full copy, and the line filter still catches every line the appended block produces. Not a finding.
+
+    Findings:
+    1. `tests/support/documents_copy_support.py:24` `copy_of`: a second copy of `clone` in `tests/support/git_support.py:129`. Both run `git clone -q <path> <name>` in `target.parent`, and `--local` is already git's default for a local path. Fix: drop `copy_of` and have `documents` (`tests/conftest.py`) and the new module use `git_support.clone`. If `--local` should be stated, add it to `clone` instead.
+    2. `tests/entry/test_check_documents_suite_copy.py:19` `_append_block`: a second copy of `_append_block` in `tests/entry/test_check_documents_copies.py:17`. Both read the page, add a trailing newline, compute `first_line = len(lines) + 2`, append a fenced block and commit. The line filter at lines 15 and 95-99 (`ABOUT_MACHINE` with `>= first_line`) also copies `_findings_from` from `test_check_documents_copies.py:32`. Fix: under the standing leave, the tester moves one block-appending helper (taking the info string and the block's lines) and `_findings_from` into `tests/support/check_documents_support.py`. Both modules then use them, and every earlier test keeps its name and what it checks.
+    3. `tests/support/check_documents_support.py:1`: the module docstring ("The missing lines and the time line of the document check tests.") no longer says what the module holds now that it has `without_report_lines` and `NOT_RUN` (and, after finding 2, the block helpers). `NOT_RUN` also sits between functions instead of with the module's other constants. Fix: update the docstring to cover the output filter and the helpers, and move `NOT_RUN` up beside `TIME_LINE`.
+
+    All three findings are changes to test files: the coder hands them to the tester.
+
+    Earlier tests:
+    - `tests/conftest.py`: the human's leave, feature decision 7, named with the `documents` fixture in the story's Interface. `documents` keeps its name, and the earlier tests that use it still pass.
+    - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, feature decision 7, named in the story's Interface. The test keeps its name, row ids and expected outputs. Only its filter moved to `without_report_lines` and gained the `not run` rule.
+    - `tests/support/check_documents_support.py`: none needed. The change only adds `NOT_RUN` and `without_report_lines` and leaves the existing names as they were.
