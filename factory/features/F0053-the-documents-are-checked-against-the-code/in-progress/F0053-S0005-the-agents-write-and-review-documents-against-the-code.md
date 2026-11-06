@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 590
 comments_read: [6682263635]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T10:07:00.691412Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-06T10:07:00.691412Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-06T10:08:48.246744Z'
+  stage: doing
+  run: 657966f167a54bf299ed91152ebecf46
+  blocked: question
 ---
 
 # The agents write and review documents against the code
@@ -147,3 +150,31 @@ Expect: `named`
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: Question: three tests on `agents/agents/reviewer.md` leave no place for the `### Documents` item. I stopped before `make check`.
+
+    Where I stopped. The new rules are written in the working tree:
+    - `agents/agents/documenter.md`, Role: three new bullets.
+      - Read the code first.
+      - Every example is runnable, or marked for the VM, GitHub or a model and copied from a real run the text names.
+      - Exact detail is kept in a *Reference* section, not cut.
+      - The bullet's old sentence "Examples are runnable and were run." went into the examples bullet.
+    - `agents/agents/documenter.md`, Stage step 3: it now runs `make documents` and ends only on `documents ok`.
+    - `agents/agents/intake.md`: a new step 4. A docs criterion that dictates the sentences to write is a question, and the agent ends with `question`. The criterion names what the reader must know afterwards. Steps 4 to 6 became 5 to 7, and "steps 2 to 4" became "steps 2 to 5".
+    - `agents/agents/reviewer.md`: the `### Documents` item, with three paragraphs: the changed documents' claims against the code; a claim you cannot find in the code is a finding; a command without a runnable or marked example is a finding.
+
+    Every row of `tests/agent_files/test_claude_agent_texts_documents.py` passes. One earlier test fails.
+
+    The contradiction. In `## Role`, the item can only go where `_DOCUMENTS_ITEM` (the CRC test in `test_claude_agent_texts_review_groups.py`) strips exactly the item. That regex removes text from the heading up to the next line starting with `#` or `Write findings as a numbered list`. So the item must sit either just before the "Write findings" paragraph or just before `## Stage`. Two earlier tests pin both spots:
+    1. Just before "Write findings", after item 6 (where the tester said to put it, and where it is now): `tests/agent_files/test_claude_agent_texts_mutants.py::test_reviewer_item_6_is_followed_by_the_findings_paragraph` fails. It needs the line after item 6's blank line to start with "Write findings" (AssertionError at line 85: `'### Documents'.startswith(...)`).
+    2. At the end of Role, before `## Stage`: `tests/agent_files/test_claude_agent_texts_description.py::test_description_correction_sits_between_added_criterion_and_stage[before-stage]` fails. It needs "when no stage can fix it.\n\n## Stage".
+
+    Anywhere else in Role, the regex strips too much and the CRC pin fails. I cannot edit tests, and the Interface's leave covers tests that pin an agent file's whole text. These two pin positions, so the leave does not clearly cover them.
+
+    Options:
+    - (a) Keep the item after item 6, inside the checklist as criterion 5 says. The tester changes `test_reviewer_item_6_is_followed_by_the_findings_paragraph` so that it skips a `### Documents` item between item 6 and "Write findings", keeping its name and what it checks. **I would choose (a).** It puts the item in the checklist, and the tester's CRC regex was written for that spot.
+    - (b) Put the item at the end of Role. The tester changes the `before-stage` row to allow the `### Documents` item between the correction paragraph and `## Stage`.
+    - (c) Make the item a numbered checklist item 7 instead of a heading. That contradicts criterion 5 (`### Documents`) and the new tests.
+
+    With (a) or (b), I would end with `tests` naming that one change. Then `make check` is run once the test is changed.
+
+    Noticed, not touched: `make documents` ends with `documents ok (<seconds> s)`, per `docs/runs/2026-11-05-f0052/log.md`. The documenter's rule says to end on its last line `documents ok`, which holds for that format.
