@@ -59,7 +59,7 @@ Support modules added for this rule, each holding what test modules once importe
 - `support/agent_definition_support.py`: `COMPLETED`, the completed agent run of the agent-definition tests.
 - `support/agent_login_support.py`: `API_LOGIN` and `SUBSCRIPTION`, the two stand-in logins, and `_utf_16`, which writes a file in UTF-16.
 - `support/before_approval_support.py`: `ROLES`, `FIXTURE` and `without_approval`, the definitions of the tests of `is_before_approval`.
-- `support/check_documents_support.py`: `MISSING_LINES`, the document check's output for a missing guide file.
+- `support/check_documents_support.py`: `MISSING_LINES` (the document check's output for a missing guide file), the output filters (`without_report_lines`, `findings_from`, `line_of`), `append_block` for a block added to a copy's document, and `write_checked_list`, which writes a copy's list of checked documents and commits only a change.
 - `support/claude_reply_support.py`: `LOGIN` and `BUDGET_STOP`, the stand-in login and the reply of a run stopped by its budget.
 - `support/claude_resume_support.py`: the resume tests' reply builders (`_reply`, `_budget_reply`), request and runtime (`_request`, `_runtime`), `_after` (the argument after a flag) and `LIMIT`.
 - `support/contract_login_support.py`: `committed` (the parsed committed schema file of a name) and `values` (the values a schema allows). Its schema folder is `SCHEMAS` of `contract_support.py`, assigned nowhere else.

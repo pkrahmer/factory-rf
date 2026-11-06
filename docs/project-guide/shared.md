@@ -137,6 +137,8 @@ The output has three parts, in this order:
 
 `split_findings` makes the split from the document each finding carries. A document is added to the list when it has been rewritten; the list is complete when every document is on it.
 
+A test that runs the document check on the `documents` copy writes the list it needs through `write_checked_list(root, paths)` of `tests/support/check_documents_support.py`, and assumes nothing about which pages the repository's list names; listing a right page then never changes the suite's outcome. `write_checked_list` commits only when the text differs from the copy's list, so writing the list the copy already holds is no error. A step that adds pages to the copy's list first looks at what the list names, as the fixture `listed` of `tests/entry/test_check_documents_any_list.py` does.
+
 ### The settings check
 
 The settings code is the one source of the instance's settings. `factory.shared.domain.settings.SETTINGS` is a tuple of `SettingDoc` (frozen: `name`, `required`, `default`), one row for each variable `read_settings` reads, `FACTORY_DATASET` and `FACTORY_STAGE_IMAGE` included. `required` is `yes`, `no` or a condition such as `with zfs`; it is kept for whoever writes the guide and is never compared. `default` is `None` where the code has none; the other defaults are built from the module's own constants, so the table cannot drift from what `read_settings` applies. A story that makes `read_settings` read another variable adds its row: `tests/shared/domain/test_settings_table.py` calls `read_settings` with a mapping that records every key looked up and compares those keys with the names in `SETTINGS`.

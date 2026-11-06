@@ -72,9 +72,13 @@ def findings_from(lines: list[str], document: str, first_line: int) -> list[str]
 
 
 def write_checked_list(root: Path, paths: Sequence[str]) -> None:
-    """Write the list of checked documents under `root`, one path per line, and commit it."""
+    """Write the list of checked documents under `root`, one path per line; commit a change."""
     text = "".join(f"{path}\n" for path in paths)
-    (root / CHECKED_DOCUMENTS).write_text(text, encoding="utf-8")
+    path = root / CHECKED_DOCUMENTS
+    # An unchanged list would make the commit empty, and `commit_all` would fail.
+    if path.is_file() and path.read_text(encoding="utf-8") == text:
+        return
+    path.write_text(text, encoding="utf-8")
     commit_all(root, "The checked documents")
 
 
