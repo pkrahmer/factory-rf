@@ -9,6 +9,7 @@ from factory.shared.domain.documents import Reference, named_references
 TOP_LEVEL = frozenset({"operator", "src", "tests", "docs", "README.md"})
 DOCUMENT = "README.md"
 Kind = Literal["module", "path", "link"]
+OLD_AGENT_FILE = "claude" + "/agents/reviewer.md"
 
 
 def _text(body: str) -> str:
@@ -30,8 +31,8 @@ def _text(body: str) -> str:
             id="repository-path",
         ),
         pytest.param(
-            "Read `claude/agents/reviewer.md` first.",
-            [(3, "claude/agents/reviewer.md", "path")],
+            f"Read `{OLD_AGENT_FILE}` first.",
+            [(3, OLD_AGENT_FILE, "path")],
             id="path-with-extension-outside-top-level",
         ),
         pytest.param("Edit `operator/<instance>/site.env` then.", [], id="placeholder-path"),

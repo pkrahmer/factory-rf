@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T02:21:31.052276Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-06T02:21:31.052276Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-06T02:22:06.576121Z'
+  stage: tests
+  run: 9e7046ad5408479b82453881bc9968e5
 ---
 
 # Every name a document writes in backticks exists
@@ -213,3 +215,15 @@ Expect: a number alone (the count of findings, possibly `0`)
 
     The 152 name findings on the real repository stay printed only, as you decided. S0004 settles them.
 14. factory: started tests as vm.
+15. tester: Made the two test changes the human approved in entry 11, as the coder's entry 13 named them. Nothing else changed.
+
+    - `tests/shared/domain/test_document_references.py` (my own file from entry 8), row `path-with-extension-outside-top-level` of `test_named_references_finds_backticked_names_paths_and_links`: the old agent folder's path is now built from parts in a module constant, `OLD_AGENT_FILE = "claude" + "/agents/reviewer.md"`, the way `tests/guards/test_agent_folder_names.py` does it. The row's text and expected reference use that constant. It checks the same case as before, and the guard `test_no_file_names_the_old_agent_folder` no longer finds the file.
+    - `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file` (another story's test, changed with the human's leave in entry 11, answer 2(a)): the output check now compares only the printed lines that do not end in ` does not exist`. The exit status check is unchanged, and nothing else in the module changed.
+
+    Criterion → test mapping: unchanged from entry 8.
+
+    Files created: none. Files changed: the two above.
+
+    Test run: `uv run pytest -q` on both changed files plus `tests/guards/test_agent_folder_names.py`. All 22 tests passed against the coder's committed code. No module failed to import. `make lint`: green (0.2 s).
+
+    `lint`: lint: green (0.2 s)
