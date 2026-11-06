@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 608
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T21:49:58.313569Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T21:49:58.313569Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T21:52:45.619599Z'
+  stage: docs-review
+  run: 0391712758604a539dbb58f2f409895f
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -137,3 +139,23 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (1.9 s)
 6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md` (`docs/operator-guide/install.md`, `docs/checked-documents.txt`) against the work item, the old file on `main`, `docs/project-guide/style.md` and the code: `src/factory/shared/domain/settings.py`, `src/factory/entry/run.py`, `src/factory/entry/wiring.py`, `src/factory/entry/watch.py`, `src/factory/pipeline/application/scheduler.py`, `operator/vm/setup.sh` and `docs/project-guide/glossary.md`.
+
+   What holds:
+   - `make documents` ends `documents ok (1.8 s)`, with no finding on install.md (criterion 3).
+   - Every link from another document to a section of install.md still resolves: *Configuration*, "When the process refuses to start", "The loop and its pauses" and "The checkout is cloned when it is missing". Nothing linked to the removed heading "A repository URL with a password is refused" (criterion 4).
+   - These agree with the code: the settings defaults, every refusal text, the exit statuses 0, 1 and 2 (run.py:303-327), the pauses of 30 to 120 s (scheduler.py:19-20) and the VM's values (setup.sh:415-436).
+
+   Findings:
+   1. docs/operator-guide/install.md:31: the order of faults is wrong. `read_settings` reads `FACTORY_SNAPSHOTS` (settings.py:345) and a relative `FACTORY_SNAPSHOT_BASE` (settings.py:346) before the faults of `FACTORY_WORKSPACE` (settings.py:348). This line also contradicts the order the Reference gives at line 231. Fix: state the code's order once and make the other place point to it.
+   2. docs/operator-guide/install.md:231: this order is wrong too. A relative `FACTORY_SNAPSHOT_BASE` (settings.py:346) comes before the workspace faults, not after them. `FACTORY_CLAUDE_HOME` (settings.py:354) is read before `FACTORY_TRANSCRIPT_DIR` (settings.py:355-359), and the line leaves it out. Fix: list the order as settings.py:337-359 reads it.
+   3. docs/operator-guide/install.md:231: the line names the function `read_settings`. The style page's operator-guide section says "Name no module or class", and the journal (entry 5) claims the name was dropped. Fix: write "the factory reads" instead.
+   4. docs/operator-guide/install.md:209-211 and :223-225: the `make mutants` commands are in `sh` blocks. These are neither runnable examples nor marked `console vm` with the real run they were copied from. The Description requires one or the other, and so does the Documents check. Fix: make each a `console vm` block copied from a real sweep, with the text above saying where it ran, or ask how to show a command that no run backs.
+   5. docs/operator-guide/install.md:13 and :17: `uv sync` and `make check` are indented blocks with no info string. They are neither runnable nor marked, and they show no output (style rule 6, and the Description's rule on commands). Fix: write `console` blocks. The `make check` block is skipped as `suite` and expects `...` then `check: green`. `uv sync` becomes a runnable block with `...`, or a `console vm` block from a real run.
+   6. docs/operator-guide/install.md:19: step 3 names no command. The style page says each step is one action with its command, and its own example gives one. Fix: add `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>` (usage at setup.sh:11).
+   7. docs/operator-guide/install.md (whole file): the old file's line 58 was dropped without being named as dropped (criterion 2). It said that `operator/vm/setup.sh` prepares the VM with the dataset and the stage image, and that the preflight checks them (see "The preflight's items" in health.md). It is neither in the new text nor in *Reference*. Fix: restore it in step 3 or in *Reference*.
+   8. docs/operator-guide/install.md: some glossary words are not linked at their first use (criterion 1, style rule 3): "work items" at :9, "dataset" and "base" at :83, "stage environment" at :195, "role" at :199 and "acceptance" at :205. Fix: link each to `../project-guide/glossary.md` at its first use.
+   9. docs/operator-guide/install.md:52, :115, :142 and :239: "boundaries" is a private word of the code (`Boundaries`). It is not in the glossary, and the style page says to use no other private words (rule 3). Fix: say "when `factory-run` starts" or "before it builds anything".
+   10. docs/operator-guide/install.md:43, :31 and :115 break style rule 2. Line 43 has two parentheses in one sentence. The sentence at :115 has about 35 words and the one at :31 about 30. Fix: split them.
+
+   Open, outside this story's diff: `docs/project-guide/shared.md` still says the operator guide has no `Default` column and no refusal table, which is now false. The documenter named this too, so it is for the story of that file or for the human.
