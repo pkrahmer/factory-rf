@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T12:43:28.552594Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-06T12:43:23.237473Z'
   stage: tests
   run: 09a033458e8349108151671ed89d42b9
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:43:28.552594Z'
+  stage: doing
 ---
 
 # A configuration section without its settings table is a finding
@@ -213,3 +222,4 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
     Test run: `uv run pytest -q tests/shared/domain/test_document_settings.py`. All 29 tests passed; the code from round 0 already does what they check. `make lint` is green.
 
     `lint`: lint: green (0.2 s)
+14. factory: started doing as vm.
