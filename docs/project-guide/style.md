@@ -29,7 +29,7 @@ b
 
 The commands of one document run in order in one new folder, so a file that the first block writes is there for the next one. Each command runs under `sh -c` with a fixed environment (`PATH`, `HOME` as an empty temporary folder, `TZ=UTC`, `LANG=C.UTF-8`) and nothing else. The folder is removed when the document is done. A command that runs past 60 seconds stops the document.
 
-The tests run the examples in their copies of the documents too (the fixture `documents` in `tests/conftest.py` makes each copy a git repository). A wrong example therefore fails the suite only in a file listed in `docs/checked-documents.txt`; in any other file it is printed under `Report (not checked yet):`.
+A wrong example fails `make documents` only in a file listed in `docs/checked-documents.txt`; in any other file it is printed under `Report (not checked yet):`. The test suite runs the examples of every document the check reads, so there a wrong example fails whether its file is listed or not. Every example must be right wherever it stands.
 
 The expected output must match line by line. Two placeholders loosen it:
 

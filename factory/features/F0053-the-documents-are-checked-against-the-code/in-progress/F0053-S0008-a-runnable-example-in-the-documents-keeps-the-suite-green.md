@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 593
 comments_read: [6684236950, 6684384956]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T12:05:28.949361Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -174,6 +170,12 @@ journal:
   kind: started
   at: '2026-11-06T12:05:28.949361Z'
   stage: docs
+- number: 30
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T12:07:50.726678Z'
+  stage: docs
+  run: 9dd97ccb37184ff690c423dca1333205
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -455,3 +457,21 @@ Expect: `1`
     - `tests/conftest.py`, fixture `documents` (F0053-S0002): changed under feature decision 6, as the Interface cites it, and the human's entry 19. Its name stays, and it returns the same folder.
     - `tests/entry/test_check_documents_checked_files.py`, `test_todays_documents_with_the_first_list_give_a_report_and_pass` (F0053-S0004): changed under the human's leave in entry 19. The change is exactly `git init` and one `commit_all` after the list is written. Its name and its three assertions stay.
 29. factory: started docs as vm.
+30. documenter: Round 1, after the human's answer (a) in entry 26.
+
+    Changed:
+    - `docs/project-guide/style.md`, *Runnable examples*: I rewrote the paragraph that the reviewer's finding 1 named. It no longer says the fixture makes each copy a git repository, because that is machinery. It now says a wrong example fails `make documents` only in a file listed in `docs/checked-documents.txt` (elsewhere it is printed under `Report (not checked yet):`), and that the test suite runs the examples of every document the check reads. So a wrong example fails the suite whether its file is listed or not, and every example must be right wherever it stands.
+    - I did not change the `console` blocks of the page. They already held, and `make documents` runs them.
+
+    Checks:
+    - I ran `make documents`. Its last line is `documents ok (0.6 s)`.
+    - It printed one report line, `docs/project-guide/work.md:13: factory/agents does not exist`. That line is the check's existing report of an unlisted page. I did not touch it, because it is unrelated to this story.
+    - I did not run `make check`, because I changed only a document.
+
+    Cross-read and found current: the other paragraphs of `docs/project-guide/style.md`. `docs/project-guide/shared.md` needs nothing, because the machinery is unchanged (criterion 5).
+
+    No stale text noticed beyond the `work.md:13` report above. No findings against the code.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (0.6 s)
