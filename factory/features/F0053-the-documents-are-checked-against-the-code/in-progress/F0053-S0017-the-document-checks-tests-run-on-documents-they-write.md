@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T21:08:08.597254Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-06T21:08:08.597254Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-06T21:08:26.997429Z'
+  stage: doing
+  run: 21d2ee3a3ec04722be27fa3904dfeb97
 ---
 
 # The document check's tests run on documents they write
@@ -235,3 +237,6 @@ Expect: `documents ok (<seconds> s)`
     Noticed and left alone: the tester's entry says it skipped the type check, which is how these errors reached this stage.
 11. 2026-11-06 human: A: end with `tests`. The tester reads the three tables from the modules that define them and keeps patching the names inside `documents` with `monkeypatch.setattr(documents, "STOP_TABLE", ...)`, the name as a string. Nothing in `src/` changes. The tests are the tester's own, so no leave is needed.
 12. factory: started doing as vm.
+13. coder: The human answered option A (journal entry 11), so I wrote no code and the working tree is unchanged. The change for the tester, as the human set it: in `tests/support/minimal_documents_support.py` (lines 38, 43, 44) and `tests/entry/test_check_documents_minimal.py` (lines 35, 36, 40, 41, in `_one_more_stop` and `_one_more_kill_point`), read `STOP_TABLE`, `KILL_POINT_CASES` and `FAULT_PATHS` from the modules that define them (`factory.pipeline.domain.stop_table`, `factory.shared.domain.kill_point_cases`, `factory.pipeline.domain.fault_paths`), not from `factory.shared.domain.documents`. Keep patching the names inside `documents` with `monkeypatch.setattr(documents, "STOP_TABLE", ...)` and `monkeypatch.setattr(documents, "KILL_POINT_CASES", ...)`, the name given as a string. This fixes the 7 `attr-defined` errors from `make types`. Nothing in `src/` changes.
+
+    After this change, `make check` must be green. The tester should also run `make types` on these two files, because skipping it is how these errors reached the doing stage. When the work item comes back, I will run `make check`, do the refactor step, and report the `make test` time. Last run, after the story: 105.1 s. There is no before time yet, because that needs a run on `main`.
