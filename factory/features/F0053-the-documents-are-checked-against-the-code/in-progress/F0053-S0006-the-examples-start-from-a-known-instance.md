@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T09:15:02.886823Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-06T09:15:02.886823Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T09:15:49.482191Z'
+  stage: review
+  run: 443d83f0131c4b3aac8ac5faa78a0002
 ---
 
 # The examples start from a known instance
@@ -402,3 +404,30 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 26. factory: started review as vm.
+27. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'` (7 files: `instance_fixture.py` new, `GitCli.clone_bare`, `HEALTH_FILE_NAME` moved to `watching.adapters.health_file`, `INSTANCE_FIXTURE` in `shared.domain.documents`, the fixture table in `check_documents`, and the new test module).
+
+    Acceptance criteria. Criteria 1 to 9 each have a test in `tests/hosting/adapters/test_instance_fixture.py`, and each test checks what its criterion says:
+    - 1 and 2 are the two rows of one parametrized test. Row 2's `<time>` relies on the runner's `<placeholder>` matching (`src/factory/shared/domain/documents.py:708-711`).
+    - 3 to 7 have one test each.
+    - 8 (`factory.env`) compares the sorted lines with the environment.
+    - 9 is the `FixtureError` raised outside a repository.
+    - The round-0 findings (criteria 8 and 9 added, the copied `INSTANCE_FIXTURE`) are all resolved.
+    - The factory's `make check` after the coder was green (journal 25).
+
+    Architecture holds:
+    - git is reached only through `GitCli`.
+    - The fixture in `hosting.adapters` imports only adapters and domains, and nothing from `factory.entry`.
+    - The table in `check_documents` is the only wiring.
+
+    Security: argv lists only, no shell strings, no silencing markers, nothing secret.
+
+    Quality: names and docstrings fit, the comment on `clone_bare` explains why it is not on `Git`, and there is no dead code. The name `health.json` now has one definition.
+
+    The Description matches what was built, and docs criterion 11 still says what the documenter must write.
+
+    no findings
+
+    Notes:
+    1. `tests/hosting/adapters/test_instance_fixture.py:24`: `SETTINGS_FILE = "factory.env"` repeats `factory.hosting.adapters.instance_fixture.SETTINGS_FILE` (`src/factory/hosting/adapters/instance_fixture.py:25`). The tester chose to keep the criterion's own name in the test (journal 23). Importing the constant would leave one definition.
+
+    Earlier tests: none needed. The diff only adds `tests/hosting/adapters/test_instance_fixture.py` (status `A`) and changes no test file that `main` already holds.
