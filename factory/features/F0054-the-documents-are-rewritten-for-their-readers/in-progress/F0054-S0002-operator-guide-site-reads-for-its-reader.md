@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 610
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T22:56:08.360408Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T22:56:08.360408Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T22:56:25.002334Z'
+  stage: intake
+  run: 97a9d5fcadaa4232aa87610a67507be2
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -58,3 +60,10 @@ Expect: `1`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names `docs/operator-guide/site.md` (exists) and `docs/checked-documents.txt` (exists; its entry is one added line). Both are paths the documenter may write; no code, test or agent file changes.
+   - Criteria: all are about documents. Criterion 1 is the style judgment (reviewer). Criterion 2 is the fact comparison against the code (reviewer). Criterion 3 is testable with `make documents` printing `documents ok`, plus the checked-list entry. Criterion 4 is a link check. Criterion 5 is `make check`. The Interface states no behaviour or rule that needs a failing side.
+   - Smoke test: `grep -cx "docs/operator-guide/site.md" docs/checked-documents.txt` is runnable, and `Expect: 1` can be checked against its output. It runs no pytest.
+   - Docs criterion: criterion 6 asks for criteria 1 to 4 and names no sentences to write. It dictates no text. It says what the reader must know only through the Description: an operator who runs an instance and does not read the code.
+   - Architecture: nothing in `src` changes. This is a document rewrite on the docs route, checked by the F0053 document checks.
+   - Scope: it is S0002 of F0054, which lists it. It stays inside the feature's scope (one file rewritten and added to the checked list). It touches none of the feature's out-of-scope files (`docs/decisions.md`, `docs/runs/`, `docs/operator-playbook.md`) and changes no behaviour.
