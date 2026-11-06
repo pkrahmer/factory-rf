@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T10:20:56.347380Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-06T10:20:56.347380Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-06T10:23:36.034094Z'
+  stage: doing
+  run: 35ae9d605270462cba57528558d2bb90
 ---
 
 # The agents write and review documents against the code
@@ -316,3 +318,21 @@ Expect: `named`
     - `tests/agent_files/test_claude_agent_texts_review_groups.py`: the human's leave in the Interface (2026-11-05). `test_the_rest_of_the_reviewer_body_is_unchanged` keeps its name and only also strips the `### Documents` item.
     - `tests/agent_files/test_claude_agent_texts_mutants.py`: the human's answer in journal entry 11. `test_reviewer_item_6_is_followed_by_the_findings_paragraph` keeps its name and only skips the `### Documents` item. Nothing else in the module changed.
 20. factory: started doing as vm.
+21. coder: Test change for the tester (review finding 5, entry 19): in `tests/agent_files/test_claude_agent_texts_documents.py`, `_reviewer_checklist` cuts `## Role` out by hand with `body.index`. Replace that with `section_text(agent_body("reviewer"), "Role")` from `factory.shared.domain.sections`, or with a `role_section` helper beside `stage_section` in `tests/support/shipped_agents.py`. Every row should keep its name and check the same thing. No code depends on this change, so the work item can go back to review once it is made.
+
+    I fixed review findings 1 to 4 and 6 in this round. `make check` is green (`check: green`, coverage 99.22 %), and `uv run pytest -q tests/agent_files` passes.
+
+    - **Findings 1 and 2**, `agents/agents/documenter.md` Stage step 3: the step now gives one order. In the same command as the last edit, run `make documents` when the pipeline definition lists a `documents` command, then `make check`. The documenter ends only on `documents ok (<seconds> s)`, and runs the command again after fixing a finding it printed. The literal `` `documents ok` `` and `` `make documents` `` stay in the same paragraph, so the `make-documents-ends-on-ok` row still holds.
+    - **Finding 3**, `agents/agents/reviewer.md` *Documents* item: the line now reads "A command shown with neither a runnable example nor an example marked for the VM, GitHub or a model that names the real run it was copied from is a finding." That removes the reading where an unmarked runnable example would count as a finding.
+    - **Finding 4**, `agents/agents/reviewer.md` *Documents* item: the item now covers "a document the documenter may write (`README.md`, a file under `docs/`, `operator/README.md`)".
+    - **Finding 6**, work item criterion 11: the docs criterion now also asks for the intake's question on a docs criterion that dictates the sentences to write. I edited only that criterion, the way the review asked; the Description's meaning is unchanged. If the coder's write paths don't include the work item, the factory drops this edit and the documenter needs the wording from this entry.
+
+    Main choice: for finding 1, step 3 says the rule applies when the pipeline definition lists a `documents` command. I rejected the other route, taking `make documents` out of step 3, because the criterion and its test row need it there.
+
+    Refactor: I read the diff again and found nothing to change.
+
+    Noticed, not touched: nothing beyond the review's findings.
+
+    `check`: check: green
+
+    The factory left out changes outside the write paths: factory/features/F0053-the-documents-are-checked-against-the-code/in-progress/F0053-S0005-the-agents-write-and-review-documents-against-the-code.md.
