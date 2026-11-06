@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T07:55:03.009670Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -148,6 +152,11 @@ journal:
   at: '2026-11-06T07:54:57.289531Z'
   stage: review
   run: 9328e68e5dc445f3a2347a938b27b997
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:55:03.009670Z'
+  stage: doing
 ---
 
 # A document's marked examples are run by the check
@@ -454,3 +463,4 @@ Expect: `1`
     - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, journal 17 (2).
     - `tests/guards/test_wrapper_search.py`: the human's leave, journal 17 (1).
     - `tests/support/check_documents_support.py`: the standing leave to move a shared test helper (`TIME_LINE` moved there, the earlier tests unchanged in name and in what they check).
+26. factory: started doing as vm.
