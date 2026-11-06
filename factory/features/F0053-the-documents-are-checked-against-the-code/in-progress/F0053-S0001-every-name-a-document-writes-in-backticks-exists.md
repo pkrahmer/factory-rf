@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 585
-comments_read: [6674965185]
+comments_read: [6674965185, 6675118179]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: d0cdf849536f49a9a34cc1a509d497fa
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-06T02:21:01.835106Z'
+  stage: doing
 ---
 
 # Every name a document writes in backticks exists
@@ -172,3 +177,6 @@ Expect: a number alone (the count of findings, possibly `0`)
     - the unit name `factory.service`, which reads as a module
 
     These are for S0004 to settle; the exit status does not change for them now. The refactor step is not done yet, because `make check` is not green.
+11. 2026-11-06 human: 1. Yes: the tester builds that row's string from parts (`"claude" + "/agents/reviewer.md"`), as `tests/guards/test_agent_folder_names.py` does. No exception in the guard.
+    2. (a), with the human's leave: the tester changes `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file` to compare only the lines that do not end in ` does not exist`, with the same exit status, and nothing else in that module. Its entry names the change. End with `tests`, naming both changes.
+    The 152 findings and their false positives stay printed only. S0004 settles them before any file blocks.
