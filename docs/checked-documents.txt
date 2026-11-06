@@ -2,3 +2,4 @@
 # `make documents`. One path per line. A rewritten document is added here.
 docs/project-guide/style.md
 docs/project-guide/glossary.md
+docs/operator-guide/install.md
