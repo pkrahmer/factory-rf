@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T14:18:56.695064Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-06T14:18:50.392648Z'
   stage: intake
   run: eac0b28babd0497982510fce80ee4043
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-06T14:18:56.695064Z'
+  stage: tests
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -104,3 +113,4 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
    - Architecture: tests only. No module under `src/factory/` changes.
    - Scope: within feature F0053, not in its out-of-scope list. Decision 7 gives the human's leave for the fixture and the test.
    - Route: tests, because the Interface changes only test files and the docs criterion needs a documenter run later.
+7. factory: started tests as vm.
