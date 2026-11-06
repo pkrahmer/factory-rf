@@ -1,14 +1,20 @@
 """The documents command: the findings of the documents and the guide's files, one per line."""
 
 import argparse
-from collections.abc import Sequence
+import importlib
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from factory.shared.domain.documents import (
     DOCUMENT_PATHS,
+    OPERATOR_GUIDE_FOLDER,
     PROJECT_GUIDE_FOLDER,
+    README,
+    Reference,
     check_documents,
     is_guide_file,
+    named_references,
+    unresolved,
 )
 
 _PROGRAM = "check-documents"
@@ -31,8 +37,66 @@ def _guide_files(root: Path) -> list[str]:
     return [path for path in paths if is_guide_file(path)]
 
 
+def _named_documents(root: Path) -> list[str]:
+    folders = (root / OPERATOR_GUIDE_FOLDER, root / PROJECT_GUIDE_FOLDER)
+    inside = sorted(
+        path
+        for folder in folders
+        if folder.is_dir()
+        for path in folder.rglob("*.md")
+        if path.is_file()
+    )
+    readme = [root / README] if (root / README).is_file() else []
+    return [path.relative_to(root).as_posix() for path in [*readme, *inside]]
+
+
+def _module_or_attribute_exists(name: str) -> bool:
+    parts = name.split(".")
+    for length in range(len(parts), 0, -1):
+        try:
+            found: object = importlib.import_module(".".join(parts[:length]))
+        except ImportError:
+            continue
+        for attribute in parts[length:]:
+            if not hasattr(found, attribute):
+                return False
+            found = getattr(found, attribute)
+        return True
+    return False
+
+
+def _path_exists(root: Path, name: str) -> bool:
+    target = (root / name).resolve()
+    return target.is_relative_to(root.resolve()) and target.exists()
+
+
+def _existence(root: Path) -> Callable[[Reference], bool]:
+    def exists(reference: Reference) -> bool:
+        if reference.kind == "module":
+            return _module_or_attribute_exists(reference.name)
+        return _path_exists(root, reference.name)
+
+    return exists
+
+
+def _name_findings(root: Path) -> list[str]:
+    top_level = frozenset(entry.name for entry in root.iterdir())
+    references = [
+        reference
+        for document in _named_documents(root)
+        for reference in named_references(
+            document, (root / document).read_text(encoding="utf-8"), top_level
+        )
+    ]
+    return unresolved(references, _existence(root))
+
+
 def main(argv: Sequence[str] | None = None) -> int:
-    """Print `documents ok` and return 0, or print one line per finding and return 1."""
+    """Print `documents ok` and return 0, or one line per finding and return 1.
+
+    The names, paths and links the documents name that do not exist follow, one per line;
+    they do not change the exit status.
+    """
     parser = argparse.ArgumentParser(prog=_PROGRAM)
     parser.add_argument("--root", type=Path, default=Path.cwd())
     arguments = parser.parse_args(argv)
@@ -41,10 +105,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     findings = check_documents({path: _read(root / path) for path in paths})
     if not findings:
         print("documents ok")
-        return _CLEAN
     for finding in findings:
         print(f"{finding.document}: {finding.message}")
-    return _FINDINGS
+    for name_finding in _name_findings(root):
+        print(name_finding)
+    return _FINDINGS if findings else _CLEAN
 
 
 if __name__ == "__main__":
