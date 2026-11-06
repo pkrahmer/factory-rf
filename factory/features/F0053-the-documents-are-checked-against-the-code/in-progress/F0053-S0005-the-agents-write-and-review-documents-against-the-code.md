@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T10:14:21.724845Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-06T10:14:21.724845Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-06T10:18:42.014979Z'
+  stage: doing
+  run: b3bf2982628345c5915874ddc7a156ad
 ---
 
 # The agents write and review documents against the code
@@ -252,3 +254,25 @@ Expect: `named`
 
     `lint`: lint: green (0.1 s)
 16. factory: started doing as vm.
+17. coder: `make check` passes (`check: green`, `test: green (104.3 s)`, coverage 99.22 %). The tester's change to `tests/agent_files/test_claude_agent_texts_mutants.py::test_reviewer_item_6_is_followed_by_the_findings_paragraph` (entry 15) fixed the one failure left from entry 13. Every row of the new `tests/agent_files/test_claude_agent_texts_documents.py` passes.
+
+    What I built (my earlier runs, entries 10 and 13; this run changed no file):
+    - `agents/agents/documenter.md`, Role: three new rules.
+      - Read the code first.
+      - Every example is runnable and was run. An example that needs the VM, GitHub or a model is marked as such and copied from a real run, and the text names that run.
+      - Exact detail goes in a *Reference* section and is never cut.
+      - The old sentence "Examples are runnable and were run." moved into the examples rule.
+    - `agents/agents/documenter.md`, Stage step 3: run `make documents` and end only when its last line is `documents ok (<seconds> s)`. That is the human's wording from entry 11, and it keeps the literal `` `documents ok` `` that the test looks for. The step still runs `make check` after that.
+    - `agents/agents/intake.md`: a new step 4. A docs criterion that dictates the sentences to write is a question: the agent ends with `question` and asks what the reader must know afterwards. Later steps are renumbered, and "steps 2 to 4" became "steps 2 to 5".
+    - `agents/agents/reviewer.md`: a `### Documents` item in the checklist, after item 6 and before "Write findings" (entry 11, option a). It covers the changed documents' claims against the code. Two things are findings: a claim not found in the code, and a command without a runnable or marked example.
+
+    Main choice: `### Documents` is a headed item after the numbered groups, not a numbered item 7. Criterion 5 and the tests ask for the heading. I rejected option (b), putting it at the end of Role, because it would have left the checklist.
+
+    Refactor: I re-read the diff against `main` and found nothing to change.
+
+    Description: entry 11 does not change what the task means, so the Description stays as it is.
+
+    Noticed, not touched: `make documents` prints `documents ok (<seconds> s)`. I took that format from `docs/runs/2026-11-05-f0052/log.md`, not from running it in this stage.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
