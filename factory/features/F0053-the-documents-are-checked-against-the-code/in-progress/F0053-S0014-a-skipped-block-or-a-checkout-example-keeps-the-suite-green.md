@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T19:21:16.486989Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-06T19:21:11.081302Z'
   stage: review
   run: b3d28e9808ea4776a6c7e12d408afafe
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-06T19:21:16.486989Z'
+  stage: doing
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -199,3 +208,4 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
     - `tests/conftest.py`: the human's leave, feature decision 7, named with the `documents` fixture in the story's Interface. `documents` keeps its name, and the earlier tests that use it still pass.
     - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, feature decision 7, named in the story's Interface. The test keeps its name, row ids and expected outputs. Only its filter moved to `without_report_lines` and gained the `not run` rule.
     - `tests/support/check_documents_support.py`: none needed. The change only adds `NOT_RUN` and `without_report_lines` and leaves the existing names as they were.
+13. factory: started doing as vm.
