@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T02:58:20.069603Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-06T02:58:14.943540Z'
   stage: intake
   run: dd348d42c5184fb4b0820ad3257fa586
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:58:20.069603Z'
+  stage: tests
 ---
 
 # The operator guide's settings agree with the settings code
@@ -98,3 +107,4 @@ Expect: `True`
    - Smoke test: the command is runnable and the `Expect: True` line is checkable.
    - Architecture: the models sit in the shared domain layer, the functions are pure, and nothing needs I/O.
    - Scope: the story is inside the feature's settings check and not in its Out of scope. `install.md` stays unchanged.
+7. factory: started tests as vm.
