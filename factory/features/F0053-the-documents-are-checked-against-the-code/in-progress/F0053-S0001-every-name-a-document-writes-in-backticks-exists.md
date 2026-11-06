@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T02:21:05.888090Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T02:21:01.835106Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:21:05.888090Z'
   stage: doing
 ---
 
@@ -180,3 +189,4 @@ Expect: a number alone (the count of findings, possibly `0`)
 11. 2026-11-06 human: 1. Yes: the tester builds that row's string from parts (`"claude" + "/agents/reviewer.md"`), as `tests/guards/test_agent_folder_names.py` does. No exception in the guard.
     2. (a), with the human's leave: the tester changes `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file` to compare only the lines that do not end in ` does not exist`, with the same exit status, and nothing else in that module. Its entry names the change. End with `tests`, naming both changes.
     The 152 findings and their false positives stay printed only. S0004 settles them before any file blocks.
+12. factory: started doing as vm.
