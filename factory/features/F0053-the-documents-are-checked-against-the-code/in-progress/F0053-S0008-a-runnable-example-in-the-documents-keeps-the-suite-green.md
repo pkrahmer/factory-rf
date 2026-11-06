@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 593
 comments_read: [6684236950, 6684384956]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T12:05:28.949361Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -165,6 +169,11 @@ journal:
   at: '2026-11-06T12:05:22.429789Z'
   stage: review
   run: 9bc1ae7414be4b1193b67fbd5492be1b
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:05:28.949361Z'
+  stage: docs
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -445,3 +454,4 @@ Expect: `1`
     Earlier tests:
     - `tests/conftest.py`, fixture `documents` (F0053-S0002): changed under feature decision 6, as the Interface cites it, and the human's entry 19. Its name stays, and it returns the same folder.
     - `tests/entry/test_check_documents_checked_files.py`, `test_todays_documents_with_the_first_list_give_a_report_and_pass` (F0053-S0004): changed under the human's leave in entry 19. The change is exactly `git init` and one `commit_all` after the list is written. Its name and its three assertions stay.
+29. factory: started docs as vm.
