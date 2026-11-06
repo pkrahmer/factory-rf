@@ -6,7 +6,7 @@ The page explains the one file that holds your site's values and the commands th
 
 Words the factory gave its own meaning, such as [work item](../project-guide/glossary.md) and [stop](../project-guide/glossary.md), are explained in the [glossary](../project-guide/glossary.md). Kumpel is the product the factory is one component of. The skill is Kumpel's `kumpel` skill, which lets an agent run an instance with you; its folder and its map are in [`operator/README.md`](../../operator/README.md).
 
-Exact detail (every exit status, every message, every built-in rule) is in the *Reference* at the end.
+Exit statuses, return codes and the built-in rules are in the *Reference* at the end.
 
 ## The site file
 
@@ -123,15 +123,15 @@ The scripts reach the API and git only through `hosting_repo_api` and `hosting_g
 
 | What you see | What it means | What you do |
 |---|---|---|
-| `hosting: the token command failed; see SITE_TOKEN_CMD in the site file` | the script has neither a token command nor a `gh` login | set `SITE_TOKEN_CMD` in the site file, or log in with `gh auth login` |
+| `hosting: the token command failed; see SITE_TOKEN_CMD in the site file` | the token command failed or printed nothing, or there is neither a command nor a `gh` login | set `SITE_TOKEN_CMD` in the site file, or log in with `gh auth login` |
 
 ### The token source
 
-`operator/lib/hosting.sh` is the shell library that talks to the code host. It offers the REST API (`hosting_api`, and `hosting_repo_api` for `/repos/$SITE_REPOSITORY...`) and git over HTTPS (`hosting_git`). Source it after `operator/lib/site.sh`; it loads the site file itself when no `SITE_` value is loaded yet. It replaces the `gh` program for those two uses, because `gh` uses the person's own login, which may not see the project's repository.
+`operator/lib/hosting.sh` is the shell library that talks to the code host. It offers the REST API: `hosting_api`, and `hosting_repo_api` for `/repos/$SITE_REPOSITORY...`. It also offers git over HTTPS, as `hosting_git`. Source it after `operator/lib/site.sh`; it loads the site file itself when no `SITE_` value is loaded yet. It replaces the `gh` program for those two uses, because `gh` uses the person's own login, which may not see the project's repository.
 
 The token comes from one of two sources:
 
-1. `SITE_TOKEN_CMD`, when it is set and not empty. It is a command that prints a token (a secret store, a keychain, any program) and runs as `sh -c "$SITE_TOKEN_CMD"`. The first line of its output is the token, with surrounding whitespace and a trailing carriage return removed. Its standard error is discarded.
+1. `SITE_TOKEN_CMD`, when it is set and not empty. It is a command that prints a token, such as a secret store or a keychain. It runs as `sh -c "$SITE_TOKEN_CMD"`. The first line of its output is the token, with surrounding whitespace and a trailing carriage return removed. Its standard error is discarded.
 2. Otherwise `gh auth token`, so a home setup with a logged-in `gh` needs no entry.
 
 If the command fails, prints nothing, or neither a command nor `gh` exists, the library prints the message above and returns 4. The message never repeats what the command printed, because that may be an error text that holds a secret.
@@ -198,7 +198,7 @@ The filter applies the built-in rules first, then the site's in file order, line
 
 #### The check
 
-`sanitise check FILE...` tests every line of every file against the built-in token patterns and every pattern of the rules file (the left side of `=>`, `drop:` and `leak:`). For each line and rule that matches it prints `<file>:<line>: <n>` once. `<n>` is the rule's number, or `builtin-1`, `builtin-2` or `builtin-3`.
+`sanitise check FILE...` tests every line of every file against the built-in token patterns. It tests the same lines against every pattern of the rules file: the left side of `=>`, `drop:` and `leak:`. For each line and rule that matches it prints `<file>:<line>: <n>` once. `<n>` is the rule's number, or `builtin-1`, `builtin-2` or `builtin-3`.
 
 It never prints the matched text, so its report is no leak. A filtered file passes the check against the same rules, unless a replacement itself matches a pattern. The exit statuses are in the *Reference*.
 
@@ -228,19 +228,11 @@ A trial repository can be set back to a starting point, so that a run is repeate
 4. Run the skill's script without `--yes`. It prints the plan and exits 1.
 5. Run it again with `--yes` to do it.
 
-The two outputs below need GitHub, which the document check cannot reach. They are not copied from a run: they are the lines the script's code prints, with made-up counts and commit.
+The commands need GitHub, which the document check cannot reach, so they are not run here:
 
-```console github
-$ sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point
-would close 2 open work-item pull request(s)
-would delete 3 work-item branch(es)
-would move main to 1a2b3c4
-run again with --yes
-$ sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point --yes
-closed #12
-closed #13
-deleted work-item/F0001-S0001
-moved main to 1a2b3c4
+```sh
+sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point
+sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point --yes
 ```
 
 The script works through the hosting API alone and needs no checkout. It resolves the tag, and an annotated tag is followed to its commit. Then, in this order, it does three things:
@@ -273,7 +265,7 @@ The same skill folder merges a [story](../project-guide/glossary.md): `merge.sh 
 |---|---|---|
 | `merge.sh: #<pr> is not open`, exit 1 | the pull request is closed or merged | check the number; nothing was merged |
 | `merge.sh: #<pr> is a draft`, exit 1 | the factory has not handed the pull request over | wait for the factory; nothing was merged |
-| `merge.sh: #<pr> is not at stage:approval`, exit 1 | the work item has not reached the approval | wait for the label `stage:approval`; nothing was merged |
+| `merge.sh: #<pr> is not at stage:approval`, exit 1 | the work item has not reached the [approval](../project-guide/glossary.md) | wait for the label `stage:approval`; nothing was merged |
 | `merge.sh: #<pr> is not the pull request of <id>`, exit 1 | the pull request's branch is not `work-item/<id>` | give the right number and id; nothing was merged |
 | `merge.sh: merged, but no archive commit for <id> after <N> s`, exit 1 | the pull request is merged, but the archive commit did not appear in time | look at the history of `main` and the factory's log; do not start the next story until `archived` shows |
 
@@ -308,9 +300,9 @@ A missing piece shows up in step 5 or later as a failed check, not as a message 
 
 1. **Install the tools.** Put `gcloud`, `git`, `curl` and `python3` on the `PATH`, and have a POSIX shell. This proves nothing yet; check 3 of step 5 names whichever is missing.
 2. **Get the repository.** Clone this repository. The scripts run from its `operator/` folder as `sh operator/bin/site ...`. The checkout you name in the site file is the factory's *project* repository, which may be another one.
-3. **Write the site file.** Run `sh operator/bin/site init`. It writes `operator/site.env.example` to the path `site path` prints, mode 0600, and never overwrites. Edit the file: every key is in the table of *The keys*, and a job needs all that table marks required. `init` fails in two ways: `site: <path> exists; not overwritten` (status 1), and the refusal to write inside a git work tree (status 3).
-4. **Check the file.** Run `sh operator/bin/site show`. It lists which keys are set, without a value. Use it to find what you forgot before the next step. Here the loader first reads the file: no file is status 1, a fault in a line status 2, and a file inside a git work tree status 3 (the *Reference* lists them).
-5. **Check the machine.** Run `sh operator/bin/site check` (see *The checks*). It reads and writes nothing in any system, and ends with `site: ready` (status 0) or `site: <n> failed` (status 1). Repeat until it is ready; do not go on with a `FAIL`.
+3. **Write the site file.** Run `sh operator/bin/site init`. It writes `operator/site.env.example` to the path `site path` prints, mode 0600, and never overwrites. Edit the file: every key is in the table of *The keys*, and a job needs all that table marks required. `init` fails in two ways. One is `site: <path> exists; not overwritten` (status 1). The other is the refusal to write inside a git work tree (status 3).
+4. **Check the file.** Run `sh operator/bin/site show`. It lists which keys are set, without a value. Use it to find what you forgot before the next step. Here the loader first reads the file. No file is status 1, a fault in a line is status 2, and a file inside a git work tree is status 3; the *Reference* lists them.
+5. **Check the machine.** Run `sh operator/bin/site check`, described in *The checks*. It reads and writes nothing in any system. It ends with `site: ready` (status 0) or `site: <n> failed` (status 1). Repeat until it is ready; do not go on with a `FAIL`.
 6. **Create the job.** Run `sh operator/job/job.sh create`. It proves that the project, region, connector and run-as account accept the job. A refusal is `gcloud`'s own text and its status (*Creating the job* in [cloud-run.md](cloud-run.md)).
 7. **Start it.** Run `sh operator/job/job.sh execute`. It prints the execution's name. The job needs a few minutes to install, clone and build before the factory runs (*Starts, restarts and the end of an execution* in [cloud-run.md](cloud-run.md)).
 8. **Watch it.** Run `sh operator/job/job.sh log` and `sh operator/job/job.sh status` (*Watching the job* in [cloud-run.md](cloud-run.md)). Read a stop the factory printed with [stops.md](stops.md). `site check` does not test the model API's login, since that needs the secret's value. The job's preflight proves it at the first start, and its failure shows in the log.
@@ -325,7 +317,7 @@ Each row below reads as: what you see, what it means, and what you do.
 
 | What you see | What it means | What you do |
 |---|---|---|
-| `FAIL site file: ...` | the file does not load | run `site init`, or fix the line the loader's message names |
+| `FAIL site file: ...` | the file does not load | run `site init`, fix the line the loader's message names, or move the file out of the git work tree |
 | `FAIL keys: ...` | a key a job needs, `SITE_REPOSITORY` or `SITE_CHECKOUT` is unset; the detail names them | set the keys named |
 | `FAIL tools: ...` | `gcloud`, `curl`, `git` or `python3` is not on the `PATH`; the detail names it | install it |
 | `FAIL token: ...` | the token command (`SITE_TOKEN_CMD`, else `gh auth token`) printed no token; the detail is the hosting client's message, for instance an empty output | fix `SITE_TOKEN_CMD`, or log in with `gh auth login` |

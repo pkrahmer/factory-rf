@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T23:10:01.133594Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-06T23:10:01.133594Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:12:28.254796Z'
+  stage: docs-only
+  run: f10ad710f3794b64a1d635bfde66d686
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -230,3 +232,28 @@ Expect: `1`
 
     Open, for the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules were meant, so I left the Description as it is.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: fixed the reviewer's findings 1 to 6 in `docs/operator-guide/site.md`. `make documents` ends with `documents ok (2.1 s)`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `docs/operator-guide/site.md`: the six fixes below. It is the only file I changed.
+    - `docs/checked-documents.txt`: unchanged.
+
+    Findings, in order:
+    1. I dropped the `console github` block that showed made-up output. Steps 4 and 5 now show the two commands in an `sh` block, and the text above it says they need GitHub and are not run. The prose below the block already names every output line.
+    2. The token-failure row now says the token command failed or printed nothing, or there is neither a command nor a `gh` login.
+    3. The `FAIL site file:` row now adds "or move the file out of the git work tree".
+    4. *approval* in the `merge.sh` table is linked to the glossary.
+    5. I split the sentences with two parentheses and the long ones. They are the `hosting.sh` description, the `SITE_TOKEN_CMD` sentence, the `sanitise check` sentence, and steps 3, 4 and 5 of the machine setup.
+    6. The intro now reads "Exit statuses, return codes and the built-in rules are in the *Reference* at the end."
+
+    I could not run `reset-to-tag.sh` or `merge.sh`, because they need GitHub. Their tables follow the scripts as I read them.
+
+    Cross-read and found current: the links to `site.md` headings elsewhere were checked in round 1 and are unchanged, because I kept every heading.
+
+    Stale text I saw and left alone: `make documents` still prints `does not exist` lines for files that are not on the checked list, for example `docs/operator-guide/install.md`. They are not part of this story.
+
+    For the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. I left the Description as it is.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (2.2 s)
