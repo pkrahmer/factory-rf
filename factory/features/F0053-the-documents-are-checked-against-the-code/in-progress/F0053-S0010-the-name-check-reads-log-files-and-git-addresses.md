@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T12:29:40.892650Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-11-06T12:29:40.892650Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T12:30:05.697862Z'
+  stage: smoke-test
+  run: 1721a22c8def4ef0a607ff183bbc1017
 ---
 
 # The name check reads log files and git addresses
@@ -295,3 +297,18 @@ Expect: `0`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (0.6 s)
 20. factory: started smoke-test as vm.
+21. smoke-tester: I ran the smoke test from the repository root as written. It has no findings.
+
+    Command 1: `uv run python -m factory.entry.check_documents | grep -c "git@\|factory.log does not exist"`
+    ```
+    Bytecode compiled 4164 files in 47ms
+    0
+    ```
+    It met its `Expect:` line (`0`). The line `Bytecode compiled …` is uv's own message on stderr. grep exits with 1 when it counts zero matches, which is normal for `grep -c`.
+
+    I also checked the output against the acceptance criteria:
+    - Criterion 3: the full report of `factory.entry.check_documents` ends `documents ok (0.5 s)`. It has no line for `factory.log` (`docs/operator-guide/machine.md`) and none for the two git addresses (`docs/operator-guide/install.md`, `docs/operator-guide/cloud-run.md`). The lines it still prints are the deliberate examples in the project guide plus the four stale paths the documenter listed in entry 19 (`machine.md:298`, `machine.md:362`, `work.md:13` and one in the operator guide). This story does not cover those.
+    - Criterion 5: `docs/project-guide/shared.md`, *The name check*, lines 122–123, names `.jsonl` and `.log` as file-name extensions (`factory.log`, `factory.records.jsonl`). It also says a text with a `:` before its first `/` is no path, and gives the web address and the scp-style git address as examples. Nothing in the smoke test contradicts it.
+    - Criteria 1, 2 and 4: the smoke test does not reach them, and it contradicts none of them.
+
+    Findings: none.
