@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T14:18:56.695064Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-06T14:18:56.695064Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-06T14:21:41.849344Z'
+  stage: tests
+  run: ceba5deb81ed4130bff6d5bebd885b6b
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -114,3 +116,29 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
    - Scope: within feature F0053, not in its out-of-scope list. Decision 7 gives the human's leave for the fixture and the test.
    - Route: tests, because the Interface changes only test files and the docs criterion needs a documenter run later.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for the criteria. The Interface puts this story's whole change in test files: the fixture, the filter and the new rows. So the new tests pass already, and they are not red. The coder has nothing under `src/` to change (the Interface forbids it). What is left for the coder is `make check` and the `make test` timing the Interface asks for.
+
+   Criterion → test:
+   - criterion 1: tests/entry/test_check_documents_suite_copy.py::test_a_skipped_block_leaves_the_output_as_it_was_and_a_wrong_example_adds_its_line (rows vm, github, model, suite, wrong-example)
+   - criterion 2: tests/entry/test_check_documents_suite_copy.py::test_an_example_reads_the_tracked_files_of_the_repository (rows tracked-file, missing-file)
+   - criterion 3: tests/entry/test_check_documents_suite_copy.py::test_the_copy_holds_the_tracked_files_and_nothing_untracked
+   - criterion 4: tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file (all six rows unchanged, passing)
+   - criterion 5: tests/entry/test_check_documents_suite_copy.py::test_two_copies_of_the_session_repository_are_separate
+   - criteria 6 and 7: no test (they are `make check` and the docs).
+
+   Files created:
+   - tests/entry/test_check_documents_suite_copy.py
+   - tests/support/documents_copy_support.py (`tracked_files_repository`, which copies every `git ls-files` file and commits it once; `copy_of`, which runs `git clone --local`)
+
+   Earlier test files I changed, under the leave of feature decision 7 that the Interface names:
+   - tests/conftest.py: the new session fixture `tracked_files` builds the full copy once per session. `documents` keeps its name and is now a per-test `copy_of(tracked_files, tmp_path / "root")`, with a docstring saying what it holds. I removed the `shutil`, `commit_all`, `run_git` and `_OPERATOR_GUIDE` imports and names, which nothing used any more.
+   - tests/entry/test_check_documents_operator_guide.py: the comparison now also leaves out lines ending in `: not run (<reason>)`. That filter is the new `without_report_lines` in tests/support/check_documents_support.py, which the new module uses too. The test keeps its name, its row ids and its expected outputs.
+
+   Interpretations to check:
+   - Criterion 2, "no line about `machine.md`": today's `machine.md` already gives two `does not exist` lines in the full copy (lines 264 and 362). So the test counts only the `machine.md` lines at or after the appended block's opening fence, as `test_check_documents_copies.py` already does. Without `src/` changes, no literal reading can hold.
+   - The `<line>` in the expected lines of criteria 1 and 2 is matched as `\d+`, as the existing copies test does.
+   - In criterion 1's wrong-example row, the added line may come before or after the `missing` line.
+
+   The run: `uv run pytest -q` over the new module and the three modules that use `documents` (suite_copy, operator_guide, copies, settings) passed, 21 tests, no import errors. Every module imported. `make lint` is green. I did not measure the `make test` time before and after: CLAUDE.md limits the tester to one run of the test files it wrote. The coder's `make test` should record it, against the roughly three minutes CLAUDE.md gives for today.
+
+   `lint`: lint: green (0.1 s)
