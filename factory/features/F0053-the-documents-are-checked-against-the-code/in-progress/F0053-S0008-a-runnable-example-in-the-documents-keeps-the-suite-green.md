@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 593
 comments_read: [6684236950, 6684384956]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T12:04:15.330795Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -163,6 +159,12 @@ journal:
   kind: started
   at: '2026-11-06T12:04:15.330795Z'
   stage: review
+- number: 28
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T12:05:22.429789Z'
+  stage: review
+  run: 9bc1ae7414be4b1193b67fbd5492be1b
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -183,7 +185,7 @@ The document check runs a document's `console` blocks (S0003, S0006), and the do
 2. A `console` block whose output differs (`$ echo one` / `two`) in the listed `docs/project-guide/style.md` of the copy fails `main` with `docs/project-guide/style.md:<line>: the example printed one` and exit status 1. The same block in an unlisted page is printed under `Report (not checked yet):`, and the exit status is 0 (rows of one test).
 3. `git -C <root> status --porcelain` in the copy the fixture returns prints nothing, and `git -C <root> rev-parse --is-inside-work-tree` prints `true`.
 4. `make check` stays green.
-5. docs: `docs/project-guide/style.md`, *Runnable examples*: the demonstration blocks are `console` blocks again and are run by `make documents`. The reader learns that a document's examples run in the tests' copies too, so a wrong example fails the suite only in a listed file. `docs/project-guide/shared.md`, *The document check*: none, the machinery is unchanged.
+5. docs: `docs/project-guide/style.md`, *Runnable examples*: the demonstration blocks are `console` blocks again and are run by `make documents`. The reader learns that a wrong example fails `make documents` only in a file listed in `docs/checked-documents.txt`, but fails the test suite in any document the check reads, so every example must be right wherever it stands. The page does not say how the tests' copies are built (that the fixture makes each copy a git repository is machinery). `docs/project-guide/shared.md`, *The document check*: none, the machinery is unchanged.
 
 ## Smoke test
 
@@ -410,3 +412,36 @@ Expect: `1`
     I would choose (a). It is true today, needs no test change, and a suite that catches every wrong example is the stricter guard.
 26. 2026-11-06 human: (a). The truth for the writer, in the style page and in criterion 5: a wrong example fails `make documents` only in a file listed in `docs/checked-documents.txt`, but it fails the test suite in any document the check reads, so every example must be right wherever it stands. Drop the sentence that the fixture makes each copy a git repository, which is machinery and belongs in `shared.md` if anywhere. No test change. The documenter rewrites the paragraph, and the next review corrects criterion 5's wording from this answer.
 27. factory: started review as vm.
+28. reviewer: Round 1, second review, after the human's answer in entry 26. I read the work item and `git diff main...HEAD -- . ':!factory'`. Four files changed: `docs/project-guide/style.md`, `tests/conftest.py`, `tests/entry/test_check_documents_checked_files.py` and the new `tests/entry/test_check_documents_copies.py`. Nothing under `src/` changes.
+
+    no findings
+
+    Corrected, as entry 26 asks ("the next review corrects criterion 5's wording from this answer"):
+    - criterion 5 corrected:
+      - It said: "The reader learns that a document's examples run in the tests' copies too, so a wrong example fails the suite only in a listed file."
+      - It says now: "The reader learns that a wrong example fails `make documents` only in a file listed in `docs/checked-documents.txt`, but fails the test suite in any document the check reads, so every example must be right wherever it stands. The page does not say how the tests' copies are built (that the fixture makes each copy a git repository is machinery)."
+      - I changed nothing else in the work item. The `shared.md`: none part is unchanged, because the human said the fixture's machinery belongs there "if anywhere".
+
+    Left for the docs stage (the human's routing in entry 26, not a finding against the code):
+    - `docs/project-guide/style.md:32` still holds the sentence finding 1 of entry 25 named. It says the fixture makes each copy a git repository, and that a wrong example fails the suite only in a listed file.
+    - The documenter rewrites that paragraph from the corrected criterion 5. The tests contradict the current text: `tests/entry/test_check_documents_operator_guide.py:89-96` keeps the `the example printed` report lines of unlisted pages.
+    - I end with `docs` and not `doing` because the coder cannot write documents. A `doing` would only spend the last round before the cap and leave the paragraph as it is.
+
+    Groups checked:
+    1. Criteria:
+       - Criterion 1: `test_a_matching_example_in_a_copied_document_gives_no_finding`, rows `unlisted` and `listed`. The real `console` blocks in the listed style.md now run in the `documents` copy of `test_the_operator_guide_folder_is_checked_per_file`, and that test is green.
+       - Criterion 2: `test_a_wrong_example_in_a_copied_document_fails_only_a_listed_one`. Both sides are rows of one test, and each row checks the message, which side of the report heading the finding stands on, and the exit status.
+       - Criterion 3: `test_the_copied_documents_are_a_clean_git_work_tree`.
+       - Criterion 4: the coder's `make check` was green (entry 23).
+    2. Architecture: only tests and one document change. The fixture and the S0004 test reuse `run_git` and `commit_all` from `tests/support/git_support.py`.
+    3. Security: no secrets, no markers, no command built from strings.
+    4. Quality: there is no copied helper, and the fixture's docstring describes the new fixture.
+    5. Hygiene:
+       - The journal records the choices and what was rejected.
+       - The Description matches what was built.
+       - Criterion 5 now carries the human's truth. The Interface's sentence that names only the S0002 and S0003 tests is widened by the human's entry 19. Under my instructions I correct only the Description, so I left the Interface as it is.
+    6. Documents: style.md's `console` blocks and their outputs hold (`echo "took $((40 + 2)) s"` matches `took <seconds> s`). Line 32 is the docs stage's rewrite, as above.
+
+    Earlier tests:
+    - `tests/conftest.py`, fixture `documents` (F0053-S0002): changed under feature decision 6, as the Interface cites it, and the human's entry 19. Its name stays, and it returns the same folder.
+    - `tests/entry/test_check_documents_checked_files.py`, `test_todays_documents_with_the_first_list_give_a_report_and_pass` (F0053-S0004): changed under the human's leave in entry 19. The change is exactly `git init` and one `commit_all` after the list is written. Its name and its three assertions stay.
