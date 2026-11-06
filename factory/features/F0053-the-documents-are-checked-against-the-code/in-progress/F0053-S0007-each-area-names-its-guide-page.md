@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 591
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T11:13:30.781987Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T11:13:30.781987Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T11:13:49.366381Z'
+  stage: intake
+  run: 9fc7b7e1998f464cad270c1c652d12b7
 ---
 
 # Each area names its guide page
@@ -55,3 +57,11 @@ Expect: `8`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names the seven area `__init__.py` files, `entry`'s, and the new `tests/guards/test_area_guides.py`. The line text is exact. All seven guide pages and `README.md` exist under `docs/project-guide/`.
+   - Criteria: criterion 1 is testable by one function, one row per package. Criterion 2 covers both failing sides, a missing line and a line naming a missing page, as rows of one test. Every Interface behaviour has a criterion. The Interface's "reads the docstring without importing it" has no criterion of its own, but it is an implementation detail and not a behaviour, so I did not ask about it.
+   - Smoke test: the `grep -l ... | wc -l` command is runnable and `Expect: 8` is checkable. It counts the 7 areas plus `entry`, and nothing else under `src/factory/*/__init__.py` carries such a line.
+   - Docs criterion: it names what the reader must know, namely that each area's package names its page. It dictates no sentences, and `docs/decisions.md` is explicitly untouched.
+   - Architecture: the change touches only package docstrings and a guard test in `tests/guards/`, which fits the layout in `CLAUDE.md`. There is no new dependency and no change to `factory/`.
+   - Scope: this is the feature's S0007 and decision 5, and it is not in "Out of scope". Module docstrings stay unchanged.
+   - Route: `tests`, because the Interface changes `src/` and `tests/` paths, which the documenter may not write.
