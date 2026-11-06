@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T11:44:06.228679Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T11:44:06.228679Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-06T11:48:16.019154Z'
+  stage: doing
+  run: 11da8432f69b4856a058affae469853b
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -118,3 +120,11 @@ Expect: `1`
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: I wrote no code. As the Interface says, no module under `src/` changes. The tester already made the one change the story needed, the fixture `documents` in `tests/conftest.py` (`git init` plus `commit_all`, through `tests/support/git_support.py`), and wrote `tests/entry/test_check_documents_copies.py`. Both are test files, so they are outside my write paths. I ran `make check` once and it ended `check: green` (test: green, 102.6 s, coverage 99.22 %).
+
+   - Main choice: I added nothing to `src/` to make the stage look busy. The alternative I rejected was a product-side helper that turns the copy into a git repository. The Interface rules that out ("No module under `src/` changes"), and the fixture already does it with the shared test helpers.
+   - Refactor: there is no coder diff to refactor. The branch diff against main holds only the tester's two test files and the work item files.
+   - Noticed, not touched: criterion 5 is still open for the docs stage. The two demonstration blocks in `docs/project-guide/style.md` are still `text` blocks, so the smoke test's `grep -c '^```console'` will report 0 until the documenter turns them back into `console` blocks. The journal did not change the meaning of the task, so I did not rewrite the Description.
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 39 known, 4 gone
