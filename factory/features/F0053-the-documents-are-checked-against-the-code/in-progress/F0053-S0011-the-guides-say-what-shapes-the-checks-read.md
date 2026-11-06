@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 597
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T13:14:02.851082Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-06T13:13:57.308534Z'
   stage: docs-review
   run: 335fc23c5b96453592f527268859e8f1
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-06T13:14:02.851082Z'
+  stage: docs-only
 ---
 
 # The guides say what shapes the checks read
@@ -115,3 +124,4 @@ Expect: a number greater than `0`
    4. `docs/project-guide/style.md:80` (refusal bullet): it does not say where the refusal table must sit. `_settings_guide_findings` passes the refusal check only `guide_tables(text, SETTINGS_SECTION)`, so a `The refusals` table counts only as a subsection of *Configuration* in `docs/operator-guide/install.md`. A writer who puts it under install.md's own `## When the process refuses to start` gets no finding at all, and criterion 1 asks for exactly this. Fix: say that the heading `The refusals` must be a subsection of *Configuration* in `docs/operator-guide/install.md`.
    5. `docs/project-guide/style.md:80`, "in the settings source": the term is not explained anywhere on the page (rule 3). The code reads `Path(settings.__file__)`, the source of `src/factory/shared/domain/settings.py`. Fix: name that file and link it relatively (rule 8).
    6. `docs/project-guide/style.md:79-80`: breaks style.md rule 2. Three sentences run to about 28–30 words with two ideas each: "The settings check reads only … (`Variable` also counts).", "It compares the defaults only … has no default." and "The check looks up each piece … is a finding." Fix: split each into two sentences.
+8. factory: started docs-only as vm.
