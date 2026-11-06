@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 596
 comments_read: [6685329163]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T13:04:34.772098Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-06T13:04:29.549521Z'
   stage: docs
   run: dddda7421f1040b38fecff5bc4b2768b
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-06T13:04:34.772098Z'
+  stage: smoke-test
 ---
 
 # The example runner's tests use the roomy limit
@@ -216,3 +225,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree bc7d2e757af3 at 2026-11-06T13:01:14Z)
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (0.6 s)
+15. factory: started smoke-test as vm.
