@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T09:57:01.127087Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-06T09:57:01.127087Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T09:57:27.561541Z'
+  stage: smoke-test
+  run: ae3d6bb8ba8748b0a83e03d6d92f2afa
 ---
 
 # The checks block the listed files and report on the others
@@ -499,3 +501,15 @@ Expect: `documents ok (<seconds> s)`
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok (0.4 s)
 30. factory: started smoke-test as vm.
+31. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` from the repository root, exactly as written.
+
+    Command 1: `uv run python -m factory.entry.check_documents | tail -1`
+    ```
+    Bytecode compiled 4164 files in 45ms
+    documents ok (0.4 s)
+    ```
+    (The first line is uv's stderr. The command's exit status was 0.) Met its `Expect:` line: `documents ok (<seconds> s)`.
+
+    To judge the criteria, I also looked at the full stdout once without changing anything. It is 132 lines. The first line is the heading `Report (not checked yet):`. Next come the reported findings in files not on the list (for example `README.md:24: factory/stage.Containerfile does not exist`). The last line is `documents ok (0.4 s)`. No blocking line comes before the report, and nothing follows the `documents ok` line. None of the findings is in `docs/project-guide/style.md` or `docs/project-guide/glossary.md`. `docs/checked-documents.txt` holds exactly those two paths, one per line, under two `#` comment lines. This agrees with criteria 1, 3, 7 and 14 (the list file). The smoke test does not reach the other criteria, and it contradicts none of them.
+
+    Findings: none. Nothing was fixed or changed.
