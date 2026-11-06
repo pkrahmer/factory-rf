@@ -7,7 +7,7 @@ The settings check compares the operator guide's settings tables with `SETTINGS`
 
 - `factory.shared.domain.documents.settings_findings(guide_tables, settings)`: when no table counts and `settings` is not empty, it returns the one finding `no settings table (first column Name or Variable) in Configuration`. With an empty `settings`, it returns no finding.
 - `factory.entry.check_documents`: unchanged. A missing `install.md`, or a missing *Configuration* section, stays the finding of today's check, and no settings finding is added for it.
-- This reverses S0002's criterion 6. It changes, beyond the standing leave, `tests/shared/domain/test_document_settings.py::test_guide_without_a_settings_table_gives_no_settings_finding` (its rows now expect the one finding) and the texts that the earlier entry tests build without a settings table (`clean_texts` in `tests/entry/test_check_documents.py`, which gets a settings table). Feature decision 6 gives the leave.
+- This reverses S0002's criterion 6. It changes, beyond the standing leave, `tests/shared/domain/test_document_settings.py::test_guide_without_a_settings_table_gives_no_settings_finding` (its rows now expect the one finding) and the texts that the earlier entry tests build without a settings table (`clean_texts` in `tests/entry/test_check_documents.py`, which gets a settings table). Feature decision 6 gives the leave. The leave also covers any other earlier test, whichever story wrote it, whose only failure is the effect this Interface describes; every changed test keeps its name and what it checks, and the entry names each one.
 - Tests: rows in `tests/shared/domain/test_document_settings.py`.
 
 ## Acceptance criteria

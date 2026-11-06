@@ -8,7 +8,7 @@
 - `tests/shared/adapters/test_document_examples.py`: a command that must start, write or print before its limit runs under `ROOMY_LIMIT`, and its elapsed time is bounded by `ROOMY_BOUND_SECONDS`. A command that must be killed (`sleep` past the limit) may keep a short limit. The local `ELAPSED_BOUND_SECONDS` goes.
 - `REPORT_HEADING`: one constant in `tests/support/check_documents_support.py`, used by `tests/entry/test_check_documents_checked_files.py`, `tests/entry/test_check_documents_operator_guide.py` and `tests/entry/test_check_documents_references.py` (standing leave to move a shared test helper).
 - `CHECKED_LIST` imports `CHECKED_DOCUMENTS` from `factory.shared.domain.documents`, and `SETTINGS_FILE` imports `factory.hosting.adapters.instance_fixture.SETTINGS_FILE`, unless the human prefers that a test keep the criterion's own literal (the S0006 tester's reason, journal 23 of that story).
-- Changing the limits in tests that F0053-S0003 wrote is beyond the standing leave. Feature decision 6 gives the leave. Every changed test keeps its name and what it checks.
+- Changing the limits in tests that F0053-S0003 wrote is beyond the standing leave. Feature decision 6 gives the leave. The leave also covers any other earlier test, whichever story wrote it, whose only failure is the effect this Interface describes; every changed test keeps its name and what it checks, and the entry names each one. Every changed test keeps its name and what it checks.
 - No module under `src/` changes.
 
 ## Acceptance criteria
