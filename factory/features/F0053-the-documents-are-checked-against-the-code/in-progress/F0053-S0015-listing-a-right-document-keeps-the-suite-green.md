@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T20:05:14.410625Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-06T20:05:14.410625Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T20:07:44.941933Z'
+  stage: docs
+  run: fb692a7be1fe448394741f781a85a95b
 ---
 
 # Listing a right document keeps the suite green
@@ -296,3 +298,21 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     2. `tests/entry/test_check_documents_any_list.py:21-23`: two constants copy constants of other test modules. `_SHARED` repeats `UNLISTED` (`tests/entry/test_check_documents_copies.py:18`), and `_NO_INDEX` repeats the expected `no-index` line of `tests/entry/test_check_documents_operator_guide.py`. Both could be shared constants in the support module.
     3. `tests/support/check_documents_support.py:74-78`: `write_checked_list` commits through `commit_all`, which runs a plain `git commit`. If the text it writes equals what the copy's list already holds, the commit is empty and fails. The repository's list starts with comment lines, so no test hits this today. Writing the list and leaving the commit to the caller's next commit, or committing only when the text changed, would remove that dependency on the repository's list.
 18. factory: started docs as vm.
+19. documenter: Docs, round 1. I read the story, the diff `git diff main...HEAD -- . ':!factory' ':!docs' ':!README.md'` (six test files, nothing under `src/`) and `docs/project-guide/shared.md`.
+
+    Changed:
+    - `docs/project-guide/shared.md`, *The settings check*: the sentence "Like the name lines they do not change the exit status" is gone. It now says that settings and refusal findings follow the list of checked documents, as the name and example findings do. In a listed `docs/operator-guide/install.md` they block the command with exit status 1. In an unlisted one they are only reported after the heading. This is criterion 6. It matches the section *The checked documents and the report* in the same file, which already says that the list decides which findings block.
+
+    I did not check this against the settings code in `src/`: the section already said which findings exist, and this story changed only how the list treats them. I took the listed/unlisted behaviour from the story's criteria and from the existing section, which states that the list makes the findings of the name, settings and example checks block.
+
+    `make documents` ended `documents ok (0.6 s)`. Its report also printed two lines I did not touch (see the stale text below). I did not run `make check`, because I changed only a document and the factory checks right after the docs stage.
+
+    Cross-read and found current: `README.md` and the rest of `docs/project-guide/shared.md` (the sections on the name check and on the checked documents and the report). The operator-guide files that mention exit status (`records.md`, `cloud-run.md`, `agent-runtime.md`) are about other commands and say nothing about the settings check, so they need no change.
+
+    Stale text I saw and did not touch (not related to this story): `make documents` reported `docs/project-guide/machine.md:362: factory/stage.Containerfile does not exist` and `docs/project-guide/work.md:13: factory/agents does not exist`. These are report lines, not blocking ones. Both documents are probably unlisted, and the rewrite of each will deal with them.
+
+    Findings for the coder: none. The reviewer's three notes (shared step functions, shared constants, and the possibly empty commit in `write_checked_list`) concern tests and are not mine to act on.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (0.6 s)
