@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T14:21:49.154527Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-06T14:21:41.849344Z'
   stage: tests
   run: ceba5deb81ed4130bff6d5bebd885b6b
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-06T14:21:49.154527Z'
+  stage: doing
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -142,3 +151,4 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
    The run: `uv run pytest -q` over the new module and the three modules that use `documents` (suite_copy, operator_guide, copies, settings) passed, 21 tests, no import errors. Every module imported. `make lint` is green. I did not measure the `make test` time before and after: CLAUDE.md limits the tester to one run of the test files it wrote. The coder's `make test` should record it, against the roughly three minutes CLAUDE.md gives for today.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
