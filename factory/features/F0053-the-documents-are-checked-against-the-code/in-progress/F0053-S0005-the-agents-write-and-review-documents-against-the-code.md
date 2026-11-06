@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T10:13:45.158942Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-06T10:13:40.098358Z'
   stage: doing
   run: f294d23edf764475ba858b55d95c148a
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-06T10:13:45.158942Z'
+  stage: tests
 ---
 
 # The agents write and review documents against the code
@@ -214,3 +223,4 @@ Expect: `named`
     Refactor: I re-read the diff against `main` for `agents/` and found nothing to change.
 
     Description: entry 11 does not change the meaning of the task, so it stays as it is.
+14. factory: started tests as vm.
