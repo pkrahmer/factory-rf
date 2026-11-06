@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T20:42:08.438514Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-06T20:42:08.438514Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-11-06T20:42:29.250880Z'
+  stage: doing
+  run: 7b0be625cede427c8bf9ef5b4f70c0aa
 ---
 
 # A page already listed keeps the document tests green
@@ -179,3 +181,13 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
 
    Both findings are in test files, so the coder hands them to the tester with `tests` (R9).
 10. factory: started doing as vm.
+11. coder: Round 1. I changed nothing. Both review findings are in `tests/entry/test_check_documents_any_list.py`, a test file, and the coder never edits tests (R9). I checked both against the file, and both hold:
+
+    1. `_list_newly` (lines 33–43): after it works out `missing` and returns when that list is empty, its last four lines repeat the body of `_append_to_list` (lines 46–53). Change for the tester: replace them with `_append_to_list(root, missing)`.
+    2. `_list_by_looking` (lines 179–180): its only line is `_list_newly(root)`, and it has the same signature. Change for the tester: remove it and use `pytest.param(_list_newly, 1, id="added-once")` in `test_a_page_the_repository_list_already_names_is_reported_once_unless_appended_again`.
+
+    Both are refactors inside test code. Every test keeps its name and what it checks, and the human's leave in feature decision 9 covers this module.
+
+    Main choice: hand the changes to the tester with `tests`. I rejected making the two edits myself, because tests are not mine to edit.
+
+    One difference from finding 1: `_list_newly` commits with the message "List three more pages", while `_append_to_list` uses "List pages". Calling `_append_to_list` would change that commit message. No test reads it, as far as I can see in the module. I did not run `make check` this round, because nothing changed. Criterion 6 (the docs) is still open for the docs stage.
