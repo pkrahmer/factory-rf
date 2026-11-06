@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433, 6697301221]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T22:24:26.700703Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -207,6 +203,12 @@ journal:
   kind: started
   at: '2026-11-06T22:24:26.700703Z'
   stage: docs-only
+- number: 36
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T22:26:58.955993Z'
+  stage: docs-only
+  run: c41b5697e1754c949bd64623c045a15c
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -571,3 +573,21 @@ Expect: `1`
     - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*.
     - `docs/operator-guide/README.md` keeps its version-history sections.
 35. factory: started docs-only as vm.
+36. documenter: Fixed findings 1 to 3 of review entry 34, as the human's entry 32 asked. Only `docs/operator-guide/install.md` changed, in the *Install* steps. Before editing I read the steps and *The two passes* in `docs/operator-guide/machine.md`.
+
+    - Step 1 now says the script prepares a fresh Ubuntu 24.04 machine for an instance. A short sentence names what it sets up. It links `cloud-run.md` for running an instance without a VM, so "the way to run an instance" is gone (finding 1). It says the first run stops with `setup: checkout: waiting for /home/factory/.secrets/hosting-token`.
+    - New step 2 (finding 2) places `hosting-token`, `claude-token` and `anthropic-api-key` in `/home/factory/.secrets`, readable by `factory`, and runs the same command again. It says all three must exist whatever the runtime, and that the key file stays empty under `claude`.
+    - Finding 3: the old step 1 is split, and the 45-word list is cut to one short sentence. The later steps are renumbered 3 to 5. The preflight sentence moved to step 5 (start), where it applies. No other file refers to these step numbers.
+
+    `make documents` ends with `documents ok (1.8 s)`. It prints the expected "not run" notes for install.md:23 (vm) and install.md:31 (suite). It also prints three lines about files outside this diff: `docs/project-guide/machine.md:298`, `docs/project-guide/machine.md:362` and `docs/project-guide/work.md:13`. I ran no `make check`, because I changed only a document.
+
+    Cross-read: the headings other files link to are unchanged. `docs/checked-documents.txt` is unchanged and correct.
+
+    Stale text I saw and did not touch, because entries 14 and 20 gave them to their own stories:
+    - `docs/project-guide/shared.md` says the operator guide has no `Default` column.
+    - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*, which is now under *Reference*.
+    - `docs/operator-guide/README.md` keeps its version-history sections.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (1.8 s)

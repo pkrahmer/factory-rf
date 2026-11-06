@@ -8,13 +8,15 @@ An instance runs one project. It is told what it needs through environment varia
 
 Install the factory on a repository that holds no [work items](../project-guide/glossary.md) from an older version of the factory, or whose old work items are archived or discarded. The factory starts fresh and does not detect old work items.
 
-1. Prepare the machine with `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>`. It is the way to run an instance. It prepares a fresh Ubuntu 24.04 machine: the packages, the ZFS pool and dataset, uv and the factory's packages in the factory's checkout with its virtual environment, the image identity file `image-id`, the environment file `factory.env` and the systemd unit (enabled, not started). The first run stops before the checkout, with `setup: checkout: waiting for /home/factory/.secrets/hosting-token`: put the token there, with the other login files, and run the script again (see "The two passes" in [machine.md](machine.md)). The preflight checks the dataset and the stage image (see "The preflight's items" in [health.md](health.md)). See "The machine" in [machine.md](machine.md).
+1. Prepare a fresh Ubuntu 24.04 machine for an instance with `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>`; the script sets up the packages, the ZFS dataset, the checkout, `factory.env` and the systemd unit, which is enabled, not started (see "The machine" in [machine.md](machine.md)). To run an instance without a VM, see [cloud-run.md](cloud-run.md). The first run stops with `setup: checkout: waiting for /home/factory/.secrets/hosting-token`, because the private repository needs the token.
 
-2. As the user `factory`, from the factory's checkout, build the stage image, which carries the agent runtime and the pinned tools, before the instance starts: `podman build -f operator/vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> <the checkout>`. See "The stage image" in [machine.md](machine.md).
+2. Place `hosting-token`, `claude-token` and `anthropic-api-key` in `/home/factory/.secrets`, readable by the user `factory`, and run the same command again (see "The two passes" in [machine.md](machine.md)). All three files must exist whatever the runtime; under `claude` the key file stays empty.
 
-3. Set the instance's environment variables, as *Configuration* describes. On the VM, `operator/vm/setup.sh` writes most of them to the environment file `factory.env`.
+3. As the user `factory`, from the factory's checkout, build the stage image, which carries the agent runtime and the pinned tools, before the instance starts: `podman build -f operator/vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> <the checkout>`. See "The stage image" in [machine.md](machine.md).
 
-4. Start the instance with `sudo systemctl start factory@<instance>`. The unit runs `factory-run` with `factory.env` loaded (see "The service" in [machine.md](machine.md)). It reads the same environment as `factory-watch`. If it refuses, see "When the process refuses to start".
+4. Set the instance's environment variables, as *Configuration* describes. On the VM, `operator/vm/setup.sh` writes most of them to the environment file `factory.env`.
+
+5. Start the instance with `sudo systemctl start factory@<instance>`. The unit runs `factory-run` with `factory.env` loaded (see "The service" in [machine.md](machine.md)). It reads the same environment as `factory-watch`, and its preflight checks the dataset and the stage image (see "The preflight's items" in [health.md](health.md)). If it refuses, see "When the process refuses to start".
 
 To check a development clone instead of an instance, install the packages in the clone and run the checks. This ran on the VM:
 
