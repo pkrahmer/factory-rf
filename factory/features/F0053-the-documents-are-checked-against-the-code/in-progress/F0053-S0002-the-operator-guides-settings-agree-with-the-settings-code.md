@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T07:08:48.139654Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-06T07:08:40.255775Z'
   stage: doing
   run: 3cf70e9220c74a60b2c1f9ec6ab3d036
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:08:48.139654Z'
+  stage: review
 ---
 
 # The operator guide's settings agree with the settings code
@@ -230,3 +239,4 @@ Expect: `True`
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
+18. factory: started review as vm.
