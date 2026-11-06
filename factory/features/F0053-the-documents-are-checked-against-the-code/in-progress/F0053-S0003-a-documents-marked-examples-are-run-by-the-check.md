@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799, 6680560925]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T08:40:00.279394Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -330,6 +326,12 @@ journal:
   kind: started
   at: '2026-11-06T08:40:00.279394Z'
   stage: docs
+- number: 58
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T08:43:26.589322Z'
+  stage: docs
+  run: 52950b90f5474385bd5fb444b4134e23
 ---
 
 # A document's marked examples are run by the check
@@ -1037,3 +1039,26 @@ Expect: `1`
     FAILED tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file[no-index] - AssertionError: assert 'docs/operato...be prepared\n' == 'docs/operato...md...
     make: *** [Makefile:89: test] Error 1
 57. factory: started docs as vm.
+58. documenter: Docs round 2: I fixed the red check that stalled the last docs stage. I changed only documents, so I did not run `make check`.
+
+    Cause (journal 56): `docs/project-guide/style.md` held two runnable `console` blocks. The operator-guide tests (`tests/entry/test_check_documents_operator_guide.py`) copy the guide into a temporary root that is not a git repository. There the `checkout` fixture can't be prepared, and five rows failed with `docs/project-guide/style.md:22: fixture checkout could not be prepared`.
+
+    File changed:
+    - `docs/project-guide/style.md`, section *Runnable examples*: the two demonstration blocks are now fenced as `text` instead of `console`, so they are not run in every copy of the guide. One sentence says so. The syntax, the placeholders and the rest of the text are unchanged.
+
+    Checks I ran:
+    - `uv run pytest -q tests/entry`: passes, including the five rows that failed.
+    - `uv run python -m factory.entry.check_documents`: prints no finding for `style.md` and ends with `documents ok (0.4 s)`.
+    - I ran the example commands of the two `text` blocks (`echo`, `printf`, `seq`) in the previous round; they printed what the blocks show.
+
+    Cross-read and found current: `docs/project-guide/shared.md`, *The examples* and *The document check*, and `README.md`.
+
+    I did not touch these, because they are not mine to fix:
+    - The story's `## Interface` still says "an adapter test with the fake containers"; journal 43 already notes it.
+    - The name check prints `does not exist` lines on `agents.md`, `hosting.md`, `machine.md`, `operator.md` and `work.md`. They come from S0001, not from this story.
+
+    One open point for the human: no document now carries a `console` block that is run. The project's own docs therefore do not exercise the example runner. The tests do. To get a live example, a document must not be copied into a non-git root by a test, or the `documents` fixture must be a git repository.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.9 s)
+    `documents`: documents ok (0.4 s)

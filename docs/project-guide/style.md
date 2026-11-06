@@ -17,9 +17,9 @@ How the factory's documents read. The documenter writes to this page, and the re
 
 `make documents` runs the examples that a document marks as runnable. It is the check of the docs stage; `make check` does not run it. The marked examples cover the README and every file of the operator guide and the project guide.
 
-A runnable example is a fenced block whose info string is `console`. A line that starts with `$ ` is a command. The lines below it, up to the next `$ ` line, are what it must print. Standard error counts as output.
+A runnable example is a fenced block whose info string is `console`. The blocks below are shown as `text` here, so that they are not run in every copy of this guide. A line that starts with `$ ` is a command. The lines below it, up to the next `$ ` line, are what it must print. Standard error counts as output.
 
-```console
+```text
 $ echo one
 one
 $ printf 'a\nb\n'
@@ -34,7 +34,7 @@ The expected output must match line by line. Two placeholders loosen it:
 - `<name>` stands for any text inside one line. Use it for a time, an id or a path that changes from run to run.
 - A line that holds only `...` stands for any number of lines, none included.
 
-```console
+```text
 $ echo "took $((40 + 2)) s"
 took <seconds> s
 $ seq 1 100
