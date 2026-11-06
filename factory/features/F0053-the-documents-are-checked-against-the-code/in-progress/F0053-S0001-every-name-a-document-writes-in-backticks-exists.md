@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T02:14:52.333588Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-06T02:14:42.675483Z'
   stage: tests
   run: 0c15460cc1c8447e8d6264402b70a32b
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:14:52.333588Z'
+  stage: doing
 ---
 
 # Every name a document writes in backticks exists
@@ -130,3 +139,4 @@ Expect: a number alone (the count of findings, possibly `0`)
    Open, for the coder: two existing tests from another story will probably go red, and I did not change them. `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file` copies only the repository's docs into `tmp_path` and expects exactly `documents ok\n`. Under the new check, every repository path those docs name (`src/factory/...`) is missing under that temporary root, so the command prints name findings and the output no longer matches. `tests/entry/test_check_documents_guide_files.py` may be in the same position. Changing either needs the human's leave (a `question`, then `tests`).
 
    `lint`: lint: green (0.2 s)
+9. factory: started doing as vm.
