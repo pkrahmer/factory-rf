@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-06T13:26:55.001541Z'
   stage: acceptance
   run: 9945c6b6ffc64f31b1d53bf9c8650cd7
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-06T13:30:52.554592Z'
+  stage: done
 stories: [F0053-S0001, F0053-S0002, F0053-S0003, F0053-S0004, F0053-S0005, F0053-S0006, F0053-S0007, F0053-S0008, F0053-S0009, F0053-S0010, F0053-S0011, F0053-S0012]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The documents are checked against the code
@@ -184,3 +189,4 @@ Human interventions: 19 questions answered (17 questions, 2 round caps), 1.2 h w
    6 Decisions: the six decisions of `feature.md`, the human's answers in S0008 (19, 26) and S0012 (4), and the defaults nobody chose (where the S0009 guard sits, the single `_is_address` rule, settings findings without a line number, the 60 s limit, the literal comparison of defaults and refusals). Every changed earlier test has its leave named, so no finding.
    7 Slow checks: nothing beyond `make check`, which is green (104.4 s, 99.22 %). The feature's slowest test is the `past-the-limit` row of the example runner, at 10 s, which is the cost of the ROOMY_LIMIT rule. Disk used under /srv/factory/vm is unchanged at 1.4 GB. The 0.8 GB less free space is outside the factory's folders.
    8 Cost: 152 runs, 202.3 min, $44.07 + 1 unknown. The repairs cost 46 runs and $10.09. S0003 is still the outlier ($10.23). Among the repairs, S0008 cost most ($3.18): a docs stall, an unnamed leave and a false criterion. 19 answers in all (17 questions, 2 round caps), 1.2 h waited, 3 of the answers since A0001.
+3. factory: done (pull request merged); cost: 1 runs, 8.3 min, 42 turns, 110562 tokens in (2846655 more from cache), 30286 out, $2.06
