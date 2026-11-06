@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T09:03:55.812483Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-06T09:03:55.812483Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-06T09:08:08.028152Z'
+  stage: doing
+  run: 3f6ba1873621400db224f2b9e66b2801
 ---
 
 # The examples start from a known instance
@@ -253,3 +255,22 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 16. factory: started doing as vm.
+17. coder: The tester's change (journal 15) is in, and `make check` is now green: lint, types, layers, sast, secrets, licenses and test (99.20 % coverage) all pass, and it ends with `check: green`. The one guard failure quoted in journal 10 is gone.
+
+    What I built (from rounds 10 and 13, unchanged in this run):
+    - `src/factory/hosting/adapters/instance_fixture.py` (new): `InstanceFixture(git: GitCli)`. Its `prepare(folder)` makes `<folder>/remote.git`, a bare clone of the checkout, through `GitCli.clone_bare`. It writes a healthy health file into `<folder>/state` and the image id file. It makes the agent home, the workspace and the copy base. It writes the settings file `<folder>/factory.env`. It returns the environment: `FACTORY_INSTANCE=docs`, `FACTORY_SNAPSHOTS=copy`, and every path variable under the folder. A `GitError` becomes a `FixtureError`, as in `CheckoutFixture`.
+    - `src/factory/hosting/adapters/git_cli.py`: new `GitCli.clone_bare(destination)`. It is not an operation of the `Git` interface, for the same reason `export` is not one.
+    - `src/factory/watching/adapters/health_file.py`: `HEALTH_FILE_NAME` moved here from `factory.entry.wiring`, which now imports it and keeps `health_file()`.
+    - `src/factory/shared/domain/documents.py`: new `INSTANCE_FIXTURE = "instance"` beside `DEFAULT_FIXTURE` (journal 11).
+    - `src/factory/entry/check_documents.py`: the table is now `{DEFAULT_FIXTURE: CheckoutFixture(git), INSTANCE_FIXTURE: InstanceFixture(git)}`, with one shared `GitCli`.
+
+    Main choice: I moved the health file's name down into the health file's own module, so that the fixture in `hosting.adapters` reads the same name `factory-health` reads without importing `factory.entry`. I rejected copying `"health.json"` into the fixture, because that would be a second definition of the same name.
+
+    Refactor step: I read the whole diff and found nothing to change.
+
+    Description: unchanged. Journal 11 changed a test import and added a constant; it did not change the meaning of the task.
+
+    Noticed, not touched: the stage image name `localhost/factory-stage:docs` and the image id `docs` are placeholders that the settings check accepts. If a later document example runs a command that actually starts a container, the instance will need a real image, and no such example exists yet.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
