@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T00:09:17.826570Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-06T00:09:17.826570Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-06T00:09:40.383940Z'
+  stage: doing
+  run: 5ddac77f124f4b06b2163e39d3725612
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -167,3 +169,10 @@ Expect: `True True False`
    Not touched: `tests/support/two_routes_support.py` is a new support module that the project guide's shared-helper list does not name yet. The tester left that open for the docs stage.
 8. 2026-11-06 human: (a): end with `tests`. The tester makes `tests/work/application/test_acceptance_merged_on_two_routes.py` import a name from `factory.work` that the test really uses, for example the accepted outcome or the entry text checked against the work area's own names. No import that only satisfies the guard. The module stays beside `test_acceptance_merged_before_approval.py`. The docs stage names `tests/support/two_routes_support.py` in the shared-helper list.
 9. factory: started doing as vm.
+10. coder: The human chose (a), so this goes to the tester. The test to change is `tests/work/application/test_acceptance_merged_on_two_routes.py`. It must import from `factory.work` a name it really uses: for example, check the `accepted` outcome or the done entry's text against the work area's own names. An import that only satisfies the guard is not enough. The module stays in `tests/work/application/`. The guard `tests/guards/test_areas.py::test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own` should then pass for this module.
+
+    I changed no code in this run. The new `is_before_approval` in `src/factory/work/domain/acceptance.py` is already committed on the branch from the previous run. It follows `next[0]` and keeps a set of visited stages.
+
+    `make check` was not run in this run. In the previous run it was red only on that guard row, and the code has not changed since. The coder's next round needs `make check` green, then hands forward to `review`.
+
+    Description: unchanged. The human's answer does not change what the task means. It adds one thing for the docs stage: name `tests/support/two_routes_support.py` in the project guide's shared-helper list.
