@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T08:03:14.397809Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -181,6 +185,11 @@ journal:
   at: '2026-11-06T08:03:08.925409Z'
   stage: doing
   run: b8b47be0ac9b482a87a0375eb8b96973
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-11-06T08:03:14.397809Z'
+  stage: review
 ---
 
 # A document's marked examples are run by the check
@@ -563,3 +572,4 @@ Expect: `1`
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+32. factory: started review as vm.
