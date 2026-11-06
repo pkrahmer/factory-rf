@@ -1585,7 +1585,7 @@ Date: 2026-11-05 (F0052).
 - Why: a story that changes only documents needs no tests and no code, so the tests, doing and review stages only cost tokens.
 - The route is three stages of its own, `docs-only`, `docs-review` and `docs-approval`, which reuse the documenter and reviewer roles. Routes are branches of the stage graph: the intake's second way out leads to `docs-only`.
 - The review comes after the writing, and may send the text back to the documenter within a round cap of two.
-- There is no smoke test on the docs route. `make documents` and `make secrets` run after the documenter, and `make check` reuses its result when only documents changed.
+- There is no smoke test on the docs route. `make check`, `make documents` and `make secrets` run after the documenter. `make check` runs again after a documents-only change, because tests read the documents (see *A known result is not checked again*).
 - `docs-only` has no round cap, so the way back to `tests` counts no round. What the documenter already wrote stays on the branch, and the `docs` stage of the code route finishes it.
 - Rejected: letting the intake jump to `docs` and the documenter jump to `review`. Those moves would count as rework in the old stages' rounds, and a close at `approval` would send the story to a coder who cannot write documents.
 - Rejected: a route as a list of stages that the intake writes into the work item. The factory would have to keep a route per story and count rounds against it, for a need seen once.
