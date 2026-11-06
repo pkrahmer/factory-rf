@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 596
 comments_read: [6685329163]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T12:59:00.475682Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-06T12:58:55.146723Z'
   stage: tests
   run: 0463c8ac98944f2ead4689f376367908
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:59:00.475682Z'
+  stage: doing
 ---
 
 # The example runner's tests use the roomy limit
@@ -134,3 +143,4 @@ Expect: `1`
    Still open: `tests/entry/test_check_documents_copies.py:20` still writes the literal path `docs/checked-documents.txt`. No criterion covers it, so I left it.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
