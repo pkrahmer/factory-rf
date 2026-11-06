@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T09:09:58.343844Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-06T09:09:58.343844Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-06T09:10:34.532679Z'
+  stage: tests
+  run: cd504ff44068404ea612049d021d25fe
 ---
 
 # The examples start from a known instance
@@ -329,3 +331,26 @@ Expect: `1`
 
     Description: the reviewer already added criteria 8 and 9 in its place. Nothing else in the journal changes the task.
 22. factory: started tests as vm.
+23. tester: I made the three test changes from the reviewer's findings (journal 19), which the coder passed on in journal 21. All three are in `tests/hosting/adapters/test_instance_fixture.py`, and nothing else in the tests changed.
+
+    - Finding 3: I dropped the local `INSTANCE_FIXTURE = "instance"`. The module now imports `INSTANCE_FIXTURE` from `factory.shared.domain.documents`. In its place there is a local `SETTINGS_FILE = "factory.env"`: criterion 8 names that file, so the test uses the name the criterion gives and does not import it from the module under test.
+    - Criterion 8: new test `test_the_settings_file_holds_one_line_for_each_variable_of_the_environment`. It reads `<folder>/factory.env` and checks that its lines, sorted, equal the sorted `NAME=value` lines of the environment `prepare` returns. Equal lists rule out both a missing line and an extra one. The criterion does not fix the order of the lines, so the test does not either.
+    - Criterion 9: new test `test_the_instance_fixture_outside_a_git_repository_raises_a_fixture_error`. It is built like `tests/hosting/adapters/test_checkout_fixture.py:29-38`: `InstanceFixture(GitCli(<a folder that is not a repository>)).prepare(folder)` must raise `FixtureError`.
+
+    Criterion → test (all in `tests/hosting/adapters/test_instance_fixture.py`):
+    - criterion 1: `test_the_commands_of_a_block_on_the_instance_print_what_a_valid_instance_prints[healthy]`
+    - criterion 2: `test_the_commands_of_a_block_on_the_instance_print_what_a_valid_instance_prints[a-wrong-instance-name-is-refused]`
+    - criterion 3: `test_the_environment_names_the_instance_docs_with_copied_snapshots_and_folders_inside`
+    - criterion 4: `test_the_state_folder_holds_the_health_file_factory_health_reads`
+    - criterion 5: `test_each_document_gets_a_fresh_instance_in_a_folder_of_its_own`
+    - criterion 6: `test_the_fixture_creates_no_path_outside_its_folder`
+    - criterion 7: `test_the_instance_s_remote_is_a_bare_repository_under_the_folder`
+    - criterion 8: `test_the_settings_file_holds_one_line_for_each_variable_of_the_environment`
+    - criterion 9: `test_the_instance_fixture_outside_a_git_repository_raises_a_fixture_error`
+    - criteria 10 and 11: no test (`make check` and docs).
+
+    Files: I created none and changed only `tests/hosting/adapters/test_instance_fixture.py`, which is this story's own test file. I changed no earlier test file.
+
+    The one run, `uv run pytest -q tests/hosting/adapters/test_instance_fixture.py`, passed all 9 tests, because the coder's code already handles both new criteria. Every module imported. `make lint`: green (0.1 s). The coder runs `make check` next.
+
+    `lint`: lint: green (0.2 s)

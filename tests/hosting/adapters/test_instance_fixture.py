@@ -9,7 +9,8 @@ from factory.hosting.adapters.git_cli import GitCli
 from factory.hosting.adapters.instance_fixture import InstanceFixture
 from factory.shared.adapters.document_examples import ProcessExampleRunner
 from factory.shared.application.document_examples import Fixture
-from factory.shared.domain.documents import examples
+from factory.shared.domain.documents import INSTANCE_FIXTURE, examples
+from factory.shared.domain.errors import FixtureError
 from factory.shared.domain.settings import (
     INSTANCE_VARIABLE,
     REPOSITORY_URL_VARIABLE,
@@ -20,7 +21,7 @@ from factory.watching.adapters.health_file import HEALTH_FILE_NAME
 from support.document_texts import FENCE
 from support.git_support import run_git
 
-INSTANCE_FIXTURE = "instance"
+SETTINGS_FILE = "factory.env"
 FIRST_DOCUMENT = "docs/operator-guide/health.md"
 SECOND_DOCUMENT = "docs/operator-guide/configure.md"
 MARKER = "marker"
@@ -144,3 +145,21 @@ def test_the_instance_s_remote_is_a_bare_repository_under_the_folder(
 
     assert remote.resolve().is_relative_to(folder.resolve())
     assert run_git(remote, "rev-parse", "--is-bare-repository").strip() == "true"
+
+
+def test_the_settings_file_holds_one_line_for_each_variable_of_the_environment(
+    environment: dict[str, str], folder: Path
+) -> None:
+    lines = (folder / SETTINGS_FILE).read_text(encoding="utf-8").splitlines()
+
+    assert sorted(lines) == sorted(f"{name}={value}" for name, value in environment.items())
+
+
+def test_the_instance_fixture_outside_a_git_repository_raises_a_fixture_error(
+    tmp_path: Path, folder: Path
+) -> None:
+    outside = tmp_path / "not-a-repository"
+    outside.mkdir()
+
+    with pytest.raises(FixtureError):
+        InstanceFixture(GitCli(outside)).prepare(folder)
