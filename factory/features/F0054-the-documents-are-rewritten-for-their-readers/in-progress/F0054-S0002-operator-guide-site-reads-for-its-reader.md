@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T23:07:30.490747Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-06T23:07:30.490747Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:09:49.240259Z'
+  stage: docs-review
+  run: 6140a2891c1d484f8aa62d1010fd3945
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -199,3 +201,22 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (2.2 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 docs review of `git diff main...HEAD -- README.md docs operator/README.md`: `docs/operator-guide/site.md` rewritten, `docs/checked-documents.txt` +1 line. I read it against `operator/bin/site`, `operator/lib/site.sh`, `operator/lib/hosting.sh`, `operator/bin/sanitise`, `operator/skill/kumpel/scripts/{reset-to-tag,merge,settings}.sh` and `docs/project-guide/style.md`.
+
+    The round-0 findings 2 to 4 and 6 to 13 are fixed as asked. Finding 1 is fixed: the examples write under `$HOME/site-example`.
+
+    Criterion 2 is met. Nothing of the old file was dropped. The loader statuses, the `site` messages, the hosting return codes, the built-in sanitiser rules, the `sanitise check` statuses and the `site check` details match the scripts.
+
+    Criterion 4 is met. Every link to `site.md` (in `cloud-run.md`, the operator guide's `README.md`, `docs/project-guide/operator.md` and the repository `README.md`) names a heading that still exists.
+
+    Criterion 3: the checked-list line is present, and the journal records `documents ok`. I did not run `make documents` myself. Criterion 1 is not yet met; see findings 4 and 5.
+
+    Findings:
+    1. `docs/operator-guide/site.md:231-244`: the `console github` block shows made-up output, and the text says it was not copied from a run. This breaks style rule 6 ("Examples are real and were run") and the rule that a marked example names the real run it came from. The made-up lines also disagree with each other: the plan says "would delete 3 work-item branch(es)", but the `--yes` run prints one `deleted` line. Fix: copy both outputs from a real run on a trial repository and name that run above the block. Otherwise drop the block and give steps 4 and 5 their commands inline (`sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point`, then with `--yes`), and leave the output to the prose at :246-252, which already names every line.
+    2. `docs/operator-guide/site.md:126`: "What it means" says "the script has neither a token command nor a `gh` login". The same message also comes when the token command fails or prints nothing (`operator/lib/hosting.sh:12-23`), as :137 says. Fix: "the token command failed or printed nothing, or there is neither a command nor `gh`".
+    3. `docs/operator-guide/site.md:328`: the `FAIL site file:` row's "What you do" covers a missing file and a faulty line only. It does not cover a file inside a git work tree (`operator/lib/site.sh:28-31`, `:41`, status 3). Fix: add "or move the file out of the git work tree".
+    4. `docs/operator-guide/site.md:276`: "has not reached the approval" is the glossary word *approval* at its first use, and it is not linked (criterion 1, style rule 3). Fix: link it to `../project-guide/glossary.md`.
+    5. `docs/operator-guide/site.md:130`, `:311`, `:313`: each sentence holds two parentheses. `:312` (about 30 words) and `:201` (about 28 words) run past about 25 words. These break style rule 2. Fix: split each.
+    6. `docs/operator-guide/site.md:9`: "Exact detail (every exit status, every message, every built-in rule) is in the *Reference*" is not true of the file. The `merge.sh` and `reset-to-tag.sh` refusals, the `site check` lines and the sanitise rule faults are in the body. Fix: "Exit statuses, return codes and the built-in rules are in the *Reference* at the end."
+
+    Open, for the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules were meant, so I left the Description as it is.
