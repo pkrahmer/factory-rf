@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T00:09:17.826570Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -52,6 +56,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T00:09:15.238323Z'
+  stage: doing
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:09:17.826570Z'
   stage: doing
 ---
 
@@ -157,3 +166,4 @@ Expect: `True True False`
 
    Not touched: `tests/support/two_routes_support.py` is a new support module that the project guide's shared-helper list does not name yet. The tester left that open for the docs stage.
 8. 2026-11-06 human: (a): end with `tests`. The tester makes `tests/work/application/test_acceptance_merged_on_two_routes.py` import a name from `factory.work` that the test really uses, for example the accepted outcome or the entry text checked against the work area's own names. No import that only satisfies the guard. The module stays beside `test_acceptance_merged_before_approval.py`. The docs stage names `tests/support/two_routes_support.py` in the shared-helper list.
+9. factory: started doing as vm.
