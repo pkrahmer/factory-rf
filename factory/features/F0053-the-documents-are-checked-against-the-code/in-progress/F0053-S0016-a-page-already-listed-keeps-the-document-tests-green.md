@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T20:42:34.707482Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-06T20:42:29.250880Z'
   stage: doing
   run: 7b0be625cede427c8bf9ef5b4f70c0aa
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:42:34.707482Z'
+  stage: tests
 ---
 
 # A page already listed keeps the document tests green
@@ -191,3 +200,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     Main choice: hand the changes to the tester with `tests`. I rejected making the two edits myself, because tests are not mine to edit.
 
     One difference from finding 1: `_list_newly` commits with the message "List three more pages", while `_append_to_list` uses "List pages". Calling `_append_to_list` would change that commit message. No test reads it, as far as I can see in the module. I did not run `make check` this round, because nothing changed. Criterion 6 (the docs) is still open for the docs stage.
+12. factory: started tests as vm.
