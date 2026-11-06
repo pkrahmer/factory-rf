@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
-round: 3
+blocked: round_cap
+round: 4
 attempts: 0
 crashes: 0
 pull_request: 611
 comments_read: [6698650455]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T23:44:54.182712Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,19 @@ journal:
   kind: started
   at: '2026-11-06T23:44:54.182712Z'
   stage: docs-review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:46:57.002803Z'
+  stage: docs-review
+  run: 650042e664644f2ab8c5d1e4872a433e
+- number: 23
+  speaker: factory
+  kind: question
+  at: '2026-11-06T23:46:57.002803Z'
+  stage: docs-review
+  run: 650042e664644f2ab8c5d1e4872a433e
+  blocked: round_cap
 ---
 
 # The operator guide's the machine reads for the operator
@@ -371,3 +380,25 @@ Expect: `1`
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok (5.8 s)
 21. factory: started docs-review as vm.
+22. reviewer: Round 3 docs-review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, which covers `docs/operator-guide/machine.md`, `docs/project-guide/style.md` and `docs/checked-documents.txt`. I also read the round-3 change on its own (`git diff cb6b6a25c 42070ae1c`). I judged the documents against the code, the criteria, the human's answer in entry 12 and `docs/project-guide/style.md`.
+
+    Findings 1 to 4 of entry 18 are fixed:
+    - `machine.md:89-91` is a fenced `sh` block, and the text above says where it runs. The command matches `METADATA_PROBE_COMMAND` in `src/factory/machine/domain/containers.py:31-41`.
+    - Steps 6, 9, 10 and 11 of *On GCP, step by step* say where they run.
+    - The inline commands that entry 18 named are now `sh` blocks, or point to *Starting the machine again* and to steps 1 and 2 of *The two passes*.
+    - `:595` points to *The factory log*, the heading at `health.md:104`.
+
+    Finding 5 of entry 18 is only partly fixed. Steps 8 to 10 (`:331-333`), the helper bullet (`:279`) and the failed cache drop (`:387`) are split. The other lines that entry 18 named still hold sentences far over about 25 words. Entry 20 says why: its script split sentences at `:` and `;`. I went through every sentence outside the code blocks and tables, and the list below is all of them that I found. A sentence of about 30 words or less, I left alone.
+
+    1. `docs/operator-guide/machine.md:318`: wrong: the sentence "A missing required option, … prints `setup.sh: <what is wrong>` and the usage to standard error and exits 2" is about 45 words (rule 2). Fix: put the five refused inputs in a short list, then say in its own sentence what the script prints and that it exits 2.
+    2. `machine.md:347`: wrong: "Place all three files, …, readable by `factory`, and run the same command again: steps 1 to 11 report `found` and the rest completes" is about 33 words and holds two ideas (rule 2). Fix: one sentence for placing the files, and one for the second run and what it reports.
+    3. `machine.md:377` and `:379`: wrong: "Every run rewrites `factory.env` … (the Claude Code and opencode versions and the opencode model ids), and writes it only when its text differs" is about 34 words. "For values the script does not know (…), make a second file …" is about 37 words (rule 2). Fix: split each, and give the parenthesis its own sentence.
+    4. `machine.md:385`: wrong: "After the rollback the file has the snapshot's size but may still read the newer page: a file the stage made shorter reads as zero bytes past its end, and git's stat cache calls it clean, so the sync does not repair it" is about 45 words (rule 2). Fix: split it into three sentences: what the file reads, what git's stat cache does, and that the sync does not repair it.
+    5. `machine.md:137`, `:198`, `:242` and `:341`: wrong: each line holds a sentence of about 33 to 42 words (rule 2). They are "It holds no user of its own … and mounts the dataset", "Without the file, every container runs in the base image, … only when it configures none)", "It has no file of the repository, … as `operator/vm/Dockerfile` does" and "The script writes the files … root's `/dev/stdin`". Fix: split each into sentences of one idea.
+    6. `machine.md:555`: wrong: "Take the steps of *On GCP, step by step* from step 6 on, without `gcloud`: copy …, run it …, place the three secrets, run the script again, build the image, start the service" is about 50 words. It is also a task written as prose (rule 2, and the operator guide's numbered steps). Fix: say in one sentence that steps 6 to 11 apply without `gcloud`, and make what differs a short numbered list or its own sentences.
+    7. `machine.md:571`, `:595`, `:612`, `:614` and `:616`: wrong: each line holds a sentence of about 38 to 42 words (rule 2). They are the read-only mounts bullet, "The time from the start of a stage … `take` is the copy back", "With `FACTORY_IDLE_SHUTDOWN_ACTION=exit` the factory, … ends the job's execution", "On a VM a machine stop waits … with other settings" and "The setup script gives `factory` the right … both from the same run". Fix: split each at its `:` or `;` into sentences of one idea, with at most one parenthesis each.
+    8. `machine.md:491`, `:612` and `:647`: wrong: commands the reader is to run still stand inline in prose. That is against rule 6 and the `sh`-block rule at `style.md:73`, the same kind of finding as entry 18 finding 3, and I missed these three in round 2. They are `ls -l /dev/disk/by-id/ | grep google` (491), `gcloud run jobs execute <job>` (612), and `gcloud compute resource-policies create instance-schedule` with `gcloud compute instances add-resource-policies` (647). Fix: put each in an `sh` block and say above it where it runs. At 647, write it as numbered steps for making the schedule and attaching it.
+    9. `machine.md:539-551` (step 12 of *On GCP, step by step*): wrong: one step holds three actions in two places: wait for the board, stop the instance on the VM, and stop the VM on your own computer. The operator guide's rule is one action and its command per step (`style.md`, *The operator guide*). Fix: split it into steps 12 to 14. No other file links to a step number above 11.
+
+    Criterion 2: unchanged from entries 7, 11, 14 and 18. Nothing was dropped except the two history sentences, and no *Reference* section was added. Criterion 3: entry 20 says `make documents` printed `documents ok`, and the file is on `docs/checked-documents.txt`. Criterion 4: the links I followed resolve. They are `health.md` *The factory log*, *The preflight's items* and *Transcripts*, `stops.md` *The stops*, `work-items.md` *A restart during a stage*, and the repository files. The `style.md` paragraph at `:73` is unchanged since round 2 and holds the human's rule.
+23. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
