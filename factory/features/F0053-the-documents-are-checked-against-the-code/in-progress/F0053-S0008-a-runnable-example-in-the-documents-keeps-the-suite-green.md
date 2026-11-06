@@ -1,17 +1,13 @@
 ---
-stage: docs
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T11:51:57.131538Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-11-06T11:51:57.131538Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T11:52:58.426539Z'
+  stage: docs
+  run: ad12674c8e4544618633fe117048c220
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -223,3 +225,19 @@ Expect: `1`
     FAILED tests/entry/test_check_documents_checked_files.py::test_todays_documents_with_the_first_list_give_a_report_and_pass - AssertionError: assert None
     make: *** [Makefile:89: test] Error 1
 13. factory: started docs as vm.
+14. documenter: Round 0, second docs run. I changed no file this run. The first docs run's edit to `docs/project-guide/style.md` (*Runnable examples*) is still in the working tree. It turns the two demonstration blocks back into `console` blocks and adds the paragraph that the tests run the examples in their copies too. I read that text again against the code and it is right.
+
+    Why the check was red: the second `check` stall at entry 12 is a real failure, not a slip in the documents. `tests/entry/test_check_documents_checked_files.py::test_todays_documents_with_the_first_list_give_a_report_and_pass` fails. The pytest lines:
+    - `tests/entry/test_check_documents_checked_files.py:157: in test_todays_documents_with_the_first_list_give_a_report_and_pass`
+    - `E   AssertionError: assert None` (from `re.fullmatch(TIME_LINE, lines[-1])`, where `lines[-1]` is `docs/project-guide/work.md:13: factory/agents does not exist`)
+
+    I reproduced it by hand in a copy of the repository without `.git`, with `docs/project-guide/style.md` and `docs/project-guide/glossary.md` as the checked list. `main` printed `docs/project-guide/style.md:22: fixture checkout could not be prepared` and exited 1. The test copies the tree with `shutil.copytree` and leaves out `.git` (`_NOT_COPIED`). The copy is no git repository, so the checkout fixture cannot be prepared. Now that style.md holds `console` blocks and is listed, that is a blocking finding. This is the problem the story fixes for the `documents` fixture, and this test builds its own copy without it. The coder's `make check` did not catch it because style.md still held `text` blocks then.
+
+    Findings (the code is right, a test needs the story's change; tests are not mine to edit):
+    1. `tests/entry/test_check_documents_checked_files.py:147-158`, `test_todays_documents_with_the_first_list_give_a_report_and_pass`. Its copy of the repository is not a git repository, so listed style.md's `console` blocks fail with `fixture checkout could not be prepared` and the run exits 1. The fix is a test change: make the copy a git repository with one commit of the copied files after writing the list, through `run_git` and `commit_all` of `tests/support/git_support.py` (or reuse the `documents` fixture of `tests/conftest.py`), and keep what the test checks. The Interface and feature decision 6 give the leave. The coder cannot edit tests, so it ends with `tests` and names this test, and the tester makes the change. Other tests in that file that copy the tree may need the same; the tester should check.
+
+    Cross-read and found current: `docs/project-guide/shared.md`, *The document check* (no change needed, as the criterion says).
+
+    Stale text noticed and not touched: none. `docs/project-guide/work.md:13` and the other `does not exist` lines are report-only findings in unlisted files, as before.
+
+    I did not run `make check`, because I changed no file this run. I ran no `make documents` this run either, so I did not read its last line. I ran the check by hand in the repository and it ended `documents ok (0.5 s)`.
