@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T10:23:41.549883Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-06T10:23:36.034094Z'
   stage: doing
   run: 35ae9d605270462cba57528558d2bb90
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-06T10:23:41.549883Z'
+  stage: tests
 ---
 
 # The agents write and review documents against the code
@@ -336,3 +345,4 @@ Expect: `named`
     `check`: check: green
 
     The factory left out changes outside the write paths: factory/features/F0053-the-documents-are-checked-against-the-code/in-progress/F0053-S0005-the-agents-write-and-review-documents-against-the-code.md.
+22. factory: started tests as vm.
