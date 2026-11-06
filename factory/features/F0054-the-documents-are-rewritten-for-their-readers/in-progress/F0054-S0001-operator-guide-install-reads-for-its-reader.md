@@ -1,11 +1,11 @@
 ---
 stage: docs-review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 608
-comments_read: [6696943013]
+comments_read: [6696943013, 6697063433]
 handed_over: null
 claim: null
 journal:
@@ -115,6 +115,11 @@ journal:
   stage: docs-review
   run: c91dcfc3dbc449e0874b340ab4b2747c
   blocked: round_cap
+- number: 20
+  speaker: human
+  kind: comment
+  at: '2026-11-06T22:08:38.243467Z'
+  stage: docs-review
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -358,3 +363,4 @@ Expect: `1`
     - `docs/project-guide/shared.md` says the operator guide has no `Default` column and no refusal table.
     - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*. That paragraph is now under *Reference*.
 19. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+20. 2026-11-06 human: One more round, by the human's decision. The documenter fixes findings 1 to 5 of review entry 18 as the reviewer proposes: setup.sh first (it installs uv and the packages), with `uv sync` and `make check` only as the check of a development clone; the build command in step 4; "prepares", the narrowed sentence about the examples and `factory-stage:<instance>`; and the two dropped rules for `FACTORY_IDLE_SHUTDOWN_ACTION` and `FACTORY_CONTAINER_ENV`. The open points outside this diff stay with their own stories.
