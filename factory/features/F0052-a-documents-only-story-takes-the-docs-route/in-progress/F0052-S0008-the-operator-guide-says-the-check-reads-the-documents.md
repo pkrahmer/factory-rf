@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 582
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T01:29:21.777039Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T01:29:16.805324Z'
   stage: intake
   run: ab9062fcb97d4c248f6f1e8be4ba1a2a
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:29:21.777039Z'
+  stage: docs-only
 ---
 
 # The operator guide says that the check reads the documents
@@ -75,3 +84,4 @@ Expect: `documents ok`
    - Architecture: documents only, inside the documenter's write paths. `docs/project-guide/` is rightly left alone.
    - Scope: it matches `feature.md` *The human's changes* ("Before S0008's start"). The rewrite of the rest of `pipeline.md` is expressly left for the next feature.
    - Note for the documenter: the live `check:` line is `{time_limit: 8, not_read: [...]}` and also lists `factory/archive/*`. The guide's block must copy the line exactly.
+4. factory: started docs-only as vm.
