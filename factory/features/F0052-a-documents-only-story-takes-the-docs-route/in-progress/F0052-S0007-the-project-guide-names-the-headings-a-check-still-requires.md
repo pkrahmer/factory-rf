@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 580
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T01:11:20.240803Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -74,6 +70,12 @@ journal:
   kind: started
   at: '2026-11-06T01:11:20.240803Z'
   stage: docs-only
+- number: 12
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T01:11:39.035056Z'
+  stage: docs-only
+  run: 7246e4c871d146449d233f1781bd13da
 ---
 
 # The project guide names the headings a check still requires
@@ -169,3 +171,8 @@ Expect: `documents ok`
     - Style rule 8 (link a file by a relative link): the new text names `install.md`, `stops.md`, `machine.md` and `setup.sh` as code paths, not links. The rest of the index has no links either, so the diff follows the page's own form.
     - Sentence length: the longest new sentence, in the second bullet, is about 25 words, which is within rule 2.
 11. factory: started docs-only as vm.
+12. documenter: Round 1, fixing the reviewer's finding 1. Changed `docs/project-guide/README.md`, *The files*: I added the lead-in sentence "The folder holds these pages:" between the list of headings that keep their names and the list of pages. Without it the two `-` lists rendered as one. The guard still reads the page entries, since the lead-in is not an index entry line. Checks: `uv run pytest -q tests/guards/test_project_guide_files.py` passes and `make documents` prints `documents ok`. I did not run `make check`, because I changed only a document. Cross-read: the rest of *The files*, which is unchanged and consistent. Stale text noticed but not touched: none. No Rejected line was needed, because no `decisions.md` entry was written.
+
+    `check`: check: green (not run again: passed on tree 2503ea5b3c55 at 2026-11-06T01:07:59Z)
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok

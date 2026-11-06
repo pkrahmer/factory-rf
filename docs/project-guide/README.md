@@ -19,6 +19,8 @@ A guard (`tests/guards/test_project_guide_files.py`) requires every page of the 
 - *Replaced from v1*, wherever it stands: the document check exempts it from its search for v1 words. It may be removed, as the style page's rules 1 and 7 ask in the rewrite, but not renamed.
 - *The machine* and *The rebuild after a merge* in `docs/operator-guide/machine.md`: `operator/vm/setup.sh` names them in its messages.
 
+The folder holds these pages:
+
 - `README.md` (this index): what holds for all code. Sections: *The code's layout*, *The files*, *Shared test helpers*, *Errors*, *The models' configuration*, *Kill points*, *Fault-injection paths*, *The demos* (`factory.entry.check_demos`).
 - `style.md`: how the documents read: the rules for all documents, and for the operator guide, the project guide and the README, each with its reader and an example. The documenter and the reviewer judge by it.
 - `glossary.md`: the words the factory gives its own meaning, one entry each, sorted alphabetically.
