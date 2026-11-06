@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T20:50:54.427511Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-11-06T20:50:48.702105Z'
   stage: docs
   run: 82d5faac2a284278bae32a70a4be2df3
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:50:54.427511Z'
+  stage: smoke-test
 ---
 
 # A page already listed keeps the document tests green
@@ -319,3 +328,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     `check`: check: green
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok (0.6 s)
+20. factory: started smoke-test as vm.
