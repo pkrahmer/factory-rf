@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 590
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T10:00:36.463722Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-06T10:00:36.463722Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-06T10:00:56.128360Z'
+  stage: intake
+  run: 3462562d1fcb42cf8e6226b61bb41de2
+  blocked: question
 ---
 
 # The agents write and review documents against the code
@@ -57,3 +60,11 @@ Expect: `named`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed, so none from it):
+
+   1. Criterion 2 does not state the failing side. The Interface says "a failure is a finding" and the Description says the reviewer counts a claim it cannot find in the code, and a command shown without a runnable or marked example, as findings. Should criterion 2 say that `reviewer.md` names both as findings? I would choose yes: split it into the item's presence and the two findings, each testable by one row.
+   2. The Description says rules 8 to 10 of `planning/doc-style-drafts.md` become the agents' rules, and no criterion tests that. The Interface's four documenter rules (read the code first; runnable or marked examples copied from a named real run; detail kept in *Reference*; `make documents` run, end only on `documents ok`) are not the same as "rules 8 to 10". Do the four rules cover rules 8 to 10, or does a rule need its own criterion? I would choose to state in the criteria that the four rules are rules 8 to 10 (or drop that sentence from the Description).
+   3. Criterion 3 is cut off ("the rule on a docs criterion that dictates sentences, ."). I read it as: `intake.md` makes a docs criterion that dictates sentences a question, and says the criterion should name what the reader must know. Please confirm that wording, or correct it. The behaviour has no failing-side criterion either: should one row test that `intake.md` tells the agent to end with `question` for such a criterion?
+   4. The smoke test only counts the string "make documents" in `documenter.md`. That passes before the story if the string is already there, and it checks none of the other rules. Please give an `Expect:` that the story changes: for example grep for `documents ok` in `documenter.md`, and for the *Documents* item in `reviewer.md`.
+
+   Scope and architecture are fine: the Interface changes only agent files under `agents/agents/` and the tests under `tests/agent_files/`, which fits the documented layout. The human's leave to change the whole-text pinning tests is stated. Route would be `tests`.
