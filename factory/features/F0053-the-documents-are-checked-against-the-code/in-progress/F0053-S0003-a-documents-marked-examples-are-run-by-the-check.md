@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T07:29:03.790530Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-06T07:28:58.724938Z'
   stage: intake
   run: c850745622914b23b18a92712af5e125
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:29:03.790530Z'
+  stage: tests
 ---
 
 # A document's marked examples are run by the check
@@ -104,3 +113,4 @@ Expect: `1`
    - Smoke test: the python one-liner is runnable and `Expect: 1` is checkable. It runs no pytest, so the `-q` rule does not apply.
    - Architecture: this fits. Pure code is in shared domain, interfaces in shared application, the process adapter in shared adapters, git in hosting adapters, wiring in entry. Processes start only through `factory.shared.adapters.process`.
    - Scope: this is within the feature's S0003. It leaves out the `instance` fixture (S0006) and blocking (S0004). The route is `tests` because the Interface changes `src` code.
+7. factory: started tests as vm.
