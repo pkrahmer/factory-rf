@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 582
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-06T01:32:35.735638Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-06T01:32:30.300201Z'
   stage: docs-only
   run: 66dbc02f03014a8188a8924851a6b6a2
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:32:35.735638Z'
+  stage: docs-review
 ---
 
 # The operator guide says that the check reads the documents
@@ -106,3 +115,4 @@ Expect: `documents ok`
    `check`: check: green
    `secrets`: secrets: green (1.3 s)
    `documents`: documents ok
+6. factory: started docs-review as vm.
