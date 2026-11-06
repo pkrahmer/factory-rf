@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 591
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T11:13:54.628446Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-06T11:13:54.628446Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-06T11:14:39.687114Z'
+  stage: tests
+  run: 53ac4abac9b64dbab9fe2f64a1086e6b
 ---
 
 # Each area names its guide page
@@ -75,3 +77,16 @@ Expect: `8`
    - Scope: this is the feature's S0007 and decision 5, and it is not in "Out of scope". Module docstrings stay unchanged.
    - Route: `tests`, because the Interface changes `src/` and `tests/` paths, which the documenter may not write.
 4. factory: started tests as vm.
+5. tester: Wrote the guard `tests/guards/test_area_guides.py`, the one file in the Interface. It reads each package's `__init__.py` with `ast` and does not import it. It names no work item or criterion.
+
+   - criterion 1: tests/guards/test_area_guides.py::test_each_package_names_its_existing_guide_page. It has eight rows: `shared`, `hosting`, `work`, `agents`, `watching`, `machine` and `pipeline` each expect `Guide: docs/project-guide/<area>.md`, and `entry` expects `Guide: docs/project-guide/README.md`.
+   - criterion 2: tests/guards/test_area_guides.py::test_the_guard_fails_for_a_missing_line_or_page. It runs on a copy under `tmp_path` with three rows: `line-missing` and `page-missing` must fail, and `line-and-page` must pass, so a guard that always fails does not pass this test.
+   - criterion 3 (`make check` green) and criterion 4 (docs): no test, as is usual for these two.
+
+   How the check works: the helper `guide_problems(root, package, page)` sits in the test module, because no other module uses it. It reports a problem when no line of the docstring is exactly the expected line, or when the page it names is not a file under `root`. I did not add a separate case for a line that names a different page: criterion 1 fixes each package's exact line, and a different page fails the check for a missing line.
+
+   Run: `uv run pytest -q tests/guards/test_area_guides.py` shows the eight rows of the first test failing for the right reason: the guide line is not yet in any package's docstring. The three copy rows pass, because they only test the guard. `make lint` is green.
+
+   Files created: tests/guards/test_area_guides.py. Modules the test run could not import: none (the guard imports nothing of `factory`). Nothing was interpreted, so there is no open question.
+
+   `lint`: lint: green (0.2 s)
