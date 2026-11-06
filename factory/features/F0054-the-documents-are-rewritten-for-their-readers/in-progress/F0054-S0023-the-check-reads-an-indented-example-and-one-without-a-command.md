@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 609
 comments_read: [6697578988]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T22:47:58.338963Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-06T22:47:52.267061Z'
   stage: review
   run: a5a9cf4cbb484b2295348678e8d9c90c
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:47:58.338963Z'
+  stage: docs
 ---
 
 # The check reads an indented example and one without a command
@@ -188,3 +197,4 @@ Expect: `1 echo hi`
     Earlier tests:
     - tests/shared/domain/test_document_examples.py: none needed (rows added only; the Interface also allows them).
     - tests/entry/test_check_documents_examples.py: none needed (tests and imports added only, every earlier test unchanged; the Interface also allows them).
+13. factory: started docs as vm.
