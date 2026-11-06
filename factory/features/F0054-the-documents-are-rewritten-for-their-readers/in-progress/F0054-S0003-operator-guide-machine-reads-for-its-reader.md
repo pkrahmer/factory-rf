@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 611
 comments_read: [6698650455]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T23:41:59.922278Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-11-06T23:41:54.427413Z'
   stage: docs-review
   run: 5418eb503e324c33ace0c9a5828eeff1
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:41:59.922278Z'
+  stage: docs-only
 ---
 
 # The operator guide's the machine reads for the operator
@@ -327,3 +336,4 @@ Expect: `1`
     5. `docs/operator-guide/machine.md:268,307,311,320,321,322,336,368,374,376,544,560,584,601,603,605`: wrong: each line still holds a sentence of about 35 to 55 words, against rule 2 (about 25 words). Lines 320, 321 and 322 (steps 8, 9 and 10 of *The steps*) also hold two parentheses in one sentence, against rule 2's limit of one. Fix: split each into sentences of one idea, with at most one parenthesis per sentence. For example, give each step's mode and owner a sentence of its own.
 
     Criterion 2: unchanged from entries 7, 11 and 14. Nothing was dropped except the two history sentences, and no *Reference* section was added. Criterion 4: the links I followed (`health.md`, `work-items.md`, `stops.md`, `install.md`, the repository files) resolve.
+19. factory: started docs-only as vm.
