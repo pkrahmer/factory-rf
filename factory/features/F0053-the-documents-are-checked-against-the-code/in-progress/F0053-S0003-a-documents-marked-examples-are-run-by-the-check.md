@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799, 6680560925]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T08:43:32.048304Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -341,6 +337,12 @@ journal:
   kind: started
   at: '2026-11-06T08:43:32.048304Z'
   stage: smoke-test
+- number: 60
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T08:43:57.084340Z'
+  stage: smoke-test
+  run: c3188f4405f34bddbd388362d21f6cec
 ---
 
 # A document's marked examples are run by the check
@@ -1072,3 +1074,17 @@ Expect: `1`
     `secrets`: secrets: green (0.9 s)
     `documents`: documents ok (0.4 s)
 59. factory: started smoke-test as vm.
+60. smoke-tester: I ran the one smoke-test command from the repository root, exactly as written, and fixed nothing.
+
+    Command 1:
+    `uv run python -c "from factory.shared.domain.documents import examples; print(len(examples('\`\`\`console\n\$ echo hi\nhi\n\`\`\`\n').runnable))"`
+
+    ```
+    Bytecode compiled 4164 files in 50ms
+    1
+    ```
+    Exit status 0. It met `Expect: 1`. The only other line is uv's own bytecode notice, which has nothing to do with the command.
+
+    Judged against the acceptance criteria: `examples` read a bare `console` block as one runnable example, which agrees with criterion 1 (a `console` block with no mark is run, with the default fixture `checkout`). The output contradicts no other criterion. It does not test criteria 2–15 (matching, running in order in one folder, time limits, fixtures, the environment, the `make documents` report, the docs), so this stage confirms nothing about them. The factory's checks cover `make check`.
+
+    Findings: none.
