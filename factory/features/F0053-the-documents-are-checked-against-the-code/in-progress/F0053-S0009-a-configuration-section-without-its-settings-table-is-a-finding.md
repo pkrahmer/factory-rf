@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T12:42:30.618459Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-06T12:42:24.951176Z'
   stage: doing
   run: a40caaa657f648c0b8aad600bae9ed23
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:42:30.618459Z'
+  stage: tests
 ---
 
 # A configuration section without its settings table is a finding
@@ -185,3 +194,4 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
     2. Make the counting-table case a row of `test_guide_without_a_counting_table_is_one_finding_when_there_are_settings`, for example `pytest.param([_SETTING_TABLE, _table(_VARIABLE_HEADER, ("`FACTORY_A`", "no", "A."))], (_setting("FACTORY_A"),), [], id="counting-table-beside-another")`. Then remove the separate function `test_guide_with_a_counting_table_gives_no_missing_table_finding`.
 
     Neither change affects `src/factory/shared/domain/documents.py` or `src/factory/entry/check_documents.py`; the code from round 0 stays as it is. The journal did not change the meaning of the task, so the Description is unchanged. I did not run `make check` in this round because I changed nothing; entry 7 records it green on the current code.
+12. factory: started tests as vm.
