@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T20:42:34.707482Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-06T20:42:34.707482Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-11-06T20:43:16.282575Z'
+  stage: tests
+  run: b3b0e47008594b5284448e79248eb12a
 ---
 
 # A page already listed keeps the document tests green
@@ -201,3 +203,22 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
 
     One difference from finding 1: `_list_newly` commits with the message "List three more pages", while `_append_to_list` uses "List pages". Calling `_append_to_list` would change that commit message. No test reads it, as far as I can see in the module. I did not run `make check` this round, because nothing changed. Criterion 6 (the docs) is still open for the docs stage.
 12. factory: started tests as vm.
+13. tester: Mode: a test change the human approved. I made the two changes that coder entry 11 named, from reviewer findings 1 and 2. Both are in `tests/entry/test_check_documents_any_list.py`, a module the human's leave in feature decision 9 covers.
+
+    1. `_list_newly` still works out `missing` and still returns when it is empty. After that it now calls `_append_to_list(root, missing)` instead of repeating that function's body: fix the final newline, append, `commit_all`.
+    2. I removed the wrapper `_list_by_looking`. The row `added-once` of `test_a_page_the_repository_list_already_names_is_reported_once_unless_appended_again` now uses `pytest.param(_list_newly, 1, id="added-once")`.
+
+    One side effect, which coder entry 11 also noted: the fixture `listed` now commits with the message "List pages" instead of "List three more pages". A grep of `tests/` finds no test that reads either message. Every test keeps its name, its ids and what it checks.
+
+    Criterion → test (unchanged from entry 5):
+    - criterion 1: tests/entry/test_check_documents_any_list.py::test_listing_the_three_pages_names_each_once_whatever_the_list_already_names
+    - criterion 2: tests/entry/test_check_documents_any_list.py::test_a_page_the_repository_list_already_names_is_reported_once_unless_appended_again
+    - criterion 3: tests/entry/test_check_documents_any_list.py::test_the_written_list_is_committed_only_when_its_text_changes
+    - criterion 4: the earlier tests, unchanged in name and in what they check (see entry 5)
+    - criteria 5 and 6: no tests (the coder's `make check` and the docs stage)
+
+    Run: `uv run pytest -q tests/entry/test_check_documents_any_list.py`: all 13 tests passed. `make lint` is green.
+
+    Files created: none. Files changed: tests/entry/test_check_documents_any_list.py (an earlier test file of this story, changed under feature decision 9 at the human's approval through the review). Modules the test run could not import: none.
+
+    `lint`: lint: green (0.2 s)

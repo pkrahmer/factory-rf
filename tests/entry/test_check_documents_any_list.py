@@ -37,10 +37,7 @@ def _list_newly(root: Path) -> None:
     missing = [page for page in _NEWLY_LISTED if _names(text, page) == 0]
     if not missing:
         return
-    if not text.endswith("\n"):
-        text += "\n"
-    path.write_text(text + "".join(f"{page}\n" for page in missing), encoding="utf-8")
-    commit_all(root, "List three more pages")
+    _append_to_list(root, missing)
 
 
 def _append_to_list(root: Path, pages: Sequence[str]) -> None:
@@ -176,10 +173,6 @@ def test_listing_the_three_pages_names_each_once_whatever_the_list_already_names
     assert (head_of(documents) != before) is commits
 
 
-def _list_by_looking(root: Path) -> None:
-    _list_newly(root)
-
-
 def _list_without_looking(root: Path) -> None:
     _append_to_list(root, _NEWLY_LISTED)
 
@@ -190,7 +183,7 @@ _NOT_A_DOCUMENT = f"{CHECKED_DOCUMENTS}: {OPERATOR_GUIDE} is no document of the 
 @pytest.mark.parametrize(
     ("listing", "times"),
     [
-        pytest.param(_list_by_looking, 1, id="added-once"),
+        pytest.param(_list_newly, 1, id="added-once"),
         pytest.param(_list_without_looking, 2, id="appended-again"),
     ],
 )
