@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-11-06T09:57:27.561541Z'
   stage: smoke-test
   run: ae3d6bb8ba8748b0a83e03d6d92f2afa
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-11-06T09:59:20.327706Z'
+  stage: approval
 ---
 
 # The checks block the listed files and report on the others
@@ -513,3 +518,4 @@ Expect: `documents ok (<seconds> s)`
     To judge the criteria, I also looked at the full stdout once without changing anything. It is 132 lines. The first line is the heading `Report (not checked yet):`. Next come the reported findings in files not on the list (for example `README.md:24: factory/stage.Containerfile does not exist`). The last line is `documents ok (0.4 s)`. No blocking line comes before the report, and nothing follows the `documents ok` line. None of the findings is in `docs/project-guide/style.md` or `docs/project-guide/glossary.md`. `docs/checked-documents.txt` holds exactly those two paths, one per line, under two `#` comment lines. This agrees with criteria 1, 3, 7 and 14 (the list file). The smoke test does not reach the other criteria, and it contradicts none of them.
 
     Findings: none. Nothing was fixed or changed.
+32. factory: done (pull request merged); cost: 14 runs, 22.5 min, 127 turns, 369775 tokens in (3497068 more from cache), 64816 out, $4.63
