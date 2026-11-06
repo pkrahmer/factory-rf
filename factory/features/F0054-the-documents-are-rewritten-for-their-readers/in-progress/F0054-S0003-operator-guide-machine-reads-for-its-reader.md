@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 611
 comments_read: [6698650455]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T23:40:09.035057Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-06T23:40:09.035057Z'
   stage: docs-review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:41:54.427413Z'
+  stage: docs-review
+  run: 5418eb503e324c33ace0c9a5828eeff1
 ---
 
 # The operator guide's the machine reads for the operator
@@ -305,3 +307,23 @@ Expect: `1`
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok (5.8 s)
 17. factory: started docs-review as vm.
+18. reviewer: Round 2 docs-review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, which covers `docs/operator-guide/machine.md`, `docs/project-guide/style.md` and `docs/checked-documents.txt`. I judged them against the code, the criteria, the human's answer in entry 12 and `docs/project-guide/style.md`.
+
+    The fixes from entries 11 and 14 are in:
+    - `style.md:73` holds the human's paragraph in one short paragraph.
+    - No `sh` block has a `$ ` prefix.
+    - Line 3 has one list with one final "and".
+    - Line 68 is split.
+    - The environment table at `machine.md:402-422` has the four columns.
+    - The idle-shutdown step at `:609-613` runs the copied `setup.sh` with the first run's arguments.
+    - Line 473's reference is one italic heading.
+
+    I checked the new environment table against `operator/vm/setup.sh:417-439`: every name and default the script writes is there, including `FACTORY_ZFS` with `--sudoers` (`setup.sh:243-245`). Its "What it does" column agrees with `install.md` *Configuration*. Entry 16 says `make documents` printed `documents ok`.
+
+    1. `docs/operator-guide/machine.md:89`: wrong: the probe's `curl` command stands in an indented code block. That is neither a `console` example nor an `sh` block, and line 107 tells the reader to run it by hand. Fix: make it a fenced `sh` block, with the text above saying it runs in a container of the stage image.
+    2. `docs/operator-guide/machine.md:471,500,507,516` (steps 6, 9, 10 and 11 of *On GCP, step by step*): wrong: the text above each `sh` block does not say where it runs, which `style.md:73` and entry 12 require. Line 426 covers only steps 1 to 5. Fix: open step 6 with "On your own computer", and steps 9, 10 and 11 with "On the VM from your own account" or "On the VM as `factory`", as steps 7 and 8 do.
+    3. `docs/operator-guide/machine.md:167,171,540,599,648`: wrong: commands the reader is to run stand inline in prose, against rule 6 and the `sh`-block rule. They are `podman pull`/`podman inspect` (167), `opencode models anthropic` (171), `gcloud compute instances start` (540), `grep 'idle shutdown' …` (599), and `sudo install …` with `sudo systemctl daemon-reload` (648). Fix: put each in an `sh` block under its step, with where it runs. At 540, point to *Starting the machine again*. At 648, point to steps 1 to 3 of *The two passes* instead of repeating them.
+    4. `docs/operator-guide/machine.md:584`: wrong: `(see "The factory log and the health status file" in [health.md](health.md))` uses quotes, not one italic heading (entry 12: "one italic heading per reference"). Fix: `(see *The factory log* in [health.md](health.md))`, the heading at `health.md:104`.
+    5. `docs/operator-guide/machine.md:268,307,311,320,321,322,336,368,374,376,544,560,584,601,603,605`: wrong: each line still holds a sentence of about 35 to 55 words, against rule 2 (about 25 words). Lines 320, 321 and 322 (steps 8, 9 and 10 of *The steps*) also hold two parentheses in one sentence, against rule 2's limit of one. Fix: split each into sentences of one idea, with at most one parenthesis per sentence. For example, give each step's mode and owner a sentence of its own.
+
+    Criterion 2: unchanged from entries 7, 11 and 14. Nothing was dropped except the two history sentences, and no *Reference* section was added. Criterion 4: the links I followed (`health.md`, `work-items.md`, `stops.md`, `install.md`, the repository files) resolve.
