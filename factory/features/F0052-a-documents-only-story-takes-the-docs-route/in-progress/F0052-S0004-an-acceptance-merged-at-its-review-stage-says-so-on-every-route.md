@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T00:11:11.263354Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-06T00:11:04.955262Z'
   stage: tests
   run: 7501e2c7c84d4537a451e1b8638ee4d0
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:11:11.263354Z'
+  stage: doing
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -198,3 +207,4 @@ Expect: `True True False`
     - Still open for the docs stage, per entry 8: name `tests/support/two_routes_support.py` in the project guide's shared-helper list.
 
     `lint`: lint: green (0.2 s)
+13. factory: started doing as vm.
