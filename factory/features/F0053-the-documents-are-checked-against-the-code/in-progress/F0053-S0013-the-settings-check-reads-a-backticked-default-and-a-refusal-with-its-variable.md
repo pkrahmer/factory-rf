@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T13:38:04.245700Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-06T13:37:58.349073Z'
   stage: review
   run: 477f09ff0035416285c34b61a1a9dcf1
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T13:38:04.245700Z'
+  stage: doing
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -163,3 +172,4 @@ Expect: `0 []`
 
    Earlier tests:
    - `tests/shared/domain/test_document_settings.py`: none needed. The change only adds three tests and two imports, and every earlier test is as it was.
+10. factory: started doing as vm.
