@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T20:57:55.535565Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-06T20:57:50.290016Z'
   stage: intake
   run: 73753c31dd2447658e9b68c610703d3f
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:57:55.535565Z'
+  stage: tests
 ---
 
 # The document check's tests run on documents they write
@@ -120,3 +129,4 @@ Expect: `documents ok (<seconds> s)`
    - Docs criterion: it names what the reader must know in `shared.md`, `style.md` and `decisions.md`, including the decision's reason and the rejected option. It does not dictate sentences.
    - Architecture: tests and support modules sit under `tests/`, as `CLAUDE.md` says. The guard goes in `tests/guards/`. The `tests/conftest.py` fixtures go as `CLAUDE.md` allows.
    - Scope: it is inside feature decision 10, which gives the human's leave to change, merge or remove the named earlier tests and fixtures. It is not in "Out of scope". The route is `tests`, because the Interface changes test paths.
+7. factory: started tests as vm.
