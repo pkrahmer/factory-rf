@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 597
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T13:10:07.953319Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-06T13:10:07.953319Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T13:12:43.284873Z'
+  stage: docs-only
+  run: cc7b78e5c8824540bb043504053f901c
 ---
 
 # The guides say what shapes the checks read
@@ -77,3 +79,18 @@ Expect: a number greater than `0`
    - Architecture: documents only, so nothing is placed in code. The project guide and README are written by the documenter.
    - Scope: it fits feature F0053 (the documents are checked against the code). It rewrites no operator-guide content and changes no checks, so it stays out of "Out of scope". It is not listed in the feature's Stories section, which names S0001 to S0007. I did not treat that as blocking, since it was started from `backlog/` by the human.
 4. factory: started docs-only as vm.
+5. documenter: Files changed:
+   - `docs/project-guide/style.md` (operator guide section): the settings bullet now names the four header cells (`Name`, `What it does`, `Default`, `Example`). It says the settings check reads only the tables in *Configuration* of `docs/operator-guide/install.md`. A table counts only when its first header cell is `Name` (`Variable` also counts). Defaults are compared only under a header cell spelled exactly `Default`, with `none` or an empty cell for no default. A new bullet says how to write a refusal so it is checked: a table under the heading `The refusals`, first header cell `Refusal`, the message in backticks, a `<placeholder>` for what varies, and each piece of three or more characters must occur in the settings source. I read each fact in `src/factory/shared/domain/documents.py` (`SETTINGS_SECTION`, `_SETTINGS_FIRST_COLUMNS`, `_DEFAULT_COLUMN`, `_NO_DEFAULT_CELLS`, `REFUSALS_HEADING`, `_REFUSAL_FIRST_COLUMN`, `_SHORTEST_CHECKED_PIECE`) and in *The settings check* in `docs/project-guide/shared.md`. I did not read the checking code beyond those constants.
+   - `README.md`: the `factory.entry.check_documents` sentence now names the name check, the settings check and the example check. It also says a finding blocks only in a file listed in `docs/checked-documents.txt`, that other files' findings are printed under `Report (not checked yet):`, and that it ends with `documents ok (<seconds> s)`.
+
+   Checks: I ran `make documents`; it ends `documents ok (0.6 s)`. Its output has no finding for `docs/project-guide/style.md`. I did not run `make check`, since only documents changed. I added no example. The `console` blocks in `style.md` are unchanged.
+
+   Cross-read and found current: `docs/project-guide/shared.md` (*The settings check*) agrees with the new style text; I read no other document.
+
+   Stale text I noticed and did not touch: `make documents` prints report lines (not blocking) for files outside `docs/checked-documents.txt`. These include `README.md:24` (`factory/stage.Containerfile`) and many `docs/project-guide/README.md` lines (`support/*_support.py` paths, `factory.adapters.landlock`). They do not belong to this story.
+
+   No "Rejected" line was written; this story changes no `docs/decisions.md` entry.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (0.6 s)
