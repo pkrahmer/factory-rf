@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T10:14:21.724845Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-06T10:14:16.473517Z'
   stage: tests
   run: 193c4150145843dc8eba9a8f9a0f1ef7
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-06T10:14:21.724845Z'
+  stage: doing
 ---
 
 # The agents write and review documents against the code
@@ -242,3 +251,4 @@ Expect: `named`
     Open: the coder's `make check` has not run yet. It should now run without this failure.
 
     `lint`: lint: green (0.1 s)
+16. factory: started doing as vm.
