@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 582
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T01:36:25.360118Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-06T01:36:25.360118Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T01:37:06.444420Z'
+  stage: docs-review
+  run: 65c8f9ab2e3846ed9e371b8ebe080131
 ---
 
 # The operator guide says that the check reads the documents
@@ -170,3 +172,21 @@ Expect: `documents ok`
    `secrets`: secrets: green (1.3 s)
    `documents`: documents ok
 10. factory: started docs-review as vm.
+11. reviewer: Docs review, round 1. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I checked the text against `factory/pipeline.yml`, against the files tracked in the folders `not_read` names, against the tests that read files from the repository, and against `docs/project-guide/style.md`.
+
+    no findings
+
+    What holds:
+    - Criterion 1: the `yaml` block under "kumpel-factory's own definition" matches `factory/pipeline.yml:10` character for character; the smoke test's diff prints `same`. `"docs/*.md"` no longer appears in `pipeline.md`; the smoke test's grep prints `0`.
+    - Criterion 2: the paragraph names the guide guards under `tests/guards/` and the other `make test` tests as the reason `README.md` and `docs/` stay in the key. It says that only `docs/runs/*` of `docs/` is left out. It no longer says that every Markdown file is left out.
+    - Round 0's finding 1 is fixed. The paragraph now names the left-out folders apart from the file types. Those folders hold no code: `git ls-files` lists only md, jsonl, one json and one log file. I found no test that reads the real files under `factory/features/`, `factory/archive/`, `docs/runs/`, `planning/` or `session-logs/`. The tests that name those paths build them under `tmp_path`.
+    - Round 0's finding 2 is fixed. The sentences are split and each runs to about 25 words or fewer, within style rule 2. The paragraph has no history words, as rule 7 asks.
+    - Round 0's finding 3 is fixed. The generic example `["notes/*.md", "notes/*.jsonl"]` uses file-type patterns only, so it agrees with the advice "never a whole folder".
+    - Criterion 3: *The docs route* gains one sentence, and it is true. `docs-only` lists `check` among its checks (`factory/pipeline.yml:37`), and a passed result is reused only when nothing outside `not_read` changed. The other sentences of the section are unchanged.
+    - Criterion 6: `docs/decisions.md` has the Decision line and the `Rejected:` line under the known results' entry. Story IDs are allowed in the decision log. `docs/project-guide/` is unchanged, as the criterion says.
+    - Criteria 4 and 5: entry 9 shows `documents ok` and `check: green`.
+
+    Open, outside this story's scope, as entries 7 and 9 already say:
+    - The "Two warnings" bullet about `secrets` may be stale.
+    - The advice "never a whole folder" sits beside the project's own whole-folder patterns.
+    The next feature rewrites that part of `pipeline.md`.
