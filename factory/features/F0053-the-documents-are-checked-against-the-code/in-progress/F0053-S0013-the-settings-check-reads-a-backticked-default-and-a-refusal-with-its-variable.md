@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 599
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T13:31:30.930836Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T13:31:30.930836Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T13:31:47.849521Z'
+  stage: intake
+  run: bf3916bd899548a49f4b7b36986fd745
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -62,3 +64,10 @@ Expect: `0 []`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete functions, `factory.shared.domain.documents.settings_findings(guide_tables, settings)` and `refusal_findings(guide_tables, settings_source)`, both in the domain layer, plus the test file `tests/shared/domain/test_document_settings.py`. The rules are stated: first backticked text or whole cell, `none` and empty as no default, strip whitespace and colons, the three-character rule, and a finding that still quotes the cell as written.
+   - Criteria: each is testable by one parametrized test. 1 covers the backticked default, the plain default, and the failing side (`6`) with its exact finding text. 2 covers a stripped piece that is found, one that is missing with its exact text, and a piece shorter than three characters after stripping. 3 checks the real `SETTINGS` and the real source. 4 is `make check`. Behaviour kept "as today" (empty cell and `none` as no default) is an unchanged earlier row, and the Interface says every earlier row keeps its result.
+   - Smoke test: runnable with `uv run python -c`, no pytest, so the `-q` rule does not apply. `Expect: 0 []` can be checked against the last output line.
+   - Docs criterion: names what the reader must know in `style.md` (*The operator guide*) and `shared.md` (*The settings check*): a default may be in backticks, and a refusal is the message `<variable>: <fault>`. It dictates no sentences.
+   - Architecture: the changes are in the shared domain's `documents` module, which is pure rules and data with no I/O, and the docs are in the guides. Both are where they belong.
+   - Scope: this is the settings check of S0002, which the feature's scope covers. It does not touch the Out of scope items. Routed to `tests` because the Interface changes Python code.
