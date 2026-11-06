@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 579
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T00:51:45.056456Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-06T00:51:39.983695Z'
   stage: tests
   run: 37566ac325c54748a8e0d5d515e45fdb
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:51:45.056456Z'
+  stage: doing
 ---
 
 # The docs reviewer judges by the style page alone
@@ -101,3 +110,4 @@ Expect: `1`
    Run: `uv run pytest -q` over the module shows 9 failed rows, all in the new test. The current `reviewer.md` still has the "until … exists" fallback and the seven rules, and lacks the new sentence: that is a wrong result, the right reason to fail. All the other tests in the module pass. Every module imported; there were no import errors. `make lint` is green.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
