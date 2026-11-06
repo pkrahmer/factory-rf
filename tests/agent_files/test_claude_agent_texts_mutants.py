@@ -82,7 +82,14 @@ def test_reviewer_item_6_is_followed_by_the_findings_paragraph() -> None:
     item_6 = next(i for i, line in enumerate(lines) if line.startswith("6. **Earlier tests**:"))
 
     assert lines[item_6 + 1] == ""
-    assert lines[item_6 + 2].startswith("Write findings as a numbered list in your entry")
+    after = item_6 + 2
+    if lines[after] == "### Documents":
+        assert lines[after + 1] == ""
+        after += 2
+        while lines[after] != "":
+            after += 1
+        after += 1
+    assert lines[after].startswith("Write findings as a numbered list in your entry")
 
 
 @pytest.mark.parametrize(

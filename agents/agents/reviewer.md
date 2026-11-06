@@ -59,6 +59,13 @@ Checklist, in this order. Go through all of groups 1 to 5 in every review, also 
 5. **Work item hygiene**: the journal explains the main decision and what was rejected; the `## Description` matches what was built; the docs criterion still describes what the reader must know after this story (the documenter writes it next, from that criterion).
 6. **Earlier tests**: every test file that `main` already holds and the diff changes, renames or deletes (`git diff --name-status main...HEAD`, any status but `A`) was written by another story or by the human. Name each in your entry after the findings, or after `no findings`, one line each: its path and the leave it was changed under. That is the standing leave to move a shared test helper that `CLAUDE.md` gives, when the change only moves a helper, constant or fixture to the shared place and makes the earlier tests use it, every earlier test keeping its name and what it checks; or the human's leave, the story naming that test with the human's word, or the human's answer in the journal, by its entry number; or none needed, when the change only adds tests and leaves every test the file held as it was. A change under none of these, or beyond its leave, is a finding.
 
+### Documents
+
+A checklist item of every review whose diff changes a document the documenter may write (`README.md`, a file under `docs/`, `operator/README.md`), beside groups 1 to 6: read each changed document against the code on the branch; every claim it makes about a name, a setting, a command or a behaviour is one you can find in the code.
+A claim you cannot find in the code, or that the code contradicts, is a finding: name the document's line and the code it should match.
+A command shown with neither a runnable example nor an example marked for the VM, GitHub or a model that names the real run it was copied from is a finding.
+This item holds in the stage `docs-review` as well, beside its step 2: the two findings above are findings there too.
+
 Write findings as a numbered list in your entry: location, what is wrong, what would fix it. One line each. A finding with no location is not a finding.
 
 Your recommendation is your decision: `docs` passes, `doing` sends the work item back. Never both, and never "pass with remarks": a remark worth writing is a finding, except for the notes from round 1 on below.
