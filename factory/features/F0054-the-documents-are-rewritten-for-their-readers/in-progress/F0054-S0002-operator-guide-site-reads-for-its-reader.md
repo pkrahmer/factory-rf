@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T23:10:01.133594Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-06T23:09:49.240259Z'
   stage: docs-review
   run: 6140a2891c1d484f8aa62d1010fd3945
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:10:01.133594Z'
+  stage: docs-only
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -220,3 +229,4 @@ Expect: `1`
     6. `docs/operator-guide/site.md:9`: "Exact detail (every exit status, every message, every built-in rule) is in the *Reference*" is not true of the file. The `merge.sh` and `reset-to-tag.sh` refusals, the `site check` lines and the sanitise rule faults are in the body. Fix: "Exit statuses, return codes and the built-in rules are in the *Reference* at the end."
 
     Open, for the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules were meant, so I left the Description as it is.
+12. factory: started docs-only as vm.
