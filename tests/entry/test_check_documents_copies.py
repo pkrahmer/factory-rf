@@ -6,48 +6,30 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
-from support.check_documents_support import REPORT_HEADING
-from support.document_texts import FENCE
-from support.git_support import commit_all, run_git
+from support.check_documents_support import REPORT_HEADING, append_block, findings_from
+from support.git_support import run_git
 
 LISTED = "docs/project-guide/style.md"
 UNLISTED = "docs/project-guide/shared.md"
 
 
-def _append_block(root: Path, document: str, command: str, output: str) -> int:
+def _append_example(root: Path, document: str, command: str, output: str) -> int:
     """Append a `console` block to `document`, list the listed page, commit; the block's line."""
     if document == LISTED:
         (root / "docs" / "checked-documents.txt").write_text(f"{LISTED}\n", encoding="utf-8")
-    path = root / document
-    text = path.read_text(encoding="utf-8")
-    if not text.endswith("\n"):
-        text += "\n"
-    first_line = len(text.splitlines()) + 2
-    text += f"\n{FENCE}console\n$ {command}\n{output}\n{FENCE}\n"
-    path.write_text(text, encoding="utf-8")
-    commit_all(root, "An example")
-    return first_line
-
-
-def _findings_from(lines: list[str], document: str, first_line: int) -> list[str]:
-    pattern = re.compile(rf"{re.escape(document)}:(\d+): ")
-    return [
-        line
-        for line in lines
-        if (found := pattern.match(line)) is not None and int(found.group(1)) >= first_line
-    ]
+    return append_block(root, document, "console", [f"$ {command}", output])
 
 
 @pytest.mark.parametrize("document", [UNLISTED, LISTED], ids=["unlisted", "listed"])
 def test_a_matching_example_in_a_copied_document_gives_no_finding(
     documents: Path, capsys: pytest.CaptureFixture[str], document: str
 ) -> None:
-    first_line = _append_block(documents, document, "echo hi", "hi")
+    first_line = _append_example(documents, document, "echo hi", "hi")
 
     main(["--root", str(documents)])
 
     lines = capsys.readouterr().out.splitlines()
-    assert _findings_from(lines, document, first_line) == []
+    assert findings_from(lines, document, first_line) == []
 
 
 @pytest.mark.parametrize(
@@ -65,13 +47,13 @@ def test_a_wrong_example_in_a_copied_document_fails_only_a_listed_one(
     blocks: bool,
     exit_status: int,
 ) -> None:
-    first_line = _append_block(documents, document, "echo one", "two")
+    first_line = _append_example(documents, document, "echo one", "two")
 
     status = main(["--root", str(documents)])
 
     printed = capsys.readouterr().out.splitlines()
     lines = [line for line in printed if not line.endswith(" does not exist")]
-    findings = _findings_from(lines, document, first_line)
+    findings = findings_from(lines, document, first_line)
     assert len(findings) == 1
     assert re.fullmatch(rf"{re.escape(document)}:\d+: the example printed one", findings[0])
     report = lines.index(REPORT_HEADING) if REPORT_HEADING in lines else len(lines)

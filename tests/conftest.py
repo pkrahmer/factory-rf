@@ -52,7 +52,7 @@ from support.container_runtime_support import make_workspace
 from support.container_support import Dataset, container_dataset, fake_dataset
 from support.definition_support import pipeline_definition
 from support.disk_support import FakeDiskSpace
-from support.documents_copy_support import copy_of, tracked_files_repository
+from support.documents_copy_support import tracked_files_repository
 from support.git_support import (
     CHECKOUT,
     PIPELINE_YAML,
@@ -616,4 +616,4 @@ def documents(tmp_path: Path, tracked_files: Path) -> Path:
     It is a test's own local clone of the session's `tracked_files`: files git does not
     track (`.venv/`, `.reports/`, `mutants/`) are not in it.
     """
-    return copy_of(tracked_files, tmp_path / "root")
+    return clone(tracked_files, tmp_path / "root")

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T19:21:44.188080Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-06T19:21:44.188080Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-06T19:23:29.063373Z'
+  stage: tests
+  run: 5ec1b91b474343388daa6a4f3f951cfa
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -233,3 +235,30 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
 
     Not touched: the `make test` timing from entry 10 (106.8 s before, 105.6 s after) still holds, since nothing has changed. The journal changed nothing in the Description.
 15. factory: started tests as vm.
+16. tester: Made the three test changes that coder entry 14 lists, which carry the reviewer's findings from entry 12. No test was renamed, no row was added or removed, and every test still checks the same thing. Nothing under `src/` changed.
+
+    1. Removed `copy_of` from `tests/support/documents_copy_support.py`. The `documents` fixture in `tests/conftest.py` and `test_two_copies_of_the_session_repository_are_separate` in `tests/entry/test_check_documents_suite_copy.py` now use `support.git_support.clone`. I did not add `--local` to `clone`, because git already does a local clone for a local path. The support module now holds only `tracked_files_repository`.
+    2. Moved the shared helpers into `tests/support/check_documents_support.py`, under the standing leave in CLAUDE.md:
+       - `append_block(root, document, info, lines) -> int` appends a fenced block, commits it and returns the line of its opening fence.
+       - `findings_from(lines, document, first_line)` keeps the lines about `document` at or after `first_line`.
+       - `tests/entry/test_check_documents_suite_copy.py` dropped its `_append_block` and its `ABOUT_MACHINE` filter and uses the two shared helpers.
+       - `tests/entry/test_check_documents_copies.py` (an earlier story's file) dropped its `_append_block` and `_findings_from`. It keeps a small private `_append_example`, which lists `style.md` in `docs/checked-documents.txt` for the listed rows (that part is specific to this module) and then calls `append_block` with a `console` block. Its tests keep their names, rows and assertions.
+    3. Rewrote the module docstring of `check_documents_support.py` to cover the expected lines, the output filters and the block helper. Moved `NOT_RUN` up beside `TIME_LINE`.
+
+    Earlier test files I changed:
+    - `tests/entry/test_check_documents_copies.py`, under the standing leave to move a shared helper.
+    - `tests/conftest.py`, under feature decision 7, which the Interface names: only the `documents` fixture's clone call and its import changed.
+
+    Criterion → test (no change from entry 8):
+    - criterion 1: tests/entry/test_check_documents_suite_copy.py::test_a_skipped_block_leaves_the_output_as_it_was_and_a_wrong_example_adds_its_line
+    - criterion 2: tests/entry/test_check_documents_suite_copy.py::test_an_example_reads_the_tracked_files_of_the_repository
+    - criterion 3: tests/entry/test_check_documents_suite_copy.py::test_the_copy_holds_the_tracked_files_and_nothing_untracked
+    - criterion 4: tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file
+    - criterion 5: tests/entry/test_check_documents_suite_copy.py::test_two_copies_of_the_session_repository_are_separate
+    - criteria 6 and 7: no test
+
+    Files created: none in this round. Every module imported.
+
+    Run: `uv run pytest -q` over the suite_copy, copies and operator_guide modules passed 20 tests. I ran it twice, not once: the first run came before I fixed a ruff format finding, and the second came after. `make lint` is green (`lint: green (0.1 s)`).
+
+    `lint`: lint: green (0.2 s)

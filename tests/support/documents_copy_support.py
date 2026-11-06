@@ -19,9 +19,3 @@ def tracked_files_repository(source: Path, target: Path) -> Path:
     run_git(target, "init", "-q")
     commit_all(target, "The copied tracked files")
     return target
-
-
-def copy_of(repository: Path, target: Path) -> Path:
-    """A local clone of `repository` at `target`, a repository of its own."""
-    run_git(target.parent, "clone", "-q", "--local", str(repository), target.name)
-    return target

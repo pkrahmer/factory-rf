@@ -6,27 +6,11 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
-from support.check_documents_support import without_report_lines
-from support.document_texts import FENCE
-from support.documents_copy_support import copy_of
-from support.git_support import commit_all, run_git
+from support.check_documents_support import append_block, findings_from, without_report_lines
+from support.git_support import clone, commit_all, run_git
 
 MACHINE = "docs/project-guide/machine.md"
-ABOUT_MACHINE = re.compile(rf"{re.escape(MACHINE)}:(\d+): ")
 NO_INDEX = "docs/operator-guide/README.md: missing\n"
-
-
-def _append_block(root: Path, info: str, lines: list[str]) -> int:
-    """Append a block to the machine page and commit; the line of its opening fence."""
-    path = root / MACHINE
-    text = path.read_text(encoding="utf-8")
-    if not text.endswith("\n"):
-        text += "\n"
-    first_line = len(text.splitlines()) + 2
-    text += "\n" + "\n".join([f"{FENCE}{info}", *lines, FENCE]) + "\n"
-    path.write_text(text, encoding="utf-8")
-    commit_all(root, "A block")
-    return first_line
 
 
 @pytest.mark.parametrize(
@@ -52,7 +36,7 @@ def test_a_skipped_block_leaves_the_output_as_it_was_and_a_wrong_example_adds_it
     lines: list[str],
     added: str | None,
 ) -> None:
-    _append_block(documents, info, lines)
+    append_block(documents, MACHINE, info, lines)
     (documents / "docs" / "operator-guide" / "README.md").unlink()
 
     status = main(["--root", str(documents)])
@@ -88,15 +72,11 @@ def test_an_example_reads_the_tracked_files_of_the_repository(
     name: str,
     expected: list[str],
 ) -> None:
-    first_line = _append_block(documents, "console", [f"$ ls {name}", name])
+    first_line = append_block(documents, MACHINE, "console", [f"$ ls {name}", name])
 
     main(["--root", str(documents)])
 
-    about_machine = [
-        line
-        for line in capsys.readouterr().out.splitlines()
-        if (found := ABOUT_MACHINE.match(line)) is not None and int(found.group(1)) >= first_line
-    ]
+    about_machine = findings_from(capsys.readouterr().out.splitlines(), MACHINE, first_line)
     assert len(about_machine) == len(expected)
     for line, pattern in zip(about_machine, expected, strict=True):
         assert re.fullmatch(pattern, line)
@@ -112,12 +92,12 @@ def test_the_copy_holds_the_tracked_files_and_nothing_untracked(documents: Path)
 def test_two_copies_of_the_session_repository_are_separate(
     tracked_files: Path, tmp_path: Path
 ) -> None:
-    first = copy_of(tracked_files, tmp_path / "first")
+    first = clone(tracked_files, tmp_path / "first")
     (first / "added.md").write_text("added\n", encoding="utf-8")
     commit_all(first, "An added file")
     (first / "pyproject.toml").write_text("changed\n", encoding="utf-8")
 
-    second = copy_of(tracked_files, tmp_path / "second")
+    second = clone(tracked_files, tmp_path / "second")
 
     assert not (second / "added.md").exists()
     assert (second / "pyproject.toml").read_text(encoding="utf-8") != "changed\n"
