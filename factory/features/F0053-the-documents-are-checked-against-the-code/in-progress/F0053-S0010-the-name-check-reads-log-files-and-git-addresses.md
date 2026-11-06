@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T12:14:34.361572Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-06T12:14:29.240371Z'
   stage: tests
   run: dec8c6ba65f547ea824c91c3ee588425
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:14:34.361572Z'
+  stage: doing
 ---
 
 # The name check reads log files and git addresses
@@ -90,3 +99,4 @@ Expect: `0`
    Open: nothing.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
