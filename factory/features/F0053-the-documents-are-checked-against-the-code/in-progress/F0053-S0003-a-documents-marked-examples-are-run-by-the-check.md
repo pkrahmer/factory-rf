@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T07:58:52.926013Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -170,6 +174,11 @@ journal:
   at: '2026-11-06T07:58:47.309710Z'
   stage: tests
   run: 1ca98aa9d189464195ace982be3c1f14
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:58:52.926013Z'
+  stage: doing
 ---
 
 # A document's marked examples are run by the check
@@ -534,3 +543,4 @@ Expect: `1`
     - `make lint`: lint: green, after ruff fixed the import order in the domain test.
 
     `lint`: lint: green (0.1 s)
+30. factory: started doing as vm.
