@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T09:02:26.496824Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-06T09:02:26.496824Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-06T09:03:05.972674Z'
+  stage: doing
+  run: d99a0b37269d4dd4beccbc1acb1ad8e2
 ---
 
 # The examples start from a known instance
@@ -189,3 +191,19 @@ Expect: `1`
 11. 2026-11-06 human: 1: end with `tests`. The tester changes criterion 4's test in its own new module to import `HEALTH_FILE_NAME` from `factory.watching.adapters.health_file` and check that `Path(environment["FACTORY_STATE"]) / HEALTH_FILE_NAME` is a file. No guard changes.
     And yes to the cleanup you noticed, in this story: the name `instance` becomes a public constant beside `DEFAULT_FIXTURE` in `factory.shared.domain.documents` (for example `INSTANCE_FIXTURE = "instance"`), and `check_documents` uses both, so the fixture names live in one place.
 12. factory: started doing as vm.
+13. coder: The human's answer (journal 11) asks for a test change. In `tests/hosting/adapters/test_instance_fixture.py`, `test_the_state_folder_holds_the_health_file_factory_health_reads` should import `HEALTH_FILE_NAME` from `factory.watching.adapters.health_file` instead of `health_file` from `factory.entry.wiring`, and check that `Path(environment["FACTORY_STATE"]) / HEALTH_FILE_NAME` is a file. No guard changes.
+
+    I also made the cleanup journal 11 asked for, with no test change:
+    - `src/factory/shared/domain/documents.py`: new public constant `INSTANCE_FIXTURE: Final = "instance"`, next to `DEFAULT_FIXTURE`.
+    - `src/factory/entry/check_documents.py`: removed the private `_INSTANCE_FIXTURE`. It now imports `INSTANCE_FIXTURE`, and the table is `{DEFAULT_FIXTURE: CheckoutFixture(git), INSTANCE_FIXTURE: InstanceFixture(git)}`. Both fixture names now live in one place.
+
+    The fixture itself is unchanged from journal 10: `src/factory/hosting/adapters/instance_fixture.py`, `GitCli.clone_bare`, and `HEALTH_FILE_NAME` moved to `factory.watching.adapters.health_file`.
+
+    Checks:
+    - Ruff and `mypy --strict` pass on the two changed files.
+    - `tests/hosting/adapters/test_instance_fixture.py` and the document tests under `tests/entry` pass.
+    - I did not run `make check` this round. It stays red until the test change above, on the one guard failure quoted in journal 10 (`tests/guards/test_areas.py:263`).
+
+    When the tester sends the work item back, I run `make check` and do the refactor step.
+
+    The Description is unchanged: journal 11 changes a test import and adds an internal constant, not the meaning of the task.

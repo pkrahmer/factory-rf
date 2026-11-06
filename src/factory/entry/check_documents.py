@@ -15,6 +15,7 @@ from factory.shared.domain import settings
 from factory.shared.domain.documents import (
     DEFAULT_FIXTURE,
     DOCUMENT_PATHS,
+    INSTANCE_FIXTURE,
     OPERATOR_GUIDE_FOLDER,
     OPERATOR_INSTALL,
     PROJECT_GUIDE_FOLDER,
@@ -32,7 +33,6 @@ from factory.shared.domain.documents import (
 )
 
 _PROGRAM = "check-documents"
-_INSTANCE_FIXTURE = "instance"
 _CLEAN = 0
 _FINDINGS = 1
 
@@ -152,7 +152,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     for settings_finding in _settings_guide_findings(root):
         print(f"{OPERATOR_INSTALL}: {settings_finding}")
     git = GitCli(root)
-    fixtures = {DEFAULT_FIXTURE: CheckoutFixture(git), _INSTANCE_FIXTURE: InstanceFixture(git)}
+    fixtures = {DEFAULT_FIXTURE: CheckoutFixture(git), INSTANCE_FIXTURE: InstanceFixture(git)}
     for example_line in _example_lines(root, ProcessExampleRunner(), fixtures):
         print(example_line)
     if findings:

@@ -517,6 +517,7 @@ def unresolved(references: list[Reference], exists: Callable[[Reference], bool])
 
 CONSOLE: Final = "console"
 DEFAULT_FIXTURE: Final = "checkout"
+INSTANCE_FIXTURE: Final = "instance"
 UNRUN_MARKS: Final = ("vm", "github", "model")
 SUITE: Final = "suite"
 ANY_LINES: Final = "..."
