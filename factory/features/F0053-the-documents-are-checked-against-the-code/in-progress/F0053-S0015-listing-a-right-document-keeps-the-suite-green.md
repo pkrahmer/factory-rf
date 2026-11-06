@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T20:04:01.777420Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-06T20:03:56.596736Z'
   stage: doing
   run: 233b83ef354347aea4cb3930816169b9
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:04:01.777420Z'
+  stage: review
 ---
 
 # Listing a right document keeps the suite green
@@ -241,3 +250,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+16. factory: started review as vm.
