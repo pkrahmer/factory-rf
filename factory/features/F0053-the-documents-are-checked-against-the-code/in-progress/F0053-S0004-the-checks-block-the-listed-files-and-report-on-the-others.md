@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T09:26:22.445613Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-06T09:26:22.445613Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-06T09:29:19.677546Z'
+  stage: tests
+  run: f83c76cb0fd3459f936643d8dbad3fc2
 ---
 
 # The checks block the listed files and report on the others
@@ -119,3 +121,32 @@ Expect: `documents ok (<seconds> s)`
    - Architecture: the pure logic goes in `shared.domain`, and the command stays in `factory.entry`. That fits.
    - Scope: it is within F0053 scope, "the checked-files list and a report" (S0004). `docs/decisions.md` is not checked, as the feature's out-of-scope section says. The route is `tests`, because the Interface changes `src/` and `tests/`.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for the checked-documents list and the report, and added the name check's rows for the three new kinds of text.
+
+   Criterion → test:
+   - criterion 1: tests/entry/test_check_documents_checked_files.py::test_a_new_finding_blocks_in_a_listed_file_and_is_reported_in_any_other (name, settings and example findings × listed and not listed)
+   - criterion 2: tests/entry/test_check_documents_checked_files.py::test_a_finding_of_the_checks_of_before_fails_for_every_file (missing stop row, missing section, old word × listed and not listed)
+   - criterion 3: tests/entry/test_check_documents_checked_files.py::test_todays_documents_with_the_first_list_give_a_report_and_pass (runs `main` read-only on the repository root, because the name check needs the real `src/` and `tests/`; it also checks that the list reads as exactly the style page and the glossary)
+   - criterion 4: tests/shared/domain/test_document_references.py::test_named_references_finds_backticked_names_paths_and_links (new rows: `factory.env`, `factory.local.env`, `factory.x.<each listed extension>`, `tests/x.py::test_y`, `$HOME/a/b.txt`) and tests/entry/test_check_documents_checked_files.py::test_file_names_node_ids_and_shell_texts_are_read_exactly (a node id gives the finding of a missing `tests/x.py` and none once the file exists)
+   - criterion 5: tests/entry/test_check_documents_checked_files.py::test_a_listed_path_that_is_no_document_of_the_check_is_one_blocking_finding (missing path; `docs/decisions.md`)
+   - criterion 6: tests/entry/test_check_documents_checked_files.py::test_a_comment_line_and_a_blank_line_give_no_entry
+   - criterion 7: tests/entry/test_check_documents_checked_files.py::test_the_output_is_the_blocking_findings_then_the_report_and_nothing_more
+   - criterion 8: tests/entry/test_check_documents_checked_files.py::test_the_failing_side_prints_one_line_per_blocking_finding_then_the_report
+   - criterion 9: tests/entry/test_check_documents_checked_files.py::test_the_report_heading_is_left_out_when_there_is_nothing_to_report
+   - criterion 10: the same two tests as criterion 4 (rows `$HOME/factory.nothing.here`, `tests/x.py` without `::`, `factory.shared.domain.yml_reader` as a module, which also gives a finding at the entry level)
+   - criteria 11 and 12: no test (`make check`, docs).
+
+   Files:
+   - Created `tests/entry/test_check_documents_checked_files.py`.
+   - Changed `tests/shared/domain/test_document_references.py`, which an earlier story wrote. I only added rows to its parametrized name-check test, because the story's Interface names those rows ("rows for the three kinds in the name check's tests"). Existing rows are unchanged.
+
+   Assumptions the coder should know:
+   - A reported line is the finding's own text. The tests strip leading and trailing whitespace from each output line, so the report may indent its lines.
+   - Every entry test writes a `docs/checked-documents.txt`. What happens when the file is missing is not specified and is not tested.
+   - No test uses a skipped ("not run") example block, because the criteria do not say whether such blocks belong to the report.
+
+   Test run: `uv run pytest -q` on the two files stopped at collection, for the right reason: `ImportError: cannot import name 'read_checked_documents' from 'factory.shared.domain.documents'`. Because the run was interrupted, the domain file's new rows did not run. A collect-only pass of that file alone collected 34 cases without error. `make lint` is green.
+
+   Module the test run could not import: `factory.shared.domain.documents.read_checked_documents`.
+
+   `lint`: lint: green (0.1 s)

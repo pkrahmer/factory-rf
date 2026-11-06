@@ -51,6 +51,23 @@ def _text(body: str) -> str:
         pytest.param("See [x](mailto:a@example.org) for it.", [], id="mailto-link"),
         pytest.param("See [x](<instance>.md) for it.", [], id="placeholder-link"),
         pytest.param("See [x](*.md) for it.", [], id="glob-link"),
+        pytest.param("Set it in `factory.env` once.", [], id="file-name-env"),
+        pytest.param("Set it in `factory.local.env` once.", [], id="file-name-local-env"),
+        *[
+            pytest.param(f"Read `factory.x.{extension}` once.", [], id=f"file-name-{extension}")
+            for extension in ("service", "yml", "yaml", "json", "toml", "md", "txt")
+        ],
+        pytest.param(
+            "See `factory.shared.domain.yml_reader` here.",
+            [(3, "factory.shared.domain.yml_reader", "module")],
+            id="module-ending-like-an-extension",
+        ),
+        pytest.param(
+            "Run `tests/x.py::test_y` once.", [(3, "tests/x.py", "path")], id="pytest-node-id"
+        ),
+        pytest.param("Run `tests/x.py` once.", [(3, "tests/x.py", "path")], id="path-without-node"),
+        pytest.param("It reads `$HOME/a/b.txt` too.", [], id="shell-expression"),
+        pytest.param("It reads `$HOME/factory.nothing.here` too.", [], id="shell-expression-whole"),
     ],
 )
 def test_named_references_finds_backticked_names_paths_and_links(
