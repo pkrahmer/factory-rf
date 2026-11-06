@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 579
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T00:51:45.056456Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T00:51:45.056456Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-06T00:57:13.444224Z'
+  stage: doing
+  run: 301fbff40ff44ac19f75cbda996f556e
 ---
 
 # The docs reviewer judges by the style page alone
@@ -111,3 +113,15 @@ Expect: `1`
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: I rewrote step 3 of `### docs-review` in `agents/agents/reviewer.md`. It is now the one sentence from the Interface: "Judge the writing against `docs/project-guide/style.md`: its rules for all documents and the section for the kind of document the diff changes." The fallback clause ("until … exists") and the seven-item list under it are gone. Steps 1, 2 and 4 and the rest of the file are unchanged. That is the whole diff: one line added, eight removed. I changed no tests.
+
+   Main choice: I replaced the step in place and kept its number 3, so steps 1, 2 and 4 keep theirs. The alternative I rejected was folding the style page into step 2. That would have changed the numbering and the existing subsection that the rest-of-body test excludes, beyond what the Interface asks.
+
+   Refactor: nothing to change; the diff is the one sentence.
+
+   `make check`: green (test: green (141.2 s), check: green).
+
+   Noticed but not touched: `docs/project-guide/agents.md:295` still says "Until the style page exists, the reviewer's subsection lists the seven style rules itself." Criterion 4 gives that change to the documenter. The journal changed nothing in the Description.
+
+   `check`: check: green
+   `duplicates`: duplicates: 5 new, 40 known, 3 gone
