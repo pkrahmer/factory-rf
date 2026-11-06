@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T13:31:30.930836Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T13:31:30.924334Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T13:31:30.930836Z'
+  stage: intake
+---
+
 # The settings check reads a backticked default and a refusal with its variable
 ## Description
 
@@ -32,3 +59,6 @@ print(len(settings_findings([d], settings.SETTINGS)), refusal_findings([r], Path
 Expect: `0 []`
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
