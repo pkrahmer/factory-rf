@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T09:18:54.710103Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-06T09:18:54.710103Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T09:19:25.271476Z'
+  stage: smoke-test
+  run: 967b596debab4525a34762eb9928d405
 ---
 
 # The examples start from a known instance
@@ -472,3 +474,20 @@ Expect: `1`
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok (0.4 s)
 30. factory: started smoke-test as vm.
+31. smoke-tester: I ran the smoke test from the repository root, exactly as written.
+
+    Command 1: `uv run pytest tests/hosting/adapters/test_instance_fixture.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Expect: `1`. Met. A second run of the same test file showed the summary line `9 passed in 0.68s`.
+
+    Judgement against the acceptance criteria: the one command runs the tests for criteria 1–9, and all of them pass. Nothing in the output contradicts any criterion. I also read the documents named in the docs criterion (11), without running anything from them:
+    - `docs/project-guide/style.md:53` describes the `instance` fixture: its name `docs`, `FACTORY_SNAPSHOTS=copy`, `factory.env`, the healthy state folder and the bare remote.
+    - `docs/project-guide/style.md:55` and `:64` say a command needing the hosting service is marked `console github`.
+    - `docs/project-guide/shared.md:113` describes `InstanceFixture`.
+    - `docs/decisions.md:1618` has the entry on having no fake hosting service in the production code, and it names the rejected `world` fixture behind `FACTORY_HOSTING=fake`.
+
+    Not checked here: `make check` (criterion 10). The smoke test does not run it, and the factory's gate does.
+
+    Findings: none. I fixed nothing.
