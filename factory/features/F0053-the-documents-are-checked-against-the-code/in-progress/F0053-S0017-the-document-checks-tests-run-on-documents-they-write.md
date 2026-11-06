@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T21:17:50.141407Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-06T21:17:44.863387Z'
   stage: review
   run: 14462b901df54777bf65a2c0f5a4647c
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-06T21:17:50.141407Z'
+  stage: doing
 ---
 
 # The document check's tests run on documents they write
@@ -337,3 +346,4 @@ Expect: `documents ok (<seconds> s)`
     - `tests/support/documents_copy_support.py`: deleted.
 
     Nothing else is open. Criterion 8 (`docs:`) is the documenter's.
+20. factory: started doing as vm.
