@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T02:57:53.733863Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T02:57:51.287330Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:57:53.733863Z'
   stage: intake
 ---
 
@@ -79,3 +88,4 @@ Expect: `True`
    4. Refusal texts are checked only in a table under a heading `The refusals` whose first column is `Refusal`; today's guide has none, so nothing is checked yet, and the rewrite adds it. A refusal's text is the backticked text of that first column. Its parts between placeholders in angle brackets (`<value>`) are cut out, and each remaining piece of three characters or more must occur in the source of `factory.shared.domain.settings`. That handles texts built from a format string. Rows: a held text (none), a text not held (one finding), a text with a placeholder whose pieces are held (none).
    5. Only `read_settings`: every variable it reads, `FACTORY_DATASET` and `FACTORY_STAGE_IMAGE` included (both are read there). The keeping test calls `read_settings` with a recording mapping that notes every key looked up, on an environment valid enough to reach every read, and compares the noted keys with the names in `SETTINGS`. Criterion 1 reads "the variables `read_settings` reads".
    Also yes: criterion 4 names `factory.entry.check_documents` through `make documents`.
+5. factory: started intake as vm.
