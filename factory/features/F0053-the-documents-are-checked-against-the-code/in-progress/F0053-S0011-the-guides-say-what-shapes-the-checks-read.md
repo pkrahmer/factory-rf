@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 597
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T13:16:44.178854Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-06T13:16:44.178854Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T13:17:34.559167Z'
+  stage: docs-review
+  run: 5004f4a1358b49ff90fd8a00574fcb85
 ---
 
 # The guides say what shapes the checks read
@@ -154,3 +156,34 @@ Expect: a number greater than `0`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (0.6 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 docs-review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md` (`README.md`, `docs/project-guide/style.md`). I checked every sentence against `src/factory/shared/domain/documents.py` and `src/factory/entry/check_documents.py`, then checked the writing against `docs/project-guide/style.md`.
+
+    Facts checked in `docs/project-guide/style.md`, operator guide section, lines 79-82:
+    - The header cells `Name` and `Variable` match `_SETTINGS_FIRST_COLUMNS`, and the exact `Default` matches `_DEFAULT_COLUMN` and `_default_findings`.
+    - `none` or an empty cell means no default, as in `_NO_DEFAULT_CELLS`.
+    - A table with another first header cell is skipped, and a finding comes only when no table counts. This matches `settings_findings` and `NO_SETTINGS_TABLE`.
+    - The tables are read only in *Configuration* of `docs/operator-guide/install.md`, as `_settings_guide_findings` does with `OPERATOR_INSTALL` and `SETTINGS_SECTION`.
+    - A refusal table needs the heading `The refusals` (`REFUSALS_HEADING`, the nearest heading in `guide_tables`), and the heading must sit inside *Configuration*, because `guide_tables` takes only that section. Its first header cell is `Refusal` (`_REFUSAL_FIRST_COLUMN`).
+    - The message is in backticks (`_quoted_refusal`), and `<placeholder>` is cut out (`_PLACEHOLDER`). Pieces of three or more characters (`_SHORTEST_CHECKED_PIECE`) must occur in the source of `settings.py`, which is read through `Path(settings.__file__)`. The relative link `../../src/factory/shared/domain/settings.py` resolves to a file that exists.
+
+    Facts checked in `README.md`, lines 22-26:
+    - The contract command is described as before.
+    - The document checks match `_messages`, `_missing_sections`, `_wording`, `_stop_rows` and `_project_guide_rows`.
+    - The name check matches `_name_findings`, `named_references` and `unresolved`. The settings check matches `_settings_guide_findings`.
+    - The example check covers the README and both guides (`_named_documents`).
+    - The document checks block in every file. The name, settings and example findings block only in a file listed in `docs/checked-documents.txt`; findings in other files go under `Report (not checked yet):`. This matches `main` and `split_findings`.
+    - The closing line `documents ok (<seconds> s)` matches `main`.
+
+    The six findings of round 0 are fixed:
+    - The name check is now described apart from the document checks.
+    - The blocking rule is right.
+    - The long sentence is split and the version name is gone from the changed text.
+    - The refusal table is placed as a subsection of *Configuration*.
+    - "The settings source" is now a link to `settings.py`.
+    - The long sentences in style.md are split.
+
+    The writing meets the style rules. Every sentence is under about 25 words and has at most one parenthesis. There are no version names or story ids, and the file link is relative. The new text adds no `console` example.
+
+    Criteria 1, 2 and 5 are met. For criteria 3 and 4 I take the documenter's reported `documents ok (0.6 s)` and the factory's `check: green`.
+
+    no findings
