@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T10:23:41.549883Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-06T10:23:41.549883Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-06T10:24:21.072795Z'
+  stage: tests
+  run: 45e7aca838364211a30ef8f7cfe1b6e6
 ---
 
 # The agents write and review documents against the code
@@ -346,3 +348,18 @@ Expect: `named`
 
     The factory left out changes outside the write paths: factory/features/F0053-the-documents-are-checked-against-the-code/in-progress/F0053-S0005-the-agents-write-and-review-documents-against-the-code.md.
 22. factory: started tests as vm.
+23. tester: I made the test change the coder named in entry 21, which is review finding 5 from entry 19. The change is in `tests/agent_files/test_claude_agent_texts_documents.py`, a test this story wrote.
+
+    - `_reviewer_checklist` no longer cuts the `## Role` section out by hand with `body.index("\n## Role\n")` and `body.index("\n## Stage\n")`. It now returns `section_text(agent_body("reviewer"), "Role") or ""`, using `factory.shared.domain.sections.section_text`, the same helper `stage_section` in `tests/support/shipped_agents.py` uses.
+    - The section still ends at the next `## ` heading. A `### Documents` subheading does not end it, so `_documents_item` still finds the item inside the checklist.
+    - Every test keeps its name and still checks the same thing. Nothing else in the module changed.
+
+    I rejected adding a `role_section` helper to `tests/support/shipped_agents.py`. Only this module needs that section, so calling `section_text` directly is enough.
+
+    Files created: none. File changed: `tests/agent_files/test_claude_agent_texts_documents.py`.
+
+    Run: `uv run pytest -q tests/agent_files/test_claude_agent_texts_documents.py`: 9 passed against the coder's agent files. Every module imported. `make lint`: lint: green (0.1 s).
+
+    Open: this was the last open finding from the review. The work item can go back to review.
+
+    `lint`: lint: green (0.1 s)

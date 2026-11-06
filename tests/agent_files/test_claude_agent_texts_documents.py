@@ -2,6 +2,7 @@
 
 import pytest
 
+from factory.shared.domain.sections import section_text
 from support.shipped_agents import agent_body
 
 DOCUMENTS_HEADING = "### Documents"
@@ -21,10 +22,7 @@ def _paragraphs_naming(text: str, fragments: tuple[str, ...]) -> list[str]:
 
 
 def _reviewer_checklist() -> str:
-    body = agent_body("reviewer")
-    start = body.index("\n## Role\n")
-    end = body.index("\n## Stage\n")
-    return body[start:end]
+    return section_text(agent_body("reviewer"), "Role") or ""
 
 
 def _documents_item() -> str:
