@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 597
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-06T13:16:44.178854Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-06T13:16:38.676127Z'
   stage: docs-only
   run: 8392ae0e5a574b00b8568eefd3d5546d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T13:16:44.178854Z'
+  stage: docs-review
 ---
 
 # The guides say what shapes the checks read
@@ -144,3 +153,4 @@ Expect: a number greater than `0`
    `check`: check: green
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (0.6 s)
+10. factory: started docs-review as vm.
