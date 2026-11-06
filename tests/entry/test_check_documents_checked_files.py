@@ -23,6 +23,7 @@ from support.document_texts import (
     project_guide,
     write_documents,
 )
+from support.git_support import commit_all, run_git
 from support.operator_support import ROOT
 
 CHECKED_LIST = "docs/checked-documents.txt"
@@ -150,6 +151,8 @@ def test_todays_documents_with_the_first_list_give_a_report_and_pass(
     copy = tmp_path / "checkout"
     shutil.copytree(ROOT, copy, ignore=shutil.ignore_patterns(*_NOT_COPIED))
     (copy / CHECKED_LIST).write_text(f"{STYLE}\n{GLOSSARY}\n", encoding="utf-8")
+    run_git(copy, "init", "-q")
+    commit_all(copy, "The copied repository")
 
     status, lines = _run(copy, capsys)
 

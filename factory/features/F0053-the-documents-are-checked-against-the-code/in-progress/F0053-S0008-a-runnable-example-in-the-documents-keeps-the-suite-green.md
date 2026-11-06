@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 593
 comments_read: [6684236950]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T11:56:08.159966Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -124,6 +120,12 @@ journal:
   kind: started
   at: '2026-11-06T11:56:08.159966Z'
   stage: tests
+- number: 21
+  speaker: tester
+  kind: result
+  at: '2026-11-06T11:56:37.291198Z'
+  stage: tests
+  run: 1963c68abea243f59b39e54ba90cb668
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -307,3 +309,21 @@ Expect: `1`
     Criterion → test mapping: unchanged from entry 5. No test changed in this run. No files were created. No `make test` run was needed.
 19. 2026-11-06 human: (a), with the human's leave: in `tests/entry/test_check_documents_checked_files.py::test_todays_documents_with_the_first_list_give_a_report_and_pass`, after the list is written, the copy becomes a git repository with one commit of every file (`run_git(copy, "init", "-q")` and `commit_all`), and the same in any other test of that file that copies the repository and fails only for this reason. Names and assertions stay. Feature decision 6 meant to cover exactly this case: any earlier test whose only failure is that its copy is no git repository.
 20. factory: started tests as vm.
+21. tester: Round 1, tests stage, in the mode for a test change the human approved. I made the change the human approved in entry 19 (option (a)) and the one the coder named in entry 16. Nothing else changed.
+
+    The change is in `tests/entry/test_check_documents_checked_files.py::test_todays_documents_with_the_first_list_give_a_report_and_pass`. After the test writes `docs/checked-documents.txt` into its copy of the repository, it now runs `run_git(copy, "init", "-q")` and then `commit_all(copy, "The copied repository")`. Both come from `tests/support/git_support.py`, and the module now imports them. The copy is a git repository with one commit of every file, as the `documents` fixture in `tests/conftest.py` builds it. That lets the `checkout` fixture of the listed style.md's `console` blocks be prepared. The test keeps its name and its three assertions.
+
+    Why: the copy was no git repository, so the listed `docs/project-guide/style.md` examples failed with `fixture checkout could not be prepared` (entries 14 and 16). Entry 19 gives the leave under feature decision 6.
+
+    Other tests in that file: none of them copies the repository. Only this test uses `ROOT` with `_NOT_COPIED`, and every other test builds its documents with `write_documents` under `tmp_path`. So the human's "same in any other test" applies to none.
+
+    Criterion → test mapping: unchanged from entry 5.
+
+    Files: none created. Changed `tests/entry/test_check_documents_checked_files.py`, an earlier test file that F0053-S0004 wrote, under the human's leave in entry 19.
+
+    Runs:
+    - `uv run pytest -q tests/entry/test_check_documents_checked_files.py`: no failures (the tail showed only passing dots).
+    - `make lint`: `lint: green`.
+    - No module failed to import.
+
+    `lint`: lint: green (0.2 s)
