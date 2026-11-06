@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T21:25:55.907291Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-06T21:25:55.907291Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T21:28:56.462184Z'
+  stage: docs
+  run: 4ebca3dc58ca4113a3b6ec26519bff5f
 ---
 
 # The document check's tests run on documents they write
@@ -468,3 +470,22 @@ Expect: `documents ok (<seconds> s)`
     - `tests/support/documents_copy_support.py` (deleted): the human's leave, feature decision 10.
     - `tests/support/document_texts.py`: the standing leave to move a shared test helper (`CLAUDE.md` *Tests*). The shared module now reads the code's tables when called, so that it can replace the copy in the new support module. Every builder keeps its name and signature, and gives the same text when nothing is patched, so every earlier test that uses it checks the same thing.
 28. factory: started docs as vm.
+29. documenter: Round 1, docs stage. I read the story, the tests the diff changes (`tests/support/minimal_documents_support.py`, `document_texts.py`, the guard, `tests/conftest.py`) and the four documents. Nothing under `src/` changed, so I found no contradiction between code and Interface.
+
+    Files changed:
+    - `docs/project-guide/shared.md`: the paragraph about tests on the `documents` copy is replaced by a new section *How the check is tested*. It says the tests run on minimal documents built from the code's tables, how a test adds what its rule needs (`add_and_commit`, `append_block`, `write_checked_list`, `drop_settings_row`), that the real documents are checked only by `make documents` in the docs stages, and what the guard refuses.
+    - `docs/project-guide/style.md`, *Runnable examples*: the sentence that said the suite runs every document's examples on a copy (the `documents` fixture) is replaced. It now says the suite runs none of them. A wrong example blocks `make documents` in a listed file and is reported in any other (that sentence stays). I added "listed or not" to the closing sentence of that paragraph.
+    - `docs/project-guide/README.md`: it lists `support/minimal_documents_support.py` and the fixture `minimal`. It adds `clean_texts` to `document_texts` and notes that the builders read the code's tables when called. It no longer calls the list or the block in `check_documents_support` a "copy's".
+    - `docs/decisions.md`: new entry "The check's tests run on documents they write", with Decision, Why and Rejected, all taken from the docs criterion.
+
+    Checks: `make documents` ends with `documents ok (0.6 s)`. I changed only documents, so I did not run `make check`, as the stage says. The new section has no runnable example. I named code from the files on the branch.
+
+    Cross-read and found current: `docs/project-guide/glossary.md`, `work.md`, `hosting.md`, `machine.md`, `agents.md`, `pipeline.md`, `watching.md`, the operator guide and the README. None of them names `tracked_files`, `documents_copy_support` or the `documents` fixture. A grep of `docs/` and the README finds no other mention of those.
+
+    Stale text I saw and left alone (unrelated to this story): `make documents` prints existing report lines for names that do not exist: `machine.md:264`, `:298`, `:362` and `work.md:13`. They never block.
+
+    No findings.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.9 s)
+    `documents`: documents ok (0.6 s)

@@ -137,7 +137,15 @@ The output has three parts, in this order:
 
 `split_findings` makes the split from the document each finding carries. A document is added to the list when it has been rewritten; the list is complete when every document is on it.
 
-A test that runs the document check on the `documents` copy writes the list it needs through `write_checked_list(root, paths)` of `tests/support/check_documents_support.py`, and assumes nothing about which pages the repository's list names; listing a right page then never changes the suite's outcome. `write_checked_list` commits only when the text differs from the copy's list, so writing the list the copy already holds is no error. A step that adds pages to the copy's list first looks at what the list names, as the fixture `listed` of `tests/entry/test_check_documents_any_list.py` does.
+### How the check is tested
+
+The tests of the check never read the repository's documents or its `docs/checked-documents.txt`, and they run no example of the real documents. `make check` therefore does not grow with the documents, and a rewrite of a document breaks no test. The real documents are checked by `make documents` alone, which runs in every docs stage.
+
+A test starts from `minimal_documents(root)` of `tests/support/minimal_documents_support.py` (the fixture `minimal` of `tests/conftest.py` calls it for `tmp_path / "root"`). That writes a git repository in one commit with the smallest documents the check accepts: the README, the operator guide's index and every file of `OPERATOR_GUIDE_FILES`, the project guide's index and one page for each area, and an empty `docs/checked-documents.txt`. It builds them with `clean_texts()` of `tests/support/document_texts.py`, which reads `STOP_TABLE`, `KILL_POINT_CASES`, `FAULT_PATHS` and `SETTINGS` from the modules that define them each time it is called, so the documents follow the code's tables and a test can extend a table with `monkeypatch`. On them `main(["--root", str(root)])` prints `documents ok (<seconds> s)` alone. They hold no runnable example.
+
+A test adds what its rule needs and nothing more. `add_and_commit(root, {path: text})` writes the files and commits them, and leaves `git status --porcelain` empty; it commits only when the work tree changed. `append_block` of `tests/support/check_documents_support.py` adds a block to a document, `write_checked_list(root, paths)` writes the list of checked documents (it commits only a change, so writing the list that is already there is no error), and `drop_settings_row` removes a settings row.
+
+`tests/guards/test_document_tests_write_their_documents.py` fails when a module under `tests/entry/` that imports `factory.entry.check_documents` names `operator_support.ROOT`, `tracked_files`, `documents_copy_support` or the path `docs/checked-documents.txt`.
 
 ### The settings check
 
