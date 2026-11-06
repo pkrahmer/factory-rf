@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T07:10:49.293339Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-06T07:10:49.293339Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-06T07:11:10.877092Z'
+  stage: doing
+  run: 9864e686a3bf4043b4819f858d1d28d4
 ---
 
 # The operator guide's settings agree with the settings code
@@ -266,3 +268,19 @@ Expect: `True`
     - tests/conftest.py: the standing leave to move a shared test helper (the `documents` fixture moved here with the same name and body).
     - tests/entry/test_check_documents_operator_guide.py: the standing leave to move a shared test helper (its local `documents` fixture, `ROOT` and the `shutil` import removed; its tests keep their names and checks).
 20. factory: started doing as vm.
+21. coder: Round 1. I changed no code: both of the reviewer's findings in entry 19 need only tests, and the code already does what each one asks.
+
+    1. Criterion 1, "with their defaults": the tester adds one parametrized test to tests/shared/domain/test_settings_table.py. It has a row per setting and pins each `SettingDoc.default` against the value `read_settings` applies when that variable is unset. A setting with no default gets `None`. Examples: `FACTORY_STATE` -> `/state`, `FACTORY_MIN_FREE_GB` -> `5`, `FACTORY_IDLE_SHUTDOWN_MINUTES` -> `0`.
+    2. Criterion 6, added by the reviewer: the tester adds its test to tests/shared/domain/test_document_settings.py, as rows of one test:
+       - A guide whose only table has another first column, given a non-empty `settings`, gives no finding.
+       - A `Variable` table with one row gives a finding for every other setting.
+
+       `settings_findings` in src/factory/shared/domain/documents.py already returns `[]` when no table counts, so both rows should pass against the code as it is.
+
+    Rejected: asking the human to drop "with their defaults" from criterion 1. The criterion is clear and the test can be written, so I saw no reason to narrow it.
+
+    Description: I made no rewrite, because the coder's write paths do not include the work item. Entry 9 added `GuideTable.heading`, `guide_tables(text, section)` and `refusal_findings(guide_tables, settings_source)`. The `## Interface` still predates that answer and still has `settings_findings` checking refusals. The code and tests follow entry 9. Bringing the Interface up to date is left to the human or an intake rerun.
+
+    Noticed, not touched: under criterion 6, a settings table that loses its `Variable`/`Name` header passes silently. The reviewer suggested raising this with S0004's gate.
+
+    I did not run `make check` this round, since nothing I could change has changed.
