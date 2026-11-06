@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 612
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T23:58:32.184919Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T23:58:32.184919Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T23:58:47.150520Z'
+  stage: intake
+  run: 28327dec91dc42258679ae60ffe93c01
 ---
 
 # The operator guide's on cloud run reads for the operator
@@ -58,3 +60,10 @@ Expect: `1`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete paths only (`docs/operator-guide/cloud-run.md`, `docs/checked-documents.txt`), all in the documenter's write paths. It states no code, signature or behaviour, so there is nothing for a criterion to be missing.
+   - Criteria: 1 and 2 are judged by the reviewer, as the feature's decision 2 says for the docs route. 3 is checked by `make documents` printing `documents ok`, with the checked-list entry. 4 is a link check. 5 is `make check`. None of them states a rule with a failing side that lacks its own criterion.
+   - Smoke test: `grep -cx "docs/operator-guide/cloud-run.md" docs/checked-documents.txt` runs as written. Its `Expect: 1` is checkable against the output.
+   - Docs criterion: criterion 6 asks for criteria 1 to 4 and names no decision-log change. It says what the reader must know (the operator's tasks, stops and settings, taken from the code) and dictates no sentences.
+   - Architecture: the story touches documents only, so there is no code layering to break. The route is docs-only, since every path the story changes is one the documenter may write.
+   - Scope: the story is one of the 22 files in F0054's scope (S0004). It leaves out `docs/decisions.md`, `docs/runs/` and the operator playbook, and it makes no behaviour change.
