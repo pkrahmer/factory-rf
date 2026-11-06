@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T09:45:06.770814Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-06T09:45:00.906417Z'
   stage: doing
   run: 3a44e0bcfd0648789a02f651c7b64d0b
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:45:06.770814Z'
+  stage: review
 ---
 
 # The checks block the listed files and report on the others
@@ -294,3 +303,4 @@ Expect: `documents ok (<seconds> s)`
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+18. factory: started review as vm.
