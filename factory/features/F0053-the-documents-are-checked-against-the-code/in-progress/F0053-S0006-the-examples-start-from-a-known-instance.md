@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T09:10:40.333044Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-06T09:10:40.333044Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-06T09:14:57.307953Z'
+  stage: doing
+  run: 2f74c34ef2cb4d278f91cd8181e9967a
 ---
 
 # The examples start from a known instance
@@ -364,3 +366,29 @@ Expect: `1`
 
     `lint`: lint: green (0.2 s)
 24. factory: started doing as vm.
+25. coder: The tester added the tests for criteria 8 and 9 and imported `INSTANCE_FIXTURE` from `factory.shared.domain.documents` (journal 23), which covers all three of the reviewer's findings in journal 19. The code already did what the two new criteria ask, so I changed no file this round. `make check` is green: every target passes, coverage is 99.22 %, and it ends with `check: green`.
+
+    What I built (from earlier rounds, unchanged in this one):
+    - `src/factory/hosting/adapters/instance_fixture.py`: `InstanceFixture(git: GitCli)`. Its `prepare(folder)` does the following:
+      - makes the bare remote `<folder>/remote.git` with `GitCli.clone_bare`;
+      - writes a healthy health file into `<folder>/state` and writes the image id file;
+      - creates the agent home, the workspace and the copy base;
+      - writes `<folder>/factory.env`, one `NAME=value` line for each variable of the environment it returns;
+      - turns a `GitError` into a `FixtureError`.
+    - `src/factory/hosting/adapters/git_cli.py`: `GitCli.clone_bare`.
+    - `src/factory/watching/adapters/health_file.py`: `HEALTH_FILE_NAME`, moved here from `factory.entry.wiring`.
+    - `src/factory/shared/domain/documents.py`: `INSTANCE_FIXTURE`.
+    - `src/factory/entry/check_documents.py`: the fixture table, now `{DEFAULT_FIXTURE: CheckoutFixture(git), INSTANCE_FIXTURE: InstanceFixture(git)}`.
+
+    Main choice: I moved the health file's name down into the health file's own module, so the fixture reads the same name `factory-health` reads without importing `factory.entry`. I rejected copying `"health.json"` into the fixture.
+
+    Refactor: I read `instance_fixture.py` again and found nothing to change.
+
+    Description: unchanged. The reviewer already added criteria 8 and 9.
+
+    Noticed, not touched: the stage image `localhost/factory-stage:docs` and the image id `docs` are placeholders that the settings check accepts. An example that actually starts a container would need a real image. No such example exists yet.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
