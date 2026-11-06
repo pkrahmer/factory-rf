@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T07:48:36.591590Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -135,6 +131,12 @@ journal:
   kind: started
   at: '2026-11-06T07:48:36.591590Z'
   stage: doing
+- number: 23
+  speaker: coder
+  kind: result
+  at: '2026-11-06T07:52:56.033601Z'
+  stage: doing
+  run: e63de3332f8f4c6792ac11b1ce6bc68a
 ---
 
 # A document's marked examples are run by the check
@@ -392,3 +394,30 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 22. factory: started doing as vm.
+23. coder: I changed no code this round. The tester's changes (journal 21) made `make check` green on the implementation already committed on the branch: `check: green`, coverage 99.17 %. I ran the smoke test and it prints `1`.
+
+    What I built (from journal 16, committed on the branch):
+    - `src/factory/shared/domain/documents.py`:
+      - the models `Command`, `Example`, `Skipped` and `Examples`, and the functions `examples(text)` and `matches(expected, actual)`.
+      - `matches` is built on `first_difference`, a small set-of-states matcher in which `...` stands for any number of lines and `<placeholder>` for any text in a line.
+      - `runs_the_suite(command)` also reads `uv run make check`, `uv run make test` and `uv run pytest`.
+    - `src/factory/shared/application/document_examples.py`: the `Fixture` and `ExampleRunner` interfaces.
+    - `src/factory/shared/adapters/document_examples.py`: `ProcessExampleRunner(time_limit=60 s)`.
+      - Each command runs through `run_process` as `env -i <fixture vars> PATH HOME TZ=UTC LANG=C.UTF-8 sh -c <command>`, with stderr merged.
+      - Each document gets one temporary work folder and one home. A fixture is prepared at most once per document.
+      - A command past its limit ends the document.
+    - `src/factory/hosting/adapters/checkout_fixture.py`: `CheckoutFixture(git: GitCli)`. It calls a new `GitCli.export(ref, folder)` in `src/factory/hosting/adapters/git_cli.py`, which runs `read-tree` into a temporary index, then `checkout-index --all --prefix=`.
+    - `src/factory/entry/check_documents.py`: wires the runner and the `checkout` fixture. It prints the example findings and the `not run (<kind>)` lines, and ends with `documents ok (<n.n> s)` (timed with `time.monotonic`) when nothing blocks.
+
+    Main decision: `export` is a `GitCli` method only, not an operation of the `Git` interface, because two tests pin that interface at exactly 22 operations. I rejected building the copy from `show_file` calls, which would start two processes per tracked file.
+
+    Refactor: I reread the diff against `main` and found nothing to rename, simplify or remove.
+
+    Noticed, not touched:
+    - `_commands` in `documents.py` fills `Command.expected` by appending to the list of a frozen model while it parses. This works, but a reviewer may prefer building the list first.
+    - `check_documents.main` builds `CheckoutFixture(GitCli(root))` every time, even when no block runs. This is harmless because the fixture touches git only when it prepares a folder.
+    - `documents.py` is about 690 lines. The human left the split for later (journal 17).
+    - Criterion 9 (the docs) is the documenter's.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
