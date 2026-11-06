@@ -17,9 +17,9 @@ How the factory's documents read. The documenter writes to this page, and the re
 
 `make documents` runs the examples that a document marks as runnable. It is the check of the docs stage; `make check` does not run it. The marked examples cover the README and every file of the operator guide and the project guide.
 
-A runnable example is a fenced block whose info string is `console`. The blocks below are shown as `text` here, so that they are not run in every copy of this guide. A line that starts with `$ ` is a command. The lines below it, up to the next `$ ` line, are what it must print. Standard error counts as output.
+A runnable example is a fenced block whose info string is `console`. The blocks below are `console` blocks, so `make documents` runs them. A line that starts with `$ ` is a command. The lines below it, up to the next `$ ` line, are what it must print. Standard error counts as output.
 
-```text
+```console
 $ echo one
 one
 $ printf 'a\nb\n'
@@ -29,12 +29,14 @@ b
 
 The commands of one document run in order in one new folder, so a file that the first block writes is there for the next one. Each command runs under `sh -c` with a fixed environment (`PATH`, `HOME` as an empty temporary folder, `TZ=UTC`, `LANG=C.UTF-8`) and nothing else. The folder is removed when the document is done. A command that runs past 60 seconds stops the document.
 
+A wrong example fails `make documents` only in a file listed in `docs/checked-documents.txt`; in any other file it is printed under `Report (not checked yet):`. The test suite runs the examples of every document the check reads, so there a wrong example fails whether its file is listed or not. Every example must be right wherever it stands.
+
 The expected output must match line by line. Two placeholders loosen it:
 
 - `<name>` stands for any text inside one line. Use it for a time, an id or a path that changes from run to run.
 - A line that holds only `...` stands for any number of lines, none included.
 
-```text
+```console
 $ echo "took $((40 + 2)) s"
 took <seconds> s
 $ seq 1 100
