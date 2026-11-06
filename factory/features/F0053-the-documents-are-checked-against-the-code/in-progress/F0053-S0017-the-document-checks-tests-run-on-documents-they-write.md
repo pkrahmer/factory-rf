@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T21:09:33.724382Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-06T21:09:28.244344Z'
   stage: tests
   run: 60f2fee00b534d52acb07e097bb43c15
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-06T21:09:33.724382Z'
+  stage: doing
 ---
 
 # The document check's tests run on documents they write
@@ -270,3 +279,4 @@ Expect: `documents ok (<seconds> s)`
     I set aside no skill step.
 
     `lint`: lint: green (0.1 s)
+16. factory: started doing as vm.
