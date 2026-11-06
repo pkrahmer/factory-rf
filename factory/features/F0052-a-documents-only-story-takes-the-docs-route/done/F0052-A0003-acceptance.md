@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-06T01:23:25.673963Z'
   stage: acceptance
   run: aae414c806024e3e90fcda0ba31a3719
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-06T01:27:21.932523Z'
+  stage: done
 stories: [F0052-S0001, F0052-S0002, F0052-S0003, F0052-S0004, F0052-S0005, F0052-S0006, F0052-S0007]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A documents-only story takes the docs route
@@ -284,3 +289,4 @@ Both pass `factory-check-story`.
    Both pass `factory-check-story`.
 
    Not done: removing my temporary folder `/tmp/tmp.zJCquVbwRM` (the smoke-test module) and `/tmp/pytest-of-factory` was denied. Both are lost with the stage.
+3. factory: done (pull request merged); cost: 1 runs, 9.3 min, 38 turns, 111886 tokens in (2602940 more from cache), 35948 out, $2.13
