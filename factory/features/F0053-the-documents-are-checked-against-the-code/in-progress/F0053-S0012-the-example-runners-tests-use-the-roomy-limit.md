@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 596
-comments_read: []
+comments_read: [6685329163]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: b20fd69000c547eaa43c284c74840480
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-06T12:56:56.861286Z'
+  stage: intake
 ---
 
 # The example runner's tests use the roomy limit
@@ -71,3 +76,8 @@ Expect: `1`
    3. The Interface lists three modules for `REPORT_HEADING`: checked_files, operator_guide and references. Criterion 2 says the text appears once under `tests/`. Today `tests/entry/test_check_documents_copies.py:14` also defines `REPORT_HEADING`. In `test_check_documents_operator_guide.py:93` and `test_check_documents_references.py:211` the text is an inline literal, not a constant. Criterion 2 and the smoke test need `copies` changed too. Please add `test_check_documents_copies.py` to the Interface, or confirm that the count should exclude it. I would add it.
    4. "A command that must be killed may keep a short limit" has no criterion, and neither does "every runner whose commands must print or write ... is built with `ROOMY_LIMIT`". The criterion cannot be checked by one test as written. Please name the tests or runners that take `ROOMY_LIMIT` (for example the folder-removal test with `pwd > record`) and the ones that keep a short limit.
    5. Criterion 3 says "the three changed modules", but the Interface changes more than three: the example-runner test, three or four entry tests, the instance-fixture test and the support module. Please list the modules.
+4. 2026-11-06 human: 1. Yes, one criterion each: `tests/entry/test_check_documents_checked_files.py` holds no literal `docs/checked-documents.txt` and imports `CHECKED_DOCUMENTS`; `tests/hosting/adapters/test_instance_fixture.py` holds no literal of the settings file's name and imports `SETTINGS_FILE` from `factory.hosting.adapters.instance_fixture`.
+   2. Import both. The sentence "unless the human prefers that a test keep the criterion's own literal" goes.
+   3. Add `tests/entry/test_check_documents_copies.py`: its `REPORT_HEADING` and the inline literals in `test_check_documents_operator_guide.py` and `test_check_documents_references.py` all use the one constant in `tests/support/check_documents_support.py`, and the text `Report (not checked yet):` appears once under `tests/`.
+   4. One checkable rule instead of a list: in `tests/shared/adapters/test_document_examples.py`, every `ProcessExampleRunner` is built with `ROOMY_LIMIT` and its elapsed time is bounded by `ROOMY_BOUND_SECONDS`, except the runner of the time-limit test, whose command must be killed and may keep a short limit. The criterion: only that one test builds a runner with a limit shorter than `ROOMY_LIMIT`, and no local `ELAPSED_BOUND_SECONDS` remains. The tester names each runner it changed.
+   5. The modules: `tests/shared/adapters/test_document_examples.py`, `tests/entry/test_check_documents_checked_files.py`, `tests/entry/test_check_documents_operator_guide.py`, `tests/entry/test_check_documents_references.py`, `tests/entry/test_check_documents_copies.py`, `tests/hosting/adapters/test_instance_fixture.py` and `tests/support/check_documents_support.py`. Criterion 3 says "the changed modules" and names them.
