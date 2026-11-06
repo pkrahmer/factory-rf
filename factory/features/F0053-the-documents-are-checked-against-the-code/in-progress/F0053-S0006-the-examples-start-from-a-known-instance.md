@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 588
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T08:49:17.620701Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-06T08:49:17.620701Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-06T08:49:39.000043Z'
+  stage: intake
+  run: 4f80d96912dd4c0185d82abf9e5851bf
+  blocked: question
 ---
 
 # The examples start from a known instance
@@ -58,3 +61,10 @@ Expect: `1`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: Format check passed. Questions:
+   1. Interface: it names no signature. `document_fixtures` gets "the fixture `instance`, a `Fixture` (S0003)", but not the object or function a coder writes (its name, parameters such as the folder the runner gives it, return type) or how it is registered so the S0003 runner "finds it by name". `src/factory/shared/adapters/document_examples.py` already exists; should the fixture register there or in the new module? I would choose: `def instance(folder: Path) -> Fixture`, plus the name-to-fixture table S0003 reads, named in the Interface.
+   2. Interface behaviour without a criterion: `FACTORY_SNAPSHOTS=copy` and "the folders under the fixture's folder" (settings file, state folder with a healthy health file, bare remote of the checkout) are stated, but no criterion tests them. Criterion 1 only tests the output of two commands. I would add: a criterion that the environment holds `FACTORY_INSTANCE=docs` and `FACTORY_SNAPSHOTS=copy` with every folder variable under the fixture's folder, and one that the state folder holds the health file `factory-health` reads.
+   3. Criterion 1 holds two behaviours (the healthy side and the refusal side) with two commands; one test function cannot reasonably cover both. I would split it into 1a (`healthy`) and 1b (refusal text and exit 2).
+   4. Criterion 3 holds two claims (no file outside the runner's folder; the remote is a local bare repository, not a network address). I would split them, each with a testable check (for example: the remote URL is a path under the folder and `git rev-parse --is-bare-repository` prints `true`).
+   5. Criterion 2 (fresh fixture per document) does not say how a test sees it: I would state that two builds for two documents give different folders and a file written into the first is absent from the second.
+   Architecture and scope look right (`shared.adapters`, no wiring change, in S0006's place in the feature); the route would be `tests`.
