@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078, 6683206284]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T10:56:45.803263Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -201,6 +197,12 @@ journal:
   kind: started
   at: '2026-11-06T10:56:45.803263Z'
   stage: review
+- number: 35
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T10:57:28.623470Z'
+  stage: review
+  run: f825670dd4bc4bf1819518e888df31bf
 ---
 
 # The agents write and review documents against the code
@@ -509,3 +511,17 @@ Expect: `named`
 32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 33. 2026-11-06 human: One more round, by the human's decision. The coder fixes finding 1 of review entry 31 in `agents/agents/documenter.md` only: the lesson names only the `make check` half of step 3 ("end without running `make check`"), and no longer says "in place of step 3", so the `make documents` sentence and its `documents ok (<seconds> s)` stay in force for every documenter. Keep `make documents` and `documents ok` in one paragraph, so the test row holds unchanged. No test change.
 34. factory: started review as vm.
+35. reviewer: Findings:
+
+    1. `agents/agents/documenter.md`, last bullet of `## Lessons`: the human's fix from journal entry 33 (for finding 1 of review entry 31) is not on the branch. The bullet still reads "end without running `make check`, in place of step 3 of the stage". The documenter's usual story changes only documents, and in that case the lesson replaces all of step 3, so the `make documents` rule (criterion 4, rule 10) is dropped. After entry 33 the factory went straight to review and no doing run took place, so the diff is the same as at entry 31. Fix (coder, `documenter.md` only, as entry 33 says): make the lesson set aside only the `make check` half of step 3. It says "end without running `make check`" and no longer "in place of step 3". The `make documents` sentence and its `documents ok (<seconds> s)` then stay in force for every documenter. Keep `make documents` and `documents ok` in step 3's one paragraph so that the `make-documents-ends-on-ok` row holds unchanged. No test change.
+
+    Checked and fine:
+    - Criteria 1 to 9 each have a row in `tests/agent_files/test_claude_agent_texts_documents.py`. I read each row against the agent text it pins, and each holds: the documenter's three Role rules and step 3, the reviewer's `### Documents` item and its two findings, and the intake's step 4. The sides of each rule are rows of one parametrized test. `_reviewer_checklist` uses `section_text`.
+    - The coder's `make check` was green (journal entry 29). The agent files have not changed since then.
+    - Nothing changed under `src/`, so the architecture and security groups have nothing to check. The diff adds no suppression markers.
+    - The reviewer's `### Documents` item says it also holds in `docs-review`. Intake step 7 has a line for the docs criterion, and its step range is now 2 to 5.
+    - The Description matches what was built. Criterion 11 still says what the reader must know.
+
+    Earlier tests:
+    - `tests/agent_files/test_claude_agent_texts_review_groups.py`: changed under the human's leave in the Interface (2026-11-05). `test_the_rest_of_the_reviewer_body_is_unchanged` keeps its name. The only change is that it also strips the `### Documents` item.
+    - `tests/agent_files/test_claude_agent_texts_mutants.py`: changed under the human's answer in journal entry 11. `test_reviewer_item_6_is_followed_by_the_findings_paragraph` keeps its name and only skips the `### Documents` item. Nothing else in the module changed.
