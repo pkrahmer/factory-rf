@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T02:32:51.754335Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-06T02:32:51.754335Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-06T02:35:50.457050Z'
+  stage: doing
+  run: f9166a4733784068b67dd3c5ef290204
 ---
 
 # Every name a document writes in backticks exists
@@ -313,3 +315,22 @@ Expect: a number alone (the count of findings, possibly `0`)
     Earlier tests:
     - `tests/entry/test_check_documents_operator_guide.py`: changed under the human's leave in journal entry 11, answer 2(a). The change is only the comparison that leaves out the ` does not exist` lines, which is within that leave.
 20. factory: started doing as vm.
+21. coder: Round 1. I fixed the one code finding from the review (entry 19). Findings 1 to 5 are test changes, so they go to the tester. `make check` is green after my change.
+
+    Code (finding 6):
+    - `src/factory/shared/domain/documents.py`: `UNCHECKED_SECTIONS` now reuses the existing constant, as `(REPLACED_SECTION, "Replaced in v1.2")`, instead of writing `"Replaced from v1"` a second time. Behaviour is unchanged. Nothing else in the code changed.
+
+    For the tester (findings 1 to 5, all in the tests; I changed no test):
+    1. Criterion 5 needs its rows in `tests/shared/domain/test_document_references.py::test_named_references_finds_backticked_names_paths_and_links`, one each, all expecting `[]`: `[x](/srv/a.md)`, `[x](mailto:a@example.org)`, `[x](<instance>.md)` and `[x](*.md)`.
+    2. In `tests/entry/test_check_documents_references.py`, merge `test_a_missing_name_path_or_link_target_gets_one_finding` and `test_an_existing_name_path_or_link_and_a_web_or_heading_link_get_no_finding` into one parametrized test. Each row carries its expected findings, with `[]` for the existing ones, as criterion 2 says ("rows of one test").
+    3. In the same file, the rows `missing-link`, `missing-link-with-fragment` and `link-resolved-from-folder-missing` should check the whole finding line, names included. The resolved names are `src/factory/nothing.py`, `docs/project-guide/a.md` and `docs/README.md`.
+    4. In the same file, add a row with a missing path that has no file extension but starts with a top-level folder (`operator/nothing_here/`), expecting one finding. It shows that the command passes `top_level`.
+    5. In `tests/shared/domain/test_document_references.py`, add one row each expecting `[]` for backticked text with whitespace (`make -C operator/vm`), text starting with `~` (`~/.config/factory/site.env`) and text holding `://` (`https://example.org/a.md`).
+
+    The current code already handles every one of these rows as the Interface says. For finding 3, the command prints a link's name as the target resolved from the checkout root, without its fragment.
+
+    Refactor step: nothing more to change beyond finding 6. The Description already has the reviewer's criterion 5, so I did not rewrite it.
+
+    Noticed, not touched: on the real repository the command still prints about 152 name findings. The human has left those for S0004.
+
+    `check`: check: green

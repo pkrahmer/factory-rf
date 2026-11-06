@@ -88,7 +88,7 @@ _TABLE_ROW_PREFIX = "|"
 _GUIDE_FILE_NAME = re.compile(r"[^/]+\.md")
 # A word character or a hyphen: next to an entry, it makes the entry part of a longer word.
 _WORD_EDGE = r"[\w-]"
-UNCHECKED_SECTIONS: Final = ("Replaced from v1", "Replaced in v1.2")
+UNCHECKED_SECTIONS: Final = (REPLACED_SECTION, "Replaced in v1.2")
 _BACKTICKED = re.compile(r"`([^`]+)`")
 _LINK_TARGET = re.compile(r"\]\(([^)\s]+)")
 _MODULE_NAME = re.compile(r"factory(\.\w+)+")
