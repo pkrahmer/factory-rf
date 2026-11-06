@@ -307,13 +307,24 @@ def _booked(
 
 
 def is_before_approval(definition: PipelineDefinition, stage: str) -> bool:
-    """Whether `stage` lies before the definition's first approval stage."""
+    """Whether `stage` leads to an approval stage by its forward moves."""
     if stage not in definition.stages:
         raise KeyError(stage)
-    approvals = [name for name, entry in definition.stages.items() if entry.approval]
-    if not approvals:
+    if not any(entry.approval for entry in definition.stages.values()):
         raise ValueError("the pipeline definition has no approval stage")
-    return definition.position(stage) < definition.position(approvals[0])
+    # The forward moves, not the order of the file, say what comes before an approval:
+    # one route's approval may be listed before another route's working stages.
+    if definition.stages[stage].approval:
+        return False
+    visited = {stage}
+    current = definition.stages[stage]
+    while current.next and current.next[0] not in visited:
+        following = current.next[0]
+        current = definition.stages[following]
+        if current.approval:
+            return True
+        visited.add(following)
+    return False
 
 
 def book_merge(

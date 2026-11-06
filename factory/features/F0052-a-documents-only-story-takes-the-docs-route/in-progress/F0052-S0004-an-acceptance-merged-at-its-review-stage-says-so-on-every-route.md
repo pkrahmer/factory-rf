@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 577
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T00:01:05.722851Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,13 @@ journal:
   kind: started
   at: '2026-11-06T00:01:05.722851Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: question
+  at: '2026-11-06T00:07:24.358110Z'
+  stage: doing
+  run: 60d6aa07b9b14080ba22e925fc12cef8
+  blocked: question
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -123,3 +126,28 @@ Expect: `True True False`
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: The code change is done, but `make check` is red because one of this story's new test modules trips a structural guard. I may not edit tests, so I need the human's word on how the tester should fix it.
+
+   Built: `src/factory/work/domain/acceptance.py`, `is_before_approval`. The signature is unchanged. It still raises `KeyError` for an unknown stage and `ValueError` when no stage has `approval: true`. An approval stage gives `False`. Any other stage follows `next[0]`, keeping a set of visited stages. It returns `True` when the chain reaches an approval stage, and `False` at a stage without `next` or at a stage it has already visited. The smoke test prints `True True False`, as expected.
+
+   Main choice: an iterative walk with a visited set. Rejected: a recursive walk, which would need the set passed down anyway. Also rejected: reusing `definition.position`, the positional rule this story removes. `PipelineDefinition.position` stays, because other code may still call it. I did not search for callers, since the story does not touch it.
+
+   Refactor: nothing to change. The diff is one function.
+
+   State of `make check`: lint, types, layers, sast, secrets and licenses are green. In `make test`, every test of this story passes. Exactly one test fails:
+
+   `tests/guards/test_areas.py::test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own[work/application/test_acceptance_merged_on_two_routes.py]`
+   ```
+   E       AssertionError: test_acceptance_merged_on_two_routes.py imports nothing of work
+   E       assert [] != []
+   tests/guards/test_areas.py:264: AssertionError
+   ```
+   The new module sits in `tests/work/application/`, but it imports only `factory.pipeline.application.boundaries` and `factory.watching.domain.bills`. Its other helpers come from `support.acceptance_walk`. No code change can make this guard pass; it is a test fault (R9).
+
+   Options for the tester:
+   - (a) Import a name from `factory.work` that the test actually uses. For example, check the `accepted` outcome against `AcceptanceState`, or build the expected entry from a work-area constant. The module then stays beside its sibling `tests/work/application/test_acceptance_merged_before_approval.py`, which imports `factory.work.application.acceptance`.
+   - (b) Move the module to `tests/pipeline/application/`, where its imports already satisfy the guard.
+
+   I would choose (a): the test is about `AcceptanceMerged` in the work area, so it belongs in the work area's test folder. If you agree, I will end the next round with `tests` and name that change.
+
+   Not touched: `tests/support/two_routes_support.py` is a new support module that the project guide's shared-helper list does not name yet. The tester left that open for the docs stage.
