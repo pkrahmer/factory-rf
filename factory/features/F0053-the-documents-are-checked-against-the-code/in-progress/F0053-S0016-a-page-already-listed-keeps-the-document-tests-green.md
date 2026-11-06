@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T20:30:27.304914Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-06T20:30:27.304914Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-06T20:36:35.097251Z'
+  stage: tests
+  run: 67d3c5746847449a8e87d2c92301b9c0
 ---
 
 # A page already listed keeps the document tests green
@@ -83,3 +85,32 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
    - Scope: within F0053, under the human's leave in decision 9. Nothing is in "Out of scope".
    - Route: `tests`, because the Interface changes test files.
 4. factory: started tests as vm.
+5. tester: I wrote the tests, and because this story's change lives in test files, I also made the two changes the Interface asks of the fixture and the helper. Feature decision 9 gives the leave for both. No module under `src/` changed, nor `docs/checked-documents.txt`, nor the `documents` fixture.
+
+   Criterion → test:
+   - criterion 1: tests/entry/test_check_documents_any_list.py::test_listing_the_three_pages_names_each_once_whatever_the_list_already_names (rows `none-listed`, `index-listed`, `all-listed`; the last one checks that `HEAD` stays the same)
+   - criterion 2: tests/entry/test_check_documents_any_list.py::test_a_page_the_repository_list_already_names_is_reported_once_unless_appended_again (rows `added-once`, which prints the line once, and `appended-again`, the old blind append, which prints it twice)
+   - criterion 3: tests/entry/test_check_documents_any_list.py::test_the_written_list_is_committed_only_when_its_text_changes (rows `changed` and `unchanged`)
+   - criterion 4: the earlier rows keep their names and ids: test_a_test_that_writes_its_list_keeps_its_outcome_when_the_repository_lists_more_pages[install|operator-guide-index|shared], test_without_its_own_list_the_repository_list_reaches_the_output, test_the_written_list_holds_one_path_per_line_and_is_committed[empty|one], plus the tests in test_check_documents_settings.py, test_check_documents_operator_guide.py, test_check_documents_copies.py and test_check_documents_suite_copy.py. All of them pass.
+   - criteria 5 and 6: no tests. They are for the coder's `make check` and the docs stage.
+
+   Earlier test files changed, under feature decision 9:
+   - tests/entry/test_check_documents_any_list.py: the fixture `listed` now calls a new `_list_newly(root)`. That step appends, in `_NEWLY_LISTED` order, only the pages that no line of the list names yet. It commits only when it added something.
+   - tests/support/check_documents_support.py: `write_checked_list` keeps its signature and the text it writes. It now returns without writing or committing when the list already holds that text.
+   - No earlier test changed its name or what it checks.
+
+   New private helpers in the same module: `_names`, `_append_to_list`, `_unlist_the_three` and `_list_by_looking`/`_list_without_looking`. The new rows first remove the three pages from the copy's list (`_unlist_the_three`). That way their starting state does not depend on what the repository's list names.
+
+   Sweep for every page, as the Interface asks: for each of the 23 tracked pages of `README.md`, `docs/operator-guide/` and `docs/project-guide/`, I appended that one page to the checkout's `docs/checked-documents.txt` and ran `tests/entry/test_check_documents*.py`. I restored the list after each run; `git status` shows only the two test files changed. On the first pass, the only failures in these modules were in my own new rows, which had assumed a list without the three pages. They were fixed with `_unlist_the_three`, and re-runs with each of the three pages listed, and with all three, are green. I did not sweep a list holding several of the other pages at once, because a page that has not been rewritten may have findings of its own.
+
+   Fail-first: the tests do not fail. The tests are green because the fixture and helper changes they guard are in this same take; the coder has nothing left to implement here beyond running `make check`.
+
+   Runs: one run of the five document test modules passed (34 tests). `make lint` is green. A standalone `mypy` run outside `make types` reported only import errors and two errors in `tests/support/git_support.py`, a file this story does not touch; the coder's `make types` will judge it.
+
+   Modules the test run could not import: none.
+
+   Files created: none. Files changed: tests/entry/test_check_documents_any_list.py and tests/support/check_documents_support.py.
+
+   The factory left out changes outside the write paths: docs/checked-documents.txt.
+
+   `lint`: lint: green (0.2 s)
