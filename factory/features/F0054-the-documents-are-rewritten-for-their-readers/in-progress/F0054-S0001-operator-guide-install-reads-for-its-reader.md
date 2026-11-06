@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433, 6697301221]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-06T22:23:46.138870Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -186,6 +190,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T22:23:43.461158Z'
+  stage: docs-review
+- number: 33
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:23:46.138870Z'
   stage: docs-review
 ---
 
@@ -529,3 +538,4 @@ Expect: `1`
     - `docs/operator-guide/README.md` keeps its version-history sections.
 31. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 32. 2026-11-06 human: One more round, by the human's decision; docs-review's round cap is now 3. The documenter fixes findings 1 to 3 of review entry 30 as the reviewer proposes: the script prepares a VM for an instance, with a link to `cloud-run.md` for a job; step 1 split into two steps, the second naming the three files, their folder and owner and the empty key file under `claude`; and the list of what the script prepares cut to one short sentence or a pointer to machine.md.
+33. factory: started docs-review as vm.
