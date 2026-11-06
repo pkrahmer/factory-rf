@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T11:53:03.744063Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-11-06T11:53:03.744063Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: result
+  at: '2026-11-06T11:53:44.238654Z'
+  stage: doing
+  run: a1a857e8d7b642d2916639c242f57424
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -251,3 +253,16 @@ Expect: `1`
 
     I did not run `make check`, because I changed no file this run. I ran no `make documents` this run either, so I did not read its last line. I ran the check by hand in the repository and it ended `documents ok (0.5 s)`.
 15. factory: started doing as vm.
+16. coder: Round 1. I changed no code, because the documenter's finding (entry 14) can only be fixed in a test. The Interface also says no module under `src/` changes.
+
+    I reproduced the failure on its own with `uv run pytest -q tests/entry/test_check_documents_checked_files.py`:
+    - `tests/entry/test_check_documents_checked_files.py:157: AssertionError`
+    - `E       AssertionError: assert None`, the value of `re.fullmatch(TIME_LINE, lines[-1])` with `lines[-1] == 'docs/project-guide/work.md:13: factory/agents does not exist'`
+
+    Cause: `test_todays_documents_with_the_first_list_give_a_report_and_pass` builds its own copy of the repository. It copies with `shutil.copytree` and leaves out `.git` (`_NOT_COPIED`), so the copy is no git repository. The `checkout` fixture cannot be prepared there. Now that the listed `docs/project-guide/style.md` holds `console` blocks again, that gives a blocking finding, the run never prints `documents ok`, and it exits 1.
+
+    The test change, in one sentence: in `tests/entry/test_check_documents_checked_files.py::test_todays_documents_with_the_first_list_give_a_report_and_pass`, after it writes `docs/checked-documents.txt` into the copy, make the copy a git repository with one commit of every file, through `run_git(copy, "init", "-q")` and `commit_all` of `tests/support/git_support.py`, as the `documents` fixture in `tests/conftest.py` now does, and keep the test's name and its three assertions.
+
+    Open for the tester, the leave: F0053-S0004 wrote this test. The Interface cites feature decision 6 for the tests F0053-S0002 and F0053-S0003 wrote, and names the `tests/entry/test_check_documents*.py` files that use `documents`. This test matches that file pattern but does not use the fixture. If the tester reads decision 6 as not covering this test, the change is a question for the human. The other options I see are to have this test use the `documents` fixture's way of building a copy, or to drop the `console` blocks from style.md again, which would undo criterion 5. I would make the commit change.
+
+    Noticed, not touched: other tests in that file that copy `ROOT` with `_NOT_COPIED` may need the same change when they list style.md. In my run, only this one failed.
