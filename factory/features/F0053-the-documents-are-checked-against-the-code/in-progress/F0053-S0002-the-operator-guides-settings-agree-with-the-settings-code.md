@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T07:12:39.267319Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-06T07:12:33.913041Z'
   stage: tests
   run: d117d9e4ddfa4a3cb726bc79c9b5949b
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:12:39.267319Z'
+  stage: doing
 ---
 
 # The operator guide's settings agree with the settings code
@@ -312,3 +321,4 @@ Expect: `True`
     I skipped the type check as the stage says. A `mypy --strict` run on just these two files outside the project's configuration failed with `import-untyped` on `factory.shared.domain.settings`. That comes from the stand-alone setup, not from the tests, so the coder's `make check` is the real type check.
 
     `lint`: lint: green (0.2 s)
+24. factory: started doing as vm.
