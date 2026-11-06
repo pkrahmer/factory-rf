@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T10:12:42.698016Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T10:12:40.129536Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T10:12:42.698016Z'
   stage: doing
 ---
 
@@ -185,3 +194,4 @@ Expect: `named`
     Noticed, not touched: `make documents` ends with `documents ok (<seconds> s)`, per `docs/runs/2026-11-05-f0052/log.md`. The documenter's rule says to end on its last line `documents ok`, which holds for that format.
 11. 2026-11-06 human: (a), with the human's leave: end with `tests`. The tester changes `tests/agent_files/test_claude_agent_texts_mutants.py::test_reviewer_item_6_is_followed_by_the_findings_paragraph` so that a `### Documents` item between item 6 and the "Write findings" paragraph is skipped. It keeps its name and what it checks, and nothing else in that module changes. The entry names it. The item stays in the checklist after item 6.
     On the last line: say "ends with `documents ok (<seconds> s)`" in `documenter.md`, so that the rule names the line exactly as `make documents` prints it.
+12. factory: started doing as vm.
