@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T20:48:23.165695Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-06T20:48:23.165695Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T20:50:48.702105Z'
+  stage: docs
+  run: 82d5faac2a284278bae32a70a4be2df3
 ---
 
 # A page already listed keeps the document tests green
@@ -300,3 +302,20 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     - `tests/entry/test_check_documents_any_list.py`: changed under the human's leave, feature decision 9, which the story's Interface names. The fixture `listed` changed and new rows were added. Every earlier test keeps its name, its ids and what it checks.
     - `tests/support/check_documents_support.py`: changed under the same leave, feature decision 9. `write_checked_list` keeps its signature and the text it writes. The only change is that it skips the commit when the text is unchanged.
 18. factory: started docs as vm.
+19. documenter: Docs for criterion 6, written from the code in `tests/support/check_documents_support.py` and the two test files on the branch.
+
+    Files changed:
+    - `docs/project-guide/shared.md`, *The checked documents and the report*: a paragraph saying a test that runs the document check on the `documents` copy writes its own list through `write_checked_list`, assumes nothing about the repository's list, and that `write_checked_list` commits only on a changed text. It also says a step that adds pages looks at what the list names first, as the fixture `listed` does.
+    - `docs/project-guide/README.md`: the line on `support/check_documents_support.py` now names what the module holds (`MISSING_LINES`, the output filters, `append_block`, `write_checked_list`), not only `MISSING_LINES`.
+
+    Run: `make documents` ended `documents ok (0.6 s)`. I ran no `make check`, because I changed only documents.
+
+    Cross-read and found current: the rest of `docs/project-guide/shared.md` against the diff. The diff touches only tests, so no operator-guide text or `README.md` is affected.
+
+    Stale text I saw and did not touch: `make documents` prints (as report lines, not blocking) `docs/project-guide/machine.md:362: factory/stage.Containerfile does not exist` and `docs/project-guide/work.md:13: factory/agents does not exist`. They are unrelated to this story.
+
+    No findings for the coder.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok (0.6 s)
