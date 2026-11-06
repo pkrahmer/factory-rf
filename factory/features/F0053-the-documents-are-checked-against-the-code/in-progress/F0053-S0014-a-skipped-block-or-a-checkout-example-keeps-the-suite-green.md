@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T19:27:49.933748Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-06T19:27:49.933748Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T19:28:37.229022Z'
+  stage: review
+  run: c597677ab842491a8766d4a6a73d8835
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -298,3 +300,30 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 19. factory: started review as vm.
+20. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. The diff holds only test files and support modules; nothing under `src/` changed, as the Interface asks. The coder's `make check` was green after the tester's round-1 changes (entry 18: `test: green (100.9 s)`, `check: green`). The `make test` time was 106.8 s before and 105.6 s after (entry 10), inside the Interface's ten seconds.
+
+    The three findings from entry 12 are fixed:
+    1. `copy_of` is gone. `documents` (`tests/conftest.py`) and `test_two_copies_of_the_session_repository_are_separate` now use `support.git_support.clone`.
+    2. `append_block` and `findings_from` now live once, in `tests/support/check_documents_support.py`. `test_check_documents_copies.py` and `test_check_documents_suite_copy.py` both use them. The coder asked about `_append_example` in `test_check_documents_copies.py`: it is not a leftover copy. It only writes the `checked-documents.txt` listing for the listed rows, which is specific to that module, and then calls `append_block`.
+    3. The module docstring of `check_documents_support.py` now covers the filters and the block helper, and `NOT_RUN` sits beside `TIME_LINE`.
+
+    Criteria, read against the tests:
+    - Criterion 1: 5 rows of one parametrized test (vm, github, model, suite, wrong-example). They use the earlier test's `no-index` change, an unlink of `docs/operator-guide/README.md` that is not committed, as the earlier test does it. They expect exactly the `missing` line, or that line plus the `the example printed one` line, with exit status 1. The `suite` row runs `$ make test`, which `runs_the_suite` (`src/factory/shared/domain/documents.py:707`) skips.
+    - Criterion 2: 2 rows (tracked-file, missing-file). I accept the tester's reading again: only lines at or after the appended block count, because today's `machine.md` already gives `does not exist` lines.
+    - Criterion 3: `test_the_copy_holds_the_tracked_files_and_nothing_untracked` checks `pyproject.toml`, `documents.py`, no `.venv` and an empty `git status --porcelain`.
+    - Criterion 4: the six rows of `test_the_operator_guide_folder_is_checked_per_file` keep their ids and expected outputs. Only the filter moved into `without_report_lines`, which also leaves out the `not run` lines.
+    - Criterion 5: tested at fixture level with two clones of the session repository, as the human asked in entry 4. A commit and a change in the first are absent from the second, and the second's status is clean.
+
+    Interface: `tracked_files` is session-scoped and `documents` is a per-test clone of it. The `documents` docstring says what it holds. Files git does not track are left out, because the copy is built from `git ls-files`.
+
+    Architecture and security: nothing to note. No markers, no shell commands built from strings (git runs through `run_git` with argument lists), no secrets.
+
+    Hygiene: the Description matches what was built. The journal gives the main choices and what was rejected. Criterion 7, the docs criterion, still says what the documenter must write in `docs/project-guide/style.md`, *Runnable examples*.
+
+    no findings
+
+    Earlier tests:
+    - `tests/conftest.py`: the human's leave, feature decision 7, which the story's Interface names for the `documents` fixture. The fixture keeps its name, and the tests that use it still check the same thing.
+    - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, feature decision 7, which the story's Interface names for that test. It keeps its name, its row ids and its expected outputs; the only change is the `not run` filter, through `without_report_lines`.
+    - `tests/entry/test_check_documents_copies.py`: the standing leave to move a shared test helper. `_append_block` and `_findings_from` moved to `tests/support/check_documents_support.py`, and every test keeps its name, rows and assertions.
+    - `tests/support/check_documents_support.py`: none needed. The change only adds `NOT_RUN`, `without_report_lines`, `append_block` and `findings_from`, and rewrites the module docstring. The existing names stay as they were.
