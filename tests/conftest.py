@@ -3,7 +3,6 @@
 import contextlib
 import os
 import shlex
-import shutil
 import signal
 from collections.abc import Iterator
 from dataclasses import replace
@@ -53,16 +52,15 @@ from support.container_runtime_support import make_workspace
 from support.container_support import Dataset, container_dataset, fake_dataset
 from support.definition_support import pipeline_definition
 from support.disk_support import FakeDiskSpace
+from support.documents_copy_support import tracked_files_repository
 from support.git_support import (
     CHECKOUT,
     PIPELINE_YAML,
     TEST_IDENTITY,
     clone,
-    commit_all,
     copy_remote,
     install_agents,
     make_remote,
-    run_git,
 )
 from support.human_clone import HumanClone
 from support.machine_readings_support import FakeMachineReadings
@@ -603,18 +601,19 @@ def result_case(
 
 
 _REPOSITORY = Path(__file__).parents[1]
-_OPERATOR_GUIDE = "docs/operator-guide"
+
+
+@pytest.fixture(scope="session")
+def tracked_files(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """A git repository, built once per session, with every tracked file of the repository."""
+    return tracked_files_repository(_REPOSITORY, tmp_path_factory.mktemp("tracked") / "root")
 
 
 @pytest.fixture
-def documents(tmp_path: Path) -> Path:
-    """A git repository under `tmp_path` that holds a copy of the documents in one commit."""
-    root = tmp_path / "root"
-    (root / "docs").mkdir(parents=True)
-    shutil.copy(_REPOSITORY / "README.md", root / "README.md")
-    shutil.copy(_REPOSITORY / "docs" / "decisions.md", root / "docs" / "decisions.md")
-    shutil.copytree(_REPOSITORY / "docs" / "project-guide", root / "docs" / "project-guide")
-    shutil.copytree(_REPOSITORY / _OPERATOR_GUIDE, root / _OPERATOR_GUIDE)
-    run_git(root, "init", "-q")
-    commit_all(root, "The copied documents")
-    return root
+def documents(tmp_path: Path, tracked_files: Path) -> Path:
+    """A git repository under `tmp_path` with every file `git ls-files` lists, in one commit.
+
+    It is a test's own local clone of the session's `tracked_files`: files git does not
+    track (`.venv/`, `.reports/`, `mutants/`) are not in it.
+    """
+    return clone(tracked_files, tmp_path / "root")

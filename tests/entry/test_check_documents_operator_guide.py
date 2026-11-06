@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
-from support.check_documents_support import REPORT_HEADING, TIME_LINE
+from support.check_documents_support import TIME_LINE, without_report_lines
 
 GUIDE = "docs/operator-guide"
 
@@ -86,12 +86,5 @@ def test_the_operator_guide_folder_is_checked_per_file(
     if output is None:
         assert re.fullmatch(TIME_LINE, printed[-1].rstrip("\n"))
     else:
-        assert (
-            "".join(
-                line
-                for line in printed
-                if not line.endswith(" does not exist\n") and line != f"{REPORT_HEADING}\n"
-            )
-            == output
-        )
+        assert without_report_lines(printed) == output
     assert status == exit_status
