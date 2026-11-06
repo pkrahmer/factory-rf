@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T13:32:34.897807Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T13:32:34.897807Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-06T13:36:57.635408Z'
+  stage: doing
+  run: b849402869e6417392e8f82deae8b459
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -105,3 +107,21 @@ Expect: `0 []`
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: I made the tester's new rows in `tests/shared/domain/test_document_settings.py` pass by changing one file, `src/factory/shared/domain/documents.py`. Every earlier row passes unchanged. `make check` is green and the smoke test prints `0 []`.
+
+   - **Defaults:** `_default_findings` now reads a `Default` cell through the existing `_backticked_or_plain` helper, the same one used for the name cell. It applies the `none`/empty rule to the text it read. A finding still quotes the cell as written.
+   - **Refusals:** `_is_held` now strips whitespace and `:` from both ends of each piece between placeholders (new constant `_PIECE_EDGES`, with a why-comment) before the three-character rule and the lookup. The finding text is unchanged.
+   - **Docstrings:** I updated the docstrings of `settings_findings` and `refusal_findings` to state the two rules.
+
+   Main choice: I reused `_backticked_or_plain` for the default cell instead of writing a second backtick reader just for defaults. One side effect: a backticked `` `none` `` also counts as no default. I judged that consistent with the Interface ("as for the name cell").
+
+   Rejected: stripping only the `": "` that comes right after a placeholder. The Interface asks for whitespace and colons at both ends of every piece, and the simpler strip does that.
+
+   Refactor: I read my diff and found nothing to change.
+
+   Description: no journal entry changed the meaning of the task, so I left it as written.
+
+   Noticed, not touched: the docs criterion (`style.md`, `shared.md`) is the documenter's.
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 39 known, 4 gone
