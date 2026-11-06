@@ -2,16 +2,12 @@
 stage: docs-only
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 580
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T01:04:44.431481Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,19 @@ journal:
   kind: started
   at: '2026-11-06T01:04:44.431481Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T01:07:26.449545Z'
+  stage: docs-only
+  run: 72aaf13cd7104c129d4150af504c851a
+- number: 6
+  speaker: factory
+  kind: stall
+  at: '2026-11-06T01:07:26.607096Z'
+  stage: docs-only
+  run: 72aaf13cd7104c129d4150af504c851a
+  reason: check_red
 ---
 
 # The project guide names the headings a check still requires
@@ -79,3 +88,20 @@ Expect: `documents ok`
    - Architecture: documents only, no layer or area is touched.
    - Scope: within F0052's goal (the docs route and the guide's rewrite). It is the proposed S0007 from the acceptance, and it is not in "Out of scope". Route: docs-only, because the only path the Interface changes is `docs/project-guide/README.md`.
 4. factory: started docs-only as vm.
+5. documenter: Changed `docs/project-guide/README.md`, *The files*: the sentence "headings are free" now says headings are free except nine that keep their names, as a list with the file and the reason for each. They are `## The files` (the guard), *Kill points* and *Fault-injection paths* here, *Install* and *Configuration* in `install.md` and *The stops* in `stops.md` (the document check), *Replaced from v1* wherever it stands (may be removed, not renamed; the document check exempts it), and *The machine* and *The rebuild after a merge* in `machine.md` (`operator/vm/setup.sh`). I checked that the headings exist: `## The files`, `## Kill points`, `## Fault-injection paths`, `## Install`, `## Configuration`, `## The stops` and `## The machine` are `##` headings, and *The rebuild after a merge* is a `###` heading at line 570 of `machine.md`. *Replaced from v1* has no section in the index, which the story allows; `agents.md` does list one under its sections. `make documents` printed `documents ok`. I did not run `make check`, because I changed only a document. Cross-read: the rest of the index's *The files* section, which is unchanged and consistent with the new text. Stale text I noticed that is not mine to fix: none. No Rejected line was needed, because no `decisions.md` entry was written.
+6. factory: Stage docs-only stalled (attempt 1 of 2): a check is red after the stage: `check`
+   src/factory/watching/application/transcripts.py         61      2     10      0    97%   91-92
+   src/factory/watching/domain/board.py                    55      0      4      1    98%   77->75
+   src/factory/watching/domain/machine.py                  52      3     18      5    89%   44->42, 47, 59, 77->75, 79
+   src/factory/watching/domain/transcripts.py              10      2      0      0    80%   20-21
+   src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   239
+   src/factory/work/application/work_items.py              90      2     24      2    96%   133, 169
+   src/factory/work/domain/acceptance.py                  195      1     52      1    99%   367
+   ------------------------------------------------------------------------------------------------
+   TOTAL                                                10651     49   2128     46    99%
+
+   154 files skipped due to complete coverage.
+   Required test coverage of 90.0% reached. Total coverage: 99.26%
+   ======================================================================================= short test summary info ========================================================================================
+   FAILED tests/guards/test_project_guide_files.py::test_the_guide_holds_the_index_and_its_named_files - AssertionError: assert ['missing: ## The files'] == []
+   make: *** [Makefile:89: test] Error 1

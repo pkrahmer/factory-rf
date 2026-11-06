@@ -12,7 +12,12 @@ Under `src/factory/` the seven areas, `entry` and `contract` hold all modules. A
 
 Each file starts with a title and a sentence on what it covers.
 
-A guard (`tests/guards/test_project_guide_files.py`) requires every page of the folder to be named in this section and every area to have its page; headings are free.
+A guard (`tests/guards/test_project_guide_files.py`) requires every page of the folder to be named in this section and every area to have its page. Headings are free except these, which keep their names, because a check or a script finds them by name:
+
+- `## The files` in this index: the guard reads the pages named under it, so renaming it leaves every page unnamed.
+- *Kill points* and *Fault-injection paths* in this index, *Install* and *Configuration* in `docs/operator-guide/install.md`, and *The stops* in `docs/operator-guide/stops.md`: the document check (`make documents`) requires them.
+- *Replaced from v1*, wherever it stands: the document check exempts it from its search for v1 words. It may be removed, as the style page's rules 1 and 7 ask in the rewrite, but not renamed.
+- *The machine* and *The rebuild after a merge* in `docs/operator-guide/machine.md`: `operator/vm/setup.sh` names them in its messages.
 
 - `README.md` (this index): what holds for all code. Sections: *The code's layout*, *The files*, *Shared test helpers*, *Errors*, *The models' configuration*, *Kill points*, *Fault-injection paths*, *The demos* (`factory.entry.check_demos`).
 - `style.md`: how the documents read: the rules for all documents, and for the operator guide, the project guide and the README, each with its reader and an example. The documenter and the reviewer judge by it.
