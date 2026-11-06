@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T23:03:41.482683Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-06T23:03:36.317975Z'
   stage: docs-review
   run: f9ae491a79f84c8fa10868236a26f5b0
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:03:41.482683Z'
+  stage: docs-only
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -146,3 +155,4 @@ Expect: `1`
    13. `docs/operator-guide/site.md:7`, `:70`, `:264`, `:287`: repository files the reader is pointed to (`operator/site.env.example`, `operator/README.md`) are named in backticks, not linked. Style rule 8 says to link a repository file by a relative link. Fix: link each at its first mention (`../../operator/site.env.example`, `../../operator/README.md`).
 
    Not under review, for the human: the work item's Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8.
+8. factory: started docs-only as vm.
