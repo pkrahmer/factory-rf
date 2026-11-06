@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T07:31:52.891416Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T07:31:50.375443Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:31:52.891416Z'
   stage: tests
 ---
 
@@ -156,3 +165,4 @@ Expect: `1`
    4. (b): the fixed variables and the fixture's are present, and a variable set in the test's own environment is absent.
    5. (a), and yes: `CheckoutFixture` gets a test on a real local repository, a tracked file is in the folder and an untracked one is not, under criterion 6.
    6. Yes, follow the answer in entry 4: real short commands, no containers, in the three test modules you name.
+10. factory: started tests as vm.
