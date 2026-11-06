@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078, 6683206284]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T11:02:53.387579Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -223,6 +219,12 @@ journal:
   kind: started
   at: '2026-11-06T11:02:53.387579Z'
   stage: review
+- number: 39
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T11:03:46.448660Z'
+  stage: review
+  run: 772dc0bd260a49d28bb04d6d0026af4b
 ---
 
 # The agents write and review documents against the code
@@ -574,3 +576,22 @@ Expect: `named`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 38. factory: started review as vm.
+39. reviewer: no findings
+
+    Checked and fine:
+    - Finding 1 of review entries 31 and 35 is fixed in `agents/agents/documenter.md`, by a different route than the one entry 33 gave. Stage step 2 now holds the whole `make documents` rule: run it when the project's Makefile has a `documents` target, and end only on `documents ok (<seconds> s)`. Step 3 holds only `make check`. The last Lessons bullet still replaces step 3 when only documents changed, but step 3 is now only `make check`, so every documenter still runs `make documents`.
+    - Why the coder did not reword the lesson as entry 33 asked (entry 37): `tests/agent_files/test_claude_agent_texts.py:103` pins that bullet word for word ("in place of step 3 of the stage"). Rewording it would have changed another story's test, and entry 33 said no test change. I read that line and the claim holds. The coder's route meets entry 33's conditions: the change is in `documenter.md` only, no test changed, and the `make documents` rule binds every documenter. The human may still ask for the lesson to be reworded at the approval, through a `tests` round.
+    - Steps 2 and 3 now give one order for one moment: last edit, then `make documents`, then `make check`. The `docs-only` subsection still replaces steps 1 to 6 and keeps its own `make documents` bullet. Its pinned phrase "these bullets replace steps 1 to 6" is untouched.
+    - Criteria 1 to 9 each have a row in `tests/agent_files/test_claude_agent_texts_documents.py`, and I read each row against the agent text it pins:
+      - the `make-documents-ends-on-ok` row finds exactly one line, step 2;
+      - the reviewer rows find the `### Documents` item and its two findings;
+      - the intake rows find step 4.
+      The sides of each rule are rows of one parametrized test.
+    - The coder's `make check` was green after the last change (entry 37).
+    - Nothing changed under `src/`, so the architecture and security groups have nothing to check. The diff adds no suppression markers.
+    - The Description matches what was built. Criterion 11 still says what the reader must know.
+    - Open for the documenter's cross-read, not a finding: `docs/project-guide/agents.md` names the intake's route step as step 6. It is now step 7 (entries 29 and 37).
+
+    Earlier tests:
+    - `tests/agent_files/test_claude_agent_texts_review_groups.py`: changed under the human's leave in the Interface (2026-11-05). `test_the_rest_of_the_reviewer_body_is_unchanged` keeps its name; the only change is that it also strips the `### Documents` item.
+    - `tests/agent_files/test_claude_agent_texts_mutants.py`: changed under the human's answer in journal entry 11. `test_reviewer_item_6_is_followed_by_the_findings_paragraph` keeps its name; the only change is that it skips the `### Documents` item. Nothing else in that module changed.
