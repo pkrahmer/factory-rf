@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 1
 attempts: 1
 crashes: 0
 pull_request: 593
-comments_read: []
+comments_read: [6684236950]
 handed_over: null
 claim: null
 journal:
@@ -110,6 +110,11 @@ journal:
   stage: tests
   run: 1936cc9a6ea14298bcdb59b9d1b3a4a2
   blocked: question
+- number: 19
+  speaker: human
+  kind: comment
+  at: '2026-11-06T11:56:05.522798Z'
+  stage: tests
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -291,3 +296,4 @@ Expect: `1`
     - (c) No: drop the `console` blocks from `docs/project-guide/style.md` again. That undoes criterion 5.
 
     Criterion → test mapping: unchanged from entry 5. No test changed in this run. No files were created. No `make test` run was needed.
+19. 2026-11-06 human: (a), with the human's leave: in `tests/entry/test_check_documents_checked_files.py::test_todays_documents_with_the_first_list_give_a_report_and_pass`, after the list is written, the copy becomes a git repository with one commit of every file (`run_git(copy, "init", "-q")` and `commit_all`), and the same in any other test of that file that copies the repository and fails only for this reason. Names and assertions stay. Feature decision 6 meant to cover exactly this case: any earlier test whose only failure is that its copy is no git repository.
