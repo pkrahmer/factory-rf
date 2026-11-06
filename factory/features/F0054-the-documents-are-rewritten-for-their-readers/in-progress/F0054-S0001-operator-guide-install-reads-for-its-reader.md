@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433, 6697301221]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T22:23:46.138870Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -196,6 +192,12 @@ journal:
   kind: started
   at: '2026-11-06T22:23:46.138870Z'
   stage: docs-review
+- number: 34
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T22:24:21.379009Z'
+  stage: docs-review
+  run: c1e5ffda867c4e209ac5948d8dcd7584
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -539,3 +541,23 @@ Expect: `1`
 31. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 32. 2026-11-06 human: One more round, by the human's decision; docs-review's round cap is now 3. The documenter fixes findings 1 to 3 of review entry 30 as the reviewer proposes: the script prepares a VM for an instance, with a link to `cloud-run.md` for a job; step 1 split into two steps, the second naming the three files, their folder and owner and the empty key file under `claude`; and the list of what the script prepares cut to one short sentence or a pointer to machine.md.
 33. factory: started docs-review as vm.
+34. reviewer: Docs review after the human's entry 32. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. The diff changes `docs/operator-guide/install.md` and `docs/checked-documents.txt`.
+
+    No documenter run came between entry 32 and this review: entry 33 started docs-review directly. Step 1 of `install.md` on the branch is unchanged since review entry 30, so none of the three fixes that entry 32 asks for has been made. I checked each finding again against the code and the guides on the branch, and each one still stands.
+
+    What holds, unchanged since entry 30:
+    - Steps 2 to 4: the build as the user `factory`, the variables, and `sudo systemctl start factory@<instance>`.
+    - The `factory.env` values and the version pins.
+    - The order of faults and the refusal table.
+    - The kept headings (criterion 4) and the line in `docs/checked-documents.txt` (criterion 3).
+    - The `make mutants` commands stay inline, as entry 14 decided.
+
+    Findings:
+    1. docs/operator-guide/install.md:11: "It is the way to run an instance" is untrue. A Cloud Run job runs an instance without a VM: `operator/vm/job-start.sh` ends in `exec "$code/.venv/bin/factory-run"`, and cloud-run.md:7 describes this. Fix (as entry 32 says): say the script prepares a VM for an instance, and link to [cloud-run.md](cloud-run.md) for a job.
+    2. docs/operator-guide/install.md:11: "put the token there, with the other login files" does not name the files. machine.md:288 (*The two passes*) does: place `hosting-token`, `claude-token` and `anthropic-api-key` in `/home/factory/.secrets`, readable by `factory`. All three must exist whatever the runtime, and with `claude` the key file stays empty. Fix: a step of its own that names the three files, their folder and owner and the empty key file under `claude`, then says to run the script again.
+    3. docs/operator-guide/install.md:11: step 1 is six sentences long, including a list of about 45 words of what the script prepares. That breaks style rule 2 and style.md:77 (one action with its command per step). Fix: split it into two steps, (1) run the script and (2) place the three files and run it again, and renumber the later steps. Cut the list to one sentence under 25 words, or replace it with a pointer to "The steps" in machine.md.
+
+    Still open outside this diff, as entries 14 and 20 decided:
+    - `docs/project-guide/shared.md` says the operator guide has no `Default` column.
+    - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*.
+    - `docs/operator-guide/README.md` keeps its version-history sections.
