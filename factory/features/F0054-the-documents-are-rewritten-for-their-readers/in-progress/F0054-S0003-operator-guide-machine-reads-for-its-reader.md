@@ -1,11 +1,11 @@
 ---
 stage: docs-review
-blocked: round_cap
-round: 4
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 611
-comments_read: [6698650455]
+comments_read: [6698650455, 6698899316]
 handed_over: null
 claim: null
 journal:
@@ -137,6 +137,11 @@ journal:
   stage: docs-review
   run: 650042e664644f2ab8c5d1e4872a433e
   blocked: round_cap
+- number: 24
+  speaker: human
+  kind: comment
+  at: '2026-11-06T23:48:47.514144Z'
+  stage: docs-review
 ---
 
 # The operator guide's the machine reads for the operator
@@ -402,3 +407,4 @@ Expect: `1`
 
     Criterion 2: unchanged from entries 7, 11, 14 and 18. Nothing was dropped except the two history sentences, and no *Reference* section was added. Criterion 3: entry 20 says `make documents` printed `documents ok`, and the file is on `docs/checked-documents.txt`. Criterion 4: the links I followed resolve. They are `health.md` *The factory log*, *The preflight's items* and *Transcripts*, `stops.md` *The stops*, `work-items.md` *A restart during a stage*, and the repository files. The `style.md` paragraph at `:73` is unchanged since round 2 and holds the human's rule.
 23. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+24. 2026-11-06 human: One more round, by the human's standing word for tonight (no stop at a round cap while the findings are real). The documenter fixes findings 1 to 8 of the last review as written. Before it ends, it counts the words of every sentence it changed with a short script and splits each one over about 25 words, so that rule 2 needs no further round.
