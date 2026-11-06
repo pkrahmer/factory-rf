@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 583
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T01:40:16.004706Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T01:40:08.668839Z'
   stage: intake
   run: 57eae0b55273448ab6ddfa4eca45b712
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:40:16.004706Z'
+  stage: docs-only
 ---
 
 # The project guide says which lines of its index name a page
@@ -72,3 +81,4 @@ Expect: `documents ok`
    - Smoke test: all three commands are runnable. The pytest command passes no `-q` and `pyproject.toml` `addopts` already sets `-q`, so `tail -1` shows the summary line and `grep -c " passed"` gives `1`. Each `Expect:` line is checkable: a count of at least 1, `1`, and `documents ok`.
    - Architecture: documents only, and the project guide is kept by the documenter. The guard and `INDEX_LINE` stay untouched.
    - Scope: it falls inside F0052's goal (the next feature's rewrite of the index takes the docs route). Nothing in "Out of scope" is touched.
+4. factory: started docs-only as vm.
