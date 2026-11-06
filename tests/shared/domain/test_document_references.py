@@ -55,8 +55,14 @@ def _text(body: str) -> str:
         pytest.param("Set it in `factory.local.env` once.", [], id="file-name-local-env"),
         *[
             pytest.param(f"Read `factory.x.{extension}` once.", [], id=f"file-name-{extension}")
-            for extension in ("service", "yml", "yaml", "json", "toml", "md", "txt")
+            for extension in ("service", "yml", "yaml", "json", "toml", "md", "txt", "log", "jsonl")
         ],
+        pytest.param("It writes `factory.log` once.", [], id="file-name-log-bare"),
+        pytest.param(
+            "See `factory.shared.domain.nothing_here` here.",
+            [(3, "factory.shared.domain.nothing_here", "module")],
+            id="module-not-a-file-name",
+        ),
         pytest.param(
             "See `factory.shared.domain.yml_reader` here.",
             [(3, "factory.shared.domain.yml_reader", "module")],
@@ -71,6 +77,30 @@ def _text(body: str) -> str:
     ],
 )
 def test_named_references_finds_backticked_names_paths_and_links(
+    body: str, expected: list[tuple[int, str, Kind]]
+) -> None:
+    references = named_references(DOCUMENT, _text(body), TOP_LEVEL)
+
+    assert references == [
+        Reference(document=DOCUMENT, line=line, name=name, kind=kind)
+        for line, name, kind in expected
+    ]
+
+
+@pytest.mark.parametrize(
+    ("body", "expected"),
+    [
+        pytest.param("Clone `git@github.com:owner/project.git` once.", [], id="git-address"),
+        pytest.param("Clone `git@host:owner/name.git` once.", [], id="git-address-host"),
+        pytest.param(
+            "Run `tests/x.py::test_y` once.", [(3, "tests/x.py", "path")], id="pytest-node-id"
+        ),
+        pytest.param(
+            "Read `docs/a:b.md` once.", [(3, "docs/a:b.md", "path")], id="colon-after-slash"
+        ),
+    ],
+)
+def test_a_text_with_a_colon_before_its_first_slash_is_no_path(
     body: str, expected: list[tuple[int, str, Kind]]
 ) -> None:
     references = named_references(DOCUMENT, _text(body), TOP_LEVEL)
