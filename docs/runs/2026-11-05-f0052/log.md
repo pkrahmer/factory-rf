@@ -126,3 +126,5 @@ Times are UTC. The plan: `night-plan.md`.
 - 22:38Z: F0054-S0023 PR #609 intake question 3 answered as the intake proposed: a row for a line indented less than its fence; a criterion for the new finding and an indented mismatch, listed and unlisted; the line numbers confirmed.
 - 22:55Z: F0054-S0023 PR #609 merged after the six checks: (1) a block's lines lose its fence's indentation, a console block without a $ line is the finding "the example has no command", style.md and shared.md; (2) review fine; (3) smoke test met (1 echo hi); (4) earlier test modules only gained rows; (5) none of the human's files; (6) $2.27, 7 runs, one question. src/ changed: factory-vm moved with no PR open and no claim; active, no stops.
 - 22:55Z: F0054-S0002 (operator guide site reads for its reader) started.
+- 23:20Z: F0054-S0002 PR #610 merged at docs-approval: site.md rewritten and listed; its path order checked against operator/lib/site.sh: true. $3.77, 9 runs, no question.
+- 23:20Z: F0054-S0003 (operator guide machine reads for its reader) started.
