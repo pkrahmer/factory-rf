@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-11-06T20:08:36.465452Z'
   stage: smoke-test
   run: a593c75d4db641089ab9ecd59c530f11
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-11-06T20:12:30.665890Z'
+  stage: approval
 ---
 
 # Listing a right document keeps the suite green
@@ -351,3 +356,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     - Criterion 6 is the documenter's change to `docs/project-guide/shared.md`, *The settings check* (entry 19). Nothing here contradicts it.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 10.7 min, 56 turns, 204215 tokens in (1077201 more from cache), 25549 out, $2.16
