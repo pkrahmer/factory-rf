@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T07:20:47.072248Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-11-06T07:20:41.507770Z'
   stage: docs
   run: 38100c65864649918edd994522bad156
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:20:47.072248Z'
+  stage: smoke-test
 ---
 
 # The operator guide's settings agree with the settings code
@@ -429,3 +438,4 @@ Expect: `True`
     `check`: check: green
     `secrets`: secrets: green (0.8 s)
     `documents`: docs/project-guide/work.md:186: tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones does not exist
+30. factory: started smoke-test as vm.
