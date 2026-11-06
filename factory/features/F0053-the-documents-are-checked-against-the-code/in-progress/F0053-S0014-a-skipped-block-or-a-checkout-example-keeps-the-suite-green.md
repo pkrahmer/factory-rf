@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T19:28:42.488097Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-06T19:28:42.488097Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T19:31:03.737402Z'
+  stage: docs
+  run: 0c8c9829aaf54ae6b353f035e2a25809
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -337,3 +339,17 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
     - `tests/entry/test_check_documents_copies.py`: the standing leave to move a shared test helper. `_append_block` and `_findings_from` moved to `tests/support/check_documents_support.py`, and every test keeps its name, rows and assertions.
     - `tests/support/check_documents_support.py`: none needed. The change only adds `NOT_RUN`, `without_report_lines`, `append_block` and `findings_from`, and rewrites the module docstring. The existing names stay as they were.
 21. factory: started docs as vm.
+22. documenter: Docs round. I changed one file:
+    - `docs/project-guide/style.md`, *Runnable examples*: the paragraph on the test suite now says the suite runs the examples on a copy of the repository's tracked files (the `documents` fixture of `tests/conftest.py`). That is the same set of files as the `checkout` fixture. So an example that passes `make documents`, such as `$ ls operator/vm/setup.sh`, also passes the suite, and a block that is not run never fails either of them. This is docs criterion 7.
+
+    I checked the code and the tests, not only the story. The diff holds only tests and support modules, and nothing under `src/` changed. The fixture is `tracked_files` (session-scoped) plus `documents` (a clone for each test), as the sentence says. `make documents` ended with `documents ok (0.6 s)`. I did not run `make check`, because I changed only a document.
+
+    I cross-read `docs/project-guide/style.md`, including *Examples that are not run* and *The fixture*, against the diff and found them current. I searched the README and `docs/` for other text that describes the `documents` copy and found none.
+
+    I did not touch stale text that `make documents` prints and that is unrelated to this story: `docs/project-guide/machine.md:362` (`factory/stage.Containerfile does not exist`) and `docs/project-guide/work.md:13` (`factory/agents does not exist`).
+
+    No findings for the coder.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (0.6 s)
