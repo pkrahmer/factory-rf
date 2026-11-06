@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T12:21:25.169696Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-06T12:21:19.753749Z'
   stage: doing
   run: 47c1882be0ef4be5853dd60234ffd25e
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:21:25.169696Z'
+  stage: tests
 ---
 
 # The name check reads log files and git addresses
@@ -168,3 +177,4 @@ Expect: `0`
     `make check`: not run this round, because nothing in the working tree changed. Entry 7 recorded it green after the code was written.
 
     Noticed but not touched: nothing new beyond entry 7.
+12. factory: started tests as vm.
