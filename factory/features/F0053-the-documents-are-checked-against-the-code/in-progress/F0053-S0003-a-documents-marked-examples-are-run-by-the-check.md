@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T07:37:12.577175Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,13 @@ journal:
   kind: started
   at: '2026-11-06T07:37:12.577175Z'
   stage: doing
+- number: 16
+  speaker: coder
+  kind: question
+  at: '2026-11-06T07:45:19.194746Z'
+  stage: doing
+  run: bc040921dc834b7fbbe0c2778f3724bb
+  blocked: question
 ---
 
 # A document's marked examples are run by the check
@@ -269,3 +272,40 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 15. factory: started doing as vm.
+16. coder: I built all of it, but `make check` is red on four tests I'm not allowed to change. I stopped there and need your leave for two test changes.
+
+    What I built (in the working tree):
+    - `src/factory/shared/domain/documents.py`: `Command`, `Example`, `Skipped`, `Examples`, `examples(text)`, and `matches(expected, actual)` with `...` and `<placeholder>`. Next to `matches`, `first_difference(expected, actual)` finds the first printed line that departs, and `runs_the_suite(command)` also reads `uv run pytest`.
+    - `src/factory/shared/application/document_examples.py`: the `Fixture` and `ExampleRunner` interfaces.
+    - `src/factory/shared/adapters/document_examples.py`: `ProcessExampleRunner(time_limit=60 s)`.
+      - Each command runs through `run_process` as `env -i <the fixture's variables> PATH= HOME= TZ=UTC LANG=C.UTF-8 sh -c <command>`, with stderr merged. The fixed variables come last, so no fixture can override them.
+      - Each document gets one new temporary folder and home. A fixture is prepared once per document.
+      - A command past its limit ends the document. When the output runs out before the expected lines do, the finding says `printed nothing more`.
+    - `src/factory/hosting/adapters/checkout_fixture.py`: `CheckoutFixture(git: GitCli)`. It calls a new `GitCli.export(ref, folder)`, which runs `read-tree` into a temporary index and then `checkout-index --all --prefix=<folder>/`.
+    - `src/factory/entry/check_documents.py`: the report prints today's findings, the name and settings findings, the example findings, then one `not run (<kind>)` line per skipped block. When nothing blocks, it ends with `documents ok (<n.n> s)`, timed with `time.monotonic`.
+
+    Two choices I made to fit tests that already exist:
+    - `export` is on `GitCli` only, not on the `Git` interface. I tried the interface first, but `tests/hosting/application/test_git_interface.py` and `test_checkout_hygiene_removed.py[git-twenty-two]` pin exactly 22 operations. `CheckoutFixture` takes a `GitCli`, as journal 12 says. I rejected building the copy from `show_file` calls: two processes per tracked file is far too slow for the whole repository.
+    - The suite check compares whole strings like `"make check"`. `tests/guards/test_make_search.py` allows only the make class to contain `"make"` as a string literal.
+
+    The new tests from journals 11 and 14 all pass, and so do lint, `mypy --strict` and the format check. `make check` fails on these four:
+
+    Question 1: `tests/guards/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module` pins the set of modules that may import `factory.shared.adapters.process`. Your journal 4 answer has `ProcessExampleRunner` run commands through that module, so `factory.shared.adapters.document_examples` is a new importer.
+    - (a) The tester adds `"factory.shared.adapters.document_examples"` to that set. I would choose (a).
+    - (b) The runner goes through some other wrapper. There is no fitting one, and this contradicts journal 4.
+
+    Question 2: three more tests still expect the whole output to be exactly `"documents ok\n"`. Journals 9 and 12 gave leave only for `tests/entry/test_check_documents.py`. They now print `documents ok (0.0 s)`:
+    - `tests/entry/test_check_documents_guide_files.py::test_the_files_beside_the_index_are_read[others-ignored]`
+    - `tests/entry/test_check_documents_guide_files.py::test_the_files_beside_the_index_are_read[utf-8]`
+    - `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file[as-it-is]`
+
+    Options:
+    - (a) Each row's last line matches `documents ok \(\d+(\.\d+)? s\)` and keeps its exit-status check, the same change as journal 12. I would choose (a).
+    - (b) The code also prints a bare `documents ok` line, which goes against criterion 7.
+
+    With your leave I end the next run with `tests` naming these changes, and the tester makes them.
+
+    Still open:
+    - The refactor step: it comes after `make check` is green, so it is not done yet.
+    - Criterion 9, the docs in `docs/project-guide/shared.md`, is the documenter's.
+    - I noticed `documents.py` is now about 590 lines. I did not split it.

@@ -2,11 +2,17 @@
 
 import argparse
 import importlib
-from collections.abc import Callable, Sequence
+import time
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
+from factory.hosting.adapters.checkout_fixture import CheckoutFixture
+from factory.hosting.adapters.git_cli import GitCli
+from factory.shared.adapters.document_examples import ProcessExampleRunner
+from factory.shared.application.document_examples import ExampleRunner, Fixture
 from factory.shared.domain import settings
 from factory.shared.domain.documents import (
+    DEFAULT_FIXTURE,
     DOCUMENT_PATHS,
     OPERATOR_GUIDE_FOLDER,
     OPERATOR_INSTALL,
@@ -15,6 +21,7 @@ from factory.shared.domain.documents import (
     SETTINGS_SECTION,
     Reference,
     check_documents,
+    examples,
     guide_tables,
     is_guide_file,
     named_references,
@@ -109,28 +116,46 @@ def _settings_guide_findings(root: Path) -> list[str]:
     ]
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    """Print `documents ok` and return 0, or one line per finding and return 1.
+def _example_lines(root: Path, runner: ExampleRunner, fixtures: Mapping[str, Fixture]) -> list[str]:
+    findings: list[str] = []
+    not_run: list[str] = []
+    for document in _named_documents(root):
+        found = examples((root / document).read_text(encoding="utf-8"))
+        if found.runnable:
+            findings += runner.run_document(document, found.runnable, fixtures)
+        not_run += [f"{document}:{block.line}: not run ({block.kind})" for block in found.skipped]
+    return [*findings, *not_run]
 
-    The names, paths and links the documents name that do not exist follow, one per line,
-    then where the operator guide's settings disagree with the settings code; neither
-    changes the exit status.
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Print one line per finding, the examples' findings and skipped blocks, then the time.
+
+    The document findings come first and alone decide the exit status: 1 when there is one,
+    else 0 and a last line `documents ok (<seconds> s)`. The names, paths and links the
+    documents name that do not exist follow, then where the operator guide's settings
+    disagree with the settings code, then what the runnable examples printed otherwise and
+    one line per example not run.
     """
+    started = time.monotonic()
     parser = argparse.ArgumentParser(prog=_PROGRAM)
     parser.add_argument("--root", type=Path, default=Path.cwd())
     arguments = parser.parse_args(argv)
     root: Path = arguments.root
     paths = [*DOCUMENT_PATHS, *_guide_files(root)]
     findings = check_documents({path: _read(root / path) for path in paths})
-    if not findings:
-        print("documents ok")
     for finding in findings:
         print(f"{finding.document}: {finding.message}")
     for name_finding in _name_findings(root):
         print(name_finding)
     for settings_finding in _settings_guide_findings(root):
         print(f"{OPERATOR_INSTALL}: {settings_finding}")
-    return _FINDINGS if findings else _CLEAN
+    fixtures = {DEFAULT_FIXTURE: CheckoutFixture(GitCli(root))}
+    for example_line in _example_lines(root, ProcessExampleRunner(), fixtures):
+        print(example_line)
+    if findings:
+        return _FINDINGS
+    print(f"documents ok ({time.monotonic() - started:.1f} s)")
+    return _CLEAN
 
 
 if __name__ == "__main__":

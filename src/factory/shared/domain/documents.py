@@ -1,4 +1,4 @@
-"""The check of the documents and the guide's files: sections, rows, phrases, words, names."""
+"""The check of the documents and the guide's files: sections, rows, words, names, examples."""
 
 import posixpath
 import re
@@ -10,7 +10,13 @@ from pydantic import BaseModel, ConfigDict
 from factory.pipeline.domain.fault_paths import FAULT_PATHS
 from factory.pipeline.domain.stop_table import STOP_TABLE, Destination
 from factory.shared.domain.kill_point_cases import KILL_POINT_CASES
-from factory.shared.domain.sections import lines_outside_blocks, sections, split_lines
+from factory.shared.domain.sections import (
+    code_blocks,
+    lines_outside_blocks,
+    opening_fence,
+    sections,
+    split_lines,
+)
 from factory.shared.domain.settings import SettingDoc
 
 README: Final = "README.md"
@@ -507,3 +513,175 @@ def unresolved(references: list[Reference], exists: Callable[[Reference], bool])
         for reference in references
         if not exists(reference)
     ]
+
+
+CONSOLE: Final = "console"
+DEFAULT_FIXTURE: Final = "checkout"
+UNRUN_MARKS: Final = ("vm", "github", "model")
+SUITE: Final = "suite"
+ANY_LINES: Final = "..."
+_COMMAND_PROMPT = "$ "
+_FIXTURE_OPTION = "fixture="
+_SUITE_TARGETS = ("make check", "make test")
+_RUNNER_PREFIX = ("uv", "run")
+_PYTEST = "pytest"
+_OPTION_MARK = "-"
+
+
+class Command(BaseModel):
+    """One `$ ` line of a `console` block: its line, the command and the lines it prints."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    line: int
+    command: str
+    expected: list[str]
+
+
+class Example(BaseModel):
+    """A runnable `console` block: its opening line, the fixture it runs on, its commands."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    line: int
+    fixture: str
+    commands: list[Command]
+
+
+class Skipped(BaseModel):
+    """A `console` block that is not run: its opening line and why (`vm`, `suite`, ...)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    line: int
+    kind: str
+
+
+class Examples(BaseModel):
+    """The `console` blocks of one document, the runnable ones and the skipped ones, in order."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    runnable: list[Example]
+    skipped: list[Skipped]
+
+
+def _info_words(line: str) -> list[str]:
+    fence = opening_fence(line)
+    if fence is None:
+        return []
+    return line.lstrip(" \t")[len(fence) :].split()
+
+
+def _commands(lines: Sequence[str], first: int) -> list[Command]:
+    commands: list[Command] = []
+    for index, line in enumerate(lines):
+        if line.startswith(_COMMAND_PROMPT):
+            command = line[len(_COMMAND_PROMPT) :]
+            commands.append(Command(line=first + index, command=command, expected=[]))
+        elif commands:
+            commands[-1].expected.append(line)
+    return commands
+
+
+def runs_the_suite(command: str) -> bool:
+    """Whether `command` runs the whole test suite: `make check`, `make test`, a bare `pytest`."""
+    words = tuple(command.split())
+    if words[: len(_RUNNER_PREFIX)] == _RUNNER_PREFIX:
+        words = words[len(_RUNNER_PREFIX) :]
+    if " ".join(words[:2]) in _SUITE_TARGETS:
+        return True
+    if not words or words[0] != _PYTEST:
+        return False
+    return all(word.startswith(_OPTION_MARK) for word in words[1:])
+
+
+def _skipped_kind(options: Sequence[str], commands: Sequence[Command]) -> str | None:
+    marks = [option for option in options if option in UNRUN_MARKS]
+    if marks:
+        return marks[0]
+    if any(runs_the_suite(command.command) for command in commands):
+        return SUITE
+    return None
+
+
+def _fixture(options: Sequence[str]) -> str:
+    named = [option for option in options if option.startswith(_FIXTURE_OPTION)]
+    return named[0].removeprefix(_FIXTURE_OPTION) if named else DEFAULT_FIXTURE
+
+
+def examples(text: str) -> Examples:
+    """The `console` blocks of a document, in order; lines are counted from 1.
+
+    A block's `$ ` lines are its commands and the lines below each its expected output. A
+    block marked `vm`, `github` or `model`, or one with a command that runs the suite, is
+    skipped with that kind; any other runs on the fixture its `fixture=` names, `checkout`
+    when it names none.
+    """
+    lines = split_lines(text)
+    runnable: list[Example] = []
+    skipped: list[Skipped] = []
+    for block in code_blocks(lines):
+        words = _info_words(lines[block.start])
+        if not words or words[0] != CONSOLE:
+            continue
+        end = len(lines) if block.end is None else block.end
+        line = block.start + 1
+        commands = _commands(lines[block.start + 1 : end], line + 1)
+        options = words[1:]
+        kind = _skipped_kind(options, commands)
+        if kind is None:
+            runnable.append(Example(line=line, fixture=_fixture(options), commands=commands))
+        else:
+            skipped.append(Skipped(line=line, kind=kind))
+    return Examples(runnable=runnable, skipped=skipped)
+
+
+def _line_matches(expected: str, actual: str) -> bool:
+    pieces = (re.escape(piece) for piece in _PLACEHOLDER.split(expected))
+    return re.fullmatch(".*".join(pieces), actual) is not None
+
+
+def _with_any_lines_passed(expected: Sequence[str], states: set[int]) -> set[int]:
+    # `...` may stand for no line, so a state before it is also a state after it.
+    closed = set(states)
+    pending = list(states)
+    while pending:
+        state = pending.pop()
+        if state < len(expected) and expected[state] == ANY_LINES and state + 1 not in closed:
+            closed.add(state + 1)
+            pending.append(state + 1)
+    return closed
+
+
+def _next_states(expected: Sequence[str], states: set[int], actual: str) -> set[int]:
+    following: set[int] = set()
+    for state in states:
+        if state >= len(expected):
+            continue
+        if expected[state] == ANY_LINES:
+            following.add(state)
+        elif _line_matches(expected[state], actual):
+            following.add(state + 1)
+    return _with_any_lines_passed(expected, following)
+
+
+def first_difference(expected: Sequence[str], actual: Sequence[str]) -> int | None:
+    """The index of the first line of `actual` that `expected` cannot match, or `None`.
+
+    When every line matches but `expected` wants more, the index is `len(actual)`.
+    """
+    states = _with_any_lines_passed(expected, {0})
+    for index, line in enumerate(actual):
+        states = _next_states(expected, states, line)
+        if not states:
+            return index
+    return None if len(expected) in states else len(actual)
+
+
+def matches(expected: Sequence[str], actual: Sequence[str]) -> bool:
+    """Whether `actual` is `expected` line by line, with its two placeholders.
+
+    A line `...` stands for any number of lines, and `<placeholder>` for any text in a line.
+    """
+    return first_difference(expected, actual) is None
